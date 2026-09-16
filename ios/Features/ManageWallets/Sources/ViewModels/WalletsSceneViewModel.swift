@@ -6,7 +6,10 @@ import Localization
 import Primitives
 import Store
 import SwiftUI
+import struct Gemstone.GemWalletRow
+import func Gemstone.walletRow
 import protocol Gemstone.GemWalletServiceProtocol
+import PrimitivesComponents
 
 @Observable
 @MainActor
@@ -56,6 +59,10 @@ public final class WalletsSceneViewModel {
     private func sorted(_ wallets: [Wallet]) -> [Wallet] {
         service.sorted(wallets: wallets)
     }
+
+    func row(for wallet: Wallet) -> GemWalletRow {
+        walletRow(wallet: wallet.toGem())
+    }
 }
 
 // MARK: - Business Logic
@@ -65,7 +72,7 @@ extension WalletsSceneViewModel {
         do {
             try service.setCurrentWalletId(walletId: walletId.id)
         } catch {
-            debugLog("set current wallet error: \(error)")
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
 
@@ -74,10 +81,7 @@ extension WalletsSceneViewModel {
     }
 
     private func delete(_ wallet: Wallet) async throws {
-        switch try await service.delete(wallet) {
-        case .walletsRemaining: break
-        case .lastWalletDeleted: preferences.reload()
-        }
+        preferences.reload(after: try await service.delete(wallet))
     }
 
     private func pin(_ wallet: Wallet) async throws {
@@ -118,7 +122,7 @@ extension WalletsSceneViewModel {
         do {
             try await pin(wallet)
         } catch {
-            isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
 
@@ -126,7 +130,7 @@ extension WalletsSceneViewModel {
         do {
             try await delete(wallet)
         } catch {
-            isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
 }

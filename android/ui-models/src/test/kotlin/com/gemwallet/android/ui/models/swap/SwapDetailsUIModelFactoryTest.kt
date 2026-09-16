@@ -1,9 +1,12 @@
 package com.gemwallet.android.ui.models.swap
 
-import uniffi.gemstone.GemSwapQuoteSummary
+import uniffi.gemstone.swapQuoteSummary
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.testkit.mockAssetPriceInfo
+import com.gemwallet.android.testkit.mockAssetPriceValue
 import com.gemwallet.android.testkit.mockSwapQuote
 import com.gemwallet.android.model.ValueFormatter
 import org.junit.Assert.assertEquals
@@ -11,16 +14,17 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import com.wallet.core.primitives.swap.SwapPriceImpact
-import com.wallet.core.primitives.swap.SwapPriceImpactType
+import uniffi.gemstone.SwapPriceImpact
+import uniffi.gemstone.SwapPriceImpactType
 import uniffi.gemstone.SwapProvider
 import java.math.BigInteger
+import uniffi.gemstone.GemValueStyle
 
 class SwapDetailsUIModelFactoryTest {
 
 
-    private val payAsset = assetInfo(symbol = "AAA")
-    private val receiveAsset = assetInfo(symbol = "BBB")
+    private val payAsset = mockAssetPriceValue(asset = mockAsset(symbol = "AAA", name = "AAA", decimals = 18), price = mockAssetPriceInfo(price = 1.0))
+    private val receiveAsset = mockAssetPriceValue(asset = mockAsset(symbol = "BBB", name = "BBB", decimals = 18), price = mockAssetPriceInfo(price = 1.0))
 
     @Test
     fun `low price impact stays in details and is hidden in summary`() {
@@ -29,8 +33,9 @@ class SwapDetailsUIModelFactoryTest {
             etaInSeconds = 30u,
             priceImpact = SwapPriceImpact(
                 percentage = -1.0,
-                impactType = SwapPriceImpactType.Low,
+                impactType = SwapPriceImpactType.LOW,
                 isHigh = false,
+                showsInSummary = false,
             ),
         )
 
@@ -38,7 +43,7 @@ class SwapDetailsUIModelFactoryTest {
         assertNull(result.summaryPriceImpactText)
         assertNull(result.summaryPriceImpactBadgeText)
         assertEquals("1.00%", result.slippageText)
-        assertNull(result.estimatedTime)
+        assertEquals(30u, result.etaInSeconds)
     }
 
     @Test
@@ -52,8 +57,9 @@ class SwapDetailsUIModelFactoryTest {
             isProviderSelectable = true,
             priceImpact = SwapPriceImpact(
                 percentage = -5.0,
-                impactType = SwapPriceImpactType.Medium,
+                impactType = SwapPriceImpactType.MEDIUM,
                 isHigh = false,
+                showsInSummary = true,
             ),
         )
 
@@ -61,7 +67,7 @@ class SwapDetailsUIModelFactoryTest {
         assertEquals("(-5.00%)", result.summaryPriceImpactBadgeText)
         assertFalse(result.shouldShowPriceImpactWarning)
         assertTrue(result.isProviderSelectable)
-        assertEquals("≈ 3 min", result.estimatedTime)
+        assertEquals(180u, result.etaInSeconds)
     }
 
     @Test
@@ -70,21 +76,14 @@ class SwapDetailsUIModelFactoryTest {
             toValue = DEFAULT_TO_VALUE,
             priceImpact = SwapPriceImpact(
                 percentage = 2.345,
-                impactType = SwapPriceImpactType.Positive,
+                impactType = SwapPriceImpactType.POSITIVE,
                 isHigh = false,
+                showsInSummary = false,
             ),
         )
 
         assertEquals("+2.34%", result!!.priceImpact!!.displayText)
         assertEquals("2.34%", result.priceImpact.warningText)
-    }
-
-    @Test
-    fun `estimated time matches ios minute truncation`() {
-        assertNull(swapDetails(toValue = "950000000000000000", etaInSeconds = 60u)!!.estimatedTime)
-        assertEquals("≈ 1 min", swapDetails(toValue = "950000000000000000", etaInSeconds = 61u)!!.estimatedTime)
-        assertEquals("≈ 1 min", swapDetails(toValue = "950000000000000000", etaInSeconds = 119u)!!.estimatedTime)
-        assertEquals("≈ 2 min", swapDetails(toValue = "950000000000000000", etaInSeconds = 120u)!!.estimatedTime)
     }
 
     @Test
@@ -96,19 +95,19 @@ class SwapDetailsUIModelFactoryTest {
 
     @Test
     fun `rate handles cross decimal assets`() {
+        val eth = mockAssetPriceValue(asset = mockAssetEthereum(), price = mockAssetPriceInfo(price = 1.0))
+        val usdc = mockAssetPriceValue(asset = mockAsset(symbol = "USDC", name = "USDC", decimals = 6), price = mockAssetPriceInfo(price = 1.0))
         val result = SwapDetailsUIModelFactory.create(
             SwapDetailsUIModelInput(
-                payAsset = assetInfo(symbol = "ETH", decimals = 18),
-                receiveAsset = assetInfo(symbol = "USDC", decimals = 6),
-                fromValue = BigInteger("1000000000000000000"),
-                toValue = BigInteger("2000000000"),
+                payAsset = eth,
+                receiveAsset = usdc,
+                summary = summary("1000000000000000000", "2000000000", DEFAULT_SLIPPAGE_BPS, null, eth, usdc),
                 provider = provider(
                     toValue = "2000000000",
-                    receiveAsset = assetInfo(symbol = "USDC", decimals = 6),
+                    receiveAsset = usdc,
                 ),
                 slippageBps = DEFAULT_SLIPPAGE_BPS,
                 selectedSlippage = DEFAULT_SLIPPAGE_BPS,
-                etaInSeconds = null,
                 isProviderSelectable = false,
             ),
         )
@@ -171,26 +170,34 @@ class SwapDetailsUIModelFactoryTest {
         etaInSeconds: UInt? = null,
         isProviderSelectable: Boolean = false,
         priceImpact: SwapPriceImpact? = null,
-    ) = SwapDetailsUIModelFactory.create(
-        SwapDetailsUIModelInput(
-            payAsset = payAsset,
-            receiveAsset = receiveAsset,
-            fromValue = BigInteger(fromValue),
-            toValue = BigInteger(toValue),
-            provider = provider,
-            providers = providers,
-            slippageBps = slippageBps,
-            selectedSlippage = slippageBps,
-            etaInSeconds = etaInSeconds,
-            isProviderSelectable = isProviderSelectable,
-            priceImpact = priceImpact,
-            minReceiveValue = summary(toValue, slippageBps, etaInSeconds).minReceiveValue(),
-            etaMinutes = summary(toValue, slippageBps, etaInSeconds).etaMinutes(),
-        ),
-    )
+    ): SwapDetailsUIModel? {
+        val summary = summary(fromValue, toValue, slippageBps, etaInSeconds, payAsset, receiveAsset)
+        return SwapDetailsUIModelFactory.create(
+            SwapDetailsUIModelInput(
+                payAsset = payAsset,
+                receiveAsset = receiveAsset,
+                summary = summary,
+                provider = provider,
+                providers = providers,
+                slippageBps = slippageBps,
+                selectedSlippage = slippageBps,
+                isProviderSelectable = isProviderSelectable,
+                priceImpact = priceImpact,
+            ),
+        )
+    }
 
-    private fun summary(toValue: String, slippageBps: UInt, etaInSeconds: UInt?) = GemSwapQuoteSummary(
-        mockSwapQuote(toAmount = toValue.toBigInteger(), slippageBps = slippageBps, etaInSeconds = etaInSeconds),
+    private fun summary(
+        fromValue: String,
+        toValue: String,
+        slippageBps: UInt,
+        etaInSeconds: UInt?,
+        payAsset: AssetPriceValue,
+        receiveAsset: AssetPriceValue,
+    ) = swapQuoteSummary(
+        mockSwapQuote(fromAmount = fromValue.toBigInteger(), toAmount = toValue.toBigInteger(), slippageBps = slippageBps, etaInSeconds = etaInSeconds),
+        payAsset.asset.toGem(),
+        receiveAsset.asset.toGem(),
     )
 
     private fun provider(
@@ -203,16 +210,8 @@ class SwapDetailsUIModelFactoryTest {
         toValue = BigInteger(toValue),
     )
 
-    private fun assetInfo(
-        symbol: String,
-        decimals: Int = 18,
-    ) = AssetPriceValue(
-        asset = mockAsset(symbol = symbol, name = symbol, decimals = decimals),
-        price = mockAssetPriceInfo(price = 1.0),
-    )
-
     private fun formattedReceiveAmount(atomicValue: String) =
-        ValueFormatter(style = ValueFormatter.Style.Auto)
+        ValueFormatter(style = GemValueStyle.AUTO)
             .string(java.math.BigInteger(atomicValue), receiveAsset.asset)
 
     private companion object {

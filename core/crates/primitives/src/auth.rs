@@ -1,9 +1,7 @@
 use crate::Chain;
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct AuthNonce {
     pub nonce: String,
@@ -19,7 +17,6 @@ pub struct AuthMessage {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct AuthPayload {
     pub device_id: String,

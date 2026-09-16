@@ -140,16 +140,6 @@ public extension Asset {
         )
     }
 
-    static func mockHypercoreSpotUSDC() -> Asset {
-        .mock(
-            id: AssetId(chain: .hyperCore, tokenId: "USDC::0x6d1e7cde53ba9467b783cb7c530ce054::0"),
-            name: "USDC",
-            symbol: "USDC",
-            decimals: 8,
-            type: .token,
-        )
-    }
-
     static func mockTempoUSDC() -> Asset {
         .mock(
             id: AssetId(chain: .tempo, tokenId: "0x20C000000000000000000000b9537d11c60E8b50"),

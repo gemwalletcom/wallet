@@ -9,8 +9,6 @@ import com.gemwallet.android.model.AssetInfo
 import uniffi.gemstone.TransactionInputType
 import com.gemwallet.android.model.PaymentDestination
 import com.gemwallet.android.model.toPaymentWalletAsset
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemPaymentDestination
 import uniffi.gemstone.GemPaymentRecipient
 import com.gemwallet.android.testkit.includeGemstoneLibs
@@ -22,8 +20,8 @@ import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
 import com.gemwallet.android.testkit.mockAssetXrp
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.Payment
-import com.wallet.core.primitives.PaymentRequest
+import uniffi.gemstone.Payment
+import uniffi.gemstone.PaymentRequest
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -53,10 +51,10 @@ class PaymentTransferTest {
     private val paymentService = GemPaymentService(mockk<AlienProvider>())
 
     private fun decode(url: String): PaymentRequest =
-        requireNotNull((paymentService.decodeUrl(url).decodeJson<Payment>() as? Payment.Request)?.content) { "not a payment request: $url" }
+        requireNotNull((paymentService.decodeUrl(url) as? Payment.Request)?.request) { "not a payment request: $url" }
 
     private fun destination(assetInfo: AssetInfo, url: String): GemPaymentDestination =
-        paymentService.transferDestination(decode(url).toJson(), assetInfo.toPaymentWalletAsset())
+        paymentService.transferDestination(decode(url), assetInfo.toPaymentWalletAsset())
 
     @Test
     fun destination_confirm() {
@@ -64,7 +62,7 @@ class PaymentTransferTest {
 
         assertTrue("expected a confirmable transfer, got $confirm", confirm is GemPaymentDestination.Confirm)
         val transfer = (confirm as GemPaymentDestination.Confirm).transfer
-        assertEquals("10000", transfer.value)
+        assertEquals(BigInteger("10000"), transfer.value)
         assertEquals(BITCOIN_ADDRESS, transfer.address)
         assertTrue(paymentService.transferData(transfer, bitcoin.asset.toGem()).inputType is TransactionInputType.Transfer)
     }
@@ -87,7 +85,7 @@ class PaymentTransferTest {
         val confirm = destination(usdc, url)
 
         assertTrue("expected USDC to confirm, got $confirm", confirm is GemPaymentDestination.Confirm)
-        assertEquals("1000000", (confirm as GemPaymentDestination.Confirm).transfer.value)
+        assertEquals(BigInteger("1000000"), (confirm as GemPaymentDestination.Confirm).transfer.value)
     }
 
     @Test
@@ -96,7 +94,7 @@ class PaymentTransferTest {
 
         assertTrue("an exact tagged payment must confirm, got $confirm", confirm is GemPaymentDestination.Confirm)
         val transfer = (confirm as GemPaymentDestination.Confirm).transfer
-        assertEquals("10000000", transfer.value)
+        assertEquals(BigInteger("10000000"), transfer.value)
         assertEquals(RIPPLE_ADDRESS, transfer.address)
         assertEquals("12345", transfer.memo)
     }

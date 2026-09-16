@@ -13,6 +13,10 @@ let package = Package(
             name: "Contacts",
             targets: ["Contacts"],
         ),
+        .library(
+            name: "ContactsTestKit",
+            targets: ["ContactsTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "Gemstone", path: "../../Packages/Gemstone"),
@@ -45,17 +49,27 @@ let package = Package(
             ],
             path: "Sources",
         ),
+        .target(
+            name: "ContactsTestKit",
+            dependencies: [
+                "Contacts",
+                "Gemstone",
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
+            ],
+            path: "TestKit",
+        ),
         .testTarget(
             name: "ContactsTests",
             dependencies: [
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "Contacts",
+                "ContactsTestKit",
                 "Primitives",
-                "PrimitivesComponents",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
-                .product(name: "StoreTestKit", package: "Store"),
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
+                "Gemstone",
+                "GemstonePrimitives",
             ],
         ),
     ],

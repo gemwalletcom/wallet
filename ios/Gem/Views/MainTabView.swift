@@ -147,7 +147,11 @@ extension MainTabView {
             presenter.isPresentingAssetInput.wrappedValue = nil
         case let .swap(fromAsset, _):
             Task {
-                try await presenter.completeSwap(fromAsset: fromAsset, navigationState: navigationState)
+                do {
+                    try await presenter.completeSwap(fromAsset: fromAsset, navigationState: navigationState)
+                } catch {
+                    model.isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
+                }
             }
         }
     }

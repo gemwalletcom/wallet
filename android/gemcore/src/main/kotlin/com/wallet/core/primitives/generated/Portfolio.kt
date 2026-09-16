@@ -39,63 +39,12 @@ data class PerpetualPortfolio (
 )
 
 @Serializable
-data class PortfolioAllocation (
-	val assetId: AssetId,
-	val percentage: Float,
-	val value: Float
-)
-
-@Serializable
 enum class PortfolioChartType(val string: String) {
 	@SerialName("value")
 	Value("value"),
 	@SerialName("pnl")
 	Pnl("pnl"),
 }
-
-@Serializable
-data class PortfolioChartData (
-	val chartType: PortfolioChartType,
-	val values: List<ChartDateValue>
-)
-
-@Serializable
-sealed class PortfolioStatistic {
-	@Serializable
-	@SerialName("allTimeHigh")
-	data class AllTimeHigh(val content: ChartValuePercentage): PortfolioStatistic()
-	@Serializable
-	@SerialName("allTimeLow")
-	data class AllTimeLow(val content: ChartValuePercentage): PortfolioStatistic()
-	@Serializable
-	@SerialName("unrealizedPnl")
-	data class UnrealizedPnl(val content: Double): PortfolioStatistic()
-	@Serializable
-	@SerialName("accountLeverage")
-	data class AccountLeverage(val content: Double): PortfolioStatistic()
-	@Serializable
-	@SerialName("marginUsage")
-	data class MarginUsage(val content: PortfolioMarginUsage): PortfolioStatistic()
-	@Serializable
-	@SerialName("allTimePnl")
-	data class AllTimePnl(val content: Double): PortfolioStatistic()
-	@Serializable
-	@SerialName("volume")
-	data class Volume(val content: Double): PortfolioStatistic()
-}
-
-@Serializable
-data class PortfolioData (
-	val charts: List<PortfolioChartData>,
-	val statistics: List<PortfolioStatistic>,
-	val availablePeriods: List<ChartPeriod>
-)
-
-@Serializable
-data class PortfolioMarginUsage (
-	val accountValue: Double,
-	val usage: Double
-)
 
 @Serializable
 enum class PortfolioType(val string: String) {

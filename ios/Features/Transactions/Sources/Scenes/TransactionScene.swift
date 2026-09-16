@@ -79,7 +79,7 @@ public struct TransactionScene: View {
             )
             .cleanListRow(topOffset: .zero)
             if #available(iOS 26, *) {
-                button.cornerRadius(.scene.button.height / 2) // TODO: - Think about what to do with this button
+                button.cornerRadius(.scene.button.height / 2)
             }
         case .empty:
             EmptyView()

@@ -3,43 +3,22 @@
 import Components
 import Formatters
 import Foundation
+import struct Gemstone.GemPerpetualDetails
+import enum Gemstone.GemPerpetualDetailsAction
+import struct Gemstone.PerpetualConfirmData
+import GemstonePrimitives
 import Localization
 import Primitives
 import Style
 import SwiftUI
 
-public enum PerpetualDetailsType: Sendable {
-    case open(PerpetualConfirmData)
-    case close(PerpetualConfirmData)
-    case increase(PerpetualConfirmData)
-    case reduce(PerpetualReduceData)
-
-    public init(_ perpetualType: PerpetualType) {
-        switch perpetualType {
-        case let .open(data): self = .open(data)
-        case let .close(data): self = .close(data)
-        case let .increase(data): self = .increase(data)
-        case let .reduce(data): self = .reduce(data)
-        case .modify: fatalError("not supported")
-        }
-    }
-
-    var data: PerpetualConfirmData {
-        switch self {
-        case let .open(data), let .close(data), let .increase(data): data
-        case let .reduce(data): data.data
-        }
-    }
-}
-
 public struct PerpetualDetailsViewModel: Sendable, Identifiable {
     public var id: String {
-        type.data.baseAsset.id.identifier
+        details.data.baseAsset.id
     }
 
-    private let type: PerpetualDetailsType
+    private let details: GemPerpetualDetails
     private let currencyFormatter: CurrencyFormatter
-    private let numericFormatter = NumericFormatter()
     private let percentFormatter = PercentFormatter.signed
     private let percentSignLessFormatter = PercentFormatter.unsigned
     private let autocloseFormatter = AutocloseFormatter(
@@ -47,13 +26,17 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
         stopLossLabel: Localized.Perpetual.stopLoss,
     )
 
-    public init(type: PerpetualDetailsType, currencyFormatter: CurrencyFormatter = .usd) {
-        self.type = type
+    public init(details: GemPerpetualDetails, currencyFormatter: CurrencyFormatter = .usd) {
+        self.details = details
         self.currencyFormatter = currencyFormatter
     }
 
     var data: PerpetualConfirmData {
-        type.data
+        details.data
+    }
+
+    var action: GemPerpetualDetailsAction {
+        details.action
     }
 
     public var listItemModel: ListItemModel {
@@ -76,15 +59,7 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
     }
 
     var directionViewModel: PerpetualDirectionViewModel {
-        let direction = switch type {
-        case let .open(data), let .close(data), let .increase(data): data.direction
-        case let .reduce(data): data.positionDirection
-        }
-        return PerpetualDirectionViewModel(direction: direction)
-    }
-
-    var leverageTitle: String {
-        Localized.Perpetual.leverage
+        PerpetualDirectionViewModel(direction: details.direction.toPrimitives())
     }
 
     var leverageText: String {
@@ -143,8 +118,8 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
 
     var autocloseText: (subtitle: String, subtitleExtra: String?) {
         autocloseFormatter.format(
-            takeProfit: data.takeProfit.flatMap { numericFormatter.double(from: $0) },
-            stopLoss: data.stopLoss.flatMap { numericFormatter.double(from: $0) },
+            takeProfit: data.takeProfit.flatMap { NumberInput.double($0) },
+            stopLoss: data.stopLoss.flatMap { NumberInput.double($0) },
         )
     }
 
@@ -157,7 +132,7 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
 
 extension PerpetualDetailsViewModel {
     private var listItemSubtitle: String? {
-        switch type {
+        switch action {
         case .open: String(format: "%@ %@", directionViewModel.title, leverageText)
         case .close: pnlText
         case .increase: directionViewModel.increaseTitle
@@ -166,7 +141,7 @@ extension PerpetualDetailsViewModel {
     }
 
     private var listItemSubtitleStyle: TextStyle {
-        switch type {
+        switch action {
         case .open: TextStyle(font: .callout, color: directionViewModel.color)
         case .close: pnlTextStyle
         case .increase, .reduce: .calloutSecondary

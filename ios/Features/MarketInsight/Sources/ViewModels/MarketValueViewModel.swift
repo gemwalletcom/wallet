@@ -15,7 +15,7 @@ struct MarketValueViewModel {
 
     let title: String
     let titleExtra: String?
-    let subtitle: String?
+    let subtitle: String
     let subtitleExtra: String?
     let subtitleExtraStyle: TextStyle?
     let action: Action
@@ -25,7 +25,7 @@ struct MarketValueViewModel {
     init(
         title: String,
         titleExtra: String? = .none,
-        subtitle: String?,
+        subtitle: String,
         subtitleExtra: String? = .none,
         subtitleExtraStyle: TextStyle? = .none,
         action: Action = .none,
@@ -40,11 +40,5 @@ struct MarketValueViewModel {
         self.action = action
         self.titleTag = titleTag
         self.titleTagStyle = titleTagStyle
-    }
-}
-
-extension [MarketValueViewModel] {
-    func withValues() -> Self {
-        filter { $0.subtitle?.isEmpty == false }
     }
 }

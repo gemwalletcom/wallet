@@ -10,6 +10,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.data.service.store.database.GemDatabase
 import com.gemwallet.android.data.service.store.database.di.Migration_76_77
+import com.gemwallet.android.data.service.store.database.di.gemDatabaseMigrations
 import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -59,7 +60,7 @@ class Migration_76_77Test {
         migratedDb.close()
 
         val roomDb = Room.databaseBuilder(context, GemDatabase::class.java, testDb)
-            .addMigrations(Migration_76_77)
+            .addMigrations(*gemDatabaseMigrations(context))
             .allowMainThreadQueries()
             .build()
         val withChains = roomDb.connectionsDao().getBySessionId("topic-chains")

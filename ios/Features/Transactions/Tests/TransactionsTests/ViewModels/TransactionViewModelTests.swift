@@ -1,9 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import Components
 import Primitives
 import PrimitivesComponents
+import PrimitivesComponentsTestKit
 import PrimitivesTestKit
 import Testing
 @testable import Transactions
@@ -11,22 +13,22 @@ import Testing
 final class TransactionViewModelTests {
     @Test
     func transactionTitle() {
-        testTransactionTitle(expectedTitle: "Received", transaction: .mock(state: .confirmed))
-        testTransactionTitle(expectedTitle: "Sent", transaction: .mock(state: .confirmed, direction: .outgoing))
-        testTransactionTitle(expectedTitle: "Transfer", transaction: .mock(state: .failed))
-        testTransactionTitle(expectedTitle: "Swap", transaction: .mock(type: .swap))
+        #expect(TransactionViewModel.mock(type: .transfer, state: .confirmed).titleTextValue.text == "Received")
+        #expect(TransactionViewModel.mock(type: .transfer, state: .confirmed, direction: .outgoing).titleTextValue.text == "Sent")
+        #expect(TransactionViewModel.mock(type: .transfer, state: .failed).titleTextValue.text == "Transfer")
+        #expect(TransactionViewModel.mock(type: .swap).titleTextValue.text == "Swap")
     }
 
     @Test
     func autoValueFormatter() {
         let fromAsset = Asset.mockEthereum()
         let toAsset = Asset.mockEthereumUSDT()
-        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1000000"))).subtitleTextValue?.text == "+1 USDT")
-        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "10000"))).subtitleTextValue?.text == "+0.01 USDT")
-        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1000"))).subtitleTextValue?.text == "+0.001 USDT")
-        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "100"))).subtitleTextValue?.text == "+0.0001 USDT")
-        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "10"))).subtitleTextValue?.text == "+<0.0001 USDT")
-        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1"))).subtitleTextValue?.text == "+<0.0001 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1000000"))).subtitleTextValue(currency: .usd)?.text == "+1 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "10000"))).subtitleTextValue(currency: .usd)?.text == "+0.01 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1000"))).subtitleTextValue(currency: .usd)?.text == "+0.001 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "100"))).subtitleTextValue(currency: .usd)?.text == "+0.0001 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "10"))).subtitleTextValue(currency: .usd)?.text == "+<0.0001 USDT")
+        #expect(TransactionViewModel.mock(metadata: .encode(TransactionSwapMetadata.mock(fromAsset: fromAsset.id, toAsset: toAsset.id, toValue: "1"))).subtitleTextValue(currency: .usd)?.text == "+<0.0001 USDT")
     }
 
     @Test
@@ -98,7 +100,7 @@ final class TransactionViewModelTests {
             asset: Asset.mockHypercoreUSDC(),
             metadata: .encode(TransactionPerpetualMetadata.mock()),
         )
-        #expect(model.subtitleTextValue?.text == "$1.00")
+        #expect(model.subtitleTextValue(currency: .usd)?.text == "$1.00")
     }
 
     @Test
@@ -108,14 +110,14 @@ final class TransactionViewModelTests {
             asset: Asset.mockHypercoreUSDC(),
             metadata: .encode(TransactionPerpetualMetadata.mock(pnl: 125.50)),
         )
-        #expect(profitModel.subtitleTextValue?.text == "+$125.50")
+        #expect(profitModel.subtitleTextValue(currency: .usd)?.text == "+$125.50")
 
         let lossModel = TransactionViewModel.mock(
             type: .perpetualClosePosition,
             asset: Asset.mockHypercoreUSDC(),
             metadata: .encode(TransactionPerpetualMetadata.mock(pnl: -75.25)),
         )
-        #expect(lossModel.subtitleTextValue?.text == "-$75.25")
+        #expect(lossModel.subtitleTextValue(currency: .usd)?.text == "-$75.25")
     }
 
     @Test
@@ -125,7 +127,7 @@ final class TransactionViewModelTests {
             asset: Asset.mockHypercoreUSDC(),
             metadata: .encode(TransactionPerpetualMetadata.mock(pnl: 0)),
         )
-        #expect(model.subtitleTextValue == nil)
+        #expect(model.subtitleTextValue(currency: .usd) == nil)
     }
 
     @Test
@@ -176,17 +178,7 @@ final class TransactionViewModelTests {
 
     @Test
     func titleExtraHidesEmptySender() {
-        let model = TransactionViewModel(
-            transaction: .mock(
-                transaction: .mock(
-                    type: .transfer,
-                    direction: .incoming,
-                    from: "",
-                    to: "0x123",
-                ),
-            ),
-            currency: "USD",
-        )
+        let model = TransactionViewModel.mock(type: .transfer, direction: .incoming, from: "", to: "0x123")
 
         #expect(model.titleExtraTextValue == nil)
     }
@@ -198,57 +190,13 @@ final class TransactionViewModelTests {
         } else {
             Issue.record("Expected progress indicator for pending title tag")
         }
-        #expect(pendingModel.titleTagTextValue?.text == TransactionStateViewModel(state: .pending).title)
+        #expect(pendingModel.titleTagTextValue?.text == TransactionStateViewModel(state: .pending, tone: .pending).title)
 
         let inTransitModel = TransactionViewModel.mock(state: .inTransit)
         if case .progressView = inTransitModel.titleTagType {
         } else {
             Issue.record("Expected progress indicator for in-transit title tag")
         }
-        #expect(inTransitModel.titleTagTextValue?.text == TransactionStateViewModel(state: .inTransit).title)
-    }
-
-    func testTransactionTitle(expectedTitle: String, transaction: Transaction) {
-        #expect(TransactionViewModel(transaction: .mock(transaction: transaction), currency: "USD").titleTextValue.text == expectedTitle)
-    }
-}
-
-extension TransactionViewModel {
-    static func mock(
-        type: TransactionType = .swap,
-        state: TransactionState = .confirmed,
-        direction: TransactionDirection = .incoming,
-        from: String = "",
-        to: String = "",
-        memo: String? = nil,
-        fromAddress: AddressName? = nil,
-        toAddress: AddressName? = nil,
-        value: String = "1000000000000000000",
-        asset: Asset = .mockEthereum(),
-        assets: [Asset] = [.mockEthereum(), .mockEthereumUSDT()],
-        metadata: AnyCodableValue? = nil,
-    ) -> TransactionViewModel {
-        let transaction = Transaction.mock(
-            type: type,
-            state: state,
-            direction: direction,
-            from: from,
-            to: to,
-            value: value,
-            memo: memo,
-            metadata: metadata,
-        )
-        let extended = TransactionExtended.mock(
-            transaction: transaction,
-            asset: asset,
-            assets: assets,
-            fromAddress: fromAddress,
-            toAddress: toAddress,
-        )
-
-        return TransactionViewModel(
-            transaction: extended,
-            currency: "USD",
-        )
+        #expect(inTransitModel.titleTagTextValue?.text == TransactionStateViewModel(state: .inTransit, tone: .pending).title)
     }
 }

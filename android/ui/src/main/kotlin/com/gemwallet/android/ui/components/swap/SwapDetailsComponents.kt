@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.components.swap
 
+import com.gemwallet.android.domains.duration.formatEstimatedConfirmation
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,15 +35,18 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModel
 import com.gemwallet.android.ui.models.swap.SwapPriceImpactUIModel
 import com.gemwallet.android.ui.models.swap.SwapProviderUIModel
-import com.wallet.core.primitives.swap.SwapPriceImpactType
+import uniffi.gemstone.SwapPriceImpactType
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.listItemIconSize
 import uniffi.gemstone.SwapProvider
+import uniffi.gemstone.GemSwapDetailRow
+import com.gemwallet.android.ui.localization.stringRes
 
 @Composable
 fun SwapDetailsSummaryItem(
@@ -87,20 +91,18 @@ fun SwapDetailsBottomSheet(
     model: SwapDetailsUIModel?,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
-    skipPartiallyExpanded: Boolean = false,
+    expansion: SheetExpansion = SheetExpansion.Partial,
     showProviderSectionHeader: Boolean = false,
     onProviderSelect: ((SwapProvider) -> Unit)? = null,
 ) {
-    if (model == null) return
-
     ModalBottomSheet(
-        isVisible = isVisible,
+        item = model.takeIf { isVisible },
         onDismissRequest = onDismiss,
         modifier = modifier,
-        skipPartiallyExpanded = skipPartiallyExpanded,
-        title = stringResource(R.string.common_details),
+        expansion = expansion,
+        title = { stringResource(R.string.common_details) },
         dismissType = DialogBarDismissType.Confirm,
-    ) {
+    ) { model ->
         if (isLoading) {
             Box(modifier = Modifier.fillMaxWidth()) {
                 CircularProgressIndicator20(modifier = Modifier.align(Alignment.Center))
@@ -112,7 +114,7 @@ fun SwapDetailsBottomSheet(
             val providers = model.inlineProviders(onProviderSelect != null)
             val providerSectionTitle = when {
                 onProviderSelect != null -> R.string.buy_providers_title
-                showProviderSectionHeader -> R.string.common_provider
+                showProviderSectionHeader -> GemSwapDetailRow.PROVIDER.stringRes()
                 else -> null
             }
 
@@ -140,42 +142,28 @@ fun SwapDetailsBottomSheet(
                     )
                 }
             }
-            item {
-                AssetRatePropertyItem(model.rate, ListPosition.First)
-            }
-            model.estimatedTime?.let {
-                item {
-                    PropertyItem(
-                        title = R.string.swap_estimated_time_title,
-                        data = it,
-                        listPosition = ListPosition.Middle,
+            val rows = model.rows.filterNot { it == GemSwapDetailRow.PROVIDER }
+            itemsIndexed(rows) { index, row ->
+                val listPosition = ListPosition.getPosition(index, rows.size)
+                when (row) {
+                    GemSwapDetailRow.PROVIDER -> Unit
+                    GemSwapDetailRow.RATE -> AssetRatePropertyItem(model.rate, listPosition)
+                    GemSwapDetailRow.ESTIMATED_TIME -> model.etaInSeconds?.let(::formatEstimatedConfirmation)?.takeIf { it.isNotEmpty() }?.let {
+                        PropertyItem(title = row.stringRes(), data = it, listPosition = listPosition)
+                    }
+                    GemSwapDetailRow.PRICE_IMPACT -> model.priceImpact?.let { PriceImpactPropertyItem(it, listPosition) }
+                    GemSwapDetailRow.MINIMUM_RECEIVE -> PropertyItem(
+                        title = row.stringRes(),
+                        data = model.minimumReceive,
+                        listPosition = listPosition,
+                    )
+                    GemSwapDetailRow.SLIPPAGE -> PropertyItem(
+                        title = row.stringRes(),
+                        data = if (model.selectedSlippage == null) stringResource(R.string.swap_slippage_auto) else model.slippageText,
+                        info = InfoSheetEntity.Slippage,
+                        listPosition = listPosition,
                     )
                 }
-            }
-            model.priceImpact?.let {
-                item {
-                    PriceImpactPropertyItem(it, ListPosition.Middle)
-                }
-            }
-            item {
-                PropertyItem(
-                    title = R.string.swap_min_receive,
-                    data = model.minimumReceive,
-                    listPosition = ListPosition.Middle,
-                )
-            }
-            item {
-                val slippageDisplay = if (model.selectedSlippage == null) {
-                    stringResource(R.string.swap_slippage_auto)
-                } else {
-                    model.slippageText
-                }
-                PropertyItem(
-                    title = R.string.swap_slippage,
-                    data = slippageDisplay,
-                    info = InfoSheetEntity.Slippage,
-                    listPosition = ListPosition.Last,
-                )
             }
         }
     }
@@ -236,7 +224,7 @@ private fun SwapProviderAmounts(provider: SwapProviderUIModel) {
 }
 
 @Composable
-private fun SwapProviderIcon(icon: Any, size: Dp) {
+private fun SwapProviderIcon(icon: Any?, size: Dp) {
     AsyncImage(model = icon, size = size)
 }
 
@@ -273,9 +261,9 @@ private fun PriceImpactPropertyItem(
 
 @Composable
 private fun SwapPriceImpactUIModel?.getColor() = when (this?.type) {
-    SwapPriceImpactType.Positive -> MaterialTheme.colorScheme.tertiary
-    SwapPriceImpactType.Medium -> pendingColor
-    SwapPriceImpactType.High -> MaterialTheme.colorScheme.error
-    SwapPriceImpactType.Low,
+    SwapPriceImpactType.POSITIVE -> MaterialTheme.colorScheme.tertiary
+    SwapPriceImpactType.MEDIUM -> pendingColor
+    SwapPriceImpactType.HIGH -> MaterialTheme.colorScheme.error
+    SwapPriceImpactType.LOW,
     null -> MaterialTheme.colorScheme.secondary
 }

@@ -1,7 +1,8 @@
 package com.gemwallet.android.features.settings.contacts.viewmodels.models
 
-import com.gemwallet.android.ext.isMemoSupport
-import com.gemwallet.android.ui.models.name.NameRecordState
+import uniffi.gemstone.GemContactAddressField
+import uniffi.gemstone.contactAddressFields
+import uniffi.gemstone.GemNameRecordState
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ContactAddress
 
@@ -22,10 +23,9 @@ data class ManageContactUIState(
     val addressInput: ContactAddressInput? = null,
     val isSaving: Boolean = false,
     val saved: Boolean = false,
-) {
-    val isSaveEnabled: Boolean
-        get() = name.trim().isNotEmpty() && !isSaving
-}
+    val errorText: String? = null,
+    val isSaveEnabled: Boolean = false,
+)
 
 data class ManageContactState(
     val isEdit: Boolean = false,
@@ -37,6 +37,7 @@ data class ManageContactState(
     val form: ContactAddressForm? = null,
     val isSaving: Boolean = false,
     val saved: Boolean = false,
+    val errorText: String? = null,
 )
 
 data class ContactAddressForm(
@@ -50,13 +51,13 @@ data class ContactAddressInput(
     val chain: Chain,
     val address: String = "",
     val memo: String = "",
-    val nameResolveState: NameRecordState = NameRecordState.None,
+    val nameResolveState: GemNameRecordState = GemNameRecordState.None,
     val isAddressValid: Boolean = false,
     val showAddressError: Boolean = false,
 ) {
-    val showMemo: Boolean
-        get() = chain.isMemoSupport()
+    val showsMemo: Boolean
+        get() = GemContactAddressField.MEMO in contactAddressFields(chain.string)
 
     val isConfirmEnabled: Boolean
-        get() = nameResolveState !is NameRecordState.Loading && isAddressValid
+        get() = isAddressValid
 }

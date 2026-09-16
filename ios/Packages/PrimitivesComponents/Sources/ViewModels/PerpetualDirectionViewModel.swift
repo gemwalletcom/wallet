@@ -14,10 +14,7 @@ public struct PerpetualDirectionViewModel {
     }
 
     public var title: String {
-        switch direction {
-        case .short: Localized.Perpetual.short
-        case .long: Localized.Perpetual.long
-        }
+        direction.title
     }
 
     public var increaseTitle: String {
@@ -29,9 +26,6 @@ public struct PerpetualDirectionViewModel {
     }
 
     public var color: Color {
-        switch direction {
-        case .long: Colors.green
-        case .short: Colors.red
-        }
+        direction.color
     }
 }

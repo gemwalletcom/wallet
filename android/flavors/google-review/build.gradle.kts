@@ -38,11 +38,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.play.review)
-    implementation(libs.play.review.ktx)
     
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
 }

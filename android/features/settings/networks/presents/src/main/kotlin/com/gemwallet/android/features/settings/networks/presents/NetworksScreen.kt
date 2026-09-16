@@ -12,6 +12,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.settings.networks.viewmodels.NetworksViewModel
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
+import com.gemwallet.android.ui.components.screen.rememberSnackbarState
+import com.gemwallet.android.ui.R
 
 @Composable
 fun NetworksScreen(
@@ -19,6 +21,7 @@ fun NetworksScreen(
     viewModel: NetworksViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbar = rememberSnackbarState(message = state.errorText, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 
     val selectListState = rememberLazyListState()
     var showStatus by remember { mutableStateOf(false) }
@@ -58,6 +61,7 @@ fun NetworksScreen(
             )
             NetworksScreenState.Network -> NetworkScene(
                 state = state,
+                snackbar = snackbar,
                 onAction = { action ->
                     when (action) {
                         NetworkAction.Refresh -> viewModel.refresh()

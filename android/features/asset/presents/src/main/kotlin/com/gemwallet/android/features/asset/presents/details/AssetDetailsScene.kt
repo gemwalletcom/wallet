@@ -18,9 +18,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.type
+import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.list_item.energyItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.list_item.property.verificationStatusItem
+import com.gemwallet.android.ui.components.list_item.rememberDateSections
 import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
@@ -45,15 +47,13 @@ import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoU
 internal fun AssetDetailsScene(
     uiState: AssetInfoUIModel,
     transactions: List<TransactionDataAggregate>,
-    priceAlertEnabled: Boolean,
-    priceAlertsCount: Int,
     requestNotificationPermission: (() -> Unit) -> Unit,
     isRefreshing: Boolean,
+    snackBar: SnackbarHostState = remember { SnackbarHostState() },
     onAction: (AssetDetailsAction) -> Unit,
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-    val snackBar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val isPinned = uiState.assetInfo.metadata.isPinned
     val pinToastMessage = stringResource(
@@ -85,7 +85,7 @@ internal fun AssetDetailsScene(
         actions = {
             AssetDetailsMenu(
                 uiState = uiState,
-                priceAlertEnabled = priceAlertEnabled,
+                priceAlert = detailsState.priceAlert,
                 snackBar = snackBar,
                 requestNotificationPermission = requestNotificationPermission,
                 onPriceAlert = { onAction(AssetDetailsAction.TogglePriceAlert(it)) },
@@ -94,6 +94,7 @@ internal fun AssetDetailsScene(
         onClose = { onAction(AssetDetailsAction.Close) },
         snackbar = snackBar,
     ) {
+        val transactionSections = rememberDateSections(transactions) { it.createdAt }
         PullToRefreshBox(
             modifier = Modifier.fillMaxSize(),
             isRefreshing = isRefreshing,
@@ -115,9 +116,11 @@ internal fun AssetDetailsScene(
                     item {
                         BannerItem(
                             assetInfo = uiState.assetInfo,
+                            banners = uiState.banners,
                             onStake = { onAction(AssetDetailsAction.Stake(it)) },
                             onConfirm = { onAction(AssetDetailsAction.Confirm(it)) },
                             onOpenPerpetuals = { onAction(AssetDetailsAction.OpenPerpetuals) },
+                            onClose = { onAction(AssetDetailsAction.CloseBanner(it)) },
                         )
                     }
                 }
@@ -138,7 +141,7 @@ internal fun AssetDetailsScene(
                     },
                 )
                 uiState.verificationStatus?.let { verificationStatusItem(it) }
-                price(uiState, priceAlertsCount, onChart = { onAction(AssetDetailsAction.OpenChart(it)) }, onPriceAlerts = { onAction(AssetDetailsAction.OpenPriceAlerts(it)) })
+                price(uiState, detailsState.priceAlertsCount.toInt(), onChart = { onAction(AssetDetailsAction.OpenChart(it)) }, onPriceAlerts = { onAction(AssetDetailsAction.OpenPriceAlerts(it)) })
                 network(uiState, onAction)
                 balancesHeader(uiState.accountInfoUIModel)
                 itemsPositioned(uiState.accountInfoUIModel.balances) { position, item ->
@@ -146,11 +149,22 @@ internal fun AssetDetailsScene(
                         title = item.type.label,
                         balance = item.value,
                         listPosition = position,
+                        info = when (item.type) {
+                            AssetInfoUIModel.BalanceViewType.PendingUnconfirmed -> InfoSheetEntity.PendingUnconfirmedBalanceInfo
+                            AssetInfoUIModel.BalanceViewType.Available,
+                            AssetInfoUIModel.BalanceViewType.Stake,
+                            AssetInfoUIModel.BalanceViewType.Earn,
+                            AssetInfoUIModel.BalanceViewType.Reserved -> null
+                        },
                         onAction = when (item.type) {
                             AssetInfoUIModel.BalanceViewType.Available,
                             AssetInfoUIModel.BalanceViewType.PendingUnconfirmed -> null
                             AssetInfoUIModel.BalanceViewType.Stake -> {
                                 { onAction(AssetDetailsAction.Stake(uiState.asset.id)) }
+                            }
+
+                            AssetInfoUIModel.BalanceViewType.Earn -> {
+                                { onAction(AssetDetailsAction.Earn(uiState.asset.id)) }
                             }
 
                             AssetInfoUIModel.BalanceViewType.Reserved -> item.url?.let { url ->
@@ -171,7 +185,7 @@ internal fun AssetDetailsScene(
                         onSwap = if (detailsState.emptyTransactionsAction == GemAssetEmptyAction.SWAP) swapAction else null,
                     )
                 }
-                transactionsList(transactions) { onAction(AssetDetailsAction.OpenTransaction(it)) }
+                transactionsList(transactionSections) { onAction(AssetDetailsAction.OpenTransaction(it)) }
             }
         }
     }

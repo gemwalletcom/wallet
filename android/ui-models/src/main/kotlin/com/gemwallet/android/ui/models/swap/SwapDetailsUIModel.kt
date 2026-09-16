@@ -1,13 +1,14 @@
 package com.gemwallet.android.ui.models.swap
 
 import com.gemwallet.android.domains.swap.AssetRatePair
-import com.wallet.core.primitives.swap.SwapPriceImpactType
+import uniffi.gemstone.SwapPriceImpactType
 import uniffi.gemstone.SwapProvider
+import uniffi.gemstone.GemSwapDetailRow
 
 data class SwapProviderUIModel(
     val id: SwapProvider,
     val title: String,
-    val icon: String,
+    val icon: Any?,
     val amount: String? = null,
     val fiat: String? = null,
 )
@@ -17,9 +18,11 @@ data class SwapPriceImpactUIModel(
     val displayText: String,
     val warningText: String,
     val isHigh: Boolean,
+    val showsInSummary: Boolean,
 )
 
 data class SwapDetailsUIModel(
+    val rows: List<GemSwapDetailRow>,
     val provider: SwapProviderUIModel,
     val providers: List<SwapProviderUIModel> = emptyList(),
     val rate: AssetRatePair,
@@ -28,17 +31,11 @@ data class SwapDetailsUIModel(
     val slippageText: String,
     val slippageBps: UInt,
     val selectedSlippage: UInt?,
-    val estimatedTime: String? = null,
+    val etaInSeconds: UInt? = null,
     val isProviderSelectable: Boolean = false,
 ) {
     val summaryPriceImpactText: String?
-        get() = when (priceImpact?.type) {
-            SwapPriceImpactType.Medium,
-            SwapPriceImpactType.High -> priceImpact.displayText
-            SwapPriceImpactType.Positive,
-            SwapPriceImpactType.Low,
-            null -> null
-        }
+        get() = priceImpact?.takeIf { it.showsInSummary }?.displayText
 
     val summaryPriceImpactBadgeText: String?
         get() = summaryPriceImpactText?.let { "($it)" }

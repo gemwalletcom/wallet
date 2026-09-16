@@ -1,6 +1,9 @@
 package com.gemwallet.android.features.transfer_amount.presents
 
+import androidx.compose.ui.text.input.KeyboardType
+import com.gemwallet.android.ui.components.image.iconModel
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,21 +28,18 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import com.gemwallet.android.domains.asset.getIconUrl
-import com.gemwallet.android.features.transfer_amount.models.AmountError
-import com.gemwallet.android.features.transfer_amount.presents.components.amountErrorString
+import com.gemwallet.android.features.transfer_amount.presents.components.amountErrorText
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.fields.AmountField
-import com.gemwallet.android.ui.components.keyboardAsState
+import com.gemwallet.android.ui.components.isKeyboardVisible
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyAssetInfoItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.models.AmountInputType
+import uniffi.gemstone.GemAmountInputType
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.secondaryFaded
@@ -47,18 +47,21 @@ import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
+import com.gemwallet.android.ui.theme.SceneSizing
+import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
 
 @Composable
 internal fun AmountScene(
     title: String,
     amount: String,
-    amountInputType: AmountInputType,
+    amountInputType: GemAmountInputType,
     asset: Asset,
     currency: Currency,
     canSwitchInputType: Boolean,
     readOnly: Boolean,
+    usesWholeAmounts: Boolean,
     showsAssetBalance: Boolean,
-    error: AmountError,
+    error: Throwable?,
     equivalent: String,
     availableBalance: String,
     reserveForFee: String? = null,
@@ -67,10 +70,10 @@ internal fun AmountScene(
     additionParams: (@Composable () -> Unit)? = null,
 ) {
     val focusRequester = remember { FocusRequester() }
-    val isKeyBoardOpen by keyboardAsState()
+    val isKeyBoardOpen = WindowInsets.isKeyboardVisible
     val density = LocalDensity.current
     val isSmallScreen = with(density) {
-        LocalWindowInfo.current.containerSize.height.toDp() < 680.dp
+        LocalWindowInfo.current.containerSize.height.toDp() < SceneSizing.compactContentHeight
     }
 
     Scene(
@@ -107,7 +110,8 @@ internal fun AmountScene(
                     } else null,
                     equivalent = equivalent,
                     readOnly = readOnly,
-                    error = amountErrorString(error = error),
+                    keyboardType = if (usesWholeAmounts) KeyboardType.Number else KeyboardType.Decimal,
+                    error = amountErrorText(error = error),
                     onValueChange = { onAction(AmountAction.SetAmount(it)) },
                     onNext = { onAction(AmountAction.Next) },
                 )
@@ -131,7 +135,7 @@ internal fun AmountScene(
     }
 
     LaunchedEffect(Unit) {
-        try { focusRequester.requestFocus() } catch (_: Throwable) {}
+        focusRequester.requestFocusIfAttached()
     }
 }
 
@@ -160,7 +164,7 @@ private fun ReserveForFeeItem(asset: Asset, reserveForFee: String) {
         )
     }
     if (showInfoSheet) {
-        InfoBottomSheet(InfoSheetEntity.ReserveForFee(asset.getIconUrl())) {
+        InfoBottomSheet(InfoSheetEntity.ReserveForFee(asset.iconModel())) {
             showInfoSheet = false
         }
     }

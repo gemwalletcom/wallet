@@ -1,10 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
+import func Gemstone.transactionsListLimit
 import Localization
 import Primitives
 import PrimitivesComponents
 import Store
+import enum Gemstone.GemTransactionFilter
 
 @Observable
 @MainActor
@@ -13,18 +16,14 @@ public final class TransactionsFilterViewModel {
     private let type: TransactionsRequestType
 
     public var chainsFilter: ChainsFilterViewModel {
-        didSet { query.request.filters = requestFilters }
+        didSet { query.request.base.filters = requestFilters }
     }
 
     public var transactionTypesFilter: TransactionTypesFilterViewModel {
-        didSet { query.request.filters = requestFilters }
+        didSet { query.request.base.filters = requestFilters }
     }
 
-    public let query: ObservableQuery<TransactionsRequest>
-
-    private let transactionTypes = TransactionType.allCases
-
-    private let defaultFilters = TransactionsRequestFilter.activityDefaults
+    public let query: ObservableQuery<MappedRequest<TransactionsRequest, [ListSection<TransactionViewModel>]>>
 
     var isPresentingChains: Bool = false
     var isPresentingTypes: Bool = false
@@ -34,14 +33,25 @@ public final class TransactionsFilterViewModel {
         self.type = type
 
         chainsFilter = ChainsFilterViewModel(chains: chains)
-        transactionTypesFilter = TransactionTypesFilterViewModel(types: TransactionType.allCases)
+        transactionTypesFilter = TransactionTypesFilterViewModel()
 
         let request = TransactionsRequest(
             walletId: wallet.id,
             type: type,
-            filters: defaultFilters + [.types(transactionTypes.map(\.rawValue))],
+            filters: TransactionsRequestFilter.activity(chains: [], filters: []),
+            limit: Int(transactionsListLimit()),
         )
-        query = ObservableQuery(request, initialValue: [])
+        query = ObservableQuery(MappedRequest(request, transform: TransactionViewModel.sections), initialValue: [])
+    }
+
+    public func onFinishChainsSelection(_ value: SelectionResult<Chain>) -> Bool {
+        chainsFilter.selectedChains = value.items
+        return value.isConfirmed
+    }
+
+    public func onFinishTypesSelection(_ value: SelectionResult<GemTransactionFilter>) -> Bool {
+        transactionTypesFilter.selectedTypes = value.items
+        return value.isConfirmed
     }
 
     public var isAnyFilterSpecified: Bool {
@@ -77,21 +87,10 @@ public final class TransactionsFilterViewModel {
     }
 
     private var requestFilters: [TransactionsRequestFilter] {
-        var filters: [TransactionsRequestFilter] = defaultFilters
-
-        if !chainsFilter.selectedChains.isEmpty {
-            let chainIds = chainsFilter.selectedChains.map(\.rawValue)
-            filters.append(.chains(chainIds))
-        }
-
-        if !transactionTypesFilter.selectedTypes.isEmpty {
-            let typeIds = transactionTypesFilter.requestFilters.map(\.rawValue)
-            filters.append(.types(typeIds))
-        } else {
-            filters.append(.types(transactionTypes.map(\.rawValue)))
-        }
-
-        return filters
+        TransactionsRequestFilter.activity(
+            chains: chainsFilter.selectedChains,
+            filters: transactionTypesFilter.selectedTypes,
+        )
     }
 }
 

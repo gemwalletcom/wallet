@@ -1,7 +1,6 @@
+use gem_solana::{AccountMeta, Instruction, Pubkey, SYSTEM_PROGRAM_ID, SolanaAddress, anchor::global_discriminator};
+
 use crate::{SwapperError, mayan::constants::MAYAN_PAYLOAD_WRITER_PROGRAM_ID, mayan::tx_builder::solana::solana_error};
-use gem_solana::{SYSTEM_PROGRAM_ID, SolanaAddress};
-use solana_primitives::anchor::global_discriminator;
-use solana_primitives::{AccountMeta, Instruction, Pubkey};
 
 pub(super) fn create_payload_writer_create_instruction(payer: &Pubkey, payload_account: &Pubkey, payload: &[u8], nonce: u16) -> Result<Instruction, SwapperError> {
     let mut data = Vec::with_capacity(8 + 2 + 4 + payload.len());

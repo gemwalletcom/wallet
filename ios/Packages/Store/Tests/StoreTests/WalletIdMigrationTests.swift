@@ -8,15 +8,6 @@ import PrimitivesTestKit
 import StoreTestKit
 import Testing
 
-private extension UserDefaults {
-    static func mock() -> UserDefaults {
-        let suiteName = UUID().uuidString
-        let defaults = UserDefaults(suiteName: suiteName)!
-        defaults.removePersistentDomain(forName: suiteName)
-        return defaults
-    }
-}
-
 private extension DB {
     func insertLegacyWallet(
         id: String,
@@ -232,7 +223,6 @@ struct WalletIdMigrationTests {
     func updateChildTableReferences() throws {
         let userDefaults = UserDefaults.mock()
         let db = DB.mockWithChains([.ethereum])
-        let walletStore = WalletStore(db: db)
         let assetStore = AssetStore(db: db)
 
         let oldId = "uuid-with-balances"

@@ -24,3 +24,8 @@ jupiter:
   trending:
     count: 10
     interval: 24h
+dexscreener:
+  top:
+    count: 50
+  trending:
+    count: 50

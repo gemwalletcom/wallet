@@ -1,9 +1,10 @@
 use std::sync::Arc;
 
-use primitives::{Asset, RecentActivityType, WalletId};
+use primitives::{Asset, AssetId, RecentActivityType, WalletId};
 
 use crate::services::assets::GemAssetAction;
 use crate::services::error::GemServiceError;
+use crate::services::search::rules::matching_assets;
 use crate::services::transfer::rules::TransferInput;
 use crate::services::transfer::{GemRecentActivity, GemRecentActivityStore};
 use crate::services::wallet_session::GemWalletSessionService;
@@ -42,6 +43,18 @@ impl GemRecentActivityService {
     pub async fn clear(&self, types: Vec<RecentActivityType>) -> Result<(), GemServiceError> {
         self.store.clear(self.session.current_wallet_id()?, types).await
     }
+
+    pub fn view_state(&self, assets: Vec<Asset>, query: String) -> GemRecentsViewState {
+        let matching = matching_assets(assets.clone(), &query);
+        GemRecentsViewState {
+            sections: GemRecentsCounts {
+                recents: assets.len() as u32,
+                matching: matching.len() as u32,
+            }
+            .sections(!query.trim().is_empty()),
+            matching_asset_ids: matching.into_iter().map(|asset| asset.id).collect(),
+        }
+    }
 }
 
 impl GemRecentActivityService {
@@ -60,17 +73,6 @@ mod tests {
 
     use super::*;
     use crate::services::transfer::testkit::MemoryRecentActivityStore;
-    use crate::services::wallet::testkit::MemoryWalletStore;
-    use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
-
-    fn service(store: Arc<MemoryRecentActivityStore>, wallet_id: Option<WalletId>) -> GemRecentActivityService {
-        let session = Arc::new(GemWalletSessionService::new(
-            Arc::new(MemoryWalletSessionStore::default()),
-            Arc::new(MemoryWalletStore::default()),
-        ));
-        session.set_current_wallet_id(wallet_id).unwrap();
-        GemRecentActivityService::new(store, session)
-    }
 
     #[test]
     fn test_add_recent_records_for_the_current_wallet_only() {
@@ -78,18 +80,37 @@ mod tests {
         let asset = Asset::from_chain(Chain::Ethereum);
         let wallet_id = WalletId::Multicoin("address".to_string());
 
-        block_on(service(store.clone(), Some(wallet_id.clone())).add_recent(GemAssetAction::Receive, asset.clone())).unwrap();
+        block_on(GemRecentActivityService::mock(store.clone(), Some(wallet_id.clone())).add_recent(GemAssetAction::Receive, asset.clone())).unwrap();
         assert_eq!(store.added.lock().unwrap()[0].1, wallet_id.clone());
-        block_on(service(store.clone(), Some(wallet_id)).add_recent(GemAssetAction::Send, asset.clone())).unwrap();
+        block_on(GemRecentActivityService::mock(store.clone(), Some(wallet_id)).add_recent(GemAssetAction::Send, asset.clone())).unwrap();
         assert_eq!(store.added.lock().unwrap().len(), 1);
-        assert!(block_on(service(store.clone(), None).add_recent(GemAssetAction::Receive, asset)).is_err());
+        assert!(block_on(GemRecentActivityService::mock(store.clone(), None).add_recent(GemAssetAction::Receive, asset)).is_err());
         assert_eq!(store.added.lock().unwrap().len(), 1);
+    }
+
+    #[test]
+    fn test_a_view_state_matches_the_query_and_names_the_sections() {
+        let service = GemRecentActivityService::mock(Arc::new(MemoryRecentActivityStore::default()), None);
+        let assets = vec![Asset::from_chain(Chain::Ethereum), Asset::from_chain(Chain::Bitcoin)];
+
+        let listed = service.view_state(assets.clone(), String::new());
+        assert_eq!(listed.matching_asset_ids.len(), 2);
+        assert!(listed.sections.shows_items && listed.sections.shows_clear);
+
+        let searched = service.view_state(assets.clone(), "bitcoin".to_string());
+        assert_eq!(searched.matching_asset_ids, vec![Asset::from_chain(Chain::Bitcoin).id]);
+        assert!(!searched.sections.shows_clear, "a search hides the clear action");
+
+        let missed = service.view_state(assets, "  nothing  ".to_string());
+        assert!(missed.sections.shows_no_results && !missed.sections.shows_empty);
+
+        assert!(service.view_state(vec![], String::new()).sections.shows_empty);
     }
 
     #[test]
     fn test_an_input_type_without_recent_activity_writes_nothing() {
         let store = Arc::new(MemoryRecentActivityStore::default());
-        let service = service(store.clone(), None);
+        let service = GemRecentActivityService::mock(store.clone(), None);
         let asset = Asset::from_chain(Chain::Ethereum);
         let wallet_id = WalletId::Multicoin("address".to_string());
 
@@ -105,5 +126,60 @@ mod tests {
         ))
         .unwrap();
         assert_eq!(store.added.lock().unwrap().len(), 1);
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+pub struct GemRecentsCounts {
+    pub recents: u32,
+    pub matching: u32,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemRecentsViewState {
+    pub matching_asset_ids: Vec<AssetId>,
+    pub sections: GemRecentsSections,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+pub struct GemRecentsSections {
+    pub shows_items: bool,
+    pub shows_clear: bool,
+    pub shows_no_results: bool,
+    pub shows_empty: bool,
+}
+
+#[uniffi::export]
+impl GemRecentsCounts {
+    pub fn sections(&self, is_searching: bool) -> GemRecentsSections {
+        let no_results = self.recents > 0 && is_searching && self.matching == 0;
+        GemRecentsSections {
+            shows_items: self.matching > 0,
+            shows_clear: self.recents > 0 && !is_searching,
+            shows_no_results: no_results,
+            shows_empty: self.recents == 0,
+        }
+    }
+}
+
+#[cfg(test)]
+mod section_tests {
+    use super::*;
+
+    #[test]
+    fn test_a_search_that_matches_nothing_is_not_the_same_as_having_no_recents() {
+        let searched = GemRecentsCounts { recents: 5, matching: 0 }.sections(true);
+        assert!(searched.shows_no_results);
+        assert!(!searched.shows_empty);
+        assert!(!searched.shows_clear);
+
+        let none = GemRecentsCounts { recents: 0, matching: 0 }.sections(false);
+        assert!(none.shows_empty);
+        assert!(!none.shows_no_results);
+        assert!(!none.shows_clear);
+
+        let listed = GemRecentsCounts { recents: 5, matching: 5 }.sections(false);
+        assert!(listed.shows_items);
+        assert!(!listed.shows_empty);
     }
 }

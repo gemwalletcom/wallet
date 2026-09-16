@@ -24,16 +24,8 @@ mod tests {
 
     #[test]
     fn test_native_token_placeholders_are_skipped() {
-        assert!(is_native_token(&asset_image(Chain::Ethereum, "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE")));
-        assert!(is_native_token(&asset_image(Chain::Polygon, "0x0000000000000000000000000000000000001010")));
-        assert!(is_native_token(&asset_image(Chain::ZkSync, "0x000000000000000000000000000000000000800A")));
-    }
-
-    fn asset_image(chain: Chain, token_id: &str) -> AssetImage {
-        AssetImage {
-            chain,
-            token_id: token_id.to_string(),
-            image_url: String::new(),
-        }
+        assert!(is_native_token(&AssetImage::mock_with_token(Chain::Ethereum, "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE")));
+        assert!(is_native_token(&AssetImage::mock_with_token(Chain::Polygon, "0x0000000000000000000000000000000000001010")));
+        assert!(is_native_token(&AssetImage::mock_with_token(Chain::ZkSync, "0x000000000000000000000000000000000000800A")));
     }
 }

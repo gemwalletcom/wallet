@@ -42,7 +42,7 @@ fn build_transfer_ptb(input: &TransferInput) -> Result<TransactionBuilder, Box<d
         let amount = ptb.pure(&input.amount);
         let gas = ptb.gas();
         let mut split_results = ptb.split_coins(gas, vec![amount]);
-        split_results.pop().expect("split_coins should return one argument")
+        split_results.pop().ok_or("split_coins returned no argument")?
     };
 
     let recipient_argument = ptb.pure(&recipient);

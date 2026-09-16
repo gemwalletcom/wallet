@@ -7,7 +7,7 @@ Resolves human-readable names to addresses. Every provider lives in `src/provide
 - [Ethereum Name Service](https://ens.domains/) - `.eth`, `.com`, `.xyz`, `.dev`
 - [Basenames](https://www.base.org/names) - `.base.eth`
 - [Unstoppable Domains](https://unstoppabledomains.com/) - `.crypto`, `.nft`, `.wallet`, `.x`, and other UD TLDs
-- [Solana Name Service](https://www.sns.id/) - `.sol`
+- [Solana Name Service](https://www.sns.id/) - `.sol`, `.sns`
 - [AllDomains](https://alldomains.id/) - `.skr`, `.saga`, `.poor`, `.bonk`, `.solana`
 - [TON DNS](https://dns.ton.org/) - `.ton`
 - [Aptos Names](https://www.aptosnames.com/) - `.apt`

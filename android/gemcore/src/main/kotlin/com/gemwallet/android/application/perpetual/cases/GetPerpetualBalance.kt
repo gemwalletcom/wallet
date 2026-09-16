@@ -8,6 +8,4 @@ interface GetPerpetualBalance {
     fun getBalance(): Flow<PerpetualBalance?>
 
     fun getDisplayBalance(): Flow<PerpetualBalanceDisplay>
-
-    fun getCollateralIncludedInTotal(): Flow<PerpetualBalance?>
 }

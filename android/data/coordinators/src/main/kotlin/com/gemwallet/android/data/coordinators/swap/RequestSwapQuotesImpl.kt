@@ -2,7 +2,6 @@ package com.gemwallet.android.data.coordinators.swap
 
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.swap.cases.RequestSwapQuotes
-import com.gemwallet.android.application.swap.cases.SwapQuoteRequestKey
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
 import com.gemwallet.android.model.Crypto
@@ -22,6 +21,7 @@ import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.isActive
 import uniffi.gemstone.GemSwapQuoteServiceInterface
 import java.math.BigInteger
+import uniffi.gemstone.GemSwapRequest
 
 class RequestSwapQuotesImpl(
     private val swapService: GemSwapQuoteServiceInterface,
@@ -32,7 +32,7 @@ class RequestSwapQuotesImpl(
         requestParams: Flow<SwapQuoteRequestParams?>,
         refreshRequests: Flow<Unit>,
         refreshEnabled: Flow<Boolean>,
-        onFetchStarted: (SwapQuoteRequestKey) -> Unit,
+        onFetchStarted: (GemSwapRequest) -> Unit,
         refreshIntervalMillis: Long,
         debounceMillis: Long,
     ): Flow<SwapQuotesResult?> {

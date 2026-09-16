@@ -53,10 +53,11 @@ pub fn decode_quoter_response(response: &JsonRpcResponse<String>) -> Result<(U25
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::uniswap::routed_asset::{Protocol, base_pair};
     use crate::uniswap::v4::path::{build_pool_keys, build_quote_exact_params};
     use alloy_primitives::{address, hex::encode_prefixed as HexEncode};
     use alloy_sol_types::SolValue;
-    use gem_evm::uniswap::{FeeTier, path::get_base_pair};
+    use gem_evm::uniswap::FeeTier;
     use gem_hash::keccak::keccak256;
     use primitives::{
         EVMChain,
@@ -94,7 +95,7 @@ mod tests {
         let token_in = address!("0x6fd9d7AD17242c41f7131d257212c54A0e816691"); // UNI
         let token_out = address!("0x350a791Bfc2C21F9Ed5d10980Dad2e2638ffa7f6"); // LINK
         let fee_tiers = vec![FeeTier::ThreeThousand, FeeTier::FiveHundred, FeeTier::Hundred];
-        let base_pair = get_base_pair(&EVMChain::Optimism, None).unwrap();
+        let base_pair = base_pair(EVMChain::Optimism, Protocol::V4).unwrap();
 
         let v4_quoter = OPTIMISM_UNISWAP_V4_QUOTER_CONTRACT;
         let amount_in = 10000000000000000_u128;

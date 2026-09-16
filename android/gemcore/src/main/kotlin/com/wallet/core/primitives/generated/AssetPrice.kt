@@ -35,15 +35,6 @@ data class ChartValue (
 )
 
 @Serializable
-data class Charts (
-	val price: Price? = null,
-	val market: AssetMarket? = null,
-	val prices: List<ChartValue>,
-	val marketCaps: List<ChartValue>,
-	val totalVolumes: List<ChartValue>
-)
-
-@Serializable
 enum class ChartPeriod(val string: String) {
 	@SerialName("hour")
 	Hour("hour"),

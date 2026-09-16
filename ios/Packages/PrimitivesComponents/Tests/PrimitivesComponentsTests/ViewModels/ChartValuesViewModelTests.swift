@@ -9,24 +9,21 @@ import Testing
 
 struct ChartValuesViewModelTests {
     @Test
-    func chartValuesViewModel() {
-        let model = ChartValuesViewModel.mock(price: .mock(price: 150), values: .mock(values: [100, 200]))
+    func boundsComeFromTheChartData() {
+        let model = ChartValuesViewModel.mock(chartData: .mock(values: [100, 200]))
 
         #expect(model.lowerBoundValueText == "$100.00")
         #expect(model.upperBoundValueText == "$200.00")
-        #expect(model.chartHeaderViewModel?.price == 150)
-        #expect(model.headerViewModel(for: ChartDateValue(date: Date(), value: 150)).priceChangePercentage == 50)
-
-        #expect(ChartValuesViewModel.mock(price: nil).chartHeaderViewModel == nil)
-        #expect(ChartValuesViewModel.mock(period: .week, price: .mock(price: 150), values: .mock(values: [100, 200])).chartHeaderViewModel?.priceChangePercentage == 50)
     }
 
     @Test
-    func headerValue() {
-        let model = ChartValuesViewModel.mock(price: .mock(price: 150), values: .mock(values: [100, 200]), headerValue: 500)
+    func headerComesFromCore() {
+        let model = ChartValuesViewModel.mock(chartData: .mock(values: [100, 200], header: .mock(value: 150)))
 
-        #expect(model.chartHeaderViewModel?.headerValue == 500)
-        #expect(model.headerViewModel(for: ChartDateValue(date: Date(), value: 150)).headerValue == 150)
-        #expect(ChartValuesViewModel.mock().headerViewModel(for: ChartDateValue(date: Date(), value: 150)).headerValue == nil)
+        #expect(model.chartHeaderViewModel?.header.value.value == 150)
+        #expect(model.headerViewModel(for: model.charts[1]).header.value.value == 200)
+        #expect(model.headerViewModel(for: model.charts[1]).header.change?.value == 100)
+
+        #expect(ChartValuesViewModel.mock(chartData: .mock(header: nil)).chartHeaderViewModel == nil)
     }
 }

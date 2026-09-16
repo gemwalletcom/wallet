@@ -2,6 +2,8 @@
 
 import BigInt
 import Formatters
+import GemstonePrimitives
+import enum Gemstone.GemAmountSign
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesTestKit
@@ -11,7 +13,7 @@ public extension AmountDisplay {
         asset: Asset = Asset.mock(),
         price: Price? = Price.mock(price: 1.0),
         value: BigInt = BigInt(100_000_000),
-        direction: TransactionDirection? = nil,
+        sign: GemAmountSign = .none,
         currency: String = "USD",
         formatter: ValueFormatter = .full,
     ) -> AmountDisplay {
@@ -19,13 +21,9 @@ public extension AmountDisplay {
             asset: asset,
             price: price,
             value: value,
-            direction: direction,
+            sign: sign,
             currency: currency,
             formatter: formatter,
         )
-    }
-
-    static func mockSymbol(asset: Asset = Asset.mock()) -> AmountDisplay {
-        .symbol(asset: asset)
     }
 }

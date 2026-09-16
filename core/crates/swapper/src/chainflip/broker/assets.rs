@@ -53,23 +53,18 @@ impl AssetsResponse {
 mod tests {
     use super::*;
 
-    fn asset(chain: &str, asset: &str) -> ChainflipAsset {
-        ChainflipAsset {
-            chain: chain.to_string(),
-            asset: asset.to_string(),
-        }
-    }
-
-    fn response() -> AssetsResponse {
-        serde_json::from_str(include_str!("./test/assets.json")).unwrap()
-    }
-
     #[test]
     fn test_asset_swap_directions() {
-        let source = asset("Ethereum", "ETH");
-        let destination = asset("Tron", "TRX");
+        let source = ChainflipAsset {
+            chain: "Ethereum".to_string(),
+            asset: "ETH".to_string(),
+        };
+        let destination = ChainflipAsset {
+            chain: "Tron".to_string(),
+            asset: "TRX".to_string(),
+        };
 
-        let assets = response();
+        let assets = AssetsResponse::mock();
         let source_asset = assets.asset(&source).unwrap();
         let destination_asset = assets.asset(&destination).unwrap();
         assert_eq!(source_asset.id, "eth.eth");
@@ -78,19 +73,19 @@ mod tests {
         assert!(source_asset.supports_ingress());
         assert!(destination_asset.supports_egress());
 
-        let mut assets = response();
+        let mut assets = AssetsResponse::mock();
         assets.assets[0].enabled = false;
         assert!(!assets.assets[0].supports_ingress());
 
-        let mut assets = response();
+        let mut assets = AssetsResponse::mock();
         assets.assets[1].enabled = false;
         assert!(!assets.assets[1].supports_egress());
 
-        let mut assets = response();
+        let mut assets = AssetsResponse::mock();
         assets.assets[0].direction = AssetDirection::Egress;
         assert!(!assets.assets[0].supports_ingress());
 
-        let mut assets = response();
+        let mut assets = AssetsResponse::mock();
         assets.assets[1].direction = AssetDirection::Ingress;
         assert!(!assets.assets[1].supports_egress());
     }

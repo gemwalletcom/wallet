@@ -1,9 +1,7 @@
 package com.gemwallet.android.features.perpetual.views.autoclose
 
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -13,6 +11,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.features.perpetual.views.components.PerpetualPositionItem
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.isKeyboardVisible
 import com.gemwallet.android.ui.components.PercentSuggestionsBar
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
@@ -27,7 +26,6 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.wallet.core.primitives.TpslType
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun AutocloseScene(
     model: AutocloseUIModel,
@@ -48,7 +46,7 @@ internal fun AutocloseScene(
         TpslType.StopLoss -> stopLossText
         null -> ""
     }
-    val isPercentBarVisible = WindowInsets.isImeVisible && activeField != null && activeText.isEmpty()
+    val isPercentBarVisible = WindowInsets.isKeyboardVisible && activeField != null && activeText.isEmpty()
 
     Scene(
         title = stringResource(R.string.perpetual_auto_close),

@@ -7,8 +7,6 @@ use typeshare::typeshare;
 #[typeshare(swift = "Equatable, Sendable")]
 pub enum ConnectionComponent {
     Internet,
-    Api,
-    Nodes,
     Stream,
 }
 
@@ -16,7 +14,7 @@ impl ConnectionComponent {
     pub fn failure_status(&self) -> ConnectionStatus {
         match self {
             Self::Internet => ConnectionStatus::NoInternet,
-            Self::Api | Self::Nodes | Self::Stream => ConnectionStatus::NoService,
+            Self::Stream => ConnectionStatus::NoService,
         }
     }
 }

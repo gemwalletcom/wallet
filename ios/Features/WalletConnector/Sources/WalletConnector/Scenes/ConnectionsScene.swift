@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemConnection
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -31,11 +32,12 @@ public struct ConnectionsScene: View {
                 )
             }
 
-            ForEach(model.sections) { section in
-                Section(section.title.or(.empty)) {
-                    ForEach(section.values) { connection in
+            ForEach(Array(model.sections.enumerated()), id: \.offset) { _, section in
+                Section(section.title) {
+                    ForEach(section.connections, id: \.connection.session.id) { item in
+                        let connection = item.connection.toPrimitives()
                         NavigationLink(value: connection) {
-                            ConnectionView(model: model.connectionViewModel(connection: connection))
+                            ConnectionView(connection: item)
                                 .swipeActions(edge: .trailing) {
                                     Button(
                                         model.disconnectTitle,
@@ -58,7 +60,10 @@ public struct ConnectionsScene: View {
             }
         }
         .navigationDestination(for: WalletConnection.self) { connection in
-            ConnectionScene(model: model.connectionSceneModel(connection: connection))
+            ConnectionScene(
+                model: model.connectionSceneModel(connection: connection),
+                onDisconnect: { model.onSelectDisconnect(connection) },
+            )
         }
         .sheet(isPresented: $model.isPresentingScanner) {
             ScanQRCodeNavigationStack(scanType: .walletConnect, action: model.onHandleScan(_:))

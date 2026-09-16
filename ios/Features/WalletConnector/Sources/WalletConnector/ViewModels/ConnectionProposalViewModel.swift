@@ -2,12 +2,16 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemVerificationLevel
+import func Gemstone.verificationLevel
+import GemstonePrimitives
 import Localization
+import func Gemstone.walletRow
+import func Gemstone.walletRows
 import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
-import WalletConnectorService
 
 public struct ConnectionProposalViewModel {
     private let confirmTransferDelegate: TransferDataCallback.ConfirmTransferDelegate
@@ -22,8 +26,8 @@ public struct ConnectionProposalViewModel {
         self.confirmTransferDelegate = confirmTransferDelegate
         self.pairingProposal = pairingProposal
         walletSelectorModel = SelectWalletViewModel(
-            wallets: pairingProposal.proposal.wallets,
-            selectedWallet: pairingProposal.proposal.defaultWallet,
+            rows: walletRows(wallets: pairingProposal.proposal.wallets.map { $0.toGem() }),
+            selectedRow: walletRow(wallet: pairingProposal.proposal.defaultWallet.toGem()),
         )
     }
 
@@ -37,10 +41,6 @@ public struct ConnectionProposalViewModel {
 
     var walletTitle: String {
         Localized.Common.wallet
-    }
-
-    var appTitle: String {
-        Localized.WalletConnect.app
     }
 
     var connectionTitle: String {
@@ -60,10 +60,8 @@ public struct ConnectionProposalViewModel {
     }
 
     var websiteText: String? {
-        guard let url = URL(string: payload.metadata.url), let host = url.host(percentEncoded: true) else {
-            return .none
-        }
-        return host
+        let host = payload.metadata.host
+        return host.isEmpty ? nil : host
     }
 
     var appText: String {
@@ -71,31 +69,23 @@ public struct ConnectionProposalViewModel {
     }
 
     var imageUrl: URL? {
-        URL(string: payload.metadata.icon)
+        payload.metadata.iconURL
+    }
+
+    private var verification: GemVerificationLevel {
+        verificationLevel(status: pairingProposal.verificationStatus.toGem())
     }
 
     var verificationImage: Image {
-        switch pairingProposal.verificationStatus {
-        case .verified: Images.Transaction.State.success
-        case .unknown: Images.TokenStatus.warning
-        case .invalid, .malicious: Images.TokenStatus.risk
-        }
+        verification.image
     }
 
     var statusText: String {
-        switch pairingProposal.verificationStatus {
-        case .verified: Localized.Asset.Verification.verified
-        case .unknown: Localized.Asset.Verification.unverified
-        case .invalid, .malicious: Localized.Asset.Verification.suspicious
-        }
+        verification.title
     }
 
     var statusTextStyle: TextStyle {
-        switch pairingProposal.verificationStatus {
-        case .verified: TextStyle(font: .callout, color: Colors.green)
-        case .unknown: TextStyle(font: .callout, color: Colors.orange)
-        case .invalid, .malicious: TextStyle(font: .callout, color: Colors.red)
-        }
+        verification.textStyle
     }
 
     var statusAssetImage: AssetImage {
@@ -135,10 +125,10 @@ public struct ConnectionProposalViewModel {
 // MARK: - Business Logic
 
 extension ConnectionProposalViewModel {
-    func accept() throws {
+    func accept() {
         guard let selectedWallet = walletSelectorModel.selectedItems.first else {
             return
         }
-        confirmTransferDelegate(.success(selectedWallet.id.id))
+        confirmTransferDelegate(.success(selectedWallet.id))
     }
 }

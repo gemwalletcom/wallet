@@ -1,8 +1,6 @@
 use crate::TransactionInputType;
-use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Clone)]
 pub struct TransactionPreloadInput {
     pub input_type: TransactionInputType,
     pub sender_address: String,

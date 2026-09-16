@@ -2,8 +2,6 @@
 
 import Foundation
 
-public typealias ValueValidatable = Comparable & ExpressibleByIntegerLiteral & Sendable
-
 public protocol ValueValidator<Formatted>: Identifiable, Sendable {
     associatedtype Formatted
     func validate(_ value: Formatted) throws
@@ -14,15 +12,11 @@ public extension ValueValidator {
     var silent: some ValueValidator<Formatted> {
         SilentValueValidator(validator: self)
     }
-
-    var isSilent: Bool {
-        self is SilentValidatable
-    }
 }
 
 // MARK: - Silent
 
-private struct SilentValueValidator<V: ValueValidator>: ValueValidator, SilentValidatable {
+private struct SilentValueValidator<V: ValueValidator>: ValueValidator {
     typealias Formatted = V.Formatted
 
     let validator: V

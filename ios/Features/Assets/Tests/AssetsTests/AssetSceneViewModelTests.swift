@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import Assets
+import AssetsTestKit
 import BigInt
-import protocol Gemstone.GemAssetDetailsServiceProtocol
 import class Gemstone.GemDeeplinkService
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import struct Gemstone.GemSwapPairSuggestion
@@ -11,8 +11,6 @@ import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
-@testable import Store
-import SwiftUI
 import Testing
 
 @MainActor
@@ -50,44 +48,13 @@ struct AssetSceneViewModelTests {
             ),
         )
         let rows = ethereum.balanceRows
-        #expect(rows.count == 3)
-        guard case let .staked(staked) = rows[1], case let .earn(earn) = rows[2] else {
-            Issue.record("Expected available, staked and earn rows")
+        #expect(rows.count == 2)
+        guard case let .staked(staked) = rows[1] else {
+            Issue.record("Expected available and staked rows")
             return
         }
         #expect(ethereum.stakeBalanceText(staked) == "6 ETH")
-        #expect(ethereum.balanceText(earn) == "4 ETH")
+        #expect(ethereum.balanceText(BigUInt(4_000_000_000_000_000_000)) == "4 ETH")
         #expect(AssetSceneViewModel.mock(.mock(asset: .mockEthereum(), metadata: .mock(isStakeEnabled: false))).balanceRows.isEmpty)
-    }
-
-    @Test
-    func balanceTitle() {
-        let model = AssetSceneViewModel.mock()
-        #expect(model.balanceTitle(for: .stake).isEmpty == false)
-        #expect(model.balanceTitle(for: .earn).isEmpty == false)
-    }
-}
-
-// MARK: - Mock Extensions
-
-extension AssetSceneViewModel {
-    static func mock(
-        _ assetData: AssetData = AssetData.mock(),
-        service: any GemAssetDetailsServiceProtocol = GemAssetDetailsServiceMock(),
-    ) -> AssetSceneViewModel {
-        let model = AssetSceneViewModel(
-            service: service,
-            preferences: .mock(),
-            input: AssetSceneInput(
-                wallet: .mock(),
-                asset: assetData.asset,
-            ),
-            isPresentingSelectedAssetInput: .constant(.none),
-        )
-        model.assetQuery.value = ChainAssetData(
-            assetData: assetData,
-            feeAssetData: AssetData.with(asset: assetData.asset.chain.asset),
-        )
-        return model
     }
 }

@@ -12,15 +12,21 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDetailsDataAggregate
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.features.perpetual.views.components.PerpetualActions
 import com.gemwallet.android.features.perpetual.views.components.PerpetualChartSection
 import com.gemwallet.android.features.perpetual.views.components.PerpetualModifyBottomSheet
-import com.gemwallet.android.features.perpetual.views.components.PerpetualPositionActions
 import com.gemwallet.android.features.perpetual.views.components.perpetualInfo
 import com.gemwallet.android.features.perpetual.views.components.positionProperties
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.features.perpetual.localization.stringRes
+import com.gemwallet.android.ui.components.list_item.SubheaderItem
+import com.gemwallet.android.ui.components.list_item.rememberDateSections
+import uniffi.gemstone.GemPerpetualButton
+import uniffi.gemstone.GemPerpetualInfoRow
+import uniffi.gemstone.GemPerpetualPositionDetailRow
+import uniffi.gemstone.GemPerpetualSection
 import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
@@ -36,8 +42,12 @@ import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.Perpetual
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualMarginType
+import com.wallet.core.primitives.PerpetualOrderType
+import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualProvider
+import com.wallet.core.primitives.PerpetualTriggerOrder
 import com.wallet.core.primitives.TransactionId
+import androidx.compose.material3.SnackbarHostState
 
 @Composable
 internal fun PerpetualPositionScene(
@@ -47,6 +57,12 @@ internal fun PerpetualPositionScene(
     chart: StateViewType<List<ChartCandleStick>>,
     period: ChartPeriod,
     isRefreshing: Boolean,
+    sections: List<GemPerpetualSection>,
+    positionRows: List<GemPerpetualPositionDetailRow>,
+    infoRows: List<GemPerpetualInfoRow>,
+    buttons: List<GemPerpetualButton>,
+    modifyButtons: List<GemPerpetualButton>,
+    snackbar: SnackbarHostState? = null,
     onAction: (PerpetualDetailsAction) -> Unit,
 ) {
     var showModifyDialog by remember { mutableStateOf(false) }
@@ -54,7 +70,9 @@ internal fun PerpetualPositionScene(
     Scene(
         title = perpetual?.name ?: stringResource(R.string.perpetuals_title),
         onClose = { onAction(PerpetualDetailsAction.Close) },
+        snackbar = snackbar,
     ) {
+        val transactionSections = rememberDateSections(transactions) { it.createdAt }
         PullToRefreshBox(
             isRefreshing = isRefreshing,
             onRefresh = { onAction(PerpetualDetailsAction.Refresh) },
@@ -66,29 +84,42 @@ internal fun PerpetualPositionScene(
                     PerpetualChartSection(
                         state = chart,
                         period = period,
-                        entry = position?.entryValue,
-                        liquidation = position?.liquidationValue,
-                        stopLoss = position?.stopLoss,
-                        takeProfit = position?.takeProfit,
+                        position = position?.position,
                         onPeriodSelect = { onAction(PerpetualDetailsAction.SelectChartPeriod(it)) },
                     )
                 }
-                positionProperties(position, onAutocloseClick = { onAction(PerpetualDetailsAction.Autoclose) })
-                item {
-                    if (perpetual != null) {
-                        if (position == null) {
-                            PerpetualActions { onAction(PerpetualDetailsAction.OpenPosition(it)) }
-                        } else {
-                            PerpetualPositionActions(
-                                onModify = { showModifyDialog = true },
-                                onClose = { onAction(PerpetualDetailsAction.ClosePosition) },
+                sections.forEach { section ->
+                    when (section) {
+                        GemPerpetualSection.POSITION -> {
+                            item { SubheaderItem(section.stringRes()) }
+                            positionProperties(
+                                position = position,
+                                rows = positionRows,
+                                onAutocloseClick = { onAction(PerpetualDetailsAction.Autoclose) },
                             )
+                        }
+                        GemPerpetualSection.INFO -> {
+                            item {
+                                if (perpetual != null) {
+                                    PerpetualActions(buttons) { button ->
+                                        when (button) {
+                                            GemPerpetualButton.LONG -> onAction(PerpetualDetailsAction.OpenPosition(PerpetualDirection.Long))
+                                            GemPerpetualButton.SHORT -> onAction(PerpetualDetailsAction.OpenPosition(PerpetualDirection.Short))
+                                            GemPerpetualButton.MODIFY -> showModifyDialog = true
+                                            GemPerpetualButton.CLOSE -> onAction(PerpetualDetailsAction.ClosePosition)
+                                            GemPerpetualButton.INCREASE -> onAction(PerpetualDetailsAction.IncreasePosition)
+                                            GemPerpetualButton.REDUCE -> onAction(PerpetualDetailsAction.ReducePosition)
+                                        }
+                                    }
+                                }
+                            }
+                            item { SubheaderItem(section.stringRes()) }
+                            perpetual?.let { perpetualInfo(it, infoRows) }
                         }
                     }
                 }
-                perpetual?.let { perpetualInfo(it) }
                 if (transactions.isNotEmpty()) {
-                    transactionsList(transactions) { onAction(PerpetualDetailsAction.OpenTransaction(it)) }
+                    transactionsList(transactionSections) { onAction(PerpetualDetailsAction.OpenTransaction(it)) }
                 }
             }
         }
@@ -96,9 +127,15 @@ internal fun PerpetualPositionScene(
 
     PerpetualModifyBottomSheet(
         isVisible = showModifyDialog,
+        buttons = modifyButtons,
         onDismiss = { showModifyDialog = false },
-        onIncreasePosition = { onAction(PerpetualDetailsAction.IncreasePosition) },
-        onReducePosition = { onAction(PerpetualDetailsAction.ReducePosition) },
+        onSelect = { button ->
+            when (button) {
+                GemPerpetualButton.INCREASE -> onAction(PerpetualDetailsAction.IncreasePosition)
+                GemPerpetualButton.REDUCE -> onAction(PerpetualDetailsAction.ReducePosition)
+                GemPerpetualButton.LONG, GemPerpetualButton.SHORT, GemPerpetualButton.MODIFY, GemPerpetualButton.CLOSE -> Unit
+            }
+        },
     )
 }
 
@@ -142,25 +179,38 @@ private fun PerpetualPositionScenePreview() {
     }
 
     val samplePosition = object : PerpetualPositionDetailsDataAggregate {
-        override val positionId: String = "pos-btc-001"
         override val perpetualId: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
         override val asset: Asset = sampleAsset
-        override val name: String = "BTC"
+        override val title: String = "BTC"
         override val direction: PerpetualDirection = PerpetualDirection.Long
-        override val leverage: Int = 10
+        override val leverage: String = "10x"
         override val marginAmount: String = "$4,771.03"
         override val pnlWithPercentage: String = "+$460.25 (+9.64%)"
-        override val pnlState: ValueDirection = ValueDirection.Up
+        override val pnlState: GemValueTone = GemValueTone.POSITIVE
         override val size: String = "$47,250.00"
         override val entryPrice: String = "$94,500.00"
-        override val entryValue: Double = 94500.00
         override val liquidationPrice: String = "$85,050.00"
-        override val liquidationValue: Double = 85050.00
         override val marginType: PerpetualMarginType = PerpetualMarginType.Cross
         override val fundingPayments: String = "+$12.50"
-        override val fundingPaymentsDirection: ValueDirection = ValueDirection.Up
+        override val fundingPaymentsDirection: GemValueTone = GemValueTone.POSITIVE
         override val stopLoss: Double = 90050.00
         override val takeProfit: Double = 95000.00
+        override val position: PerpetualPosition = PerpetualPosition(
+            id = "position",
+            perpetualId = perpetualId,
+            assetId = sampleAsset.id,
+            size = 0.5,
+            sizeValue = 47250.00,
+            leverage = 10u,
+            entryPrice = 94500.00,
+            liquidationPrice = 85050.00,
+            marginType = marginType,
+            direction = direction,
+            marginAmount = 4771.03,
+            takeProfit = PerpetualTriggerOrder(95000.00, PerpetualOrderType.Limit, "tp"),
+            stopLoss = PerpetualTriggerOrder(90050.00, PerpetualOrderType.Limit, "sl"),
+            pnl = 460.25,
+        )
     }
 
     val now = System.currentTimeMillis()
@@ -187,6 +237,11 @@ private fun PerpetualPositionScenePreview() {
             chart = StateViewType.Data(chartData),
             period = ChartPeriod.Day,
             isRefreshing = false,
+            sections = listOf(GemPerpetualSection.POSITION, GemPerpetualSection.INFO),
+            positionRows = GemPerpetualPositionDetailRow.entries,
+            infoRows = GemPerpetualInfoRow.entries,
+            buttons = listOf(GemPerpetualButton.MODIFY, GemPerpetualButton.CLOSE),
+            modifyButtons = listOf(GemPerpetualButton.INCREASE, GemPerpetualButton.REDUCE),
             onAction = {},
         )
     }

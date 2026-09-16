@@ -3,8 +3,8 @@
 import BigInt
 import Components
 import Formatters
-import enum Gemstone.SwapProvider
 import struct Gemstone.SwapperQuote
+import enum Gemstone.SwapProvider
 import struct Gemstone.SwapQuote
 import GemstonePrimitives
 import Primitives
@@ -60,13 +60,7 @@ public struct SwapProviderItem: Sendable {
     }
 
     private func fiatBalance() -> String {
-        guard let value = try? valueFormatter.inputNumber(from: amount, decimals: asset.decimals.asInt),
-              let amount = try? valueFormatter.double(from: value, decimals: asset.decimals.asInt),
-              let price = priceViewModel.price
-        else {
-            return .empty
-        }
-        return priceViewModel.fiatAmountText(amount: price.price * amount)
+        priceViewModel.fiatValueText(value: BigInt(swapQuote.toValue) ?? .zero, decimals: asset.decimals.asInt) ?? .empty
     }
 }
 
@@ -87,7 +81,7 @@ extension SwapProviderItem: SimpleListItemViewable {
 
     public var assetImage: AssetImage {
         AssetImage(
-            placeholder: swapQuote.providerData.provider.map().image,
+            placeholder: swapQuote.providerData.provider.toPrimitives().image,
             chainPlaceholder: isSelected ? Images.Wallets.selected : nil,
         )
     }
@@ -112,7 +106,7 @@ extension SwapProviderItem: Identifiable {
         [
             swapQuote.toValue.description,
             swapQuote.fromValue.description,
-            swapQuote.providerData.provider.map().rawValue,
+            swapQuote.providerData.provider.toPrimitives().rawValue,
         ].joined(separator: "_")
     }
 }

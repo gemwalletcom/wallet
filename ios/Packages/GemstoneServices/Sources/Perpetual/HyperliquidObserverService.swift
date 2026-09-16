@@ -18,13 +18,13 @@ public actor HyperliquidObserverService: PerpetualObservable {
     private var observeTask: Task<Void, Never>?
     private var currentWallet: Wallet?
 
-    public let chartService: any ChartStreamable
+    public let chartService: ChartObserverService
 
     public init(
         webSocket: any WebSocketConnectable,
         perpetualService: any GemPerpetualServiceProtocol,
         streamService: any GemPerpetualStreamServiceProtocol,
-        chartService: any ChartStreamable = ChartObserverService(),
+        chartService: ChartObserverService = ChartObserverService(),
     ) {
         self.webSocket = webSocket
         self.perpetualService = perpetualService
@@ -70,13 +70,13 @@ public actor HyperliquidObserverService: PerpetualObservable {
 
         let connection: GemPerpetualConnection?
         do {
-            connection = try await perpetualService.connection(wallet: wallet.map())
+            connection = try await perpetualService.connection(wallet: wallet.toGem())
         } catch {
             debugLog("HyperliquidObserver: connection failed: \(error)")
             return
         }
         guard let connection else { return }
-        let mode = connection.mode.map()
+        let mode = connection.mode.toPrimitives()
 
         currentWallet = wallet
         observeTask = Task { [weak self] in
@@ -102,7 +102,7 @@ public actor HyperliquidObserverService: PerpetualObservable {
 
     private func handleConnected(address: String, mode: PerpetualAccountMode) async {
         do {
-            try await streamService.connected(address: address, mode: mode.map())
+            try await streamService.connected(address: address, mode: mode.toGem())
         } catch {
             debugLog("HyperliquidObserver: subscribe failed: \(error)")
         }
@@ -110,8 +110,8 @@ public actor HyperliquidObserverService: PerpetualObservable {
 
     private func handle(_ data: Data, walletId: WalletId, mode: PerpetualAccountMode) async {
         do {
-            guard let candle = try await streamService.handle(walletId: walletId.id, mode: mode.map(), data: data) else { return }
-            await chartService.yield(candle.map())
+            guard let candle = try await streamService.handle(walletId: walletId.id, mode: mode.toGem(), data: data) else { return }
+            await chartService.yield(candle.toPrimitives())
         } catch {
             debugLog("HyperliquidObserver: handle message failed: \(error)")
         }

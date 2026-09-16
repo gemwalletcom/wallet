@@ -9,23 +9,24 @@ import StoreTestKit
 import Testing
 
 struct TransactionStoreTests {
-    @Test func transactionWalletIncludesAccounts() throws {
+    @Test func transactionsByStateAreKeyedByWallet() throws {
         let asset = AssetBasic.mock(asset: .mock(id: Chain.robinhood.assetId))
         let db = DB.mockAssets(assets: [asset])
         let walletStore = WalletStore(db: db)
         let walletId = WalletId.single(chain: .robinhood, address: "0xsender")
-        let account = Account.mock(chain: .robinhood, address: "0xsender")
-        try walletStore.addWallet(.mock(id: walletId, type: .single, accounts: [account]))
+        try walletStore.addWallet(.mock(id: walletId, type: .single, accounts: [.mock(chain: .robinhood, address: "0xsender")]))
 
         let store = TransactionStore(db: db)
         let transactionId = TransactionId(chain: .robinhood, hash: "hash")
         try store.addTransactions(walletId: walletId, transactions: [
-            .mock(transactionId: transactionId, assetId: Chain.robinhood.assetId),
+            .mock(id: transactionId, state: .pending, assetId: Chain.robinhood.assetId),
         ])
 
-        let transactionWallet = try #require(try store.getTransactionWallet(walletId: walletId, transactionId: transactionId))
+        let transactions = try store.getTransactions(states: [.pending])
 
-        #expect(transactionWallet.wallet.accounts == [account])
+        #expect(transactions.keys.contains(walletId))
+        #expect(transactions[walletId]?.map(\.id) == [transactionId])
+        #expect(try store.getTransactions(states: [.confirmed]).isEmpty)
     }
 
     @Test func assetAssociationsReplaced() throws {
@@ -48,22 +49,22 @@ struct TransactionStoreTests {
         let transactionId = TransactionId(chain: .ethereum, hash: "1")
         try store.addTransactions(walletId: walletId, transactions: [
             .mock(
-                transactionId: transactionId,
+                id: transactionId,
                 type: .swap,
                 assetId: btc,
-                metadata: .encode(TransactionSwapMetadata(
-                    fromAsset: btc, fromValue: "100", toAsset: eth, toValue: "200", provider: nil,
+                metadata: .encode(TransactionSwapMetadata.mock(
+                    fromAsset: btc, fromValue: "100", toAsset: eth, toValue: "200",
                 )),
             ),
         ])
 
         try store.addTransactions(walletId: walletId, transactions: [
             .mock(
-                transactionId: transactionId,
+                id: transactionId,
                 type: .swap,
                 assetId: btc,
-                metadata: .encode(TransactionSwapMetadata(
-                    fromAsset: btc, fromValue: "100", toAsset: sol, toValue: "300", provider: nil,
+                metadata: .encode(TransactionSwapMetadata.mock(
+                    fromAsset: btc, fromValue: "100", toAsset: sol, toValue: "300",
                 )),
             ),
         ])
@@ -86,18 +87,18 @@ struct TransactionStoreTests {
         let sourceId = TransactionId(chain: .ethereum, hash: "pending")
         let targetId = TransactionId(chain: .ethereum, hash: "confirmed")
         let source = Transaction.mock(
-            transactionId: sourceId,
+            id: sourceId,
             type: .swap,
             state: .pending,
             assetId: ethereum,
-            metadata: .encode(TransactionSwapMetadata(fromAsset: ethereum, fromValue: "100", toAsset: bitcoin, toValue: "200", provider: nil)),
+            metadata: .encode(TransactionSwapMetadata.mock(fromAsset: ethereum, fromValue: "100", toAsset: bitcoin, toValue: "200")),
         )
         let target = Transaction.mock(
-            transactionId: targetId,
+            id: targetId,
             type: .swap,
             assetId: ethereum,
-            metadata: .encode(TransactionSwapMetadata(fromAsset: ethereum, fromValue: "100", toAsset: solana, toValue: "300", provider: nil)),
             fee: "42",
+            metadata: .encode(TransactionSwapMetadata.mock(fromAsset: ethereum, fromValue: "100", toAsset: solana, toValue: "300")),
         )
         try store.addTransactions(walletId: walletId, transactions: [source, target])
         try store.addTransactions(walletId: otherWalletId, transactions: [source, target])

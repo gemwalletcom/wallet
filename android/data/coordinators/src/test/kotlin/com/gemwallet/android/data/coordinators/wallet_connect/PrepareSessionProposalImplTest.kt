@@ -1,9 +1,8 @@
 package com.gemwallet.android.data.coordinators.wallet_connect
 
+import com.gemwallet.android.testkit.mockApplicationMetadata
 import com.gemwallet.android.testkit.mockWallet
-import com.wallet.core.primitives.ApplicationMetadata
-import com.wallet.core.primitives.ApplicationMetadataSource
-import com.wallet.core.primitives.WalletConnectionSessionProposal
+import com.gemwallet.android.testkit.mockWalletConnectionSessionProposal
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -21,13 +20,7 @@ class PrepareSessionProposalImplTest {
 
     private val currentWallet = mockWallet(id = "wallet-2")
     private val wallets = listOf(mockWallet(id = "wallet-1"), currentWallet)
-    private val metadata = ApplicationMetadata(
-        name = "App",
-        description = "Description",
-        url = "https://app.example",
-        icon = "https://app.example/icon.png",
-        source = ApplicationMetadataSource.WalletConnect,
-    )
+    private val metadata = mockApplicationMetadata()
     private val walletConnectService = mockk<GemWalletConnectServiceInterface> {
         every { applicationMetadata(metadata.name, metadata.description, metadata.url, listOf(metadata.icon)) } returns metadata.toGem()
     }
@@ -35,7 +28,7 @@ class PrepareSessionProposalImplTest {
 
     @Test
     fun prepareSessionProposal_mapsCoreProposal() = runTest {
-        val proposal = WalletConnectionSessionProposal(defaultWallet = currentWallet, wallets = wallets, metadata = metadata)
+        val proposal = mockWalletConnectionSessionProposal(defaultWallet = currentWallet, wallets = wallets)
         coEvery {
             walletConnectService.prepareSessionProposal(
                 requiredChainIds = listOf("eip155:1"),

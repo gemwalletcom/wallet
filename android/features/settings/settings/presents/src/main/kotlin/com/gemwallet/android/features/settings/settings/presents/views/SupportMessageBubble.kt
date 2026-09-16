@@ -54,6 +54,8 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space8
 import com.gemwallet.android.ui.theme.space12
 import com.gemwallet.android.ui.theme.tinyIconSize
+import com.gemwallet.android.ui.theme.space0
+import com.gemwallet.android.ui.theme.space10
 import com.wallet.core.primitives.SupportMessage
 import com.wallet.core.primitives.SupportMessageImage
 import com.wallet.core.primitives.SupportMessageSender
@@ -63,6 +65,8 @@ import java.util.Date
 import uniffi.gemstone.SupportMessageLink
 import uniffi.gemstone.parseSupportMessageDisplayContent
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
+
+private val progressStrokeWidth = 1.5.dp
 
 private val messageBubbleCornerRadius = 18.dp
 private val messageBubbleMaxWidth = 300.dp
@@ -123,7 +127,7 @@ internal fun SupportMessageBubble(
                     )
                 },
                 menuAlignment = if (isUser) Alignment.TopEnd else Alignment.TopStart,
-                menuOffset = DpOffset(x = if (isUser) -paddingDefault else paddingDefault, y = 0.dp),
+                menuOffset = DpOffset(x = if (isUser) -paddingDefault else paddingDefault, y = space0),
                 content = { contentModifier ->
                     Surface(
                         color = bubbleColor,
@@ -304,8 +308,8 @@ private fun MessageMeta(
         )
         when (message.status) {
             SupportMessageStatus.Sending -> CircularProgressIndicator(
-                modifier = Modifier.size(10.dp),
-                strokeWidth = 1.5.dp,
+                modifier = Modifier.size(space10),
+                strokeWidth = progressStrokeWidth,
                 color = color,
             )
             SupportMessageStatus.Failed -> if (message.sender is SupportMessageSender.User && message.images.isEmpty()) {

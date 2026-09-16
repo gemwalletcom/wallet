@@ -1,9 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemRecentActivityServiceProtocol
-import class Gemstone.GemRecentActivityService
 import GemstoneServices
 import Components
+import struct Gemstone.GemRecentsSections
+import struct Gemstone.GemRecentsViewState
 import Foundation
 import GemstonePrimitives
 import Localization
@@ -48,11 +49,19 @@ public final class RecentsSceneViewModel {
     }
 
     var showEmpty: Bool {
-        recentAssets.isEmpty || (!searchQuery.isEmpty && filteredAssets.isEmpty)
+        recentsSections.showsEmpty || recentsSections.showsNoResults
     }
 
     var showClear: Bool {
-        recentAssets.isNotEmpty
+        recentsSections.showsClear
+    }
+
+    private var viewState: GemRecentsViewState {
+        service.viewState(assets: recentAssets.map { $0.asset.toGem() }, query: searchQuery)
+    }
+
+    private var recentsSections: GemRecentsSections {
+        viewState.sections
     }
 
     var sections: [ListSection<RecentAsset>] {
@@ -60,15 +69,12 @@ public final class RecentsSceneViewModel {
     }
 
     var emptyModel: any EmptyContentViewable {
-        if recentAssets.isEmpty {
-            return EmptyContentTypeViewModel(type: .recents)
-        }
-        return EmptyContentTypeViewModel(type: .search(type: .assets))
+        recentsSections.showsNoResults ? EmptyContentTypeViewModel(type: .search(type: .assets)) : EmptyContentTypeViewModel(type: .recents)
     }
 
     private var filteredAssets: [RecentAsset] {
-        let matching = Set(recentAssets.map(\.asset).matching(query: searchQuery).map(\.id))
-        return recentAssets.filter { matching.contains($0.asset.id) }
+        let matching = Set(viewState.matchingAssetIds)
+        return recentAssets.filter { matching.contains($0.asset.id.identifier) }
     }
 }
 
@@ -78,7 +84,7 @@ extension RecentsSceneViewModel {
     func onSelectClear() {
         Task { [service, types = query.request.types] in
             do {
-                try await service.clear(types: types.map { $0.map() })
+                try await service.clear(types: types.map { $0.toGem() })
             } catch {
                 debugLog("RecentsSceneViewModel clear error: \(error)")
             }

@@ -9,6 +9,7 @@
   <string name="common_copy">Copia</string>
   <string name="common_share">Condividi</string>
   <string name="common_continue">Continua</string>
+  <string name="common_sign_in_with">Accedi con %1$s</string>
   <string name="common_provider">Fornitore</string>
   <string name="common_loading">Caricamento in corso</string>
   <string name="common_address">Indirizzo</string>
@@ -54,9 +55,9 @@
   <string name="common_earn">Guadagna</string>
   <string name="common_method">Metodo</string>
   <string name="common_token">Token</string>
+  <string name="common_expiration">Scadenza</string>
   <string name="common_suspicious_address">Indirizzo sospetto</string>
   <string name="common_refresh">Aggiorna</string>
-  <string name="common_no_thanks">No grazie</string>
   <string name="common_grant_permission">Concedere l\'autorizzazione</string>
   <string name="common_required_field">%1$s è obbligatorio</string>
   <string name="welcome_title">Benvenuti nella famiglia Gem</string>
@@ -142,7 +143,6 @@
   <string name="transfer_unfreeze_title">Scongela</string>
   <string name="transfer_review_request">Richiesta di revisione</string>
   <string name="transfer_amount">Importo</string>
-  <string name="transfer_amount_title">Importo</string>
   <string name="settings_terms_of_services">Termini di servizio</string>
   <string name="settings_privacy_policy">Informativa sulla privacy</string>
   <string name="settings_title">Impostazioni</string>
@@ -177,7 +177,6 @@
   <string name="support_state_empty_title">Come possiamo aiutarti?</string>
   <string name="support_state_empty_description">Chiedici qualsiasi cosa. Siamo qui per aiutarti.</string>
   <string name="support_message_placeholder">Messaggio</string>
-  <string name="errors_transfer">Errore di trasferimento: %1$s</string>
   <string name="errors_validation">Errore di convalida: %1$s</string>
   <string name="errors_create_wallet">Errore di creazione del portafoglio: %1$s</string>
   <string name="errors_invalid_address_name">Indirizzo o nome non valido</string>
@@ -196,7 +195,6 @@
   <string name="errors_connections_user_cancelled">Utente cancellato</string>
   <string name="errors_not_supported">Non supportato</string>
   <string name="errors_permissions_not_granted">Autorizzazioni non concesse</string>
-  <string name="errors_decoding">Errore di decodifica</string>
   <string name="errors_unknown">Sconosciuto</string>
   <string name="errors_not_supported_qr">Questo dispositivo non supporta la scansione del codice QR. Puoi selezionare solo l\'immagine del codice QR dalla libreria.</string>
   <string name="errors_camera_permissions_not_granted">Autorizzazione fotocamera non concessa. Abilita l\'accesso alla fotocamera nelle impostazioni per scansionare il codice QR.</string>
@@ -207,11 +205,8 @@
   <string name="errors_dust_threshold">La transazione non è riuscita perché l\'importo è troppo basso per soddisfare il requisito minimo della rete %1$s (soglia di dust). Questo limite garantisce che il valore della transazione copra le commissioni e i costi di elaborazione.</string>
   <string name="errors_swap_no_quote_available">Nessuna quotazione disponibile.</string>
   <string name="errors_swap_not_supported_asset">Attività non supportata.</string>
-  <string name="errors_connections_invalid_send_parameters">Parametri non validi forniti per l\'invio di una transazione.</string>
-  <string name="errors_connections_invalid_sign_parameters">Parametri non validi forniti per la firma.</string>
   <string name="errors_connections_no_supported_wallets">Non sono disponibili portafogli supportati.</string>
   <string name="errors_connections_unsupported_chain">La catena fornita non è supportata.</string>
-  <string name="errors_connections_unsupported_method">Il metodo richiesto non è supportato.</string>
   <string name="errors_swap_amount_too_small">Importo troppo piccolo</string>
   <string name="errors_required">%1$s è obbligatorio</string>
   <string name="errors_scan_transaction_malicious_description">Questa transazione non può essere completata: l\'indirizzo del portafoglio di destinazione è collegato ad attività sospette o dannose.</string>
@@ -223,7 +218,6 @@
   <string name="errors_swap_minimum_amount">L\'importo minimo di scambio è %1$s. Inserisci un importo maggiore.</string>
   <string name="errors_perpetual_trigger_price_lower">Il prezzo di attivazione deve essere inferiore al prezzo di mercato</string>
   <string name="errors_perpetual_trigger_price_higher">Il prezzo di attivazione deve essere superiore al prezzo di mercato</string>
-  <string name="errors_token_unable_fetch_token_information">Impossibile recuperare le informazioni sul token: %1$s</string>
   <string name="errors_unknown_try_again">Si è verificato un errore sconosciuto. Per favore riprova.</string>
   <string name="errors_network_error">Errore di rete: %1$s</string>
   <string name="errors_network_offline">La connessione Internet risulta offline.</string>
@@ -241,7 +235,6 @@
   <string name="update_app_permission_title">Consenti installazione</string>
   <string name="update_app_permission_description">Vai alle impostazioni e consenti l\'installazione da fonti esterne</string>
   <string name="update_app_permission_open_settings">Vai alle impostazioni</string>
-  <string name="update_app_downloading">Download in corso...</string>
   <string name="transaction_recipient">Destinatario</string>
   <string name="transaction_sender">Mittente</string>
   <string name="transaction_date">Data</string>
@@ -314,6 +307,7 @@
   <string name="wallet_connect_permissions_title">Autorizzazioni</string>
   <string name="wallet_connect_permissions_view_balance">Visualizza il tuo saldo e la tua attività</string>
   <string name="wallet_connect_permissions_approval_requests">Invia richieste di approvazione</string>
+  <string name="wallet_connect_request_expired">Richiesta scaduta</string>
   <string name="swap_you_pay">Paghi tu</string>
   <string name="swap_you_receive">Ricevi</string>
   <string name="swap_price_impact">Impatto sul prezzo</string>
@@ -396,8 +390,6 @@
   <string name="banner_account_activation_description">La rete %1$s richiede una tariffa una tantum di %2$s.</string>
   <string name="banner_stake_title">Inizia a puntare %1$s</string>
   <string name="banner_stake_description">Guadagna %1$s premi sulla tua puntata mentre dormi.</string>
-  <string name="banner_enable_notifications_title">Abilita notifiche</string>
-  <string name="banner_enable_notifications_description">Rimani aggiornato sull\'attività del tuo portafoglio.</string>
   <string name="banner_activate_asset_description">Per utilizzare la risorsa %1$s, è necessario prima abilitarla sulla rete %2$s soddisfacendo i requisiti specifici della rete.</string>
   <string name="banner_asset_status_title">Risorsa sospetta</string>
   <string name="banner_asset_status_description">Il token potrebbe essere pericoloso o fuorviante. Procedi solo se ti fidi completamente.</string>
@@ -494,6 +486,7 @@
   <string name="nft_report_reason_malicious">Dannoso</string>
   <string name="nft_report_reason_inappropriate">Contenuto inappropriato</string>
   <string name="nft_report_reason_copyright">Diritto d\'autore</string>
+  <string name="nft_report_reason_other">Altro</string>
   <string name="nft_report_report_button_title">Segnala</string>
   <string name="permissions_access_denied">Accesso negato</string>
   <string name="permissions_image_photo_access_denied_description">Questa app non ha l\'autorizzazione per accedere alla tua libreria di foto. Abilita l\'accesso nelle impostazioni del tuo dispositivo.</string>
@@ -503,7 +496,6 @@
   <string name="search_state_empty_description">Controlla l\'ortografia o prova una nuova ricerca.</string>
   <string name="networks_state_empty_search_title">Nessuna rete trovata</string>
   <string name="onboarding_security_create_wallet_intro_title">Riceverai una frase segreta: è l\'unico modo per accedere al tuo portafoglio.</string>
-  <string name="onboarding_security_create_wallet_confirm_title">Ho capito e voglio continuare</string>
   <string name="onboarding_security_create_wallet_do_not_share_title">Non condividerlo con nessuno</string>
   <string name="onboarding_security_create_wallet_do_not_share_subtitle">Chiunque scopra la tua frase segreta può assumere il controllo totale del tuo portafoglio.</string>
   <string name="onboarding_security_create_wallet_keep_safe_subtitle">La frase segreta è l\'unico modo per accedere al tuo portafoglio.</string>
@@ -552,8 +544,8 @@
   <string name="perpetual_margin_cross">Croce</string>
   <string name="perpetual_margin_isolated">Isolato</string>
   <string name="perpetuals_title">Perpetui</string>
+  <string name="perpetuals_trade">Fai trading sui perpetui</string>
   <string name="perpetuals_markets">Mercati</string>
-  <string name="perpetuals_empty_state_no_markets">Nessun mercato</string>
   <string name="perpetuals_empty_state_no_markets_found">Nessun mercato trovato</string>
   <string name="rewards_title">Ricompense</string>
   <string name="rewards_share_text">Unisciti a Gem Wallet con il mio link di riferimento e guadagna premi: %1$s</string>
@@ -601,9 +593,6 @@
   <string name="simulation_warning_nft_collection_approval_title">È richiesto l\'accesso completo alla collezione NFT</string>
   <string name="simulation_warning_unlimited_token_approval_title">Approvazione token illimitata</string>
   <string name="application_name">Gem</string>
-  <string name="camera_permission_request_camera">È richiesta l\'autorizzazione della fotocamera per la scansione del codice QR.\nConcedi l\'autorizzazione.</string>
-  <string name="notifications_permission_request_notification">È richiesta l\'autorizzazione Posta notifiche per ricevere notifiche sulle nuove transazioni.\nConcedi l\'autorizzazione.</string>
-  <string name="confirm_fee_error">Errore nel calcolo della tariffa</string>
   <string name="rootcheck_security_alert">Avviso di sicurezza</string>
   <string name="rootcheck_body">Il tuo dispositivo sembra avere accesso root, il che può aumentare significativamente i rischi per la sicurezza. L\'utilizzo di questa app su un dispositivo rooted potrebbe esporre i tuoi asset ad accessi non autorizzati e potenziali perdite. Per la sicurezza dei tuoi fondi, ti consigliamo vivamente di utilizzare un dispositivo non rooted.</string>
   <string name="rootcheck_ignore">Ignora</string>

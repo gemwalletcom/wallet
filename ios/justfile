@@ -12,25 +12,15 @@ GEMSTONE_LINKER_FLAGS := '"OTHER_LDFLAGS=\$(inherited) $PWD/../core/target/aarch
 default:
     @just --list
 
-bootstrap: install generate-stone
-    @echo "<== Bootstrap done."
-
-install: install-rust install-typeshare install-toolchains install-swifttools
-
-install-rust:
-    @cd ../core && just install-rust
-
-install-typeshare:
-    @echo "==> Install typeshare-cli"
-    @cd ../core && just install-typeshare
+install: install-toolchains install-swifttools generate-stone
 
 install-toolchains:
     @echo "==> Install toolchains for uniffi"
     @cd ../core && just gemstone install-ios-targets
 
 install-swifttools:
-    @echo "==> Install SwiftFormat"
-    @brew install swiftformat
+    @echo "==> Install Swift tools"
+    @brew install swiftformat swiftlint xcbeautify
 
 setup-git:
     @echo "==> Setup git submodules"
@@ -88,6 +78,25 @@ run: build
     @xcrun simctl install "{{SIMULATOR_NAME}}" {{DERIVED_DATA}}/Build/Products/Debug-iphonesimulator/Gem.app
     @echo "==> Launching app..."
     @xcrun simctl launch --console-pty "{{SIMULATOR_NAME}}" com.gemwallet.ios
+
+# Fastest compile check while iterating: builds one package with SwiftPM, no xcodebuild.
+# ~1-2s warm against ~30s for `just build`, and reports every error in the package
+# instead of stopping at the first failing file. SwiftPM builds for the host, so this
+# only works for packages that never import UIKit or SwiftUI; the rest need `just build`.
+# Example: just check GemstonePrimitives
+check PACKAGE:
+    @dir=$(ls -d Packages/{{PACKAGE}} Features/{{PACKAGE}} 2>/dev/null | head -1); \
+    if [ -z "$dir" ]; then echo "no package or feature named {{PACKAGE}}"; exit 1; fi; \
+    cd "$dir" && swift build
+
+# Runs one package's tests with SwiftPM. Same host-build limits as `just check`, plus
+# packages that depend on Gemstone cannot link — the static library is built for the
+# iOS simulator. For those use `just test <TestTarget>`.
+# Example: just check-test Primitives
+check-test PACKAGE:
+    @dir=$(ls -d Packages/{{PACKAGE}} Features/{{PACKAGE}} 2>/dev/null | head -1); \
+    if [ -z "$dir" ]; then echo "no package or feature named {{PACKAGE}}"; exit 1; fi; \
+    cd "$dir" && swift test
 
 # Example: just build-package Primitives
 build-package PACKAGE:

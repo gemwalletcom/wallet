@@ -58,8 +58,8 @@ android {
         applicationId = "com.gemwallet.android"
         minSdk = 28
         targetSdk = 37
-        versionCode = 830
-        versionName = "2.114.17"
+        versionCode = 844
+        versionName = "2.114.31"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -185,7 +185,6 @@ android {
         }
     }
 
-
     androidResources {
         generateLocaleConfig = true
     }
@@ -202,8 +201,8 @@ android {
 }
 
 dependencies {
-    implementation(project(":gemcore"))
     implementation(project(":ui"))
+    implementation(project(":data:services:native-provider"))
     implementation(project(":data:services:gemstone"))
     implementation(project(":data:coordinators"))
 
@@ -217,7 +216,6 @@ dependencies {
     implementation(project(":features:asset_select:presents"))
     implementation(project(":features:asset_select:viewmodels"))
     implementation(project(":features:banner:presents"))
-    implementation(project(":features:banner:viewmodels"))
     implementation(project(":features:buy:presents"))
     implementation(project(":features:buy:viewmodels"))
     implementation(project(":features:confirm:presents"))
@@ -269,6 +267,7 @@ dependencies {
 
     implementation(libs.ktx.core)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.material)
     implementation(libs.okhttp)
 
     implementation(libs.tink)
@@ -278,16 +277,13 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     implementation(libs.lifecycle.process)
-    implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.lifecycle.runtime.compose)
-    implementation(libs.lifecycle.viewmodel.savedstate)
     implementation(libs.datastore)
 
     implementation(libs.navigation3.runtime)
     implementation(libs.navigation3.ui)
 
     implementation(libs.widgets)
-    implementation(libs.widgets.material3)
     implementation(libs.work.runtime)
 
     // Legacy encrypted preferences migration
@@ -310,19 +306,19 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
 
     // Tests
+
+    implementation(libs.lifecycle.runtime)
+    implementation(libs.lifecycle.viewmodel)
+
     testImplementation(testFixtures(project(":gemcore")))
     testImplementation(libs.mockk.android)
     testImplementation(libs.junit)
-    testImplementation(libs.androidx.junit)
-    testImplementation(libs.androidx.junit.runner)
-    testImplementation(libs.androidx.junit.ktx)
     testImplementation(libs.kotlinx.coroutines.test)
-    androidTestImplementation(libs.turbine)
     androidTestImplementation(libs.mockk.android)
     androidTestImplementation(libs.mockk.agent)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(libs.androidx.ui.test.junit4)
     androidTestImplementation(libs.androidx.uiautomator)
     androidTestImplementation(testFixtures(project(":gemcore")))
+    androidTestImplementation(libs.androidx.junit.runner)
 }

@@ -1,7 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-@testable import Primitives
+import struct Gemstone.GemSimulationBalanceChange
+@testable import GemstonePrimitives
+import Primitives
 import PrimitivesTestKit
 import Style
 import Testing
@@ -10,9 +12,9 @@ import Testing
 struct ConfirmBalanceChangeViewModelTests {
     @Test
     func balanceChange() {
-        let solana = Asset.mock(id: .mockSolana(), name: "Solana", symbol: "SOL", decimals: 9, type: .native)
-        let negative = ConfirmBalanceChangeViewModel(balanceChange: SimulationAssetChange(asset: solana, value: BigInt(-1_500_000_000)))
-        let positive = ConfirmBalanceChangeViewModel(balanceChange: SimulationAssetChange(asset: solana, value: BigInt(1_500_000_000)))
+        let solana = Asset.mockSolana()
+        let negative = ConfirmBalanceChangeViewModel(balanceChange: GemSimulationBalanceChange(asset: solana.toGem(), value: BigInt(-1_500_000_000), sign: .outgoing))
+        let positive = ConfirmBalanceChangeViewModel(balanceChange: GemSimulationBalanceChange(asset: solana.toGem(), value: BigInt(1_500_000_000), sign: .incoming))
 
         #expect(negative.assetTitle == "Solana")
         #expect(negative.amount.text == "-1.5 SOL")

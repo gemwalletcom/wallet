@@ -1,4 +1,4 @@
-#[derive(uniffi::Record, Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct FiatConfig {
     pub default_buy_amount: i32,
     pub default_sell_amount: i32,

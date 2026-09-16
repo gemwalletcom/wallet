@@ -3,10 +3,13 @@
 import class Gemstone.GemChainService
 import Foundation
 import enum Gemstone.GemWalletConnectFailure
+import enum Gemstone.GemWalletConnectRejectionReason
+import enum Gemstone.GemWalletConnectResponse
 import struct Gemstone.GemWalletConnectSessionRequest
 import enum Gemstone.GemWalletConnectError
 import protocol Gemstone.GemWalletConnectServiceProtocol
 import GemstonePrimitives
+import Localization
 import protocol Gemstone.GemWalletSessionServiceProtocol
 import Primitives
 @preconcurrency import ReownWalletKit
@@ -129,11 +132,22 @@ extension WalletConnectorService {
     }
 
     private func handleRejectSession(proposal: Session.Proposal, error: Error) async {
-        try? await WalletKit.instance.rejectSession(
-            proposalId: proposal.id,
-            reason: RejectionReason(from: error),
-        )
-        try? await service.deleteSession(sessionId: proposal.pairingTopic)
+        let rejection = service.sessionRejection(reason: GemWalletConnectRejectionReason(from: error))
+        do {
+            try await WalletKit.instance.rejectSession(
+                proposalId: proposal.id,
+                reason: RejectionReason(rejection.reason),
+            )
+        } catch {
+            debugLog("Error rejecting proposal: \(error)")
+        }
+        if rejection.deletesSession {
+            do {
+                try await service.deleteSession(sessionId: proposal.pairingTopic)
+            } catch {
+                debugLog("Error deleting rejected session: \(error)")
+            }
+        }
         await walletConnectorInteractor.sessionReject(error: error)
     }
 
@@ -142,14 +156,24 @@ extension WalletConnectorService {
             debugLog("Session request received: \(request.method)")
             debugLog("Verify context: \(String(describing: verifyContext))")
 
+            let params: String
+            do {
+                params = try JSONEncoder().encode(request.params).encodeString()
+            } catch {
+                debugLog("Error encoding request params: \(error)")
+                await rejectRequest(request, error: error)
+                continue
+            }
+
             let outcome = await service.processRequest(request: GemWalletConnectSessionRequest(
                 topic: request.topic,
                 requestId: request.id.string,
                 method: request.method,
-                params: (try? JSONEncoder().encode(request.params).encodeString()) ?? "",
+                params: params,
                 chainId: request.chainId.absoluteString,
                 origin: verifyContext?.origin,
                 validation: verifyContext?.validation.map() ?? .unknown,
+                expiry: request.expiryTimestamp,
             ))
             if let response = outcome.response {
                 do {
@@ -162,6 +186,15 @@ extension WalletConnectorService {
                 await walletConnectorInteractor.sessionReject(error: failure.error)
             }
         }
+    }
+
+    private func rejectRequest(_ request: Request, error: Error) async {
+        do {
+            try await WalletKit.instance.respond(topic: request.topic, requestId: request.id, response: GemWalletConnectResponse.error(error: service.userRejectedError()).map())
+        } catch {
+            debugLog("Error rejecting request: \(error)")
+        }
+        await walletConnectorInteractor.sessionReject(error: error)
     }
 
     private func handleSessionDeletes(_ stream: AsyncStream<(topic: String, code: Int, message: String)>) async {
@@ -211,7 +244,7 @@ extension WalletConnectorService {
         let payloadTopic = WCPairingProposal(
             pairingId: proposal.pairingTopic,
             proposal: payload,
-            verificationStatus: status.map(),
+            verificationStatus: status.toPrimitives(),
         )
         let approvedWalletId = try await walletConnectorInteractor.sessionApproval(payload: payloadTopic)
         let selectedWallet = try await walletSessionService.getWallet(walletId: approvedWalletId)
@@ -247,6 +280,7 @@ private extension GemWalletConnectFailure {
     var error: any Error {
         switch self {
         case .maliciousOrigin: GemWalletConnectError.InvalidOrigin
+        case .expired: AnyError(Localized.WalletConnect.requestExpired)
         case let .failed(message): AnyError(message)
         }
     }

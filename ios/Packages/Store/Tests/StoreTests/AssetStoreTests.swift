@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Primitives
-import PrimitivesTestKit
 import Store
 import StoreTestKit
 import Testing

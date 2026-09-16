@@ -9,6 +9,7 @@ common_secret_phrase = Geheime zin
 common_copy = Kopieer
 common_share = Deel
 common_continue = Ga door
+common_sign_in_with = Inloggen met %@
 common_provider = Aanbieder
 common_loading = Laden
 common_address = Adres
@@ -54,9 +55,9 @@ common_get_started = Aan de slag
 common_earn = Verdien
 common_method = Methode
 common_token = Token
+common_expiration = Vervaldatum
 common_suspicious_address = Verdacht adres
 common_refresh = Vernieuwen
-common_no_thanks = Nee bedankt
 common_grant_permission = Geef toestemming
 common_required_field = %@ is vereist
 
@@ -163,7 +164,6 @@ transfer_freeze_title = Bevriezen
 transfer_unfreeze_title = Ontvriezen
 transfer_review_request = Verzoek controleren
 transfer_amount = Bedrag
-transfer_amount_title = Bedrag
 
 # Settings
 
@@ -207,7 +207,6 @@ support_message_placeholder = Bericht
 
 # Errors
 
-errors_transfer = Overdrachtsfout: %@
 errors_validation = Validatiefout: %@
 errors_create_wallet = Fout bij het aanmaken van een portemonnee: %@
 errors_invalid_address_name = Ongeldig adres of naam
@@ -226,7 +225,6 @@ errors_cancelled = Geannuleerd
 errors_connections_user_cancelled = Gebruiker geannuleerd
 errors_not_supported = Niet ondersteund
 errors_permissions_not_granted = Machtigingen niet verleend
-errors_decoding = Decoderingsfout
 errors_unknown = Onbekend
 errors_not_supported_qr = Dit apparaat ondersteunt het scannen van QR-codes niet. U kunt alleen een QR-codeafbeelding uit de bibliotheek selecteren.
 errors_camera_permissions_not_granted = Cameratoestemming niet verleend. Schakel cameratoegang in de instellingen in om de QR-code te scannen.
@@ -237,11 +235,8 @@ errors_invalid_asset_address = Ongeldig %@ adres
 errors_dust_threshold = De transactie is mislukt omdat het bedrag te klein is om te voldoen aan de minimumvereiste van het %@-netwerk (stofdrempel). Deze limiet zorgt ervoor dat de transactiewaarde de vergoedingen en verwerkingskosten dekt.
 errors_swap_no_quote_available = Geen offerte beschikbaar.
 errors_swap_not_supported_asset = Niet-ondersteunde asset.
-errors_connections_invalid_send_parameters = Ongeldige parameters opgegeven voor het verzenden van een transactie.
-errors_connections_invalid_sign_parameters = Ongeldige parameters opgegeven voor ondertekening.
 errors_connections_no_supported_wallets = Er zijn geen ondersteunde wallets beschikbaar.
 errors_connections_unsupported_chain = De meegeleverde keten wordt niet ondersteund.
-errors_connections_unsupported_method = De gevraagde methode wordt niet ondersteund.
 errors_swap_amount_too_small = Bedrag te klein
 errors_required = %@ is vereist
 errors_scan_transaction_malicious_description = Deze transactie kan niet worden voltooid: het adres van de bestemmingswallet is gekoppeld aan verdachte of schadelijke activiteiten.
@@ -253,7 +248,6 @@ errors_dust_threshold_short = Het netwerk beschouwt deze hoeveelheid als stof; d
 errors_swap_minimum_amount = Het minimale handelsbedrag is %@. Voer een hoger bedrag in.
 errors_perpetual_trigger_price_lower = De triggerprijs moet lager zijn dan de marktprijs
 errors_perpetual_trigger_price_higher = De triggerprijs moet hoger zijn dan de marktprijs
-errors_token_unable_fetch_token_information = Kan tokeninformatie niet ophalen: %@
 errors_unknown_try_again = Er is een onbekende fout opgetreden. Probeer het opnieuw.
 errors_network_error = Netwerkfout: %@
 errors_network_offline = De internetverbinding lijkt offline te zijn.
@@ -277,7 +271,6 @@ update_app_action = Bijwerken
 update_app_permission_title = Installatie toestaan
 update_app_permission_description = Ga naar instellingen en sta installatie van externe bronnen toe
 update_app_permission_open_settings = Ga naar instellingen
-update_app_downloading = Downloaden...
 
 # Transaction
 
@@ -365,6 +358,7 @@ wallet_connect_state_empty_description = Scan of plak de code om verbinding te m
 wallet_connect_permissions_title = Toestemmingen
 wallet_connect_permissions_view_balance = Bekijk je saldo en activiteit
 wallet_connect_permissions_approval_requests = Verzoeken om goedkeuring verzenden
+wallet_connect_request_expired = Verzoek verlopen
 
 # Swap
 
@@ -480,8 +474,6 @@ banner_account_activation_title = Accountactivatiekosten
 banner_account_activation_description = Voor het %@-netwerk is een eenmalige vergoeding van %@ vereist.
 banner_stake_title = Begin met uitzetten %@
 banner_stake_description = Verdien %@ beloningen op uw inzet terwijl u slaapt.
-banner_enable_notifications_title = Meldingen inschakelen
-banner_enable_notifications_description = Blijf op de hoogte van uw portemonnee-activiteit.
 banner_activate_asset_description = Als u de asset %@ wilt gebruiken, moet u deze eerst inschakelen op het netwerk %@ door te voldoen aan de specifieke vereisten van het netwerk.
 banner_asset_status_title = Verdachte activa
 banner_asset_status_description = Token kan onveilig of misleidend zijn. Ga alleen verder als u er volledig op vertrouwt.
@@ -605,6 +597,7 @@ nft_report_reason_spam = Spam
 nft_report_reason_malicious = Kwaadwillend
 nft_report_reason_inappropriate = Ongepaste inhoud
 nft_report_reason_copyright = Auteursrecht
+nft_report_reason_other = Anders
 nft_report_report_button_title = Melden
 
 # Permissions
@@ -629,7 +622,6 @@ networks_state_empty_search_title = Geen netwerken gevonden
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = U ontvangt een geheime zin. Dit is de enige manier om toegang te krijgen tot uw portemonnee.
-onboarding_security_create_wallet_confirm_title = Ik begrijp het en wil doorgaan
 onboarding_security_create_wallet_do_not_share_title = Deel het met niemand
 onboarding_security_create_wallet_do_not_share_subtitle = Iedereen die uw geheime zin te pakken krijgt, kan de volledige controle over uw portemonnee overnemen.
 onboarding_security_create_wallet_keep_safe_subtitle = De geheime zin is de enige manier om toegang te krijgen tot uw portemonnee.
@@ -687,8 +679,9 @@ perpetual_margin_isolated = Geïsoleerd
 # Perpetuals
 
 perpetuals_title = Perpetuals
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = Perpetuals verhandelen
 perpetuals_markets = Markten
-perpetuals_empty_state_no_markets = Geen markten
 perpetuals_empty_state_no_markets_found = Geen markten gevonden
 
 # Rewards
@@ -760,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = Cameratoestemming vereist voor QR-codescan.\nVerleen toestemming.
 
 # Notifications Permission
 
-notifications_permission_request_notification = Toestemming voor het plaatsen van meldingen vereist voor het ontvangen van meldingen over nieuwe transacties.\nVerleen toestemming.
 
 # Confirm
 
-confirm_fee_error = Fout bij het berekenen van de vergoeding
 
 # Rootcheck
 

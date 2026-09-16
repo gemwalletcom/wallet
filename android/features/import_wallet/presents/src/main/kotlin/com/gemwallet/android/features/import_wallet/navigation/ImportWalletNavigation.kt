@@ -7,7 +7,7 @@ import com.gemwallet.android.features.import_wallet.views.ImportScreen
 import com.gemwallet.android.features.import_wallet.views.SelectImportTypeScreen
 import com.gemwallet.android.model.ImportType
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemWalletImportKind
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -17,7 +17,7 @@ data object ImportSelectTypeRoute : NavKey
 data object ImportMulticoinWalletRoute : NavKey
 
 @Serializable
-data class ImportChainWalletRoute(val walletType: WalletType, val chain: Chain) : NavKey
+data class ImportChainWalletRoute(val kind: GemWalletImportKind, val chain: Chain) : NavKey
 
 fun EntryProviderScope<NavKey>.importWalletScreen(
     onCancel: () -> Unit,
@@ -29,7 +29,7 @@ fun EntryProviderScope<NavKey>.importWalletScreen(
     }
     entry<ImportMulticoinWalletRoute> {
         ImportScreen(
-            importType = ImportType(WalletType.Multicoin),
+            importType = ImportType(GemWalletImportKind.PHRASE),
             onCancel = onCancel,
             onImported = onImported,
         )
@@ -37,7 +37,7 @@ fun EntryProviderScope<NavKey>.importWalletScreen(
 
     entry<ImportChainWalletRoute> { key ->
         ImportScreen(
-            importType = ImportType(key.walletType, key.chain),
+            importType = ImportType(key.kind, key.chain),
             onCancel = onCancel,
             onImported = onImported,
         )

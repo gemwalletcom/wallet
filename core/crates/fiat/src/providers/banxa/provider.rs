@@ -57,10 +57,6 @@ impl FiatProvider for BanxaClient {
         Ok(FiatQuoteResponse::new(generate_quote_id(), request.amount, quote.crypto_amount))
     }
 
-    async fn get_quote_sell(&self, _request: FiatQuoteRequest, _request_map: FiatMapping) -> Result<FiatQuoteResponse, Box<dyn std::error::Error + Send + Sync>> {
-        Err("not supported".into())
-    }
-
     async fn get_quote_url(&self, data: FiatQuoteUrlData) -> Result<FiatQuoteUrl, Box<dyn std::error::Error + Send + Sync>> {
         match data.quote.quote_type {
             FiatQuoteType::Buy => {

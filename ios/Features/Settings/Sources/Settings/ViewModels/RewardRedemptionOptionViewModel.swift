@@ -1,15 +1,20 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
+import GemstonePrimitives
+import struct Gemstone.GemRewardsRedemption
+import struct Gemstone.RewardRedemptionOption
 import Components
-import Formatters
 import Foundation
 import Localization
 import Primitives
 import PrimitivesComponents
 
 struct RewardRedemptionOptionViewModel: Identifiable {
-    let option: RewardRedemptionOption
+    let redemption: GemRewardsRedemption
+
+    private var option: RewardRedemptionOption {
+        redemption.option
+    }
 
     var id: String {
         option.id
@@ -30,20 +35,15 @@ struct RewardRedemptionOptionViewModel: Identifiable {
         guard let asset = option.asset else {
             return AssetImage()
         }
-        return AssetIdViewModel(assetId: asset.id).assetImage
+        return AssetIdViewModel(assetId: Primitives.AssetId(core: asset.id)).assetImage
     }
 
     var pointsText: String {
-        "\(option.points) 💎"
+        redemption.pointsText
     }
 
     var valueText: String {
-        switch option.redemptionType {
-        case .asset, .giftAsset:
-            guard let asset = option.asset else { return option.value }
-            let value = BigInt(stringLiteral: option.value)
-            return ValueFormatter.short.string(value, asset: asset)
-        }
+        redemption.value.text()
     }
 
     var confirmationMessage: String {

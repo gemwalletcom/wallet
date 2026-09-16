@@ -20,7 +20,7 @@ public struct ValidatorSelectScene: View {
             ForEach(model.list) { section in
                 Section(section.section) {
                     ForEach(section.values) { value in
-                        ValidatorSelectionView(value: value, selection: model.currentValidator?.id) {
+                        ValidatorSelectionView(value: value, row: model.validatorRow(for: value.value), selection: model.currentValidator?.id) {
                             model.selectValidator?($0)
                             dismiss()
                         }

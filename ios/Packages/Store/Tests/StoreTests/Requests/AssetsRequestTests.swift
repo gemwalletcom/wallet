@@ -14,7 +14,7 @@ struct AssetsRequestTests {
 
         try db.dbQueue.read { db in
             let assets = try AssetsRequest.mock().fetch(db)
-            let priceAlertAssets = try AssetsRequest.mock(filters: [.priceAlerts]).fetch(db)
+            let priceAlertAssets = try AssetsRequest.mock(scope: .allAssets).fetch(db)
 
             #expect(assets.map(\.asset.id) == [visible.asset.id])
             #expect(priceAlertAssets.map(\.asset.id) == [visible.asset.id])
@@ -34,7 +34,7 @@ struct AssetsRequestTests {
         try store.add(assets: [.mock()])
 
         try db.dbQueue.read { db in
-            let assets = try AssetsRequest.mock(filters: [.priceAlerts]).fetch(db)
+            let assets = try AssetsRequest.mock(scope: .allAssets).fetch(db)
 
             #expect(assets.count == 1)
         }
@@ -176,7 +176,7 @@ struct AssetsRequestTests {
         let priceStore = PriceStore(db: db)
         let fiatRateStore = FiatRateStore(db: db)
 
-        try fiatRateStore.add([FiatRate(symbol: .usd, rate: 1)])
+        try fiatRateStore.add([.mock()])
 
         let assets = [AssetBasic].mock()
         try priceStore.updatePrices(assets.map {
@@ -216,7 +216,7 @@ struct AssetsRequestTests {
         let fiatRateStore = FiatRateStore(db: db)
         let balanceStore = BalanceStore(db: db)
 
-        try fiatRateStore.add([FiatRate(symbol: .usd, rate: 1)])
+        try fiatRateStore.add([.mock()])
 
         try priceStore.updatePrices([.mock(assetId: AssetId(chain: .tron), price: 100, priceChangePercentage24h: 100)])
 
@@ -233,15 +233,5 @@ struct AssetsRequestTests {
 
             #expect(assets.first?.asset.id == AssetId(chain: .bitcoin))
         }
-    }
-}
-
-extension AssetsRequest {
-    static func mock(
-        walletId: WalletId = .mock(),
-        searchBy: String = "",
-        filters: [AssetsRequestFilter] = [],
-    ) -> AssetsRequest {
-        AssetsRequest(walletId: walletId, searchBy: searchBy, filters: filters)
     }
 }

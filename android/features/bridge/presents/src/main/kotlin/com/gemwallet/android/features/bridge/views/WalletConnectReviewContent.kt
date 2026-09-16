@@ -2,6 +2,7 @@
 
 package com.gemwallet.android.features.bridge.views
 
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,7 +13,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -28,6 +28,7 @@ import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
+import uniffi.gemstone.GemWalletRow
 
 internal fun LazyListScope.walletConnectTextMessage(message: String) {
     item {
@@ -44,6 +45,7 @@ internal fun LazyListScope.walletConnectTextMessage(message: String) {
 
 @Composable
 internal fun WalletConnectPayloadDetailsSheet(
+    isVisible: Boolean,
     primaryFields: List<PayloadField>,
     secondaryFields: List<PayloadField>,
     addressNames: Map<String, String>,
@@ -51,8 +53,9 @@ internal fun WalletConnectPayloadDetailsSheet(
     onDismissRequest: () -> Unit,
 ) {
     ModalBottomSheet(
+        isVisible = isVisible,
+        expansion = SheetExpansion.Full,
         onDismissRequest = onDismissRequest,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         title = stringResource(R.string.common_details),
     ) {
         LazyColumn {
@@ -74,12 +77,14 @@ internal fun WalletConnectPayloadDetailsSheet(
 
 @Composable
 internal fun WalletConnectFullMessageSheet(
+    isVisible: Boolean,
     message: String,
     onDismissRequest: () -> Unit,
 ) {
     ModalBottomSheet(
+        isVisible = isVisible,
+        expansion = SheetExpansion.Full,
         onDismissRequest = onDismissRequest,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         title = stringResource(R.string.sign_message_view_full_message),
     ) {
         LazyColumn(
@@ -98,7 +103,7 @@ internal fun WalletConnectFullMessageSheet(
 @Composable
 internal fun WalletSelectionSheet(
     isVisible: Boolean,
-    wallets: List<Wallet>,
+    walletRows: List<GemWalletRow>,
     selectedWalletId: WalletId?,
     onWalletSelected: (WalletId) -> Unit,
     onDismissRequest: () -> Unit,
@@ -110,13 +115,13 @@ internal fun WalletSelectionSheet(
     ) {
         LazyColumn {
             item { SubheaderItem(R.string.wallets_title) }
-            itemsIndexed(wallets) { index, wallet ->
+            itemsIndexed(walletRows) { index, row ->
                 WalletItem(
-                    wallet = wallet,
-                    isCurrent = wallet.id == selectedWalletId,
-                    listPosition = ListPosition.getPosition(index, wallets.size),
+                    row = row,
+                    isCurrent = row.id == selectedWalletId?.id,
+                    listPosition = ListPosition.getPosition(index, walletRows.size),
                     modifier = Modifier.clickable {
-                        onWalletSelected(wallet.id)
+                        onWalletSelected(WalletId(row.id))
                         onDismissRequest()
                     },
                 )

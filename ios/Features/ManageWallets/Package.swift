@@ -13,6 +13,10 @@ let package = Package(
             name: "ManageWallets",
             targets: ["ManageWallets"],
         ),
+        .library(
+            name: "ManageWalletsTestKit",
+            targets: ["ManageWalletsTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
@@ -43,14 +47,30 @@ let package = Package(
             ],
             path: "Sources",
         ),
+        .target(
+            name: "ManageWalletsTestKit",
+            dependencies: [
+                "ManageWallets",
+                "Gemstone",
+                "Primitives",
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
+            ],
+            path: "TestKit",
+        ),
         .testTarget(
             name: "ManageWalletsTests",
             dependencies: [
                 "ManageWallets",
+                "ManageWalletsTestKit",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
                 .product(name: "StoreTestKit", package: "Store"),
+                "Gemstone",
+                "Primitives",
+                "Store",
+                "GemstonePrimitives",
             ],
         ),
     ],

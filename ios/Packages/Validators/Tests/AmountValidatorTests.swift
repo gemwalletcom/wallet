@@ -1,9 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import Formatters
 import Foundation
-import GemstoneFormatters
 import Primitives
 import PrimitivesTestKit
 import Testing
@@ -11,62 +9,29 @@ import Testing
 
 struct AmountValidatorTests {
     private let asset = Asset.mockEthereumUSDT()
-    private let formatter = ValueFormatter(style: .full)
     private var decimals: Int {
         Int(asset.decimals)
     }
 
     @Test
     func assetAmountConverts() throws {
+        let recorder = RecordingAmountValidator()
         let validator = AmountValidator.assetAmount(
-            formatter: formatter,
             decimals: decimals,
-            validators: [],
+            validators: [recorder],
         )
-        #expect(try validator.format("123.456") == BigInt(123_456_000))
+        try validator.validate("123.4567")
+        #expect(recorder.value == BigInt(123_456_700))
     }
 
     @Test
     func assetAmountPropagatesValidationFailure() {
         let validator = AmountValidator.assetAmount(
-            formatter: formatter,
             decimals: decimals,
             validators: [InvalidAmountValidator()],
         )
         #expect(throws: TransferError.invalidAmount) {
             try validator.validate("0.5")
-        }
-    }
-
-    @Test
-    func fiatAmountConvertsAndSucceeds() throws {
-        let price = AssetPrice.mock(
-            assetId: asset.id,
-            price: 2,
-            priceChangePercentage24h: .zero,
-            updatedAt: .now,
-        )
-        let validator = AmountValidator.fiatAmount(
-            formatter: formatter,
-            converter: AssetValueConverter(),
-            price: price,
-            decimals: decimals,
-            validators: [],
-        )
-        try validator.validate("10")
-    }
-
-    @Test
-    func fiatAmountThrowsWhenPriceMissing() {
-        let validator = AmountValidator.fiatAmount(
-            formatter: formatter,
-            converter: AssetValueConverter(),
-            price: nil,
-            decimals: decimals,
-            validators: [],
-        )
-        #expect(throws: TransferError.invalidAmount) {
-            try validator.validate("1.0")
         }
     }
 }
@@ -77,4 +42,14 @@ private struct InvalidAmountValidator: ValueValidator {
     }
 
     var id: String { "invalidAmount" }
+}
+
+private final class RecordingAmountValidator: ValueValidator, @unchecked Sendable {
+    var value: BigInt?
+
+    func validate(_ value: BigInt) throws {
+        self.value = value
+    }
+
+    var id: String { "recording" }
 }

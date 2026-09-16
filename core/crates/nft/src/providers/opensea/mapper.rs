@@ -117,7 +117,6 @@ impl Collection {
             },
             status: VerificationStatus::from_verified(is_verified),
             links: self.as_links(),
-            is_verified,
         }
     }
 

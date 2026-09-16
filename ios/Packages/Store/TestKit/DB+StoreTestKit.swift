@@ -17,6 +17,15 @@ public extension DB {
         return db
     }
 
+    static func mockWithWallets(_ wallets: [Wallet]) throws -> DB {
+        let db = Self.mockWithChains(wallets.flatMap { $0.accounts.map(\.chain) }.asSet().asArray())
+        let walletStore = WalletStore(db: db)
+        for wallet in wallets {
+            try walletStore.addWallet(wallet)
+        }
+        return db
+    }
+
     static func mockAssets(assets: [AssetBasic] = .mock()) -> DB {
         let db = Self.mock()
         let assetStore = AssetStore(db: db)
@@ -45,13 +54,6 @@ public extension DB {
         return db
     }
 
-    static func mockPerpetualAssets() throws -> DB {
-        let db = Self.mock()
-        try FiatRateStore(db: db).add([FiatRate(symbol: .usd, rate: 1)])
-        try AssetStore(db: db).add(assets: [.mock(asset: Asset.mockHypercoreUSDC())])
-        return db
-    }
-
     static func mockAssetsWithPerpetualCollateralBalance() throws -> DB {
         let ethereum = Asset.mockEthereum()
         let bnb = Asset.mockBNB()
@@ -72,38 +74,14 @@ public extension DB {
             ])
         try balanceStore.updateBalances(
             [
-                .mockCoin(assetId: ethereum.id, available: 3),
-                .mockCoin(assetId: bnb.id, available: 10),
-                .mockPerpetual(assetId: perpetual.id, available: 50, reserved: 25),
+                .mock(assetId: ethereum.id, available: 3),
+                .mock(assetId: bnb.id, available: 10),
+                .mock(assetId: perpetual.id, available: 50, reserved: 25),
             ],
             for: .mock(),
         )
         // hypercoreUSDC is an internal asset and is always isEnabled=false so it stays out of the asset list UI.
         try balanceStore.setIsEnabled(walletId: .mock(), assetIds: [bnb.id, perpetual.id], value: false)
-
-        return db
-    }
-
-    static func mockAssetsWithEarnBalance() throws -> DB {
-        let ethereum = Asset.mockEthereum()
-        let db = DB.mockAssets(assets: [
-            .mock(asset: ethereum),
-        ])
-        let balanceStore = BalanceStore(db: db)
-        let fiatRateStore = FiatRateStore(db: db)
-        let priceStore = PriceStore(db: db)
-
-        try fiatRateStore.add([.mock()])
-        try priceStore.updatePrices([
-                .mock(assetId: ethereum.id, price: 110, priceChangePercentage24h: 10),
-            ])
-        try balanceStore.updateBalances(
-            [
-                .mockStake(assetId: ethereum.id, staked: 2),
-                .mockEarn(assetId: ethereum.id, balance: 1),
-            ],
-            for: .mock(),
-        )
 
         return db
     }

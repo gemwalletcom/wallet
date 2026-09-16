@@ -35,18 +35,20 @@ pub struct PermitSingle {
     pub sig_deadline: u64,
 }
 
-impl From<PermitSingle> for IAllowanceTransfer::PermitSingle {
-    fn from(val: PermitSingle) -> Self {
-        IAllowanceTransfer::PermitSingle {
+impl TryFrom<PermitSingle> for IAllowanceTransfer::PermitSingle {
+    type Error = SwapperError;
+
+    fn try_from(val: PermitSingle) -> Result<Self, Self::Error> {
+        Ok(IAllowanceTransfer::PermitSingle {
             details: IAllowanceTransfer::PermitDetails {
-                token: val.details.token.as_str().parse().unwrap(),
-                amount: U160::from_str(&val.details.amount).unwrap(),
+                token: val.details.token.as_str().parse().map_err(SwapperError::transaction_error)?,
+                amount: U160::from_str(&val.details.amount).map_err(SwapperError::transaction_error)?,
                 expiration: U48::from(val.details.expiration),
                 nonce: U48::from(val.details.nonce),
             },
-            spender: val.spender.as_str().parse().unwrap(),
+            spender: val.spender.as_str().parse().map_err(SwapperError::transaction_error)?,
             sigDeadline: U256::from(val.sig_deadline),
-        }
+        })
     }
 }
 
@@ -56,12 +58,14 @@ pub struct Permit2Data {
     pub signature: Vec<u8>,
 }
 
-impl From<Permit2Data> for Permit2Permit {
-    fn from(val: Permit2Data) -> Self {
-        Permit2Permit {
-            permit_single: val.permit_single.into(),
+impl TryFrom<Permit2Data> for Permit2Permit {
+    type Error = SwapperError;
+
+    fn try_from(val: Permit2Data) -> Result<Self, Self::Error> {
+        Ok(Permit2Permit {
+            permit_single: val.permit_single.try_into()?,
             signature: Bytes::from(val.signature),
-        }
+        })
     }
 }
 
@@ -83,12 +87,11 @@ where
 }
 
 pub fn permit2_data_to_eip712_json(chain: Chain, data: PermitSingle, contract: &str) -> Result<String, SwapperError> {
-    let chain_id = chain.network_id();
     let message = Permit2Message {
         domain: EIP712Domain {
             name: Some("Permit2".to_string()),
             version: None,
-            chain_id: Some(chain_id.parse::<u64>().unwrap()),
+            chain_id: Some(chain.network_id_value().ok_or(SwapperError::NotSupportedChain)?),
             verifying_contract: Some(contract.to_string()),
             salts: None,
         },

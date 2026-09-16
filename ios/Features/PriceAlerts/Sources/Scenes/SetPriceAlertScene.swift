@@ -48,6 +48,7 @@ struct SetPriceAlertScene: View {
             }
         }
         .onChange(of: model.state.type, model.onChangeAlertType)
+        .alertSheet($model.isPresentingAlertMessage)
         .onAppear {
             focusedField = true
         }

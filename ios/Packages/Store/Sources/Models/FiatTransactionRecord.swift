@@ -79,18 +79,15 @@ struct FiatTransactionRecordInfo: FetchableRecord, Codable {
 extension FiatTransactionRecordInfo {
     func map() -> FiatTransactionAssetData {
         FiatTransactionAssetData(
-            transaction: FiatTransaction(
-                id: fiatTransaction.id,
-                assetId: fiatTransaction.assetId,
-                transactionType: fiatTransaction.transactionType,
-                provider: fiatTransaction.providerId,
-                status: fiatTransaction.status,
-                fiatAmount: fiatTransaction.fiatAmount,
-                fiatCurrency: fiatTransaction.fiatCurrency,
-                value: fiatTransaction.value,
-                createdAt: fiatTransaction.createdAt,
-            ),
+            id: fiatTransaction.id,
             asset: asset.mapToAsset(),
+            transactionType: fiatTransaction.transactionType,
+            provider: fiatTransaction.providerId,
+            status: fiatTransaction.status,
+            fiatAmount: fiatTransaction.fiatAmount,
+            fiatCurrency: fiatTransaction.fiatCurrency,
+            value: fiatTransaction.value,
+            createdAt: fiatTransaction.createdAt,
             detailsUrl: fiatTransaction.detailsUrl,
         )
     }

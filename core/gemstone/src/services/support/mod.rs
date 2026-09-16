@@ -1,3 +1,4 @@
+pub mod model;
 pub mod rules;
 pub mod store;
 
@@ -13,6 +14,7 @@ use crate::alien::AlienProvider;
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::file::{GemFileStore, download};
 
+pub use model::GemSupportChatGroup;
 pub use store::GemSupportStore;
 
 #[derive(uniffi::Object)]
@@ -37,6 +39,10 @@ impl GemSupportService {
         }
         let image = download(&self.provider, url).await?;
         self.files.save_named_file(image, file_name)
+    }
+
+    pub fn sync_from_timestamp(&self, messages: Vec<SupportMessage>) -> u64 {
+        rules::sync_from_timestamp(messages)
     }
 
     pub async fn sync_messages(&self, from_timestamp: u64) -> Result<(), GemServiceError> {

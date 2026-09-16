@@ -6,11 +6,13 @@ import Localization
 import Primitives
 import PrimitivesComponents
 import Style
+import struct Gemstone.GemAssetRow
 import SwiftUI
 
 struct WalletAssetsList: View {
     let assets: [AssetData]
-    let currencyCode: String
+    let currency: Currency
+    let row: GemAssetRow
     let onHideAsset: AssetIdAction
     let onPinAsset: AssetBoolAction
     let onAddToWallet: AssetIdAction
@@ -20,7 +22,8 @@ struct WalletAssetsList: View {
 
     init(
         assets: [AssetData],
-        currencyCode: String,
+        currency: Currency,
+        row: GemAssetRow,
         onHideAsset: AssetIdAction,
         onPinAsset: AssetBoolAction,
         onAddToWallet: AssetIdAction = nil,
@@ -28,7 +31,8 @@ struct WalletAssetsList: View {
         showBalancePrivacy: Binding<Bool>,
     ) {
         self.assets = assets
-        self.currencyCode = currencyCode
+        self.currency = currency
+        self.row = row
         self.onHideAsset = onHideAsset
         self.onPinAsset = onPinAsset
         self.onAddToWallet = onAddToWallet
@@ -44,7 +48,8 @@ struct WalletAssetsList: View {
                         showBalancePrivacy: $showBalancePrivacy,
                         assetData: asset,
                         formatter: .short,
-                        currencyCode: currencyCode,
+                        currency: currency,
+                        row: row,
                     ),
                 )
                 .contextMenu(

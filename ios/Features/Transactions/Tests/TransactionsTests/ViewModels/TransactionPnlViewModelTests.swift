@@ -1,5 +1,5 @@
+import GemstonePrimitivesTestKit
 import Primitives
-import PrimitivesTestKit
 import Style
 import Testing
 @testable import Transactions
@@ -7,7 +7,7 @@ import Testing
 struct TransactionPnlViewModelTests {
     @Test
     func positivePnl() {
-        if case let .pnl(_, value, color) = TransactionPnlViewModel(pnl: 100).itemModel {
+        if case let .pnl(_, value, color) = TransactionPnlViewModel(pnl: .mock(value: 100, tone: .positive)).itemModel {
             #expect(value.contains("+"))
             #expect(color == Colors.green)
         } else {
@@ -17,7 +17,7 @@ struct TransactionPnlViewModelTests {
 
     @Test
     func negativePnl() {
-        if case let .pnl(_, value, color) = TransactionPnlViewModel(pnl: -50).itemModel {
+        if case let .pnl(_, value, color) = TransactionPnlViewModel(pnl: .mock(value: -50, tone: .negative)).itemModel {
             #expect(value.contains("-"))
             #expect(color == Colors.red)
         } else {

@@ -23,7 +23,7 @@ struct KeystoreBenchmarkTests {
             let start = clock.now
             wallet = try keystore.importWallet(
                 name: "Benchmark",
-                type: .multicoinPhrase(words: LocalKeystore.words, chains: [Primitives.Chain.ethereum].map { $0.map() }),
+                type: .multicoinPhrase(words: LocalKeystore.words, chains: [Primitives.Chain.ethereum].map { $0.toGem() }),
             )
             if index > 0 {
                 encryptDurations.append(clock.now - start)

@@ -1,0 +1,25 @@
+headers:
+  forward: [accept]
+request:
+  timeout: 1s
+  limit: 1 KiB
+retry:
+  cooldown: 1s
+  statuses: [429]
+routes:
+  security_tronscan:
+    group: security
+    selection: ordered
+    headers:
+      forward: [TRON-PRO-API-KEY, ACCEPT]
+    endpoints: []
+  security_goplus:
+    group: security
+    selection: ordered
+    headers:
+      forward: [authorization]
+    endpoints: []
+  security_public:
+    group: security
+    selection: ordered
+    endpoints: []

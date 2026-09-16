@@ -1,7 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
+import func Gemstone.transactionsListLimit
 import Primitives
+import PrimitivesComponents
 import Store
 
 public struct AssetSceneInput: Sendable {
@@ -9,7 +12,7 @@ public struct AssetSceneInput: Sendable {
     public let asset: Asset
 
     public var assetRequest: ChainAssetRequest
-    public var transactionsRequest: TransactionsRequest
+    public var transactionsRequest: MappedRequest<TransactionsRequest, [ListSection<TransactionViewModel>]>
     public var bannersRequest: BannersRequest
 
     public init(wallet: Wallet, asset: Asset) {
@@ -21,9 +24,9 @@ public struct AssetSceneInput: Sendable {
             assetId: asset.id,
         )
 
-        transactionsRequest = TransactionsRequest.assetScene(
-            walletId: wallet.id,
-            assetId: asset.id,
+        transactionsRequest = MappedRequest(
+            TransactionsRequest.assetScene(walletId: wallet.id, assetId: asset.id, limit: Int(transactionsListLimit())),
+            transform: TransactionViewModel.sections,
         )
 
         bannersRequest = BannersRequest(

@@ -1,5 +1,10 @@
-use primitives::{Asset, AssetType, Chain, RecentActivityType};
+use primitives::{Asset, AssetId, AssetMetaData, AssetType, BannerEvent, BlockExplorerLink, Chain, PriceAlert, RecentActivityType, VerificationStatus, WalletType};
+
+use crate::services::balance::GemAssetBalance;
+use crate::services::price_alert::rules::GemPriceAlertToggle;
+use crate::services::swap::GemSwapPairSuggestion;
 use strum::IntoEnumIterator;
+use swapper::AssetList as SwapAssetList;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AssetList {
@@ -25,14 +30,14 @@ pub enum GemAssetAction {
     SwapReceive,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
 pub enum GemSelectAssetType {
     Send,
     Receive,
     ReceiveCollection,
     Buy,
     SwapPay,
-    SwapReceive,
+    SwapReceive { pay_asset_id: Option<AssetId> },
     Manage,
     PriceAlert,
     Deposit,
@@ -48,10 +53,84 @@ pub enum GemSelectRowAction {
     Select,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemSelectAssetScope {
+    Wallet,
+    AllAssets,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemAssetRowTitle {
+    Asset,
+    CanonicalAsset,
+    Network,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemAssetRowSubtitle {
+    Network,
+    Price,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemAssetRowTrailing {
+    Balance,
+    Toggle,
+    Copy,
+    None,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct GemAssetText {
+    pub title: String,
+    pub subtitle_symbol: Option<String>,
+    pub network_name: String,
+    pub network_full_name: String,
+}
+
+#[uniffi::export]
+pub fn asset_text(asset: Asset) -> GemAssetText {
+    super::rules::asset_text(&asset)
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+pub struct GemAssetRow {
+    pub title: GemAssetRowTitle,
+    pub shows_symbol: bool,
+    pub subtitle: GemAssetRowSubtitle,
+    pub trailing: GemAssetRowTrailing,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemSelectAssetTitle {
+    Send,
+    Receive,
+    ReceiveCollection,
+    Buy,
+    SwapPay,
+    SwapReceive,
+    ManageTokenList,
+    SelectAsset,
+    Deposit,
+    Withdraw,
+    Search,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemSelectAssetSection {
+    Assets,
+    Networks,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
 pub struct GemSelectAssetFlow {
+    pub title: GemSelectAssetTitle,
+    pub assets_section: GemSelectAssetSection,
+    pub row: GemAssetRow,
     pub row_action: GemSelectRowAction,
     pub action: Option<GemAssetAction>,
+    pub scope: GemSelectAssetScope,
+    pub filters: Vec<GemAssetFilter>,
     pub enables_price_alert: bool,
     pub network_search: bool,
     pub chain_filter: bool,
@@ -62,14 +141,58 @@ pub struct GemSelectAssetFlow {
     pub deposit_asset_display: bool,
 }
 
-#[uniffi::export]
-impl GemSelectAssetType {
-    pub fn flow(&self) -> GemSelectAssetFlow {
-        super::rules::select_asset_flow(*self)
-    }
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
+pub enum GemAssetSearchStep {
+    Idle,
+    Search { query: String },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemSelectAssetState {
+    Idle,
+    Loading,
+    Empty,
+}
+
+#[uniffi::export]
+impl GemSelectAssetFlow {
+    pub fn shows_recents(&self, is_searching: bool, has_recents: bool) -> bool {
+        self.recents && !is_searching && has_recents
+    }
+
+    pub fn search_step(&self, query: String) -> GemAssetSearchStep {
+        let query = query.trim();
+        match self.network_search && !query.is_empty() {
+            true => GemAssetSearchStep::Search { query: query.to_string() },
+            false => GemAssetSearchStep::Idle,
+        }
+    }
+
+    pub fn state(&self, has_items: bool, is_searching: bool) -> GemSelectAssetState {
+        match (has_items, is_searching) {
+            (true, _) => GemSelectAssetState::Idle,
+            (false, true) => GemSelectAssetState::Loading,
+            (false, false) => GemSelectAssetState::Empty,
+        }
+    }
+
+    pub fn shows_add_token(&self, supports_tokens: bool, has_chains: bool) -> bool {
+        self.add_custom_token && supports_tokens && has_chains
+    }
+
+    pub fn shows_chain_filter(&self, is_multicoin: bool, has_chains: bool) -> bool {
+        self.chain_filter && is_multicoin && has_chains
+    }
+}
+
+#[uniffi::export]
+impl GemSelectAssetType {
+    pub fn flow(&self) -> GemSelectAssetFlow {
+        super::rules::select_asset_flow(self.clone(), None)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
 pub enum GemAssetFilter {
     Enabled,
     Buyable,
@@ -77,9 +200,34 @@ pub enum GemAssetFilter {
     Swappable,
     HasBalance,
     HasAvailableBalance,
+    ChainsOrAssetIds { chains: Vec<Chain>, asset_ids: Vec<AssetId> },
+}
+
+impl GemAssetFilter {
+    pub fn asset_ids(asset_ids: Vec<AssetId>) -> Self {
+        Self::ChainsOrAssetIds { chains: Vec::new(), asset_ids }
+    }
+}
+
+impl From<SwapAssetList> for GemAssetFilter {
+    fn from(assets: SwapAssetList) -> Self {
+        Self::ChainsOrAssetIds {
+            chains: assets.chains,
+            asset_ids: assets.asset_ids,
+        }
+    }
 }
 
 #[uniffi::export]
+impl GemAssetAction {
+    pub fn recent_activity_types(&self) -> Vec<RecentActivityType> {
+        match self {
+            Self::SwapPay | Self::SwapReceive => vec![RecentActivityType::SwapSelect, RecentActivityType::Swap],
+            Self::Open | Self::Send | Self::Receive | Self::Buy | Self::Sell => RecentActivityType::iter().collect(),
+        }
+    }
+}
+
 impl GemAssetAction {
     pub fn filters(&self) -> Vec<GemAssetFilter> {
         match self {
@@ -93,15 +241,6 @@ impl GemAssetAction {
         }
     }
 
-    pub fn recent_activity_types(&self) -> Vec<RecentActivityType> {
-        match self {
-            Self::SwapPay | Self::SwapReceive => vec![RecentActivityType::SwapSelect, RecentActivityType::Swap],
-            Self::Open | Self::Send | Self::Receive | Self::Buy | Self::Sell => RecentActivityType::iter().collect(),
-        }
-    }
-}
-
-impl GemAssetAction {
     pub fn recent_activity_type(&self, asset: &Asset) -> Option<RecentActivityType> {
         match self {
             Self::Open => Some(match asset.asset_type {
@@ -119,8 +258,30 @@ impl GemAssetAction {
 
 #[cfg(test)]
 mod tests {
-    use super::{Asset, AssetType, GemAssetAction, GemAssetFilter, RecentActivityType};
+    use super::{Asset, AssetType, GemAssetAction, GemAssetFilter, GemAssetSearchStep, GemSelectAssetState, GemSelectAssetType, RecentActivityType};
     use primitives::Chain;
+
+    #[test]
+    fn test_a_search_runs_only_on_a_trimmed_query_a_network_flow_accepts() {
+        let network = GemSelectAssetType::Buy.flow();
+        assert!(network.network_search);
+        assert_eq!(network.search_step("  btc ".to_string()), GemAssetSearchStep::Search { query: "btc".to_string() });
+        assert_eq!(network.search_step("   ".to_string()), GemAssetSearchStep::Idle);
+        assert_eq!(network.search_step(String::new()), GemAssetSearchStep::Idle);
+
+        let local = GemSelectAssetType::Deposit.flow();
+        assert!(!local.network_search);
+        assert_eq!(local.search_step("btc".to_string()), GemAssetSearchStep::Idle);
+    }
+
+    #[test]
+    fn test_the_list_reads_as_loading_only_while_a_search_finds_nothing() {
+        let flow = GemSelectAssetType::Buy.flow();
+        assert_eq!(flow.state(true, true), GemSelectAssetState::Idle);
+        assert_eq!(flow.state(true, false), GemSelectAssetState::Idle);
+        assert_eq!(flow.state(false, true), GemSelectAssetState::Loading);
+        assert_eq!(flow.state(false, false), GemSelectAssetState::Empty);
+    }
 
     #[test]
     fn test_every_recorded_recent_type_is_shown_by_the_same_action() {
@@ -173,18 +334,120 @@ pub struct GemWalletSearchLimits {
     pub results: u32,
 }
 
+#[uniffi::export]
+impl GemWalletSearchLimits {
+    pub fn has_more_assets(&self, count: u32) -> bool {
+        count > self.assets
+    }
+
+    pub fn has_more_perpetuals(&self, count: u32) -> bool {
+        count > self.perpetuals
+    }
+
+    pub fn has_more_nfts(&self, count: u32) -> bool {
+        count > self.nfts
+    }
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, uniffi::Record)]
+pub struct GemAssetSectionIds {
+    pub pinned: Vec<AssetId>,
+    pub popular: Vec<AssetId>,
+    pub assets: Vec<AssetId>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+pub struct GemNetworkAssetCounts {
+    pub pinned: u32,
+    pub unpinned: u32,
+    pub hidden: u32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+pub struct GemNetworkAssetSections {
+    pub shows_pinned: bool,
+    pub shows_unpinned: bool,
+    pub shows_hidden: bool,
+    pub shows_empty: bool,
+}
+
+#[uniffi::export]
+impl GemNetworkAssetCounts {
+    pub fn sections(&self) -> GemNetworkAssetSections {
+        GemNetworkAssetSections {
+            shows_pinned: self.pinned > 0,
+            shows_unpinned: self.unpinned > 0,
+            shows_hidden: self.hidden > 0,
+            shows_empty: self.pinned == 0 && self.unpinned == 0 && self.hidden == 0,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemHeaderButtonKind {
     Send,
     Receive,
     Buy,
     Swap,
+    Deposit,
+    Withdraw,
+    More,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+pub struct GemWalletSearchCounts {
+    pub recents: u32,
+    pub pinned: u32,
+    pub assets: u32,
+    pub perpetuals: u32,
+    pub lists: u32,
+    pub nfts: u32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemWalletSearchPhase {
+    Results,
+    Loading,
+    Empty,
+}
+
+#[uniffi::export]
+pub fn wallet_search_phase(counts: GemWalletSearchCounts, is_loading: bool) -> GemWalletSearchPhase {
+    super::rules::wallet_search_phase(&counts, is_loading)
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
+pub enum GemAssetMenuAction {
+    Pin { is_pinned: bool },
+    Hide,
+    AddToWallet,
+    CopyAddress { address: String },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct GemAssetMenuInput {
+    pub is_pinned: bool,
+    pub is_balance_enabled: bool,
+    pub address: String,
+    pub offers_hide: bool,
+    pub offers_add_to_wallet: bool,
+}
+
+#[uniffi::export]
+pub fn asset_menu_actions(input: GemAssetMenuInput) -> Vec<GemAssetMenuAction> {
+    super::rules::menu_actions(&input)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
 pub struct GemHeaderButton {
     pub kind: GemHeaderButtonKind,
     pub is_enabled: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
+pub enum GemHeaderActions {
+    WatchOnly,
+    Buttons { buttons: Vec<GemHeaderButton> },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -196,11 +459,38 @@ pub enum GemAssetEmptyAction {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAssetDetailsState {
     pub is_view_only: bool,
-    pub header_buttons: Vec<GemHeaderButton>,
+    pub header_actions: GemHeaderActions,
     pub shows_banners: bool,
     pub shows_manage: bool,
     pub shows_resources: bool,
     pub shows_price_alerts: bool,
+    pub price_alerts_count: u32,
+    pub price_alert: GemPriceAlertToggle,
     pub shows_earn: bool,
     pub empty_transactions_action: Option<GemAssetEmptyAction>,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemAssetDetailsInput {
+    pub wallet_type: WalletType,
+    pub asset: Asset,
+    pub owner_address: Option<String>,
+    pub metadata: AssetMetaData,
+    pub balance: GemAssetBalance,
+    pub price: Option<f64>,
+    pub banner_events: Vec<BannerEvent>,
+    pub price_alerts: Vec<PriceAlert>,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemAssetDetails {
+    pub state: GemAssetDetailsState,
+    pub title: String,
+    pub explorer_name: String,
+    pub address_link: Option<BlockExplorerLink>,
+    pub token_link: Option<BlockExplorerLink>,
+    pub verification_status: Option<VerificationStatus>,
+    pub network_destination: Option<GemAssetNetworkDestination>,
+    pub share_url: String,
+    pub swap_pair: GemSwapPairSuggestion,
 }

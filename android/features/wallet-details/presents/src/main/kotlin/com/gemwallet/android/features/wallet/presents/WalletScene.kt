@@ -26,7 +26,7 @@ import com.gemwallet.android.features.wallet.presents.dialogs.ConfirmWalletDelet
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.image.WalletAvatar
-import com.gemwallet.android.ui.components.list_item.walletItemIconModel
+import com.gemwallet.android.ui.components.list_item.iconModel
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.defaultPadding
@@ -41,8 +41,8 @@ internal fun WalletScene(
     wallet ?: return
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    var walletName by remember(wallet.name) {
-        mutableStateOf(wallet.name)
+    var walletName by remember(wallet.row.name) {
+        mutableStateOf(wallet.row.name)
     }
     Scene(
         title = stringResource(id = R.string.common_wallet),
@@ -76,10 +76,10 @@ internal fun WalletScene(
             )
             ShowSecretDataProperty(
                 walletId = wallet.id,
-                walletType = wallet.type,
-                onClick = { walletId, walletType -> onAction(WalletAction.ShowPhrase(walletId, walletType)) },
+                secretKind = wallet.secretKind,
+                onClick = { walletId, secretKind -> onAction(WalletAction.ShowPhrase(walletId, secretKind)) },
             )
-            WalletAddress(wallet.accounts)
+            WalletAddress(wallet.address)
 
             Spacer16()
 
@@ -113,8 +113,8 @@ private fun WalletAvatarHeader(
     onClick: () -> Unit,
 ) {
     WalletAvatar(
-        imageUrl = wallet.imageUrl,
-        placeholder = walletItemIconModel(wallet.type, wallet.walletChain),
+        imageUrl = wallet.row.imageUrl,
+        placeholder = wallet.row.placeholder.iconModel(),
         size = extraLargeIconSize,
         modifier = Modifier.padding(vertical = paddingDefault),
         supportIcon = R.drawable.ic_edit_badge,

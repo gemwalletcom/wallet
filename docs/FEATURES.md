@@ -1,6 +1,8 @@
 # Core Features and Providers
 
-These tables describe the current implementation, not a product promise. Runtime availability can be disabled by server-provided asset flags even when a capability is implemented here. `Address history` means that `get_transactions_by_address` has a chain-specific implementation; it does not imply that every client constructor wires that implementation. `Simulation` means that the chain overrides the default unsupported simulation behavior. `WalletConnect` means that the chain is advertised for sessions and has request handling.
+This document summarizes supported chain capabilities and provider coverage. Runtime availability also depends on server-provided asset flags. Address history describes backend coverage; direct RPC clients may offer less history.
+
+For new chain proposals, see [New Blockchain Requirements](BLOCKCHAIN_REQUIREMENTS.md). All additions require team review and approval.
 
 Availability legend used across comparison tables:
 
@@ -21,7 +23,7 @@ Review cadence: weekly, and immediately when a referenced Core mapping changes.
 | Bitcoin Cash | Bitcoin | ✅ | ➖ | ➖ | ✅ | ➖ | ➖ | ➖ |
 | Litecoin | Bitcoin | ✅ | ➖ | ➖ | ✅ | ➖ | ➖ | ➖ |
 | Ethereum | EVM | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| BNB Smart Chain | EVM | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| BNB Chain | EVM | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Solana | Solana | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Polygon | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ✅ | ✅ |
 | THORChain | Cosmos | ✅ | ❌ | ➖ | ✅ | ➖ | ➖ | ❌ |
@@ -72,8 +74,11 @@ Review cadence: weekly, and immediately when a referenced Core mapping changes.
 | Robinhood Chain | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ❌ |
 | Stable | EVM | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Tempo | EVM | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Arc | EVM | ❌ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 
 <sub>Reviewed 2026-09-02. Sources: [chain list](../core/crates/primitives/src/chain.rs), [feature configuration](../core/crates/primitives/src/chain_config.rs), [Squid chain coverage](../core/crates/swapper/src/squid/mod.rs), [address-history contract](../core/crates/chain_traits/src/lib.rs), [simulation implementations](../core/crates/gem_evm/src/provider/simulation.rs), [Solana](../core/crates/gem_solana/src/provider/simulation.rs), [Sui](../core/crates/gem_sui/src/provider/simulation.rs), [TON](../core/crates/gem_ton/src/provider/simulation.rs), [Tron](../core/crates/gem_tron/src/provider/simulation.rs), [WalletConnect chain configuration](../core/gemstone/src/config/wallet_connect.rs), and [WalletConnect request handlers](../core/crates/gem_wallet_connect/src/request_handler/mod.rs).</sub>
+
+The Cetus package-version guard is not a stub: it turns one on-chain failure into a message the swap screen can show, and it clears itself when the built-in version catches up.
 
 ## WalletConnect
 
@@ -92,7 +97,7 @@ In this section, `➖` means WalletConnect does not publish an ecosystem method-
 | [TON](../core/crates/gem_wallet_connect/src/request_handler/ton.rs) | `ton` | `ton_sendMessage`<br>`ton_signData` | ➖ | <sub>[spec](https://docs.walletconnect.network/wallet-sdk/chain-support/ton)</sub> |
 | [Tron](../core/crates/gem_wallet_connect/src/request_handler/tron.rs) | `tron` | `tron_signMessage`<br>`tron_signTransaction`<br>`tron_sendTransaction` | `tron_getBalance` (optional) | <sub>[spec](https://docs.walletconnect.network/wallet-sdk/chain-support/tron)</sub> |
 
-Core's session-wide method list, consumed by both platform approval paths, includes `eth_sendRawTransaction`, but the request handler explicitly rejects it. Android's one-click-auth namespace includes it too. The TODO table tracks this advertised/accepted mismatch separately from methods that are simply absent.
+Core's session-wide method list, consumed by both platform approval paths and by the one-click-auth namespace, advertises only the methods the request handler accepts. A method the handler cannot serve is absent from the method enum, so an incoming request for it reads as unsupported. `solana_signAllTransactions` is advertised and served for a single transaction; a batch is answered with an unsupported error rather than dropped from the session.
 
 ### Chain coverage
 
@@ -102,7 +107,7 @@ Core's session-wide method list, consumed by both platform approval paths, inclu
 | Bitcoin Cash | ➖ | ➖ | ➖ |
 | Litecoin | ➖ | ➖ | ➖ |
 | Ethereum | ✅ | `eip155` | [EVM (8)](../core/crates/gem_wallet_connect/src/request_handler/ethereum.rs) |
-| BNB Smart Chain | ✅ | `eip155` | [EVM (8)](../core/crates/gem_wallet_connect/src/request_handler/ethereum.rs) |
+| BNB Chain | ✅ | `eip155` | [EVM (8)](../core/crates/gem_wallet_connect/src/request_handler/ethereum.rs) |
 | Solana | ✅ | `solana` | [Solana (4)](../core/crates/gem_wallet_connect/src/request_handler/solana.rs) |
 | Polygon | ✅ | `eip155` | [EVM (8)](../core/crates/gem_wallet_connect/src/request_handler/ethereum.rs) |
 | THORChain | ➖ | ➖ | ➖ |
@@ -153,26 +158,26 @@ Core's session-wide method list, consumed by both platform approval paths, inclu
 | Robinhood Chain | ✅ | `eip155` | [EVM (8)](../core/crates/gem_wallet_connect/src/request_handler/ethereum.rs) |
 | Stable | ✅ | `eip155` | [EVM (8)](../core/crates/gem_wallet_connect/src/request_handler/ethereum.rs) |
 | Tempo | ✅ | `eip155` | [EVM (8)](../core/crates/gem_wallet_connect/src/request_handler/ethereum.rs) |
+| Arc | ✅ | `eip155` | [EVM (8)](../core/crates/gem_wallet_connect/src/request_handler/ethereum.rs) |
 
-<sub>Reviewed 2026-09-02. Sources: [advertised chains](../core/gemstone/src/config/wallet_connect.rs), [session method list](../core/gemstone/src/services/wallet_connect/rules.rs), [method identifiers](../core/crates/primitives/src/wallet_connector.rs), [Core dispatcher](../core/crates/gem_wallet_connect/src/request_handler/mod.rs), [Android approval](../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/wallet_connect/WalletConnectCoordinator.kt), [Android auth namespace](../android/gemcore/src/main/kotlin/com/gemwallet/android/application/wallet_connect/Namespace.kt), and [iOS approval](../ios/Packages/FeatureServices/WalletConnectorService/WalletConnectorService.swift).</sub>
+<sub>Reviewed 2026-09-02. Sources: [advertised chains](../core/gemstone/src/config/wallet_connect.rs), [session method list](../core/gemstone/src/services/wallet_connect/rules.rs), [method identifiers](../core/crates/primitives/src/wallet_connector.rs), [Core dispatcher](../core/crates/gem_wallet_connect/src/request_handler/mod.rs), [Android approval](../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/wallet_connect/WalletConnectCoordinator.kt), [Android session namespace mapping](../android/gemcore/src/main/kotlin/com/gemwallet/android/application/wallet_connect/Session.kt), and [iOS approval](../ios/Packages/FeatureServices/WalletConnectorService/WalletConnectorService.swift).</sub>
 
 ## Security providers
 
-Backend transaction scanning checks the transaction target rather than the sender. Provider failures make the scan incomplete instead of treating the missing result as safe. Staking transaction types (delegate, undelegate, redelegate, rewards, withdraw, freeze, and unfreeze) use local database checks only and skip external security providers.
+Security checks cover malicious addresses, address poisoning, websites, and tokens. Core confirmation requests transaction scans only for `Transfer`, `Swap`, `TokenApprove`, and `Generic` inputs. All other input types skip the scan API entirely. Staking requests from older clients still use local security checks only on the backend. Setting the backend `scanEnable` config to `false` bypasses both local and provider transaction checks and returns a non-malicious, incomplete scan without memo requirements. The API reads this flag directly from the database on every scan request, so changes apply to subsequent requests without a cache delay or API restart. A locally verified destination on the matching chain skips provider checks after local fraud and token checks pass. Cross-chain address-name fallbacks do not carry verification. Transaction providers have independent `scanProviderEnable.goplus`, `scanProviderEnable.hashdit`, and `scanProviderEnable.tronscan` flags (default `true`), also read per request.
 
-| Provider | Address security | Address poisoning | Website security | EVM token security | Solana token security |
-| --- | :---: | :---: | :---: | :---: | :---: |
-| [GoPlus](../core/crates/security_provider/src/providers/goplus/provider.rs) | ✅ | ❌ | ❌ | ✅ | ❌ |
-| [HashDit](../core/crates/security_provider/src/providers/hashdit/provider.rs) | ✅ | ✅ | ✅ | ✅ | ✅ |
-| [Jupiter](../core/crates/security_provider/src/providers/jupiter/provider.rs) | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Provider | Address security | Address poisoning | Website security | Token security |
+| --- | --- | --- | :---: | --- |
+| [GoPlus](../core/crates/security_provider/src/providers/goplus/provider.rs) | [EVM subset](../core/crates/security_provider/src/providers/goplus/mapper.rs), Tron | ❌ | ❌ | [EVM subset](../core/crates/security_provider/src/providers/goplus/mapper.rs), Tron |
+| [HashDit](../core/crates/security_provider/src/providers/hashdit/provider.rs) | [EVM subset](../core/crates/security_provider/src/providers/hashdit/mapper.rs) | [EVM subset](../core/crates/security_provider/src/providers/hashdit/mapper.rs), Tron | ✅ | [EVM subset](../core/crates/security_provider/src/providers/hashdit/mapper.rs), Solana |
+| [Jupiter](../core/crates/security_provider/src/providers/jupiter/provider.rs) | ❌ | ❌ | ❌ | Solana |
+| [Tronscan](../core/crates/security_provider/src/providers/tronscan/provider.rs) | Tron | ❌ | ❌ | Tron |
 
-Address and EVM token coverage follows each provider's mapped chains. HashDit address poisoning covers its mapped EVM chains and Tron; website security is chain-independent.
-
-<sub>Reviewed 2026-09-05. Sources: [provider factory](../core/crates/security_provider/src/factory.rs), [HashDit chain mapping](../core/crates/security_provider/src/providers/hashdit/mapper.rs), [HashDit Address Security](https://docs.hashdit.io/api-reference/endpoint/address-security-v2/supported-chains), [Address Poisoning](https://docs.hashdit.io/api-reference/endpoint/address-poisoning/supported-chains), [Domain Security](https://docs.hashdit.io/api-reference/endpoint/domain-security), and [Solana Token Security](https://docs.hashdit.io/api-reference/endpoint/solana-token-security).</sub>
+<sub>Reviewed 2026-09-10. Sources: [provider factory](../core/crates/security_provider/src/factory.rs), [HashDit chain mapping](../core/crates/security_provider/src/providers/hashdit/mapper.rs), [HashDit Address Security](https://docs.hashdit.io/api-reference/endpoint/address-security-v2/supported-chains), [Address Poisoning](https://docs.hashdit.io/api-reference/endpoint/address-poisoning/supported-chains), [Domain Security](https://docs.hashdit.io/api-reference/endpoint/domain-security), and [Solana Token Security](https://docs.hashdit.io/api-reference/endpoint/solana-token-security).</sub>
 
 ## Transaction-indexing providers
 
-The EVM route configured by [`settings_chain`](../core/crates/settings_chain/src/lib.rs) uses the ordered lists in [`EVMIndexer`](../core/crates/gem_evm/src/rpc/indexer/mod.rs). Blockscout PRO is first for its 12 supported Gem chains, followed by Ankr or Alchemy when Blockscout returns an error. Alchemy's [`alchemy_getAssetTransfers`](../core/crates/gem_evm/src/rpc/alchemy.rs) is only called on explicitly supported chains. Other EVM chains return an empty address history. Dedicated indexers for Algorand, EVM, NEAR, Polkadot, Solana, Sui, and Tron are composed only by `settings_chain`; [gemstone](../core/gemstone/src/gateway/chain_factory.rs) uses RPC-only providers, and swapper uses raw RPC clients.
+The table lists backend address-history providers by chain. Chains marked unsupported have no address-history coverage.
 
 | Gem chain | Providers |
 | --- | --- |
@@ -180,7 +185,7 @@ The EVM route configured by [`settings_chain`](../core/crates/settings_chain/src
 | Bitcoin Cash | [Bitcoin chain client](../core/crates/gem_bitcoin/src/rpc/client.rs) |
 | Litecoin | [Bitcoin chain client](../core/crates/gem_bitcoin/src/rpc/client.rs) |
 | Ethereum | [Blockscout](../core/crates/gem_evm/src/rpc/blockscout.rs), [Ankr](../core/crates/gem_evm/src/rpc/ankr.rs) |
-| BNB Smart Chain | [Ankr](../core/crates/gem_evm/src/rpc/ankr.rs) |
+| BNB Chain | [Ankr](../core/crates/gem_evm/src/rpc/ankr.rs) |
 | Solana | [Alchemy](../core/crates/gem_solana/src/rpc/indexer/mod.rs) |
 | Polygon | [Blockscout](../core/crates/gem_evm/src/rpc/blockscout.rs), [Ankr](../core/crates/gem_evm/src/rpc/ankr.rs) |
 | THORChain | [Cosmos chain client](../core/crates/gem_cosmos/src/rpc/client.rs) |
@@ -231,30 +236,29 @@ The EVM route configured by [`settings_chain`](../core/crates/settings_chain/src
 | Robinhood Chain | [Blockscout](../core/crates/gem_evm/src/rpc/blockscout.rs), [Alchemy](../core/crates/gem_evm/src/rpc/alchemy.rs) |
 | Stable | Unsupported |
 | Tempo | Unsupported |
-
-[Ankr's Advanced API](https://www.ankr.com/docs/advanced-api/overview/) also advertises Flare, Scroll, Story, Syscoin, Taiko, Telos, and Xai, which are not Gem chains. Alchemy's generic [Chain API list](https://www.alchemy.com/docs/reference/node-supported-chains) is retained as endpoint evidence only; method-level support must be checked against the [Transfers API](https://www.alchemy.com/docs/reference/transfers-api-quickstart) or an authenticated request.
+| Arc | Unsupported |
 
 <sub>Reviewed 2026-09-02. External method references: [Blockscout PRO chains](https://docs.blockscout.com/devs/pro-api) · [Blockscout transactions](https://docs.blockscout.com/api-reference/get-address-transactions) · [Blockscout token transfers](https://docs.blockscout.com/api-reference/get-address-token-transfers) · [Blockscout token balances](https://docs.blockscout.com/api-reference/get-all-tokens-balances-for-the-address) · [Ankr Advanced API](https://www.ankr.com/docs/advanced-api/overview/) · [Alchemy Transfers API](https://www.alchemy.com/docs/reference/transfers-api-quickstart) · [Alchemy Solana history method](https://www.alchemy.com/docs/chains/solana/solana-api-endpoints/get-transactions-for-address) · [Sui GraphQL](https://docs.sui.io/develop/accessing-data/graphql/graphql-rpc) · [TronGrid account transactions](https://developers.tron.network/reference/get-transaction-info-by-account-address) · [TronGrid TRC-20 transactions](https://developers.tron.network/reference/get-trc20-transaction-info-by-account-address) · [Algorand Indexer](https://dev.algorand.co/reference/rest-api/indexer/).</sub>
 
 ## Swap providers
 
-These tables compare Core route eligibility with current provider-advertised support. A Core chain means that the provider's `supported_assets()` exposes at least one asset on that chain; it does not mean that every token or chain pair is available. `Coverage difference` only mentions chains in Gem's 55-chain [`Chain`](../core/crates/primitives/src/chain.rs) enum.
+These tables compare implemented coverage with provider-advertised support across Gem’s supported chains. Coverage requires at least one supported asset on a chain; individual tokens and routes may be unavailable.
 
 ### On-chain providers
 
 | Provider | Core coverage | Core chains | Coverage difference | References |
 | --- | :---: | --- | --- | --- |
-| [Uniswap v3](../core/crates/swapper/src/uniswap/v3/provider.rs) | 16/55 | Ethereum, Optimism, Arbitrum, Polygon, Avalanche C-Chain, Base, BNB Smart Chain, ZKsync, Celo, Blast, World Chain, Unichain, Monad, X Layer, Stable, Robinhood Chain | Missing: Tempo; Core-only relative to the current official list: Blast, Stable | <sub>[code](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [current deployments](https://developers.uniswap.org/docs/protocols/v3/deployments) · [Blast sunset](https://developers.uniswap.org/docs/changelog/active-notifications/sunset-of-blast-support) · [Stable deployment](https://swap.stable.xyz/deployments)</sub> |
-| [Uniswap v4](../core/crates/swapper/src/uniswap/v4/provider.rs) | 17/55 | Ethereum, Optimism, Arbitrum, Polygon, Avalanche C-Chain, Base, BNB Smart Chain, Blast, Linea, World Chain, Unichain, Celo, Monad, Ink, X Layer, Robinhood Chain, Tempo | ➖ | <sub>[code](../core/crates/gem_evm/src/uniswap/deployment/v4.rs) · [deployments](https://github.com/Uniswap/contracts/blob/main/deployments/index.md)</sub> |
-| [PancakeSwap v3](../core/crates/swapper/src/uniswap/v3/provider.rs) | 9/55 | Ethereum, BNB Smart Chain, opBNB, Arbitrum, Linea, Base, ZKsync, Monad, Robinhood Chain | ➖ | <sub>[code](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [v3 router deployments](https://developer.pancakeswap.finance/contracts/universal-router/addresses)</sub> |
-| [OKX DEX](../core/crates/swapper/src/okx/provider.rs) | 22/55 | Solana, Tron, Ethereum, BNB Smart Chain, Polygon, Arbitrum, Optimism, Base, Avalanche C-Chain, Fantom, Manta, Blast, ZKsync, Linea, Mantle, Plasma, Hyperliquid, Sonic, Unichain, Monad, X Layer, Robinhood Chain | Missing: Sui, TON | <sub>[code](../core/crates/swapper/src/okx/provider.rs) · [chains API](https://web3.okx.com/onchainos/dev-docs-v5/dex-api/dex-get-aggregator-supported-chains)</sub> |
-| [Oku](../core/crates/swapper/src/uniswap/v3/provider.rs) | 5/55 | Sonic, Mantle, Gnosis, Plasma, Sei EVM | Not assigned to Oku in Core: Ethereum, Optimism, Arbitrum, Polygon, ZKsync, Base, BNB Smart Chain, Avalanche C-Chain, Blast, Linea, Celo, Manta, Unichain, World Chain, Monad | <sub>[code](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [deployments](https://docs.oku.trade/home/extra-information/deployed-contracts)</sub> |
-| [Wagmi](../core/crates/swapper/src/uniswap/v3/provider.rs) | 1/55 | Sonic | Missing: Ethereum, BNB Smart Chain, Avalanche C-Chain, Polygon, Fantom, Arbitrum, Optimism, Base | <sub>[code](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [contracts](https://docs.wagmi.com/wagmi/contracts)</sub> |
-| [Aerodrome](../core/crates/swapper/src/uniswap/v3/provider.rs) | 1/55 | Base | ➖ | <sub>[code](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [contracts](https://aerodrome.finance/security)</sub> |
-| [Jupiter](../core/crates/swapper/src/jupiter/provider.rs) | 1/55 | Solana | ➖ | <sub>[code](../core/crates/swapper/src/jupiter/provider.rs) · [quote API](https://developers.jup.ag/docs/swap/v1/get-quote)</sub> |
-| [Panora](../core/crates/swapper/src/panora/provider.rs) | 1/55 | Aptos | ➖ | <sub>[code](../core/crates/swapper/src/panora/provider.rs) · [swap API](https://docs.panora.exchange/developer/swap/api)</sub> |
-| [STON.fi v2](../core/crates/swapper/src/stonfi/provider.rs) | 1/55 | TON | ➖ | <sub>[code](../core/crates/swapper/src/stonfi/provider.rs) · [DEX API](https://docs.ston.fi/developer-section/dex/api/reference)</sub> |
-| [Cetus CLMM](../core/crates/swapper/src/cetus_clmm/provider.rs) | 1/55 | Sui | Missing: Aptos | <sub>[code](../core/crates/swapper/src/cetus_clmm/provider.rs) · [Sui developer docs](https://cetus-1.gitbook.io/cetus-developer-docs) · [Cetus chain support](https://cetus-1.gitbook.io/cetus-docs/guides/faq)</sub> |
+| [Uniswap v3](../core/crates/swapper/src/uniswap/v3/provider.rs) | 17/56 | Ethereum, Optimism, Arbitrum, Polygon, Avalanche C-Chain, Base, BNB Chain, ZKsync, Celo, Blast, World Chain, Unichain, Monad, X Layer, Stable, Robinhood Chain, Arc | Missing: Tempo; Core-only relative to the current official list: Blast, Stable | <sub>[code](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [current deployments](https://developers.uniswap.org/docs/protocols/v3/deployments) · [Blast sunset](https://developers.uniswap.org/docs/changelog/active-notifications/sunset-of-blast-support) · [Stable deployment](https://swap.stable.xyz/deployments)</sub> |
+| [Uniswap v4](../core/crates/swapper/src/uniswap/v4/provider.rs) | 18/56 | Ethereum, Optimism, Arbitrum, Polygon, Avalanche C-Chain, Base, BNB Chain, Blast, Linea, World Chain, Unichain, Celo, Monad, Ink, X Layer, Robinhood Chain, Tempo, Arc | ➖ | <sub>[code](../core/crates/gem_evm/src/uniswap/deployment/v4.rs) · [deployments](https://github.com/Uniswap/contracts/blob/main/deployments/index.md)</sub> |
+| [PancakeSwap v3](../core/crates/swapper/src/uniswap/v3/provider.rs) | 9/56 | Ethereum, BNB Chain, opBNB, Arbitrum, Linea, Base, ZKsync, Monad, Robinhood Chain | ➖ | <sub>[code](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [v3 router deployments](https://developer.pancakeswap.finance/contracts/universal-router/addresses)</sub> |
+| [OKX DEX](../core/crates/swapper/src/okx/provider.rs) | 22/56 | Solana, Tron, Ethereum, BNB Chain, Polygon, Arbitrum, Optimism, Base, Avalanche C-Chain, Fantom, Manta, Blast, ZKsync, Linea, Mantle, Plasma, Hyperliquid, Sonic, Unichain, Monad, X Layer, Robinhood Chain | Missing: Sui, TON | <sub>[code](../core/crates/swapper/src/okx/provider.rs) · [chains API](https://web3.okx.com/onchainos/dev-docs-v5/dex-api/dex-get-aggregator-supported-chains)</sub> |
+| [Oku](../core/crates/swapper/src/uniswap/v3/provider.rs) | 5/56 | Sonic, Mantle, Gnosis, Plasma, Sei EVM | Not assigned to Oku in Core: Ethereum, Optimism, Arbitrum, Polygon, ZKsync, Base, BNB Chain, Avalanche C-Chain, Blast, Linea, Celo, Manta, Unichain, World Chain, Monad | <sub>[code](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [deployments](https://docs.oku.trade/home/extra-information/deployed-contracts)</sub> |
+| [Wagmi](../core/crates/swapper/src/uniswap/v3/provider.rs) | 1/56 | Sonic | Missing: Ethereum, BNB Chain, Avalanche C-Chain, Polygon, Fantom, Arbitrum, Optimism, Base | <sub>[code](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [contracts](https://docs.wagmi.com/wagmi/contracts)</sub> |
+| [Aerodrome](../core/crates/swapper/src/uniswap/v3/provider.rs) | 1/56 | Base | ➖ | <sub>[code](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [contracts](https://aerodrome.finance/security)</sub> |
+| [Jupiter](../core/crates/swapper/src/jupiter/provider.rs) | 1/56 | Solana | ➖ | <sub>[code](../core/crates/swapper/src/jupiter/provider.rs) · [quote API](https://developers.jup.ag/docs/swap/v1/get-quote)</sub> |
+| [Panora](../core/crates/swapper/src/panora/provider.rs) | 1/56 | Aptos | ➖ | <sub>[code](../core/crates/swapper/src/panora/provider.rs) · [swap API](https://docs.panora.exchange/developer/swap/api)</sub> |
+| [STON.fi v2](../core/crates/swapper/src/stonfi/provider.rs) | 1/56 | TON | ➖ | <sub>[code](../core/crates/swapper/src/stonfi/provider.rs) · [DEX API](https://docs.ston.fi/developer-section/dex/api/reference)</sub> |
+| [Cetus CLMM](../core/crates/swapper/src/cetus_clmm/provider.rs) | 1/56 | Sui | Missing: Aptos | <sub>[code](../core/crates/swapper/src/cetus_clmm/provider.rs) · [Sui developer docs](https://cetus-1.gitbook.io/cetus-developer-docs) · [Cetus chain support](https://cetus-1.gitbook.io/cetus-docs/guides/faq)</sub> |
 
 <sub>Additional OKX gap evidence: [Sui guide](https://web3.okx.com/onchainos/dev-docs-v5/dex-api/dex-use-swap-sui-quick-start) and [TON guide](https://web3.okx.com/onchainos/dev-docs-v5/dex-api/dex-use-swap-ton-quick-start).</sub>
 
@@ -262,16 +266,16 @@ These tables compare Core route eligibility with current provider-advertised sup
 
 | Provider | Mode | Core coverage | Core chains | Coverage difference | References |
 | --- | --- | :---: | --- | --- | --- |
-| [NEAR Intents](../core/crates/swapper/src/near_intents/provider.rs) | Omnichain | 27/55 | NEAR, Ethereum, Bitcoin, Solana, Sui, Arbitrum, Base, Optimism, Avalanche C-Chain, BNB Smart Chain, Polygon, TON, Tron, Dogecoin, XRP Ledger, Cardano, Berachain, Aptos, Zcash, Gnosis, Stellar, Litecoin, Bitcoin Cash, Monad, X Layer, Plasma, Abstract | Missing: HyperCore | <sub>[code](../core/crates/swapper/src/near_intents/assets.rs) · [live token API](https://1click.chaindefuser.com/v0/tokens) · [chain support](https://docs.near-intents.org/resources/chain-support)</sub> |
-| [Relay](../core/crates/swapper/src/relay/provider.rs) | Omnichain | 30/55 | Ethereum, BNB Smart Chain, Base, Arbitrum, Optimism, Polygon, Avalanche C-Chain, Linea, ZKsync, Hyperliquid, Sei EVM, Berachain, Manta, Sonic, Abstract, Celo, Stable, Robinhood Chain, Gnosis, Mantle, Blast, World Chain, Ink, Unichain, Monad, Plasma, Tempo, Tron, Solana, TON | Missing: Bitcoin, XRP Ledger, HyperCore | <sub>[code](../core/crates/swapper/src/relay/asset.rs) · [live chains API](https://api.relay.link/chains)</sub> |
-| [Across](../core/crates/swapper/src/across/provider.rs) | Bridge | 17/55 | Ethereum, Optimism, Polygon, Arbitrum, Avalanche C-Chain, Base, Hyperliquid, Linea, ZKsync, World Chain, Ink, Unichain, Monad, BNB Smart Chain, Plasma, Robinhood Chain, Tron | Missing: Solana, HyperCore, Tempo; 🪦 Blast | <sub>[code](../core/crates/gem_evm/src/across/deployment.rs) · [chains and contracts](https://docs.across.to/chains-and-contracts) · [live chains API](https://app.across.to/api/swap/chains)</sub> |
-| [THORChain](../core/crates/swapper/src/thorchain/provider.rs) | Omnichain | 14/55 | Dogecoin, THORChain, Ethereum, Cosmos, Bitcoin, Bitcoin Cash, Litecoin, BNB Smart Chain, Avalanche C-Chain, Base, XRP Ledger, Tron, Solana, Zcash | Core-only: Zcash | <sub>[code](../core/crates/swapper/src/thorchain/chain.rs) · [supported chains](https://dev.thorchain.org/concepts/querying-thorchain.html) · [live inbound-address API](https://gateway.liquify.com/chain/thorchain_api/thorchain/inbound_addresses)</sub> |
-| [Mayan](../core/crates/swapper/src/mayan/provider.rs) | Cross-chain | 14/55 | Ethereum, Solana, Sui, BNB Smart Chain, Base, Polygon, Avalanche C-Chain, Arbitrum, Optimism, Linea, Unichain, Monad, Hyperliquid, HyperCore | ➖ | <sub>[code](../core/crates/swapper/src/mayan/asset.rs) · [quote API](https://docs.mayan.finance/integration/quote-api) · [live configuration](https://sia.mayan.finance/v10/init)</sub> |
-| [Squid](../core/crates/swapper/src/squid/provider.rs) | Cross-chain | 6/55 | Cosmos, Osmosis, Celestia, Injective, Sei, Noble | Missing: Ethereum, BNB Smart Chain, Arbitrum, Optimism, Polygon, Avalanche C-Chain, Base, Fantom, Linea, Mantle, Celo, Blast, Berachain, Gnosis, Sonic, Hyperliquid, Bitcoin, Solana, Sui, XRP Ledger, Stellar | <sub>[code](../core/crates/swapper/src/squid/provider.rs) · [supported chains](https://docs.squidrouter.com/chains-and-tokens/get-supported-tokens-and-chains)</sub> |
-| [MayaChain](../core/crates/swapper/src/thorchain/provider.rs) | Cross-chain | 6/55 | THORChain, Bitcoin, Ethereum, Arbitrum, Zcash, Cardano | ➖ | <sub>[code](../core/crates/swapper/src/thorchain/chain.rs) · [live chains API](https://mayanode.mayachain.info/mayachain/inbound_addresses)</sub> |
-| [Chainflip](../core/crates/swapper/src/chainflip/provider.rs) | Cross-chain | 5/55 | Bitcoin (destination only), Ethereum, Solana, Tron, Arbitrum | Missing: Polkadot | <sub>[asset mapping](../core/crates/swapper/src/chainflip/client/model.rs) · [source-chain guard and cached minimum amounts](../core/crates/swapper/src/chainflip/provider.rs) · [Broker quotes and assets](https://docs.chainflip.io/brokers/javascript-sdk/functions) · [supported chains](https://docs.chainflip.io/protocol/supported-chains-assets/chains-assets)</sub> |
-| [Swaps.xyz](../core/crates/swapper/src/swaps_xyz/provider.rs) | Cross-chain | 10/55 | Algorand, Stellar, Cardano, TON, Cosmos, Osmosis, Aptos, Sui, XRP, Tron | Native assets only | <sub>[code](../core/crates/swapper/src/swaps_xyz/provider.rs) · [API introduction](https://docs.swaps.xyz/)</sub> |
-| [Hyperliquid](../core/crates/swapper/src/hyperliquid/provider/hyperliquid.rs) | Omnichain | 2/55 | HyperCore, Hyperliquid | ➖ | <sub>[code](../core/crates/swapper/src/hyperliquid/provider/hyperliquid.rs) · [Core ↔ EVM transfers](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/hyperevm/hypercore-less-than-greater-than-hyperevm-transfers)</sub> |
+| [NEAR Intents](../core/crates/swapper/src/near_intents/provider.rs) | Omnichain | 27/56 | NEAR, Ethereum, Bitcoin, Solana, Sui, Arbitrum, Base, Optimism, Avalanche C-Chain, BNB Chain, Polygon, TON, Tron, Dogecoin, XRP Ledger, Cardano, Berachain, Aptos, Zcash, Gnosis, Stellar, Litecoin, Bitcoin Cash, Monad, X Layer, Plasma, Abstract | Missing: HyperCore | <sub>[code](../core/crates/swapper/src/near_intents/assets.rs) · [live token API](https://1click.chaindefuser.com/v0/tokens) · [chain support](https://docs.near-intents.org/resources/chain-support)</sub> |
+| [Relay](../core/crates/swapper/src/relay/provider.rs) | Omnichain | 31/56 | Ethereum, BNB Chain, Base, Arbitrum, Optimism, Polygon, Avalanche C-Chain, Linea, ZKsync, Hyperliquid, Sei EVM, Berachain, Manta, Sonic, Abstract, Celo, Stable, Robinhood Chain, Gnosis, Mantle, Blast, World Chain, Ink, Unichain, Monad, Plasma, Tempo, Arc, Tron, Solana, TON | Missing: Bitcoin, XRP Ledger, HyperCore | <sub>[code](../core/crates/swapper/src/relay/asset.rs) · [live chains API](https://api.relay.link/chains)</sub> |
+| [Across](../core/crates/swapper/src/across/provider.rs) | Bridge | 17/56 | Ethereum, Optimism, Polygon, Arbitrum, Avalanche C-Chain, Base, Hyperliquid, Linea, ZKsync, World Chain, Ink, Unichain, Monad, BNB Chain, Plasma, Robinhood Chain, Tron | Missing: Solana, HyperCore, Tempo; 🪦 Blast | <sub>[code](../core/crates/gem_evm/src/across/deployment.rs) · [chains and contracts](https://docs.across.to/chains-and-contracts) · [live chains API](https://app.across.to/api/swap/chains)</sub> |
+| [THORChain](../core/crates/swapper/src/thorchain/provider.rs) | Omnichain | 14/56 | Dogecoin, THORChain, Ethereum, Cosmos, Bitcoin, Bitcoin Cash, Litecoin, BNB Chain, Avalanche C-Chain, Base, XRP Ledger, Tron, Solana, Zcash | Core-only: Zcash | <sub>[code](../core/crates/swapper/src/thorchain/chain.rs) · [supported chains](https://dev.thorchain.org/concepts/querying-thorchain.html) · [live inbound-address API](https://gateway.liquify.com/chain/thorchain_api/thorchain/inbound_addresses)</sub> |
+| [Mayan](../core/crates/swapper/src/mayan/provider.rs) | Cross-chain | 14/56 | Ethereum, Solana, Sui, BNB Chain, Base, Polygon, Avalanche C-Chain, Arbitrum, Optimism, Linea, Unichain, Monad, Hyperliquid, HyperCore | ➖ | <sub>[code](../core/crates/swapper/src/mayan/asset.rs) · [quote API](https://docs.mayan.finance/integration/quote-api) · [live configuration](https://sia.mayan.finance/v10/init)</sub> |
+| [Squid](../core/crates/swapper/src/squid/provider.rs) | Cross-chain | 6/56 | Cosmos, Osmosis, Celestia, Injective, Sei, Noble | Missing: Ethereum, BNB Chain, Arbitrum, Optimism, Polygon, Avalanche C-Chain, Base, Fantom, Linea, Mantle, Celo, Blast, Berachain, Gnosis, Sonic, Hyperliquid, Bitcoin, Solana, Sui, XRP Ledger, Stellar | <sub>[code](../core/crates/swapper/src/squid/provider.rs) · [supported chains](https://docs.squidrouter.com/chains-and-tokens/get-supported-tokens-and-chains)</sub> |
+| [MayaChain](../core/crates/swapper/src/thorchain/provider.rs) | Cross-chain | 6/56 | THORChain, Bitcoin, Ethereum, Arbitrum, Zcash, Cardano | ➖ | <sub>[code](../core/crates/swapper/src/thorchain/chain.rs) · [live chains API](https://mayanode.mayachain.info/mayachain/inbound_addresses)</sub> |
+| [Chainflip](../core/crates/swapper/src/chainflip/provider.rs) | Omnichain | 5/56 | Bitcoin (destination only), Ethereum, Solana, Tron, Arbitrum | Missing: Polkadot | <sub>[asset mapping](../core/crates/swapper/src/chainflip/client/model.rs) · [route support](../core/crates/swapper/src/chainflip/provider.rs) · [Broker quotes and assets](https://docs.chainflip.io/brokers/javascript-sdk/functions) · [supported chains](https://docs.chainflip.io/protocol/supported-chains-assets/chains-assets)</sub> |
+| [Swaps.xyz](../core/crates/swapper/src/swaps_xyz/provider.rs) | Cross-chain | 10/56 | Algorand, Stellar, Cardano, TON, Cosmos, Osmosis, Aptos, Sui, XRP, Tron | Native assets only | <sub>[code](../core/crates/swapper/src/swaps_xyz/provider.rs) · [API introduction](https://docs.swaps.xyz/)</sub> |
+| [Hyperliquid](../core/crates/swapper/src/hyperliquid/provider/hyperliquid.rs) | Omnichain | 2/56 | HyperCore, Hyperliquid | ➖ | <sub>[code](../core/crates/swapper/src/hyperliquid/provider/hyperliquid.rs) · [Core ↔ EVM transfers](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/hyperevm/hypercore-less-than-greater-than-hyperevm-transfers)</sub> |
 
 ### Provider behavior
 
@@ -295,21 +299,25 @@ These tables compare Core route eligibility with current provider-advertised sup
 | [Mayan](../core/crates/swapper/src/mayan/provider.rs) | Cross-chain | Fixed | Auto | ✅ | ✅ |
 | [Squid](../core/crates/swapper/src/squid/provider.rs) | Cross-chain | Fixed | Auto | ✅ | ✅ |
 | [MayaChain](../core/crates/swapper/src/thorchain/provider.rs) | Cross-chain | Fixed from EVM; flexible otherwise | Exact | ✅ | ✅ |
-| [Chainflip](../core/crates/swapper/src/chainflip/provider.rs) | Cross-chain | Fixed | Exact | ✅ | ✅ |
+| [Chainflip](../core/crates/swapper/src/chainflip/provider.rs) | Omnichain | Fixed | Exact | ✅ | ✅ |
 | [Swaps.xyz](../core/crates/swapper/src/swaps_xyz/provider.rs) | Cross-chain | Fixed | Exact | ✅ | ✅ (quoted address) |
 | [Hyperliquid](../core/crates/swapper/src/hyperliquid/provider/hyperliquid.rs) | Omnichain | Flexible | Exact | ➖ (assumed complete) | ➖ |
 
 <sub>Sources: [provider modes and slippage](../core/crates/swapper/src/models.rs), [amount-mode implementations](../core/crates/swapper/src), and [active provider registry](../core/crates/swapper/src/swapper.rs).</sub>
 
-Provider-specific status tracking and vault discovery are `➖` for on-chain routes; transaction tracking belongs to the chain client.
+On-chain swaps use normal transaction tracking; cross-chain providers may also track route completion.
 
-`Omnichain` providers may be eligible for selected same-chain routes as well as cross-chain routes. `Bridge` and `Cross-chain` providers require different source and destination chains.
+`Omnichain` providers may be eligible for selected same-chain routes as well as cross-chain routes. Chainflip allows same-chain swaps on Tron (USDT ↔ TRX), subject to broker liquidity. `Bridge` and `Cross-chain` providers require different source and destination chains.
 
-<sub>Reviewed 2026-09-02. Active-provider source of truth: [`GemSwapper::new`](../core/crates/swapper/src/swapper.rs). `CetusAggregator` and `Orca` remain inactive [`SwapProvider`](../core/crates/primitives/src/swap_provider.rs) variants.</sub>
+<sub>Reviewed 2026-09-02. Source: [active swap providers](../core/crates/swapper/src/swapper.rs). Cetus Aggregator and Orca are inactive.</sub>
+
+## Fiat exchange rates
+
+CoinGecko and CoinMarketCap provide USD-based rates with a provider assigned per currency. BYN, KZT, UZS, EGP, KES, COP, MAD, GHS, and PEN require app 2.114.32+ and remain disabled pending rollout.
 
 ## Fiat providers
 
-The active registry constructs all six providers below. `Order lookup` means Core can poll a provider order directly; webhook processing is supported independently for every active provider.
+All six providers below are active. Order lookup and webhooks provide payment-status updates.
 
 | Provider | Buy quotes | Sell quotes | Asset catalog | Countries | Checkout | Webhooks | Order lookup |
 | --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -320,42 +328,42 @@ The active registry constructs all six providers below. `Order lookup` means Cor
 | [Paybis](../core/crates/fiat/src/providers/paybis/provider.rs) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | [Cash App / Flashnet](../core/crates/fiat/src/providers/flashnet/provider.rs) | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ |
 
-Card, Apple Pay, and Google Pay are the default payment methods. Flashnet overrides that list with Cash App. Country data is provider-backed except Paybis, which uses Core's country-status mapping, and Flashnet, which is US-only.
+Payment methods include cards, Apple Pay, and Google Pay. Flashnet supports Cash App in the US only. Availability varies by provider and country.
 
 <sub>Reviewed 2026-09-02. Sources: [active provider factory](../core/crates/fiat/src/lib.rs), [provider contract](../core/crates/fiat/src/provider.rs), and [Paybis payment methods](../core/crates/fiat/src/providers/paybis/mapper.rs).</sub>
 
 ## NFT providers
 
-The NFT registry selects providers by chain and falls through in registration order when a provider request fails. Wallet assets, collection metadata, and individual asset metadata are part of the shared provider contract.
+NFT support includes wallet assets, collections, and individual asset details. Alchemy filters assets classified as spam.
 
-| Provider | Active | Chains | Wallet assets | Collections | Asset details | Notes |
-| --- | :---: | --- | :---: | :---: | :---: | --- |
-| [OpenSea](../core/crates/nft/src/providers/opensea/provider.rs) | ✅ | Ethereum, Polygon | ✅ | ✅ | ✅ | First registered provider |
-| [Magic Eden Solana](../core/crates/nft/src/providers/magiceden/solana/provider.rs) | ✅ | Solana | ✅ | ✅ | ✅ | Dedicated Solana API |
-| [Alchemy NFT](../core/crates/nft/src/providers/alchemy/provider.rs) | ✅ | BNB Smart Chain | ✅ | ✅ | ✅ | Filters assets classified as spam |
-| [TON](../core/crates/nft/src/providers/ton/provider.rs) | ✅ | TON | ✅ | ✅ | ✅ | Uses indexed on-chain data with off-chain metadata fallback |
+| Provider | Active | Chains | Wallet assets | Collections | Asset details |
+| --- | :---: | --- | :---: | :---: | :---: |
+| [OpenSea](../core/crates/nft/src/providers/opensea/provider.rs) | ✅ | Ethereum, Polygon | ✅ | ✅ | ✅ |
+| [Magic Eden Solana](../core/crates/nft/src/providers/magiceden/solana/provider.rs) | ✅ | Solana | ✅ | ✅ | ✅ |
+| [Alchemy NFT](../core/crates/nft/src/providers/alchemy/provider.rs) | ✅ | BNB Chain | ✅ | ✅ | ✅ |
+| [TON](../core/crates/nft/src/providers/ton/provider.rs) | ✅ | TON | ✅ | ✅ | ✅ |
 
 <sub>Reviewed 2026-09-02. Sources: [active provider factory](../core/crates/nft/src/factory.rs), [provider contract and fallback behavior](../core/crates/nft/src/provider.rs), [supported NFT chains](../core/crates/primitives/src/chain_nft.rs), and [NFT settings](../core/crates/settings/src/lib.rs).</sub>
 
-## Actionable TODOs
+## Coverage gaps
 
 This backlog only includes gaps that apply to an existing Gem chain, an active provider, or a current cross-platform inconsistency. Non-applicable and speculative capabilities—such as Bitcoin simulation or Bitcoin NFTs—and provider chains that Gem does not support are intentionally excluded.
 
 | Area | Work | Applicable scope | References | Status |
 | --- | --- | --- | --- | :---: |
-| WalletConnect | Align EVM method policy: remove `eth_sendRawTransaction` from session advertisements or implement it in Core, and explicitly decide whether to support `eth_sign` | EVM chains | <sub>[Core handler](../core/crates/gem_wallet_connect/src/request_handler/ethereum.rs) · [session method list](../core/gemstone/src/services/wallet_connect/rules.rs) · [EVM method reference](https://docs.walletconnect.network/wallet-sdk/chain-support/evm) · [Android auth namespace](../android/gemcore/src/main/kotlin/com/gemwallet/android/application/wallet_connect/Namespace.kt) · [iOS approval](../ios/Packages/FeatureServices/WalletConnectorService/WalletConnectorService.swift)</sub> | 🏗️ |
-| WalletConnect | Add the published Bitcoin namespace and request handler | Bitcoin | <sub>[Core dispatcher](../core/crates/gem_wallet_connect/src/request_handler/mod.rs) · [WalletConnect Bitcoin spec](https://docs.walletconnect.network/wallet-sdk/chain-support/bitcoin)</sub> | 🏗️ |
-| Uniswap v3 | Add the current official deployment mapping | Tempo | <sub>[Core deployment](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [current deployments](https://developers.uniswap.org/docs/protocols/v3/deployments)</sub> | 🏗️ |
-| Oku | Add compatible provider deployment mappings not already assigned to the Oku adapter | Ethereum, Optimism, Arbitrum, Polygon, ZKsync, Base, BNB Smart Chain, Avalanche C-Chain, Blast, Linea, Celo, Manta, Unichain, World Chain, Monad | <sub>[Core deployment](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [provider deployments](https://docs.oku.trade/home/extra-information/deployed-contracts)</sub> | 🏗️ |
-| Wagmi | Add the remaining documented provider deployments | Ethereum, BNB Smart Chain, Avalanche C-Chain, Polygon, Fantom, Arbitrum, Optimism, Base | <sub>[Core deployment](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [provider contracts](https://docs.wagmi.com/wagmi/contracts)</sub> | 🏗️ |
-| Cetus CLMM | Add an Aptos-specific quote and transaction implementation | Aptos | <sub>[Core Sui provider](../core/crates/swapper/src/cetus_clmm/provider.rs) · [Cetus chain support](https://cetus-1.gitbook.io/cetus-docs/guides/faq)</sub> | 🏗️ |
-| OKX DEX | Add the Sui quote and transaction path | Sui | <sub>[Core provider](../core/crates/swapper/src/okx/provider.rs) · [Sui guide](https://web3.okx.com/onchainos/dev-docs-v5/dex-api/dex-use-swap-sui-quick-start)</sub> | 🏗️ |
-| OKX DEX | Add the TON quote and transaction path | TON | <sub>[Core provider](../core/crates/swapper/src/okx/provider.rs) · [TON guide](https://web3.okx.com/onchainos/dev-docs-v5/dex-api/dex-use-swap-ton-quick-start)</sub> | 🏗️ |
-| Relay | Add non-EVM quote and transaction implementations before exposing the remaining provider chains | Bitcoin, Solana, TON, XRP Ledger, HyperCore | <sub>[Core transaction model](../core/crates/swapper/src/relay/model.rs) · [live chains API](https://api.relay.link/chains)</sub> | 🏗️ |
-| Across | Add non-EVM quote and transaction implementations | Solana, HyperCore, Tempo | <sub>[Core provider](../core/crates/swapper/src/across/provider.rs) · [live chains API](https://app.across.to/api/swap/chains)</sub> | 🏗️ |
-| Squid | Add an EVM quote and transaction implementation | Ethereum, BNB Smart Chain, Arbitrum, Optimism, Polygon, Avalanche C-Chain, Base, Fantom, Linea, Mantle, Celo, Blast, Berachain, Gnosis, Sonic, Hyperliquid | <sub>[Core Cosmos transaction path](../core/crates/swapper/src/squid/provider.rs) · [supported chains](https://docs.squidrouter.com/chains-and-tokens/get-supported-tokens-and-chains)</sub> | 🏗️ |
-| Squid | Add the corresponding non-EVM quote and transaction implementations | Bitcoin, Solana, Sui, XRP Ledger, Stellar | <sub>[Core provider](../core/crates/swapper/src/squid/provider.rs) · [supported chains](https://docs.squidrouter.com/chains-and-tokens/get-supported-tokens-and-chains)</sub> | 🏗️ |
-| Chainflip | Add the Bitcoin source transaction path; it is currently destination-only | Bitcoin | <sub>[source-chain guard](../core/crates/swapper/src/chainflip/provider.rs) · [Core asset mapping](../core/crates/swapper/src/chainflip/client/model.rs) · [provider chains](https://docs.chainflip.io/protocol/supported-chains-assets/chains-assets)</sub> | 🏗️ |
-| Chainflip | Add the provider-supported relay-chain asset and transaction path | Polkadot | <sub>[Core asset mapping](../core/crates/swapper/src/chainflip/client/model.rs) · [provider chains](https://docs.chainflip.io/protocol/supported-chains-assets/chains-assets)</sub> | 🏗️ |
-| THORChain | Remove or disable the Core-only route unless it becomes active in THORChain | Zcash | <sub>[Core mapping](../core/crates/swapper/src/thorchain/chain.rs) · [supported chains](https://dev.thorchain.org/concepts/querying-thorchain.html) · [live chains API](https://gateway.liquify.com/chain/thorchain_api/thorchain/inbound_addresses)</sub> | 🏗️ |
-| NEAR Intents | Add the provider-advertised asset mapping | HyperCore | <sub>[Core mapping](../core/crates/swapper/src/near_intents/assets.rs) · [live token API](https://1click.chaindefuser.com/v0/tokens)</sub> | 🏗️ |
+| WalletConnect | Align advertised and supported EVM capabilities | EVM chains | <sub>[Core handler](../core/crates/gem_wallet_connect/src/request_handler/ethereum.rs) · [session method list](../core/gemstone/src/services/wallet_connect/rules.rs) · [EVM method reference](https://docs.walletconnect.network/wallet-sdk/chain-support/evm) · [Android session namespace mapping](../android/gemcore/src/main/kotlin/com/gemwallet/android/application/wallet_connect/Session.kt) · [iOS approval](../ios/Packages/FeatureServices/WalletConnectorService/WalletConnectorService.swift)</sub> | 🏗️ |
+| WalletConnect | Add Bitcoin support | Bitcoin | <sub>[Core dispatcher](../core/crates/gem_wallet_connect/src/request_handler/mod.rs) · [WalletConnect Bitcoin spec](https://docs.walletconnect.network/wallet-sdk/chain-support/bitcoin)</sub> | 🏗️ |
+| Uniswap v3 | Add provider coverage | Tempo | <sub>[Core deployment](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [current deployments](https://developers.uniswap.org/docs/protocols/v3/deployments)</sub> | 🏗️ |
+| Oku | Expand provider coverage | Ethereum, Optimism, Arbitrum, Polygon, ZKsync, Base, BNB Chain, Avalanche C-Chain, Blast, Linea, Celo, Manta, Unichain, World Chain, Monad | <sub>[Core deployment](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [provider deployments](https://docs.oku.trade/home/extra-information/deployed-contracts)</sub> | 🏗️ |
+| Wagmi | Expand provider coverage | Ethereum, BNB Chain, Avalanche C-Chain, Polygon, Fantom, Arbitrum, Optimism, Base | <sub>[Core deployment](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [provider contracts](https://docs.wagmi.com/wagmi/contracts)</sub> | 🏗️ |
+| Cetus CLMM | Add Aptos support | Aptos | <sub>[Core Sui provider](../core/crates/swapper/src/cetus_clmm/provider.rs) · [Cetus chain support](https://cetus-1.gitbook.io/cetus-docs/guides/faq)</sub> | 🏗️ |
+| OKX DEX | Add Sui support | Sui | <sub>[Core provider](../core/crates/swapper/src/okx/provider.rs) · [Sui guide](https://web3.okx.com/onchainos/dev-docs-v5/dex-api/dex-use-swap-sui-quick-start)</sub> | 🏗️ |
+| OKX DEX | Add TON support | TON | <sub>[Core provider](../core/crates/swapper/src/okx/provider.rs) · [TON guide](https://web3.okx.com/onchainos/dev-docs-v5/dex-api/dex-use-swap-ton-quick-start)</sub> | 🏗️ |
+| Relay | Expand chain support | Bitcoin, Solana, TON, XRP Ledger, HyperCore | <sub>[Core transaction model](../core/crates/swapper/src/relay/model/mod.rs) · [live chains API](https://api.relay.link/chains)</sub> | 🏗️ |
+| Across | Expand chain support | Solana, HyperCore, Tempo | <sub>[Core provider](../core/crates/swapper/src/across/provider.rs) · [live chains API](https://app.across.to/api/swap/chains)</sub> | 🏗️ |
+| Squid | Add EVM support | Ethereum, BNB Chain, Arbitrum, Optimism, Polygon, Avalanche C-Chain, Base, Fantom, Linea, Mantle, Celo, Blast, Berachain, Gnosis, Sonic, Hyperliquid | <sub>[Core Cosmos transaction path](../core/crates/swapper/src/squid/provider.rs) · [supported chains](https://docs.squidrouter.com/chains-and-tokens/get-supported-tokens-and-chains)</sub> | 🏗️ |
+| Squid | Expand chain support | Bitcoin, Solana, Sui, XRP Ledger, Stellar | <sub>[Core provider](../core/crates/swapper/src/squid/provider.rs) · [supported chains](https://docs.squidrouter.com/chains-and-tokens/get-supported-tokens-and-chains)</sub> | 🏗️ |
+| Chainflip | Support swaps from Bitcoin; currently destination-only | Bitcoin | <sub>[source-chain guard](../core/crates/swapper/src/chainflip/provider.rs) · [Core asset mapping](../core/crates/swapper/src/chainflip/client/model.rs) · [provider chains](https://docs.chainflip.io/protocol/supported-chains-assets/chains-assets)</sub> | 🏗️ |
+| Chainflip | Add Polkadot support | Polkadot | <sub>[Core asset mapping](../core/crates/swapper/src/chainflip/client/model.rs) · [provider chains](https://docs.chainflip.io/protocol/supported-chains-assets/chains-assets)</sub> | 🏗️ |
+| THORChain | Resolve unavailable provider coverage | Zcash | <sub>[Core mapping](../core/crates/swapper/src/thorchain/chain.rs) · [supported chains](https://dev.thorchain.org/concepts/querying-thorchain.html) · [live chains API](https://gateway.liquify.com/chain/thorchain_api/thorchain/inbound_addresses)</sub> | 🏗️ |
+| NEAR Intents | Add HyperCore support | HyperCore | <sub>[Core mapping](../core/crates/swapper/src/near_intents/assets.rs) · [live token API](https://1click.chaindefuser.com/v0/tokens)</sub> | 🏗️ |

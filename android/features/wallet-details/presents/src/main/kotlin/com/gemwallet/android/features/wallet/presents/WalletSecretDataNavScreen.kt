@@ -11,6 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +30,7 @@ import com.gemwallet.android.ui.components.buttons.CopyButton
 import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.PhraseLayout
+import com.gemwallet.android.ui.components.screen.phraseRows
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.theme.adaptivePadding
 import com.gemwallet.android.ui.theme.alpha10
@@ -36,33 +38,9 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 import com.gemwallet.android.ui.theme.space8
-import com.wallet.core.primitives.WalletType
-import uniffi.gemstone.DocsUrl
+import com.gemwallet.android.ui.localization.stringRes
 import uniffi.gemstone.GemWalletSecret
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
-
-internal data class WalletSecretDataContent(
-    val titleRes: Int,
-    val warningTitleRes: Int,
-    val warningDescriptionRes: Int,
-)
-
-internal fun walletSecretDataContent(walletType: WalletType): WalletSecretDataContent {
-    return when (walletType) {
-        WalletType.PrivateKey -> WalletSecretDataContent(
-            titleRes = R.string.common_private_key,
-            warningTitleRes = R.string.secret_phrase_do_not_share_title,
-            warningDescriptionRes = R.string.secret_phrase_do_not_share_description,
-        )
-        WalletType.Multicoin,
-        WalletType.Single,
-        WalletType.View -> WalletSecretDataContent(
-            titleRes = R.string.common_secret_phrase,
-            warningTitleRes = R.string.secret_phrase_do_not_share_title,
-            warningDescriptionRes = R.string.secret_phrase_do_not_share_description,
-        )
-    }
-}
 
 @Composable
 fun WalletSecretDataNavScreen(
@@ -70,10 +48,10 @@ fun WalletSecretDataNavScreen(
     viewModel: WalletSecretDataViewModel = hiltViewModel()
 ) {
     DisableScreenShooting()
-    DetectScreenshot(AppUrl.docs(DocsUrl.HowToSecureSecretPhrase))
+    DetectScreenshot(AppUrl.howToSecureSecretPhrase)
 
     val result by viewModel.secret.collectAsStateWithLifecycle()
-    val content = walletSecretDataContent(viewModel.walletType)
+    val title = stringResource(viewModel.secretKind.stringRes())
 
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
@@ -81,18 +59,18 @@ fun WalletSecretDataNavScreen(
     val secret = result?.getOrNull()
     if (secret == null) {
         if (result == null) {
-            LoadingScene(title = stringResource(id = content.titleRes), onCancel)
+            LoadingScene(title = title, onCancel)
         } else {
-            WalletSecretDataErrorScene(title = stringResource(id = content.titleRes), onCancel = onCancel)
+            WalletSecretDataErrorScene(title = title, onCancel = onCancel)
         }
         return
     }
 
     Scene(
-        title = stringResource(id = content.titleRes),
+        title = title,
         padding = sceneContentPaddingValues(),
         actions = {
-            DocsInfoButton(AppUrl.docs(DocsUrl.HowToSecureSecretPhrase))
+            DocsInfoButton(AppUrl.howToSecureSecretPhrase)
         },
         onClose = onCancel,
     ) {
@@ -118,14 +96,14 @@ fun WalletSecretDataNavScreen(
             ) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = stringResource(id = content.warningTitleRes),
+                    text = stringResource(id = R.string.secret_phrase_do_not_share_title),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center,
                 )
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = stringResource(id = content.warningDescriptionRes),
+                    text = stringResource(id = R.string.secret_phrase_do_not_share_description),
                     color = MaterialTheme.colorScheme.error,
                     textAlign = TextAlign.Center,
                 )
@@ -137,7 +115,7 @@ fun WalletSecretDataNavScreen(
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center,
                 )
-                is GemWalletSecret.Words -> PhraseLayout(words = secret.words)
+                is GemWalletSecret.Words -> PhraseLayout(rows = remember(secret.words) { phraseRows(secret.words) })
             }
 
             CopyButton(onClick = { clipboardManager.setPlainText(context, secret.text(), true) })

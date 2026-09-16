@@ -29,7 +29,7 @@ fn request_client(timeout: Duration) -> reqwest::Client {
 pub use ip_check_client::{IPAddressInfo, IPCheckClient};
 pub use transaction_info_mapper::fiat_transaction_info;
 
-#[cfg(test)]
+#[cfg(any(test, feature = "testkit"))]
 pub mod testkit;
 
 pub struct FiatProviderFactory {}

@@ -24,6 +24,10 @@ impl HealthState {
         self.ready.store(true, Ordering::Relaxed);
     }
 
+    pub fn set_not_ready(&self) {
+        self.ready.store(false, Ordering::Relaxed);
+    }
+
     pub fn is_ready(&self) -> bool {
         self.ready.load(Ordering::Relaxed)
     }

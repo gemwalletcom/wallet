@@ -1,27 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import Formatters
 import Primitives
 @testable import PrimitivesComponents
+import PrimitivesComponentsTestKit
 import PrimitivesTestKit
 import Style
 import Testing
 
 struct NumericViewModelTests {
-    let asset = Asset.mock()
-    let price = Price.mock(price: 2.0)
-    let value = BigInt(100_000_000)
-    let style = AmountDisplayStyle(
-        sign: .incoming,
-        formatter: .full,
-        currencyCode: "USD",
-    )
-
     @Test
     func amountText() {
-        let data = AssetValuePrice(asset: asset, value: value, price: price)
-        let viewModel = NumericViewModel(data: data, style: style)
+        let viewModel = NumericViewModel.mock(price: .mock(price: 2.0), sign: .incoming)
 
         #expect(viewModel.amount.text == "+1 BTC")
         #expect(viewModel.amount.style.color == Colors.green)
@@ -29,13 +19,7 @@ struct NumericViewModelTests {
 
     @Test
     func amountTextOutgoing() {
-        let outgoingStyle = AmountDisplayStyle(
-            sign: .outgoing,
-            formatter: .full,
-            currencyCode: "USD",
-        )
-        let data = AssetValuePrice(asset: asset, value: value, price: price)
-        let viewModel = NumericViewModel(data: data, style: outgoingStyle)
+        let viewModel = NumericViewModel.mock(price: .mock(price: 2.0), sign: .outgoing)
 
         #expect(viewModel.amount.text == "-1 BTC")
         #expect(viewModel.amount.style.color == Colors.black)
@@ -43,13 +27,7 @@ struct NumericViewModelTests {
 
     @Test
     func amountTextNoSign() {
-        let noSignStyle = AmountDisplayStyle(
-            sign: .none,
-            formatter: .full,
-            currencyCode: "USD",
-        )
-        let data = AssetValuePrice(asset: asset, value: value, price: price)
-        let viewModel = NumericViewModel(data: data, style: noSignStyle)
+        let viewModel = NumericViewModel.mock(price: .mock(price: 2.0))
 
         #expect(viewModel.amount.text == "1 BTC")
         #expect(viewModel.amount.style.color == Colors.black)
@@ -57,8 +35,7 @@ struct NumericViewModelTests {
 
     @Test
     func fiatText() {
-        let data = AssetValuePrice(asset: asset, value: value, price: price)
-        let viewModel = NumericViewModel(data: data, style: style)
+        let viewModel = NumericViewModel.mock(price: .mock(price: 2.0), sign: .incoming)
 
         #expect(viewModel.fiat?.text == "$2.00")
         #expect(viewModel.fiat?.style.color == Colors.gray)
@@ -66,21 +43,14 @@ struct NumericViewModelTests {
 
     @Test
     func fiatTextNilWhenPriceIsNil() {
-        let data = AssetValuePrice(asset: asset, value: value, price: nil)
-        let viewModel = NumericViewModel(data: data, style: style)
+        let viewModel = NumericViewModel.mock(price: nil, sign: .incoming)
 
         #expect(viewModel.fiat == nil)
     }
 
     @Test
     func zeroValueNoSign() {
-        let zeroStyle = AmountDisplayStyle(
-            sign: .incoming,
-            formatter: .full,
-            currencyCode: "USD",
-        )
-        let data = AssetValuePrice(asset: asset, value: BigInt.zero, price: price)
-        let viewModel = NumericViewModel(data: data, style: zeroStyle)
+        let viewModel = NumericViewModel.mock(price: .mock(price: 2.0), value: .zero, sign: .incoming)
 
         #expect(viewModel.amount.text == "0 BTC")
     }

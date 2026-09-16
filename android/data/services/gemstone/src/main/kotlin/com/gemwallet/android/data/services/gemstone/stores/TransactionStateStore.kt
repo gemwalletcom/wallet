@@ -6,8 +6,6 @@ import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.data.service.store.database.TransactionsDao
 import com.gemwallet.android.data.services.gemstone.transactions.addSwapMetadata
 import com.gemwallet.android.data.service.store.database.entities.toDTO
-import com.gemwallet.android.serializer.decodeJson
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.WalletId
@@ -31,15 +29,15 @@ class GemstoneTransactionStateStore(
         val wallets = walletStore.getAllNow().associateBy { it.id }
         return records.mapNotNull { record ->
             val wallet = wallets[record.walletId] ?: return@mapNotNull null
-            GemPendingTransaction(wallet = wallet.toGem(), transaction = record.toDTO().toJson())
+            GemPendingTransaction(wallet = wallet.toGem(), transaction = record.toDTO().toGem())
         }
     }
 
     override suspend fun getTransaction(walletId: String, transactionId: String): GemPendingTransaction? =
         transactionsDao.getTransaction(TransactionId(transactionId), WalletId(walletId))?.let { pendingTransaction(it) }
 
-    override suspend fun addTransactions(walletId: String, transactions: List<String>) {
-        val records = transactions.map { it.decodeJson<Transaction>() }
+    override suspend fun addTransactions(walletId: String, transactions: List<uniffi.gemstone.Transaction>) {
+        val records = transactions.map { it.toPrimitives() }
         transactionRunner.run {
             transactionsDao.insert(records.map { it.toRecord(WalletId(walletId)) })
             transactionsDao.addSwapMetadata(records)
@@ -48,7 +46,7 @@ class GemstoneTransactionStateStore(
 
     private suspend fun pendingTransaction(record: DbTransaction): GemPendingTransaction? {
         val wallet = walletStore.getWalletNow(record.walletId) ?: return null
-        return GemPendingTransaction(wallet = wallet.toGem(), transaction = record.toDTO().toJson())
+        return GemPendingTransaction(wallet = wallet.toGem(), transaction = record.toDTO().toGem())
     }
 
 

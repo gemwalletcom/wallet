@@ -3,6 +3,7 @@ package com.gemwallet.android.features.receive.viewmodels
 import com.gemwallet.android.ext.toGem
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.receive.cases.GetReceiveAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -26,7 +27,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.GemMemoWarning
+import uniffi.gemstone.GemReceiveWarning
 import uniffi.gemstone.GemReceiveServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -34,6 +35,7 @@ import uniffi.gemstone.GemReceiveServiceInterface
 class ReceiveViewModel @AssistedInject constructor(
     @Assisted private val sourceAssetId: AssetId,
     private val getReceiveAssetInfo: GetReceiveAssetInfo,
+    private val getWalletAssets: GetWalletAssets,
     private val service: GemReceiveServiceInterface,
     getSession: GetSession,
 ) : ViewModel() {
@@ -44,7 +46,9 @@ class ReceiveViewModel @AssistedInject constructor(
     val asset = selectedAssetId
         .flatMapLatest { getReceiveAssetInfo(it) }
         .flowOn(Dispatchers.IO)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, storedAsset(sourceAssetId))
+
+    private fun storedAsset(assetId: AssetId) = getWalletAssets().value.firstOrNull { it.asset.id == assetId }
 
     val networkAssetIds = combine(
         asset.filterNotNull().filter { it.asset.id == sourceAssetId },
@@ -60,12 +64,12 @@ class ReceiveViewModel @AssistedInject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            val associations = networkAssetIds.first { it.size > 1 }.filter { it != sourceAssetId }
-            runCatchingCancellable { service.syncMissingAssets(associations.map { it.toIdentifier() }) }
+            val wallet = session.filterNotNull().first().wallet
+            runCatchingCancellable { service.syncNetworkAssetIds(sourceAssetId.toIdentifier(), wallet.toGem()) }
         }
     }
 
-    fun memoWarning(chain: Chain): GemMemoWarning = service.memoWarning(chain.string)
+    fun warnings(chain: Chain): List<GemReceiveWarning> = service.warnings(chain.string)
 
     fun selectAsset(assetId: AssetId) {
         selectedAssetId.value = assetId

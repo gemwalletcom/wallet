@@ -1,10 +1,16 @@
 pub mod address;
+mod builder;
 pub mod constants;
+mod error;
+pub mod instructions;
 pub mod jsonrpc;
 pub mod metaplex;
 pub mod metaplex_core;
 pub mod method;
+mod short_vec;
+pub mod siws;
 pub mod token_account;
+mod types;
 
 #[cfg(any(feature = "rpc", feature = "reqwest"))]
 pub mod rpc;
@@ -22,13 +28,22 @@ mod testkit;
 pub mod signer;
 
 pub use address::{SolanaAddress, validate_address};
+pub use builder::{InstructionBuilder, TransactionBuilder};
 pub use constants::{DEFAULT_SWAP_GAS_LIMIT, MAX_COMPUTE_UNIT_LIMIT};
+pub use error::SolanaError;
+pub use instructions::{anchor, associated_token, compute_budget, memo, system, token};
 pub use jsonrpc::{SolanaAccountEncoding, SolanaProgramAccountsFilter, SolanaRpc, SolanaRpcConfig, SolanaTokenAccountsFilter};
-pub use solana_primitives::{Pubkey, SolanaError, find_program_address};
 pub use transaction::{
     Base64InstructionData, HexInstructionData, InstructionDataDecoder, SolanaTransfer, VersionedTransactionExt, decode_transaction, encode_v0_transaction,
     instruction_from_primitive, instructions_from_primitives, try_decode_blockhash, try_decode_transaction,
 };
+pub use types::{
+    AccountMeta, AddressLookupTableAccount, CompiledInstruction, Instruction, MAX_TRANSACTION_SIZE, Message, MessageAddressTableLookup, MessageHeader, Pubkey, SignatureBytes,
+    VersionedMessageV0, VersionedTransaction, find_program_address,
+};
+
+pub(crate) use error::Result;
+pub(crate) use short_vec::{decode_compact_u16_len, encode_length_to_compact_u16_bytes};
 
 #[cfg(all(feature = "reqwest", not(feature = "rpc")))]
 pub use rpc::client::SolanaClient;

@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.components.filters
 
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.LocalChainService
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -30,24 +31,28 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.TransactionTypeFilter
+import uniffi.gemstone.GemTransactionFilter
 import com.gemwallet.android.ui.theme.iconSize
 import com.wallet.core.primitives.Chain
+import com.gemwallet.android.ui.localization.getLabel
+import uniffi.gemstone.transactionFilters
 
 @Composable
 fun TransactionsFilter(
+    isVisible: Boolean,
     availableChains: List<Chain>,
     chainsFilter: List<Chain>,
-    typesFilter: List<TransactionTypeFilter>,
+    typesFilter: List<GemTransactionFilter>,
     onDismissRequest: () -> Unit,
-    onApplyChainsFilter: (List<Chain>) -> Unit,
-    onApplyTypesFilter: (List<TransactionTypeFilter>) -> Unit,
+    onSelectChainsFilter: (List<Chain>) -> Unit,
+    onSelectTypesFilter: (List<GemTransactionFilter>) -> Unit,
     onClearChainsFilter: () -> Unit,
     onClearTypesFilter: () -> Unit,
 ) {
     var showedSubFilter by remember { mutableStateOf<FilterType?>(null) }
 
     FormDialog(
+        isVisible = isVisible,
         title = stringResource(R.string.filter_title),
         onDismiss = onDismissRequest,
         onClear = {
@@ -117,50 +122,51 @@ fun TransactionsFilter(
         }
     }
 
-    when (showedSubFilter) {
-        FilterType.ByChains -> SubFilterDialog(
-            initialSelection = chainsFilter,
-            onDone = {
-                onApplyChainsFilter(it)
-                showedSubFilter = null
-            },
-            onConfirm = {
-                onApplyChainsFilter(it)
-                showedSubFilter = null
-                onDismissRequest()
-            },
-            onDismiss = { showedSubFilter = null },
-        ) { selectedItems, onToggle ->
-            val query = rememberTextFieldState()
-            val chainService = LocalChainService.current
-            SearchBar(query)
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                selectFilterChain(availableChains, selectedItems, query.text.toString(), chainService, onToggle)
-            }
+    SubFilterDialog(
+        isVisible = showedSubFilter == FilterType.ByChains,
+        initialSelection = chainsFilter,
+        onDone = {
+            onSelectChainsFilter(it)
+            showedSubFilter = null
+        },
+        onConfirm = {
+            onSelectChainsFilter(it)
+            showedSubFilter = null
+            onDismissRequest()
+        },
+        onDismiss = { showedSubFilter = null },
+    ) { selectedItems, onToggle ->
+        val query = rememberTextFieldState()
+        val matchingChains = rememberMatchingChains(availableChains, query.text.toString())
+        SearchBar(query)
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            selectFilterChain(matchingChains, selectedItems, onToggle)
         }
-        FilterType.ByTypes -> SubFilterDialog(
-            initialSelection = typesFilter,
-            onDone = {
-                onApplyTypesFilter(it)
-                showedSubFilter = null
-            },
-            onConfirm = {
-                onApplyTypesFilter(it)
-                showedSubFilter = null
-                onDismissRequest()
-            },
-            onDismiss = { showedSubFilter = null },
-        ) { selectedItems, onToggle ->
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                selectFilterTransactionType(selectedItems, onToggle)
-            }
+    }
+    SubFilterDialog(
+        isVisible = showedSubFilter == FilterType.ByTypes,
+        initialSelection = typesFilter,
+        onDone = {
+            onSelectTypesFilter(it)
+            showedSubFilter = null
+        },
+        onConfirm = {
+            onSelectTypesFilter(it)
+            showedSubFilter = null
+            onDismissRequest()
+        },
+        onDismiss = { showedSubFilter = null },
+    ) { selectedItems, onToggle ->
+        val filters = remember { transactionFilters() }
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            selectFilterTransactionType(filters, selectedItems, onToggle)
         }
-        null -> {}
     }
 }
 
 @Composable
 private fun <T> SubFilterDialog(
+    isVisible: Boolean,
     initialSelection: List<T>,
     onDone: (List<T>) -> Unit,
     onConfirm: (List<T>) -> Unit,
@@ -169,8 +175,9 @@ private fun <T> SubFilterDialog(
 ) {
     var selectedItems by remember { mutableStateOf(initialSelection) }
     FormDialog(
+        isVisible = isVisible,
         title = stringResource(R.string.filter_title),
-        fullScreen = true,
+        expansion = SheetExpansion.Full,
         onDismiss = onDismiss,
         onClear = { selectedItems = emptyList() }.takeIf { selectedItems.isNotEmpty() },
         doneAction = {

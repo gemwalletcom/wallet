@@ -2,6 +2,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::actions::WalletConnectTransactionType;
 use crate::sign_type::SignDigestType;
+use crate::siws;
 use gem_evm::domain::host_only;
 use gem_evm::siwe::SiweMessage;
 use primitives::Chain;
@@ -32,7 +33,8 @@ pub fn validate_sign_message(input: &SignMessageValidation) -> Result<(), String
             Ok(())
         }
         SignDigestType::Eip191 | SignDigestType::Siwe => validate_siwe(input),
-        SignDigestType::Base58 | SignDigestType::SuiPersonal | SignDigestType::TronPersonal => Ok(()),
+        SignDigestType::Base58 => siws::validate(input),
+        SignDigestType::SuiPersonal | SignDigestType::TronPersonal => Ok(()),
     }
 }
 
@@ -88,49 +90,40 @@ mod tests {
     use gem_evm::testkit::siwe_mock::{mock_siwe_message, mock_siwe_message_hex};
     use primitives::TransferDataOutputType;
 
-    fn sign_validation<'a>(chain: Chain, sign_type: &'a SignDigestType, data: &'a str, session_domain: &'a str) -> SignMessageValidation<'a> {
-        SignMessageValidation {
-            chain,
-            sign_type,
-            data,
-            session_domain,
-        }
-    }
-
     #[test]
     fn test_validate_eip712_chain_match() {
-        assert!(validate_sign_message(&sign_validation(Chain::Ethereum, &SignDigestType::Eip712, &mock_eip712_json(1), "")).is_ok());
+        assert!(validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip712, &mock_eip712_json(1), "")).is_ok());
     }
 
     #[test]
     fn test_validate_eip712_chain_mismatch() {
-        let result = validate_sign_message(&sign_validation(Chain::Ethereum, &SignDigestType::Eip712, &mock_eip712_json(137), ""));
+        let result = validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip712, &mock_eip712_json(137), ""));
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("Chain ID mismatch"));
     }
 
     #[test]
     fn test_validate_eip712_polygon() {
-        assert!(validate_sign_message(&sign_validation(Chain::Polygon, &SignDigestType::Eip712, &mock_eip712_json(137), "")).is_ok());
+        assert!(validate_sign_message(&SignMessageValidation::mock(Chain::Polygon, &SignDigestType::Eip712, &mock_eip712_json(137), "")).is_ok());
     }
 
     #[test]
     fn test_validate_eip712_without_domain_chain_id() {
         let data = include_str!("../../gem_evm/testdata/ens_upload_avatar.json");
-        assert!(validate_sign_message(&sign_validation(Chain::Ethereum, &SignDigestType::Eip712, data, "")).is_ok());
+        assert!(validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip712, data, "")).is_ok());
     }
 
     #[test]
     fn test_validate_eip712_domain_chain_id_without_schema_rejects() {
         let data = include_str!("../../gem_evm/testdata/eip712_domain_chain_id_without_schema_field.json");
-        let result = validate_sign_message(&sign_validation(Chain::Ethereum, &SignDigestType::Eip712, data, ""));
+        let result = validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip712, data, ""));
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("chainId"));
     }
 
     #[test]
     fn test_validate_eip191_always_ok() {
-        assert!(validate_sign_message(&sign_validation(Chain::Ethereum, &SignDigestType::Eip191, "anything", "example.com")).is_ok());
+        assert!(validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip191, "anything", "example.com")).is_ok());
     }
 
     #[test]
@@ -168,7 +161,7 @@ mod tests {
 
         // Invalid: raw JSON without proper encoding
         assert!(
-            validate_sign_message(&sign_validation(
+            validate_sign_message(&SignMessageValidation::mock(
                 Chain::Ton,
                 &SignDigestType::TonPersonal,
                 r#"{"payload":{"text":"Hello"},"domain":"example.com"}"#,
@@ -179,7 +172,7 @@ mod tests {
 
         // Invalid: unknown payload type
         assert!(
-            validate_sign_message(&sign_validation(
+            validate_sign_message(&SignMessageValidation::mock(
                 Chain::Ton,
                 &SignDigestType::TonPersonal,
                 r#"{"payload":{"type":"unknown"},"domain":"example.com"}"#,
@@ -195,7 +188,7 @@ mod tests {
             "UQBY1cVPu4SIr36q0M3HWcqPb_efyVVRBsEzmwN-wKQDR6zg".to_string(),
         );
         assert!(
-            validate_sign_message(&sign_validation(
+            validate_sign_message(&SignMessageValidation::mock(
                 Chain::Ton,
                 &SignDigestType::TonPersonal,
                 &String::from_utf8(ton_data.to_bytes()).unwrap(),
@@ -211,7 +204,7 @@ mod tests {
             "UQBY1cVPu4SIr36q0M3HWcqPb_efyVVRBsEzmwN-wKQDR6zg".to_string(),
         );
         assert!(
-            validate_sign_message(&sign_validation(
+            validate_sign_message(&SignMessageValidation::mock(
                 Chain::Ton,
                 &SignDigestType::TonPersonal,
                 &String::from_utf8(ton_data.to_bytes()).unwrap(),
@@ -230,7 +223,7 @@ mod tests {
             "UQBY1cVPu4SIr36q0M3HWcqPb_efyVVRBsEzmwN-wKQDR6zg".to_string(),
         );
         assert!(
-            validate_sign_message(&sign_validation(
+            validate_sign_message(&SignMessageValidation::mock(
                 Chain::Ton,
                 &SignDigestType::TonPersonal,
                 &String::from_utf8(ton_data.to_bytes()).unwrap(),
@@ -243,27 +236,27 @@ mod tests {
     #[test]
     fn test_validate_siwe() {
         let valid = mock_siwe_message("thepoc.xyz", 1);
-        assert!(validate_sign_message(&sign_validation(Chain::Ethereum, &SignDigestType::Siwe, &valid, "https://thepoc.xyz")).is_ok());
+        assert!(validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Siwe, &valid, "https://thepoc.xyz")).is_ok());
 
         let with_port = mock_siwe_message("thepoc.xyz:8080", 1);
-        assert!(validate_sign_message(&sign_validation(Chain::Ethereum, &SignDigestType::Siwe, &with_port, "https://thepoc.xyz")).is_ok());
+        assert!(validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Siwe, &with_port, "https://thepoc.xyz")).is_ok());
 
         let chain_mismatch = mock_siwe_message("thepoc.xyz", 137);
         assert!(
-            validate_sign_message(&sign_validation(Chain::Ethereum, &SignDigestType::Siwe, &chain_mismatch, "https://thepoc.xyz"))
+            validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Siwe, &chain_mismatch, "https://thepoc.xyz"))
                 .unwrap_err()
                 .contains("Chain ID mismatch")
         );
 
         let domain_mismatch = mock_siwe_message("evil.com", 1);
         assert!(
-            validate_sign_message(&sign_validation(Chain::Ethereum, &SignDigestType::Siwe, &domain_mismatch, "https://thepoc.xyz"))
+            validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Siwe, &domain_mismatch, "https://thepoc.xyz"))
                 .unwrap_err()
                 .contains("Domain mismatch")
         );
 
         assert!(
-            validate_sign_message(&sign_validation(Chain::Ethereum, &SignDigestType::Siwe, "not siwe", "https://thepoc.xyz"))
+            validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Siwe, "not siwe", "https://thepoc.xyz"))
                 .unwrap_err()
                 .contains("Invalid SIWE message")
         );
@@ -272,7 +265,7 @@ mod tests {
     #[test]
     fn test_validate_eip191_siwe() {
         assert!(
-            validate_sign_message(&sign_validation(
+            validate_sign_message(&SignMessageValidation::mock(
                 Chain::Ethereum,
                 &SignDigestType::Eip191,
                 &mock_siwe_message_hex("thepoc.xyz", 137),
@@ -282,7 +275,7 @@ mod tests {
             .contains("Chain ID mismatch")
         );
         assert!(
-            validate_sign_message(&sign_validation(
+            validate_sign_message(&SignMessageValidation::mock(
                 Chain::Ethereum,
                 &SignDigestType::Eip191,
                 &mock_siwe_message_hex("evil.com", 1),
@@ -291,6 +284,14 @@ mod tests {
             .unwrap_err()
             .contains("Domain mismatch")
         );
-        assert!(validate_sign_message(&sign_validation(Chain::Ethereum, &SignDigestType::Eip191, "0x48656c6c6f", "https://example.com")).is_ok());
+        assert!(
+            validate_sign_message(&SignMessageValidation::mock(
+                Chain::Ethereum,
+                &SignDigestType::Eip191,
+                "0x48656c6c6f",
+                "https://example.com"
+            ))
+            .is_ok()
+        );
     }
 }

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Formatters
+import GemstonePrimitives
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesTestKit
@@ -9,12 +10,12 @@ public extension AssetDataViewModel {
     static func mock(
         assetData: AssetData = .mock(),
         formatter: ValueFormatter = .short,
-        currencyCode: String = "USD",
+        currency: Currency = .usd,
     ) -> AssetDataViewModel {
         AssetDataViewModel(
             assetData: assetData,
             formatter: formatter,
-            currencyCode: currencyCode,
+            currency: currency,
         )
     }
 }

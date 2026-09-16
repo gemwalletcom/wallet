@@ -5,11 +5,9 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.testkit.mockGemPerpetualTransferData
-import com.wallet.core.primitives.PerpetualPosition
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualPositionAction
 import uniffi.gemstone.GemPerpetualPositionKind
-import java.math.BigInteger
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockPerpetualData
 import com.gemwallet.android.testkit.mockPerpetualPosition
@@ -70,7 +68,8 @@ class BuildPerpetualParamsImplTest {
 
         assertEquals(PerpetualDirection.Long.toGem(), own.data.direction)
         assertEquals(PerpetualDirection.Short.toGem(), other.data.direction)
-        assertEquals(true, own.available < other.available)
+        assertEquals(ownPosition.position.toGem(), own.position)
+        assertEquals(otherWalletPosition.position.toGem(), other.position)
     }
 
     private suspend fun reduceFor(walletId: WalletId): GemPerpetualPositionAction.Reduce {
@@ -85,7 +84,7 @@ class BuildPerpetualParamsImplTest {
                     val position = thirdArg<uniffi.gemstone.PerpetualPosition?>()?.toPrimitives()
                     GemPerpetualPositionAction.Reduce(
                         mockGemPerpetualTransferData(direction = requireNotNull(position).direction),
-                        BigInteger.valueOf((position.marginAmount * 1_000_000).toLong()),
+                        position.toGem(),
                     )
                 }
             },

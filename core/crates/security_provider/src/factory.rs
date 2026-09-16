@@ -5,7 +5,7 @@ use gem_client::ReqwestClient;
 use primitives::AccessTokenCacher;
 
 use crate::config::{AddressScanProviderConfig, TokenScanProviderConfig};
-use crate::providers::{goplus::GoPlusProvider, hashdit::HashDitProvider, jupiter::JupiterProvider};
+use crate::providers::{goplus::GoPlusProvider, hashdit::HashDitProvider, jupiter::JupiterProvider, tronscan::TronscanProvider};
 use crate::{AddressPoisoningProviders, AddressScanProviders, TokenScanProviders, TransactionScanProviders, WebsiteScanProviders};
 
 pub struct ScanProviderFactory;
@@ -28,6 +28,10 @@ impl ScanProviderFactory {
                 Some(access_token_cacher),
             )),
             hashdit.clone(),
+            Arc::new(TronscanProvider::new(
+                config.tronscan.configure_client(ReqwestClient::new(String::new(), client.clone())),
+                &config.tronscan.key,
+            )),
         ];
         let poisoning: AddressPoisoningProviders = vec![hashdit.clone()];
         let websites: WebsiteScanProviders = vec![hashdit];
@@ -48,8 +52,12 @@ impl ScanProviderFactory {
                 &config.hashdit.key,
             )),
             Arc::new(JupiterProvider::new(
-                config.jupiter.configure_client(ReqwestClient::new(String::new(), client)),
+                config.jupiter.configure_client(ReqwestClient::new(String::new(), client.clone())),
                 &config.jupiter.key,
+            )),
+            Arc::new(TronscanProvider::new(
+                config.tronscan.configure_client(ReqwestClient::new(String::new(), client)),
+                &config.tronscan.key,
             )),
         ])
     }

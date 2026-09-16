@@ -151,12 +151,6 @@ public enum Localized {
       /// Suspicious Asset
       public static let title = Localized.tr("Localizable", "banner.asset_status.title", fallback: "Suspicious Asset")
     }
-    public enum EnableNotifications {
-      /// Stay on top of your wallet activity.
-      public static let description = Localized.tr("Localizable", "banner.enable_notifications.description", fallback: "Stay on top of your wallet activity.")
-      /// Enable Notifications
-      public static let title = Localized.tr("Localizable", "banner.enable_notifications.title", fallback: "Enable Notifications")
-    }
     public enum Onboarding {
       /// Buy or Receive crypto to get started
       public static let description = Localized.tr("Localizable", "banner.onboarding.description", fallback: "Buy or Receive crypto to get started")
@@ -257,6 +251,8 @@ public enum Localized {
     public static let earn = Localized.tr("Localizable", "common.earn", fallback: "Earn")
     /// Emoji
     public static let emoji = Localized.tr("Localizable", "common.emoji", fallback: "Emoji")
+    /// Expiration
+    public static let expiration = Localized.tr("Localizable", "common.expiration", fallback: "Expiration")
     /// Get Started
     public static let getStarted = Localized.tr("Localizable", "common.get_started", fallback: "Get Started")
     /// Hidden
@@ -328,6 +324,10 @@ public enum Localized {
     /// Show %@
     public static func show(_ p1: Any) -> String {
       return Localized.tr("Localizable", "common.show", String(describing: p1), fallback: "Show %@")
+    }
+    /// Sign In with %@
+    public static func signInWith(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "common.sign_in_with", String(describing: p1), fallback: "Sign In with %@")
     }
     /// Skip
     public static let skip = Localized.tr("Localizable", "common.skip", fallback: "Skip")
@@ -401,8 +401,6 @@ public enum Localized {
     public static func createWallet(_ p1: Any) -> String {
       return Localized.tr("Localizable", "errors.create_wallet", String(describing: p1), fallback: "Create Wallet Error: %@")
     }
-    /// Decoding Error
-    public static let decoding = Localized.tr("Localizable", "errors.decoding", fallback: "Decoding Error")
     /// Failed to decode the QR code. Please try again with a different QR code.
     public static let decodingQr = Localized.tr("Localizable", "errors.decoding_qr", fallback: "Failed to decode the QR code. Please try again with a different QR code.")
     /// The transaction failed because the amount is too small to meet the %@ network's minimum requirement (dust threshold). This limit ensures the transaction value covers the fees and processing costs.
@@ -451,10 +449,6 @@ public enum Localized {
     public static func `required`(_ p1: Any) -> String {
       return Localized.tr("Localizable", "errors.required", String(describing: p1), fallback: "%@ is required")
     }
-    /// Transfer Error: %@
-    public static func transfer(_ p1: Any) -> String {
-      return Localized.tr("Localizable", "errors.transfer", String(describing: p1), fallback: "Transfer Error: %@")
-    }
     /// Transfer Error
     public static let transferError = Localized.tr("Localizable", "errors.transfer_error", fallback: "Transfer Error")
     /// We are currently unable to calculate the network fee.
@@ -468,18 +462,12 @@ public enum Localized {
     /// This wallet has no account for this network
     public static let walletAccountMissing = Localized.tr("Localizable", "errors.wallet_account_missing", fallback: "This wallet has no account for this network")
     public enum Connections {
-      /// Invalid parameters provided for sending a transaction.
-      public static let invalidSendParameters = Localized.tr("Localizable", "errors.connections.invalid_send_parameters", fallback: "Invalid parameters provided for sending a transaction.")
-      /// Invalid parameters provided for signing.
-      public static let invalidSignParameters = Localized.tr("Localizable", "errors.connections.invalid_sign_parameters", fallback: "Invalid parameters provided for signing.")
       /// This connection comes from an untrusted source.
       public static let maliciousOrigin = Localized.tr("Localizable", "errors.connections.malicious_origin", fallback: "This connection comes from an untrusted source.")
       /// No supported wallets are available.
       public static let noSupportedWallets = Localized.tr("Localizable", "errors.connections.no_supported_wallets", fallback: "No supported wallets are available.")
       /// The provided chain is not supported.
       public static let unsupportedChain = Localized.tr("Localizable", "errors.connections.unsupported_chain", fallback: "The provided chain is not supported.")
-      /// The requested method is not supported.
-      public static let unsupportedMethod = Localized.tr("Localizable", "errors.connections.unsupported_method", fallback: "The requested method is not supported.")
       /// User cancelled
       public static let userCancelled = Localized.tr("Localizable", "errors.connections.user_cancelled", fallback: "User cancelled")
     }
@@ -791,6 +779,8 @@ public enum Localized {
         public static let inappropriate = Localized.tr("Localizable", "nft.report.reason.inappropriate", fallback: "Inappropriate Content")
         /// Malicious
         public static let malicious = Localized.tr("Localizable", "nft.report.reason.malicious", fallback: "Malicious")
+        /// Other
+        public static let other = Localized.tr("Localizable", "nft.report.reason.other", fallback: "Other")
         /// Spam
         public static let spam = Localized.tr("Localizable", "nft.report.reason.spam", fallback: "Spam")
       }
@@ -857,10 +847,6 @@ public enum Localized {
     }
     public enum Security {
       public enum CreateWallet {
-        public enum Confirm {
-          /// I understand and want to continue
-          public static let title = Localized.tr("Localizable", "onboarding.security.create_wallet.confirm.title", fallback: "I understand and want to continue")
-        }
         public enum DoNotShare {
           /// Anyone who gets your secret phrase can take full control of your wallet.
           public static let subtitle = Localized.tr("Localizable", "onboarding.security.create_wallet.do_not_share.subtitle", fallback: "Anyone who gets your secret phrase can take full control of your wallet.")
@@ -987,9 +973,9 @@ public enum Localized {
     public static let markets = Localized.tr("Localizable", "perpetuals.markets", fallback: "Markets")
     /// Perpetuals
     public static let title = Localized.tr("Localizable", "perpetuals.title", fallback: "Perpetuals")
+    /// Trade Perpetuals
+    public static let trade = Localized.tr("Localizable", "perpetuals.trade", fallback: "Trade Perpetuals")
     public enum EmptyState {
-      /// No markets
-      public static let noMarkets = Localized.tr("Localizable", "perpetuals.empty_state.no_markets", fallback: "No markets")
       /// No markets found
       public static let noMarketsFound = Localized.tr("Localizable", "perpetuals.empty_state.no_markets_found", fallback: "No markets found")
     }
@@ -1698,6 +1684,8 @@ public enum Localized {
     public static let disconnect = Localized.tr("Localizable", "wallet_connect.disconnect", fallback: "Disconnect")
     /// No active connections
     public static let noActiveConnections = Localized.tr("Localizable", "wallet_connect.no_active_connections", fallback: "No active connections")
+    /// Request expired
+    public static let requestExpired = Localized.tr("Localizable", "wallet_connect.request_expired", fallback: "Request expired")
     /// WalletConnect
     public static let title = Localized.tr("Localizable", "wallet_connect.title", fallback: "WalletConnect")
     public enum Connect {

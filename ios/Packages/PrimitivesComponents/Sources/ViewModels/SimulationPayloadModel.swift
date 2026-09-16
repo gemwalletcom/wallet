@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
 import Localization
 import Primitives
@@ -43,22 +44,30 @@ public struct SimulationPayloadModel: Sendable {
         )
     }
 
-    public func contextMenuItems(
-        for field: SimulationPayloadField,
+    public func fieldModels(
+        for fields: [SimulationPayloadField],
         explorerLink: (String) -> BlockExplorerLink,
         onOpenURL: @escaping (URL) -> Void,
-    ) -> [ContextMenuItemType] {
-        var items = fieldViewModel(for: field).contextMenuItems
-        guard field.fieldType == .address else {
-            return items
+    ) -> [SimulationPayloadFieldViewModel] {
+        fields.map { field in
+            SimulationPayloadFieldViewModel(
+                field: field,
+                chain: chain,
+                addressName: addressNames[ChainAddress(chain: chain, address: field.value)],
+                explorerItem: field.fieldType == .address ? explorerMenuItem(for: field, link: explorerLink(field.value), onOpenURL: onOpenURL) : nil,
+            )
         }
+    }
 
-        let link = explorerLink(field.value)
-        items.append(.url(title: Localized.Transaction.viewOn(link.name), onOpen: {
+    private func explorerMenuItem(
+        for field: SimulationPayloadField,
+        link: BlockExplorerLink,
+        onOpenURL: @escaping (URL) -> Void,
+    ) -> ContextMenuItemType {
+        .url(title: Localized.Transaction.viewOn(link.name), onOpen: {
             if let url = URL(string: link.link) {
                 onOpenURL(url)
             }
-        }))
-        return items
+        })
     }
 }

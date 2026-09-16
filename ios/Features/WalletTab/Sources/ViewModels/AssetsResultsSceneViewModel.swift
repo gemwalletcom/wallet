@@ -6,6 +6,7 @@ import GemstonePrimitives
 import GemstoneServices
 import Foundation
 import Localization
+import struct Gemstone.GemAssetRow
 import Primitives
 import PrimitivesComponents
 import Store
@@ -40,13 +41,14 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
         self.service = service
         self.title = title
         var request = request
+        request.searchKey = service.searchKey(query: request.searchBy, scope: request.scope.gemScope)
         request.limit = Int(service.walletSearchLimits(query: request.searchBy).results)
         searchQuery = ObservableQuery(request, initialValue: .empty)
         onSelectAssetAction = onSelectAsset
     }
 
-    var currencyCode: String {
-        service.getCurrency()
+    var currency: Currency {
+        service.getCurrency().toPrimitives()
     }
 
     var sections: WalletSearchSections {
@@ -70,7 +72,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
     }
 
     var showPerpetuals: Bool {
-        searchQuery.request.scope.isList && sections.perpetuals.isNotEmpty && service.showPerpetuals(wallet: wallet.map())
+        searchQuery.request.scope.isList && sections.perpetuals.isNotEmpty && service.showPerpetuals(walletType: wallet.type.toGem(), chains: wallet.chains.map(\.rawValue))
     }
 
     var showEmpty: Bool {
@@ -121,7 +123,7 @@ extension AssetsResultsSceneViewModel {
         onSelectAssetAction?(asset)
         Task { [service] in
             do {
-                try await service.addRecent(action: .open, asset: asset.map())
+                try await service.addRecent(action: .open, asset: asset.toGem())
             } catch {
                 debugLog("AssetsResultsSceneViewModel update recent error: \(error)")
             }
@@ -141,4 +143,8 @@ extension AssetsResultsSceneViewModel {
     func setPerpetualPinned(_ perpetualId: PerpetualId, pinned: Bool) async throws {
         try await service.setPerpetualPinned(perpetualId: perpetualId.identifier, pinned: pinned)
     }
+    var assetRow: GemAssetRow {
+        service.flow(selectType: .walletSearchResults).row
+    }
+
 }

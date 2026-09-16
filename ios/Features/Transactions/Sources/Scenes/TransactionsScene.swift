@@ -15,24 +15,23 @@ public struct TransactionsScene: View {
         self.model = model
     }
 
+    @Environment(\.connectionStatus) private var connectionStatus
+
     public var body: some View {
         VStack {
             List {
-                TransactionsList(
-                                        model.transactions,
-                    currency: model.currency,
-                )
+                TransactionsList(sections: model.sections, currency: model.currency)
                 .listRowInsets(.assetListRowInsets)
             }
             .listSectionSpacing(.compact)
             .scrollContentBackground(.hidden)
-            .refreshableTimer(every: .minutes(5)) { _ in
+            .refreshableTimer(every: connectionStatus.refreshInterval(for: .wallet)) { _ in
                 await model.load()
             }
         }
         .background { Colors.insetGroupedListStyle.ignoresSafeArea() }
         .overlay {
-            if model.transactions.isEmpty {
+            if model.sections.isEmpty {
                 EmptyContentView(model: model.emptyContentModel)
                     .padding(.horizontal, .medium)
             }

@@ -6,7 +6,7 @@ use gem_tracing::info_with_fields;
 use num_bigint::BigUint;
 use primitives::currency::Currency;
 use primitives::{
-    Asset, AssetAssociation, AssetAssociationType, AssetId, AssetType, Chain, ChartTimeframe, DeviceLocale, FiatProviderName, FiatQuoteType, FiatTransaction,
+    Asset, AssetAssociation, AssetAssociationType, AssetId, AssetType, Chain, ChartTimeframe, DeviceLocale, FiatProviderName, FiatQuoteType, FiatRateProvider, FiatTransaction,
     FiatTransactionStatus, NotificationType, PriceAlert, PriceAlertDirection, PriceId, PriceProvider,
     asset_constants::{
         ARBITRUM_USDC_ASSET_ID, ARBITRUM_USDT_ASSET_ID, BASE_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, POLYGON_USDC_ASSET_ID, SMARTCHAIN_USDT_ASSET_ID,
@@ -43,9 +43,11 @@ fn setup_dev_currency(database: &Database) -> Result<(), Box<dyn std::error::Err
     info_with_fields!("setup_dev", step = "add currency");
 
     let fiat_rate = FiatRateRow {
+        is_enabled: true,
         id: Currency::USD.into(),
         name: "US Dollar".to_string(),
         rate: 1.0,
+        provider: FiatRateProvider::Coingecko.into(),
     };
 
     info_with_fields!("setup_dev", step = "add rate", currency = "USD");

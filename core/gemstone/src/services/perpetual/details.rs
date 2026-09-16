@@ -1,12 +1,11 @@
 use std::sync::Arc;
 
 use primitives::chart::ChartCandleUpdate;
-use primitives::{Asset, AssetFiatValue, AssetId, Chain, ChartPeriod, Currency, Perpetual, PerpetualPosition, TotalFiatValue};
+use primitives::{Asset, AssetId, Chain, ChartPeriod, Currency, Perpetual, PerpetualPosition};
 
-use super::model::{GemPerpetualPositionAction, GemPerpetualPositionKind};
+use super::model::{GemPerpetualButton, GemPerpetualInfoRow, GemPerpetualPositionAction, GemPerpetualPositionDetailRow, GemPerpetualPositionKind, GemPerpetualSection};
 use super::{GemPerpetualService, rules};
 use crate::models::perpetual::{GemChartCandleStick, GemPerpetualSubscription};
-use crate::services::balance::rules as balance_rules;
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::transactions::GemTransactionsService;
@@ -42,12 +41,24 @@ impl GemPerpetualDetailsService {
         self.preferences.get_currency()
     }
 
-    pub fn total_fiat_value(&self, balances: Vec<AssetFiatValue>) -> TotalFiatValue {
-        balance_rules::total_fiat_value(&balances)
+    pub fn sections(&self, has_position: bool) -> Vec<GemPerpetualSection> {
+        rules::perpetual_sections(has_position)
     }
 
-    pub fn shows_pnl(&self, total: TotalFiatValue) -> bool {
-        balance_rules::shows_pnl(&total)
+    pub fn position_detail_rows(&self, position: PerpetualPosition) -> Vec<GemPerpetualPositionDetailRow> {
+        rules::position_detail_rows(&position)
+    }
+
+    pub fn info_rows(&self) -> Vec<GemPerpetualInfoRow> {
+        rules::info_rows()
+    }
+
+    pub fn buttons(&self, has_position: bool) -> Vec<GemPerpetualButton> {
+        rules::perpetual_buttons(has_position)
+    }
+
+    pub fn modify_buttons(&self) -> Vec<GemPerpetualButton> {
+        rules::modify_buttons()
     }
 
     pub fn position_action(
@@ -89,8 +100,8 @@ impl GemPerpetualDetailsService {
         self.perpetuals.get_candlesticks(Chain::HyperCore, rules::symbol(&perpetual), period).await
     }
 
-    pub fn apply_candle_update(&self, candles: Vec<GemChartCandleStick>, update: ChartCandleUpdate, perpetual: Perpetual, period: ChartPeriod) -> Option<Vec<GemChartCandleStick>> {
-        rules::apply_candle_update(candles, update, &perpetual, &period)
+    pub fn merged_candles(&self, candles: Vec<GemChartCandleStick>, update: ChartCandleUpdate, perpetual: Perpetual, period: ChartPeriod) -> Option<Vec<GemChartCandleStick>> {
+        rules::merged_candles(candles, update, &perpetual, &period)
     }
 
     pub async fn sync_positions(&self) -> Result<(), GemServiceError> {

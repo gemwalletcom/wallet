@@ -1,14 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Foundation
+import GemstonePrimitives
+import GemstonePrimitivesTestKit
+import Primitives
 import PrimitivesTestKit
 import Stake
 import Testing
 
 struct ValidatorViewModelTests {
     @Test func aprText() {
-        let model = ValidatorViewModel(validator: .mock(apr: 2.15))
-
-        #expect(model.aprModel.text == "APR 2.15%")
+        #expect(ValidatorViewModel(row: .mock(validator: DelegationValidator.mock(apr: 2.15).toGem())).aprModel.text == "APR 2.15%")
     }
 }

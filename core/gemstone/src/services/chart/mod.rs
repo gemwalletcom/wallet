@@ -1,10 +1,14 @@
+pub mod model;
 pub mod rules;
+pub mod session;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use std::sync::Arc;
 
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use primitives::currency::Currency;
-use primitives::{AssetId, Chain, ChartDateValue, ChartPeriod};
+use primitives::{Asset, AssetId, AssetLink, AssetMarket, ChartDateValue, ChartPeriod, PriceAlert};
 
 use crate::api::{GemApiClient, GemApiError};
 use crate::services::error::GemServiceError;
@@ -12,12 +16,35 @@ use crate::services::explorer::GemExplorerService;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::price::GemPriceService;
 use crate::services::price_alert::GemPriceAlertService;
-use primitives::BlockExplorerLink;
+use session::GemChartSession;
+
+pub use model::{GemAssetMarketRow, GemChartData, GemChartHeader, GemChartSection, GemChartValueType};
+
+#[uniffi::export]
+pub fn candlestick_header(base: f64, value: f64) -> GemChartHeader {
+    GemChartData {
+        value_type: GemChartValueType::Price,
+        base,
+        shows_secondary_value: false,
+        currency: Currency::USD,
+        values: Vec::new(),
+        header: None,
+    }
+    .header_at(value)
+}
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemChart {
     pub values: Vec<ChartDateValue>,
-    pub current: Option<ChartDateValue>,
+    pub base_value: f64,
+    pub current: Option<GemChartCurrent>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemChartCurrent {
+    pub date: DateTime<Utc>,
+    pub value: f64,
+    pub change_percentage: f64,
 }
 
 #[derive(uniffi::Object)]
@@ -48,8 +75,13 @@ impl GemChartService {
         }
     }
 
-    pub fn token_url(&self, chain: Chain, address: String) -> Option<BlockExplorerLink> {
-        self.explorer.get_token_url(chain, address)
+    pub fn sections(&self, asset: Asset, price: Option<f64>, market: Option<AssetMarket>, price_alerts: Vec<PriceAlert>, links: Vec<AssetLink>) -> Vec<GemChartSection> {
+        let contract_explorer = asset.id.token_id.clone().and_then(|token_id| self.explorer.get_token_url(asset.id.chain, token_id));
+        rules::chart_sections(&asset, price, market.as_ref(), price_alerts, links, contract_explorer)
+    }
+
+    pub fn new_session(&self) -> GemChartSession {
+        GemChartSession::new(self.chart_period(), self.get_currency())
     }
 
     pub fn get_currency(&self) -> Currency {
@@ -75,8 +107,9 @@ impl GemChartService {
         })?;
         let latest = self.price.prices(vec![asset_id]).await?.into_iter().next();
         let values = rules::converted_values(charts.prices, rate.rate);
-        let current = rules::current_value(&values, latest, Utc::now());
-        Ok(GemChart { values, current })
+        let base_value = rules::base_value(&values);
+        let current = rules::current_value(&values, latest, Utc::now(), period, base_value);
+        Ok(GemChart { values, base_value, current })
     }
 
     pub async fn sync_price_alerts(&self, asset_id: AssetId) -> Result<(), GemServiceError> {

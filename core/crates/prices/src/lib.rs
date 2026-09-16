@@ -6,16 +6,23 @@ use std::error::Error;
 use std::time::Duration;
 
 use async_trait::async_trait;
-use primitives::{AssetId, ChartValue};
+use primitives::{AssetId, ChartValue, FiatRate, FiatRateProvider};
 
-pub use config::{PriceProviderConfig, PriceProviders, build_price_providers};
+pub use config::{FiatRatesProviderConfig, PriceProviderConfig, PriceProviders, build_fiat_rates_providers, build_price_providers};
 pub use model::{AssetPriceFull, AssetPriceMapping, PriceProviderAsset, PriceProviderAssetMetadata};
 pub use primitives::PriceProvider;
 pub use providers::coingecko::provider::CoinGeckoPricesProvider;
+pub use providers::coinmarketcap::provider::CoinMarketCapRatesProvider;
 pub use providers::defillama::provider::DefiLlamaProvider;
 pub use providers::jupiter::provider::JupiterProvider;
 pub use providers::pyth::provider::PythProvider;
 pub use providers::tonapi::provider::TonApiProvider;
+
+#[async_trait]
+pub trait FiatRatesProvider: Send + Sync {
+    fn provider(&self) -> FiatRateProvider;
+    async fn get_fiat_rates(&self) -> Result<Vec<FiatRate>, Box<dyn Error + Send + Sync>>;
+}
 
 #[async_trait]
 pub trait PriceAssetsProvider: Send + Sync {

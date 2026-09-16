@@ -14,6 +14,7 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.SupportMessage
+import com.wallet.core.primitives.SupportMessageSender
 import com.wallet.core.primitives.SupportMessageStatus
 
 @Composable
@@ -22,8 +23,8 @@ internal fun SupportMessageGroup(
     onImageClick: (String) -> Unit,
     onRetry: (SupportMessage) -> Unit,
 ) {
-    when (group) {
-        is SupportChatGroup.User -> Column(
+    when (group.sender) {
+        SupportMessageSender.User -> Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),
@@ -44,7 +45,7 @@ internal fun SupportMessageGroup(
                 }
             }
         }
-        is SupportChatGroup.Agent -> Column(
+        is SupportMessageSender.Agent -> Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),

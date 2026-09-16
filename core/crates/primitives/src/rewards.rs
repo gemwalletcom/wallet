@@ -2,12 +2,10 @@ use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
-use typeshare::typeshare;
 
 use crate::Asset;
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, EnumIter, AsRefStr, PartialEq)]
-//#[typeshare(swift = "Equatable, Hashable, Sendable, CaseIterable")]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 pub enum RewardLevel {}
@@ -19,7 +17,6 @@ impl RewardLevel {
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, EnumIter, EnumString, AsRefStr, PartialEq, Eq, Hash)]
-#[typeshare(swift = "Equatable, Hashable, Sendable, CaseIterable")]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 pub enum RewardRedemptionType {
@@ -34,7 +31,6 @@ impl RewardRedemptionType {
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, EnumIter, EnumString, AsRefStr, PartialEq)]
-#[typeshare(swift = "Equatable, Hashable, Sendable, CaseIterable")]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 #[derive(Default)]
@@ -57,13 +53,6 @@ impl RewardStatus {
         match self {
             Self::Verified | Self::Trusted => true,
             Self::Unverified | Self::Pending | Self::Attribution | Self::Disabled => false,
-        }
-    }
-
-    pub fn is_disabled(&self) -> bool {
-        match self {
-            Self::Disabled => true,
-            Self::Unverified | Self::Pending | Self::Verified | Self::Trusted | Self::Attribution => false,
         }
     }
 }
@@ -114,24 +103,20 @@ pub struct ReferralAllowance {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct Rewards {
     pub code: Option<String>,
-    #[typeshare(skip)]
     #[serde(default = "invite_reward_points")]
     pub invite_reward_points: i32,
     pub referral_count: i32,
     pub points: i32,
     pub used_referral_code: Option<String>,
     pub status: RewardStatus,
-    #[typeshare(skip)]
     #[serde(skip)]
     pub created_at: chrono::NaiveDateTime,
     pub verify_after: Option<DateTime<Utc>>,
     pub redemption_options: Vec<RewardRedemptionOption>,
     pub disable_reason: Option<String>,
-    #[typeshare(skip)]
     #[serde(default)]
     pub referral_allowance: ReferralAllowance,
 }
@@ -159,7 +144,6 @@ impl Default for Rewards {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct ReferralCode {
     pub code: String,
@@ -176,7 +160,6 @@ pub struct RewardEvent {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct RewardRedemption {
     pub id: i32,
@@ -187,7 +170,6 @@ pub struct RewardRedemption {
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, EnumString, EnumIter, AsRefStr, PartialEq)]
-#[typeshare(swift = "Equatable, Hashable, CaseIterable, Sendable")]
 #[serde(rename_all = "camelCase")]
 #[strum(serialize_all = "camelCase")]
 pub enum RedemptionStatus {
@@ -197,8 +179,7 @@ pub enum RedemptionStatus {
     Failed,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RewardRedemptionOption {
     pub id: String,
@@ -211,14 +192,12 @@ pub struct RewardRedemptionOption {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct RedemptionRequest {
     pub id: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct RedemptionResult {
     pub redemption: RewardRedemption,
@@ -258,12 +237,5 @@ mod tests {
         assert!(RewardStatus::Trusted.is_verified());
         assert!(!RewardStatus::Attribution.is_verified());
         assert!(!RewardStatus::Disabled.is_verified());
-
-        assert!(!RewardStatus::Unverified.is_disabled());
-        assert!(!RewardStatus::Pending.is_disabled());
-        assert!(!RewardStatus::Verified.is_disabled());
-        assert!(!RewardStatus::Trusted.is_disabled());
-        assert!(!RewardStatus::Attribution.is_disabled());
-        assert!(RewardStatus::Disabled.is_disabled());
     }
 }

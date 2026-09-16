@@ -3,15 +3,11 @@ package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 import com.gemwallet.android.ext.toGem
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
 import com.gemwallet.android.ext.toIdentifier
-import uniffi.gemstone.GemChart
 import uniffi.gemstone.GemChartService
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
-import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
-import com.wallet.core.primitives.ChartDateValue
+import com.gemwallet.android.testkit.mockGemChart
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.dataOrNull
 import com.wallet.core.primitives.ChartPeriod
@@ -32,9 +28,9 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemChartSession
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChartViewModelTest {
@@ -44,7 +40,6 @@ class ChartViewModelTest {
     private val currencyFlow = MutableStateFlow(Currency.USD)
     private val viewModels = mutableListOf<ViewModel>()
 
-    private val getAssetTokenInfo = mockk<GetAssetTokenInfo>(relaxed = true)
     private val getCurrentCurrency = mockk<GetCurrentCurrency>(relaxed = true) {
         every { getCurrency() } returns currencyFlow
     }
@@ -54,6 +49,9 @@ class ChartViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         every { chartService.chartPeriod() } returns ChartPeriod.Day.toGem()
+        every { chartService.newSession() } answers {
+            GemChartSession(chartService.chartPeriod(), currencyFlow.value.toGem(), chart = null, error = null, isLoading = true, isRefreshing = false)
+        }
     }
 
     @After
@@ -71,60 +69,52 @@ class ChartViewModelTest {
 
     @Test
     fun `historical chart renders when token info flow emits null`() = runTest(testDispatcher) {
-        val prices = mockChartPrices(values = listOf(10f, 12f, 14f))
-        val tokenInfoFlow = MutableStateFlow<AssetInfo?>(null)
-        every { getAssetTokenInfo(asset.id) } returns tokenInfoFlow
-        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns prices.toGemChart()
+        val chart = mockGemChart(values = listOf(10f, 12f, 14f))
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns chart
 
-        val viewModel = createViewModel(tokenInfoFlow)
-        val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == prices.size }.chart.dataOrNull!!
+        val viewModel = createViewModel()
+        val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == chart.values.size }.chart.dataOrNull!!
 
-        assertEquals(prices.size, uiModel.chartPoints.size)
-        assertNull(uiModel.currentPoint)
+        assertEquals(chart.values.size, uiModel.chart.values.size)
+        assertEquals(14.0, uiModel.chart.header?.value?.value)
         assertEquals(true, viewModel.chartUIState.value.chart is StateViewType.Data)
     }
 
     @Test
     fun `current point overlay is skipped when local price info is missing`() = runTest(testDispatcher) {
-        val prices = mockChartPrices(values = listOf(100f, 105f, 110f))
-        val tokenInfoFlow = MutableStateFlow<AssetInfo?>(mockAssetInfo(asset = asset))
-        every { getAssetTokenInfo(asset.id) } returns tokenInfoFlow
-        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns prices.toGemChart()
+        val chart = mockGemChart(values = listOf(100f, 105f, 110f))
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns chart
 
-        val viewModel = createViewModel(tokenInfoFlow)
-        val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == prices.size }.chart.dataOrNull!!
+        val viewModel = createViewModel()
+        val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == chart.values.size }.chart.dataOrNull!!
 
-        assertEquals(prices.size, uiModel.chartPoints.size)
-        assertNull(uiModel.currentPoint)
+        assertEquals(chart.values.size, uiModel.chart.values.size)
+        assertEquals(110.0, uiModel.chart.header?.value?.value)
     }
 
     @Test
     fun `initial request uses currency flow without waiting for session object`() = runTest(testDispatcher) {
-        val prices = mockChartPrices(values = listOf(1f, 2f))
-        val tokenInfoFlow = MutableStateFlow<AssetInfo?>(null)
-        every { getAssetTokenInfo(asset.id) } returns tokenInfoFlow
-        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns prices.toGemChart()
+        val chart = mockGemChart(values = listOf(1f, 2f))
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem()) } returns chart
 
-        val viewModel = createViewModel(tokenInfoFlow)
-        val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == prices.size }.chart.dataOrNull!!
+        val viewModel = createViewModel()
+        val uiModel = viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == chart.values.size }.chart.dataOrNull!!
 
         coVerify(exactly = 1) {
             chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Day.toGem())
         }
-        assertEquals(prices.size, uiModel.chartPoints.size)
+        assertEquals(chart.values.size, uiModel.chart.values.size)
         assertEquals(true, viewModel.chartUIState.value.chart is StateViewType.Data)
     }
 
     @Test
     fun `initial request uses saved chart period`() = runTest(testDispatcher) {
-        val prices = mockChartPrices(values = listOf(1f, 2f))
-        val tokenInfoFlow = MutableStateFlow<AssetInfo?>(null)
+        val chart = mockGemChart(values = listOf(1f, 2f))
         every { chartService.chartPeriod() } returns ChartPeriod.Month.toGem()
-        every { getAssetTokenInfo(asset.id) } returns tokenInfoFlow
-        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Month.toGem()) } returns prices.toGemChart()
+        coEvery { chartService.syncCharts(asset.id.toIdentifier(), ChartPeriod.Month.toGem()) } returns chart
 
-        val viewModel = createViewModel(tokenInfoFlow)
-        viewModel.chartUIState.first { it.chart.dataOrNull?.chartPoints?.size == prices.size }
+        val viewModel = createViewModel()
+        viewModel.chartUIState.first { it.chart.dataOrNull?.chart?.values?.size == chart.values.size }
 
         assertEquals(ChartPeriod.Month, viewModel.chartUIState.value.period)
         coVerify(exactly = 1) {
@@ -134,8 +124,7 @@ class ChartViewModelTest {
 
     @Test
     fun `selecting period stores chart period`() = runTest(testDispatcher) {
-        val tokenInfoFlow = MutableStateFlow<AssetInfo?>(null)
-        val viewModel = createViewModel(tokenInfoFlow)
+        val viewModel = createViewModel()
 
         viewModel.setPeriod(ChartPeriod.Month)
         val state = viewModel.chartUIState.first { it.period == ChartPeriod.Month }
@@ -144,18 +133,11 @@ class ChartViewModelTest {
         verify(exactly = 1) { chartService.setChartPeriod(ChartPeriod.Month.toGem()) }
     }
 
-    private fun createViewModel(tokenInfoFlow: MutableStateFlow<AssetInfo?>): ChartViewModel {
-        every { getAssetTokenInfo(asset.id) } returns tokenInfoFlow
+    private fun createViewModel(): ChartViewModel {
         return ChartViewModel(
-            getAssetTokenInfo = getAssetTokenInfo,
             getCurrentCurrency = getCurrentCurrency,
             chartService = chartService,
             assetId = asset.id,
         ).also(viewModels::add)
     }
-
-    private fun mockChartPrices(values: List<Float>): List<ChartDateValue> =
-        values.mapIndexed { index, value -> ChartDateValue(date = 1_000L + index * 60_000L, value = value.toDouble()) }
-
-    private fun List<ChartDateValue>.toGemChart() = GemChart(values = map { it.toGem() }, current = null)
 }

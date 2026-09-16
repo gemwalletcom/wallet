@@ -27,7 +27,7 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyConte
 import com.gemwallet.android.features.bridge.viewmodels.ProposalSceneState
 import com.gemwallet.android.features.bridge.viewmodels.ProposalSceneViewModel
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
-import com.gemwallet.android.features.bridge.viewmodels.model.SessionUI
+import uniffi.gemstone.GemConnectionRow
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.models.ButtonState
@@ -44,13 +44,15 @@ import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.components.color
-import com.gemwallet.android.ui.components.icon
-import com.gemwallet.android.ui.components.titleRes
+import com.gemwallet.android.ui.style.color
+import com.gemwallet.android.ui.style.icon
+import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.pendingColor
 import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.WalletConnectionVerificationStatus
+import androidx.activity.compose.BackHandler
 
 @Composable
 fun ProposalScene(
@@ -60,10 +62,12 @@ fun ProposalScene(
 ) {
     val context = LocalContext.current
     val viewModel: ProposalSceneViewModel = hiltViewModel()
+    BackHandler(onBack = viewModel::onReject)
     val state by viewModel.state.collectAsStateWithLifecycle()
     val peer by viewModel.proposal.collectAsStateWithLifecycle()
     val selectedWallet by viewModel.selectedWallet.collectAsStateWithLifecycle()
     val availableWallets by viewModel.availableWallets.collectAsStateWithLifecycle()
+    val availableWalletRows by viewModel.availableWalletRows.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
     val unknownErrorMessage = stringResource(id = R.string.errors_unknown_try_again)
 
@@ -73,6 +77,11 @@ fun ProposalScene(
                 BridgeRequestError.MaliciousSession -> Toast.makeText(
                     context,
                     R.string.errors_connections_malicious_origin,
+                    Toast.LENGTH_LONG
+                ).show()
+                BridgeRequestError.Expired -> Toast.makeText(
+                    context,
+                    R.string.wallet_connect_request_expired,
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -90,9 +99,10 @@ fun ProposalScene(
             state = state,
             selectedWallet = selectedWallet,
             availableWallets = availableWallets,
+            availableWalletRows = availableWalletRows,
             buttonState = buttonState,
             onReject = viewModel::onReject,
-            onApprove = { viewModel.onApprove { message -> onError(message.ifBlank { unknownErrorMessage }) } },
+            onApprove = { viewModel.onApprove { error -> onError(error.text(context).ifBlank { unknownErrorMessage }) } },
             onWalletSelected = viewModel::onWalletSelected
         )
     }
@@ -100,10 +110,11 @@ fun ProposalScene(
 
 @Composable
 private fun Proposal(
-    peer: SessionUI,
+    peer: GemConnectionRow,
     state: ProposalSceneState,
     selectedWallet: com.wallet.core.primitives.Wallet?,
     availableWallets: List<com.wallet.core.primitives.Wallet>,
+    availableWalletRows: List<uniffi.gemstone.GemWalletRow>,
     buttonState: ButtonState,
     onReject: () -> Unit,
     onApprove: () -> Unit,
@@ -130,9 +141,9 @@ private fun Proposal(
         ) {
             item {
                 CenteredListHead(
-                    icon = peer.icon,
-                    title = peer.name,
-                    subtitle = peer.uri,
+                    icon = peer.iconUrl,
+                    title = peer.title,
+                    subtitle = peer.host.orEmpty(),
                     contentDescription = "wallet_connect_app_icon",
                     subtitleLayout = CenteredListHeadSubtitleLayout.Vertical,
                 )
@@ -184,7 +195,7 @@ private fun Proposal(
 
     WalletSelectionSheet(
         isVisible = isShowSelectWallets,
-        wallets = availableWallets,
+        walletRows = availableWalletRows,
         selectedWalletId = selectedWallet?.id,
         onWalletSelected = onWalletSelected,
         onDismissRequest = { isShowSelectWallets = false },

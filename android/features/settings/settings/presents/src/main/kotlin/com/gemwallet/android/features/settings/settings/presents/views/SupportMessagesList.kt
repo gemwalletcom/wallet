@@ -1,12 +1,10 @@
 package com.gemwallet.android.features.settings.settings.presents.views
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,14 +16,19 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.features.settings.settings.viewmodels.SupportChatDay
 import com.gemwallet.android.features.settings.settings.viewmodels.SupportChatGroup
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.isKeyboardVisible
+import com.gemwallet.android.ui.format.SectionDateFormatter
+import com.gemwallet.android.ui.format.gemDay
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.SupportMessage
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
+import java.time.LocalDate
 
 private sealed interface ChatRow {
     val key: String
@@ -39,7 +42,6 @@ private sealed interface ChatRow {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun SupportMessagesList(
     days: List<SupportChatDay>,
@@ -47,6 +49,12 @@ internal fun SupportMessagesList(
     onImageClick: (String) -> Unit,
     onRetry: (SupportMessage) -> Unit,
 ) {
+    val todayLabel = stringResource(R.string.date_today)
+    val yesterdayLabel = stringResource(R.string.date_yesterday)
+    val boundaries = LocalDate.now().gemDay().boundaries()
+    val dateFormatter = remember(todayLabel, yesterdayLabel, boundaries) {
+        SectionDateFormatter(todayLabel, yesterdayLabel, boundaries)
+    }
     val rows = remember(days) {
         buildList {
             days.forEach { day ->
@@ -65,7 +73,7 @@ internal fun SupportMessagesList(
         }
     }
 
-    val imeVisible = WindowInsets.isImeVisible
+    val imeVisible = WindowInsets.isKeyboardVisible
     LaunchedEffect(imeVisible) {
         if (imeVisible && rows.isNotEmpty()) {
             listState.animateScrollToItem(0)
@@ -92,7 +100,7 @@ internal fun SupportMessagesList(
         }
         items(rows, key = { it.key }, contentType = { it::class }) { row ->
             when (row) {
-                is ChatRow.Separator -> DaySeparator(row.day)
+                is ChatRow.Separator -> DaySeparator(row.day, dateFormatter)
                 is ChatRow.Group -> SupportMessageGroup(group = row.group, onImageClick = onImageClick, onRetry = onRetry)
             }
         }
@@ -100,9 +108,9 @@ internal fun SupportMessagesList(
 }
 
 @Composable
-private fun DaySeparator(day: SupportChatDay) {
+private fun DaySeparator(day: SupportChatDay, formatter: SectionDateFormatter) {
     Text(
-        text = day.date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)),
+        text = formatter.format(day.date, LocalConfiguration.current.locales[0]),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.secondary,
         textAlign = TextAlign.Center,

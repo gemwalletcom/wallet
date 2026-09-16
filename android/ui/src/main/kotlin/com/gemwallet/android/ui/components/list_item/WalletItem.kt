@@ -9,56 +9,29 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.gemwallet.android.domains.asset.getIconUrl
-import com.gemwallet.android.ext.AddressFormatter
+import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.components.image.walletImageModel
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space0
-import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.Wallet
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemWalletPlaceholder
+import uniffi.gemstone.GemWalletRow
+import uniffi.gemstone.GemWalletSubtitle
 
 @Composable
 fun WalletItem(
-    wallet: Wallet,
+    row: GemWalletRow,
     isCurrent: Boolean,
     modifier: Modifier = Modifier,
     listPosition: ListPosition,
-    onEdit: ((String) -> Unit)? = null,
-) {
-    WalletItem(
-        modifier = modifier,
-        id = wallet.id.id,
-        name = wallet.name,
-        walletAddress = wallet.accounts.firstOrNull()?.address ?: "",
-        walletChain = wallet.accounts.firstOrNull()?.chain,
-        isCurrent = isCurrent,
-        type = wallet.type,
-        imageUrl = wallet.imageUrl,
-        listPosition = listPosition,
-        onEdit = onEdit
-    )
-}
-
-@Composable
-fun WalletItem(
-    id: String,
-    name: String,
-    walletAddress: String?,
-    walletChain: Chain?,
-    isCurrent: Boolean,
-    type: WalletType,
-    modifier: Modifier = Modifier,
-    listPosition: ListPosition,
-    imageUrl: String? = null,
     onEdit: ((String) -> Unit)? = null,
 ) {
     val context = LocalContext.current
@@ -69,21 +42,15 @@ fun WalletItem(
         trailingContentEndPadding = paddingSmall,
         leading = @Composable {
             IconWithBadge(
-                icon = walletImageModel(context, imageUrl) ?: walletItemIconModel(type = type, walletChain = walletChain),
-                supportIcon = type.supportIcon(),
+                icon = walletImageModel(context, row.imageUrl) ?: row.placeholder.iconModel(),
+                supportIcon = row.supportIcon(),
             )
         },
         title = {
-            ListItemTitleText(text = name)
+            ListItemTitleText(text = row.name)
         },
         subtitle = {
-            val subtitle = when (type) {
-                WalletType.Multicoin -> stringResource(R.string.wallet_multicoin)
-                else -> walletAddress?.let {
-                    AddressFormatter(LocalAddressService.current, it, chain = walletChain, style = AddressFormatter.Style.Extra(1)).value()
-                } ?: ""
-            }
-            ListItemSupportText(subtitle)
+            ListItemSupportText(row.subtitle.string())
         },
         listPosition = listPosition,
         trailing = {
@@ -96,7 +63,7 @@ fun WalletItem(
                 }
                 if (onEdit != null) {
                     Spacer8()
-                    WalletEditButton(onClick = { onEdit(id) })
+                    WalletEditButton(onClick = { onEdit(row.id) })
                 }
             }
         }
@@ -116,11 +83,15 @@ private fun WalletEditButton(
     }
 }
 
-fun walletItemIconModel(type: WalletType, walletChain: Chain?): Any? = when (type) {
-    WalletType.Multicoin -> R.drawable.multicoin_wallet
-    WalletType.Single,
-    WalletType.PrivateKey,
-    WalletType.View -> walletChain?.getIconUrl()
+fun GemWalletPlaceholder.iconModel(): Any? = when (this) {
+    GemWalletPlaceholder.Multicoin -> R.drawable.multicoin_wallet
+    is GemWalletPlaceholder.Chain -> chain.toChain().iconModel()
+}
+
+fun GemWalletRow.supportIcon(): String? = if (showsWatchBadge) {
+    "android.resource://com.gemwallet.android/drawable/${R.drawable.watch_badge}"
+} else {
+    null
 }
 
 @Preview
@@ -128,11 +99,16 @@ fun walletItemIconModel(type: WalletType, walletChain: Chain?): Any? = when (typ
 fun PreviewWalletItem() {
     MaterialTheme {
         WalletItem(
-            id = "1",
-            name = "Foo wallet name",
-            walletChain = Chain.Ethereum,
-            walletAddress = "0xsdlkfjskdfjlskfjslkdfjlskjf",
-            type = WalletType.Multicoin,
+            row = GemWalletRow(
+                id = "1",
+                name = "Foo wallet name",
+                subtitle = GemWalletSubtitle.Multicoin,
+                placeholder = GemWalletPlaceholder.Multicoin,
+                showsWatchBadge = false,
+                isPinned = false,
+                hasAvatar = false,
+                imageUrl = null,
+            ),
             listPosition = ListPosition.Single,
             isCurrent = true,
             onEdit = {},

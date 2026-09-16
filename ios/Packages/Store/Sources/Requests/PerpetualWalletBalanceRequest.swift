@@ -12,15 +12,11 @@ public struct PerpetualWalletBalanceRequest: DatabaseQueryable, Equatable {
         self.assetId = assetId
     }
 
-    public func fetch(_ db: Database) throws -> WalletBalance {
-        let balance = try BalanceRecord
+    public func fetch(_ db: Database) throws -> PerpetualBalance? {
+        try BalanceRecord
             .filter(BalanceRecord.Columns.walletId == walletId.id)
             .filter(BalanceRecord.Columns.assetId == assetId.identifier)
             .fetchOne(db)
-        guard let balance else { return .zero }
-        return WalletBalance.perpetual(
-            available: balance.availableAmount,
-            reserved: balance.reservedAmount,
-        )
+            .map { PerpetualBalance(available: $0.availableAmount, reserved: $0.reservedAmount, withdrawable: $0.withdrawableAmount) }
     }
 }

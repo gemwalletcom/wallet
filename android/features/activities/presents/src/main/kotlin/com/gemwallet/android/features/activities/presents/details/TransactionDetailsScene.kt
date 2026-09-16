@@ -26,11 +26,11 @@ import com.gemwallet.android.ui.components.list_item.property.AssetRatePropertyI
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkFee
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
-import com.gemwallet.android.ui.components.list_item.color
+import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.list_item.transaction.getTitle
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.components.titleRes
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.padding16
 import com.gemwallet.android.ui.theme.paddingSmall
@@ -53,9 +53,9 @@ internal fun TransactionDetailsScene(
         onClose = { onAction(TransactionDetailsAction.Close) },
     ) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
-            data.valueGroups.forEach { group ->
-                itemsPositioned(group.items) { position, item ->
-                    when (item) {
+            data.sections.forEach { section ->
+                itemsPositioned(section.rows) { position, row ->
+                    when (val item = data.value(row)) {
                         is TransactionDetailsValue.Amount.NFT -> NftHead(
                             metadata = item.metadata,
                             onClick = data.headerAction?.let { action -> { onAction(action.navigation()) } },
@@ -92,7 +92,7 @@ internal fun TransactionDetailsScene(
                         is TransactionDetailsValue.Memo -> PropertyItem(R.string.transfer_memo, item.data, listPosition = position)
                         is TransactionDetailsValue.ResourceType -> PropertyItem(
                             R.string.stake_resource,
-                            stringResource(item.data.titleRes()),
+                            stringResource(item.data.stringRes()),
                             listPosition = position,
                         )
                         is TransactionDetailsValue.Network -> PropertyNetworkItem(item.data.chain, listPosition = position)

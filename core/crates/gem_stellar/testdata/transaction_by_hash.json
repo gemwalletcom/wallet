@@ -16,7 +16,8 @@
         "account": null,
         "starting_balance": null,
         "transaction": {
-          "memo": "49639518"
+          "memo": "49639518",
+          "fee_charged": "1500"
         }
       }
     ]

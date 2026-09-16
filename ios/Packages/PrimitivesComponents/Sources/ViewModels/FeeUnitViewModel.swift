@@ -2,6 +2,7 @@
 
 import Formatters
 import Foundation
+import GemstonePrimitives
 import Localization
 import Primitives
 
@@ -32,11 +33,7 @@ public struct FeeUnitViewModel {
     }
 
     public var suffix: String {
-        switch unit.type {
-        case .satVb: Localized.FeeRate.satvB
-        case .gwei: Localized.FeeRate.gwei
-        case .native: symbol
-        }
+        unit.type.suffix(symbol: symbol)
     }
 
     private var unitValueText: String {

@@ -13,7 +13,7 @@ import com.wallet.core.primitives.DelegationValidator
 internal fun StakeApr(validator: DelegationValidator, listPosition: ListPosition) {
     PropertyItem(
         title = stringResource(R.string.stake_apr, ""),
-        data = validator.formatApr(),
+        data = validator.apr.formatApr(),
         dataColor = when (validator.isActive) {
             true -> MaterialTheme.colorScheme.tertiary
             false -> MaterialTheme.colorScheme.secondary

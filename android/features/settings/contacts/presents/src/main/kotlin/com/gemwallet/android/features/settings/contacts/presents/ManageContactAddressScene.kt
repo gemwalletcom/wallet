@@ -51,7 +51,6 @@ fun ManageContactAddressScene(
             trailing = { DataBadgeChevron() },
             onClick = { onAction(ManageContactAddressAction.SelectChain) },
         )
-
         AddressChainField(
             value = input.address,
             label = stringResource(R.string.common_address),
@@ -65,8 +64,7 @@ fun ManageContactAddressScene(
             onPaste = onPaste,
             onQrScanner = { scanning = true },
         )
-
-        if (input.showMemo) {
+        if (input.showsMemo) {
             MemoTextField(
                 value = input.memo,
                 label = stringResource(R.string.transfer_memo),

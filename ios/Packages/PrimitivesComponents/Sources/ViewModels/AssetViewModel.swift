@@ -1,12 +1,17 @@
 import Components
 import Foundation
+import struct Gemstone.GemAssetText
+import func Gemstone.assetText
+import GemstonePrimitives
 import Primitives
 
 public struct AssetViewModel: Sendable, Identifiable, AssetPreviewable {
     public let asset: Asset
+    private let text: GemAssetText
 
     public init(asset: Asset) {
         self.asset = asset
+        text = assetText(asset: asset.toGem())
     }
 
     public var id: String {
@@ -14,7 +19,7 @@ public struct AssetViewModel: Sendable, Identifiable, AssetPreviewable {
     }
 
     public var title: String {
-        asset.name == asset.symbol ? asset.name : String(format: "%@ (%@)", asset.name, asset.symbol)
+        text.title
     }
 
     public var name: String {
@@ -26,7 +31,7 @@ public struct AssetViewModel: Sendable, Identifiable, AssetPreviewable {
     }
 
     public var subtitleSymbol: String? {
-        asset.name == asset.symbol ? nil : asset.symbol
+        text.subtitleSymbol
     }
 
     public var assetImage: AssetImage {
@@ -38,13 +43,10 @@ public struct AssetViewModel: Sendable, Identifiable, AssetPreviewable {
     }
 
     public var networkName: String {
-        asset.chain.networkName
+        text.networkName
     }
 
     public var networkFullName: String {
-        switch asset.id.type {
-        case .native: networkName
-        case .token: "\(networkName) (\(asset.type.rawValue))"
-        }
+        text.networkFullName
     }
 }

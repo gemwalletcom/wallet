@@ -44,6 +44,14 @@ cd wallet
 just setup-git
 ```
 
+To install dependencies for both apps on macOS, with Homebrew, Xcode, and Android Studio's SDK command-line tools available:
+
+```bash
+just install
+```
+
+This installs shared Rust and TypeShare tools once, then iOS tools and targets, followed by Android's JDK, targets, and NDK. The JDK installer may prompt for a password. For a single platform, run `just core install-rust` and `just core install-typeshare`, followed by its install command below.
+
 ### iOS
 
 > [!NOTE]
@@ -51,18 +59,18 @@ just setup-git
 
 ```bash
 cd ios
-just bootstrap
+just install
 just spm-resolve
 just build-for-testing
 ```
 
-`just bootstrap` also creates the local Gemstone UniFFI Swift/header sources that SwiftPM needs for package resolution. Xcode builds the Gemstone Rust static library automatically after that. Intel Macs are not supported for iOS Gemstone builds.
+`just install` also creates the local Gemstone UniFFI Swift/header sources that SwiftPM needs for package resolution. Xcode builds the Gemstone Rust static library automatically after that. Intel Macs are not supported for iOS Gemstone builds.
 
 ### Android
 
 ```bash
 cd android
-just bootstrap
+just install
 just build-test
 ```
 
@@ -71,17 +79,18 @@ just build-test
 The repo root exposes monorepo commands plus module access to each platform:
 
 ```bash
+just install
 just build
 just generate
 just localize
 just bump patch
 just bump minor
 just bump major
-just ios bootstrap
+just ios install
 just ios build
 just ios build-for-testing
 just ios test-without-building
-just android bootstrap
+just android install
 just android build
 just android build-test
 just android test

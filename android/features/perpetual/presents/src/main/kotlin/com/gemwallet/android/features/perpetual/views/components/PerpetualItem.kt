@@ -24,6 +24,7 @@ import com.gemwallet.android.ui.components.list_item.PriceInfo
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
+import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
@@ -31,6 +32,8 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
+
+private val trailingMinWidth = 40.dp
 
 @Composable
 fun PerpetualItem(
@@ -78,9 +81,10 @@ fun PerpetualItem(
 ) {
     AssetListItem(
         asset = item.asset,
+        title = item.title,
         modifier = modifier,
         listPosition = listPosition,
-        support = if (item.price.value == null || item.price.value == 0.0) {
+        support = if (!item.showsPrice) {
             null
         } else {
             {
@@ -89,13 +93,13 @@ fun PerpetualItem(
                     changes = item.price.changePercentageFormatted,
                     state = item.price.state,
                     style = MaterialTheme.typography.bodyMedium,
-                    internalPadding = 4.dp
+                    internalPadding = paddingHalfSmall
                 )
             }
         },
         trailing = {
             Column(
-                modifier = Modifier.defaultMinSize(40.dp),
+                modifier = Modifier.defaultMinSize(trailingMinWidth),
                 horizontalAlignment = Alignment.End
             ) {
                 ListItemTitleText(item.volume, color = MaterialTheme.colorScheme.onSurface)
@@ -109,7 +113,8 @@ fun PerpetualItem(
 private fun PerpetualItemPreview() {
     val sampleData = object : PerpetualDataAggregate {
         override val id = PerpetualId(PerpetualProvider.Hypercore, "BTC")
-        override val name = "Bitcoin Perpetual"
+        override val title = "BTC"
+        override val showsPrice = true
         override val asset = Asset(
             id = AssetId(Chain.Bitcoin),
             name = "Bitcoin",

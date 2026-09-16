@@ -60,20 +60,15 @@ public final class EarnSceneViewModel {
     }
 
     private func selectable(_ validators: [DelegationValidator]) -> [DelegationValidator] {
-        service.selectableValidators(validators: validators.map { $0.map() }).map { $0.map() }
+        service.selectableValidators(validators: validators.map { $0.toGem() }).map { $0.toPrimitives() }
     }
 
     var assetModel: AssetViewModel {
         AssetViewModel(asset: asset)
     }
 
-    private var apr: Double? {
-        providers.first.map(\.apr).flatMap { $0 > 0 ? $0 : nil }
-            ?? assetData.metadata.earnApr
-    }
-
     var aprModel: AprViewModel {
-        AprViewModel(apr: apr ?? .zero)
+        AprViewModel(apr: service.earnApr(providers: providers.map { $0.toGem() }, assetApr: assetData.metadata.earnApr))
     }
 
     var showDeposit: Bool {
@@ -83,7 +78,7 @@ public final class EarnSceneViewModel {
     var depositDestination: AmountInput? {
         guard let provider = providers.first else { return nil }
         return AmountInput(
-            type: .earn(.deposit(provider)),
+            type: .earn(.deposit(provider.toGem())),
             asset: asset,
         )
     }
@@ -94,12 +89,17 @@ public final class EarnSceneViewModel {
 
     var positionModels: [DelegationViewModel] {
         positions
-            .filter { (BigInt($0.base.balance) ?? .zero) > 0 }
-            .map { DelegationViewModel(service: service, delegation: $0, asset: asset, currencyCode: service.getCurrency()) }
+            .filter { (BigInt($0.base.balance)) > 0 }
+            .map { DelegationViewModel(service: service, delegation: $0, asset: asset, currency: service.getCurrency().toPrimitives()) }
     }
 
     var hasPositions: Bool {
         positionModels.isNotEmpty
+    }
+
+    func navigationDestination(for delegation: DelegationViewModel) -> any Hashable {
+        service.delegationDestination(walletType: wallet.type.toGem(), asset: asset.toGem(), delegation: delegation.delegation.toGem())
+            .navigationValue(delegation: delegation.delegation)
     }
 
     var showEmptyState: Bool {

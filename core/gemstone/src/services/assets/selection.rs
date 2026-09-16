@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{Asset, AssetBasic, AssetId, Chain, NFTData, Wallet};
+use primitives::{Asset, AssetBasic, AssetId, Chain, NFTData, Wallet, WalletType};
 
-use super::model::{GemAssetAction, GemWalletSearchLimits};
+use super::model::{GemAssetAction, GemSelectAssetFlow, GemSelectAssetType, GemWalletSearchLimits};
 use super::rules;
 use crate::services::chain::rules as chain_rules;
-use crate::services::nft::GemNftSearchItem;
+use crate::services::nft::GemNftItem;
 use crate::services::nft::rules as nft_rules;
 
 use crate::services::balance::GemBalanceService;
@@ -15,6 +15,7 @@ use crate::services::perpetual::GemPerpetualService;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::price_alert::GemPriceAlertService;
 use crate::services::search::{GemSearchScope, GemSearchService};
+use crate::services::swap::GemSwapService;
 use crate::services::transfer::GemRecentActivityService;
 use crate::services::wallet_session::GemWalletSessionService;
 
@@ -27,6 +28,7 @@ pub struct GemAssetSelectionService {
     preferences: Arc<GemPreferencesService>,
     perpetuals: Arc<GemPerpetualService>,
     session: Arc<GemWalletSessionService>,
+    swap: Arc<GemSwapService>,
 }
 
 #[uniffi::export]
@@ -40,6 +42,7 @@ impl GemAssetSelectionService {
         preferences: Arc<GemPreferencesService>,
         perpetuals: Arc<GemPerpetualService>,
         session: Arc<GemWalletSessionService>,
+        swap: Arc<GemSwapService>,
     ) -> Self {
         Self {
             search,
@@ -49,7 +52,20 @@ impl GemAssetSelectionService {
             preferences,
             perpetuals,
             session,
+            swap,
         }
+    }
+
+    pub fn flow(&self, select_type: GemSelectAssetType) -> GemSelectAssetFlow {
+        let swap_receive_assets = match &select_type {
+            GemSelectAssetType::SwapReceive { pay_asset_id: Some(pay_asset_id) } => Some(self.swap.supported_assets(pay_asset_id.clone())),
+            _ => None,
+        };
+        rules::select_asset_flow(select_type, swap_receive_assets)
+    }
+
+    pub fn search_debounce_milliseconds(&self) -> u64 {
+        crate::config::search_config::SEARCH_DEBOUNCE_MILLISECONDS
     }
 
     pub fn wallet_search_limits(&self, query: String) -> GemWalletSearchLimits {
@@ -68,12 +84,12 @@ impl GemAssetSelectionService {
         wallet.is_some_and(|wallet| !rules::token_chains(&wallet).is_empty())
     }
 
-    pub fn search_collections(&self, data: Vec<NFTData>, query: String) -> Vec<GemNftSearchItem> {
+    pub fn search_collections(&self, data: Vec<NFTData>, query: String) -> Vec<GemNftItem> {
         nft_rules::search_collections(data, &query)
     }
 
-    pub fn show_perpetuals(&self, wallet: Option<Wallet>) -> bool {
-        wallet.is_some_and(|wallet| self.preferences.show_perpetuals(wallet))
+    pub fn show_perpetuals(&self, wallet_type: WalletType, chains: Vec<Chain>) -> bool {
+        self.preferences.show_perpetuals(wallet_type, chains)
     }
 
     pub async fn search_assets(&self, query: String) -> Result<Vec<AssetBasic>, GemServiceError> {
@@ -82,6 +98,10 @@ impl GemAssetSelectionService {
 
     pub async fn search(&self, query: String, scope: GemSearchScope) -> Result<bool, GemServiceError> {
         self.search.search(self.session.current_wallet().await?, query, scope, self.get_currency()).await
+    }
+
+    pub fn search_key(&self, query: String, scope: GemSearchScope) -> String {
+        scope.search_key(query.trim())
     }
 
     pub async fn set_assets_enabled(&self, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {

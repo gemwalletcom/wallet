@@ -1,3 +1,12 @@
+use std::{fmt::Debug, sync::Arc};
+
+use gem_client::Client;
+use gem_solana::{
+    AccountMeta, Instruction, Pubkey, SolanaAddress, anchor::global_discriminator, associated_token::get_associated_token_address_with_program_id, find_program_address,
+    instructions::program_ids,
+};
+use rand::Rng;
+
 use super::{destination_referrer_address, redeem_relayer_fee};
 use crate::{
     Quote, RpcProvider, SwapperError, SwapperQuoteData,
@@ -18,14 +27,6 @@ use crate::{
         wormhole_chain::{WormholeChain, id_for_name as wormhole_chain_id},
     },
 };
-use gem_client::Client;
-use gem_solana::SolanaAddress;
-use rand::Rng;
-use solana_primitives::anchor::global_discriminator;
-use solana_primitives::associated_token::get_associated_token_address_with_program_id;
-use solana_primitives::instructions::program_ids;
-use solana_primitives::{AccountMeta, Instruction, Pubkey, find_program_address};
-use std::{fmt::Debug, sync::Arc};
 
 const LEDGER_ORDER_SEED: &[u8] = b"LEDGER_ORDER";
 const LEDGER_BRIDGE_SEED: &[u8] = b"LEDGER_BRIDGE";
@@ -97,7 +98,7 @@ impl MctpBuildContext {
         let random_key = random_pubkey();
         let seed_prefix = if route.has_auction == Some(true) { LEDGER_ORDER_SEED } else { LEDGER_BRIDGE_SEED };
         let (ledger, _) = find_program_address(&mctp_program, &[seed_prefix, user.as_bytes(), random_key.as_bytes()]).map_err(solana_error)?;
-        let ledger_account = get_associated_token_address_with_program_id(&ledger, &mctp_input_mint, &program_ids::token_program());
+        let ledger_account = get_associated_token_address_with_program_id(&ledger, &mctp_input_mint, &program_ids::token_program()).map_err(solana_error)?;
         let destination_address = quote_destination_address(quote).to_string();
         let token_out = mctp_token_out(route)?.to_string();
         let referrer_address = destination_referrer_address(route)?;
@@ -325,58 +326,14 @@ fn random_pubkey() -> Pubkey {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::mayan::model::{MayanQuoteCommon, MayanToken};
-    use primitives::{
-        Chain,
-        asset_constants::{SOLANA_USDC_TOKEN_ID, SUI_USDC_TOKEN_ID},
-    };
-
-    fn mctp_route() -> MayanMctpQuote {
-        MayanMctpQuote {
-            common: MayanQuoteCommon {
-                effective_amount_in64: "1000000".to_string(),
-                min_amount_out: serde_json::json!(0.7996),
-                gas_drop: serde_json::json!(0),
-                eta_seconds: 60,
-                from_token: MayanToken {
-                    contract: SOLANA_USDC_TOKEN_ID.to_string(),
-                    w_chain_id: 1,
-                    decimals: 6,
-                    verified_address: None,
-                },
-                to_token: MayanToken {
-                    contract: SUI_USDC_TOKEN_ID.to_string(),
-                    w_chain_id: 21,
-                    decimals: 6,
-                    verified_address: Some("0x69b7a7c3c200439c1b5f3b19d7d495d5966d5f08de66c69276152f8db3992ec6".to_string()),
-                },
-                from_chain: WormholeChain::Solana.name().to_string(),
-                to_chain: WormholeChain::Sui.name().to_string(),
-                slippage_bps: 0,
-                deadline64: Some("1779326929".to_string()),
-                referrer_bps: Some(50),
-                expected_amount_out_base_units: Some("799600".to_string()),
-                expected_amount_out: serde_json::json!(0.7996),
-            },
-            min_middle_amount: Some(serde_json::json!(1)),
-            has_auction: Some(false),
-            cheaper_chain: Some(WormholeChain::Sui.name().to_string()),
-            bridge_fee: Some(serde_json::json!(0)),
-            redeem_relayer_fee: Some(serde_json::json!(0.2004)),
-            mctp_input_contract: Some(SOLANA_USDC_TOKEN_ID.to_string()),
-            mctp_mayan_contract: Some(MAYAN_MCTP_PROGRAM_ID.to_string()),
-            solana_relayer_fee64: Some("179182".to_string()),
-            suggested_priority_fee: Some(30000),
-            ..Default::default()
-        }
-    }
+    use primitives::{Chain, asset_constants::SOLANA_USDC_TOKEN_ID};
 
     #[test]
     fn test_create_mctp_bridge_ledger_instruction() {
         let mut quote = Quote::mock(Chain::Solana, Some(SOLANA_USDC_TOKEN_ID));
         quote.request.wallet_address = "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy".to_string();
         quote.request.destination_address = "0xa9bd0493f9bd1f792a4aedc1f99d54535a75a46c38fd56a8f2c6b7c8d75817a1".to_string();
-        let route = mctp_route();
+        let route = MayanMctpQuote::mock_solana_to_sui();
         let context = MctpBuildContext::new(&quote, &route).unwrap();
         let instruction = create_mctp_bridge_ledger_instruction(&route, &context, 1_000_000, 179_182).unwrap();
 
@@ -394,7 +351,7 @@ mod tests {
         let mut quote = Quote::mock(Chain::Solana, Some(SOLANA_USDC_TOKEN_ID));
         quote.request.wallet_address = "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy".to_string();
         quote.request.destination_address = "0xa9bd0493f9bd1f792a4aedc1f99d54535a75a46c38fd56a8f2c6b7c8d75817a1".to_string();
-        let mut route = mctp_route();
+        let mut route = MayanMctpQuote::mock_solana_to_sui();
         route.has_auction = Some(true);
         let context = MctpBuildContext::new(&quote, &route).unwrap();
         let instruction = create_mctp_swap_ledger_instruction(&route, &context, 1_000_000, 179_182).unwrap();

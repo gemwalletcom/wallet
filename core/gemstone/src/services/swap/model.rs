@@ -6,42 +6,84 @@ use primitives::{Asset, AssetId};
 use swapper::{Quote, SwapperError};
 
 use super::rules;
+use crate::formatted_number::GemFormattedNumber;
 use primitives::TransactionInputType;
 
-#[derive(Debug, Clone, PartialEq, uniffi::Object)]
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAssetRate {
+    pub base_symbol: String,
+    pub quote_symbol: String,
+    pub value: GemFormattedNumber,
+}
+
+#[uniffi::export]
+impl GemAssetRate {
+    pub fn text(&self, formatted_value: String) -> String {
+        format!("1 {} ≈ {}", self.base_symbol, formatted_value)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemSwapRate {
+    pub direct: GemAssetRate,
+    pub inverse: GemAssetRate,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSwapQuoteSummary {
-    quote: SwapQuote,
-    min_receive_value: GemBigUint,
-    eta_minutes: Option<u32>,
+    pub quote: SwapQuote,
+    pub min_receive_value: GemBigUint,
+    pub rate: Option<GemSwapRate>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemSwapDetailRow {
+    Provider,
+    Rate,
+    EstimatedTime,
+    PriceImpact,
+    MinimumReceive,
+    Slippage,
 }
 
 #[uniffi::export]
 impl GemSwapQuoteSummary {
-    #[uniffi::constructor]
-    pub fn new(quote: SwapQuote) -> Self {
-        Self {
-            min_receive_value: rules::min_receive_value(&quote.to_value, quote.slippage_bps),
-            eta_minutes: quote.eta_in_seconds.and_then(rules::eta_minutes),
-            quote,
-        }
+    pub fn slippage_percent(&self) -> f64 {
+        rules::slippage_percent(self.quote.slippage_bps)
     }
 
-    #[uniffi::constructor]
-    pub fn from_quote(quote: Quote) -> Self {
-        Self::new(rules::swap_quote(&quote))
+    pub fn rows(&self, shows_price_impact: bool) -> Vec<GemSwapDetailRow> {
+        [
+            Some(GemSwapDetailRow::Provider),
+            self.rate.is_some().then_some(GemSwapDetailRow::Rate),
+            self.quote.eta_in_seconds.is_some().then_some(GemSwapDetailRow::EstimatedTime),
+            shows_price_impact.then_some(GemSwapDetailRow::PriceImpact),
+            Some(GemSwapDetailRow::MinimumReceive),
+            Some(GemSwapDetailRow::Slippage),
+        ]
+        .into_iter()
+        .flatten()
+        .collect()
     }
+}
 
-    pub fn quote(&self) -> SwapQuote {
-        self.quote.clone()
+#[uniffi::export]
+pub fn swap_quote_summary(quote: SwapQuote, from_asset: Asset, to_asset: Asset) -> GemSwapQuoteSummary {
+    GemSwapQuoteSummary {
+        min_receive_value: rules::min_receive_value(&quote.to_value, quote.slippage_bps),
+        rate: rules::swap_rate(&from_asset, &quote.from_value, &to_asset, &quote.to_value),
+        quote,
     }
+}
 
-    pub fn min_receive_value(&self) -> GemBigUint {
-        self.min_receive_value.clone()
-    }
+#[uniffi::export]
+pub fn swapper_quote_summary(quote: Quote, from_asset: Asset, to_asset: Asset) -> GemSwapQuoteSummary {
+    swap_quote_summary(rules::swap_quote(&quote), from_asset, to_asset)
+}
 
-    pub fn eta_minutes(&self) -> Option<u32> {
-        self.eta_minutes
-    }
+#[uniffi::export]
+pub fn swap_quote(quote: Quote) -> SwapQuote {
+    rules::swap_quote(&quote)
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -83,13 +125,25 @@ pub struct GemSwapPair {
     pub to_asset_id: AssetId,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemSwapSide {
+    Pay,
+    Receive,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemSwapPairSelection {
+    pub pay_asset_id: Option<AssetId>,
+    pub receive_asset_id: Option<AssetId>,
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSwapPairSuggestion {
     pub pay_asset_id: AssetId,
     pub receive_asset_id: Option<AssetId>,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GemSwapButtonInput {
     pub value: GemBigInt,
     pub available_balance: GemBigInt,
@@ -104,4 +158,35 @@ pub enum GemSwapButtonAction {
     RetryTransfer,
     UseMinimumAmount { value: GemBigInt },
     InsufficientBalance,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{GemAssetRate, GemSwapDetailRow, swap_quote_summary};
+    use primitives::{Asset, Chain, SwapProvider, SwapQuote};
+
+    #[test]
+    fn test_the_details_list_drops_the_rows_a_quote_cannot_fill() {
+        let quote = SwapQuote::mock_with_provider(SwapProvider::UniswapV3);
+        let summary = swap_quote_summary(quote, Asset::from_chain(Chain::Ethereum), Asset::from_chain(Chain::Solana));
+
+        let rows = summary.rows(false);
+        assert_eq!(rows.first(), Some(&GemSwapDetailRow::Provider));
+        assert!(
+            !rows.contains(&GemSwapDetailRow::PriceImpact),
+            "the impact row shows only when the screen has prices for it"
+        );
+        assert_eq!(rows.last(), Some(&GemSwapDetailRow::Slippage));
+        assert!(summary.rows(true).contains(&GemSwapDetailRow::PriceImpact));
+    }
+
+    #[test]
+    fn test_rate_text_names_the_base_and_keeps_the_formatted_value() {
+        let rate = GemAssetRate {
+            base_symbol: "BTC".to_string(),
+            quote_symbol: "USDT".to_string(),
+            value: crate::formatted_number::GemFormattedNumber::adaptive(100.0, Some("USDT".to_string())),
+        };
+        assert_eq!(rate.text("100.00 USDT".to_string()), "1 BTC ≈ 100.00 USDT");
+    }
 }

@@ -5,7 +5,6 @@ import Foundation
 import Localization
 import Primitives
 import PrimitivesComponents
-import Style
 
 struct ShowPrivateKeyViewModel: SecretPhraseViewableModel {
     let text: String

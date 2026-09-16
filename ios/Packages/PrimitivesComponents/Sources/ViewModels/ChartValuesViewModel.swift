@@ -1,43 +1,35 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.PriceChangeCalculator
 import Formatters
 import Foundation
+import struct Gemstone.GemChartData
+import struct Gemstone.GemChartHeader
 import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI
 
-internal import Charts
-
 public struct ChartValuesViewModel: Sendable {
-    private static let priceChangeCalculator = PriceChangeCalculator()
     public let period: ChartPeriod
-    public let price: Price?
-    public let values: ChartValues
     public let lineColor: Color
-    public let formatter: CurrencyFormatter
-    public let type: ChartValueType
-    public let headerValue: Double?
+    public let values: ChartValues
 
-    public static let defaultPeriod = ChartPeriod.day
+    private let chartData: GemChartData
+    private let formatter: CurrencyFormatter
 
-    public init(
+    public init?(
         period: ChartPeriod,
-        price: Price?,
-        values: ChartValues,
+        chartData: GemChartData,
         lineColor: Color = Colors.blue,
-        formatter: CurrencyFormatter,
-        type: ChartValueType = .price,
-        headerValue: Double? = nil,
     ) {
+        guard let values = try? ChartValues.from(charts: chartData.values.map { $0.toPrimitives() }) else {
+            return nil
+        }
         self.period = period
-        self.price = price
-        self.values = values
+        self.chartData = chartData
         self.lineColor = lineColor
-        self.formatter = formatter
-        self.type = type
-        self.headerValue = headerValue
+        formatter = CurrencyFormatter(currencyCode: chartData.currency.toPrimitives().rawValue)
+        self.values = values
     }
 
     var charts: [ChartDateValue] {
@@ -53,47 +45,14 @@ public struct ChartValuesViewModel: Sendable {
     }
 
     var chartHeaderViewModel: ChartHeaderViewModel? {
-        guard let price else { return nil }
-        let priceChangePercentage = switch type {
-        case .priceChange:
-            price.priceChangePercentage24h
-        case .price:
-            period == Self.defaultPeriod
-                ? price.priceChangePercentage24h
-                : Self.priceChangeCalculator.percentage(from: values.baseValue, to: price.price)
-        }
-        return ChartHeaderViewModel(period: period, date: nil, price: price.price, priceChangePercentage: priceChangePercentage, headerValue: headerValue, formatter: formatter, type: type)
-    }
-
-    public static func priceChange(
-        charts: [ChartDateValue],
-        period: ChartPeriod,
-        formatter: CurrencyFormatter,
-        showHeaderValue: Bool = false,
-    ) -> ChartValuesViewModel? {
-        guard let values = try? ChartValues.from(charts: charts), values.hasVariation else {
-            return nil
-        }
-        let price = Price(
-            price: values.lastValue - values.firstValue,
-            priceChangePercentage24h: priceChangeCalculator.percentage(from: values.firstValue, to: values.lastValue),
-            updatedAt: .now,
-        )
-        return ChartValuesViewModel(
-            period: period,
-            price: price,
-            values: values,
-            formatter: formatter,
-            type: .priceChange,
-            headerValue: showHeaderValue ? values.lastValue : nil,
-        )
+        chartData.header.map { headerViewModel($0, date: nil) }
     }
 
     func headerViewModel(for element: ChartDateValue) -> ChartHeaderViewModel {
-        let base = type == .priceChange ? values.firstValue : values.baseValue
-        let priceChangePercentage = Self.priceChangeCalculator.percentage(from: base, to: element.value)
-        let displayPrice = type == .priceChange ? element.value - base : element.value
-        let elementHeaderValue = headerValue != nil ? element.value : nil
-        return ChartHeaderViewModel(period: period, date: element.date, price: displayPrice, priceChangePercentage: priceChangePercentage, headerValue: elementHeaderValue, formatter: formatter, type: type)
+        headerViewModel(chartData.headerAt(value: element.value), date: element.date)
+    }
+
+    private func headerViewModel(_ header: GemChartHeader, date: Date?) -> ChartHeaderViewModel {
+        ChartHeaderViewModel(period: period, date: date, header: header, valueType: chartData.valueType)
     }
 }

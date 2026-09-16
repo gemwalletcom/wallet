@@ -37,10 +37,6 @@ impl AssetPriceInfo {
         }
     }
 
-    pub fn as_market(&self) -> AssetMarket {
-        self.as_market_with_rate(1.0)
-    }
-
     pub fn as_market_with_rate(&self, rate: f64) -> AssetMarket {
         let current_price = self.price.price;
         let ath_percentage = self.market.all_time_high.map(|ath| (current_price - ath) / ath * 100.0);
@@ -103,7 +99,7 @@ mod tests {
             },
         };
 
-        let market = info.as_market();
+        let market = info.as_market_with_rate(1.0);
 
         assert_eq!(market.all_time_high_change_percentage, Some(-20.0));
         assert_eq!(market.all_time_low_change_percentage, Some(100.0));

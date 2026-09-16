@@ -4,43 +4,42 @@ import BigInt
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
-import class Gemstone.GemAmountService
-import GemstoneServicesTestKit
+import struct Gemstone.GemValidatorRow
 import Testing
 @testable import Transfer
+import TransferTestKit
 
 struct AmountStakeViewModelTests {
     @Test
     func title() {
-        #expect(AmountStakeViewModel(asset: .mockBNB(), type: .stake(validators: [.mock()], recommended: nil), service: GemAmountService.mock()).title == "Stake")
-        #expect(AmountStakeViewModel(asset: .mockBNB(), type: .unstake(.mock()), service: GemAmountService.mock()).title == "Unstake")
-        #expect(AmountStakeViewModel(asset: .mockBNB(), type: .redelegate(.mock(), validators: [.mock()], recommended: nil), service: GemAmountService.mock()).title == "Redelegate")
-        #expect(AmountStakeViewModel(asset: .mockBNB(), type: .withdraw(.mock()), service: GemAmountService.mock()).title == "Withdraw")
-        #expect(AmountStakeViewModel(asset: .mockTron(), type: .freeze(.bandwidth), service: GemAmountService.mock()).title == "Freeze")
-        #expect(AmountStakeViewModel(asset: .mockTron(), type: .unfreeze(.bandwidth), service: GemAmountService.mock()).title == "Unfreeze")
+        #expect(AmountStakeViewModel.mock().title == "Stake")
+        #expect(AmountStakeViewModel.mock(type: .unstake(delegation: Delegation.mock().toGem())).title == "Unstake")
+        #expect(AmountStakeViewModel.mock(type: .redelegate(validators: [DelegationValidator.mock(id: "from").toGem(), DelegationValidator.mock(id: "to").toGem()], delegation: Delegation.mock(validator: .mock(id: "from")).toGem(), validator: nil)).title == "Redelegate")
+        #expect(AmountStakeViewModel.mock(type: .withdraw(delegation: Delegation.mock().toGem())).title == "Withdraw")
+        #expect(AmountStakeViewModel.mock(asset: .mockTron(), type: .freeze(resource: Resource.bandwidth.toGem())).title == "Freeze")
+        #expect(AmountStakeViewModel.mock(asset: .mockTron(), type: .unfreeze(resource: Resource.bandwidth.toGem())).title == "Unfreeze")
     }
 
     @Test
     func validatorSelectionEnabled() {
-        #expect(validatorState(.stake(validators: [.mock()], recommended: nil))?.isEnabled == true)
-        #expect(validatorState(.unstake(.mock()))?.isEnabled == false)
-        #expect(validatorState(.redelegate(.mock(), validators: [.mock()], recommended: nil))?.isEnabled == true)
-        #expect(validatorState(.withdraw(.mock()))?.isEnabled == false)
+        #expect(AmountStakeViewModel.mock().validatorState?.isEnabled == true)
+        #expect(AmountStakeViewModel.mock(type: .unstake(delegation: Delegation.mock().toGem())).validatorState?.isEnabled == false)
+        #expect(AmountStakeViewModel.mock(type: .redelegate(validators: [DelegationValidator.mock(id: "from").toGem(), DelegationValidator.mock(id: "to").toGem()], delegation: Delegation.mock(validator: .mock(id: "from")).toGem(), validator: nil)).validatorState?.isEnabled == true)
+        #expect(AmountStakeViewModel.mock(type: .withdraw(delegation: Delegation.mock().toGem())).validatorState?.isEnabled == false)
     }
 
     @Test
     func validatorSelection() {
-        let recommended = DelegationValidator.mock(id: "recommended")
         let first = DelegationValidator.mock(id: "first")
         let second = DelegationValidator.mock(id: "second")
 
-        #expect(validatorState(.stake(validators: [first, recommended], recommended: recommended))?.selected.id == "recommended")
-        #expect(validatorState(.stake(validators: [first, second], recommended: nil))?.selected.id == "first")
+        #expect(AmountStakeViewModel.mock(type: .stake(validators: [first.toGem(), second.toGem()], validator: nil)).validatorState?.selected.validator.id == "first")
+        #expect(AmountStakeViewModel.mock(type: .stake(validators: [first.toGem(), second.toGem()], validator: second.toGem())).validatorState?.selected.validator.id == "second")
     }
 
     @Test
     func resourceSelection() {
-        let model = AmountStakeViewModel(asset: .mockTron(), type: .freeze(.energy), service: GemAmountService.mock())
+        let model = AmountStakeViewModel.mock(asset: .mockTron(), type: .freeze(resource: Resource.energy.toGem()))
         guard case let .resource(state) = model.selection else {
             Issue.record("Expected resource selection")
             return
@@ -51,23 +50,13 @@ struct AmountStakeViewModelTests {
     }
 
     @Test
-    func validatorSelectType() {
-        #expect(AmountStakeViewModel(asset: .mockBNB(), type: .stake(validators: [.mock()], recommended: nil), service: GemAmountService.mock()).validatorSelectType == .stake)
-        #expect(AmountStakeViewModel(asset: .mockBNB(), type: .redelegate(.mock(), validators: [.mock()], recommended: nil), service: GemAmountService.mock()).validatorSelectType == .stake)
-        #expect(AmountStakeViewModel(asset: .mockBNB(), type: .unstake(.mock()), service: GemAmountService.mock()).validatorSelectType == .unstake)
-        #expect(AmountStakeViewModel(asset: .mockBNB(), type: .withdraw(.mock()), service: GemAmountService.mock()).validatorSelectType == .unstake)
-        #expect(AmountStakeViewModel(asset: .mockTron(), type: .freeze(.bandwidth), service: GemAmountService.mock()).validatorSelectType == .unstake)
-        #expect(AmountStakeViewModel(asset: .mockTron(), type: .unfreeze(.bandwidth), service: GemAmountService.mock()).validatorSelectType == .unstake)
-    }
-
-    @Test
     func canChangeValue() {
         let assetData = AssetData.mock(asset: .mockBNB())
-        #expect(AmountStakeViewModel(asset: .mockBNB(), type: .stake(validators: [.mock()], recommended: nil), service: GemAmountService.mock()).input(from: assetData).canChangeValue == true)
-        #expect(AmountStakeViewModel(asset: .mockBNB(), type: .redelegate(.mock(), validators: [.mock()], recommended: nil), service: GemAmountService.mock()).input(from: assetData).canChangeValue == true)
-        #expect(AmountStakeViewModel(asset: .mockBNB(), type: .withdraw(.mock()), service: GemAmountService.mock()).input(from: assetData).canChangeValue == false)
-        #expect(AmountStakeViewModel(asset: .mockTron(), type: .freeze(.bandwidth), service: GemAmountService.mock()).input(from: assetData).canChangeValue == true)
-        #expect(AmountStakeViewModel(asset: .mockTron(), type: .unfreeze(.bandwidth), service: GemAmountService.mock()).input(from: assetData).canChangeValue == true)
+        #expect(AmountStakeViewModel.mock().input(from: assetData).canChangeValue == true)
+        #expect(AmountStakeViewModel.mock(type: .redelegate(validators: [DelegationValidator.mock(id: "from").toGem(), DelegationValidator.mock(id: "to").toGem()], delegation: Delegation.mock(validator: .mock(id: "from")).toGem(), validator: nil)).input(from: assetData).canChangeValue == true)
+        #expect(AmountStakeViewModel.mock(type: .withdraw(delegation: Delegation.mock().toGem())).input(from: assetData).canChangeValue == false)
+        #expect(AmountStakeViewModel.mock(asset: .mockTron(), type: .freeze(resource: Resource.bandwidth.toGem())).input(from: assetData).canChangeValue == true)
+        #expect(AmountStakeViewModel.mock(asset: .mockTron(), type: .unfreeze(resource: Resource.bandwidth.toGem())).input(from: assetData).canChangeValue == true)
     }
 
     @Test
@@ -75,8 +64,8 @@ struct AmountStakeViewModelTests {
         let delegation = Delegation.mock(base: .mock(state: .active, balance: 5_000_000))
         let assetData = AssetData.mock(asset: .mockBNB(), balance: .mock(available: 1000))
 
-        let stake = AmountStakeViewModel(asset: .mockBNB(), type: .stake(validators: [.mock()], recommended: nil), service: GemAmountService.mock())
-        let unstake = AmountStakeViewModel(asset: .mockBNB(), type: .unstake(delegation), service: GemAmountService.mock())
+        let stake = AmountStakeViewModel.mock()
+        let unstake = AmountStakeViewModel.mock(type: .unstake(delegation: delegation.toGem()))
 
         #expect(stake.input(from: assetData).availableValue == 1000)
         #expect(unstake.input(from: assetData).availableValue == 5_000_000)
@@ -88,9 +77,9 @@ struct AmountStakeViewModelTests {
             asset: .mockTron(),
             balance: .mock(available: 1000, frozen: 2000, locked: 3000),
         )
-        let freeze = AmountStakeViewModel(asset: .mockTron(), type: .freeze(.bandwidth), service: GemAmountService.mock())
-        let unfreezeBandwidth = AmountStakeViewModel(asset: .mockTron(), type: .unfreeze(.bandwidth), service: GemAmountService.mock())
-        let unfreezeEnergy = AmountStakeViewModel(asset: .mockTron(), type: .unfreeze(.energy), service: GemAmountService.mock())
+        let freeze = AmountStakeViewModel.mock(asset: .mockTron(), type: .freeze(resource: Resource.bandwidth.toGem()))
+        let unfreezeBandwidth = AmountStakeViewModel.mock(asset: .mockTron(), type: .unfreeze(resource: Resource.bandwidth.toGem()))
+        let unfreezeEnergy = AmountStakeViewModel.mock(asset: .mockTron(), type: .unfreeze(resource: Resource.energy.toGem()))
 
         #expect(freeze.input(from: tronData).availableValue == 1000)
         #expect(unfreezeBandwidth.input(from: tronData).availableValue == 2000)
@@ -98,23 +87,23 @@ struct AmountStakeViewModelTests {
     }
 
     @Test
-    func makeTransferData() {
+    func makeTransferData() throws {
         let validator = DelegationValidator.mock(id: "validator1")
         let delegation = Delegation.mock(validator: validator)
 
-        let stake = AmountStakeViewModel(asset: .mockBNB(), type: .stake(validators: [validator], recommended: nil), service: GemAmountService.mock()).makeTransferData(value: 100, useMaxAmount: false)
-        let unstake = AmountStakeViewModel(asset: .mockBNB(), type: .unstake(delegation), service: GemAmountService.mock()).makeTransferData(value: 100, useMaxAmount: false)
-        let redelegate = AmountStakeViewModel(asset: .mockBNB(), type: .redelegate(delegation, validators: [validator], recommended: nil), service: GemAmountService.mock()).makeTransferData(value: 100, useMaxAmount: false)
-        let withdraw = AmountStakeViewModel(asset: .mockBNB(), type: .withdraw(delegation), service: GemAmountService.mock()).makeTransferData(value: 100, useMaxAmount: false)
-        let freeze = AmountStakeViewModel(asset: .mockTron(), type: .freeze(.bandwidth), service: GemAmountService.mock()).makeTransferData(value: 100, useMaxAmount: false)
-        let unfreeze = AmountStakeViewModel(asset: .mockTron(), type: .unfreeze(.energy), service: GemAmountService.mock()).makeTransferData(value: 100, useMaxAmount: false)
+        let stake = try AmountStakeViewModel.mock(type: .stake(validators: [validator.toGem()], validator: nil)).makeTransferData(value: 100, useMaxAmount: false)
+        let unstake = try AmountStakeViewModel.mock(type: .unstake(delegation: delegation.toGem())).makeTransferData(value: 100, useMaxAmount: false)
+        let redelegate = try AmountStakeViewModel.mock(type: .redelegate(validators: [validator.toGem(), DelegationValidator.mock(id: "validator2").toGem()], delegation: delegation.toGem(), validator: nil)).makeTransferData(value: 100, useMaxAmount: false)
+        let withdraw = try AmountStakeViewModel.mock(type: .withdraw(delegation: delegation.toGem())).makeTransferData(value: 100, useMaxAmount: false)
+        let freeze = try AmountStakeViewModel.mock(asset: .mockTron(), type: .freeze(resource: Resource.bandwidth.toGem())).makeTransferData(value: 100, useMaxAmount: false)
+        let unfreeze = try AmountStakeViewModel.mock(asset: .mockTron(), type: .unfreeze(resource: Resource.energy.toGem())).makeTransferData(value: 100, useMaxAmount: false)
 
-        #expect(stake.transactionType().map() == .stakeDelegate)
-        #expect(unstake.transactionType().map() == .stakeUndelegate)
-        #expect(redelegate.transactionType().map() == .stakeRedelegate)
-        #expect(withdraw.transactionType().map() == .stakeWithdraw)
-        #expect(freeze.transactionType().map() == .stakeFreeze)
-        #expect(unfreeze.transactionType().map() == .stakeUnfreeze)
+        #expect(stake.transactionType().toPrimitives() == .stakeDelegate)
+        #expect(unstake.transactionType().toPrimitives() == .stakeUndelegate)
+        #expect(redelegate.transactionType().toPrimitives() == .stakeRedelegate)
+        #expect(withdraw.transactionType().toPrimitives() == .stakeWithdraw)
+        #expect(freeze.transactionType().toPrimitives() == .stakeFreeze)
+        #expect(unfreeze.transactionType().toPrimitives() == .stakeUnfreeze)
         #expect(stake.value == "100")
         #expect(unstake.value == "100")
         #expect(redelegate.value == "100")
@@ -124,8 +113,9 @@ struct AmountStakeViewModelTests {
     }
 }
 
-private func validatorState(_ type: AmountStakeType, asset: Asset = .mockBNB()) -> SelectionState<DelegationValidator>? {
-    let model = AmountStakeViewModel(asset: asset, type: type, service: GemAmountService.mock())
-    if case let .validator(state) = model.selection { return state }
-    return nil
+private extension AmountStakeViewModel {
+    var validatorState: SelectionState<GemValidatorRow>? {
+        if case let .validator(state) = selection { return state }
+        return nil
+    }
 }

@@ -1,7 +1,6 @@
 use num_bigint::BigInt;
-use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum GasPriceType {
     Regular { gas_price: BigInt },
     Eip1559 { gas_price: BigInt, priority_fee: BigInt },

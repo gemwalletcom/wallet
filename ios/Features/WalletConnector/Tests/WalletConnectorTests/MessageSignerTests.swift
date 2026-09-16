@@ -3,20 +3,10 @@
 import Foundation
 import class Gemstone.MessageSigner
 import struct Gemstone.SignMessage
-import GemstonePrimitives
 import Primitives
 import Testing
 
 struct MessageSignerTests {
-    @Test
-    func base58Preview() throws {
-        let data = "X3CUgCGzyn43DTAbUKnTMDzcGWMooJT2hPSZinjfN1QUgVNYYfeoJ5zg6i4Nd5coKGUrNpEYVoD".data(using: .utf8)!
-        let signer = MessageSigner(message: SignMessage(chain: "solana", signType: .base58, data: data))
-
-        #expect(try signer.hash().encodeString() == "This is an example message to be signed - 1747125759060")
-        #expect(try signer.payloadPreview(simulationPayload: []) == nil)
-    }
-
     @Test
     func eip191SiweUsesPayloadPreview() throws {
         let message = """

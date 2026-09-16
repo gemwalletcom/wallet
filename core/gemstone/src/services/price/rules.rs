@@ -1,8 +1,14 @@
+use std::collections::HashMap;
+
 use crate::services::collections::unique;
 use primitives::currency::Currency;
 use primitives::{AssetId, AssetMarket, AssetPrice, FiatRate};
 
 use super::model::GemPriceUpdate;
+
+pub fn has_price(price: Option<f64>) -> bool {
+    price.is_some_and(|price| price > 0.0)
+}
 
 pub fn rate_or_base(currency: Currency, stored: Option<FiatRate>) -> Option<FiatRate> {
     stored.or_else(|| (currency == Currency::USD).then_some(FiatRate { symbol: Currency::USD, rate: 1.0 }))
@@ -33,6 +39,23 @@ pub fn fiat_prices(prices: Vec<AssetPrice>, rate: &FiatRate) -> Vec<GemPriceUpda
         .collect()
 }
 
+pub fn changed_rates(stored: Vec<FiatRate>, rates: Vec<FiatRate>) -> Vec<FiatRate> {
+    let stored: HashMap<Currency, f64> = stored.into_iter().map(|rate| (rate.symbol, rate.rate)).collect();
+    rates.into_iter().filter(|rate| stored.get(&rate.symbol) != Some(&rate.rate)).collect()
+}
+
+pub fn changed_prices(stored: Vec<AssetPrice>, updates: Vec<GemPriceUpdate>) -> Vec<GemPriceUpdate> {
+    let stored: HashMap<AssetId, AssetPrice> = stored.into_iter().map(|price| (price.asset_id.clone(), price)).collect();
+    updates
+        .into_iter()
+        .filter(|update| {
+            stored
+                .get(&update.asset_id)
+                .is_none_or(|price| price.price != update.price || price.price_change_percentage_24h != update.price_change_percentage_24h)
+        })
+        .collect()
+}
+
 pub fn observable_asset_ids(enabled: Vec<AssetId>, alerts: Vec<AssetId>, defaults: Vec<AssetId>) -> Vec<AssetId> {
     let asset_ids = unique(enabled.into_iter().chain(alerts));
     if asset_ids.is_empty() { defaults } else { asset_ids }
@@ -41,7 +64,13 @@ pub fn observable_asset_ids(enabled: Vec<AssetId>, alerts: Vec<AssetId>, default
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::Utc;
+
+    #[test]
+    fn test_has_price_needs_a_positive_price() {
+        assert!(has_price(Some(0.5)));
+        assert!(!has_price(Some(0.0)));
+        assert!(!has_price(None));
+    }
     use primitives::ChartValuePercentage;
 
     #[test]
@@ -55,9 +84,9 @@ mod tests {
             total_supply: Some(20.0),
             max_supply: Some(21.0),
             all_time_high_value: Some(ChartValuePercentage {
-                date: Utc::now(),
                 value: 300.0,
                 percentage: -10.0,
+                ..ChartValuePercentage::mock()
             }),
             ..Default::default()
         };
@@ -97,6 +126,57 @@ mod observable_tests {
         assert_eq!(rate_or_base(Currency::EUR, Some(stored.clone())).map(|rate| rate.rate), Some(0.9));
         assert_eq!(rate_or_base(Currency::USD, None).map(|rate| rate.rate), Some(1.0));
         assert!(rate_or_base(Currency::EUR, None).is_none());
+    }
+
+    #[test]
+    fn test_changed_rates_keeps_only_moved_or_new_rates() {
+        let stored = vec![FiatRate { symbol: Currency::EUR, rate: 0.9 }, FiatRate { symbol: Currency::GBP, rate: 0.8 }];
+
+        assert_eq!(changed_rates(stored.clone(), stored.clone()), vec![]);
+        assert_eq!(
+            changed_rates(
+                stored,
+                vec![
+                    FiatRate { symbol: Currency::EUR, rate: 0.9 },
+                    FiatRate { symbol: Currency::GBP, rate: 0.7 },
+                    FiatRate {
+                        symbol: Currency::JPY,
+                        rate: 150.0
+                    }
+                ]
+            ),
+            vec![
+                FiatRate { symbol: Currency::GBP, rate: 0.7 },
+                FiatRate {
+                    symbol: Currency::JPY,
+                    rate: 150.0
+                }
+            ]
+        );
+    }
+
+    #[test]
+    fn test_changed_prices_keeps_only_moved_values() {
+        let now = chrono::Utc::now();
+        let bitcoin = AssetId::from_chain(primitives::Chain::Bitcoin);
+        let ethereum = AssetId::from_chain(primitives::Chain::Ethereum);
+        let stored = vec![AssetPrice::new(bitcoin.clone(), 100.0, 2.0, now), AssetPrice::new(ethereum.clone(), 50.0, 1.0, now)];
+
+        let changed = changed_prices(
+            stored.clone(),
+            vec![GemPriceUpdate::mock(bitcoin.clone(), 100.0, 2.0), GemPriceUpdate::mock(ethereum.clone(), 50.0, 1.0)],
+        );
+        assert!(changed.is_empty());
+
+        let changed = changed_prices(
+            stored.clone(),
+            vec![GemPriceUpdate::mock(bitcoin.clone(), 100.0, 2.5), GemPriceUpdate::mock(ethereum.clone(), 51.0, 1.0)],
+        );
+        assert_eq!(changed.iter().map(|update| update.asset_id.clone()).collect::<Vec<_>>(), vec![bitcoin, ethereum]);
+
+        let solana = AssetId::from_chain(primitives::Chain::Solana);
+        let changed = changed_prices(stored, vec![GemPriceUpdate::mock(solana.clone(), 10.0, 0.0)]);
+        assert_eq!(changed.len(), 1);
     }
 
     #[test]

@@ -27,8 +27,8 @@ Before running checks, confirm the active checkout/worktree and command director
 | Android presentation-only Compose or resource change | `cd android && ./gradlew :<module>:assembleDebug`<br>Emulator/device smoke when the changed flow is reachable |
 | Android ViewModel, navigation, app wiring, or behavioral UI change | `cd android && ./gradlew assembleGoogleDebug` or build the affected app/module variant<br>`cd android && ./gradlew :<module>:testDebugUnitTest` or `cd android && ./gradlew test` |
 | Cross-platform UI flow or navigation change | Optional: a Maestro flow on a booted simulator/emulator when requested — see [Maestro UI Testing](testing-maestro.md) |
-| Core-only Rust change with no mobile API impact | `cd core && just test <CRATE>`<br>`cd core && cargo clippy -p <crate> -- -D warnings`<br>`cd core && just format` |
-| Core change that affects mobile bindings or shared models | `cd core && just test <CRATE>`<br>`cd core && cargo clippy -p <crate> -- -D warnings`<br>`cd core && just format`<br>`just generate`<br>`just ios build`<br>`just android build` |
+| Core-only Rust change with no mobile API impact | `cd core && just test <CRATE>`<br>`cd core && cargo clippy -p <crate> --all-features -- -D warnings`<br>`cd core && just format` |
+| Core change that affects mobile bindings or shared models | `cd core && just test <CRATE>`<br>`cd core && cargo clippy -p <crate> --all-features -- -D warnings`<br>`cd core && just format`<br>`just generate`<br>`just ios build`<br>`just android build` |
 | Shared localization input change | `just localize`<br>Rebuild the affected app(s) if the generated strings are consumed by the change |
 | Documentation-only change | `git diff --check`<br>Inspect changed links, paths, commands, and instructions |
 

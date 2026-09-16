@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.gemwallet.android.ui.theme.space8
 
 private object PulseMetrics {
     const val DURATION_MS = 1800
@@ -39,7 +40,7 @@ private object PulseAlpha {
 fun PulsingDot(
     color: Color,
     modifier: Modifier = Modifier,
-    dotSize: Dp = 8.dp,
+    dotSize: Dp = space8,
 ) {
     val containerSize = dotSize * PulseMetrics.CONTAINER_SCALE
     val transition = rememberInfiniteTransition(label = "pulse")

@@ -24,6 +24,7 @@ class ActiveWalletConnectRequest(
         events.onEach { event ->
             when (event) {
                 is WalletConnectEvent.SessionDeleted -> _current.update { null }
+                is WalletConnectEvent.RequestExpired -> _current.update { current -> current?.takeUnless { it.isRequest(event) } }
                 else -> event.toUserRequest()?.let { request -> _current.update { request } }
             }
         }.launchIn(scope)
@@ -41,6 +42,9 @@ class ActiveWalletConnectRequest(
     }
 }
 
+private fun WalletConnectUserRequest.isRequest(expired: WalletConnectEvent.RequestExpired): Boolean =
+    this is WalletConnectUserRequest.SessionRequest && request.topic == expired.topic && request.request.id == expired.id
+
 private val WalletConnectUserRequest.payload: Any
     get() = when (this) {
         is WalletConnectUserRequest.SessionRequest -> request
@@ -51,6 +55,13 @@ private val WalletConnectUserRequest.payload: Any
 sealed interface WalletConnectUserRequest {
 
     val verifyContext: WalletConnectVerifyContext
+
+    val key: String
+        get() = when (this) {
+            is SessionRequest -> "request/${request.topic}/${request.request.id}"
+            is AuthenticationRequest -> "auth/${request.id}"
+            is SessionProposal -> "proposal/${proposal.proposerPublicKey}"
+        }
 
     class SessionRequest(
         val request: WalletConnectSessionRequest,
@@ -72,6 +83,7 @@ private fun WalletConnectEvent.toUserRequest(): WalletConnectUserRequest? = when
     is WalletConnectEvent.SessionRequest -> WalletConnectUserRequest.SessionRequest(request, verifyContext)
     is WalletConnectEvent.AuthenticationRequest -> WalletConnectUserRequest.AuthenticationRequest(request, verifyContext)
     is WalletConnectEvent.SessionProposal -> WalletConnectUserRequest.SessionProposal(proposal, verifyContext)
+    is WalletConnectEvent.RequestExpired,
     is WalletConnectEvent.SessionDeleted,
     is WalletConnectEvent.SessionSettled -> null
 }

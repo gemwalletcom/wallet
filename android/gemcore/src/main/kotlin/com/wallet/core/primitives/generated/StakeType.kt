@@ -8,32 +8,16 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
 @Serializable
-enum class Resource(val string: String) {
-	@SerialName("bandwidth")
-	Bandwidth("bandwidth"),
-	@SerialName("energy")
-	Energy("energy"),
-}
-
-@Serializable
-data class TronUnfreeze (
-	val resource: Resource,
-	val amount: Long
-)
-
-@Serializable
 data class TronVote (
 	val validator: String,
 	val count: Long
 )
 
 @Serializable
-sealed class TronStakeData {
-	@Serializable
-	@SerialName("Votes")
-	data class Votes(val content: List<TronVote>): TronStakeData()
-	@Serializable
-	@SerialName("Unfreeze")
-	data class Unfreeze(val content: List<TronUnfreeze>): TronStakeData()
+enum class Resource(val string: String) {
+	@SerialName("bandwidth")
+	Bandwidth("bandwidth"),
+	@SerialName("energy")
+	Energy("energy"),
 }
 

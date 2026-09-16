@@ -60,17 +60,6 @@ dependencies {
     implementation(project(":features:banner:presents"))
     implementation(project(":features:perpetual:presents"))
     implementation(project(":features:nft:presents"))
-    implementation(project(":features:nft:viewmodels"))
 
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
     implementation(libs.hilt.lifecycle.viewmodel.compose)
-
-
-    debugImplementation(libs.androidx.ui.tooling)
-    implementation(libs.androidx.ui.tooling.preview)
-
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
 }

@@ -13,14 +13,14 @@ public extension GemPerpetualTransferData {
         leverage: UInt8 = 3,
     ) -> GemPerpetualTransferData {
         GemPerpetualTransferData(
-            provider: PerpetualProvider.hypercore.map(),
-            direction: direction.map(),
-            asset: asset.map(),
-            baseAsset: Asset.mock().map(),
+            provider: PerpetualProvider.hypercore.toGem(),
+            direction: direction.toGem(),
+            asset: asset.toGem(),
+            baseAsset: Asset.mock().toGem(),
             assetIndex: 0,
             price: 100.0,
             leverage: leverage,
-            marginType: PerpetualMarginType.cross.map(),
+            marginType: PerpetualMarginType.cross.toGem(),
         )
     }
 }

@@ -3,13 +3,14 @@
 import Components
 import Foundation
 import enum Gemstone.GemTransactionHeader
+import Primitives
 import PrimitivesComponents
 
 struct TransactionHeaderViewModel {
     private let header: GemTransactionHeader
-    private let currency: String
+    private let currency: Currency
 
-    init(header: GemTransactionHeader, currency: String) {
+    init(header: GemTransactionHeader, currency: Currency) {
         self.header = header
         self.currency = currency
     }

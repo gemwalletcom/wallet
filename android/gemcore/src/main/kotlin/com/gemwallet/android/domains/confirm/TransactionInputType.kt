@@ -1,17 +1,15 @@
 package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.domains.asset.toGem
-import com.gemwallet.android.domains.perpetual.toGem
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.AccountDataType
 import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.NFTAsset
-import com.wallet.core.primitives.PerpetualType
 import com.wallet.core.primitives.StakeType
 import uniffi.gemstone.GemTransferData
+import uniffi.gemstone.PerpetualType
 import uniffi.gemstone.SwapData
 import uniffi.gemstone.TransactionInputType
 
@@ -34,7 +32,7 @@ val TransactionInputType.stakeType: StakeType?
     get() = (this as? TransactionInputType.Stake)?.stakeType?.toPrimitives()
 
 val TransactionInputType.perpetualType: PerpetualType?
-    get() = (this as? TransactionInputType.Perpetual)?.perpetualType?.decodeJson<PerpetualType>()
+    get() = (this as? TransactionInputType.Perpetual)?.perpetualType
 
 fun TransactionInputType.Companion.transfer(asset: Asset): TransactionInputType =
     TransactionInputType.Transfer(asset.toGem())

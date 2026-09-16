@@ -5,11 +5,11 @@ import Foundation
 import Testing
 
 struct AbbreviatedFormatterTests {
-    let formatter = AbbreviatedFormatter(locale: .US, threshold: defaultAbbreviationThreshold)
+    let formatter = AbbreviatedFormatter(locale: .US)
 
     @Test
     func abbreviatedFormatter() {
-        #expect(formatter.string(from: 99999.0) == nil)
+        #expect(formatter.string(from: 99999.0) == "99.99K")
         #expect(formatter.string(from: 100000.0) == "100K")
         #expect(formatter.string(from: 123456.0) == "123.45K")
         #expect(formatter.string(from: 1_500_000.0) == "1.5M")
@@ -28,11 +28,4 @@ struct AbbreviatedFormatterTests {
         #expect(formatter.string(from: 267_123.0, currency: "USD") == "$267.12K")
     }
 
-    @Test
-    func customThreshold() {
-        let formatter = AbbreviatedFormatter(locale: .US, threshold: 1000.0)
-
-        #expect(formatter.string(from: 1500.0) == "1.5K")
-        #expect(formatter.string(from: 500.0) == nil)
-    }
 }

@@ -34,7 +34,7 @@ import com.gemwallet.android.ui.components.image.NftImage
 import com.gemwallet.android.ui.components.image.WalletAvatar
 import com.gemwallet.android.ui.components.image.toImageSource
 import com.gemwallet.android.ui.components.list_item.supportIcon
-import com.gemwallet.android.ui.components.list_item.walletItemIconModel
+import com.gemwallet.android.ui.components.list_item.iconModel
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.NftItemUIModel
 import com.gemwallet.android.ui.theme.Spacer16
@@ -42,6 +42,7 @@ import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.secondaryFaded
+import androidx.compose.material3.SnackbarHostState
 
 private const val NFT_COLUMNS = 2
 
@@ -53,6 +54,7 @@ internal fun WalletImageScene(
     emojis: List<String>,
     nftImages: List<NftItemUIModel>,
     source: WalletImageSource,
+    snackbar: SnackbarHostState? = null,
     onAction: (WalletImageAction) -> Unit,
 ) {
     wallet ?: return
@@ -63,18 +65,19 @@ internal fun WalletImageScene(
     Scene(
         title = stringResource(id = R.string.common_avatar),
         onClose = { onAction(WalletImageAction.Close) },
+        snackbar = snackbar,
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             WalletAvatar(
-                imageUrl = wallet.imageUrl,
-                placeholder = walletItemIconModel(wallet.type, wallet.walletChain),
+                imageUrl = wallet.row.imageUrl,
+                placeholder = wallet.row.placeholder.iconModel(),
                 size = extraLargeIconSize,
                 modifier = Modifier.padding(top = paddingDefault),
-                supportIcon = wallet.type.supportIcon(),
-                onRemove = if (wallet.hasAvatar) {
+                supportIcon = wallet.row.supportIcon(),
+                onRemove = if (wallet.row.hasAvatar) {
                     { onAction(WalletImageAction.ResetToDefault) }
                 } else {
                     null

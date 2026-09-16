@@ -6,16 +6,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.style.TextOverflow
-import com.gemwallet.android.features.confirm.viewmodels.SimulationAssetChange
+import com.gemwallet.android.ext.toPrimitives
+import uniffi.gemstone.GemSimulationBalanceChange
 import com.gemwallet.android.features.confirm.viewmodels.formattedValue
-import com.gemwallet.android.features.confirm.viewmodels.valueDirection
+import com.gemwallet.android.features.confirm.viewmodels.tone
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.color
+import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.smallIconSize
 
-fun LazyListScope.confirmBalanceChangesContent(changes: List<SimulationAssetChange>) {
+fun LazyListScope.confirmBalanceChangesContent(changes: List<GemSimulationBalanceChange>) {
     itemsIndexed(changes) { index, change ->
         ConfirmBalanceChangeItem(
             change = change,
@@ -25,11 +26,11 @@ fun LazyListScope.confirmBalanceChangesContent(changes: List<SimulationAssetChan
 }
 
 @Composable
-private fun ConfirmBalanceChangeItem(change: SimulationAssetChange, listPosition: ListPosition) {
+private fun ConfirmBalanceChangeItem(change: GemSimulationBalanceChange, listPosition: ListPosition) {
     ListItem(
         listPosition = listPosition,
         leading = {
-            AssetIcon(asset = change.asset, size = smallIconSize)
+            AssetIcon(asset = change.asset.toPrimitives(), size = smallIconSize)
         },
         title = {
             Text(
@@ -44,7 +45,7 @@ private fun ConfirmBalanceChangeItem(change: SimulationAssetChange, listPosition
             Text(
                 text = change.formattedValue(),
                 style = MaterialTheme.typography.bodyLarge,
-                color = change.valueDirection().color(),
+                color = change.tone().color(),
                 maxLines = 1,
             )
         },

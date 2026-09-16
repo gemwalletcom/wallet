@@ -3,6 +3,7 @@ use std::sync::Arc;
 use crate::GemstoneError;
 use crate::address::{checksum_address, validate_address};
 use crate::alien::{AlienProvider, AlienProviderWrapper};
+use crate::config::chain::is_memo_supported;
 use crate::models::custom_types::GemBigUint;
 use crate::models::payment::{GemPayment, GemPaymentAmount, GemPaymentLink, GemPaymentRequest, GemPaymentTransaction};
 use crate::services::transfer::model::{GemRecipient, GemTransferData};
@@ -230,8 +231,8 @@ fn payment_recipient(request: &GemPaymentRequest, chain: Option<Chain>) -> GemRe
 
 fn exact_amount(request: &GemPaymentRequest) -> Option<String> {
     match request.amount.as_ref()? {
-        GemPaymentAmount::ExactValue(amount) => Some(amount.clone()),
-        GemPaymentAmount::AtomicValue(_) => None,
+        GemPaymentAmount::ExactValue { value: amount } => Some(amount.clone()),
+        GemPaymentAmount::AtomicValue { value: _ } => None,
     }
 }
 
@@ -256,25 +257,13 @@ fn requires_memo(chain: Chain, request: &GemPaymentRequest) -> bool {
 }
 
 fn payment_memo_required(chain: Chain) -> bool {
-    match chain.chain_type() {
-        ChainType::Cosmos | ChainType::Ton | ChainType::Xrp | ChainType::Stellar | ChainType::Algorand => true,
-        ChainType::Solana
-        | ChainType::Ethereum
-        | ChainType::Bitcoin
-        | ChainType::Near
-        | ChainType::Tron
-        | ChainType::Aptos
-        | ChainType::Sui
-        | ChainType::Polkadot
-        | ChainType::Cardano
-        | ChainType::HyperCore => false,
-    }
+    is_memo_supported(chain) && chain.chain_type() != ChainType::Solana
 }
 
 fn transfer_value(request: &GemPaymentRequest, decimals: i32) -> Option<BigUint> {
     match request.amount.as_ref()? {
-        GemPaymentAmount::ExactValue(amount) => BigNumberFormatter::value_from_amount_exact(amount, u32::try_from(decimals).ok()?).ok(),
-        GemPaymentAmount::AtomicValue(value) => Some(value.clone()),
+        GemPaymentAmount::ExactValue { value: amount } => BigNumberFormatter::value_from_amount_exact(amount, u32::try_from(decimals).ok()?).ok(),
+        GemPaymentAmount::AtomicValue { value } => Some(value.clone()),
     }
 }
 
@@ -282,8 +271,8 @@ fn transfer_value(request: &GemPaymentRequest, decimals: i32) -> Option<BigUint>
 mod tests {
     use super::*;
     use crate::models::payment::{GemPaymentAmount, GemPaymentLink, GemPaymentRequest};
-    use crate::testkit::TestAlienProvider;
-    use primitives::{ApplicationMetadata, Asset, AssetId, AssetType, Chain, ChainAddress, TransactionType};
+    use crate::testkit::{TestAlienProvider, mock_payment_transaction};
+    use primitives::{Asset, AssetId, AssetType, Chain};
 
     const BITCOIN_ADDRESS: &str = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4";
     const ETHEREUM_ADDRESS: &str = "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326";
@@ -291,30 +280,34 @@ mod tests {
     const XRP_ADDRESS: &str = "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh";
     const USDC_MINT: &str = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
-    fn request(address: &str, amount: Option<GemPaymentAmount>, memo: Option<&str>, asset_id: Option<AssetId>) -> GemPaymentRequest {
-        GemPaymentRequest {
-            address: address.to_string(),
-            amount,
-            memo: memo.map(str::to_string),
-            label: None,
-            references: None,
-            asset_id,
-        }
-    }
-
-    fn wallet_asset(asset_id: AssetId, decimals: i32) -> GemPaymentWalletAsset {
-        GemPaymentWalletAsset { asset_id, decimals }
-    }
-
     #[test]
     fn test_payment_destination() {
-        let bitcoin = wallet_asset(AssetId::from_chain(Chain::Bitcoin), 8);
-        let ethereum = wallet_asset(AssetId::from_chain(Chain::Ethereum), 18);
-        let smartchain = wallet_asset(AssetId::from_chain(Chain::SmartChain), 18);
-        let xrp = wallet_asset(AssetId::from_chain(Chain::Xrp), 6);
-        let solana_usdc = wallet_asset(AssetId::from_token(Chain::Solana, USDC_MINT), 6);
+        let bitcoin = GemPaymentWalletAsset {
+            asset_id: AssetId::from_chain(Chain::Bitcoin),
+            decimals: 8,
+        };
+        let ethereum = GemPaymentWalletAsset {
+            asset_id: AssetId::from_chain(Chain::Ethereum),
+            decimals: 18,
+        };
+        let smartchain = GemPaymentWalletAsset {
+            asset_id: AssetId::from_chain(Chain::SmartChain),
+            decimals: 18,
+        };
+        let xrp = GemPaymentWalletAsset {
+            asset_id: AssetId::from_chain(Chain::Xrp),
+            decimals: 6,
+        };
+        let solana_usdc = GemPaymentWalletAsset {
+            asset_id: AssetId::from_token(Chain::Solana, USDC_MINT),
+            decimals: 6,
+        };
 
-        let exact_bitcoin = request(BITCOIN_ADDRESS, Some(GemPaymentAmount::ExactValue("0.0001".to_string())), None, None);
+        let exact_bitcoin = GemPaymentRequest {
+            address: BITCOIN_ADDRESS.to_string(),
+            amount: Some(GemPaymentAmount::ExactValue { value: "0.0001".to_string() }),
+            ..GemPaymentRequest::mock()
+        };
         match payment_destination(&exact_bitcoin, vec![bitcoin.clone()]) {
             GemPaymentDestination::Confirm { transfer } => {
                 assert_eq!(transfer.value, BigUint::from(10_000u32));
@@ -324,7 +317,10 @@ mod tests {
             destination => panic!("expected confirm, got {destination:?}"),
         }
 
-        let address_only = request(BITCOIN_ADDRESS, None, None, None);
+        let address_only = GemPaymentRequest {
+            address: BITCOIN_ADDRESS.to_string(),
+            ..GemPaymentRequest::mock()
+        };
         match payment_destination(&address_only, vec![bitcoin.clone()]) {
             GemPaymentDestination::Recipient { asset_id, payment } => {
                 assert_eq!(asset_id, bitcoin.asset_id);
@@ -334,13 +330,21 @@ mod tests {
             destination => panic!("expected recipient, got {destination:?}"),
         }
 
-        let too_precise = request(BITCOIN_ADDRESS, Some(GemPaymentAmount::ExactValue("0.000000001".to_string())), None, None);
+        let too_precise = GemPaymentRequest {
+            address: BITCOIN_ADDRESS.to_string(),
+            amount: Some(GemPaymentAmount::ExactValue { value: "0.000000001".to_string() }),
+            ..GemPaymentRequest::mock()
+        };
         match payment_destination(&too_precise, vec![bitcoin.clone()]) {
             GemPaymentDestination::Recipient { payment, .. } => assert_eq!(payment.amount.as_deref(), Some("0.000000001")),
             destination => panic!("expected recipient for excess precision, got {destination:?}"),
         }
 
-        let multiple_chains = request(&ETHEREUM_ADDRESS.to_lowercase(), Some(GemPaymentAmount::ExactValue("2".to_string())), None, None);
+        let multiple_chains = GemPaymentRequest {
+            address: ETHEREUM_ADDRESS.to_lowercase(),
+            amount: Some(GemPaymentAmount::ExactValue { value: "2".to_string() }),
+            ..GemPaymentRequest::mock()
+        };
         match payment_destination(&multiple_chains, vec![bitcoin.clone(), ethereum.clone(), smartchain.clone()]) {
             GemPaymentDestination::SelectAsset { payment, chains } => {
                 assert_eq!(payment.recipient.address, ETHEREUM_ADDRESS.to_lowercase());
@@ -350,7 +354,13 @@ mod tests {
             destination => panic!("expected asset selection, got {destination:?}"),
         }
 
-        let tagged_xrp = request(XRP_ADDRESS, Some(GemPaymentAmount::ExactValue("10".to_string())), Some("12345"), Some(xrp.asset_id.clone()));
+        let tagged_xrp = GemPaymentRequest {
+            address: XRP_ADDRESS.to_string(),
+            amount: Some(GemPaymentAmount::ExactValue { value: "10".to_string() }),
+            memo: Some("12345".to_string()),
+            asset_id: Some(xrp.asset_id.clone()),
+            ..GemPaymentRequest::mock()
+        };
         match payment_destination(&tagged_xrp, vec![xrp.clone()]) {
             GemPaymentDestination::Confirm { transfer } => {
                 assert_eq!(transfer.value, BigUint::from(10_000_000u32));
@@ -359,7 +369,12 @@ mod tests {
             destination => panic!("expected confirm, got {destination:?}"),
         }
 
-        let untagged_xrp = request(XRP_ADDRESS, Some(GemPaymentAmount::ExactValue("10".to_string())), None, Some(xrp.asset_id.clone()));
+        let untagged_xrp = GemPaymentRequest {
+            address: XRP_ADDRESS.to_string(),
+            amount: Some(GemPaymentAmount::ExactValue { value: "10".to_string() }),
+            asset_id: Some(xrp.asset_id.clone()),
+            ..GemPaymentRequest::mock()
+        };
         match payment_destination(&untagged_xrp, vec![xrp]) {
             GemPaymentDestination::Recipient { payment, .. } => {
                 assert_eq!(payment.recipient.memo, None);
@@ -368,12 +383,12 @@ mod tests {
             destination => panic!("expected recipient without a destination tag, got {destination:?}"),
         }
 
-        let solana_usdc_payment = request(
-            SOLANA_ADDRESS,
-            Some(GemPaymentAmount::ExactValue("1".to_string())),
-            None,
-            Some(solana_usdc.asset_id.clone()),
-        );
+        let solana_usdc_payment = GemPaymentRequest {
+            address: SOLANA_ADDRESS.to_string(),
+            amount: Some(GemPaymentAmount::ExactValue { value: "1".to_string() }),
+            asset_id: Some(solana_usdc.asset_id.clone()),
+            ..GemPaymentRequest::mock()
+        };
         match payment_destination(&solana_usdc_payment, vec![solana_usdc.clone()]) {
             GemPaymentDestination::Confirm { transfer } => {
                 assert_eq!(transfer.value, BigUint::from(1_000_000u32));
@@ -382,7 +397,11 @@ mod tests {
             destination => panic!("expected confirm for a Solana payment without a memo, got {destination:?}"),
         }
 
-        let unknown_token = request(SOLANA_ADDRESS, None, None, Some(AssetId::from_token(Chain::Solana, "11111111111111111111111111111111")));
+        let unknown_token = GemPaymentRequest {
+            address: SOLANA_ADDRESS.to_string(),
+            asset_id: Some(AssetId::from_token(Chain::Solana, "11111111111111111111111111111111")),
+            ..GemPaymentRequest::mock()
+        };
         assert_eq!(
             payment_destination(&unknown_token, vec![bitcoin, ethereum, solana_usdc]),
             GemPaymentDestination::Unsupported
@@ -391,9 +410,16 @@ mod tests {
 
     #[test]
     fn test_payment_transfer_destination() {
-        let ethereum = wallet_asset(AssetId::from_chain(Chain::Ethereum), 18);
+        let ethereum = GemPaymentWalletAsset {
+            asset_id: AssetId::from_chain(Chain::Ethereum),
+            decimals: 18,
+        };
 
-        let invalid_address = request("0x123", None, Some("order 7"), None);
+        let invalid_address = GemPaymentRequest {
+            address: "0x123".to_string(),
+            memo: Some("order 7".to_string()),
+            ..GemPaymentRequest::mock()
+        };
         match payment_transfer_destination(&invalid_address, ethereum.clone()) {
             GemPaymentDestination::Recipient { asset_id, payment } => {
                 assert_eq!(asset_id, ethereum.asset_id);
@@ -404,22 +430,37 @@ mod tests {
             destination => panic!("expected recipient review for an invalid address, got {destination:?}"),
         }
 
-        let lowercase = request(&ETHEREUM_ADDRESS.to_lowercase(), Some(GemPaymentAmount::AtomicValue(BigUint::from(1u32))), None, None);
+        let lowercase = GemPaymentRequest {
+            address: ETHEREUM_ADDRESS.to_lowercase(),
+            amount: Some(GemPaymentAmount::AtomicValue { value: BigUint::from(1u32) }),
+            ..GemPaymentRequest::mock()
+        };
         match payment_transfer_destination(&lowercase, ethereum.clone()) {
             GemPaymentDestination::Confirm { transfer } => assert_eq!(transfer.address, ETHEREUM_ADDRESS),
             destination => panic!("expected confirm, got {destination:?}"),
         }
 
-        let lowercase_without_amount = request(&ETHEREUM_ADDRESS.to_lowercase(), None, None, None);
+        let lowercase_without_amount = GemPaymentRequest {
+            address: ETHEREUM_ADDRESS.to_lowercase(),
+            ..GemPaymentRequest::mock()
+        };
         match payment_transfer_destination(&lowercase_without_amount, ethereum.clone()) {
             GemPaymentDestination::Recipient { payment, .. } => assert_eq!(payment.recipient.address, ETHEREUM_ADDRESS),
             destination => panic!("expected recipient, got {destination:?}"),
         }
 
-        let mismatched = request(ETHEREUM_ADDRESS, None, None, Some(AssetId::from_chain(Chain::Bitcoin)));
+        let mismatched = GemPaymentRequest {
+            address: ETHEREUM_ADDRESS.to_string(),
+            asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
+            ..GemPaymentRequest::mock()
+        };
         assert_eq!(payment_transfer_destination(&mismatched, ethereum.clone()), GemPaymentDestination::Unsupported);
 
-        let payable = request(ETHEREUM_ADDRESS, Some(GemPaymentAmount::ExactValue("1.5".to_string())), None, None);
+        let payable = GemPaymentRequest {
+            address: ETHEREUM_ADDRESS.to_string(),
+            amount: Some(GemPaymentAmount::ExactValue { value: "1.5".to_string() }),
+            ..GemPaymentRequest::mock()
+        };
         match payment_transfer_destination(&payable, ethereum) {
             GemPaymentDestination::Confirm { transfer } => assert_eq!(transfer.value, BigUint::from(1_500_000_000_000_000_000u64)),
             destination => panic!("expected confirm, got {destination:?}"),
@@ -428,82 +469,86 @@ mod tests {
 
     #[test]
     fn test_payment_decoded_transfer() {
-        let solana_usdc = wallet_asset(AssetId::from_token(Chain::Solana, USDC_MINT), 6);
+        let solana_usdc = GemPaymentWalletAsset {
+            asset_id: AssetId::from_token(Chain::Solana, USDC_MINT),
+            decimals: 6,
+        };
 
-        let decoded = request(
-            SOLANA_ADDRESS,
-            Some(GemPaymentAmount::AtomicValue(19_000_000u32.into())),
-            None,
-            Some(solana_usdc.asset_id.clone()),
-        );
+        let decoded = GemPaymentRequest {
+            address: SOLANA_ADDRESS.to_string(),
+            amount: Some(GemPaymentAmount::AtomicValue { value: 19_000_000u32.into() }),
+            asset_id: Some(solana_usdc.asset_id.clone()),
+            ..GemPaymentRequest::mock()
+        };
         let transfer = payment_decoded_transfer(&decoded, solana_usdc.clone()).expect("expected transfer without a memo");
         assert_eq!(transfer.value, BigUint::from(19_000_000u32));
         assert_eq!(transfer.address, SOLANA_ADDRESS);
         assert_eq!(transfer.memo, None);
 
-        let mismatched = request(
-            SOLANA_ADDRESS,
-            Some(GemPaymentAmount::AtomicValue(19_000_000u32.into())),
-            None,
-            Some(AssetId::from_chain(Chain::Solana)),
-        );
+        let mismatched = GemPaymentRequest {
+            address: SOLANA_ADDRESS.to_string(),
+            amount: Some(GemPaymentAmount::AtomicValue { value: 19_000_000u32.into() }),
+            asset_id: Some(AssetId::from_chain(Chain::Solana)),
+            ..GemPaymentRequest::mock()
+        };
         assert_eq!(payment_decoded_transfer(&mismatched, solana_usdc.clone()), None);
 
-        let missing_value = request(SOLANA_ADDRESS, None, None, Some(solana_usdc.asset_id.clone()));
+        let missing_value = GemPaymentRequest {
+            address: SOLANA_ADDRESS.to_string(),
+            asset_id: Some(solana_usdc.asset_id.clone()),
+            ..GemPaymentRequest::mock()
+        };
         assert_eq!(payment_decoded_transfer(&missing_value, solana_usdc), None);
     }
 
     #[test]
     fn test_payment_asset_id_prefers_the_request_asset_over_the_chain_asset() {
-        let transaction = |asset_id: Option<AssetId>| GemPaymentTransaction {
-            merchant: ApplicationMetadata::mock(),
-            account: ChainAddress::new(Chain::Solana, SOLANA_ADDRESS.to_string()),
-            transaction: "encoded".to_string(),
-            transaction_type: TransactionType::Transfer,
-            memo: None,
-            request: Some(GemPaymentRequest {
-                address: SOLANA_ADDRESS.to_string(),
-                amount: None,
-                memo: None,
-                label: None,
-                references: None,
-                asset_id,
-            }),
-        };
         let usdc = AssetId::from_token(Chain::Solana, USDC_MINT);
+        let request = GemPaymentRequest {
+            address: SOLANA_ADDRESS.to_string(),
+            ..GemPaymentRequest::mock()
+        };
 
-        assert_eq!(payment_asset_id(&transaction(Some(usdc.clone()))), usdc);
-        assert_eq!(payment_asset_id(&transaction(None)), AssetId::from_chain(Chain::Solana));
         assert_eq!(
             payment_asset_id(&GemPaymentTransaction {
-                request: None,
-                ..transaction(None)
+                request: Some(GemPaymentRequest {
+                    asset_id: Some(usdc.clone()),
+                    ..request.clone()
+                }),
+                ..mock_payment_transaction()
+            }),
+            usdc
+        );
+        assert_eq!(
+            payment_asset_id(&GemPaymentTransaction {
+                request: Some(request),
+                ..mock_payment_transaction()
             }),
             AssetId::from_chain(Chain::Solana)
         );
+        assert_eq!(payment_asset_id(&mock_payment_transaction()), AssetId::from_chain(Chain::Solana));
     }
 
     #[test]
     fn test_transaction_transfer_data() {
         let solana_usdc = AssetId::from_token(Chain::Solana, USDC_MINT);
         let asset = Asset::new(solana_usdc.clone(), "USD Coin".to_string(), "USDC".to_string(), 6, AssetType::SPL);
-        let transaction = |request: Option<GemPaymentRequest>| GemPaymentTransaction {
-            merchant: ApplicationMetadata::mock(),
-            account: ChainAddress::new(Chain::Solana, SOLANA_ADDRESS.to_string()),
-            transaction: "encoded".to_string(),
-            transaction_type: TransactionType::Transfer,
+        let transaction = GemPaymentTransaction {
             memo: Some("order 7".to_string()),
-            request,
+            ..mock_payment_transaction()
         };
         let service = GemPaymentService::new(Arc::new(TestAlienProvider::with_status(200)));
 
         let decoded = service.transaction_transfer_data(
-            transaction(Some(request(
-                SOLANA_ADDRESS,
-                Some(GemPaymentAmount::AtomicValue(19_000_000u32.into())),
-                None,
-                Some(solana_usdc),
-            ))),
+            GemPaymentTransaction {
+                request: Some(GemPaymentRequest {
+                    address: SOLANA_ADDRESS.to_string(),
+                    amount: Some(GemPaymentAmount::AtomicValue { value: 19_000_000u32.into() }),
+                    asset_id: Some(solana_usdc),
+                    ..GemPaymentRequest::mock()
+                }),
+                ..transaction.clone()
+            },
             asset.clone(),
         );
         assert_eq!(decoded.recipient.address, SOLANA_ADDRESS);
@@ -519,14 +564,14 @@ mod tests {
 
         let hex_encoded = GemPaymentTransaction {
             transaction: "0x0a0b".to_string(),
-            ..transaction(None)
+            ..transaction.clone()
         };
         match &service.transaction_transfer_data(hex_encoded, asset.clone()).input_type {
             TransactionInputType::Generic { extra, .. } => assert_eq!(extra.data.as_deref(), Some([0x0a, 0x0b].as_slice())),
             input_type => panic!("expected a generic input type, got {input_type:?}"),
         }
 
-        let undecodable = service.transaction_transfer_data(transaction(None), asset);
+        let undecodable = service.transaction_transfer_data(transaction, asset);
         assert_eq!(undecodable.recipient.address, "");
         assert_eq!(undecodable.recipient.memo.as_deref(), Some("order 7"));
         assert_eq!(undecodable.value, 0.into());
@@ -537,14 +582,16 @@ mod tests {
         let decode_url = |url: &str| GemPaymentService::new(Arc::new(TestAlienProvider::with_status(200))).decode_url(url.to_string());
         assert_eq!(
             decode_url("solana:3u3ta6yXYgpheLGc2GVF3QkLHAUwBrvX71Eg8XXjJHGw?amount=0.42301").unwrap(),
-            GemPayment::Request(GemPaymentRequest {
-                address: "3u3ta6yXYgpheLGc2GVF3QkLHAUwBrvX71Eg8XXjJHGw".to_string(),
-                amount: Some(GemPaymentAmount::ExactValue("0.42301".to_string())),
-                memo: None,
-                label: None,
-                asset_id: Some(AssetId::from_chain(Chain::Solana)),
-                references: None,
-            })
+            GemPayment::Request {
+                request: GemPaymentRequest {
+                    address: "3u3ta6yXYgpheLGc2GVF3QkLHAUwBrvX71Eg8XXjJHGw".to_string(),
+                    amount: Some(GemPaymentAmount::ExactValue { value: "0.42301".to_string() }),
+                    memo: None,
+                    label: None,
+                    asset_id: Some(AssetId::from_chain(Chain::Solana)),
+                    references: None,
+                }
+            }
         );
     }
 
@@ -555,15 +602,17 @@ mod tests {
 
         assert_eq!(
             decode_url("solana:https%3A%2F%2Fapi.spherepay.co%2Fv1%2Fpublic%2FpaymentLink%2Fpay%2FpaymentLink_1").unwrap(),
-            GemPayment::Link(GemPaymentLink::SolanaPay {
-                url: "https://api.spherepay.co/v1/public/paymentLink/pay/paymentLink_1".to_string(),
-            })
+            GemPayment::Link {
+                link: GemPaymentLink::SolanaPay {
+                    url: "https://api.spherepay.co/v1/public/paymentLink/pay/paymentLink_1".to_string(),
+                }
+            }
         );
         assert_eq!(
             decode_url("solana:https%3A%2F%2Fwww.constant-k.com%2Fck-txreq%2F%3Ftok%3DMjYyfG9wZXJhdG9yfGFubnVhbHx8MTc4NzUyOTMxOXw3M2FiNDFhZmIwNTAxZWNjNjE2Y2E4NmIxZGE5N2FlOWZjM2Y1OGMzZWZhMGYxMjNiOGI4ZGYzZmU2YzQ3ZmM4").unwrap(),
-            GemPayment::Link(GemPaymentLink::SolanaPay {
+            GemPayment::Link { link: GemPaymentLink::SolanaPay {
                 url: CONSTANT_K.to_string(),
-            })
+            } }
         );
         assert!(decode_url("https://pay.walletconnect.com/?pid=pay_123").is_err());
     }

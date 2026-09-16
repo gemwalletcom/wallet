@@ -9,6 +9,7 @@ common_secret_phrase = Frasa Rahasia
 common_copy = Salin
 common_share = Bagikan
 common_continue = Lanjutkan
+common_sign_in_with = Masuk dengan %@
 common_provider = Penyedia
 common_loading = Memuat
 common_address = Alamat
@@ -54,9 +55,9 @@ common_get_started = Mulai
 common_earn = Hasilkan
 common_method = Metode
 common_token = Token
+common_expiration = Kedaluwarsa
 common_suspicious_address = Alamat mencurigakan
 common_refresh = Menyegarkan
-common_no_thanks = Tidak, terima kasih
 common_grant_permission = Berikan izin
 common_required_field = %@ dibutuhkan
 
@@ -163,7 +164,6 @@ transfer_freeze_title = Bekukan
 transfer_unfreeze_title = Cairkan
 transfer_review_request = Tinjau Permintaan
 transfer_amount = Jumlah
-transfer_amount_title = Jumlah
 
 # Settings
 
@@ -207,7 +207,6 @@ support_message_placeholder = Pesan
 
 # Errors
 
-errors_transfer = Kesalahan Transfer: %@
 errors_validation = Kesalahan Validasi: %@
 errors_create_wallet = Kesalahan Pembuatan Dompet: %@
 errors_invalid_address_name = Alamat atau nama tidak valid
@@ -226,7 +225,6 @@ errors_cancelled = Dibatalkan
 errors_connections_user_cancelled = Pengguna dibatalkan
 errors_not_supported = Tidak didukung
 errors_permissions_not_granted = Izin tidak diberikan
-errors_decoding = Kesalahan dalam pemrosesan
 errors_unknown = Tidak dikenal
 errors_not_supported_qr = Perangkat ini tidak mendukung pemindaian kode QR. Anda hanya dapat memilih gambar kode QR dari galeri.
 errors_camera_permissions_not_granted = Izin kamera tidak diberikan. Silakan aktifkan akses kamera di pengaturan untuk memindai kode QR.
@@ -237,11 +235,8 @@ errors_invalid_asset_address = Alamat %@ tidak valid
 errors_dust_threshold = Transaksi gagal karena jumlahnya terlalu kecil untuk memenuhi persyaratan minimum jaringan %@ (ambang batas debu). Batas ini memastikan nilai transaksi mencakup biaya dan ongkos pemrosesan.
 errors_swap_no_quote_available = Tidak ada kuotasi yang tersedia.
 errors_swap_not_supported_asset = Aset yang tidak didukung.
-errors_connections_invalid_send_parameters = Parameter yang diberikan untuk mengirim transaksi tidak valid.
-errors_connections_invalid_sign_parameters = Parameter yang diberikan untuk penandatanganan tidak valid.
 errors_connections_no_supported_wallets = Tidak ada dompet yang didukung tersedia.
 errors_connections_unsupported_chain = Rantai yang disediakan tidak didukung.
-errors_connections_unsupported_method = Metode yang diminta tidak didukung.
 errors_swap_amount_too_small = Jumlahnya terlalu kecil
 errors_required = %@ diperlukan
 errors_scan_transaction_malicious_description = Transaksi ini tidak dapat diselesaikan — alamat dompet tujuan terkait dengan aktivitas yang mencurigakan atau berbahaya.
@@ -253,7 +248,6 @@ errors_dust_threshold_short = Jaringan menganggap jumlah ini sebagai debu - biay
 errors_swap_minimum_amount = Jumlah transaksi minimum adalah %@. Silakan masukkan jumlah yang lebih tinggi.
 errors_perpetual_trigger_price_lower = Harga pemicu harus lebih rendah dari harga pasar
 errors_perpetual_trigger_price_higher = Harga pemicu harus lebih tinggi dari harga pasar
-errors_token_unable_fetch_token_information = Gagal mengambil informasi token: %@
 errors_unknown_try_again = Terjadi kesalahan. Silakan coba lagi.
 errors_network_error = Kesalahan jaringan: %@
 errors_network_offline = Koneksi internet tampaknya sedang offline.
@@ -277,7 +271,6 @@ update_app_action = Pembaruan
 update_app_permission_title = Izinkan instalasi
 update_app_permission_description = Buka pengaturan dan izinkan penginstalan dari sumber eksternal
 update_app_permission_open_settings = Buka pengaturan
-update_app_downloading = Mengunduh...
 
 # Transaction
 
@@ -365,6 +358,7 @@ wallet_connect_state_empty_description = Pindai atau tempel kode untuk terhubung
 wallet_connect_permissions_title = Izin
 wallet_connect_permissions_view_balance = Lihat saldo dan aktivitas Anda
 wallet_connect_permissions_approval_requests = Kirim permintaan persetujuan
+wallet_connect_request_expired = Permintaan kedaluwarsa
 
 # Swap
 
@@ -480,8 +474,6 @@ banner_account_activation_title = Biaya aktivasi akun
 banner_account_activation_description = Jaringan %@ memerlukan biaya satu kali sebesar %@
 banner_stake_title = Mulai Staking %@
 banner_stake_description = Dapatkan hadiah %@ dari staking ketika anda istirahat
-banner_enable_notifications_title = Nyalakan Notifikasi
-banner_enable_notifications_description = Tetap memantau aktivitas dompet anda
 banner_activate_asset_description = Untuk menggunakan aset %@, Anda harus terlebih dahulu mengaktifkannya di jaringan %@ dengan memenuhi persyaratan khusus jaringan.
 banner_asset_status_title = Aset Mencurigakan
 banner_asset_status_description = Token mungkin tidak aman atau menyesatkan. Lanjutkan hanya jika Anda sepenuhnya memercayainya.
@@ -605,6 +597,7 @@ nft_report_reason_spam = Spam
 nft_report_reason_malicious = Berbahaya
 nft_report_reason_inappropriate = Konten yang Tidak Pantas
 nft_report_reason_copyright = Hak cipta
+nft_report_reason_other = Lainnya
 nft_report_report_button_title = Laporan
 
 # Permissions
@@ -629,7 +622,6 @@ networks_state_empty_search_title = Tidak ada jaringan yang ditemukan
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Anda akan mendapatkan Frasa Rahasia — itu satu-satunya cara untuk mengakses dompet Anda.
-onboarding_security_create_wallet_confirm_title = Saya mengerti dan ingin melanjutkan
 onboarding_security_create_wallet_do_not_share_title = Jangan Bagikan Dengan Siapapun
 onboarding_security_create_wallet_do_not_share_subtitle = Siapa pun yang mendapatkan frasa rahasia Anda dapat mengambil alih dompet Anda sepenuhnya.
 onboarding_security_create_wallet_keep_safe_subtitle = Frasa rahasia adalah satu-satunya cara untuk mengakses dompet Anda.
@@ -687,8 +679,9 @@ perpetual_margin_isolated = Terisolasi
 # Perpetuals
 
 perpetuals_title = Perpetual
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = Perdagangkan Perpetual
 perpetuals_markets = Pasar
-perpetuals_empty_state_no_markets = Tidak ada pasar
 perpetuals_empty_state_no_markets_found = Tidak ada pasar yang ditemukan
 
 # Rewards
@@ -760,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = Izin kamera diperlukan untuk memindai kode QR.\nHarap berikan izin.
 
 # Notifications Permission
 
-notifications_permission_request_notification = Izin notifikasi dibutuhkan untuk menerima pemberitahuan tentang transaksi baru.\nHarap berikan izin.
 
 # Confirm
 
-confirm_fee_error = Kesalahan perhitungan biaya
 
 # Rootcheck
 

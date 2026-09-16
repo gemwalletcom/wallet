@@ -30,6 +30,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import java.math.BigInteger
+import uniffi.gemstone.GemValueStyle
 
 @Composable
 fun SwapListHead(
@@ -106,7 +107,7 @@ private fun SwapItem(
                 ),
         ) {
             Text(
-                text = ValueFormatter(style = ValueFormatter.Style.Auto).string(value, asset),
+                text = ValueFormatter(style = GemValueStyle.AUTO).string(value, asset),
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontSize = 24.sp,
                     lineHeight = 32.sp,

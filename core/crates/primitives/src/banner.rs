@@ -4,7 +4,7 @@ use typeshare::typeshare;
 
 use crate::{Asset, WalletId};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[typeshare(swift = "Equatable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct Banner {

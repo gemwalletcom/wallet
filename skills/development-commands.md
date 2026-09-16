@@ -6,6 +6,7 @@ Use the root `justfile` to drive common repo workflows.
 
 ```bash
 just                    # list all commands
+just install            # install shared tools, then iOS and Android dependencies
 just build              # build both iOS and Android
 just clean              # clean iOS, Android, and Rust build caches
 just generate           # regenerate models + bindings for both platforms

@@ -9,6 +9,7 @@ common_secret_phrase = عبارت مخفی
 common_copy = کپی کردن
 common_share = اشتراک گذاری
 common_continue = ادامه
+common_sign_in_with = ورود با %@
 common_provider = ارائه دهنده
 common_loading = در حال بارگذاری
 common_address = آدرس
@@ -54,9 +55,9 @@ common_get_started = شروع کنید
 common_earn = کسب درآمد
 common_method = روش
 common_token = توکن
+common_expiration = انقضا
 common_suspicious_address = آدرس مشکوک
 common_refresh = تازه کردن
-common_no_thanks = خیر. سپاس.
 common_grant_permission = اجازه بدهید
 common_required_field = %@ مورد نیاز است.
 
@@ -163,7 +164,6 @@ transfer_freeze_title = فریز کردن
 transfer_unfreeze_title = یخ‌زدایی
 transfer_review_request = درخواست بررسی
 transfer_amount = مبلغ
-transfer_amount_title = مبلغ
 
 # Settings
 
@@ -207,7 +207,6 @@ support_message_placeholder = پیام
 
 # Errors
 
-errors_transfer = خطای انتقال: %@
 errors_validation = خطای اعتبارسنجی: %@
 errors_create_wallet = خطای ایجاد کیف پول: %@
 errors_invalid_address_name = نام یا آدرس نامعتبر.
@@ -226,7 +225,6 @@ errors_cancelled = لغو شد
 errors_connections_user_cancelled = توسط کاربر لغو شد.
 errors_not_supported = پشتیبانی نمی شود.
 errors_permissions_not_granted = دسترسی داده نشده.
-errors_decoding = خطای رمزگشایی
 errors_unknown = ناشناخته
 errors_not_supported_qr = این دستگاه اسکن بارکد را پشتیبانی نمیکند. شما فقط میتوانید تصویر بارکد را از گالری انتخاب کنید.
 errors_camera_permissions_not_granted = دسترسی به دوربین داده نشده. لطفا در تنظیمات خود دسارسی دوربین را فعال کنید و سپس برای اسکن امتحان کنید.
@@ -237,11 +235,8 @@ errors_invalid_asset_address = آدرس %@ نامعتبر است.
 errors_dust_threshold = تراکنش به دلیل کم بودن مبلغ برای برآورده کردن حداقل لازم شبکه %@ (آستانه گرد و غبار) انجام نشد. این محدودیت تضمین می‌کند که ارزش تراکنش، کارمزدها و هزینه‌های پردازش را پوشش می‌دهد.
 errors_swap_no_quote_available = هیچ قیمتی در دسترس نیست.
 errors_swap_not_supported_asset = دارایی پشتیبانی نمی شود.
-errors_connections_invalid_send_parameters = پارامترهای نامعتبر برای ارسال تراکنش ارائه شده است.
-errors_connections_invalid_sign_parameters = پارامترهای نامعتبر برای امضا ارائه شده است.
 errors_connections_no_supported_wallets = هیچ کیف پول پشتیبانی شده ای در دسترس نیست.
 errors_connections_unsupported_chain = زنجیره ارائه شده پشتیبانی نمی‌شود.
-errors_connections_unsupported_method = روش درخواستی پشتیبانی نمی شود.
 errors_swap_amount_too_small = مقدار خیلی کم
 errors_required = %@ الزامی است
 errors_scan_transaction_malicious_description = این تراکنش قابل انجام نیست — آدرس کیف پول مقصد به فعالیت مشکوک یا مضر مرتبط است.
@@ -253,7 +248,6 @@ errors_dust_threshold_short = شبکه این مبلغ را داست (dust) در
 errors_swap_minimum_amount = حداقل مبلغ معامله %@ است. لطفاً مبلغ بیشتری وارد کنید.
 errors_perpetual_trigger_price_lower = قیمت فعالسازی باید کمتر از قیمت بازار باشد
 errors_perpetual_trigger_price_higher = قیمت فعالسازی باید بیشتر از قیمت بازار باشد
-errors_token_unable_fetch_token_information = خطا در واکشی اطلاعات توکن: %@
 errors_unknown_try_again = خطای ناشناخته ای رخ داد. لطفا دوباره امتحان کنید.
 errors_network_error = خطای شبکه: %@
 errors_network_offline = به نظر می‌رسد اتصال اینترنت آفلاین است.
@@ -277,7 +271,6 @@ update_app_action = به روز رسانی
 update_app_permission_title = اجازه نصب
 update_app_permission_description = به تنظیمات بروید و نصب را از منابع خارجی مجاز کنید
 update_app_permission_open_settings = به تنظیمات بروید
-update_app_downloading = در حال دانلود...
 
 # Transaction
 
@@ -365,6 +358,7 @@ wallet_connect_state_empty_description = برای اتصال به DApp، کد ر
 wallet_connect_permissions_title = مجوزها
 wallet_connect_permissions_view_balance = مشاهده موجودی و فعالیت خود
 wallet_connect_permissions_approval_requests = ارسال درخواست‌های تأیید
+wallet_connect_request_expired = درخواست منقضی شد
 
 # Swap
 
@@ -480,8 +474,6 @@ banner_account_activation_title = کارمزد فعال سازی حساب.
 banner_account_activation_description = شبکه %@ نیاز به کارمزد اولیه %@ ای دارد.
 banner_stake_title = شروع به استیک کردن %@.
 banner_stake_description = هنگامی که خواب هستید پاداش %@ کسب کنید.
-banner_enable_notifications_title = فعال کردن اعلان ها.
-banner_enable_notifications_description = از فعالیت های کیف پول خود با خبر شوید.
 banner_activate_asset_description = برای استفاده از دارایی %@ ، ابتدا باید آن را در شبکه %@ با انجام الزامات خاص شبکه فعال کنید.
 banner_asset_status_title = دارایی مشکوک
 banner_asset_status_description = رمز ممکن است ناامن یا گمراه کننده باشد. فقط در صورت اعتماد کامل به آن ادامه دهید.
@@ -605,6 +597,7 @@ nft_report_reason_spam = هرزنامه
 nft_report_reason_malicious = مخرب
 nft_report_reason_inappropriate = محتوای نامناسب
 nft_report_reason_copyright = حق نشر
+nft_report_reason_other = دیگر
 nft_report_report_button_title = گزارش
 
 # Permissions
@@ -629,7 +622,6 @@ networks_state_empty_search_title = هیچ شبکه‌ای یافت نشد
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = شما یک عبارت مخفی دریافت خواهید کرد - این تنها راه برای دسترسی به کیف پول شما است.
-onboarding_security_create_wallet_confirm_title = می فهمم و می خواهم ادامه دهم
 onboarding_security_create_wallet_do_not_share_title = آن را با کسی به اشتراک نگذارید
 onboarding_security_create_wallet_do_not_share_subtitle = هر کسی که عبارت مخفی شما را دریافت کند می تواند کنترل کامل کیف پول شما را در دست بگیرد.
 onboarding_security_create_wallet_keep_safe_subtitle = عبارت مخفی تنها راه دسترسی به کیف پول شماست.
@@ -687,8 +679,9 @@ perpetual_margin_isolated = جدا شده
 # Perpetuals
 
 perpetuals_title = دائمی‌ها
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = معامله دائمی‌ها
 perpetuals_markets = بازارها
-perpetuals_empty_state_no_markets = بدون بازار
 perpetuals_empty_state_no_markets_found = هیچ بازاری یافت نشد
 
 # Rewards
@@ -760,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = مجوز دوربین برای اسکن کد QR مورد نیاز است.\nلطفا اجازه بدهید.
 
 # Notifications Permission
 
-notifications_permission_request_notification = برای دریافت اعلان‌های مربوط به تراکنش‌های جدید، مجوز ارسال اعلان‌ها مورد نیاز است.\nلطفا اجازه بدهید.
 
 # Confirm
 
-confirm_fee_error = خطا در محاسبه کارمزد.
 
 # Rootcheck
 

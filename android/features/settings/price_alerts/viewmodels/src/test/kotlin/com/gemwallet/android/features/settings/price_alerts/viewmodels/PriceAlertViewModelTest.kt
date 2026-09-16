@@ -25,7 +25,9 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemPriceAlertService
+import uniffi.gemstone.GemServiceException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PriceAlertViewModelTest {
@@ -71,6 +73,22 @@ class PriceAlertViewModelTest {
         }
     }
 
+    @Test
+    fun `a failed auto alert write surfaces the Core message until it is shown`() = runTest {
+        val service = service(enabled = false)
+        coEvery { service.setAutoAlert(any(), any()) } throws GemServiceException.Api("offline")
+        val viewModel = viewModel(service, assetId)
+        try {
+            viewModel.toggleAutoAlert(true).join()
+
+            assertEquals(GemErrorText.Message("offline"), viewModel.error.value)
+            viewModel.clearError()
+            assertEquals(null, viewModel.error.value)
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
     private fun viewModel(service: GemPriceAlertService, assetId: AssetId? = null) = PriceAlertViewModel(
         getPriceAlerts = mockk<GetPriceAlerts> {
             every { this@mockk(any()) } returns flowOf(emptyList())
@@ -78,7 +96,6 @@ class PriceAlertViewModelTest {
         },
         getAssetPriceAlertState = mockk<GetAssetPriceAlertState> { every { isAssetPriceAlertEnabled(any()) } returns flowOf(false) },
         getAssetTokenInfo = mockk(relaxed = true),
-        enableDevicePush = mockk(relaxed = true),
         service = service,
         savedStateHandle = SavedStateHandle(assetId?.let { mapOf(RouteArgument.AssetId.key to it.toIdentifier()) } ?: emptyMap()),
     )

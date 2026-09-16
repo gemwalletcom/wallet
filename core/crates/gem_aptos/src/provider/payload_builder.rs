@@ -59,16 +59,16 @@ pub fn build_swap_transaction_payload(token_id: &Option<String>, swap_data: &Swa
     }
 }
 
-pub fn build_stake_payload_data(pool_address: &str, amount: &str) -> String {
-    serde_json::to_string(&build_stake_transaction_payload(pool_address, amount)).unwrap()
+pub fn build_stake_payload_data(pool_address: &str, amount: &str) -> Result<String, serde_json::Error> {
+    serde_json::to_string(&build_stake_transaction_payload(pool_address, amount))
 }
 
-pub fn build_unstake_payload_data(pool_address: &str, amount: &str) -> String {
-    serde_json::to_string(&build_unstake_transaction_payload(pool_address, amount)).unwrap()
+pub fn build_unstake_payload_data(pool_address: &str, amount: &str) -> Result<String, serde_json::Error> {
+    serde_json::to_string(&build_unstake_transaction_payload(pool_address, amount))
 }
 
-pub fn build_withdraw_payload_data(pool_address: &str, amount: &str) -> String {
-    serde_json::to_string(&build_withdraw_transaction_payload(pool_address, amount)).unwrap()
+pub fn build_withdraw_payload_data(pool_address: &str, amount: &str) -> Result<String, serde_json::Error> {
+    serde_json::to_string(&build_withdraw_transaction_payload(pool_address, amount))
 }
 
 #[cfg(test)]

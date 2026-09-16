@@ -13,6 +13,7 @@ public struct SignMessagePayload: Sendable {
     public let wallet: Wallet
     public let message: SignMessage
     public let simulation: SimulationResult
+    public let assets: [Asset]
 
     public init(
         chain: Chain,
@@ -20,21 +21,24 @@ public struct SignMessagePayload: Sendable {
         wallet: Wallet,
         message: SignMessage,
         simulation: SimulationResult,
+        assets: [Asset],
     ) {
         self.chain = chain
         self.wallet = wallet
         self.session = session
         self.message = message
         self.simulation = simulation
+        self.assets = assets
     }
 
     public init(_ request: GemWalletConnectMessageRequest) throws {
-        try self.init(
+        self.init(
             chain: Primitives.Chain(core: request.chain),
-            session: request.session.map(),
-            wallet: request.wallet.map(),
+            session: request.session.toPrimitives(),
+            wallet: request.wallet.toPrimitives(),
             message: request.message,
             simulation: request.simulation,
+            assets: request.assets.map { $0.toPrimitives() },
         )
     }
 }

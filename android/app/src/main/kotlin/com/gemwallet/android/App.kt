@@ -8,9 +8,12 @@ import coil3.SingletonImageLoader
 import coil3.disk.DiskCache
 import coil3.disk.directory
 import coil3.memory.MemoryCache
+import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.svg.SvgDecoder
-import com.gemwallet.android.application.transactions.cases.GetTransactions
+import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import dagger.hilt.android.HiltAndroidApp
+import okhttp3.Dispatcher
+import okhttp3.OkHttpClient
 import javax.inject.Inject
 
 @HiltAndroidApp
@@ -19,7 +22,7 @@ class App : Application(), SingletonImageLoader.Factory {
     @Inject
     lateinit var appLifecycleCoordinator: AppLifecycleCoordinator
     @Inject
-    lateinit var getTransactions: GetTransactions
+    lateinit var getActiveAssetsInfo: GetActiveAssetsInfo
 
     override fun onCreate() {
         super.onCreate()
@@ -29,6 +32,7 @@ class App : Application(), SingletonImageLoader.Factory {
     override fun newImageLoader(context: PlatformContext): ImageLoader {
         return ImageLoader.Builder(this)
             .components {
+                add(OkHttpNetworkFetcherFactory(callFactory = ::imageHttpClient))
                 add(SvgDecoder.Factory())
             }
             .memoryCache {
@@ -45,7 +49,13 @@ class App : Application(), SingletonImageLoader.Factory {
             .build()
     }
 
+    private fun imageHttpClient() = OkHttpClient.Builder()
+        .dispatcher(Dispatcher().apply { maxRequestsPerHost = IMAGE_REQUESTS_PER_HOST })
+        .build()
+
     companion object {
+        private const val IMAGE_REQUESTS_PER_HOST = 16
+
         init {
             System.loadLibrary("gemstone")
         }

@@ -9,6 +9,7 @@ common_secret_phrase = 助记词
 common_copy = 复制
 common_share = 分享
 common_continue = 继续
+common_sign_in_with = 使用%@登录
 common_provider = 服务商
 common_loading = 加载中
 common_address = 地址
@@ -54,9 +55,9 @@ common_get_started = 开始使用
 common_earn = 赚取
 common_method = 方法
 common_token = 代币
+common_expiration = 有效期
 common_suspicious_address = 可疑地址
 common_refresh = 刷新
-common_no_thanks = 不用了, 谢谢
 common_grant_permission = 授予权限
 common_required_field = %@为必填项
 
@@ -118,7 +119,7 @@ wallets_watch = 观察
 # Receive
 
 receive_title = 接收%@
-receive_warning = 这是您的地址——请仅发送 %@，且仅在 %@ 网络上。
+receive_warning = 请仅向此地址发送 %2$@ 网络上的 %1$@。
 
 # Buy
 
@@ -132,8 +133,8 @@ buy_no_results = 暂无报价
 transfer_network_fee = 网络费用
 transfer_memo = 备注
 transfer_confirm = 确认
-transfer_from = 从
-transfer_to = 发往
+transfer_from = 来自
+transfer_to = 至
 transfer_max = 最大值
 transfer_network = 网络
 transfer_recipient_title = 接收地址
@@ -163,7 +164,6 @@ transfer_freeze_title = 冻结
 transfer_unfreeze_title = 解冻
 transfer_review_request = 审查请求
 transfer_amount = 金额
-transfer_amount_title = 数额
 
 # Settings
 
@@ -207,7 +207,6 @@ support_message_placeholder = 消息
 
 # Errors
 
-errors_transfer = 转账错误： %@
 errors_validation = 验证错误： %@
 errors_create_wallet = 创建钱包错误： %@
 errors_invalid_address_name = 地址或名称无效
@@ -226,7 +225,6 @@ errors_cancelled = 已取消
 errors_connections_user_cancelled = 用户已取消
 errors_not_supported = 不支持
 errors_permissions_not_granted = 未授予权限
-errors_decoding = 解码错误
 errors_unknown = 未知
 errors_not_supported_qr = 此设备不支持扫码，只能选图库的二维码图片。
 errors_camera_permissions_not_granted = 未获取相机权限。请在设置中开启以扫描二维码。
@@ -237,11 +235,8 @@ errors_invalid_asset_address = 无效的 %@ 地址
 errors_dust_threshold = 交易失败，因为金额太小，无法满足%@网络的最低要求（粉尘阈值）。此限制可确保交易金额足以覆盖手续费和处理成本。
 errors_swap_no_quote_available = 暂无报价
 errors_swap_not_supported_asset = 暂不支持该资产。
-errors_connections_invalid_send_parameters = 发送交易时提供的参数无效。
-errors_connections_invalid_sign_parameters = 提供的签名参数无效。
 errors_connections_no_supported_wallets = 暂无可用钱包
 errors_connections_unsupported_chain = 暂不支持该区块链网络
-errors_connections_unsupported_method = 暂不支持请求的方法。
 errors_swap_amount_too_small = 金额太小，请输入更大的数额试试
 errors_required = %@为必填项
 errors_scan_transaction_malicious_description = 无法完成此交易：目标钱包地址与可疑或恶意行为有关。
@@ -253,7 +248,6 @@ errors_dust_threshold_short = 转账金额过小，被网络视为“粉尘”�
 errors_swap_minimum_amount = 最低交易金额为 %@。请输入更高的金额。
 errors_perpetual_trigger_price_lower = 触发价格应低于市场价格
 errors_perpetual_trigger_price_higher = 触发价格应高于市场价格
-errors_token_unable_fetch_token_information = 无法获取代币信息： %@
 errors_unknown_try_again = 发生未知错误，请重试
 errors_network_error = 网络错误： %@
 errors_network_offline = 网络连接似乎已断开。
@@ -277,7 +271,6 @@ update_app_action = 更新
 update_app_permission_title = 允许安装
 update_app_permission_description = 转到设置并允许从外部来源安装
 update_app_permission_open_settings = 前往设置
-update_app_downloading = 下载中...
 
 # Transaction
 
@@ -291,8 +284,8 @@ transaction_status_confirmed = 成功
 transaction_status_pending = 待确认
 transaction_status_failed = 失败
 transaction_status_reverted = 已回滚
-transaction_title_received = 已收到
-transaction_title_sent = 已发送
+transaction_title_received = 转入
+transaction_title_sent = 转出
 transaction_swap_again = 再次兑换
 transaction_status_completed = 已完成
 transaction_status_inprogress = 进行中
@@ -365,11 +358,12 @@ wallet_connect_state_empty_description = 扫描二维码或粘贴连接链接，
 wallet_connect_permissions_title = 权限
 wallet_connect_permissions_view_balance = 查看余额和交易记录
 wallet_connect_permissions_approval_requests = 发送审批请求
+wallet_connect_request_expired = 请求已过期
 
 # Swap
 
-swap_you_pay = 将支付
-swap_you_receive = 将收到
+swap_you_pay = 支付
+swap_you_receive = 预计收到
 swap_price_impact = 价格影响
 swap_slippage = 滑点
 swap_slippage_warning = 滑点过高。兑换可能以比预期更差的价格成交。
@@ -378,7 +372,7 @@ swap_slippage_auto_description = 自动设置最佳滑点以确保兑换成功�
 swap_price_impact_warning_description = 本次交易将损失 %@ 的 %@。确定要继续吗？
 swap_price_impact_warning_title = 价格影响
 swap_estimated_time_title = 预计时间
-swap_min_receive = 最少接收
+swap_min_receive = 最少收到
 swap_use_minimum_amount = 使用最低金额
 
 # Stake
@@ -480,8 +474,6 @@ banner_account_activation_title = 账户激活费用
 banner_account_activation_description = %@ 网络需要一次性费用 %@。
 banner_stake_title = 开始质押 %@
 banner_stake_description = 质押 %@ 赚取奖励，躺着也赚
-banner_enable_notifications_title = 启用通知
-banner_enable_notifications_description = 实时掌握钱包动态
 banner_activate_asset_description = 要使用 %@ 资产，必须先在 %@ 网络上启用它，并满足该网络的特定要求。
 banner_asset_status_title = 可疑资产
 banner_asset_status_description = 代币可能不安全或具有误导性。请仅在完全信任的情况下继续操作。
@@ -605,6 +597,7 @@ nft_report_reason_spam = 垃圾信息
 nft_report_reason_malicious = 恶意
 nft_report_reason_inappropriate = 不当内容
 nft_report_reason_copyright = 版权
+nft_report_reason_other = 其他
 nft_report_report_button_title = 举报
 
 # Permissions
@@ -628,14 +621,13 @@ networks_state_empty_search_title = 未找到任何网络
 
 # Onboarding
 
-onboarding_security_create_wallet_intro_title = 将获得一组助记词——这是访问钱包的唯一方法。
-onboarding_security_create_wallet_confirm_title = 我理解并希望继续
-onboarding_security_create_wallet_do_not_share_title = 不要与任何人分享
-onboarding_security_create_wallet_do_not_share_subtitle = 任何获得助记词的人都可以完全控制您的钱包。
-onboarding_security_create_wallet_keep_safe_subtitle = 助记词是访问钱包的唯一方法。
-onboarding_security_create_wallet_no_recovery_subtitle = 助记词一旦丢失，将无法访问钱包。
-onboarding_security_create_wallet_keep_safe_title = 将其存放在安全的地方
-onboarding_security_create_wallet_no_recovery_title = 我们无法找回助记词。
+onboarding_security_create_wallet_intro_title = 您将获得一组助记词，请务必妥善备份。
+onboarding_security_create_wallet_do_not_share_title = 切勿泄露助记词
+onboarding_security_create_wallet_do_not_share_subtitle = 任何人拿到助记词，都能控制钱包并转走资产。
+onboarding_security_create_wallet_keep_safe_subtitle = 请抄写助记词，并保存在只有您能取用的安全位置。
+onboarding_security_create_wallet_no_recovery_subtitle = 请保管好备份，以免设备丢失或损坏后无法恢复钱包。
+onboarding_security_create_wallet_keep_safe_title = 妥善备份助记词
+onboarding_security_create_wallet_no_recovery_title = 我们无法找回助记词
 onboarding_accept_terms_title = 接受条款
 onboarding_accept_terms_message = 请阅读并同意以下条款后继续。
 onboarding_accept_terms_item1_message = 我明白钱包的安全备份由我自行负责，Gem 不承担任何责任。
@@ -687,8 +679,9 @@ perpetual_margin_isolated = 逐仓
 # Perpetuals
 
 perpetuals_title = 永续合约
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = 交易永续合约
 perpetuals_markets = 市场
-perpetuals_empty_state_no_markets = 没有市场
 perpetuals_empty_state_no_markets_found = 未找到任何市场
 
 # Rewards
@@ -707,7 +700,7 @@ rewards_get_rewards_title = 兑换积分
 rewards_activate_referral_code_description = 有朋友的邀请码吗？
 rewards_activate_referral_code_title = 兑换邀请码
 rewards_create_referral_code_title = 创建用户名
-rewards_create_referral_code_info = 这将是当前钱包的个人昵称。
+rewards_create_referral_code_info = 为当前钱包设置一个用户名。
 rewards_username = 用户名
 rewards_ways_spend_title = 积分兑换
 rewards_ways_spend_asset_title = 兑换 %@
@@ -760,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = 需要相机权限以扫描二维码。\n请授予权限。
 
 # Notifications Permission
 
-notifications_permission_request_notification = 需要 Push 通知权限才能获取新交易的通知。\n请授予权限。
 
 # Confirm
 
-confirm_fee_error = 费用计算错误
 
 # Rootcheck
 

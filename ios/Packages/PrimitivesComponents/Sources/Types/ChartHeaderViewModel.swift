@@ -3,6 +3,9 @@
 import Components
 import Formatters
 import Foundation
+import GemstonePrimitives
+import struct Gemstone.GemChartHeader
+import enum Gemstone.GemChartValueType
 import Primitives
 import Style
 import SwiftUI
@@ -10,36 +13,23 @@ import SwiftUI
 public struct ChartHeaderViewModel {
     public let period: ChartPeriod
     public let date: Date?
-    public let price: Double
-    public let priceChangePercentage: Double
-    public let headerValue: Double?
-    public let type: ChartValueType
+    public let header: GemChartHeader
+    public let valueType: GemChartValueType
 
-    private let formatter: CurrencyFormatter
     private let dateFormatter: ChartDateFormatter
 
     public init(
         period: ChartPeriod,
         date: Date?,
-        price: Double,
-        priceChangePercentage: Double,
-        headerValue: Double? = nil,
-        formatter: CurrencyFormatter,
+        header: GemChartHeader,
+        valueType: GemChartValueType = .price,
         dateFormatter: ChartDateFormatter = ChartDateFormatter(),
-        type: ChartValueType = .price,
     ) {
         self.period = period
         self.date = date
-        self.price = price
-        self.priceChangePercentage = priceChangePercentage
-        self.headerValue = headerValue
-        self.type = type
-        self.formatter = formatter
+        self.header = header
+        self.valueType = valueType
         self.dateFormatter = dateFormatter
-    }
-
-    private var valueChange: PriceChangeViewModel? {
-        type == .priceChange ? PriceChangeViewModel(value: price, currencyFormatter: formatter) : nil
     }
 
     public var dateText: String? {
@@ -47,37 +37,30 @@ public struct ChartHeaderViewModel {
     }
 
     public var headerValueText: String? {
-        headerValue.map { formatter.string($0) }
+        header.secondaryValue?.text()
     }
 
     public var priceText: String {
-        valueChange?.text ?? formatter.string(price)
+        header.value.text()
     }
 
     public var priceColor: Color {
-        valueChange?.color ?? Colors.black
+        header.value.tone.color
     }
 
     public var priceChangeText: String? {
-        guard price != 0 else { return nil }
-        switch type {
-        case .priceChange:
-            guard headerValue != nil, priceChangePercentage != 0 else { return nil }
-            return "(\(PercentFormatter.unsigned.string(priceChangePercentage)))"
-        case .price:
-            return PercentFormatter.signed.string(priceChangePercentage)
-        }
+        header.change?.text()
     }
 
     public var priceChangeTextColor: Color {
-        PriceChangeColor.color(for: priceChangePercentage)
+        header.change?.tone.color ?? Colors.gray
     }
 
     public var priceFont: Font {
-        headerValue != nil ? .app.headline : .title2
+        header.secondaryValue != nil ? .app.headline : .title2
     }
 
     public var priceChangeFont: Font {
-        headerValue != nil ? .app.headline : .callout
+        header.secondaryValue != nil ? .app.headline : .callout
     }
 }

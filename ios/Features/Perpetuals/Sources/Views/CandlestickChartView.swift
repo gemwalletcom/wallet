@@ -19,13 +19,7 @@ private enum ChartKey {
 struct CandlestickChartView: View {
     private let model: CandlestickChartViewModel
 
-    @State private var selectedCandle: ChartCandleStick? {
-        didSet {
-            if let selectedCandle, selectedCandle.date != oldValue?.date {
-                vibrate()
-            }
-        }
-    }
+    @State private var selectedCandle: ChartCandleStick?
 
     init(model: CandlestickChartViewModel) {
         self.model = model
@@ -78,7 +72,7 @@ struct CandlestickChartView: View {
             }
         }
         .chartXAxis {
-            AxisMarks(position: .bottom, values: .automatic(desiredCount: CandlestickChartViewModel.Constants.xAxisTickCount)) { _ in
+            AxisMarks(position: .bottom, values: .automatic(desiredCount: model.xAxisTickCount)) { _ in
                 AxisGridLine(stroke: ChartGridStyle.strokeStyle)
                     .foregroundStyle(ChartGridStyle.color)
             }
@@ -90,26 +84,22 @@ struct CandlestickChartView: View {
                 AxisTick(stroke: StrokeStyle(lineWidth: ChartGridStyle.lineWidth))
                     .foregroundStyle(ChartGridStyle.color)
                 AxisValueLabel {
-                    if let price = value.as(Double.self) {
-                        Text(model.formattedPrice(price))
-                            .font(.caption2)
-                            .foregroundStyle(Colors.gray)
-                            .padding(.horizontal, .extraSmall)
-                    }
+                    Text(model.yAxisTickText(at: value.index))
+                        .font(.caption2)
+                        .foregroundStyle(Colors.gray)
+                        .padding(.horizontal, .extraSmall)
                 }
             }
             if let currentPrice = model.currentPrice {
-                AxisMarks(position: .trailing, values: [currentPrice]) { value in
+                AxisMarks(position: .trailing, values: [currentPrice]) { _ in
                     AxisValueLabel {
-                        if let price = value.as(Double.self) {
-                            Text(model.formattedPrice(price))
-                                .font(.caption2)
-                                .foregroundStyle(Colors.whiteSolid)
-                                .padding(.horizontal, .extraSmall)
-                                .padding(.vertical, .space1)
-                                .background(model.currentPriceColor)
-                                .clipShape(RoundedRectangle(cornerRadius: Spacing.tiny))
-                        }
+                        Text(model.currentPriceText)
+                            .font(.caption2)
+                            .foregroundStyle(Colors.whiteSolid)
+                            .padding(.horizontal, .extraSmall)
+                            .padding(.vertical, .space1)
+                            .background(model.currentPriceColor)
+                            .clipShape(RoundedRectangle(cornerRadius: Spacing.tiny))
                     }
                 }
             }
@@ -141,16 +131,16 @@ struct CandlestickChartView: View {
 
     @ChartContentBuilder
     private var linesMarks: some ChartContent {
-        ForEach(model.visibleLines) { line in
+        ForEach(model.lines) { line in
             RuleMark(y: .value(ChartKey.price, line.price))
                 .foregroundStyle(line.color.opacity(.semiStrong))
                 .lineStyle(line.lineStyle)
         }
 
-        ForEach(Array(model.visibleLines.enumerated()), id: \.element.id) { index, line in
+        ForEach(Array(model.lines.enumerated()), id: \.element.id) { index, line in
             RuleMark(y: .value(ChartKey.price, line.price))
                 .foregroundStyle(.clear)
-                .annotation(position: .overlay, alignment: .leading, spacing: 0) {
+                .annotation(position: .overlay, alignment: .leading, spacing: .zero) {
                     Text(line.label)
                         .font(.app.caption)
                         .foregroundStyle(Colors.whiteSolid)
@@ -205,9 +195,5 @@ struct CandlestickChartView: View {
         let relativeX = location.x - geometry[plotFrame].origin.x
         guard let date = proxy.value(atX: relativeX) as Date? else { return nil }
         return model.candle(for: date)
-    }
-
-    private func vibrate() {
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
 }

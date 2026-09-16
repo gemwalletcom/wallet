@@ -5,13 +5,14 @@ import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStor
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregateImpl
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDetailsDataAggregate
-import com.gemwallet.android.domains.price.ValueDirection
-import com.gemwallet.android.domains.price.toValueDirection
+import uniffi.gemstone.GemValueTone
+import com.gemwallet.android.domains.price.tone
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.PriceChangeFormatter
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualMarginType
+import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.Flow
@@ -28,8 +29,9 @@ class GetPerpetualPositionImpl @Inject constructor(
 
 class PerpetualPositionDetailsDataAggregateImpl(
     private val data: PerpetualPositionData,
+    private val positionData: PerpetualPositionDataAggregateImpl = PerpetualPositionDataAggregateImpl(data),
 ) : PerpetualPositionDetailsDataAggregate,
-    PerpetualPositionDataAggregate by PerpetualPositionDataAggregateImpl(data) {
+    PerpetualPositionDataAggregate by positionData {
 
     private val amountFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)
     private val priceFormatter = CurrencyFormatter(currency = Currency.USD)
@@ -38,10 +40,7 @@ class PerpetualPositionDetailsDataAggregateImpl(
 
     override val entryPrice: String = priceFormatter.string(data.position.entryPrice)
 
-    override val liquidationPrice: String = data.position.liquidationPrice
-        ?.takeIf { it > 0.0 }
-        ?.let { priceFormatter.string(it) }
-        ?: ""
+    override val liquidationPrice: String = positionData.liquidationPrice.orEmpty()
 
     override val marginType: PerpetualMarginType = data.position.marginType
 
@@ -51,15 +50,13 @@ class PerpetualPositionDetailsDataAggregateImpl(
         ?.let { PriceChangeFormatter(priceFormatter).string(it) }
         ?: "-"
 
-    override val fundingPaymentsDirection: ValueDirection = fundingPaymentsValue.toValueDirection()
+    override val fundingPaymentsDirection: GemValueTone = fundingPaymentsValue.tone()
 
     override val perpetualId: PerpetualId = data.position.perpetualId
-
-    override val entryValue: Double? = data.position.entryPrice
-
-    override val liquidationValue: Double? = data.position.liquidationPrice?.takeIf { it > 0.0 }
 
     override val stopLoss: Double? = data.position.stopLoss?.price
 
     override val takeProfit: Double? = data.position.takeProfit?.price
+
+    override val position: PerpetualPosition = data.position
 }

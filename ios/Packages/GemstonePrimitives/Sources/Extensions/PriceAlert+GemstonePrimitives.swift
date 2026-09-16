@@ -6,7 +6,7 @@ import Primitives
 
 extension PriceAlert: @retroactive Identifiable {
     public var id: String {
-        PriceAlertFormatter.shared.alertId(alert: map())
+        PriceAlertFormatter.shared.alertId(alert: toGem())
     }
 }
 
@@ -18,14 +18,14 @@ extension PriceAlertData: @retroactive Identifiable {
 
 public extension PriceAlert {
     var type: PriceAlertNotificationType {
-        PriceAlertFormatter.shared.notificationType(alert: map()).map()
+        PriceAlertFormatter.shared.notificationType(alert: toGem()).toPrimitives()
     }
 }
 
 public extension [PriceAlert] {
     var displayedAlerts: [PriceAlert] {
         PriceAlertFormatter.shared
-            .displayedAlertIds(alerts: map { $0.map() })
+            .displayedAlertIds(alerts: map { $0.toGem() })
             .compactMap { id in first { $0.id == id } }
     }
 }
@@ -33,13 +33,7 @@ public extension [PriceAlert] {
 public extension [PriceAlertData] {
     var displayedAlerts: [PriceAlertData] {
         PriceAlertFormatter.shared
-            .displayedAlertIds(alerts: map { $0.priceAlert.map() })
+            .displayedAlertIds(alerts: map { $0.priceAlert.toGem() })
             .compactMap { id in first { $0.priceAlert.id == id } }
-    }
-}
-
-public extension AssetData {
-    var isPriceAlertsEnabled: Bool {
-        priceAlerts.contains { $0.type == .auto }
     }
 }

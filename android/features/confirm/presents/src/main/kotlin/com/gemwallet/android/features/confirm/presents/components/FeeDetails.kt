@@ -1,5 +1,8 @@
 package com.gemwallet.android.features.confirm.presents.components
 
+import com.gemwallet.android.features.confirm.presents.localization.suffix
+import com.gemwallet.android.ui.localization.stringRes
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ext.toGem
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,10 +41,10 @@ import com.gemwallet.android.domains.confirm.FeeAssetUIModel
 import com.gemwallet.android.domains.confirm.FeeDetailsModel
 import com.gemwallet.android.domains.confirm.FeeRateUIModel
 import com.gemwallet.android.domains.confirm.FeeUIModel
-import com.gemwallet.android.model.FeeSelection
+import com.gemwallet.android.ext.toPrimitives
+import uniffi.gemstone.GemConfirmFeeSelection
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SuffixTextField
-import com.gemwallet.android.ui.components.title
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.AssetListItem
@@ -67,17 +70,19 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.Config
+import com.gemwallet.android.ui.components.list_item.property.PropertyItem
+import com.gemwallet.android.ui.components.title
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeeDetails(
     isVisible: Boolean,
     currentFee: FeeUIModel.FeeInfo?,
-    selection: FeeSelection,
-    feeDetailsModel: (FeeUIModel.FeeInfo, FeeAssetUIModel, FeeSelection) -> FeeDetailsModel?,
+    selection: GemConfirmFeeSelection,
+    feeDetailsModel: (FeeUIModel.FeeInfo, FeeAssetUIModel, GemConfirmFeeSelection) -> FeeDetailsModel?,
     feeAsset: FeeAssetUIModel?,
     feeAssets: List<FeeAssetUIModel>,
-    onSelect: (FeeSelection) -> Unit,
+    onSelect: (GemConfirmFeeSelection) -> Unit,
     onSelectFeeAsset: (AssetId) -> Unit,
     onCancel: () -> Unit,
 ) {
@@ -89,16 +94,16 @@ fun FeeDetails(
     val unitSymbol = feeUnitSuffix(model.feeUnitType, feeAsset.asset.symbol)
     val decimals = model.decimals
 
-    val selectedCustomRate = (selection as? FeeSelection.Custom)?.gasPrice
+    val selectedCustomRate = selection.customGasPrice()
     val showFeeAssets = feeAssets.any { it.asset.id != currentFee.feeAsset.id }
     var page by remember(isVisible) { mutableStateOf(FeeDetailsPage.Details) }
     val customModel = remember(page, model, selection) {
-        NetworkFeeCustomViewModel(model, selection, selectedCustomRate)
+        NetworkFeeCustomViewModel(model, selectedCustomRate)
     }
     val navigateToDetails: () -> Unit = { page = FeeDetailsPage.Details }
     val confirmCustomFee: () -> Unit = {
         customModel.rate?.let {
-            onSelect(FeeSelection.Custom(it))
+            onSelect(GemConfirmFeeSelection.Custom(it))
             onCancel()
         }
     }
@@ -116,7 +121,7 @@ fun FeeDetails(
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onCancel,
-        skipPartiallyExpanded = true,
+        expansion = SheetExpansion.Full,
         title = null,
         dragHandle = {},
     ) {
@@ -166,7 +171,7 @@ fun FeeDetails(
 @Composable
 private fun FeeRates(
     currentFee: FeeUIModel.FeeInfo,
-    selection: FeeSelection,
+    selection: GemConfirmFeeSelection,
     feeRateModels: List<FeeRateUIModel>,
     feeAsset: FeeAssetUIModel,
     unitSymbol: String,
@@ -174,7 +179,7 @@ private fun FeeRates(
     customRateText: String?,
     customFiat: String?,
     showFeeAssets: Boolean,
-    onSelect: (FeeSelection) -> Unit,
+    onSelect: (GemConfirmFeeSelection) -> Unit,
     onCustom: () -> Unit,
     onFeeAssets: () -> Unit,
 ) {
@@ -196,12 +201,12 @@ private fun FeeRates(
             itemsPositioned(feeRateModels, totalCount = totalCount) { position, feeRate ->
                 FeeRow(
                     emoji = feeRate.emoji,
-                    title = feeRate.priority.title(),
+                    title = stringResource(feeRate.priority.stringRes()),
                     rate = feeRate.price,
                     fiat = feeRate.fiatValue,
-                    isSelected = selection is FeeSelection.Preset && selection.priority == feeRate.priority,
+                    isSelected = selection.selectedPriority()?.toPrimitives() == feeRate.priority,
                     position = position,
-                    onClick = { onSelect(FeeSelection.Preset(feeRate.priority)) },
+                    onClick = { onSelect(GemConfirmFeeSelection.Priority(feeRate.priority.toGem())) },
                 )
             }
             if (supportsCustomFee) {
@@ -211,7 +216,7 @@ private fun FeeRates(
                         title = stringResource(R.string.fee_rate_custom),
                         rate = customRateText,
                         fiat = customFiat,
-                        isSelected = selection is FeeSelection.Custom,
+                        isSelected = selection.customGasPrice() != null,
                         position = ListPosition.getPosition(feeRateModels.size, totalCount),
                         onClick = onCustom,
                     )
@@ -225,6 +230,13 @@ private fun FeeRates(
                     color = MaterialTheme.colorScheme.secondary,
                 )
             }
+        }
+        itemsIndexed(currentFee.feeItems) { index, (option, info) ->
+            PropertyItem(
+                title = option.title(),
+                data = info.cryptoAmount,
+                listPosition = ListPosition.getPosition(index, currentFee.feeItems.size + 1),
+            )
         }
         item {
             PropertyNetworkFee(
@@ -413,11 +425,8 @@ private fun EmojiCircle(emoji: String, size: Dp, isSelected: Boolean = false) {
 }
 
 @Composable
-private fun feeUnitSuffix(feeUnitType: FeeUnitType?, assetSymbol: String): String = when (feeUnitType) {
-    FeeUnitType.SatVb -> stringResource(R.string.fee_rate_satvB)
-    FeeUnitType.Gwei -> stringResource(R.string.fee_rate_gwei)
-    else -> assetSymbol
-}
+private fun feeUnitSuffix(feeUnitType: FeeUnitType?, assetSymbol: String): String =
+    feeUnitType?.suffix(assetSymbol) ?: assetSymbol
 
 private enum class FeeDetailsPage {
     Details,

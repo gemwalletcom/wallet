@@ -7,6 +7,7 @@ remote:
   - PriceAlert
   - SwapPriceImpact
   - StakeAction
+  - StakeOwner
   - TransferDataExtra
   - Wallet
 codes:

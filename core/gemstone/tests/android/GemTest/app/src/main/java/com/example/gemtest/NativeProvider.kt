@@ -16,10 +16,6 @@ class NativeProvider: AlienProvider {
         client.close()
     }
 
-    override fun getEndpoint(chain: Chain): String {
-        return "http://localhost:8080"
-    }
-
     override suspend fun request(target: AlienTarget): AlienResponse {
         val parsedUrl = try {
             Url(target.url)

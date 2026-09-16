@@ -1,4 +1,5 @@
 import Components
+import struct Gemstone.GemFiatViewState
 import Primitives
 import PrimitivesComponents
 import Store
@@ -13,27 +14,28 @@ public struct FiatScene: View {
     }
 
     public var body: some View {
-        List {
+        let viewState = model.viewState
+        return List {
             CurrencyInputValidationView(
-                model: $model.inputValidationModel,
+                text: $model.amount,
+                error: model.amountError,
                 config: model.currencyInputConfig,
             )
             .padding(.top, .medium)
             .listGroupRowStyle()
             amountSelectorSection
-            providerSection
+            providerSection(viewState)
         }
         .safeAreaButton {
             StateButton(
-                text: model.actionButtonTitle,
-                type: .primary(model.actionButtonState),
+                text: model.actionButtonTitle(viewState),
+                type: .primary(model.actionButtonState(viewState)),
                 action: model.onSelectContinue,
             )
         }
         .contentMargins([.top], .zero, for: .scrollContent)
         .frame(maxWidth: .infinity)
         .onChange(of: model.type, model.onChangeType)
-        .onChange(of: model.inputValidationModel.text, model.onChangeAmountText)
         .debouncedTask(id: model.loadTrigger, interval: model.quoteDebounce) {
             await model.load()
         }
@@ -78,22 +80,22 @@ extension FiatScene {
         }
     }
 
-    private var providerSection: some View {
+    private func providerSection(_ viewState: GemFiatViewState) -> some View {
         Section {
-            switch model.quotesState {
+            switch model.quotesState(viewState) {
             case .noData:
-                StateEmptyView(title: model.emptyTitle)
+                StateEmptyView(title: model.emptyTitle(viewState))
             case .loading:
                 ListItemLoadingView()
                     .id(UUID())
             case .data:
-                if let quote = model.selectedQuote {
+                if let quote = model.selectedQuote(viewState) {
                     let view = ListItemImageView(
                         title: model.providerTitle,
-                        subtitle: quote.provider.name,
+                        subtitle: quote.providerName,
                         assetImage: model.providerAssetImage(quote.provider),
                     )
-                    if model.allowSelectProvider {
+                    if model.allowSelectProvider(viewState) {
                         NavigationCustomLink(
                             with: view,
                             action: model.onSelectFiatProviders,

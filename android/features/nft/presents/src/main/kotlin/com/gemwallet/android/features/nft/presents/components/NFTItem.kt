@@ -66,7 +66,7 @@ fun NFTItem(
             }
             NftTitle(
                 name = model.name,
-                status = model.collection.status,
+                isVerified = model.isVerified,
                 modifier = Modifier.fillMaxWidth(),
             )
         }

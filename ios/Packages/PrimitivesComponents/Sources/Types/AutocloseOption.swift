@@ -2,16 +2,17 @@
 
 import Components
 import Foundation
-import GemstonePrimitives
+import class Gemstone.GemPerpetual
+import enum Gemstone.PerpetualProvider
 import Localization
 
 public struct AutocloseOption: WheelPickerDisplayable, Sendable {
     public static var takeProfitOptions: [AutocloseOption] {
-        PerpetualConfig.takeProfitOptions.map { .init(value: $0) }
+        GemPerpetual(provider: .hypercore).takeProfitOptions().map { .init(value: $0) }
     }
 
     public static var stopLossOptions: [AutocloseOption] {
-        PerpetualConfig.stopLossOptions.map { .init(value: $0) }
+        GemPerpetual(provider: .hypercore).stopLossOptions().map { .init(value: $0) }
     }
 
     public let value: UInt8
@@ -25,6 +26,9 @@ public struct AutocloseOption: WheelPickerDisplayable, Sendable {
     }
 
     public var displayText: String {
-        value == 0 ? Localized.Common.none : "\(value)%"
+        guard let percent = GemPerpetual(provider: .hypercore).autoclosePercent(value: value) else {
+            return Localized.Common.none
+        }
+        return "\(percent)%"
     }
 }

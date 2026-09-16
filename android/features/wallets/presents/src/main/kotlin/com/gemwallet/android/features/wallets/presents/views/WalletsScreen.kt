@@ -18,9 +18,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.wallet.aggregates.WalletDataAggregate
 import com.gemwallet.android.features.wallet.presents.dialogs.ConfirmWalletDeleteDialog
 import com.gemwallet.android.features.wallets.viewmodels.WalletsViewModel
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletId
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemWalletPlaceholder
+import uniffi.gemstone.GemWalletRow
+import uniffi.gemstone.GemWalletSubtitle
 
 @Composable
 fun WalletsScreen(
@@ -60,7 +61,7 @@ fun WalletsScreen(
 
     deleteWalletId?.let { pendingDeleteWalletId ->
         ConfirmWalletDeleteDialog(
-            walletName = walletSections.allWallets.firstOrNull { it.id == pendingDeleteWalletId.id }?.name ?: "",
+            walletName = walletSections.allWallets.firstOrNull { it.row.id == pendingDeleteWalletId.id }?.row?.name ?: "",
             onConfirm = {
                 deleteWalletId = null
                 viewModel.deleteWallet(walletId = pendingDeleteWalletId, onBoard)
@@ -80,7 +81,7 @@ internal data class WalletSections(
 }
 
 internal fun List<WalletDataAggregate>.toWalletSections(): WalletSections {
-    val (pinnedWallets, unpinnedWallets) = partition { it.isPinned }
+    val (pinnedWallets, unpinnedWallets) = partition { it.row.isPinned }
     return WalletSections(
         pinnedWallets = pinnedWallets,
         unpinnedWallets = unpinnedWallets,
@@ -95,47 +96,59 @@ fun PreviewWalletScreen() {
             WalletsScene(
                 unpinnedWallets = listOf(
                     object : WalletDataAggregate {
-                        override val id: String = "1"
-                        override val name: String = "Foo wallet #1"
-                        override val type: WalletType = WalletType.View
                         override val isCurrent: Boolean = true
-                        override val isPinned: Boolean = false
-                        override val walletChain: Chain = Chain.Ethereum
-                        override val walletAddress: String = "0xsdlkgjdlkfglkdjfg"
-                        override val imageUrl: String? = null
+                        override val row: GemWalletRow = GemWalletRow(
+                            id = "1",
+                            name = "Foo wallet #1",
+                            subtitle = GemWalletSubtitle.Multicoin,
+                            placeholder = GemWalletPlaceholder.Multicoin,
+                            showsWatchBadge = false,
+                            isPinned = false,
+                            hasAvatar = false,
+                            imageUrl = null,
+                        )
                     },
                     object : WalletDataAggregate {
-                        override val id: String = "1"
-                        override val name: String = "Foo wallet #3"
-                        override val type: WalletType = WalletType.Multicoin
                         override val isCurrent: Boolean = false
-                        override val isPinned: Boolean = false
-                        override val walletChain: Chain = Chain.Ethereum
-                        override val walletAddress: String = "0xsdlkgjdlkfglkdjfg"
-                        override val imageUrl: String? = null
+                        override val row: GemWalletRow = GemWalletRow(
+                            id = "2",
+                            name = "Foo wallet #2",
+                            subtitle = GemWalletSubtitle.Multicoin,
+                            placeholder = GemWalletPlaceholder.Multicoin,
+                            showsWatchBadge = false,
+                            isPinned = false,
+                            hasAvatar = false,
+                            imageUrl = null,
+                        )
                     },
                     object : WalletDataAggregate {
-                        override val id: String = "1"
-                        override val name: String = "Foo wallet #2"
-                        override val type: WalletType = WalletType.PrivateKey
                         override val isCurrent: Boolean = false
-                        override val isPinned: Boolean = false
-                        override val walletChain: Chain = Chain.Bitcoin
-                        override val walletAddress: String = "0xsdlkgjdlkfglkdjfg"
-                        override val imageUrl: String? = null
+                        override val row: GemWalletRow = GemWalletRow(
+                            id = "3",
+                            name = "Foo wallet #3",
+                            subtitle = GemWalletSubtitle.Multicoin,
+                            placeholder = GemWalletPlaceholder.Multicoin,
+                            showsWatchBadge = false,
+                            isPinned = false,
+                            hasAvatar = false,
+                            imageUrl = null,
+                        )
                     },
                 ),
                 pinnedWallets = listOf(
 
                     object : WalletDataAggregate {
-                        override val id: String = "1"
-                        override val name: String = "Foo wallet #4"
-                        override val type: WalletType = WalletType.Multicoin
                         override val isCurrent: Boolean = true
-                        override val isPinned: Boolean = true
-                        override val walletChain: Chain = Chain.Bitcoin
-                        override val walletAddress: String = "0xsdlkgjdlkfglkdjfg"
-                        override val imageUrl: String? = null
+                        override val row: GemWalletRow = GemWalletRow(
+                            id = "4",
+                            name = "Foo wallet #4",
+                            subtitle = GemWalletSubtitle.Multicoin,
+                            placeholder = GemWalletPlaceholder.Multicoin,
+                            showsWatchBadge = false,
+                            isPinned = false,
+                            hasAvatar = false,
+                            imageUrl = null,
+                        )
                     },
                 ),
                 onAction = {},

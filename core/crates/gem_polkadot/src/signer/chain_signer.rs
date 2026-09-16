@@ -30,50 +30,20 @@ impl PolkadotChainSigner {
 
 #[cfg(test)]
 mod tests {
-    use num_bigint::BigUint;
-    use primitives::{Asset, AssetId, Chain, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadMetadata};
+    use primitives::{AssetId, Chain, TransactionFee};
 
     use super::*;
-
-    const ADDRESS: &str = "15e6w4u9nH4Tb9HdJco2Zua4y5DpHb1hHXBKBGkUrLMTpuXo";
-
-    fn metadata() -> TransactionLoadMetadata {
-        TransactionLoadMetadata::Polkadot {
-            sequence: 0,
-            genesis_hash: "0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3".to_string(),
-            block_hash: "0x6e3ffeaa3be9d19bd110e5b6e7cbbc92cceed0d2ec557276c296bf7970ace2e5".to_string(),
-            block_number: 24_666_537,
-            spec_version: 1_003_004,
-            transaction_version: 26,
-            period: 64,
-        }
-    }
-
-    fn input() -> SignerInput {
-        let fee = TransactionFee::new_from_fee(10.into(), AssetId::from_chain(Chain::Polkadot));
-        SignerInput::new(
-            TransactionLoadInput {
-                input_type: TransactionInputType::Transfer {
-                    asset: Asset::from_chain(Chain::Polkadot),
-                },
-                sender_address: ADDRESS.to_string(),
-                destination_address: ADDRESS.to_string(),
-                value: BigUint::from(10000u64),
-                gas_price: GasPriceType::regular(10),
-                memo: None,
-                is_max_value: false,
-                metadata: metadata(),
-            },
-            fee,
-        )
-    }
 
     #[test]
     fn test_sign_transfer_matches_mobile_vector() {
         let private_key = hex::decode("f4c1daf4543e155b0e5e97351726d8891eae98014ed3f9a9ee1d842753c070ff").unwrap();
+        let input = SignerInput::new(
+            TransactionLoadInput::mock_polkadot(),
+            TransactionFee::new_from_fee(10.into(), AssetId::from_chain(Chain::Polkadot)),
+        );
 
         assert_eq!(
-            PolkadotChainSigner.sign_transfer(&input(), &private_key).unwrap(),
+            PolkadotChainSigner.sign_transfer(&input, &private_key).unwrap(),
             "0x39028400cd3cfbbaa8f217c2a29ceae4b4063b597b629861916bad98f9826e03d1ab120\
             e00b2276e04c8adcd667512ec0440dd208f8ada56a4aec7572e4742ca2c0f8e5752d4d4f29d7\
             2a17c5d7e6bbfe2dfc9f081e567fdb9111be12ca04dec40cd2be0079502000000000a0000cd3\
@@ -85,7 +55,10 @@ mod tests {
     #[test]
     fn test_sign_transfer_rejects_sender_private_key_mismatch() {
         let private_key = hex::decode("f4c1daf4543e155b0e5e97351726d8891eae98014ed3f9a9ee1d842753c070ff").unwrap();
-        let mut input = input();
+        let mut input = SignerInput::new(
+            TransactionLoadInput::mock_polkadot(),
+            TransactionFee::new_from_fee(10.into(), AssetId::from_chain(Chain::Polkadot)),
+        );
         input.input.sender_address = "15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5".to_string();
 
         assert_eq!(

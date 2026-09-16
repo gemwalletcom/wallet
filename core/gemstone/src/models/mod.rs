@@ -2,7 +2,6 @@ pub mod asset;
 pub mod connection;
 pub(crate) mod custom_types;
 pub mod gateway;
-pub(crate) mod json_bridge;
 pub mod payment;
 pub mod perpetual;
 pub mod remote_types;

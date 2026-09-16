@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
 use typeshare::typeshare;
 
-#[derive(Debug, Serialize, Deserialize, Clone, EnumIter, AsRefStr, EnumString)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, EnumIter, AsRefStr, EnumString)]
 #[typeshare(swift = "Sendable, Hashable, Equatable")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]

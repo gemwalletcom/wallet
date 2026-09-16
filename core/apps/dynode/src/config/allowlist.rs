@@ -1,8 +1,7 @@
 use serde::Deserialize;
 
+use super::path::{PathRule, path_without_query};
 use crate::jsonrpc_types::{JsonRpcRequest, RequestType};
-
-use super::path_without_query;
 
 #[derive(Debug, Default, Clone, Deserialize)]
 #[serde(transparent)]
@@ -27,65 +26,46 @@ impl AllowlistConfig {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-struct AllowlistRule {
-    path: Option<String>,
-    method: Option<String>,
-    rpc_method: Option<String>,
+#[serde(untagged)]
+enum AllowlistRule {
+    Rpc { rpc_method: String },
+    Path(PathRule),
 }
 
 impl AllowlistRule {
     fn matches_path_request(&self, path: &str, method: &str) -> bool {
-        let Some(rule_method) = self.method.as_ref() else {
-            return false;
-        };
-        if method != rule_method {
-            return false;
+        match self {
+            Self::Path(rule) => rule.matches(method, path_without_query(path)),
+            Self::Rpc { .. } => false,
         }
-
-        let Some(rule_path) = self.path.as_ref() else {
-            return false;
-        };
-
-        let path = path_without_query(path);
-        if let Some(prefix) = rule_path.strip_suffix("/**") {
-            return path.strip_prefix(prefix).is_some_and(|rest| rest.starts_with('/'));
-        }
-
-        path == rule_path
     }
 
     fn matches_rpc(&self, rpc_method: &str) -> bool {
-        self.rpc_method.as_ref().is_some_and(|method| method == rpc_method)
+        match self {
+            Self::Rpc { rpc_method: allowed } => allowed == rpc_method,
+            Self::Path(_) => false,
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::testkit::config::jsonrpc;
+    use config::{Config, File, FileFormat};
     use serde_json::json;
 
-    fn config() -> AllowlistConfig {
-        serde_json::from_value(json!([
-            { "rpc_method": "eth_call" },
-            { "rpc_method": "eth_chainId" },
-            { "path": "/api/v2/address/**", "method": "GET" },
-            { "path": "/api/v2/sendtx/", "method": "POST" }
-        ]))
-        .unwrap()
-    }
+    use super::*;
 
     #[test]
     fn test_allows_jsonrpc_single_method() {
-        let config = config();
+        let config = AllowlistConfig::mock();
 
-        assert!(config.allows(&jsonrpc("eth_call")));
-        assert!(!config.allows(&jsonrpc("unsupported_method")));
+        assert!(config.allows(&RequestType::mock_jsonrpc("eth_call")));
+        assert!(!config.allows(&RequestType::mock_jsonrpc("unsupported_method")));
     }
 
     #[test]
     fn test_allows_jsonrpc_batch_only_when_all_methods_allowed() {
-        let config = config();
+        let config = AllowlistConfig::mock();
         let allowed = RequestType::from_request(
             "POST",
             "/".to_string(),
@@ -111,7 +91,7 @@ mod tests {
 
     #[test]
     fn test_allows_http_path_wildcard_without_query() {
-        let config = config();
+        let config = AllowlistConfig::mock();
         let request = RequestType::from_request("GET", "/api/v2/address/bc1qtest?pageSize=25&details=txs".to_string(), Vec::new());
 
         assert!(config.allows(&request));
@@ -119,7 +99,7 @@ mod tests {
 
     #[test]
     fn test_denies_unlisted_bitcoin_block_path() {
-        let config = config();
+        let config = AllowlistConfig::mock();
         let request = RequestType::from_request("GET", "/api/v2/block/900000".to_string(), Vec::new());
 
         assert!(!config.allows(&request));
@@ -127,7 +107,7 @@ mod tests {
 
     #[test]
     fn test_denies_http_path_method_mismatch() {
-        let config = config();
+        let config = AllowlistConfig::mock();
         let request = RequestType::from_request("GET", "/api/v2/sendtx/".to_string(), Vec::new());
 
         assert!(!config.allows(&request));
@@ -137,6 +117,27 @@ mod tests {
     fn test_empty_rules_are_unrestricted() {
         let config: AllowlistConfig = serde_json::from_value(json!([])).unwrap();
 
-        assert!(config.allows(&jsonrpc("unknown_method")));
+        assert!(config.allows(&RequestType::mock_jsonrpc("unknown_method")));
+    }
+
+    #[test]
+    fn test_deserializes_mixed_rules_from_yaml() {
+        #[derive(Deserialize)]
+        struct Wrapper {
+            allowlist: AllowlistConfig,
+        }
+
+        let input = "allowlist:\n  - rpc_method: eth_call\n  - path: /api/v2/address/**\n    method: GET\n";
+        let wrapper = Config::builder()
+            .add_source(File::from_str(input, FileFormat::Yaml))
+            .build()
+            .unwrap()
+            .try_deserialize::<Wrapper>()
+            .unwrap();
+
+        assert!(wrapper.allowlist.allows(&RequestType::mock_jsonrpc("eth_call")));
+        assert!(!wrapper.allowlist.allows(&RequestType::mock_jsonrpc("eth_chainId")));
+        assert!(wrapper.allowlist.allows(&RequestType::from_request("GET", "/api/v2/address/bc1q".to_string(), Vec::new())));
+        assert!(!wrapper.allowlist.allows(&RequestType::from_request("GET", "/api/v2/block/1".to_string(), Vec::new())));
     }
 }

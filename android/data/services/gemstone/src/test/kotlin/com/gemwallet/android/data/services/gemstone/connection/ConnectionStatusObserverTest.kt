@@ -30,13 +30,13 @@ class ConnectionStatusObserverTest {
 
         assertEquals(ConnectionStatus.Online, observer.status.value)
 
-        observer.update(ConnectionComponent.Api, isHealthy = false)
+        observer.update(ConnectionComponent.Stream, isHealthy = false)
         assertEquals(ConnectionStatus.NoService, observer.status.value)
 
         observer.update(ConnectionComponent.Internet, isHealthy = false)
         assertEquals(ConnectionStatus.NoInternet, observer.status.value)
 
-        observer.update(ConnectionComponent.Api, isHealthy = true)
+        observer.update(ConnectionComponent.Stream, isHealthy = true)
         observer.update(ConnectionComponent.Internet, isHealthy = true)
         assertEquals(ConnectionStatus.Online, observer.status.value)
     }
@@ -46,13 +46,12 @@ class ConnectionStatusObserverTest {
         val observer = ConnectionStatusObserver(emptyList(), GemConnectionService(), CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
 
         observer.update(ConnectionComponent.Internet, isHealthy = false)
-        observer.update(ConnectionComponent.Api, isHealthy = false)
-        observer.update(ConnectionComponent.Nodes, isHealthy = false)
+        observer.update(ConnectionComponent.Stream, isHealthy = false)
         assertEquals(ConnectionStatus.NoInternet, observer.status.value)
 
         observer.update(ConnectionComponent.Internet, isHealthy = true)
         assertEquals(ConnectionStatus.Online, observer.status.value)
-        assertNull(observer.isHealthyByComponent.value[ConnectionComponent.Api])
+        assertNull(observer.isHealthyByComponent.value[ConnectionComponent.Stream])
     }
 
     @Test
@@ -60,7 +59,7 @@ class ConnectionStatusObserverTest {
         val observer = ConnectionStatusObserver(emptyList(), GemConnectionService(), CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
 
         observer.update(ConnectionComponent.Internet, isHealthy = true)
-        observer.update(ConnectionComponent.Api, isHealthy = false)
+        observer.update(ConnectionComponent.Stream, isHealthy = false)
         observer.update(ConnectionComponent.Internet, isHealthy = true)
 
         assertEquals(ConnectionStatus.NoService, observer.status.value)

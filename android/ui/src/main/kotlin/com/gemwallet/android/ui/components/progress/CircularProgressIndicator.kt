@@ -7,6 +7,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.gemwallet.android.ui.theme.compactIconSize
+import com.gemwallet.android.ui.theme.space1
+import com.gemwallet.android.ui.theme.space10
+import com.gemwallet.android.ui.theme.space2
+import com.gemwallet.android.ui.theme.tinyIconSize
+
+private val progressSize14 = 14.dp
 
 @Composable
 fun CircularProgressIndicator10(
@@ -14,8 +21,8 @@ fun CircularProgressIndicator10(
     color: Color = ProgressIndicatorDefaults.circularColor,
 ) {
     CircularProgressIndicator(
-        modifier = modifier.size(size = 10.dp),
-        strokeWidth = 1.dp,
+        modifier = modifier.size(size = space10),
+        strokeWidth = space1,
         color = color,
     )
 }
@@ -26,8 +33,8 @@ fun CircularProgressIndicator14(
     color: Color = ProgressIndicatorDefaults.circularColor,
 ) {
     CircularProgressIndicator(
-        modifier = modifier.size(size = 14.dp),
-        strokeWidth = 1.dp,
+        modifier = modifier.size(size = progressSize14),
+        strokeWidth = space1,
         color = color,
     )
 }
@@ -38,8 +45,8 @@ fun CircularProgressIndicator16(
     color: Color = ProgressIndicatorDefaults.circularColor,
 ) {
     CircularProgressIndicator(
-        modifier = modifier.size(size = 16.dp),
-        strokeWidth = 1.dp,
+        modifier = modifier.size(size = tinyIconSize),
+        strokeWidth = space1,
         color = color,
     )
 }
@@ -50,8 +57,8 @@ fun CircularProgressIndicator20(
     color: Color = ProgressIndicatorDefaults.circularColor,
 ) {
     CircularProgressIndicator(
-        modifier = modifier.size(size = 20.dp),
-        strokeWidth = 2.dp,
+        modifier = modifier.size(size = compactIconSize),
+        strokeWidth = space2,
         color = color,
     )
 }

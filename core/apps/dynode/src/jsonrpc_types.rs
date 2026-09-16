@@ -279,17 +279,8 @@ mod tests {
         let body1 = r#"{"type":"metaAndAssetCtxs"}"#.as_bytes().to_vec();
         let body2 = r#"{"type":"spotMeta"}"#.as_bytes().to_vec();
 
-        let request1 = RequestType::Regular {
-            path: "/info".to_string(),
-            method: "POST".to_string(),
-            body: body1,
-        };
-
-        let request2 = RequestType::Regular {
-            path: "/info".to_string(),
-            method: "POST".to_string(),
-            body: body2,
-        };
+        let request1 = RequestType::mock_regular("/info", "POST", &body1);
+        let request2 = RequestType::mock_regular("/info", "POST", &body2);
 
         let key1 = request1.cache_key("example.com").unwrap();
         let key2 = request2.cache_key("example.com").unwrap();
@@ -299,12 +290,11 @@ mod tests {
 
     #[test]
     fn test_regular_request_cache_key_with_binary_bodies() {
-        let request = |body| RequestType::Regular {
-            path: "/sui.rpc.v2.TransactionExecutionService/SimulateTransaction".to_string(),
-            method: "POST".to_string(),
-            body,
-        };
+        let path = "/sui.rpc.v2.TransactionExecutionService/SimulateTransaction";
 
-        assert_ne!(request(vec![0, 1, 255]).cache_key("example.com"), request(vec![0, 2, 255]).cache_key("example.com"));
+        assert_ne!(
+            RequestType::mock_regular(path, "POST", &[0, 1, 255]).cache_key("example.com"),
+            RequestType::mock_regular(path, "POST", &[0, 2, 255]).cache_key("example.com")
+        );
     }
 }

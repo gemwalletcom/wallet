@@ -74,7 +74,6 @@ impl NftCollectionRow {
                     mime_type: self.image_preview_mime_type.clone().unwrap_or_default(),
                 },
             },
-            is_verified: self.is_verified,
             status: VerificationStatus::from_verified(self.is_verified),
             links,
         }

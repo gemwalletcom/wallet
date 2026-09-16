@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.transfer_amount.presents
 
+import com.gemwallet.android.features.transfer_amount.presents.localization.asString
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -23,7 +24,7 @@ fun AmountScreen(
     viewModel: AmountViewModel = hiltViewModel(),
 ) {
     val provider = viewModel.provider
-    val title = provider.title.asString()
+    val title = provider.title.collectAsStateWithLifecycle().value?.asString().orEmpty()
     val assetInfo = provider.assetInfo.collectAsStateWithLifecycle().value ?: run {
         LoadingScene(title, onCancel)
         return
@@ -44,6 +45,7 @@ fun AmountScreen(
     val amountType by provider.amountType.collectAsStateWithLifecycle()
     val canChangeValue = input?.canChangeValue ?: true
     val showsAssetBalance = input?.showsAssetBalance ?: true
+    val usesWholeAmounts = input?.usesWholeAmounts ?: false
 
     AnimatedContent(
         isSelectValidator && canPickValidator,
@@ -52,11 +54,11 @@ fun AmountScreen(
     ) { showingPicker ->
         if (showingPicker && provider is AmountStakeProvider) {
             val validator by provider.validatorState.collectAsStateWithLifecycle()
-            val source by provider.validatorSource.collectAsStateWithLifecycle()
-            source?.let { resolved ->
+            val selection by provider.validatorSelection.collectAsStateWithLifecycle()
+            selection?.let { resolved ->
                 ValidatorsScreen(
-                    source = resolved,
-                    selectedValidatorId = validator?.id.orEmpty(),
+                    selection = resolved,
+                    selectedValidatorId = validator?.validator?.id.orEmpty(),
                     onCancel = { isSelectValidator = false },
                     onSelect = {
                         provider.selectValidator(it)
@@ -69,10 +71,11 @@ fun AmountScreen(
                 title = title,
                 amount = viewModel.amount,
                 amountInputType = amountInputType,
-                asset = (provider as? AmountTransferProvider)?.displayAsset ?: assetInfo.asset,
+                asset = (provider as? AmountTransferProvider)?.displayAsset(assetInfo.asset) ?: assetInfo.asset,
                 currency = viewModel.currency,
                 canSwitchInputType = amountType?.canSwitchInputType() ?: false,
                 readOnly = !canChangeValue,
+                usesWholeAmounts = usesWholeAmounts,
                 showsAssetBalance = showsAssetBalance,
                 error = error,
                 equivalent = equivalent,

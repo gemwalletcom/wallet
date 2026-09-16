@@ -7,7 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 
 @Composable
-fun rememberNotificationPermissionGate(onGranted: () -> Unit = {}): (() -> Unit) -> Unit {
+fun rememberNotificationPermissionGate(): (() -> Unit) -> Unit {
     var pending by remember { mutableStateOf<(() -> Unit)?>(null) }
 
     pending?.let { action ->
@@ -15,7 +15,6 @@ fun rememberNotificationPermissionGate(onGranted: () -> Unit = {}): (() -> Unit)
             onNotificationEnable = {
                 pending = null
                 action()
-                onGranted()
             },
             onDismiss = { pending = null },
         )

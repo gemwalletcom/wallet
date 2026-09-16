@@ -5,45 +5,38 @@ import Localization
 import Primitives
 import Style
 import SwiftUI
-import struct Gemstone.SimulationPayloadField
 
 public struct SimulationPayloadDetailsScene: View {
     @Environment(\.dismiss) private var dismiss
 
-    private let primaryFields: [SimulationPayloadField]
-    private let secondaryFields: [SimulationPayloadField]
-    private let fieldViewModel: (SimulationPayloadField) -> SimulationPayloadFieldViewModel
-    private let contextMenuItems: (SimulationPayloadField) -> [ContextMenuItemType]
+    private let primaryModels: [SimulationPayloadFieldViewModel]
+    private let secondaryModels: [SimulationPayloadFieldViewModel]
     private let actionTitle: String?
     private let actionDestination: AnyView?
 
     public init(
-        primaryFields: [SimulationPayloadField],
-        secondaryFields: [SimulationPayloadField],
-        fieldViewModel: @escaping (SimulationPayloadField) -> SimulationPayloadFieldViewModel,
-        contextMenuItems: @escaping (SimulationPayloadField) -> [ContextMenuItemType],
+        primaryModels: [SimulationPayloadFieldViewModel],
+        secondaryModels: [SimulationPayloadFieldViewModel],
         actionTitle: String? = nil,
         actionDestination: AnyView? = nil,
     ) {
-        self.primaryFields = primaryFields
-        self.secondaryFields = secondaryFields
-        self.fieldViewModel = fieldViewModel
-        self.contextMenuItems = contextMenuItems
+        self.primaryModels = primaryModels
+        self.secondaryModels = secondaryModels
         self.actionTitle = actionTitle
         self.actionDestination = actionDestination
     }
 
     public var body: some View {
         List {
-            if !primaryFields.isEmpty {
+            if !primaryModels.isEmpty {
                 Section {
-                    fieldsView(primaryFields)
+                    SimulationPayloadFieldsContent(models: primaryModels)
                 }
             }
 
-            if !secondaryFields.isEmpty {
+            if !secondaryModels.isEmpty {
                 Section(Localized.Common.details) {
-                    fieldsView(secondaryFields)
+                    SimulationPayloadFieldsContent(models: secondaryModels)
                 }
             }
 
@@ -67,13 +60,5 @@ public struct SimulationPayloadDetailsScene: View {
         .listStyle(.insetGrouped)
         .listRowSpacing(.zero)
         .listSectionSpacing(.compact)
-    }
-
-    private func fieldsView(_ fields: [SimulationPayloadField]) -> some View {
-        SimulationPayloadFieldsContent(
-            fields: fields,
-            fieldViewModel: fieldViewModel,
-            contextMenuItems: contextMenuItems,
-        )
     }
 }

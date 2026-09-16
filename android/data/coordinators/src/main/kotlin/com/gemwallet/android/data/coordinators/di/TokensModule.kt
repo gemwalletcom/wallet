@@ -2,6 +2,8 @@ package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.tokens.cases.SearchTokens
 import com.gemwallet.android.data.coordinators.tokens.SearchTokensImpl
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
+import kotlinx.coroutines.CoroutineDispatcher
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,5 +17,8 @@ object TokensCasesModule {
 
     @Provides
     @Singleton
-    fun provideSearchTokens(assetsService: GemAssetsService): SearchTokens = SearchTokensImpl(assetsService)
+    fun provideSearchTokens(
+        assetsService: GemAssetsService,
+        @IoDispatcher ioDispatcher: CoroutineDispatcher,
+    ): SearchTokens = SearchTokensImpl(assetsService, ioDispatcher)
 }

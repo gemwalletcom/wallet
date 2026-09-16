@@ -13,7 +13,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
-import java.util.concurrent.TimeUnit
 import uniffi.gemstone.Config
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemChartService
@@ -62,8 +61,10 @@ import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPreferencesStore
 import uniffi.gemstone.GemSecureStore
 import uniffi.gemstone.GemPaymentService
+import uniffi.gemstone.GemPaymentServiceInterface
 import uniffi.gemstone.GemServiceStatus
-import uniffi.gemstone.serviceStatusTimeoutSeconds
+import uniffi.gemstone.GemServiceStatusInterface
+import uniffi.gemstone.serviceStatusTimeout
 import uniffi.gemstone.GemSimulationService
 import uniffi.gemstone.GemSimulationServiceInterface
 import javax.inject.Singleton
@@ -71,8 +72,8 @@ import uniffi.gemstone.GemFileStore
 import uniffi.gemstone.GemWalletPreferencesService
 import uniffi.gemstone.GemWalletService
 import uniffi.gemstone.GemDeviceService
-import uniffi.gemstone.GemNodeServiceInterface
 import uniffi.gemstone.GemDeviceKeyService
+import com.gemwallet.android.domains.gemConfig
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -86,13 +87,9 @@ object GatewayModule {
     @Singleton
     @Provides
     fun provideAlienProvider(
-        nodeService: GemNodeServiceInterface,
         okHttpClient: OkHttpClient,
     ): AlienProvider {
-        return NativeProvider(
-            nodeService = nodeService,
-            httpClient = okHttpClient,
-        )
+        return NativeProvider(httpClient = okHttpClient)
     }
 
     @Provides
@@ -262,14 +259,12 @@ object GatewayModule {
     @Singleton
     fun provideGemScanService(
         okHttpClient: OkHttpClient,
-        nodeService: GemNodeServiceInterface,
         deviceKeyService: GemDeviceKeyService,
     ): GemScanService = GemScanService(
         GemstoneDeviceApiClient(
             NativeProvider(
-                nodeService = nodeService,
                 httpClient = okHttpClient.newBuilder()
-                    .callTimeout(Config().getScanConfig().timeoutSeconds.toLong(), TimeUnit.SECONDS)
+                    .callTimeout(gemConfig.scanTimeout())
                     .build(),
             ),
             deviceKeyService,
@@ -286,24 +281,20 @@ object GatewayModule {
     @Provides
     @Singleton
     fun provideGemServiceStatus(
-        nodeService: GemNodeServiceInterface,
         okHttpClient: OkHttpClient,
-    ): GemServiceStatus {
+    ): GemServiceStatusInterface {
         val httpClient = okHttpClient.newBuilder()
-            .callTimeout(serviceStatusTimeoutSeconds().toLong(), TimeUnit.SECONDS)
+            .callTimeout(serviceStatusTimeout())
             .build()
-        val provider = NativeProvider(
-            nodeService = nodeService,
-            httpClient = httpClient,
-        )
-        return GemServiceStatus(provider)
+        return GemServiceStatus(NativeProvider(httpClient = httpClient))
     }
 
     @Provides
     @Singleton
     fun provideGemGemSimulationService(
         alienProvider: AlienProvider,
-    ): GemSimulationService = GemSimulationService(alienProvider)
+        preferences: GemstonePreferencesStore,
+    ): GemSimulationService = GemSimulationService(alienProvider, preferences)
 
     @Provides
     @Singleton
@@ -316,4 +307,8 @@ object GatewayModule {
 
     @Provides
     fun provideGemChartServiceInterface(service: GemChartService): GemChartServiceInterface = service
+
+    @Provides
+    @Singleton
+    fun providePaymentServiceInterface(service: GemPaymentService): GemPaymentServiceInterface = service
 }

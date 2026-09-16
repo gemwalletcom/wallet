@@ -5,6 +5,25 @@ impl Wallet {
         Self::mock_with_accounts(vec![Account::mock(Chain::Ethereum, "address")])
     }
 
+    pub fn mock_with_chains(chains: &[Chain]) -> Self {
+        Self::mock_with_accounts(Account::mock_chains(chains, "address"))
+    }
+
+    pub fn mock_with_type(wallet_type: WalletType, chains: &[Chain]) -> Self {
+        Self {
+            wallet_type,
+            ..Self::mock_with_chains(chains)
+        }
+    }
+
+    pub fn mock_with_id(id: WalletId, chains: &[Chain]) -> Self {
+        Self {
+            wallet_type: id.wallet_type(),
+            id,
+            ..Self::mock_with_chains(chains)
+        }
+    }
+
     pub fn mock_with_accounts(accounts: Vec<Account>) -> Self {
         Self {
             id: WalletId::Multicoin("0x1".to_string()),

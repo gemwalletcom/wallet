@@ -58,8 +58,6 @@ dependencies {
     implementation(project(":features:asset_select:presents"))
     implementation(project(":features:confirm:presents"))
 
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
     implementation(libs.hilt.lifecycle.viewmodel.compose)
 
     implementation(libs.navigation3.runtime)
@@ -67,8 +65,4 @@ dependencies {
 
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.ui.tooling.preview)
-
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
 }

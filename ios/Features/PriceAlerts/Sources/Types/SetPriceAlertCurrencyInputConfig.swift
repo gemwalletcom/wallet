@@ -3,6 +3,7 @@
 import Components
 import Formatters
 import Foundation
+import GemstonePrimitives
 import Localization
 import Primitives
 import Style
@@ -14,7 +15,6 @@ struct SetPriceAlertCurrencyInputConfig: CurrencyInputConfigurable {
     let assetData: AssetData
     let formatter: CurrencyFormatter
     let onTapActionButton: VoidAction
-    let sanitizer: ((String) -> String)? = nil
 
     var placeholder: String {
         switch type {
@@ -44,6 +44,10 @@ struct SetPriceAlertCurrencyInputConfig: CurrencyInputConfigurable {
 
     var keyboardType: UIKeyboardType {
         .decimalPad
+    }
+
+    func sanitize(_ text: String) -> String {
+        text
     }
 
     var actionStyle: CurrencyInputActionStyle? {

@@ -1,9 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemNameRecordState
 import protocol Gemstone.GemNameServiceProtocol
 import GemstonePrimitives
 import Primitives
+import Style
+import SwiftUI
 
 @Observable
 @MainActor
@@ -11,38 +14,48 @@ public final class NameRecordViewModel {
     private let nameService: any GemNameServiceProtocol
     private(set) var nameRecordTask: Task<Void, Never>?
 
-    public var state: NameRecordState = .none
+    public var state: GemNameRecordState = .none
 
     public init(nameService: any GemNameServiceProtocol) {
         self.nameService = nameService
     }
 
     public func getNameRecord(name: String, chain: Chain) {
-        guard name != state.result?.name else { return }
-        nameRecordTask?.cancel()
-
-        guard nameService.isNameSupported(name: name) else {
-            state = .none
+        switch nameService.nameInputStep(state: state, name: name, hasChain: true) {
+        case .unchanged:
             return
+        case .reset:
+            reset()
+        case let .resolve(name, debounceMilliseconds):
+            nameRecordTask?.cancel()
+            state = .loading(name: name)
+            nameRecordTask = Task { await resolve(name: name, chain: chain, debounceMilliseconds: debounceMilliseconds) }
         }
+    }
 
-        state = .loading
-        nameRecordTask = Task {
-            do {
-                try await Task.sleep(for: .milliseconds(nameService.nameRecordDebounceMilliseconds()))
-                if let record = try await nameService.getNameRecord(name: name, chain: chain),
-                   record.name.isNotEmpty,
-                   record.address.isNotEmpty
-                {
-                    state = .complete(record)
-                } else {
-                    state = .error
-                }
-            } catch {
-                if !error.isCancelled {
-                    state = .error
-                }
-            }
+    private func resolve(name: String, chain: Chain, debounceMilliseconds: UInt64) async {
+        do {
+            try await Task.sleep(for: .milliseconds(debounceMilliseconds))
+            let resolved = try await nameService.getNameRecord(name: name, chain: chain)
+            state = nameService.resolvedState(state: state, name: name, resolved: resolved)
+        } catch {
+            guard !error.isCancelled else { return }
+            state = nameService.resolvedState(state: state, name: name, resolved: .error)
+        }
+    }
+
+    public var isResolving: Bool {
+        if case .loading = state {
+            return true
+        }
+        return false
+    }
+
+    public var resolveImage: Image? {
+        switch state {
+        case .none, .loading: nil
+        case .error: Images.NameResolve.error
+        case .complete: Images.NameResolve.success
         }
     }
 

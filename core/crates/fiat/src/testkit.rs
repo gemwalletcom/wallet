@@ -1,5 +1,18 @@
+use std::collections::HashMap;
+
+use crate::FiatWebhookRequest;
 use crate::model::FiatDeviceContext;
 use primitives::WalletType;
+
+impl FiatWebhookRequest {
+    pub fn mock(raw_body: &str) -> Self {
+        Self::new(raw_body.to_string(), HashMap::new(), String::new()).unwrap()
+    }
+
+    pub fn mock_with_header(raw_body: &str, name: &str, value: &str) -> Self {
+        Self::new(raw_body.to_string(), HashMap::from([(name.to_ascii_lowercase(), value.to_string())]), String::new()).unwrap()
+    }
+}
 
 impl FiatDeviceContext {
     pub fn mock() -> Self {
@@ -22,15 +35,9 @@ use cacher::{AccessTokenCacherClient, CacherClient};
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 use gem_client::ReqwestClient;
 #[cfg(all(test, feature = "fiat_integration_tests"))]
-use settings::Settings;
+use settings::testkit::get_test_settings;
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 use std::sync::Arc;
-
-#[cfg(all(test, feature = "fiat_integration_tests"))]
-fn get_test_settings() -> Settings {
-    let settings_path = std::env::current_dir().expect("Failed to get current directory").join("../../Settings.yaml");
-    Settings::new_setting_path(settings_path).expect("Failed to load settings for tests")
-}
 
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 pub async fn create_transak_test_client() -> Result<TransakClient, Box<dyn std::error::Error + Send + Sync>> {

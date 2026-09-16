@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemSwapProgressMarker
+import struct Gemstone.GemSwapProgressState
 import Style
 import SwiftUI
 
@@ -24,9 +26,9 @@ struct TransactionSwapProgressView: View {
 
     private var timelineView: some View {
         VStack(spacing: .zero) {
-            marker(for: model.transfer.status)
-            connector(color: model.transfer.status.lineColor)
-            marker(for: model.swap.status)
+            marker(for: model.transfer.state)
+            connector(color: model.transfer.state.lineColor)
+            marker(for: model.swap.state)
         }
         .frame(width: Sizing.list.settings)
     }
@@ -42,7 +44,7 @@ struct TransactionSwapProgressView: View {
 
                 Spacer(minLength: .space8)
 
-                statusTag(for: step.status)
+                statusTag(for: step.state)
             }
 
             HStack(alignment: .firstTextBaseline, spacing: .space8) {
@@ -53,7 +55,7 @@ struct TransactionSwapProgressView: View {
 
                 Spacer(minLength: .space8)
 
-                if step.status == .pending, let estimatedTime = model.estimatedTime {
+                if step.state.marker == .spinner, let estimatedTime = model.estimatedTime {
                     Text(estimatedTime)
                         .font(.app.callout)
                         .foregroundStyle(Colors.gray)
@@ -69,56 +71,36 @@ struct TransactionSwapProgressView: View {
             .frame(width: 1.5, height: Sizing.list.settings)
     }
 
-    private func marker(for status: TransactionSwapProgressItemModel.Step.Status) -> some View {
+    private func marker(for state: GemSwapProgressState) -> some View {
         ZStack {
             Circle()
-                .stroke(status.color, lineWidth: .space1)
-                .background(Circle().fill(status.markerBackground))
+                .stroke(state.color, lineWidth: .space1)
+                .background(Circle().fill(state.markerBackground))
 
-            switch status {
-            case .completed:
-                Images.System.checkmark
+            switch state.marker {
+            case .spinner:
+                LoadingView(size: .small, tint: state.color)
+            case .check, .dots, .cross, .swap:
+                state.marker.image?
                     .font(.app.footnote)
                     .fontWeight(.semibold)
-                    .foregroundStyle(status.color)
-            case .pending:
-                LoadingView(size: .small, tint: status.color)
-            case .waiting:
-                Images.System.ellipsis
-                    .font(.app.footnote)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(status.color)
-            case .failed:
-                Images.System.xmark
-                    .font(.app.footnote)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(status.color)
-            case .reverted:
-                Images.System.xmark
-                    .font(.app.footnote)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(status.color)
-            case .refunded:
-                Images.System.arrowSwap
-                    .font(.app.footnote)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(status.color)
+                    .foregroundStyle(state.color)
             }
         }
         .frame(width: Sizing.list.settings, height: Sizing.list.settings)
     }
 
     @ViewBuilder
-    private func statusTag(for status: TransactionSwapProgressItemModel.Step.Status) -> some View {
-        if let tagTitle = status.tagTitle {
+    private func statusTag(for state: GemSwapProgressState) -> some View {
+        if let tagTitle = state.step.tagTitle {
             Text(tagTitle)
                 .font(.app.footnote)
-                .foregroundStyle(status.color)
+                .foregroundStyle(state.color)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
                 .padding(.horizontal, .small)
                 .padding(.vertical, .extraSmall)
-                .background(status.background)
+                .background(state.background)
                 .cornerRadius(.space6)
         }
     }

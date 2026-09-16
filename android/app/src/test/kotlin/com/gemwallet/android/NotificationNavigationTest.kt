@@ -1,5 +1,6 @@
 package com.gemwallet.android
 
+import android.util.Log
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.transactions.cases.CreateTransaction
 import com.gemwallet.android.application.session.cases.GetSession
@@ -23,23 +24,26 @@ import com.gemwallet.android.ui.navigation.routes.TransactionDetailsRoute
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.PushNotificationTypes
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.Wallet
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemPushNotification
 import uniffi.gemstone.GemPushNotificationService
+import uniffi.gemstone.GemServiceException
 import com.wallet.core.primitives.WalletId
 
 class NotificationNavigationTest {
@@ -57,17 +61,25 @@ class NotificationNavigationTest {
         setCurrentWallet = setCurrentWallet,
         getWallet = getWallet,
         createTransaction = createTransaction,
+        assetNavigation = AssetNavigation(assetsService),
         assetsService = assetsService,
         pushNotificationService = pushNotificationService,
     )
 
     @Before
     fun setup() {
+        mockkStatic(Log::class)
+        every { Log.e(any(), any(), any()) } returns 0
         every { getSession() } returns session
         coEvery { setCurrentWallet.setCurrentWallet(any()) } coAnswers {
             session.value = mockSession(wallet = mockWallet(id = (invocation.args.first() as WalletId).id))
         }
         coEvery { assetsService.syncMissingAssets(any()) } returns emptyList()
+    }
+
+    @After
+    fun tearDown() {
+        unmockkStatic(Log::class)
     }
 
     @Test
@@ -87,7 +99,7 @@ class NotificationNavigationTest {
             GemPushNotification.Transaction(
                 walletId = walletId.id,
                 assetId = assetId.toIdentifier(),
-                transaction = transaction.toJson(),
+                transaction = transaction.toGem(),
             )
         )
 
@@ -108,7 +120,7 @@ class NotificationNavigationTest {
             GemPushNotification.Transaction(
                 walletId = walletId.id,
                 assetId = assetId.toIdentifier(),
-                transaction = transaction.toJson(),
+                transaction = transaction.toGem(),
             )
         )
 
@@ -142,7 +154,7 @@ class NotificationNavigationTest {
             GemPushNotification.Transaction(
                 walletId = walletId.id,
                 assetId = assetId.toIdentifier(),
-                transaction = transaction.toJson(),
+                transaction = transaction.toGem(),
             )
         )
 
@@ -222,6 +234,26 @@ class NotificationNavigationTest {
     }
 
     @Test
+    fun buyAssetNotification_isRejectedWhenCoreDoesNotOpenTheAsset() = runBlocking {
+        val assetId = mockAssetId(Chain.Bitcoin)
+        coEvery { assetsService.openAsset(assetId.toIdentifier()) } returns null
+
+        val route = subject.prepareNavigation(GemPushNotification.BuyAsset(assetId.toIdentifier()))
+
+        assertEquals(emptyList<Any>(), route)
+    }
+
+    @Test
+    fun buyAssetNotification_isRejectedWhenCoreFails() = runBlocking {
+        val assetId = mockAssetId(Chain.Bitcoin)
+        coEvery { assetsService.openAsset(assetId.toIdentifier()) } throws GemServiceException.Api("offline")
+
+        val route = subject.prepareNavigation(GemPushNotification.BuyAsset(assetId.toIdentifier()))
+
+        assertEquals(emptyList<Any>(), route)
+    }
+
+    @Test
     fun priceAlertNotification_isRejectedWhenCoreDoesNotOpenTheAsset() = runBlocking {
         val assetId = mockAssetId(Chain.Bitcoin)
         coEvery { assetsService.openAsset(assetId.toIdentifier()) } returns null
@@ -233,7 +265,7 @@ class NotificationNavigationTest {
 
     @Test
     fun rewardsNotification_opensReferralWithoutPayloadData() = runBlocking {
-        val notification = pushNotificationService.parse(PushNotificationTypes.Rewards.string, null)
+        val notification = pushNotificationService.parse("rewards", null)
 
         assertEquals(GemPushNotification.Rewards, notification)
         assertEquals(listOf(ReferralRoute()), subject.prepareNavigation(notification!!))
@@ -241,7 +273,7 @@ class NotificationNavigationTest {
 
     @Test
     fun testNotification_navigatesNowhere() = runBlocking {
-        val notification = pushNotificationService.parse(PushNotificationTypes.Test.string, null)
+        val notification = pushNotificationService.parse("test", null)
 
         assertEquals(GemPushNotification.Test, notification)
         assertEquals(emptyList<Any>(), subject.prepareNavigation(notification!!))

@@ -63,7 +63,6 @@ impl Collection {
             },
             status: VerificationStatus::Verified,
             links: self.as_links(),
-            is_verified: true,
         }
     }
 

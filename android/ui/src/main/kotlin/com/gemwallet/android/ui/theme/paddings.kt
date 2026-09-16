@@ -40,6 +40,7 @@ val paddingDefault = 16.dp
 val paddingLarge = 32.dp
 
 val mainActionHeight = 48.dp
+val hairlineThickness = 0.5.dp
 val chartFrameHeight = 320.dp
 
 object SheetSizing {
@@ -51,6 +52,7 @@ object SceneSizing {
     val buttonMaxWidth = 380.dp
     val contentMaxWidth = 360.dp
     val compactHeight = 740.dp
+    val compactContentHeight = 680.dp
 }
 
 @Composable

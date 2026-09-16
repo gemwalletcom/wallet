@@ -30,14 +30,6 @@ public struct TransactionPerpetualMetadata: Codable, Sendable {
 	}
 }
 
-public struct TransactionResourceTypeMetadata: Codable, Sendable {
-	public let resourceType: Resource
-
-	public init(resourceType: Resource) {
-		self.resourceType = resourceType
-	}
-}
-
 public struct TransactionSwapMetadata: Codable, Equatable, Hashable, Sendable {
 	public let fromAsset: AssetId
 	public let fromValue: String
@@ -51,13 +43,5 @@ public struct TransactionSwapMetadata: Codable, Equatable, Hashable, Sendable {
 		self.toAsset = toAsset
 		self.toValue = toValue
 		self.provider = provider
-	}
-}
-
-public struct TransactionWalletConnectMetadata: Codable, Sendable {
-	public let outputAction: TransferDataOutputAction
-
-	public init(outputAction: TransferDataOutputAction) {
-		self.outputAction = outputAction
 	}
 }

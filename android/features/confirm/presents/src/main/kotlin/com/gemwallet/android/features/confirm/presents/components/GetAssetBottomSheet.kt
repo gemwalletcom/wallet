@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.confirm.presents.components
 
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -14,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -27,21 +27,22 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.actionIconGlyphSize
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.space12
 import com.wallet.core.primitives.Asset
 
 @Composable
 internal fun GetAssetBottomSheet(
-    asset: Asset,
+    asset: Asset?,
     buyAmount: Int?,
     onDismiss: () -> Unit,
     onAction: (AcquireAssetAction) -> Unit,
 ) {
     ModalBottomSheet(
-        isVisible = true,
+        item = asset,
         onDismissRequest = onDismiss,
-        skipPartiallyExpanded = true,
-        title = stringResource(R.string.asset_get_asset, asset.symbol),
-    ) {
+        expansion = SheetExpansion.Full,
+        title = { stringResource(R.string.asset_get_asset, it.symbol) },
+    ) { shownAsset ->
         Column(modifier = Modifier.padding(bottom = paddingDefault)) {
             GetAssetItem(
                 title = stringResource(R.string.wallet_buy),
@@ -91,7 +92,7 @@ private fun GetAssetIcon(icon: ImageVector) {
     Box(
         modifier = Modifier
             .size(listItemIconSize)
-            .background(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(12.dp)),
+            .background(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(space12)),
         contentAlignment = Alignment.Center,
     ) {
         Icon(

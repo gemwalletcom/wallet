@@ -10,3 +10,7 @@ widget_small_description = Track Bitcoin price
 widget_medium_name = Top Crypto Price
 # iOS medium widget description in the widget gallery.
 widget_medium_description = Track prices of top cryptocurrencies
+# iOS small widget message when no price data is available.
+widget_empty_short = No data
+# iOS widget message when no price data is available.
+widget_empty = No price data available

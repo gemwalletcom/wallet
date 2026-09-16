@@ -1,8 +1,8 @@
 use std::collections::BTreeMap;
 
+use gem_solana::Pubkey;
 use primitives::SolanaInstruction;
 use serde::{Deserialize, Serialize};
-use solana_primitives::Pubkey;
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]

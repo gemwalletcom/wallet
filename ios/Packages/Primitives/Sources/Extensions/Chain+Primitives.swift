@@ -20,12 +20,6 @@ extension Chain: Identifiable {
     }
 }
 
-public extension Chain {
-    var stakeChain: StakeChain? {
-        StakeChain(rawValue: rawValue)
-    }
-}
-
 extension Chain: Comparable {
     public static func < (lhs: Chain, rhs: Chain) -> Bool {
         lhs.rawValue < rhs.rawValue

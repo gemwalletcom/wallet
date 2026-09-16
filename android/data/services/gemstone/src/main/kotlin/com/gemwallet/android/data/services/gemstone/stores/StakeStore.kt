@@ -60,8 +60,8 @@ class GemstoneStakeStore(
     suspend fun getValidator(assetId: AssetId, validatorId: String): DelegationValidator? =
         stakeDao.getValidator(assetId, validatorId)?.toDTO()
 
-    fun observeDelegations(walletId: WalletId, assetId: AssetId): Flow<List<Delegation>> =
-        stakeDao.getDelegations(walletId, assetId).map { rows -> rows.mapNotNull { it.toModel() } }
+    fun observeDelegations(walletId: WalletId, assetId: AssetId, providerType: StakeProviderType): Flow<List<Delegation>> =
+        stakeDao.getDelegations(walletId, assetId, providerType).map { rows -> rows.mapNotNull { it.toModel() } }
 
     fun observeDelegation(walletId: WalletId, validatorId: String, delegationId: String): Flow<Delegation?> =
         stakeDao.getDelegation(walletId, validatorId, delegationId).map { it?.toModel() }

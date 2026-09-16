@@ -6,24 +6,22 @@ import WebSocketClient
 public actor WebSocketConnectionMock: WebSocketConnectable {
     private var continuation: AsyncStream<WebSocketEvent>.Continuation?
     private var sentData: [Data] = []
+    private let onConnect: @Sendable () -> Void
 
     public private(set) var state: WebSocketState = .disconnected
 
-    public init() {}
+    public init(onConnect: @escaping @Sendable () -> Void = {}) {
+        self.onConnect = onConnect
+    }
 
     // MARK: - WebSocketConnectable
 
     public func connect() -> AsyncStream<WebSocketEvent> {
-        AsyncStream { [weak self] continuation in
-            guard let self else {
-                continuation.finish()
-                return
-            }
-
-            Task {
-                await self.setupMockStream(continuation)
-            }
-        }
+        let (stream, continuation) = AsyncStream<WebSocketEvent>.makeStream()
+        self.continuation = continuation
+        state = .connecting
+        onConnect()
+        return stream
     }
 
     public func disconnect() async {
@@ -66,12 +64,5 @@ public actor WebSocketConnectionMock: WebSocketConnectable {
 
     public func clearSentData() {
         sentData.removeAll()
-    }
-
-    // MARK: - Private
-
-    private func setupMockStream(_ continuation: AsyncStream<WebSocketEvent>.Continuation) {
-        self.continuation = continuation
-        state = .connecting
     }
 }

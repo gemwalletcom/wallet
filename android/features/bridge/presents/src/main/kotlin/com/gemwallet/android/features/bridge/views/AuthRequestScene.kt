@@ -18,6 +18,7 @@ import com.gemwallet.android.features.bridge.viewmodels.WCAuthViewModel
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticationRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
+import com.gemwallet.android.features.bridge.localization.walletConnectMessage
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -27,6 +28,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.screen.FatalStateScene
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.models.ListPosition
+import androidx.activity.compose.BackHandler
 
 @Composable
 fun AuthRequestScene(
@@ -35,6 +37,7 @@ fun AuthRequestScene(
 ) {
     val context = LocalContext.current
     val viewModel: WCAuthViewModel = hiltViewModel()
+    BackHandler(onBack = viewModel::onReject)
     val state by viewModel.state.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
 
@@ -44,6 +47,11 @@ fun AuthRequestScene(
                 BridgeRequestError.MaliciousSession -> Toast.makeText(
                     context,
                     R.string.errors_connections_malicious_origin,
+                    Toast.LENGTH_LONG
+                ).show()
+                BridgeRequestError.Expired -> Toast.makeText(
+                    context,
+                    R.string.wallet_connect_request_expired,
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -87,7 +95,7 @@ private fun AuthRequestContent(
     WalletConnectReviewScene(
         model = state,
         buttonState = buttonState,
-        walletRow = {
+        walletRow = { position ->
             PropertyItem(
                 modifier = if (canSelectWallet && state !is AuthSceneState.Approving) {
                     Modifier.clickable { isShowSelectWallets = true }
@@ -105,7 +113,7 @@ private fun AuthRequestContent(
                         },
                     )
                 },
-                listPosition = ListPosition.First,
+                listPosition = position,
             )
         },
         onApprove = onApprove,
@@ -114,7 +122,7 @@ private fun AuthRequestContent(
 
     WalletSelectionSheet(
         isVisible = isShowSelectWallets,
-        wallets = state.availableWallets,
+        walletRows = state.availableWalletRows,
         selectedWalletId = state.selectedWallet.id,
         onWalletSelected = onWalletSelected,
         onDismissRequest = { isShowSelectWallets = false },

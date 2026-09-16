@@ -28,9 +28,12 @@ import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.ui.localization.text
 
 @Composable
 internal fun GetStartedDialog(
+    isVisible: Boolean,
     onUsername: (String, (Exception?) -> Unit) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -39,9 +42,6 @@ internal fun GetStartedDialog(
     var showProgress by remember { mutableStateOf(false) }
 
     val focusRequester = remember { FocusRequester() }
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
 
     val dismissDialog: () -> Unit = {
         onDismiss()
@@ -72,10 +72,14 @@ internal fun GetStartedDialog(
     }
 
     FormDialog(
+        isVisible = isVisible,
         title = stringResource(R.string.rewards_create_referral_code_title),
         onDismiss = dismissDialog,
         doneAction = done,
     ) {
+        LaunchedEffect(Unit) {
+            focusRequester.requestFocus()
+        }
         GemTextField(
             modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
             label = stringResource(id = R.string.rewards_username),
@@ -110,7 +114,7 @@ internal fun GetStartedDialog(
                 }
             },
             text = {
-                Text(showError?.message ?: return@AlertDialog)
+                Text(showError?.errorText()?.text() ?: return@AlertDialog)
             }
         )
     }

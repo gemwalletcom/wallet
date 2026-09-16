@@ -5,6 +5,12 @@ mod core 'core/justfile'
 default:
     @just --list
 
+install:
+    @just core install-rust
+    @just core install-typeshare
+    @just ios install
+    @just android install
+
 setup-git:
     @echo "==> Setup iOS git submodules"
     @git submodule sync --recursive
@@ -67,6 +73,12 @@ generate-android-stone:
 localize:
     @just ios localize
     @just android localize
+
+check-mappers:
+    @python3 ./scripts/check-mapper-parity.py
+
+check-docs:
+    @python3 ./scripts/check-docs-links.py
 
 bump TARGET="patch":
     @bash ./scripts/bump.sh {{TARGET}}

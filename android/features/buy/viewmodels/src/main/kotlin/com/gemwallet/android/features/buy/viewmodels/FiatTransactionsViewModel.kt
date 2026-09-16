@@ -22,20 +22,21 @@ class FiatTransactionsViewModel @Inject constructor(
     private val service: GemFiatQuoteServiceInterface,
 ) : ViewModel() {
 
-    val isRefreshing = MutableStateFlow(false)
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing
     val transactions: StateFlow<List<FiatTransactionAssetData>> = observeFiatTransactions()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     init {
-        viewModelScope.launch(Dispatchers.IO) { sync() }
+        refresh()
     }
 
     fun refresh() = viewModelScope.launch(Dispatchers.IO) {
-        isRefreshing.value = true
+        _isRefreshing.value = true
         try {
             sync()
         } finally {
-            isRefreshing.value = false
+            _isRefreshing.value = false
         }
     }
 

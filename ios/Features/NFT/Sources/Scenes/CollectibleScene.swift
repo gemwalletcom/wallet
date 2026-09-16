@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import GemstonePrimitives
 import InfoSheet
 import Localization
 import Primitives
@@ -19,15 +20,27 @@ public struct CollectibleScene: View {
     public var body: some View {
         List {
             headerSectionView
-            if model.showStatus {
-                statusSectionView
-            }
-            assetInfoSectionView
-            if model.showAttributes {
-                attributesSectionView
-            }
-            if model.showLinks {
-                linksSectionView
+            ForEach(model.sections, id: \.self) { section in
+                switch section {
+                case let .status(status):
+                    Section {
+                        AssetStatusView(model: VerificationStatusViewModel(status: status.toPrimitives()), action: model.onSelectStatus)
+                    }
+                case let .info(rows):
+                    Section {
+                        ForEach(model.infoRows(rows), content: infoRowView)
+                    }
+                case let .attributes(attributes):
+                    Section(Localized.Nft.properties) {
+                        ForEach(attributes, id: \.self) {
+                            ListItemView(title: $0.name, subtitle: model.attributeText($0.value))
+                        }
+                    }
+                case let .links(links):
+                    Section(Localized.Social.links) {
+                        SocialLinksView(model: model.socialLinksModel(links))
+                    }
+                }
             }
         }
         .environment(\.defaultMinListHeaderHeight, 0)
@@ -81,52 +94,18 @@ extension CollectibleScene {
         .contextMenu(model.imageContextMenuItems)
     }
 
-    private var statusSectionView: some View {
-        Section {
-            AssetStatusView(model: model.statusViewModel, action: model.onSelectStatus)
-        }
-    }
-
-    private var assetInfoSectionView: some View {
-        Section {
-            ListItemView(field: model.collectionField)
-
-            ListItemImageView(
-                title: model.networkField.title.text,
-                subtitle: model.networkField.value.text,
-                assetImage: model.networkAssetImage,
-            )
-
-            if let contractRow = model.contractRow {
-                infoRowView(contractRow)
-            }
-            infoRowView(model.tokenIdRow)
-        }
-    }
-
-    private var attributesSectionView: some View {
-        Section(model.attributesTitle) {
-            ForEach(model.attributes) {
-                ListItemView(title: $0.name, subtitle: $0.value)
-            }
-        }
-    }
-
-    private var linksSectionView: some View {
-        Section(Localized.Social.links) {
-            SocialLinksView(model: model.socialLinksViewModel)
-        }
-    }
-
     @ViewBuilder
-    private func infoRowView(_ row: CollectibleInfoRow) -> some View {
-        switch row.action {
-        case let .explorer(explorerContext):
-            ListItemView(field: row.field)
-                .explorerContext(explorerContext)
-        case let .copy(copyValue):
-            ListItemView(field: row.field)
-                .contextMenu(.copy(value: copyValue, onCopy: model.onSelectCopyValue))
+    private func infoRowView(_ row: CollectibleInfoRowModel) -> some View {
+        if let assetImage = row.assetImage {
+            ListItemImageView(title: row.title, subtitle: row.subtitle, assetImage: assetImage)
+        } else if let copyValue = row.copyValue, let explorer = row.explorer {
+            ListItemView(title: row.title, subtitle: row.subtitle)
+                .explorerContext(ExplorerContextData(copyValue: copyValue, explorerLink: explorer))
+        } else if let copyValue = row.copyValue {
+            ListItemView(title: row.title, subtitle: row.subtitle)
+                .contextMenu(.copy(value: copyValue.rawValue, onCopy: model.onSelectCopyValue))
+        } else {
+            ListItemView(title: row.title, subtitle: row.subtitle)
         }
     }
 }

@@ -37,13 +37,21 @@ data class FiatTransaction (
 	val fiatAmount: Double,
 	val fiatCurrency: String,
 	val value: String,
-	val createdAt: SerializedDate
+	val createdAt: SerializedDate,
+	val updatedAt: SerializedDate
 )
 
 @Serializable
 data class FiatTransactionAssetData (
-	val transaction: FiatTransaction,
+	val id: String,
 	val asset: Asset,
+	val transactionType: FiatQuoteType,
+	val provider: FiatProviderName,
+	val status: FiatTransactionStatus,
+	val fiatAmount: Double,
+	val fiatCurrency: String,
+	val value: String,
+	val createdAt: SerializedDate,
 	val detailsUrl: String? = null
 )
 

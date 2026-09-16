@@ -9,6 +9,7 @@
   <string name="common_copy">คัดลอก</string>
   <string name="common_share">แบ่งปัน</string>
   <string name="common_continue">ดำเนินการต่อ</string>
+  <string name="common_sign_in_with">ลงชื่อเข้าใช้ด้วย %1$s</string>
   <string name="common_provider">ผู้ให้บริการ</string>
   <string name="common_loading">กำลังโหลด</string>
   <string name="common_address">ที่อยู่</string>
@@ -54,9 +55,9 @@
   <string name="common_earn">รับผลตอบแทน</string>
   <string name="common_method">วิธี</string>
   <string name="common_token">โทเค็น</string>
+  <string name="common_expiration">วันหมดอายุ</string>
   <string name="common_suspicious_address">ที่อยู่น่าสงสัย</string>
   <string name="common_refresh">รีเฟรช</string>
-  <string name="common_no_thanks">ไม่ล่ะ ขอบคุณ</string>
   <string name="common_grant_permission">ให้สิทธิ์</string>
   <string name="common_required_field">จำเป็นต้องระบุ %1$s</string>
   <string name="welcome_title">ยินดีต้อนรับสู่ Gem Family</string>
@@ -142,7 +143,6 @@
   <string name="transfer_unfreeze_title">ยกเลิกการฟรีซ</string>
   <string name="transfer_review_request">คำขอตรวจสอบ</string>
   <string name="transfer_amount">จำนวน</string>
-  <string name="transfer_amount_title">จำนวน</string>
   <string name="settings_terms_of_services">ข้อกำหนดในการให้บริการ</string>
   <string name="settings_privacy_policy">นโยบายความเป็นส่วนตัว</string>
   <string name="settings_title">การตั้งค่า</string>
@@ -177,7 +177,6 @@
   <string name="support_state_empty_title">เราช่วยอะไรคุณได้บ้าง?</string>
   <string name="support_state_empty_description">ถามเราได้ทุกเรื่อง เราพร้อมช่วยเหลือคุณ</string>
   <string name="support_message_placeholder">ข้อความ</string>
-  <string name="errors_transfer">ข้อผิดพลาดในการโอน: %1$s</string>
   <string name="errors_validation">ข้อผิดพลาดในการตรวจสอบ: %1$s</string>
   <string name="errors_create_wallet">สร้างกระเป๋าสตางค์ผิดพลาด: %1$s</string>
   <string name="errors_invalid_address_name">ที่อยู่หรือชื่อไม่ถูกต้อง</string>
@@ -196,7 +195,6 @@
   <string name="errors_connections_user_cancelled">ผู้ใช้ยกเลิก</string>
   <string name="errors_not_supported">ไม่รองรับ</string>
   <string name="errors_permissions_not_granted">ไม่ได้รับสิทธิ์</string>
-  <string name="errors_decoding">ข้อผิดพลาดในการถอดรหัส</string>
   <string name="errors_unknown">ไม่ทราบ</string>
   <string name="errors_not_supported_qr">อุปกรณ์นี้ไม่รองรับการสแกนโค้ด QR คุณสามารถเลือกภาพรหัส QR จากห้องสมุดเท่านั้น</string>
   <string name="errors_camera_permissions_not_granted">ไม่ได้รับอนุญาตให้ใช้กล้อง โปรดเปิดใช้งานการเข้าถึงกล้องในการตั้งค่าเพื่อสแกนโค้ด QR</string>
@@ -207,11 +205,8 @@
   <string name="errors_dust_threshold">ธุรกรรมล้มเหลวเนื่องจากจำนวนเงินน้อยเกินไปที่จะตรงตามข้อกำหนดขั้นต่ำของเครือข่าย %1$s (เกณฑ์ค่าฝุ่น) ขีดจำกัดนี้ช่วยให้มั่นใจว่ามูลค่าธุรกรรมครอบคลุมค่าธรรมเนียมและต้นทุนการประมวลผล เพิ่มจำนวนเงินหรือลดค่าธรรมเนียมเพื่อดำเนินการต่อ</string>
   <string name="errors_swap_no_quote_available">ไม่มีราคาเสนอให้ใช้งาน</string>
   <string name="errors_swap_not_supported_asset">ไม่รองรับสินทรัพย์นี้</string>
-  <string name="errors_connections_invalid_send_parameters">มีการระบุพารามิเตอร์ที่ไม่ถูกต้องสำหรับการส่งธุรกรรม</string>
-  <string name="errors_connections_invalid_sign_parameters">มีการระบุพารามิเตอร์ที่ไม่ถูกต้องสำหรับการลงนาม</string>
   <string name="errors_connections_no_supported_wallets">ไม่มีกระเป๋าเงินที่รองรับ</string>
   <string name="errors_connections_unsupported_chain">ไม่รองรับโซ่ที่ให้มา</string>
-  <string name="errors_connections_unsupported_method">วิธีการที่ร้องขอไม่ได้รับการรองรับ</string>
   <string name="errors_swap_amount_too_small">จำนวนเงินน้อยเกินไป</string>
   <string name="errors_required">%1$s เป็นสิ่งจำเป็น</string>
   <string name="errors_scan_transaction_malicious_description">ไม่สามารถทำธุรกรรมนี้ให้เสร็จสมบูรณ์ได้ — ที่อยู่กระเป๋าเงินปลายทางเชื่อมโยงกับกิจกรรมที่น่าสงสัยหรือเป็นอันตราย</string>
@@ -223,7 +218,6 @@
   <string name="errors_swap_minimum_amount">จำนวนเงินขั้นต่ำในการซื้อขายคือ %1$s กรุณาป้อนจำนวนเงินที่สูงกว่านี้</string>
   <string name="errors_perpetual_trigger_price_lower">ราคา Trigger ควรต่ำกว่าราคาตลาด</string>
   <string name="errors_perpetual_trigger_price_higher">ราคา Trigger ควรสูงกว่าราคาตลาด</string>
-  <string name="errors_token_unable_fetch_token_information">ไม่สามารถดึงข้อมูลโทเค็น: %1$s</string>
   <string name="errors_unknown_try_again">เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ โปรดลองอีกครั้ง</string>
   <string name="errors_network_error">เกิดข้อผิดพลาดเครือข่าย: %1$s</string>
   <string name="errors_network_offline">ดูเหมือนว่าการเชื่อมต่ออินเทอร์เน็ตจะออฟไลน์</string>
@@ -241,7 +235,6 @@
   <string name="update_app_permission_title">อนุญาตให้ติดตั้ง</string>
   <string name="update_app_permission_description">ไปที่การตั้งค่าและอนุญาตการติดตั้งจากแหล่งภายนอก</string>
   <string name="update_app_permission_open_settings">ไปที่การตั้งค่า</string>
-  <string name="update_app_downloading">กำลังดาวน์โหลด...</string>
   <string name="transaction_recipient">ผู้รับ</string>
   <string name="transaction_sender">ผู้ส่ง</string>
   <string name="transaction_date">วันที่</string>
@@ -314,6 +307,7 @@
   <string name="wallet_connect_permissions_title">สิทธิ์การเข้าถึง</string>
   <string name="wallet_connect_permissions_view_balance">ตรวจสอบยอดเงินคงเหลือและกิจกรรมของคุณ</string>
   <string name="wallet_connect_permissions_approval_requests">ส่งคำขออนุมัติ</string>
+  <string name="wallet_connect_request_expired">คำขอหมดอายุแล้ว</string>
   <string name="swap_you_pay">คุณจ่าย</string>
   <string name="swap_you_receive">คุณได้รับ</string>
   <string name="swap_price_impact">ผลกระทบต่อราคา</string>
@@ -396,8 +390,6 @@
   <string name="banner_account_activation_description">เครือข่าย %1$s ต้องเสียค่าธรรมเนียมครั้งเดียวจำนวน %2$s</string>
   <string name="banner_stake_title">เริ่มสเตค %1$s</string>
   <string name="banner_stake_description">รับรางวัล %1$s จากการสเตคของคุณในขณะที่คุณนอนหลับ</string>
-  <string name="banner_enable_notifications_title">เปิดใช้งานการแจ้งเตือน</string>
-  <string name="banner_enable_notifications_description">ติดตามกิจกรรมกระเป๋าเงินของคุณ</string>
   <string name="banner_activate_asset_description">ในการใช้สินทรัพย์ %1$s ก่อนอื่นคุณต้องเปิดใช้งานบนเครือข่าย %2$s โดยปฏิบัติตามข้อกำหนดเฉพาะของเครือข่าย</string>
   <string name="banner_asset_status_title">ทรัพย์สินที่น่าสงสัย</string>
   <string name="banner_asset_status_description">โทเค็นอาจไม่ปลอดภัยหรือทำให้เข้าใจผิด ดำเนินการต่อเมื่อคุณเชื่อถืออย่างเต็มที่เท่านั้น</string>
@@ -494,6 +486,7 @@
   <string name="nft_report_reason_malicious">อันตราย</string>
   <string name="nft_report_reason_inappropriate">เนื้อหาที่ไม่เหมาะสม</string>
   <string name="nft_report_reason_copyright">ลิขสิทธิ์</string>
+  <string name="nft_report_reason_other">อื่นๆ</string>
   <string name="nft_report_report_button_title">รายงานปัญหา</string>
   <string name="permissions_access_denied">การเข้าถึงถูกปฏิเสธ</string>
   <string name="permissions_image_photo_access_denied_description">แอพนี้ไม่มีสิทธิ์ในการเข้าถึงคลังภาพของคุณ โปรดเปิดใช้งานสิทธิ์ในการตั้งค่าอุปกรณ์ของคุณ</string>
@@ -503,7 +496,6 @@
   <string name="search_state_empty_description">ตรวจสอบการสะกดคำหรือลองค้นหาใหม่</string>
   <string name="networks_state_empty_search_title">ไม่พบเครือข่าย</string>
   <string name="onboarding_security_create_wallet_intro_title">คุณจะได้รับวลีลับซึ่งเป็นวิธีเดียวที่จะเข้าถึงกระเป๋าเงินของคุณ</string>
-  <string name="onboarding_security_create_wallet_confirm_title">ฉันเข้าใจและต้องการดำเนินการต่อ</string>
   <string name="onboarding_security_create_wallet_do_not_share_title">อย่าแบ่งปันกับใคร</string>
   <string name="onboarding_security_create_wallet_do_not_share_subtitle">ใครก็ตามที่รู้วลีลับของคุณ สามารถควบคุมกระเป๋าเงินของคุณได้อย่างสมบูรณ์</string>
   <string name="onboarding_security_create_wallet_keep_safe_subtitle">วลีลับเป็นวิธีเดียวที่จะเข้าถึงกระเป๋าเงินของคุณ</string>
@@ -552,8 +544,8 @@
   <string name="perpetual_margin_cross">ข้าม</string>
   <string name="perpetual_margin_isolated">โดดเดี่ยว</string>
   <string name="perpetuals_title">นิรันดร์</string>
+  <string name="perpetuals_trade">เทรดนิรันดร์</string>
   <string name="perpetuals_markets">ตลาด</string>
-  <string name="perpetuals_empty_state_no_markets">ไม่มีตลาด</string>
   <string name="perpetuals_empty_state_no_markets_found">ไม่พบตลาด</string>
   <string name="rewards_title">รางวัล</string>
   <string name="rewards_share_text">เข้าร่วม Gem Wallet ใช้ลิงก์แนะนำของฉันเพื่อรับรางวัล: %1$s</string>
@@ -601,9 +593,6 @@
   <string name="simulation_warning_nft_collection_approval_title">ขอสิทธิ์เข้าถึงคอลเลกชัน NFT ทั้งหมด</string>
   <string name="simulation_warning_unlimited_token_approval_title">อนุมัติโทเค็นได้ไม่จำกัดจำนวน</string>
   <string name="application_name">Gem</string>
-  <string name="camera_permission_request_camera">ต้องได้รับอนุญาตจากกล้องสำหรับการสแกน QR Code\nโปรดให้สิทธิ์</string>
-  <string name="notifications_permission_request_notification">จำเป็นต้องอนุญาตการโพสต์การแจ้งเตือนเพื่อรับการแจ้งเตือนเกี่ยวกับธุรกรรมใหม่\nโปรดให้สิทธิ์</string>
-  <string name="confirm_fee_error">ข้อผิดพลาดในการคำนวณค่าธรรมเนียม</string>
   <string name="rootcheck_security_alert">คำเตือนด้านความปลอดภัย</string>
   <string name="rootcheck_body">อุปกรณ์ของคุณดูเหมือนจะมีสิทธิ์เข้าถึงรูท ซึ่งอาจเพิ่มความเสี่ยงด้านความปลอดภัยได้อย่างมาก การใช้แอปนี้บนอุปกรณ์ที่รูทแล้วอาจทำให้ทรัพย์สินของคุณถูกเข้าถึงโดยไม่ได้รับอนุญาตและอาจสูญหายได้ เพื่อความปลอดภัยของเงินของคุณ เราขอแนะนำอย่างยิ่งให้ใช้อุปกรณ์ที่ไม่ได้รับการรูท</string>
   <string name="rootcheck_ignore">ไม่สนใจ</string>

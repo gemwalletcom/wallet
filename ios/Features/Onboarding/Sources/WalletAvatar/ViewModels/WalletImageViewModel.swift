@@ -1,9 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemAvatarServiceProtocol
-import GemstoneServices
+import protocol Gemstone.GemWalletServiceProtocol
 import Components
 import Foundation
+import func Gemstone.walletAvatarEmojis
+import func Gemstone.walletRow
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -25,10 +26,11 @@ public final class WalletImageViewModel: Sendable {
     }
 
     public let source: Source
-    private let avatarService: any GemAvatarServiceProtocol
+    private let service: any GemWalletServiceProtocol
 
     public let walletQuery: ObservableQuery<WalletRequest>
     public let nftQuery: ObservableQuery<NFTRequest>
+    var isPresentingAlertMessage: AlertMessage?
 
     public var wallet: Wallet {
         walletQuery.value
@@ -39,15 +41,15 @@ public final class WalletImageViewModel: Sendable {
     }
 
     let emojiViewSize: Sizing = .image.extraLarge
-    let emojiList: [EmojiValue] = Array(Emoji.WalletAvatar.allCases.map { EmojiValue(emoji: $0.rawValue, color: Colors.grayVeryLight) })
+    let emojiList: [EmojiValue] = walletAvatarEmojis().map { EmojiValue(emoji: $0, color: Colors.grayVeryLight) }
 
     public init(
         wallet: Wallet,
         source: Source = .wallet,
-        avatarService: any GemAvatarServiceProtocol,
+        service: any GemWalletServiceProtocol,
     ) {
         self.source = source
-        self.avatarService = avatarService
+        self.service = service
         walletQuery = ObservableQuery(WalletRequest(walletId: wallet.id), initialValue: wallet)
         nftQuery = ObservableQuery(NFTRequest(walletId: wallet.id, filter: .all), initialValue: [])
     }
@@ -64,11 +66,11 @@ public final class WalletImageViewModel: Sendable {
     }
 
     var hasAvatar: Bool {
-        WalletViewModel(wallet: wallet).hasAvatar
+        walletRow(wallet: wallet.toGem()).hasAvatar
     }
 
     func avatarAssetImage(for wallet: Wallet) -> AssetImage {
-        WalletViewModel(wallet: wallet).avatarImage
+        walletRow(wallet: wallet.toGem()).avatarImage
     }
 
     func buildNftAssetsItems(from list: [NFTData]) -> [NFTAssetImageItem] {
@@ -96,18 +98,18 @@ public final class WalletImageViewModel: Sendable {
 
     public func setImage(from url: URL) async {
         do {
-            try await avatarService.setImage(url: url, for: wallet)
+            try await service.setImage(url: url, for: wallet)
         } catch {
-            debugLog("Set nft image error: \(error)")
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
 
     public func onRemoveAvatar() {
         Task {
             do {
-                try await avatarService.removeImage(for: wallet)
+                try await service.removeImage(for: wallet)
             } catch {
-                debugLog("Setting default avatar error: \(error)")
+                isPresentingAlertMessage = AlertMessage(error: error)
             }
         }
     }
@@ -130,9 +132,9 @@ public final class WalletImageViewModel: Sendable {
                 guard let data = image.compress() else {
                     throw AnyError("Compression image failed")
                 }
-                try await avatarService.setImage(data: data, for: wallet)
+                try await service.setImage(data: data, for: wallet)
             } catch {
-                debugLog("Set image error: \(error)")
+                isPresentingAlertMessage = AlertMessage(error: error)
             }
         }
     }

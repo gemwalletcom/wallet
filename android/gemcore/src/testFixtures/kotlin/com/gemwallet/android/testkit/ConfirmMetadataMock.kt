@@ -3,7 +3,6 @@ package com.gemwallet.android.testkit
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.Asset
 import uniffi.gemstone.GemAssetBalance
-import uniffi.gemstone.AssetPrice
 import uniffi.gemstone.GemConfirmMetadata
 import java.math.BigInteger
 
@@ -23,14 +22,13 @@ fun mockGemAssetBalance(
     withdrawable = BigInteger.ZERO,
     earn = BigInteger.ZERO,
     metadata = null,
+    isActive = true,
 )
 
 fun mockGemConfirmMetadata(
     asset: Asset = mockAssetEthereum(),
-    feeAsset: Asset = asset,
-    prices: List<AssetPrice> = emptyList(),
 ) = GemConfirmMetadata(
     assetBalance = mockGemAssetBalance(asset),
-    feeAssetBalance = mockGemAssetBalance(feeAsset),
-    prices = prices,
+    feeAssetBalance = mockGemAssetBalance(asset),
+    prices = emptyList(),
 )

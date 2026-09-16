@@ -5,6 +5,10 @@ import Foundation
 extension Wallet: Identifiable {}
 
 public extension Wallet {
+    var chains: [Chain] {
+        accounts.map(\.chain)
+    }
+
     var canSign: Bool {
         !isViewOnly
     }

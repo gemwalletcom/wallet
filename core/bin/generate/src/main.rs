@@ -1,6 +1,7 @@
-mod json_bridge;
 mod localization;
 mod remote_mappers;
+#[cfg(test)]
+mod testkit;
 
 use primitives::Platform;
 
@@ -24,6 +25,16 @@ enum GeneratorType {
     Swift,
     Kotlin,
     TypeScript,
+}
+
+impl GeneratorType {
+    fn ignored_files(&self) -> Vec<&'static str> {
+        match self {
+            Self::Swift => vec!["quote_asset.rs"],
+            Self::Kotlin => vec!["asset_data.rs", "quote_asset.rs"],
+            Self::TypeScript => vec!["transaction_input_type.rs"],
+        }
+    }
 }
 
 fn main() {
@@ -63,7 +74,7 @@ fn main() {
         "slippage.rs",
     ]
     .to_vec();
-    let mut platform_ignored = ignored_files_by_generator(&generator_type);
+    let mut platform_ignored = generator_type.ignored_files();
     ignored_files.append(&mut platform_ignored);
 
     for folder in folders {
@@ -91,18 +102,6 @@ fn generate_remote_mappers(generator_type: &GeneratorType, platform_directory_pa
         GeneratorType::TypeScript => return,
     };
     write_generated(&path, contents);
-
-    match generator_type {
-        GeneratorType::Swift => write_generated(
-            &format!("{platform_directory_path}/GemstonePrimitives/Sources/Generated/JsonBridge.swift"),
-            json_bridge::swift_json_bridge(&json_bridge::bridge_types(Path::new(json_bridge::JSON_BRIDGE_PATH))),
-        ),
-        GeneratorType::Kotlin => write_generated(
-            &format!("{platform_directory_path}/../../gemwallet/android/serializer/TaggedJsonBridge.kt"),
-            json_bridge::kotlin_tagged_bridge(&json_bridge::tagged_bridge_types(Path::new(json_bridge::JSON_BRIDGE_PATH), Path::new(remote_mappers::PRIMITIVES_SOURCE))),
-        ),
-        GeneratorType::TypeScript => {}
-    }
 }
 
 fn write_generated(path: &str, contents: String) {
@@ -231,15 +230,6 @@ fn get_paths(_folder: &str, path: String) -> Vec<String> {
     }
 
     result
-}
-
-//TODO: Pass from the command
-fn ignored_files_by_generator(generator_type: &GeneratorType) -> Vec<&'static str> {
-    match generator_type {
-        GeneratorType::Swift => vec!["quote_asset.rs"],
-        GeneratorType::Kotlin => vec!["asset_data.rs", "quote_asset.rs"],
-        GeneratorType::TypeScript => vec!["transaction_input_type.rs"],
-    }
 }
 
 fn clear_path(path: DirEntry) -> String {

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemNameRecordState
 import struct Gemstone.GemRecipient
 import struct Gemstone.GemRecipientValidation
 import Components
@@ -36,7 +37,7 @@ public final class AddressInputViewModel {
         self.nameService = nameService
         inputModel = InputValidationViewModel(
             mode: .manual,
-            validators: Self.validators(chain: chain, placeholder: placeholder, nameService: nameService),
+            validators: Self.validators(placeholder: placeholder),
         )
     }
 
@@ -45,16 +46,12 @@ public final class AddressInputViewModel {
         set { inputModel.text = newValue }
     }
 
-    public var nameResolveState: NameRecordState {
+    public var nameResolveState: GemNameRecordState {
         nameRecordViewModel.state
     }
 
     public var isValid: Bool {
-        switch nameResolveState {
-        case .none: inputModel.isValid && validation.isValid
-        case .loading, .error: false
-        case .complete: validation.isValid
-        }
+        validation.isValid
     }
 
     public var resolvedAddress: String {
@@ -65,14 +62,14 @@ public final class AddressInputViewModel {
         try nameService.recipient(
             chain: chain.rawValue,
             input: text,
-            nameRecord: nameResolveState.result?.map(),
+            state: nameResolveState,
             memo: memo,
             references: references,
         )
     }
 
     private var validation: GemRecipientValidation {
-        nameService.validateRecipient(chain: chain.rawValue, input: text, nameRecord: nameResolveState.result?.map())
+        nameService.validateRecipient(chain: chain.rawValue, input: text, state: nameResolveState)
     }
 
     @discardableResult
@@ -90,11 +87,12 @@ public final class AddressInputViewModel {
 
     @discardableResult
     public func validate() -> Bool {
-        if nameRecordViewModel.isNameSupported(name: text) {
-            isValid
-        } else {
-            update()
+        guard text.isNotEmpty else {
+            return update()
         }
+        let validation = self.validation
+        update(error: validation.showsError ? TransferError.invalidAddress(asset: chain.asset) : nil)
+        return validation.isValid
     }
 
 }
@@ -113,8 +111,8 @@ extension AddressInputViewModel {
         nameRecordViewModel.getNameRecord(name: newText, chain: chain)
     }
 
-    func onNameResolveStateChange(_: NameRecordState, newState: NameRecordState) {
-        if newState.result != nil {
+    func onNameResolveStateChange(_: GemNameRecordState, newState: GemNameRecordState) {
+        if newState.record() != nil {
             update(error: nil)
         }
     }
@@ -129,18 +127,18 @@ extension AddressInputViewModel {
 
         inputModel = InputValidationViewModel(
             mode: .manual,
-            validators: Self.validators(chain: chain, placeholder: placeholder, nameService: nameService),
+            validators: Self.validators(placeholder: placeholder),
         )
         text = currentText
 
         if nameRecordViewModel.isNameSupported(name: currentText) {
             nameRecordViewModel.getNameRecord(name: currentText, chain: chain)
         } else if currentText.isNotEmpty {
-            inputModel.update()
+            validate()
         }
     }
 
-    private static func validators(chain: Chain, placeholder: String, nameService: any GemNameServiceProtocol) -> [any TextValidator] {
-        [.required(requireName: placeholder), .address(chain.asset, nameService: nameService)]
+    private static func validators(placeholder: String) -> [any TextValidator] {
+        [.required(requireName: placeholder)]
     }
 }

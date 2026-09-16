@@ -1,14 +1,14 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
-import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsEmptyState
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsSheetUIModel
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.RecentAsset
 import com.wallet.core.primitives.RecentActivityType
-import com.gemwallet.android.testkit.mockAsset
-import com.wallet.core.primitives.Chain
+import com.gemwallet.android.testkit.mockAssetEthereum
+import com.gemwallet.android.testkit.mockAssetSolana
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -32,23 +32,32 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemAssetConfigService
+import uniffi.gemstone.GemRecentsViewState
 import uniffi.gemstone.GemRecentActivityService
+import uniffi.gemstone.GemRecentsCounts
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RecentsSheetViewModelTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
 
-    private val solAsset = mockAsset(chain = Chain.Solana, name = "Solana", symbol = "SOL")
-    private val ethAsset = mockAsset(chain = Chain.Ethereum, name = "Ethereum", symbol = "ETH")
+    private val solAsset = mockAssetSolana()
+    private val ethAsset = mockAssetEthereum()
     private val recentItems = listOf(
         RecentAsset(asset = solAsset, addedAt = 1000L),
         RecentAsset(asset = ethAsset, addedAt = 2000L),
     )
 
-    private val getRecentAssets = mockk<GetRecentAssets>(relaxed = true)
-    private val recentActivityService = mockk<GemRecentActivityService>(relaxed = true)
+    private val recentAssetsService = mockk<RecentAssetsService>(relaxed = true)
+    private val recentActivityService = mockk<GemRecentActivityService>(relaxed = true) {
+        every { viewState(any(), any()) } answers {
+            val assets = firstArg<List<uniffi.gemstone.Asset>>()
+            GemRecentsViewState(
+                matchingAssetIds = assets.map { it.id },
+                sections = GemRecentsCounts(assets.size.toUInt(), assets.size.toUInt()).sections(false),
+            )
+        }
+    }
 
     @Before
     fun setUp() {
@@ -62,7 +71,7 @@ class RecentsSheetViewModelTest {
 
     @Test
     fun `show makes visible and dismiss hides`() = runTest(testDispatcher) {
-        val vm = RecentsSheetViewModel(getRecentAssets, recentActivityService, GemAssetConfigService())
+        val vm = RecentsSheetViewModel(recentAssetsService, recentActivityService, testDispatcher)
 
         assertFalse(vm.visible.value)
 
@@ -77,8 +86,8 @@ class RecentsSheetViewModelTest {
 
     @Test
     fun `uiModel keeps content after dismiss`() = runTest(testDispatcher) {
-        every { getRecentAssets(any()) } returns flowOf(recentItems)
-        val vm = RecentsSheetViewModel(getRecentAssets, recentActivityService, GemAssetConfigService())
+        every { recentAssetsService.getRecentAssets(any()) } returns flowOf(recentItems)
+        val vm = RecentsSheetViewModel(recentAssetsService, recentActivityService, testDispatcher)
 
         vm.show()
         vm.uiModel.first { it.items.isNotEmpty() }
@@ -90,7 +99,7 @@ class RecentsSheetViewModelTest {
 
     @Test
     fun `clear delegates to coordinator with current types`() = runTest(testDispatcher) {
-        val vm = RecentsSheetViewModel(getRecentAssets, recentActivityService, GemAssetConfigService())
+        val vm = RecentsSheetViewModel(recentAssetsService, recentActivityService, testDispatcher)
         val types = listOf(RecentActivityType.Swap)
         vm.show(types = types)
         advanceUntilIdle()
@@ -105,8 +114,7 @@ class RecentsSheetViewModelTest {
     fun `uiModel properties derive correctly`() {
         val withItems = RecentsSheetUIModel(
             items = recentItems.toImmutableList(),
-            hasAnyRecents = true,
-            searchActive = false,
+            sections = GemRecentsCounts(recents = 5u, matching = 5u).sections(false),
         )
         assertFalse(withItems.isEmpty)
         assertTrue(withItems.showClear)
@@ -114,8 +122,7 @@ class RecentsSheetViewModelTest {
 
         val searchNoResults = RecentsSheetUIModel(
             items = persistentListOf(),
-            hasAnyRecents = true,
-            searchActive = true,
+            sections = GemRecentsCounts(recents = 5u, matching = 0u).sections(true),
         )
         assertTrue(searchNoResults.isEmpty)
         assertFalse(searchNoResults.showClear)
@@ -123,8 +130,7 @@ class RecentsSheetViewModelTest {
 
         val noRecents = RecentsSheetUIModel(
             items = persistentListOf(),
-            hasAnyRecents = false,
-            searchActive = false,
+            sections = GemRecentsCounts(recents = 0u, matching = 0u).sections(false),
         )
         assertTrue(noRecents.isEmpty)
         assertFalse(noRecents.showClear)

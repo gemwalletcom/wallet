@@ -1,0 +1,16 @@
+[
+    {
+        "currency": "ETH",
+        "network": "ROBINHOOD",
+        "contract": "",
+        "widget_onramp_enabled": true,
+        "widget_offramp_enabled": true
+    },
+    {
+        "currency": "USDG",
+        "network": "ROBINHOOD",
+        "contract": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+        "widget_onramp_enabled": true,
+        "widget_offramp_enabled": true
+    }
+]

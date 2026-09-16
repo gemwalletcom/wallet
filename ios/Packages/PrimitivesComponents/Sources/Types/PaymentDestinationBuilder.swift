@@ -2,7 +2,7 @@
 
 import Foundation
 import Gemstone
-import class Gemstone.GemPaymentService
+import protocol Gemstone.GemPaymentServiceProtocol
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -14,13 +14,13 @@ public enum PaymentDestinationBuilder {
     }
 
     public static func transfer(
-        payment: Primitives.PaymentRequest,
+        payment: Gemstone.PaymentRequest,
         asset: Primitives.Asset,
-        paymentService: GemPaymentService,
+        paymentService: any GemPaymentServiceProtocol,
     ) throws -> TransferDestination {
-        switch paymentService.transferDestination(request: payment.json(), asset: asset.paymentWalletAsset) {
+        switch paymentService.transferDestination(request: payment, asset: asset.paymentWalletAsset) {
         case let .confirm(transfer):
-            return .confirm(paymentService.transferData(transfer: transfer, asset: asset.map()))
+            return .confirm(paymentService.transferData(transfer: transfer, asset: asset.toGem()))
         case let .recipient(_, payment):
             return .recipient(payment)
         case .selectAsset, .unsupported:
@@ -29,23 +29,23 @@ public enum PaymentDestinationBuilder {
     }
 
     public static func build(
-        payment: Primitives.PaymentRequest,
+        payment: Gemstone.PaymentRequest,
         assets: [AssetData],
-        paymentService: GemPaymentService,
+        paymentService: any GemPaymentServiceProtocol,
     ) throws -> PaymentDestination {
-        switch paymentService.destination(request: payment.json(), assets: assets.map { $0.asset.paymentWalletAsset }) {
+        switch paymentService.destination(request: payment, assets: assets.map { $0.asset.paymentWalletAsset }) {
         case let .confirm(transfer):
             guard let assetData = assetData(for: transfer.assetId, in: assets) else {
                 throw AnyError(Localized.Errors.notSupported)
             }
-            return .confirm(paymentService.transferData(transfer: transfer, asset: assetData.asset.map()))
+            return .confirm(paymentService.transferData(transfer: transfer, asset: assetData.asset.toGem()))
         case let .recipient(assetId, payment):
             guard let assetData = assetData(for: assetId, in: assets) else {
                 throw AnyError(Localized.Errors.notSupported)
             }
             return .recipient(
                 SelectedAssetInput(
-                    type: .send(.asset(asset: assetData.asset.map())),
+                    type: .send(.asset(asset: assetData.asset.toGem())),
                     assetData: assetData,
                     recipient: payment,
                 ),
@@ -60,9 +60,9 @@ public enum PaymentDestinationBuilder {
     public static func build(
         transaction: GemPaymentTransaction,
         asset: Primitives.Asset,
-        paymentService: GemPaymentService,
+        paymentService: any GemPaymentServiceProtocol,
     ) -> PaymentDestination {
-        .confirm(paymentService.transactionTransferData(transaction: transaction, asset: asset.map()))
+        .confirm(paymentService.transactionTransferData(transaction: transaction, asset: asset.toGem()))
     }
 
     private static func assetData(for assetId: String, in assets: [AssetData]) -> AssetData? {

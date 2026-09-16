@@ -2,10 +2,12 @@ use std::collections::HashSet;
 
 use primitives::{Account, AssetId, Chain};
 
+pub fn is_hyperliquid_chain(chain: Chain) -> bool {
+    matches!(chain, Chain::Arbitrum | Chain::HyperCore | Chain::Hyperliquid)
+}
+
 pub fn hyperliquid_account(accounts: &[Account]) -> Option<&Account> {
-    accounts
-        .iter()
-        .find(|account| matches!(account.chain, Chain::Arbitrum | Chain::HyperCore | Chain::Hyperliquid))
+    accounts.iter().find(|account| is_hyperliquid_chain(account.chain))
 }
 
 pub fn new_asset_ids(subscribed: &HashSet<AssetId>, asset_ids: Vec<AssetId>) -> Vec<AssetId> {

@@ -27,7 +27,7 @@ public struct ChartView: View {
     }
 
     public var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: .zero) {
             priceHeader
             chart
         }
@@ -186,9 +186,6 @@ extension ChartView {
             return
         }
 
-        if element.date != selectedElement?.date {
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-        }
         selectedElement = element
     }
 

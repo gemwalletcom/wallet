@@ -11,12 +11,12 @@ use super::super::{
     format::{FileV4, parse_v4},
     types::{FileKeystore, KdfParams, SecretKind},
 };
-use super::testkit::{PHRASE, assert_verify_path_error, new_keystore_id, test_keystore, v4_path, write_tampered};
+use super::testkit::{PHRASE, assert_verify_path_error, v4_path, write_tampered};
 
 #[cfg(unix)]
 #[test]
 fn test_v4_secret_file_is_owner_read_write_only() {
-    let (dir, keystore) = test_keystore();
+    let (dir, keystore) = FileKeystore::mock();
     let meta = keystore.import_mnemonic(PHRASE, b"password", None).unwrap();
 
     let path = v4_path(&dir, &meta.keystore_id);
@@ -28,7 +28,7 @@ fn test_v4_secret_file_is_owner_read_write_only() {
 
 #[test]
 fn test_v4_mnemonic_roundtrip() {
-    let (_dir, keystore) = test_keystore();
+    let (_dir, keystore) = FileKeystore::mock();
     let password = b"password";
     let meta = keystore.import_mnemonic(PHRASE, password, None).unwrap();
     assert_eq!(meta.kind, SecretKind::Mnemonic);
@@ -39,7 +39,7 @@ fn test_v4_mnemonic_roundtrip() {
 
 #[test]
 fn test_v4_private_key_roundtrip_and_meta() {
-    let (_dir, keystore) = test_keystore();
+    let (_dir, keystore) = FileKeystore::mock();
     let password = b"password";
     let private_key = [7u8; 32];
     let meta = keystore.import_private_key(&private_key, password, None).unwrap();
@@ -52,7 +52,7 @@ fn test_v4_private_key_roundtrip_and_meta() {
 
 #[test]
 fn test_v4_rejects_invalid_ids_before_path_construction() {
-    let (_dir, keystore) = test_keystore();
+    let (_dir, keystore) = FileKeystore::mock();
     let password = b"password";
     let invalid_ids = [
         "",
@@ -72,7 +72,7 @@ fn test_v4_rejects_invalid_ids_before_path_construction() {
 
 #[test]
 fn test_v4_header_filename_mismatch_fails_after_authentication() {
-    let (dir, keystore) = test_keystore();
+    let (dir, keystore) = FileKeystore::mock();
     let password = b"password";
     let id_a = KeystoreId::new();
     let id_b = KeystoreId::new();
@@ -93,7 +93,7 @@ fn test_v4_header_filename_mismatch_fails_after_authentication() {
 
 #[test]
 fn test_v4_change_password_and_list_inspect() {
-    let (dir, keystore) = test_keystore();
+    let (dir, keystore) = FileKeystore::mock();
     let old_password = b"old-password";
     let new_password = b"new-password";
     let meta = keystore.import_mnemonic(PHRASE, old_password, None).unwrap();
@@ -118,7 +118,7 @@ fn test_v4_change_password_and_list_inspect() {
 
 #[test]
 fn test_v4_password_bounds() {
-    let (_dir, keystore) = test_keystore();
+    let (_dir, keystore) = FileKeystore::mock();
     assert_eq!(keystore.import_mnemonic(PHRASE, b"", None).unwrap_err(), KeystoreError::invalid_input("password input"));
     assert_eq!(
         keystore.import_private_key(&[], b"password", None).unwrap_err(),
@@ -128,7 +128,7 @@ fn test_v4_password_bounds() {
 
 #[test]
 fn test_v4_json_shape() {
-    let (dir, keystore) = test_keystore();
+    let (dir, keystore) = FileKeystore::mock();
     let meta = keystore.import_mnemonic(PHRASE, b"password", None).unwrap();
     let file = read_file_v4(&dir, &meta.keystore_id);
 
@@ -145,7 +145,7 @@ fn test_v4_json_shape() {
 
 #[test]
 fn test_v4_rejects_roundtrip_tampering() {
-    let (dir, keystore) = test_keystore();
+    let (dir, keystore) = FileKeystore::mock();
     let password = b"password";
     let meta = keystore.import_mnemonic(PHRASE, password, None).unwrap();
     let original = read_file_v4(&dir, &meta.keystore_id);
@@ -216,7 +216,7 @@ fn test_v4_rejects_malformed_files() {
 
 #[test]
 fn test_v4_rejects_payload_that_would_exceed_the_read_cap() {
-    let (_dir, keystore) = test_keystore();
+    let (_dir, keystore) = FileKeystore::mock();
     let oversized = vec![7u8; 65_500];
     assert_eq!(
         keystore.import_private_key(&oversized, b"password", None).unwrap_err(),
@@ -238,10 +238,10 @@ fn flip_hex_at(text: &str, index: usize) -> String {
 
 #[test]
 fn test_v4_concurrent_import_same_wallet_is_idempotent() {
-    let (dir, _keystore) = test_keystore();
+    let (dir, _keystore) = FileKeystore::mock();
     let keystore = Arc::new(FileKeystore::open_with_kdf(dir.path().to_path_buf(), KdfParams::mock()).unwrap());
     let barrier = Arc::new(Barrier::new(2));
-    let id = new_keystore_id();
+    let id = KeystoreId::new().to_string();
     let password = b"password".to_vec();
 
     let handles = (0..2)

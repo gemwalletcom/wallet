@@ -4,12 +4,7 @@ use primitives::{FeePriority, FeeRate, GasPriceType, NodeSyncStatus};
 use std::error::Error;
 
 pub fn map_gas_price_to_priorities(gas_price: &GasPrice) -> Result<Vec<FeeRate>, Box<dyn std::error::Error + Sync + Send>> {
-    let base_price = gas_price.gas_price;
-
-    Ok(vec![
-        FeeRate::new(FeePriority::Normal, GasPriceType::regular(base_price)),
-        FeeRate::new(FeePriority::Fast, GasPriceType::regular(base_price * 2)),
-    ])
+    Ok(vec![FeeRate::new(FeePriority::Normal, GasPriceType::regular(gas_price.gas_price))])
 }
 
 pub fn map_node_status(block: &Block) -> Result<NodeSyncStatus, Box<dyn Error + Sync + Send>> {
@@ -24,17 +19,15 @@ mod tests {
     use primitives::GasPriceType;
 
     #[test]
-    fn test_map_gas_price_to_priorities() {
+    fn test_the_protocol_gas_price_is_the_only_rate() {
         let gas_price = GasPrice { gas_price: 1000000000 };
 
         let result = map_gas_price_to_priorities(&gas_price).unwrap();
-        assert_eq!(result.len(), 2);
+
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].priority, FeePriority::Normal);
         match &result[0].gas_price_type {
             GasPriceType::Regular { gas_price } => assert_eq!(gas_price, &BigInt::from(1000000000u64)),
-            _ => panic!("Expected Regular gas price"),
-        }
-        match &result[1].gas_price_type {
-            GasPriceType::Regular { gas_price } => assert_eq!(gas_price, &BigInt::from(2000000000u64)),
             _ => panic!("Expected Regular gas price"),
         }
     }

@@ -7,16 +7,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.theme.adaptivePadding
 import com.gemwallet.android.ui.theme.paddingSmall
 
+import com.gemwallet.android.ui.theme.space0
 @Composable
 fun CenteredDescriptionText(
     text: String,
     modifier: Modifier = Modifier,
 ) {
-    val horizontalPadding = adaptivePadding(default = paddingSmall, compact = 0.dp)
+    val horizontalPadding = adaptivePadding(default = paddingSmall, compact = space0)
 
     Text(
         modifier = modifier

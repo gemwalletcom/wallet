@@ -44,16 +44,16 @@ public struct TransactionsFilterScene: View {
         .sheet(isPresented: $model.isPresentingChains) {
             SelectableSheet(
                 model: model.networksModel,
-                onFinishSelection: onFinishSelection(value:),
+                onFinishSelection: { if model.onFinishChainsSelection($0) { dismiss() } },
                 listContent: { ChainView(model: ChainViewModel(chain: $0)) },
             )
         }
         .sheet(isPresented: $model.isPresentingTypes) {
             SelectableSheet(
                 model: model.typesModel,
-                onFinishSelection: onFinishSelection(value:),
+                onFinishSelection: { if model.onFinishTypesSelection($0) { dismiss() } },
                 listContent: {
-                    ListItemView(title: TransactionFilterTypeViewModel(type: $0).title)
+                    ListItemView(title: $0.title)
                 },
             )
         }
@@ -72,17 +72,5 @@ extension TransactionsFilterScene {
         dismiss()
     }
 
-    private func onFinishSelection(value: SelectionResult<Chain>) {
-        model.chainsFilter.selectedChains = value.items
-        if value.isConfirmed {
-            dismiss()
-        }
-    }
 
-    private func onFinishSelection(value: SelectionResult<TransactionFilterType>) {
-        model.transactionTypesFilter.selectedTypes = value.items
-        if value.isConfirmed {
-            dismiss()
-        }
-    }
 }

@@ -1,7 +1,6 @@
 use crate::constants::{TRANSACTION_TYPE_CREATE_ACCOUNT, TRANSACTION_TYPE_PAYMENT};
 use crate::models::transaction::{Payment, StellarTransactionBroadcast};
 use chrono::DateTime;
-use num_bigint::BigUint;
 use primitives::{Transaction, TransactionType, chain::Chain};
 use std::error::Error;
 use url::form_urlencoded;
@@ -49,7 +48,7 @@ pub fn map_transaction(chain: Chain, transaction: Payment) -> Option<Transaction
                     None,
                     TransactionType::Transfer,
                     transaction.get_state(),
-                    BigUint::from(1000u32), // TODO: Calculate from block/transaction
+                    transaction.fee_charged(),
                     chain.as_asset_id(),
                     transaction.get_value()?,
                     transaction.clone().get_memo(),
@@ -74,6 +73,7 @@ mod tests {
         },
         provider::testkit::TEST_TRANSACTION_ID,
     };
+    use num_bigint::BigUint;
     use primitives::Chain;
 
     #[test]
@@ -121,5 +121,16 @@ mod tests {
         assert_eq!(transaction.from, "GFROM");
         assert_eq!(transaction.to, "GTO");
         assert_eq!(transaction.memo, Some("49639518".to_string()));
+        assert_eq!(transaction.fee, BigUint::from(1500u32), "the fee comes from the joined transaction, not a constant");
+    }
+
+    #[test]
+    fn test_a_payment_without_a_joined_transaction_falls_back_to_the_base_fee() {
+        let payment: Payment = serde_json::from_str(
+            r#"{"id":"1","transaction_successful":true,"transaction_hash":"h","type":"payment","asset_type":"native","from":"GFROM","to":"GTO","amount":"0.0001","created_at":"2026-01-11T05:10:52Z","transaction":null}"#,
+        )
+        .unwrap();
+
+        assert_eq!(map_transaction(Chain::Stellar, payment).unwrap().fee, BigUint::from(100u32));
     }
 }

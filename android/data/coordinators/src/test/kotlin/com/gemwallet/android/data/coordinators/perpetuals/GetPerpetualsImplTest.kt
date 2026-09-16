@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.model.CurrencyFormatter
 import com.wallet.core.primitives.Currency
 import com.gemwallet.android.testkit.mockPerpetual
@@ -45,10 +45,10 @@ class GetPerpetualsImplTest {
 
         assertEquals("$95,420.50", rows[0].price.valueFormatted)
         assertEquals("+2.50%", rows[0].price.changePercentageFormatted)
-        assertEquals(ValueDirection.Up, rows[0].price.state)
+        assertEquals(GemValueTone.POSITIVE, rows[0].price.state)
         assertEquals(CurrencyFormatter(type = CurrencyFormatter.Type.Abbreviated, currency = Currency.USD).string(15_000.0), rows[0].volume)
         assertEquals("$0.00", rows[1].price.valueFormatted)
         assertEquals("-1.25%", rows[1].price.changePercentageFormatted)
-        assertEquals(ValueDirection.Down, rows[1].price.state)
+        assertEquals(GemValueTone.NEGATIVE, rows[1].price.state)
     }
 }

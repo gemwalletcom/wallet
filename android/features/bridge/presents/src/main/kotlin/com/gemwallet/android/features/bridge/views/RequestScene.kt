@@ -21,6 +21,7 @@ import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
 import com.wallet.core.primitives.AssetId
+import androidx.activity.compose.BackHandler
 
 @Composable
 fun RequestScene(
@@ -30,6 +31,7 @@ fun RequestScene(
     onError: (String) -> Unit,
 ) {
     val viewModel: WCRequestViewModel = hiltViewModel()
+    BackHandler(onBack = viewModel::onReject)
     val context = LocalContext.current
     val unknownErrorMessage = stringResource(id = R.string.errors_unknown_try_again)
     val reportError: (String) -> Unit = { message -> onError(message.ifBlank { unknownErrorMessage }) }
@@ -43,6 +45,11 @@ fun RequestScene(
                     BridgeRequestError.MaliciousSession -> Toast.makeText(
                         context,
                         R.string.errors_connections_malicious_origin,
+                        Toast.LENGTH_LONG
+                    ).show()
+                    BridgeRequestError.Expired -> Toast.makeText(
+                        context,
+                        R.string.wallet_connect_request_expired,
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -66,7 +73,7 @@ fun RequestScene(
                 is WCRequest.SignMessage -> WalletConnectReviewScene(
                     model = request,
                     buttonState = buttonState,
-                    walletRow = { PropertyItem(R.string.common_wallet, sceneState.walletName, listPosition = ListPosition.First) },
+                    walletRow = { position -> PropertyItem(R.string.common_wallet, sceneState.walletName, listPosition = position) },
                     onApprove = { viewModel.onSign(reportError) },
                     onReject = viewModel::onReject,
                 )

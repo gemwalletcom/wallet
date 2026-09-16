@@ -7,6 +7,7 @@ import Primitives
 public struct TransactionsRequest: DatabaseQueryable {
     private let walletId: WalletId
     private let type: TransactionsRequestType
+    private let limit: Int?
 
     public var filters: [TransactionsRequestFilter] = []
 
@@ -14,14 +15,16 @@ public struct TransactionsRequest: DatabaseQueryable {
         walletId: WalletId,
         type: TransactionsRequestType,
         filters: [TransactionsRequestFilter] = [],
+        limit: Int? = nil,
     ) {
         self.walletId = walletId
         self.type = type
         self.filters = filters
+        self.limit = limit
     }
 
     public func fetch(_ db: Database) throws -> [TransactionExtended] {
-        try Self.fetch(db, type: type, filters: filters, walletId: walletId)
+        try Self.fetch(db, type: type, filters: filters, walletId: walletId, limit: limit)
     }
 
     public static func fetch(
@@ -29,8 +32,10 @@ public struct TransactionsRequest: DatabaseQueryable {
         type: TransactionsRequestType,
         filters: [TransactionsRequestFilter],
         walletId: WalletId,
+        limit: Int? = nil,
     ) throws -> [TransactionExtended] {
-        try fetch(db, request: query(walletId: walletId, type: type, filters: filters))
+        let request = query(walletId: walletId, type: type, filters: filters)
+        return try fetch(db, request: limit.map { request.limit($0) } ?? request)
     }
 
     static func fetch(_ db: Database, request: QueryInterfaceRequest<TransactionRecord>) throws -> [TransactionExtended] {
@@ -70,7 +75,7 @@ public struct TransactionsRequest: DatabaseQueryable {
         }
 
         for filter in filters {
-            request = Self.applyFilter(request: request, filter)
+            request = Self.filtered(request: request, filter)
         }
 
         return request
@@ -80,7 +85,7 @@ public struct TransactionsRequest: DatabaseQueryable {
 // MARK: - Private
 
 extension TransactionsRequest {
-    static func applyFilter(request: QueryInterfaceRequest<TransactionRecord>, _ filter: TransactionsRequestFilter) -> QueryInterfaceRequest<TransactionRecord> {
+    static func filtered(request: QueryInterfaceRequest<TransactionRecord>, _ filter: TransactionsRequestFilter) -> QueryInterfaceRequest<TransactionRecord> {
         switch filter {
         case let .chains(chains):
             guard !chains.isEmpty else { return request }

@@ -9,7 +9,7 @@ import org.junit.Test
 class NftImageUrlTest {
 
     @Test
-    fun transactionNftImageUrl_usesAssetsUrlWithNftPrefix() {
+    fun transactionNftImageUrl_usesAssetsNftPath() {
         val assetId = mockNftAssetId()
 
         assertEquals(

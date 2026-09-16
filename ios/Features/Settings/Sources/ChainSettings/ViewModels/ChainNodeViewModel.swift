@@ -1,66 +1,62 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
+import GemstonePrimitives
+import struct Gemstone.GemNodeRow
 import struct Gemstone.GemNodeSelection
-import enum Gemstone.GemNodeStatusState
 import Localization
 import Style
 
 struct ChainNodeViewModel {
-    let node: GemNodeSelection
+    let row: GemNodeRow
 
-    private let gemNodeFlag: String?
-    private let statusState: GemNodeStatusState
-    private let formatter: ValueFormatter
+    init(row: GemNodeRow) {
+        self.row = row
+    }
 
-    init(
-        node: GemNodeSelection,
-        gemNodeFlag: String?,
-        statusState: GemNodeStatusState,
-        formatter: ValueFormatter,
-    ) {
-        self.node = node
-        self.gemNodeFlag = gemNodeFlag
-        self.statusState = statusState
-        self.formatter = formatter
+    var node: GemNodeSelection {
+        row.node
     }
 
     var url: String {
-        node.url
+        row.node.url
+    }
+
+    var canDelete: Bool {
+        row.canDelete
     }
 
     var selection: String? {
-        node.isSelected ? node.url : .none
+        row.node.isSelected ? row.node.url : .none
     }
 
     var title: String {
-        guard let gemNodeFlag else { return node.host }
-        return Localized.Nodes.gemWalletNode + " " + gemNodeFlag
+        switch row.title {
+        case let .host(host): host
+        case let .gemNode(flag): Localized.Nodes.gemWalletNode + " " + flag
+        }
     }
 
     var titleExtra: String? {
-        nodeStatusModel
-            .latestBlockText(
-                title: Localized.Nodes.ImportNode.latestBlock,
-                formatter: formatter,
-            )
+        switch row.subtitle {
+        case let .latestBlock(value): "\(row.subtitle.title): \(value)"
+        }
     }
 
     var titleTag: String? {
-        nodeStatusModel.latencyText
+        statusTag.text
     }
 
     var titleTagType: TitleTagType {
-        nodeStatusModel.titleTagType
+        statusTag.type
     }
 
     var titleTagStyle: TextStyle {
-        nodeStatusModel.titleTagStyle
+        statusTag.style
     }
 
-    private var nodeStatusModel: NodeStatusStateViewModel {
-        NodeStatusStateViewModel(nodeStatus: statusState)
+    private var statusTag: LatencyStatusViewModel {
+        LatencyStatusViewModel(status: row.latencyStatus)
     }
 }
 
@@ -68,6 +64,6 @@ struct ChainNodeViewModel {
 
 extension ChainNodeViewModel: Identifiable {
     var id: String {
-        node.url
+        row.node.url
     }
 }

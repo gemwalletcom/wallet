@@ -1,6 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemAddNodeError
+import enum Gemstone.GemAddNodeFailure
+import enum Gemstone.GemAddNodePhase
+import struct Gemstone.GemAddNodeSession
 import protocol Gemstone.GemChainSettingsServiceProtocol
 import Localization
 import Primitives
@@ -16,7 +20,7 @@ final class AddNodeSceneViewModel {
     let chain: Chain
 
     var urlInputModel = InputValidationViewModel(mode: .onDemand)
-    var state: StateViewType<AddNodeResultViewModel> = .noData
+    private var session: GemAddNodeSession
     var isPresentingScanner: Bool = false
     var isPresentingAlertMessage: AlertMessage?
     var loadTrigger: AddNodeLoadTrigger?
@@ -28,6 +32,16 @@ final class AddNodeSceneViewModel {
     init(chain: Chain, service: any GemChainSettingsServiceProtocol) {
         self.chain = chain
         self.service = service
+        session = service.newAddNodeSession(chain: chain.rawValue)
+    }
+
+    var state: StateViewType<AddNodeResultViewModel> {
+        switch session.viewState().phase {
+        case .idle: .noData
+        case .checking: .loading
+        case let .ready(check): .data(AddNodeResultViewModel(result: check))
+        case let .failed(failure): .error(failure.error)
+        }
     }
 
     var title: String {
@@ -80,29 +94,30 @@ extension AddNodeSceneViewModel {
     }
 
     private func setLoadTrigger(isImmediate: Bool) {
-        let text = urlInputModel.text
-        guard text.isNotEmpty else {
-            state = .noData
+        session = session.onInput(url: urlInputModel.text)
+        guard session.checksUrl() else {
             loadTrigger = nil
             return
         }
-        loadTrigger = AddNodeLoadTrigger(url: text, isImmediate: isImmediate)
+        loadTrigger = AddNodeLoadTrigger(url: session.url, isImmediate: isImmediate)
     }
 
     func importFoundNode() async throws {
-        guard case let .data(model) = state else {
+        guard let check = session.check else {
             throw AnyError("Unknown result")
         }
-
-        try await service.addNode(chain: chain.rawValue, url: model.url)
+        try await service.addNode(chain: chain.rawValue, url: check.url)
+        session = session.onImported()
     }
 
     func load() async {
-        state = .loading
+        session = session.onChecking()
         do {
-            state = try await .data(AddNodeResultViewModel(result: service.checkNode(chain: chain.rawValue, url: urlInputModel.text)))
+            session = try await session.onChecked(check: service.checkNode(chain: chain.rawValue, url: session.url))
+        } catch let error as GemAddNodeError {
+            session = session.onFailed(failure: error.failure)
         } catch {
-            state.setError(error)
+            session = session.onFailed(failure: .unavailable)
         }
     }
 }

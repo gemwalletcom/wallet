@@ -192,7 +192,7 @@ interface TransactionsDao {
     @Insert(entity = DbTransactionSwapMetadata::class, onConflict = OnConflictStrategy.REPLACE)
     fun addSwapMetadata(metadata: List<DbTransactionSwapMetadata>)
 
-    @Query("INSERT OR IGNORE INTO tx_swap_metadata (tx_id, from_asset_id, to_asset_id, from_amount, to_amount) SELECT :newId, from_asset_id, to_asset_id, from_amount, to_amount FROM tx_swap_metadata WHERE tx_id = :oldId")
+    @Query("INSERT OR IGNORE INTO tx_swap_metadata (tx_id, from_asset_id, to_asset_id) SELECT :newId, from_asset_id, to_asset_id FROM tx_swap_metadata WHERE tx_id = :oldId")
     fun copySwapMetadata(oldId: String, newId: String)
 
     @Query("DELETE FROM tx_swap_metadata WHERE tx_id = :transactionId AND NOT EXISTS (SELECT 1 FROM transactions WHERE transactions.id = :transactionId)")
@@ -208,4 +208,7 @@ interface TransactionsDao {
 
     @Query("DELETE FROM transactions WHERE state = :state")
     fun deleteByState(state: TransactionState)
+
+    @Query("DELETE FROM transactions")
+    suspend fun deleteAll()
 }

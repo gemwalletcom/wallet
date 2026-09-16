@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitives
 import class Gemstone.PriceChangeCalculator
 import Components
 import Formatters
 import Foundation
-import GemstonePrimitives
 import Localization
 import Primitives
 import Style
@@ -39,12 +39,11 @@ public struct PnLViewModel {
 
     public var text: String? {
         guard let amountText = valueChange.text else { return nil }
-        return "\(amountText) (\(percentFormatter.string(percent)))"
+        return priceChangeCalculator.pnlText(formattedAmount: amountText, formattedPercentage: percentFormatter.string(percent))
     }
 
     public var percent: Double {
-        guard let pnl, marginAmount > 0 else { return 0 }
-        return priceChangeCalculator.percentage(from: marginAmount, to: marginAmount + pnl)
+        priceChangeCalculator.pnlPercentage(pnl: pnl ?? .zero, margin: marginAmount)
     }
 
     public var color: Color {

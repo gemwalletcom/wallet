@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDateTime, Utc};
 use num_bigint::{BigInt, BigUint};
 use primitives::{AssetId, NFTAssetId, NFTCollectionId, PerpetualId, StakeChain, TransactionId, WalletId};
 use std::str::FromStr;
@@ -62,6 +62,14 @@ uniffi::custom_type!(GemBigUint, String, {
         .map_err(|_| uniffi::deps::anyhow::Error::msg("Invalid BigUint")),
 });
 
+pub type GemJsonValue = serde_json::Value;
+
+uniffi::custom_type!(GemJsonValue, String, {
+    remote,
+    lower: |value: GemJsonValue| value.to_string(),
+    try_lift: |value: String| serde_json::from_str(&value).map_err(|error| uniffi::deps::anyhow::Error::msg(format!("invalid json value: {error}"))),
+});
+
 pub type DateTimeUtc = DateTime<Utc>;
 
 uniffi::custom_type!(DateTimeUtc, i64, {
@@ -73,20 +81,17 @@ uniffi::custom_type!(DateTimeUtc, i64, {
     },
 });
 
-pub mod decimal_string {
-    use super::GemBigUint;
-    use serde::{Deserialize, Deserializer, Serializer};
-    use std::str::FromStr;
+pub type NaiveDateTimeUtc = NaiveDateTime;
 
-    pub fn serialize<S: Serializer>(value: &GemBigUint, serializer: S) -> Result<S::Ok, S::Error> {
-        serializer.serialize_str(&value.to_string())
-    }
-
-    pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<GemBigUint, D::Error> {
-        let text = String::deserialize(deserializer)?;
-        GemBigUint::from_str(&text).map_err(serde::de::Error::custom)
-    }
-}
+uniffi::custom_type!(NaiveDateTimeUtc, i64, {
+    remote,
+    lower: |value: NaiveDateTimeUtc| value.and_utc().timestamp(),
+    try_lift: |timestamp| {
+        DateTime::<Utc>::from_timestamp(timestamp, 0)
+            .map(|value| value.naive_utc())
+            .ok_or_else(|| uniffi::deps::anyhow::Error::msg("Invalid timestamp"))
+    },
+});
 
 #[cfg(test)]
 mod tests {

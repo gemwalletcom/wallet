@@ -1,7 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemHeaderButtonKind
+import struct Gemstone.GemPerpetualMarketCounts
+import enum Gemstone.GemPerpetualMarketSection
+import struct Gemstone.GemPerpetualMarketSections
 import protocol Gemstone.GemRecentActivityServiceProtocol
-import class Gemstone.GemRecentActivityService
 import GemstonePrimitives
 import enum Gemstone.GemMarketsRefreshTrigger
 import protocol Gemstone.GemPerpetualServiceProtocol
@@ -39,7 +42,7 @@ public final class PerpetualsSceneViewModel {
     }
 
     var walletBalance: WalletBalance {
-        walletBalanceQuery.value
+        walletBalanceQuery.value.map { WalletBalance.perpetual(available: $0.available, reserved: $0.reserved) } ?? .zero
     }
 
     var isSearchPresented: Bool = false
@@ -69,25 +72,13 @@ public final class PerpetualsSceneViewModel {
         perpetualsQuery = ObservableQuery(PerpetualsRequest(searchQuery: ""), initialValue: [])
         walletBalanceQuery = ObservableQuery(
             PerpetualWalletBalanceRequest(walletId: wallet.id, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
-            initialValue: .zero,
+            initialValue: nil,
         )
         recentModel = RecentAssetsModel(walletId: wallet.id, types: [.perpetual], service: recentAssetsService)
     }
 
     var navigationTitle: String {
         Localized.Perpetuals.title
-    }
-
-    var positionsSectionTitle: String {
-        Localized.Perpetual.positions
-    }
-
-    var marketsSectionTitle: String {
-        Localized.Perpetuals.markets
-    }
-
-    var pinnedSectionTitle: String {
-        Localized.Common.pinned
     }
 
     var emptyContentModel: EmptyContentTypeViewModel {
@@ -102,24 +93,21 @@ public final class PerpetualsSceneViewModel {
         Images.System.search
     }
 
-    var showPositions: Bool {
-        positions.isNotEmpty
+    var marketSections: GemPerpetualMarketSections {
+        GemPerpetualMarketCounts(
+            positions: UInt32(positions.count),
+            pinned: UInt32(sections.pinned.count),
+            markets: UInt32(sections.markets.count),
+            recents: recentModel.hasAssets ? 1 : 0,
+        ).sections(isSearching: isSearching, isQueryEmpty: searchQuery.isEmpty)
     }
 
-    var showPinned: Bool {
-        sections.pinned.isNotEmpty
-    }
-
-    var showMarkets: Bool {
-        sections.markets.isNotEmpty
-    }
-
-    var showRecents: Bool {
-        isSearching && searchQuery.isEmpty && recentModel.hasAssets
+    var marketSectionList: [GemPerpetualMarketSection] {
+        marketSections.list()
     }
 
     var showSearchEmptyState: Bool {
-        isSearching && !showPositions && !showPinned && !showMarkets
+        marketSectionList.contains(.empty)
     }
 
     var sections: PerpetualsSections {
@@ -159,7 +147,7 @@ extension PerpetualsSceneViewModel {
         }
     }
 
-    func onSelectHeaderAction(type: HeaderButtonType) {
+    func onSelectHeaderAction(type: GemHeaderButtonKind) {
         switch type {
         case .deposit:
             onSelectAssetType?(.deposit)

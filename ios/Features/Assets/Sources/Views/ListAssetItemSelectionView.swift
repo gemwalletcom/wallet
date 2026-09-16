@@ -1,25 +1,26 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemAssetRow
 import Primitives
 import PrimitivesComponents
 import SwiftUI
 
 struct ListAssetItemSelectionView: View {
     private let assetData: AssetData
-    private let currencyCode: String
-    private let type: AssetListType
+    private let currency: Currency
+    private let row: GemAssetRow
     private let action: (ListAssetItemAction, AssetData) -> Void
 
     init(
         assetData: AssetData,
-        currencyCode: String,
-        type: AssetListType,
+        currency: Currency,
+        row: GemAssetRow,
         action: @escaping (ListAssetItemAction, AssetData) -> Void,
     ) {
         self.assetData = assetData
-        self.currencyCode = currencyCode
-        self.type = type
+        self.currency = currency
+        self.row = row
         self.action = action
     }
 
@@ -30,9 +31,9 @@ struct ListAssetItemSelectionView: View {
                 assetDataModel: AssetDataViewModel(
                     assetData: assetData,
                     formatter: .short,
-                    currencyCode: currencyCode,
+                    currency: currency,
                 ),
-                type: type,
+                row: row,
                 action: {
                     action($0, assetData)
                 },

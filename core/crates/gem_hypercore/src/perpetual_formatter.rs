@@ -6,6 +6,7 @@ use num_bigint::BigUint;
 const MIN_ORDER_VALUE_USD: f64 = 10.0;
 const USDC_CENTS_MULTIPLIER: f64 = 100.0;
 pub const USDC_DECIMALS_MULTIPLIER: f64 = 1_000_000.0;
+const DECIMAL_POINT: char = '.';
 
 pub fn usdc_value(amount: f64) -> BigUint {
     if !amount.is_finite() || amount <= 0.0 {
@@ -37,6 +38,15 @@ impl PerpetualFormatter {
         let decimals = sig_fig_decimals.min(max_decimals as f64) as usize;
 
         format_and_trim(price, decimals)
+    }
+
+    pub fn format_input_price(price: f64, sz_decimals: i32, decimal_separator: char) -> String {
+        let formatted = Self::format_price(price, sz_decimals);
+
+        match decimal_separator {
+            DECIMAL_POINT => formatted,
+            separator => formatted.replace(DECIMAL_POINT, &separator.to_string()),
+        }
     }
 
     pub fn format_size(size: f64, sz_decimals: i32) -> String {
@@ -114,6 +124,14 @@ mod tests {
         assert_eq!(PerpetualFormatter::format_price(-123.456, 0), "-123.46");
         assert_eq!(PerpetualFormatter::format_price(0.0000001, 0), "0");
         assert_eq!(PerpetualFormatter::format_price(999999.0, 0), "999999");
+    }
+
+    #[test]
+    fn test_format_input_price() {
+        assert_eq!(PerpetualFormatter::format_input_price(3397.10, 0, '.'), "3397.1");
+        assert_eq!(PerpetualFormatter::format_input_price(3397.10, 0, ','), "3397,1");
+        assert_eq!(PerpetualFormatter::format_input_price(0.005849, 0, ','), "0,005849");
+        assert_eq!(PerpetualFormatter::format_input_price(3532.984, 4, ','), "3533");
     }
 
     #[test]

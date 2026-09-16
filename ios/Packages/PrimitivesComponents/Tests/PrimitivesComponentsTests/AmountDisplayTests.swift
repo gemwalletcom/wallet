@@ -19,7 +19,7 @@ struct AmountDisplayTests {
             asset: asset,
             price: price,
             value: value,
-            direction: .incoming,
+            sign: .incoming,
             currency: currency,
             formatter: .full,
         )

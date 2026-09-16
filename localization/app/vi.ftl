@@ -9,6 +9,7 @@ common_secret_phrase = Cụm từ bí mật
 common_copy = Sao chép
 common_share = Chia sẻ
 common_continue = Tiếp tục
+common_sign_in_with = Đăng nhập bằng %@
 common_provider = Nhà cung cấp
 common_loading = Đang tải
 common_address = Địa chỉ
@@ -54,9 +55,9 @@ common_get_started = Bắt đầu
 common_earn = Kiếm tiền
 common_method = Phương thức
 common_token = Token
+common_expiration = Hết hạn
 common_suspicious_address = Địa chỉ đáng ngờ
 common_refresh = Làm mới
-common_no_thanks = Không, cám ơn
 common_grant_permission = Cấp phép
 common_required_field = %@ là bắt buộc
 
@@ -163,7 +164,6 @@ transfer_freeze_title = Đóng băng
 transfer_unfreeze_title = Giải đông
 transfer_review_request = Yêu cầu xem xét
 transfer_amount = Số lượng
-transfer_amount_title = Số lượng
 
 # Settings
 
@@ -207,7 +207,6 @@ support_message_placeholder = Tin nhắn
 
 # Errors
 
-errors_transfer = Lỗi chuyển giao: %@
 errors_validation = Lỗi xác thực: %@
 errors_create_wallet = Lỗi tạo ví: %@
 errors_invalid_address_name = Địa chỉ hoặc tên không hợp lệ
@@ -226,7 +225,6 @@ errors_cancelled = Đã hủy
 errors_connections_user_cancelled = Người dùng đã hủy
 errors_not_supported = Không được hỗ trợ
 errors_permissions_not_granted = Quyền không được cấp
-errors_decoding = Lỗi giải mã
 errors_unknown = Không xác định
 errors_not_supported_qr = Thiết bị này không hỗ trợ quét mã QR. Bạn chỉ có thể chọn hình ảnh mã QR từ thư viện.
 errors_camera_permissions_not_granted = Quyền sử dụng máy ảnh không được cấp. Vui lòng bật quyền truy cập máy ảnh trong cài đặt để quét mã QR.
@@ -237,11 +235,8 @@ errors_invalid_asset_address = Địa chỉ %@ không hợp lệ
 errors_dust_threshold = Giao dịch không thành công vì số tiền quá nhỏ để đáp ứng yêu cầu tối thiểu của mạng %@ (ngưỡng bụi). Giới hạn này đảm bảo giá trị giao dịch bao gồm phí và chi phí xử lý.
 errors_swap_no_quote_available = Không có báo giá khả dụng.
 errors_swap_not_supported_asset = Tài sản không được hỗ trợ.
-errors_connections_invalid_send_parameters = Tham số được cung cấp để gửi giao dịch không hợp lệ.
-errors_connections_invalid_sign_parameters = Các tham số được cung cấp để ký không hợp lệ.
 errors_connections_no_supported_wallets = Không có ví nào được hỗ trợ.
 errors_connections_unsupported_chain = Chuỗi được cung cấp không được hỗ trợ.
-errors_connections_unsupported_method = Phương pháp yêu cầu không được hỗ trợ.
 errors_swap_amount_too_small = Số lượng quá nhỏ
 errors_required = %@ là bắt buộc
 errors_scan_transaction_malicious_description = Giao dịch này không thể hoàn tất — địa chỉ ví đích được liên kết với hoạt động đáng ngờ hoặc có hại.
@@ -253,7 +248,6 @@ errors_dust_threshold_short = Mạng lưới coi số tiền này là bụi - m�
 errors_swap_minimum_amount = Số tiền giao dịch tối thiểu là %@. Vui lòng nhập số tiền lớn hơn.
 errors_perpetual_trigger_price_lower = Giá kích hoạt phải thấp hơn giá thị trường
 errors_perpetual_trigger_price_higher = Giá kích hoạt phải cao hơn giá thị trường
-errors_token_unable_fetch_token_information = Không thể tìm nạp thông tin mã thông báo: %@
 errors_unknown_try_again = Đã xảy ra lỗi không xác định. Vui lòng thử lại.
 errors_network_error = Lỗi mạng: %@
 errors_network_offline = Kết nối Internet dường như đang bị ngắt.
@@ -277,7 +271,6 @@ update_app_action = Cập nhật
 update_app_permission_title = Cho phép cài đặt
 update_app_permission_description = Vào cài đặt và cho phép cài đặt từ các nguồn bên ngoài
 update_app_permission_open_settings = Đi đến cài đặt
-update_app_downloading = Đang tải xuống...
 
 # Transaction
 
@@ -365,6 +358,7 @@ wallet_connect_state_empty_description = Quét hoặc dán mã để kết nối
 wallet_connect_permissions_title = Quyền hạn
 wallet_connect_permissions_view_balance = Xem số dư và hoạt động của bạn
 wallet_connect_permissions_approval_requests = Gửi yêu cầu phê duyệt
+wallet_connect_request_expired = Yêu cầu đã hết hạn
 
 # Swap
 
@@ -480,8 +474,6 @@ banner_account_activation_title = Phí kích hoạt tài khoản
 banner_account_activation_description = Mạng %@ yêu cầu một khoản phí một lần là %@.
 banner_stake_title = Bắt đầu đặt cược %@
 banner_stake_description = Kiếm %@ phần thưởng cho số tiền đặt cược của bạn khi bạn ngủ.
-banner_enable_notifications_title = Bật thông báo
-banner_enable_notifications_description = Theo dõi hoạt động chi tiêu của bạn.
 banner_activate_asset_description = Để sử dụng tài sản %@, trước tiên bạn phải bật nó trên mạng %@ bằng cách đáp ứng các yêu cầu cụ thể của mạng.
 banner_asset_status_title = Tài sản đáng ngờ
 banner_asset_status_description = Mã thông báo có thể không an toàn hoặc gây hiểu lầm. Chỉ tiếp tục nếu bạn hoàn toàn tin tưởng nó.
@@ -605,6 +597,7 @@ nft_report_reason_spam = Thư rác
 nft_report_reason_malicious = Độc hại
 nft_report_reason_inappropriate = Nội dung không phù hợp
 nft_report_reason_copyright = Bản quyền
+nft_report_reason_other = Khác
 nft_report_report_button_title = Báo cáo
 
 # Permissions
@@ -629,7 +622,6 @@ networks_state_empty_search_title = Không tìm thấy mạng lưới nào
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Bạn sẽ nhận được Cụm từ bí mật — đây là cách duy nhất để truy cập vào ví của bạn.
-onboarding_security_create_wallet_confirm_title = Tôi hiểu và muốn tiếp tục
 onboarding_security_create_wallet_do_not_share_title = Không Chia Sẻ Với Bất Kỳ Ai
 onboarding_security_create_wallet_do_not_share_subtitle = Bất kỳ ai có được cụm từ bí mật của bạn đều có thể kiểm soát hoàn toàn ví của bạn.
 onboarding_security_create_wallet_keep_safe_subtitle = Cụm từ bí mật là cách duy nhất để truy cập vào ví của bạn.
@@ -687,8 +679,9 @@ perpetual_margin_isolated = Bị cô lập
 # Perpetuals
 
 perpetuals_title = Perpetual
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = Giao dịch Perpetual
 perpetuals_markets = Thị trường
-perpetuals_empty_state_no_markets = Không có thị trường
 perpetuals_empty_state_no_markets_found = Không tìm thấy thị trường
 
 # Rewards
@@ -760,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = Cần có sự cho phép của máy ảnh để quét Mã QR.\nVui lòng cấp quyền.
 
 # Notifications Permission
 
-notifications_permission_request_notification = Cần có quyền Đăng thông báo để nhận thông báo về các giao dịch mới.\nVui lòng cấp quyền.
 
 # Confirm
 
-confirm_fee_error = Lỗi tính phí
 
 # Rootcheck
 

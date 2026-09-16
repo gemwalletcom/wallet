@@ -156,7 +156,9 @@ pub enum ConfigKey {
     ScanTimerUpdateValidators,
     ScanTimerUpdateValidatorsStatic,
     ScanEnable,
+    ScanDryRun,
     ScanTimeout,
+    ScanRequiredSuccesses,
 
     // Rewards
     RewardsTimerAbuseChecker,
@@ -312,7 +314,7 @@ impl ConfigKey {
             Self::PriceTimerTopMarketCap => "60s",
             Self::PriceTimerHighMarketCap => "5m",
             Self::PriceTimerLowMarketCap => "15m",
-            Self::PriceTimerFiatRates => "6m",
+            Self::PriceTimerFiatRates => "12h",
             Self::PriceTimerChartsHourly => "60s",
             Self::PriceTimerChartsDaily => "6m",
             Self::PriceTimerMarkets => "1h",
@@ -349,7 +351,9 @@ impl ConfigKey {
             Self::ScanTimerUpdateValidators => "1d",
             Self::ScanTimerUpdateValidatorsStatic => "1h",
             Self::ScanEnable => "true",
+            Self::ScanDryRun => "false",
             Self::ScanTimeout => "1200ms",
+            Self::ScanRequiredSuccesses => "1",
             Self::RewardsTimerAbuseChecker => "60s",
             Self::RewardsTimerEligibilityChecker => "60s",
             Self::RewardsEligibilityActiveDuration => "7d",

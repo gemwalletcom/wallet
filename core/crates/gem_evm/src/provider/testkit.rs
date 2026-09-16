@@ -1,31 +1,31 @@
-#[cfg(all(test, feature = "rpc", feature = "reqwest"))]
+#[cfg(all(test, feature = "chain_integration_tests"))]
 use std::sync::Arc;
 
-#[cfg(all(test, feature = "rpc", feature = "reqwest"))]
+#[cfg(all(test, feature = "chain_integration_tests"))]
 use crate::{
     ether_conv,
     rpc::{EVMAssetBalanceProvider, EVMIndexer, EVMTransactionsByAddressProvider, EthereumClient, EthereumProvider},
 };
-#[cfg(all(test, feature = "rpc", feature = "reqwest"))]
+#[cfg(all(test, feature = "chain_integration_tests"))]
 use gem_alchemy::{AlchemyApi, alchemy_url};
-#[cfg(all(test, feature = "rpc", feature = "reqwest"))]
+#[cfg(all(test, feature = "chain_integration_tests"))]
 use gem_client::ReqwestClient;
-#[cfg(all(test, feature = "rpc", feature = "reqwest"))]
+#[cfg(all(test, feature = "chain_integration_tests"))]
 use gem_jsonrpc::JsonRpcClient;
-#[cfg(all(test, feature = "rpc", feature = "reqwest"))]
+#[cfg(all(test, feature = "chain_integration_tests"))]
 use primitives::{EVMChain, FeeRate};
-#[cfg(all(test, feature = "rpc", feature = "reqwest"))]
+#[cfg(all(test, feature = "chain_integration_tests"))]
 use settings::testkit::get_test_settings;
 
 pub use crate::testkit::{TEST_ADDRESS, TEST_TRANSACTION_ID, TOKEN_DAI_ADDRESS, TOKEN_USDC_ADDRESS};
 
-#[cfg(all(test, feature = "rpc", feature = "reqwest"))]
+#[cfg(all(test, feature = "chain_integration_tests"))]
 fn build_test_client(chain: EVMChain, rpc_url: &str) -> EthereumProvider<ReqwestClient> {
     let client = ReqwestClient::new_test_client(rpc_url.to_string());
     EthereumProvider::new_rpc_only(EthereumClient::new(JsonRpcClient::new(client), chain))
 }
 
-#[cfg(all(test, feature = "rpc", feature = "reqwest"))]
+#[cfg(all(test, feature = "chain_integration_tests"))]
 fn build_test_indexer(chain: EVMChain, rpc_url: &str) -> Arc<EVMIndexer<ReqwestClient>> {
     let settings = get_test_settings();
     let client = ReqwestClient::new_test_client(rpc_url.to_string());
@@ -46,37 +46,37 @@ fn build_test_indexer(chain: EVMChain, rpc_url: &str) -> Arc<EVMIndexer<ReqwestC
     )
 }
 
-#[cfg(all(test, feature = "rpc", feature = "reqwest"))]
+#[cfg(all(test, feature = "chain_integration_tests"))]
 pub fn create_ethereum_test_client() -> EthereumProvider<ReqwestClient> {
     let settings = get_test_settings();
     build_test_client(EVMChain::Ethereum, &settings.chains.ethereum.url)
 }
 
-#[cfg(all(test, feature = "rpc", feature = "reqwest"))]
+#[cfg(all(test, feature = "chain_integration_tests"))]
 pub fn create_ethereum_test_transactions_by_address_provider() -> EVMTransactionsByAddressProvider<ReqwestClient> {
     let settings = get_test_settings();
     EVMTransactionsByAddressProvider::new(build_test_indexer(EVMChain::Ethereum, &settings.chains.ethereum.url))
 }
 
-#[cfg(all(test, feature = "rpc", feature = "reqwest"))]
+#[cfg(all(test, feature = "chain_integration_tests"))]
 pub fn create_ethereum_test_asset_balance_provider() -> EVMAssetBalanceProvider<ReqwestClient> {
     let settings = get_test_settings();
     EVMAssetBalanceProvider::new(build_test_indexer(EVMChain::Ethereum, &settings.chains.ethereum.url))
 }
 
-#[cfg(all(test, feature = "rpc", feature = "reqwest"))]
+#[cfg(all(test, feature = "chain_integration_tests"))]
 pub fn create_smartchain_test_client() -> EthereumProvider<ReqwestClient> {
     let settings = get_test_settings();
     build_test_client(EVMChain::SmartChain, &settings.chains.smartchain.url)
 }
 
-#[cfg(all(test, feature = "rpc", feature = "reqwest"))]
+#[cfg(all(test, feature = "chain_integration_tests"))]
 pub fn create_arbitrum_test_client() -> EthereumProvider<ReqwestClient> {
     let settings = get_test_settings();
     build_test_client(EVMChain::Arbitrum, &settings.chains.arbitrum.url)
 }
 
-#[cfg(all(test, feature = "rpc", feature = "reqwest"))]
+#[cfg(all(test, feature = "chain_integration_tests"))]
 pub fn print_fee_rates(fee_rates: Vec<FeeRate>) {
     for fee_rate in &fee_rates {
         println!(

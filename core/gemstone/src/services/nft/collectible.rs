@@ -1,18 +1,12 @@
 use std::sync::Arc;
 
-use primitives::{Chain, NFTAssetId, ReportNft, Wallet};
+use primitives::{NFTAssetData, NFTAssetId, ReportNft, WalletType};
 
+use super::model::GemCollectibleDetails;
 use super::{GemNftService, rules};
 use crate::services::avatar::GemAvatarService;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
-use primitives::BlockExplorerLink;
-
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemCollectibleLinks {
-    pub contract: Option<BlockExplorerLink>,
-    pub token: Option<BlockExplorerLink>,
-}
 
 #[derive(uniffi::Object)]
 pub struct GemCollectibleService {
@@ -28,15 +22,18 @@ impl GemCollectibleService {
         Self { nfts, avatars, explorer }
     }
 
-    pub fn can_send(&self, wallet: Wallet, chain: Chain, is_owned: bool) -> bool {
-        rules::can_send(&wallet.wallet_type, chain, is_owned)
-    }
-
-    pub fn links(&self, chain: Chain, contract_address: String, token_id: String) -> GemCollectibleLinks {
-        GemCollectibleLinks {
-            contract: self.explorer.get_token_url(chain, contract_address.clone()),
-            token: self.explorer.get_nft_url(chain, contract_address, token_id),
-        }
+    pub fn details(&self, wallet_type: WalletType, asset_data: NFTAssetData, is_owned: bool) -> GemCollectibleDetails {
+        let chain = asset_data.asset.chain;
+        let contract = asset_data.collection.contract_address.clone();
+        let (contract_explorer, token_explorer) = if contract.is_empty() {
+            (None, None)
+        } else {
+            (
+                self.explorer.get_token_url(chain, contract.clone()),
+                self.explorer.get_nft_url(chain, contract, asset_data.asset.token_id.clone()),
+            )
+        };
+        rules::collectible_details(&wallet_type, &asset_data, is_owned, contract_explorer, token_explorer)
     }
 
     pub async fn refresh_asset(&self, asset_id: NFTAssetId) -> Result<(), GemServiceError> {

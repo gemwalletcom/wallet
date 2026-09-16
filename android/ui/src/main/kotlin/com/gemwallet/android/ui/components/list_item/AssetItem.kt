@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.components.list_item
 
+import com.gemwallet.android.ui.style.color
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,10 +19,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.price.values.PriceValue
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.models.CryptoFormattedUIModel
 import com.gemwallet.android.ui.models.FiatFormattedUIModel
@@ -32,6 +32,7 @@ import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space6
+import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.Asset
 
 @Composable
@@ -68,6 +69,7 @@ fun AssetListItem(
     asset: Asset,
     listPosition: ListPosition,
     modifier: Modifier = Modifier,
+    title: String = asset.name,
     support: @Composable (() -> Unit)? = null,
     badge: String? = null,
     trailing: (@Composable () -> Unit)? = null,
@@ -79,7 +81,7 @@ fun AssetListItem(
         contentPadding = assetListItemContentPadding(),
         titleSubtitleSpacing = space0,
         leading = @Composable { AssetIcon(asset) },
-        title = @Composable { ListItemTitleText(asset.name, { Badge(text = badge) }) },
+        title = @Composable { ListItemTitleText(title, { Badge(text = badge) }) },
         subtitle = support,
         trailing = if (trailing == null) null else {
             { trailing.invoke() }
@@ -120,7 +122,7 @@ fun assetPriceSupport(price: PriceValue?): (@Composable () -> Unit)? {
 fun PriceInfo(
     price: String,
     changes: String,
-    state: ValueDirection,
+    state: GemValueTone,
     modifier: Modifier = Modifier,
     style: TextStyle = MaterialTheme.typography.bodyLarge,
     isHighlightPercentage: Boolean = false,
@@ -218,12 +220,12 @@ private fun BalanceInfo(
 fun PriceInfo(
     priceValue: String,
     changedPercentages: String,
-    state: ValueDirection,
+    state: GemValueTone,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.secondary,
     style: TextStyle = MaterialTheme.typography.bodyLarge,
     isHighlightPercentage: Boolean = false,
-    internalPadding: Dp = 16.dp,
+    internalPadding: Dp = paddingDefault,
 ) {
     val highlightColor = state.color()
     Row(
@@ -241,7 +243,7 @@ fun PriceInfo(
                 Modifier.background(highlightColor.copy(alpha = alpha10), MaterialTheme.shapes.small)
             } else {
                 Modifier
-            }.padding(4.dp),
+            }.padding(paddingHalfSmall),
             text = changedPercentages,
             color = highlightColor,
             style = style,

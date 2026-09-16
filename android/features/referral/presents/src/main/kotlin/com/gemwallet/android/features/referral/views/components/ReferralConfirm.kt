@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
@@ -30,13 +29,13 @@ import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.tinyIconSize
 import com.gemwallet.android.ui.models.buttonState
 import uniffi.gemstone.GemRewardsState
-import com.wallet.core.primitives.RewardStatus
-import com.wallet.core.primitives.Rewards
+import com.gemwallet.android.features.referral.views.previewRewardsState
+import com.gemwallet.android.ui.theme.hairlineThickness
 
-internal fun LazyListScope.referralConfirmCode(rewards: Rewards, uiState: GemRewardsState, onConfirm: (String) -> Unit) {
+internal fun LazyListScope.referralConfirmCode(uiState: GemRewardsState, onConfirm: (String) -> Unit) {
     if (!uiState.hasPendingReferral) return
-    val code = rewards.usedReferralCode ?: return
-    val pendingDate = rewards.verifyAfter ?: return
+    val code = uiState.usedReferralCode ?: return
+    val pendingDate = uiState.verifyAfter ?: return
     item {
         Column(
             modifier = Modifier
@@ -62,7 +61,7 @@ internal fun LazyListScope.referralConfirmCode(rewards: Rewards, uiState: GemRew
                     stringResource(R.string.rewards_pending_description, getRelativeDate(pendingDate))
                 }
             )
-            HorizontalDivider(modifier = Modifier.padding(vertical = paddingSmall), thickness = 0.5.dp)
+            HorizontalDivider(modifier = Modifier.padding(vertical = paddingSmall), thickness = hairlineThickness)
             MainActionButton(
                 title = stringResource(R.string.transfer_confirm),
                 state = buttonState(enabled = uiState.canActivatePendingReferral)
@@ -79,16 +78,7 @@ private fun ReferralConfirmCodePendingPreview() {
     WalletTheme {
         LazyColumn {
             referralConfirmCode(
-                Rewards(
-                    referralCount = 0,
-                    points = 0,
-                    status = RewardStatus.Pending,
-                    redemptionOptions = emptyList(),
-                    code = "some_code",
-                    usedReferralCode = "some_code_1",
-                    verifyAfter = System.currentTimeMillis() + 86400000,
-                ),
-                pendingState(canActivate = false),
+                pendingState(canActivate = false, verifyAfter = System.currentTimeMillis() + 86400000),
             ) {}
         }
     }
@@ -100,28 +90,19 @@ private fun ReferralConfirmCodeReadyPreview() {
     WalletTheme {
         LazyColumn {
             referralConfirmCode(
-                Rewards(
-                    referralCount = 0,
-                    points = 0,
-                    status = RewardStatus.Pending,
-                    redemptionOptions = emptyList(),
-                    code = "some_code",
-                    usedReferralCode = "some_code_1",
-                    verifyAfter = 0,
-                ),
-                pendingState(canActivate = true),
+                pendingState(canActivate = true, verifyAfter = 0),
             ) {}
         }
     }
 }
 
-private fun pendingState(canActivate: Boolean) = GemRewardsState(
+private fun pendingState(canActivate: Boolean, verifyAfter: Long) = previewRewardsState(
     hasReferralCode = true,
     hasUsedReferralCode = true,
-    canInvite = false,
-    canUseReferralCode = false,
     showsInfo = true,
-    isUnverified = false,
     hasPendingReferral = true,
     canActivatePendingReferral = canActivate,
+    referralCode = "some_code",
+    usedReferralCode = "some_code_1",
+    verifyAfter = verifyAfter,
 )

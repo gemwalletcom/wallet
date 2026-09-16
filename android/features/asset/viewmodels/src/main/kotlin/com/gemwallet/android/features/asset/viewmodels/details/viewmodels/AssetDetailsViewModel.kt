@@ -2,28 +2,35 @@ package com.gemwallet.android.features.asset.viewmodels.details.viewmodels
 
 import android.util.Log
 import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.serializer.toJson
-import uniffi.gemstone.Deeplink
+import com.gemwallet.android.ext.toGemKey
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.domains.banner.BannerRow
+import uniffi.gemstone.GemErrorText
+import uniffi.gemstone.GemPriceAlertToggle
+import uniffi.gemstone.GemAssetDetailsInput
 import uniffi.gemstone.GemAssetDetailsServiceInterface
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.application.banner.cases.GetActiveBanners
 import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
-import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.model.ChainAssetInfo
+import com.gemwallet.android.model.Session
 import com.gemwallet.android.model.toGem
+import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModelFactory
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Banner
+import com.wallet.core.primitives.PriceAlert
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
@@ -33,14 +40,17 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
-import java.math.BigInteger
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -49,11 +59,13 @@ class AssetDetailsViewModel @Inject constructor(
     getSession: GetSession,
     savedStateHandle: SavedStateHandle,
     private val getChainAssetInfo: GetChainAssetInfo,
+    private val getWalletAssets: GetWalletAssets,
     private val getTransactions: GetTransactions,
     private val assetDetailsService: GemAssetDetailsServiceInterface,
     private val getActiveBanners: GetActiveBanners,
     private val getPriceAlerts: GetPriceAlerts,
     private val assetInfoUIModelFactory: AssetInfoUIModelFactory,
+    private val userConfig: UserConfig,
 ) : ViewModel() {
     private var syncJob: Job? = null
 
@@ -61,65 +73,66 @@ class AssetDetailsViewModel @Inject constructor(
 
     val isRefreshing = MutableStateFlow(false)
 
+    private val errorState = MutableStateFlow<GemErrorText?>(null)
+    val error: StateFlow<GemErrorText?> = errorState.asStateFlow()
+
     private val assetId = savedStateHandle.requireAssetId()
 
     private val chainAssetInfo = getChainAssetInfo(assetId)
         .onStart { restartAssetSync() }
         .filterNotNull()
-
-    private val model = chainAssetInfo.map { chainInfo ->
-        val explorerName = assetDetailsService.explorerName(chainInfo.assetInfo.asset.chain.string)
-        Model(
-            chainAssetInfo = chainInfo,
-            explorerName = explorerName,
-            updatedAt = System.currentTimeMillis()
-        )
-    }
         .flowOn(Dispatchers.IO)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, storedChainAssetInfo())
+
+    private fun storedChainAssetInfo(): ChainAssetInfo? {
+        val stored = getWalletAssets().value
+        val assetInfo = stored.firstOrNull { it.asset.id == assetId } ?: return null
+        val feeInfo = stored.firstOrNull { it.asset.id == AssetId(assetId.chain) } ?: return null
+        return ChainAssetInfo(assetInfo, feeInfo)
+    }
 
     val transactions = getTransactions.getTransactions(listOf(TransactionsRequestFilter.Asset(assetId)))
         .map { it.toImmutableList() }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val bannerEvents = chainAssetInfo
-        .flatMapLatest { getActiveBanners(it.assetInfo.asset, isGlobal = false) }
-        .map { banners -> banners.map { it.event } }
-
-    private val priceAlertsCount = getPriceAlerts(assetId).map { it.size }
-
-    val uiModel = combine(model, session, bannerEvents, priceAlertsCount) { current, session, bannerEvents, priceAlertsCount ->
-        val wallet = session?.wallet ?: return@combine null
-        current?.let {
-            val assetInfo = it.chainAssetInfo.assetInfo
-            val asset = assetInfo.asset
-            assetInfoUIModelFactory.create(
-                chainAssetInfo = it.chainAssetInfo,
-                swapPair = assetDetailsService.swapPair(asset.id.toIdentifier(), assetInfo.balance.balance.available > BigInteger.ZERO),
-                explorerName = it.explorerName,
-                explorerAddressUrl = it.chainAssetInfo.assetInfo.owner?.address?.let { address ->
-                    assetDetailsService.addressUrl(asset.chain.string, address).link
-                },
-                explorerTokenUrl = asset.id.tokenId?.let { tokenId ->
-                    assetDetailsService.tokenUrl(asset.chain.string, tokenId)?.link
-                },
-                verificationStatus = assetDetailsService.verificationStatus(asset.toGem(), it.chainAssetInfo.assetInfo.metadata.rankScore)?.toPrimitives(),
-                networkDestination = assetDetailsService.networkDestination(asset.id.toIdentifier()),
-                shareUrl = assetDetailsService.deeplinkUrl(Deeplink.Asset(assetId = asset.id.toIdentifier())),
-                detailsState = assetDetailsService.state(
-                    walletType = wallet.type.toGem(),
-                    chain = asset.chain.string,
-                    metadata = assetInfo.metadata.toGem(),
-                    balance = assetInfo.balance.toGem(),
-                    bannerEvents = bannerEvents.map { event -> event.toGem() },
-                    hasPrice = (assetInfo.price?.price?.price ?: 0.0) != 0.0,
-                    priceAlertsCount = priceAlertsCount.toUInt(),
-                ),
-            )
+    private val banners = chainAssetInfo.filterNotNull()
+        .map { it.assetInfo.asset }
+        .distinctUntilChanged()
+        .flatMapLatest { asset ->
+            getActiveBanners(asset).map { banners ->
+                banners.map { banner -> BannerRow(banner, assetDetailsService.bannerContent(banner.event.toGem(), banner.asset?.toGem())) }
+            }
         }
-    }
+
+    private val priceAlerts = getPriceAlerts.assetPriceAlerts(assetId)
+
+    val uiModel = combine(chainAssetInfo, session, banners, priceAlerts, ::uiModel)
+        .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private fun uiModel(
+        chainInfo: ChainAssetInfo?,
+        session: Session?,
+        banners: List<BannerRow>,
+        priceAlerts: List<PriceAlert>,
+    ): AssetInfoUIModel? {
+        val wallet = session?.wallet ?: return null
+        val assetInfo = chainInfo?.assetInfo ?: return null
+        val details = assetDetailsService.details(
+            GemAssetDetailsInput(
+                walletType = wallet.type.toGem(),
+                asset = assetInfo.asset.toGem(),
+                ownerAddress = assetInfo.owner?.address,
+                metadata = assetInfo.metadata.toGem(),
+                balance = assetInfo.balance.toGem(),
+                price = assetInfo.price?.price?.price,
+                bannerEvents = banners.map { row -> row.banner.event.toGem() },
+                priceAlerts = priceAlerts.map { alert -> alert.toGem() },
+            )
+        )
+        return assetInfoUIModelFactory.create(chainAssetInfo = chainInfo, details = details, banners = banners)
+    }
 
     fun refresh() {
         if (syncJob?.isActive == true) {
@@ -159,22 +172,33 @@ class AssetDetailsViewModel @Inject constructor(
     }
 
     fun pin() = viewModelScope.launch(Dispatchers.IO) {
-        val assetInfo = model.value?.chainAssetInfo?.assetInfo ?: return@launch
+        val assetInfo = chainAssetInfo.value?.assetInfo ?: return@launch
         assetDetailsService.setAssetPinned(assetInfo.id().toIdentifier(), !assetInfo.metadata.isPinned)
     }
 
     fun add() = viewModelScope.launch(Dispatchers.IO) {
-        val assetInfo = model.value?.chainAssetInfo?.assetInfo ?: return@launch
+        val assetInfo = chainAssetInfo.value?.assetInfo ?: return@launch
         assetDetailsService.setAssetsEnabled(listOf(assetInfo.id().toIdentifier()), true)
     }
+
+    fun togglePriceAlert(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
+        val toggled = uiModel.value?.detailsState?.priceAlert?.toggled() ?: return@launch
+        runCatchingCancellable { assetDetailsService.setPriceAlert(assetId.toIdentifier(), toggled == GemPriceAlertToggle.ENABLED) }
+            .onFailure { errorState.value = it.errorText() }
+    }
+
+    fun closeBanner(banner: Banner) = viewModelScope.launch(Dispatchers.IO) {
+        runCatchingCancellable { assetDetailsService.closeBanner(banner.toGemKey()) }
+            .onFailure { Log.e(TAG, "banner ${banner.event} close failed", it) }
+    }
+
+    fun enablePerpetuals() {
+        userConfig.setPerpetualEnabled(true)
+    }
+
+    fun clearError() = errorState.update { null }
 
     private companion object {
         const val TAG = "AssetDetails"
     }
-
-    private data class Model(
-        val chainAssetInfo: ChainAssetInfo,
-        val updatedAt: Long,
-        val explorerName: String,
-    )
 }

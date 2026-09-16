@@ -20,7 +20,7 @@ public enum TransactionHeaderTypeBuilder {
                 return .amount(showFiat: showsFiat)
             case .nft:
                 guard case let .transferNft(_, nftAsset) = transfer.inputType else { return .amount(showFiat: false) }
-                let nft = nftAsset.map()
+                let nft = nftAsset.toPrimitives()
                 return .nft(name: nft.name, id: nft.id.identifier)
             case .swap:
                 guard case let .swap(fromAsset, toAsset, data) = transfer.inputType else { return .amount(showFiat: true) }
@@ -28,8 +28,8 @@ public enum TransactionHeaderTypeBuilder {
                     price.mapToAssetPrice(assetId: assetId)
                 }
 
-                let from = fromAsset.map()
-                let to = toAsset.map()
+                let from = fromAsset.toPrimitives()
+                let to = toAsset.toPrimitives()
                 let quote = data.quote
                 let model = SwapMetadataViewModel(
                     metadata: TransactionExtendedMetadata(
@@ -40,7 +40,7 @@ public enum TransactionHeaderTypeBuilder {
                             fromValue: quote.fromValue.description,
                             toAsset: to.id,
                             toValue: quote.toValue.description,
-                            provider: quote.providerData.provider.map().rawValue,
+                            provider: quote.providerData.provider.toPrimitives().rawValue,
                         )),
                     ),
                 )

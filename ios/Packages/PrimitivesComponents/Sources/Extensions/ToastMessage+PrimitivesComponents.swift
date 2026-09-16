@@ -12,13 +12,7 @@ public extension ToastMessage {
         guard case let .perpetual(_, perpetualType) = type else {
             return nil
         }
-        return switch Primitives.PerpetualType(core: perpetualType) {
-        case let .open(data): .success(Localized.Perpetual.openDirection(PerpetualDirectionViewModel(direction: data.direction).title))
-        case .close: .success(Localized.Perpetual.closePosition)
-        case .modify: .success(Localized.Perpetual.modifyPosition)
-        case .increase: .success(Localized.Perpetual.increasePosition)
-        case .reduce: .success(Localized.Perpetual.reducePosition)
-        }
+        return .success(perpetualType.confirmedTitle)
     }
 
     static func copied(_ value: String) -> ToastMessage {

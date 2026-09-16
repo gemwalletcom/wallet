@@ -3,22 +3,26 @@ package com.gemwallet.android.features.stake.viewmodels
 import uniffi.gemstone.GemClaimRewardsDestination
 import uniffi.gemstone.GemDelegationDestination
 import uniffi.gemstone.GemStakeServiceInterface
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetValidators
-import com.gemwallet.android.application.stake.cases.SyncStakeDelegations
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.stakeChain
 import com.gemwallet.android.AppUrl
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.model.toAmountParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.toGem
@@ -28,6 +32,7 @@ import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Delegation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -41,16 +46,18 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import uniffi.gemstone.DocsUrl
+import com.gemwallet.android.ext.secondsToDays
+import java.math.BigInteger
 import javax.inject.Inject
+import uniffi.gemstone.GemValueStyle
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class StakeViewModel @Inject constructor(
     private val getAssetInfo: GetAssetInfo,
+    private val getWalletAssets: GetWalletAssets,
     private val getDelegations: GetDelegations,
     private val getValidators: GetValidators,
-    private val syncStakeDelegations: SyncStakeDelegations,
     private val stakeService: GemStakeServiceInterface,
     getSession: GetSession,
     stateHandle: SavedStateHandle,
@@ -64,11 +71,24 @@ class StakeViewModel @Inject constructor(
 
     val assetInfo = assetId
         .flatMapLatest { getAssetInfo(it) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, getWalletAssets().value.firstOrNull { it.asset.id == initialAssetId })
 
     val stakeInfoUrl = assetInfo
-        .mapLatest { it?.stakeChain?.let { chain -> AppUrl.docs(DocsUrl.Staking(chain.string)) } }
+        .mapLatest { it?.asset?.stakeChain?.let { chain -> AppUrl.staking(chain.string) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val lockTimeDays = assetInfo
+        .mapLatest { it?.asset?.chain?.string?.let { chain -> stakeService.lockTimeSeconds(chain) } }
+        .mapLatest { seconds -> seconds?.takeIf { it > 0uL }?.let { it.toLong().secondsToDays() } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val minStakeAmount = assetInfo
+        .mapLatest { it?.asset?.chain?.string?.let { chain -> stakeService.minStakeAmount(chain) } ?: BigInteger.ZERO }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, BigInteger.ZERO)
+
+    val infoRows = assetInfo
+        .mapLatest { info -> info?.let { stakeService.stakeInfoRows(it.asset.chain.string, it.metadata.stakingApr) } ?: emptyList() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val session = getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -82,6 +102,11 @@ class StakeViewModel @Inject constructor(
         .flatMapLatest { (walletId, assetId) -> getDelegations(walletId, assetId) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    val validatorRows = delegations
+        .map { items -> items.associate { it.validator.id to stakeService.validatorRow(it.validator.toGem()) } }
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
+
     private val hasValidators = assetId
         .flatMapLatest { getValidators(it) }
         .mapLatest { validators -> validators.isNotEmpty() }
@@ -92,7 +117,7 @@ class StakeViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val rewardsText = combine(claimRewards.filterNotNull(), assetInfo.filterNotNull()) { claimRewards, assetInfo ->
-        ValueFormatter(style = ValueFormatter.Style.Auto).string(claimRewards.value, assetInfo.asset)
+        ValueFormatter(style = GemValueStyle.AUTO).string(claimRewards.value, assetInfo.asset)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     val actions = combine(
@@ -110,6 +135,10 @@ class StakeViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    val sections = combine(assetInfo, actions, delegations) { assetInfo, actions, delegations ->
+        assetInfo?.let { stakeService.stakeSections(it.asset.chain.string, actions.isNotEmpty(), delegations.isNotEmpty()) } ?: emptyList()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     private val sync = MutableStateFlow<Boolean>(true)
 
     val isSync = sync
@@ -121,7 +150,8 @@ class StakeViewModel @Inject constructor(
                 }
                 val assetInfo = assetInfo.filterNotNull().first()
                 emit(true)
-                syncStakeDelegations.sync(assetInfo.asset.id.chain)
+                runCatchingCancellable { withContext(Dispatchers.IO) { stakeService.sync(assetInfo.asset.id.chain.string) } }
+                    .onFailure { Log.e(TAG, "stake delegations sync failed", it) }
                 emit(false)
                 sync.update { false }
             }
@@ -136,13 +166,15 @@ class StakeViewModel @Inject constructor(
     fun onDelegation(
         delegation: Delegation,
         onOpenDetail: (String, String) -> Unit,
+        onAmount: AmountTransactionAction,
         onConfirm: ConfirmTransactionAction,
     ) {
         val walletType = walletType.value ?: return
         val assetInfo = assetInfo.value ?: return
         when (val destination = stakeService.delegationDestination(walletType.toGem(), assetInfo.asset.toGem(), delegation.toGem())) {
             GemDelegationDestination.Details -> onOpenDetail(delegation.validator.id, delegation.base.delegationId)
-            is GemDelegationDestination.Withdraw -> onConfirm(destination.transfer)
+            is GemDelegationDestination.Confirm -> onConfirm(destination.transfer)
+            is GemDelegationDestination.Amount -> onAmount(destination.input.toAmountParams(destination.asset.toPrimitives().id))
         }
     }
 
@@ -152,5 +184,9 @@ class StakeViewModel @Inject constructor(
             is GemClaimRewardsDestination.Transfer -> onConfirm(destination.transfer)
             is GemClaimRewardsDestination.Amount -> onAmount(AmountParams.Stake.Rewards(assetInfo.asset.id))
         }
+    }
+
+    private companion object {
+        const val TAG = "Stake"
     }
 }

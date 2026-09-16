@@ -9,6 +9,7 @@
   <string name="common_copy">کاپی</string>
   <string name="common_share">شیئر کریں۔</string>
   <string name="common_continue">جاری رکھیں</string>
+  <string name="common_sign_in_with">%1$s کے ساتھ سائن ان کریں</string>
   <string name="common_provider">فراہم کرنے والا</string>
   <string name="common_loading">لوڈ ہو رہا ہے۔</string>
   <string name="common_address">پتہ</string>
@@ -54,9 +55,9 @@
   <string name="common_earn">کمائیں</string>
   <string name="common_method">طریقہ</string>
   <string name="common_token">ٹوکن</string>
+  <string name="common_expiration">میعاد ختم</string>
   <string name="common_suspicious_address">مشکوک پتہ</string>
   <string name="common_refresh">ریفریش کریں۔</string>
-  <string name="common_no_thanks">نہیں شکریہ</string>
   <string name="common_grant_permission">اجازت دیں۔</string>
   <string name="common_required_field">%1$s درکار ہے۔</string>
   <string name="welcome_title">Gem Family میں خوش آمدید</string>
@@ -142,7 +143,6 @@
   <string name="transfer_unfreeze_title">غیر منجمد کریں۔</string>
   <string name="transfer_review_request">درخواست کا جائزہ لیں</string>
   <string name="transfer_amount">رقم</string>
-  <string name="transfer_amount_title">رقم</string>
   <string name="settings_terms_of_services">سروس کی شرائط</string>
   <string name="settings_privacy_policy">رازداری کی پالیسی</string>
   <string name="settings_title">ترتیبات</string>
@@ -177,7 +177,6 @@
   <string name="support_state_empty_title">ہم آپ کی کیسے مدد کر سکتے ہیں؟</string>
   <string name="support_state_empty_description">ہم سے کچھ بھی پوچھیں۔ ہم مدد کے لیے موجود ہیں۔</string>
   <string name="support_message_placeholder">پیغام</string>
-  <string name="errors_transfer">منتقلی کی خرابی: %1$s</string>
   <string name="errors_validation">توثیق کی خرابی: %1$s</string>
   <string name="errors_create_wallet">والیٹ کی خرابی بنائیں: %1$s</string>
   <string name="errors_invalid_address_name">غلط پتہ یا نام</string>
@@ -196,7 +195,6 @@
   <string name="errors_connections_user_cancelled">صارف نے منسوخ کر دیا۔</string>
   <string name="errors_not_supported">تعاون یافتہ نہیں۔</string>
   <string name="errors_permissions_not_granted">اجازت نہیں دی گئی۔</string>
-  <string name="errors_decoding">ضابطہ کشائی کی خرابی۔</string>
   <string name="errors_unknown">نامعلوم</string>
   <string name="errors_not_supported_qr">یہ آلہ QR کوڈ اسکیننگ کو سپورٹ نہیں کرتا ہے۔ آپ لائبریری سے صرف QR کوڈ کی تصویر منتخب کر سکتے ہیں۔</string>
   <string name="errors_camera_permissions_not_granted">کیمرے کی اجازت نہیں دی گئی۔ QR کوڈ اسکین کرنے کے لیے براہ کرم سیٹنگز میں کیمرے تک رسائی کو فعال کریں۔</string>
@@ -207,11 +205,8 @@
   <string name="errors_dust_threshold">لین دین ناکام ہو گیا کیونکہ رقم %1$s نیٹ ورک کی کم از کم ضرورت (دھول کی حد) کو پورا کرنے کے لیے بہت کم ہے۔ یہ حد یقینی بناتی ہے کہ لین دین کی قیمت فیسوں اور پروسیسنگ کے اخراجات کا احاطہ کرتی ہے۔</string>
   <string name="errors_swap_no_quote_available">کوئی کوٹ دستیاب نہیں ہے۔</string>
   <string name="errors_swap_not_supported_asset">تعاون یافتہ اثاثہ نہیں ہے۔</string>
-  <string name="errors_connections_invalid_send_parameters">ٹرانزیکشن بھیجنے کے لیے فراہم کردہ غلط پیرامیٹرز۔</string>
-  <string name="errors_connections_invalid_sign_parameters">دستخط کرنے کے لیے فراہم کردہ غلط پیرامیٹرز۔</string>
   <string name="errors_connections_no_supported_wallets">کوئی تعاون یافتہ بٹوے دستیاب نہیں ہیں۔</string>
   <string name="errors_connections_unsupported_chain">فراہم کردہ سلسلہ تعاون یافتہ نہیں ہے۔</string>
-  <string name="errors_connections_unsupported_method">درخواست کردہ طریقہ تعاون یافتہ نہیں ہے۔</string>
   <string name="errors_swap_amount_too_small">رقم بہت چھوٹی ہے۔</string>
   <string name="errors_required">%1$s درکار ہے۔</string>
   <string name="errors_scan_transaction_malicious_description">یہ لین دین مکمل نہیں کیا جا سکتا — منزل مقصود والیٹ کا پتہ مشکوک یا نقصان دہ سرگرمی سے منسلک ہے۔</string>
@@ -223,7 +218,6 @@
   <string name="errors_swap_minimum_amount">کم از کم تجارتی رقم %1$s ہے۔ براہ کرم زیادہ رقم درج کریں۔</string>
   <string name="errors_perpetual_trigger_price_lower">ٹرگر قیمت مارکیٹ قیمت سے کم ہونی چاہیے</string>
   <string name="errors_perpetual_trigger_price_higher">ٹرگر قیمت مارکیٹ قیمت سے زیادہ ہونی چاہیے</string>
-  <string name="errors_token_unable_fetch_token_information">ٹوکن کی معلومات حاصل کرنے سے قاصر: %1$s</string>
   <string name="errors_unknown_try_again">ایک نامعلوم خرابی پیش آگئی۔ براہ کرم دوبارہ کوشش کریں۔</string>
   <string name="errors_network_error">نیٹ ورک کی خرابی: %1$s</string>
   <string name="errors_network_offline">انٹرنیٹ کنکشن آف لائن معلوم ہوتا ہے۔</string>
@@ -241,7 +235,6 @@
   <string name="update_app_permission_title">تنصیب کی اجازت دیں۔</string>
   <string name="update_app_permission_description">ترتیبات پر جائیں اور بیرونی ذرائع سے انسٹالیشن کی اجازت دیں۔</string>
   <string name="update_app_permission_open_settings">ترتیبات پر جائیں۔</string>
-  <string name="update_app_downloading">ڈاؤن لوڈ ہو رہا ہے...</string>
   <string name="transaction_recipient">وصول کنندہ</string>
   <string name="transaction_sender">بھیجنے والا</string>
   <string name="transaction_date">تاریخ</string>
@@ -314,6 +307,7 @@
   <string name="wallet_connect_permissions_title">اجازتیں</string>
   <string name="wallet_connect_permissions_view_balance">اپنا توازن اور سرگرمی دیکھیں</string>
   <string name="wallet_connect_permissions_approval_requests">منظوری کی درخواستیں بھیجیں۔</string>
+  <string name="wallet_connect_request_expired">درخواست کی میعاد ختم ہو گئی</string>
   <string name="swap_you_pay">آپ ادا کرتے ہیں</string>
   <string name="swap_you_receive">آپ وصول کرتے ہیں</string>
   <string name="swap_price_impact">قیمت کا اثر</string>
@@ -396,8 +390,6 @@
   <string name="banner_account_activation_description">%1$s نیٹ ورک کو %2$s کی ایک بار کی فیس درکار ہے۔</string>
   <string name="banner_stake_title">%1$s اسٹیکنگ شروع کریں</string>
   <string name="banner_stake_description">سوتے وقت اپنے اسٹیک پر %1$s انعامات حاصل کریں۔</string>
-  <string name="banner_enable_notifications_title">اطلاعات کو فعال کریں۔</string>
-  <string name="banner_enable_notifications_description">اپنی بٹوے کی سرگرمی پر سب سے اوپر رہیں۔</string>
   <string name="banner_activate_asset_description">%1$s اثاثہ استعمال کرنے کے لیے، آپ کو پہلے نیٹ ورک کی مخصوص ضروریات کو پورا کرتے ہوئے اسے %2$s نیٹ ورک پر فعال کرنا ہوگا۔</string>
   <string name="banner_asset_status_title">مشکوک اثاثہ</string>
   <string name="banner_asset_status_description">ٹوکن غیر محفوظ یا گمراہ کن ہو سکتا ہے۔ صرف اس صورت میں آگے بڑھیں جب آپ کو اس پر مکمل اعتماد ہو۔</string>
@@ -494,6 +486,7 @@
   <string name="nft_report_reason_malicious">بدنیتی پر مبنی</string>
   <string name="nft_report_reason_inappropriate">نامناسب مواد</string>
   <string name="nft_report_reason_copyright">کاپی رائٹ</string>
+  <string name="nft_report_reason_other">دیگر</string>
   <string name="nft_report_report_button_title">رپورٹ</string>
   <string name="permissions_access_denied">رسائی سے انکار کر دیا گیا۔</string>
   <string name="permissions_image_photo_access_denied_description">اس ایپ کو آپ کی تصویری لائبریری تک رسائی کی اجازت نہیں ہے۔ براہ کرم اپنے آلے کی ترتیبات میں رسائی کو فعال کریں۔</string>
@@ -503,7 +496,6 @@
   <string name="search_state_empty_description">ہجے چیک کریں یا نئی تلاش کی کوشش کریں۔</string>
   <string name="networks_state_empty_search_title">کوئی نیٹ ورک نہیں ملا</string>
   <string name="onboarding_security_create_wallet_intro_title">آپ کو ایک خفیہ جملہ ملے گا - یہ آپ کے بٹوے تک رسائی کا واحد طریقہ ہے۔</string>
-  <string name="onboarding_security_create_wallet_confirm_title">میں سمجھتا ہوں اور جاری رکھنا چاہتا ہوں۔</string>
   <string name="onboarding_security_create_wallet_do_not_share_title">اسے کسی کے ساتھ شیئر نہ کریں۔</string>
   <string name="onboarding_security_create_wallet_do_not_share_subtitle">جو کوئی بھی آپ کا خفیہ جملہ حاصل کرتا ہے وہ آپ کے بٹوے کا مکمل کنٹرول لے سکتا ہے۔</string>
   <string name="onboarding_security_create_wallet_keep_safe_subtitle">خفیہ جملہ آپ کے بٹوے تک رسائی کا واحد طریقہ ہے۔</string>
@@ -552,8 +544,8 @@
   <string name="perpetual_margin_cross">کراس</string>
   <string name="perpetual_margin_isolated">الگ تھلگ</string>
   <string name="perpetuals_title">دائمی</string>
+  <string name="perpetuals_trade">دائمی ٹریڈ کریں</string>
   <string name="perpetuals_markets">منڈیاں</string>
-  <string name="perpetuals_empty_state_no_markets">کوئی بازار نہیں۔</string>
   <string name="perpetuals_empty_state_no_markets_found">کوئی بازار نہیں ملا</string>
   <string name="rewards_title">انعامات</string>
   <string name="rewards_share_text">شمولیت Gem Wallet میرے ریفرل لنک کے ساتھ اور انعامات حاصل کریں: %1$s</string>
@@ -601,9 +593,6 @@
   <string name="simulation_warning_nft_collection_approval_title">مکمل NFT جمع کرنے تک رسائی کی درخواست کی گئی۔</string>
   <string name="simulation_warning_unlimited_token_approval_title">لامحدود ٹوکن کی منظوری</string>
   <string name="application_name">Gem</string>
-  <string name="camera_permission_request_camera">QR کوڈ اسکین کے لیے کیمرے کی اجازت درکار ہے۔\nبراہ کرم اجازت دیں۔</string>
-  <string name="notifications_permission_request_notification">نئی لین دین کے بارے میں اطلاعات حاصل کرنے کے لیے اطلاعات پوسٹ کرنے کی اجازت درکار ہے۔\nبراہ کرم اجازت دیں۔</string>
-  <string name="confirm_fee_error">فیس کے حساب میں غلطی</string>
   <string name="rootcheck_security_alert">سیکیورٹی وارننگ</string>
   <string name="rootcheck_body">ایسا لگتا ہے کہ آپ کے آلے کو روٹ تک رسائی حاصل ہے، جس سے سیکورٹی کے خطرات میں نمایاں اضافہ ہو سکتا ہے۔ اس ایپ کو روٹڈ ڈیوائس پر استعمال کرنے سے آپ کے اثاثوں کو غیر مجاز رسائی اور ممکنہ نقصان کا سامنا کرنا پڑ سکتا ہے۔ آپ کے فنڈز کی حفاظت کے لیے، ہم ایک غیر جڑ والا آلہ استعمال کرنے کی سختی سے سفارش کرتے ہیں۔</string>
   <string name="rootcheck_ignore">نظر انداز کرنا</string>

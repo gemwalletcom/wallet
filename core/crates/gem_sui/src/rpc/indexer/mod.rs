@@ -92,7 +92,7 @@ mod tests {
         let responses_for_client = responses.clone();
         let requests_for_client = requests.clone();
         let client = MockClient::new().with_post(move |path, body| {
-            assert_eq!(path, "/graphql");
+            assert_eq!(path, "");
             requests_for_client.lock().unwrap().push(serde_json::from_slice::<serde_json::Value>(body).unwrap());
             Ok(responses_for_client.lock().unwrap().pop_front().unwrap())
         });

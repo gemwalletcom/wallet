@@ -22,6 +22,9 @@ final class NavigationStateManager: Sendable {
     @MainActor
     var walletTabReselected = false
 
+    @MainActor
+    var pendingWalletPath: [any Hashable & Codable] = []
+
     init() {}
 }
 
@@ -51,10 +54,13 @@ extension NavigationStateManager {
         }
     }
 
-    func clearAll() {
+    func reset() {
         for tabItem in TabItem.allCases {
             backToRoot(tab: tabItem)
         }
+        selectedTab = .wallet
+        wallet.setPath(pendingWalletPath)
+        pendingWalletPath = []
     }
 
     func openAsset(_ asset: Asset) {
@@ -63,6 +69,12 @@ extension NavigationStateManager {
         } else {
             wallet.append(Scenes.Asset(asset: asset))
         }
+        selectedTab = .wallet
+        previousSelectedTab = .wallet
+    }
+
+    func openWallet(path: [any Hashable & Codable]) {
+        wallet.setPath(path)
         selectedTab = .wallet
         previousSelectedTab = .wallet
     }

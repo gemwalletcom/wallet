@@ -37,3 +37,15 @@ extension KeystoreAuthentication {
         }
     }
 }
+
+public extension KeystoreAuthentication {
+    static var availableBiometryName: String? {
+        switch LAContext().biometryType {
+        case .faceID: "Face ID"
+        case .touchID: "Touch ID"
+        case .opticID: "Optic ID"
+        case .none: .none
+        @unknown default: .none
+        }
+    }
+}

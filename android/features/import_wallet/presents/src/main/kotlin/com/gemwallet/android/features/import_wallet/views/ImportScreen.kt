@@ -39,13 +39,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.features.import_wallet.localization.string
 import uniffi.gemstone.GemWalletImportException
 import com.gemwallet.android.application.wallet_import.values.WalletImportResult
 import com.gemwallet.android.features.import_wallet.components.ImportInput
-import com.gemwallet.android.features.import_wallet.components.WalletTypeTab
-import com.gemwallet.android.features.import_wallet.components.importTypeTabIndex
+import com.gemwallet.android.features.import_wallet.components.ImportKindTab
 import com.gemwallet.android.features.import_wallet.viewmodels.ImportViewModel
 import com.gemwallet.android.AppUrl
+import com.gemwallet.android.features.import_wallet.viewmodels.ImportInputUIModel
+import com.gemwallet.android.features.import_wallet.viewmodels.ImportTabUIModel
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.DetectScreenshot
 import com.gemwallet.android.ui.DisableScreenShooting
@@ -63,12 +65,18 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.sceneContentPadding
+import com.gemwallet.android.ui.theme.paddingHalfSmall
+import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.Chain
-import com.gemwallet.android.ui.models.name.NameRecordState
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemNameRecordState
+import uniffi.gemstone.GemWalletImportKind
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import uniffi.gemstone.DocsUrl
+import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.ui.localization.text
+
+private val loadingDialogSize = 100.dp
 
 internal sealed interface ImportSceneTitle {
     data class Resource(val resId: Int) : ImportSceneTitle
@@ -76,11 +84,9 @@ internal sealed interface ImportSceneTitle {
 }
 
 internal fun importSceneTitle(importType: ImportType, chainName: String): ImportSceneTitle {
-    return when (importType.walletType) {
-        WalletType.Multicoin -> ImportSceneTitle.Resource(R.string.wallet_multicoin)
-        WalletType.Single,
-        WalletType.PrivateKey,
-        WalletType.View -> ImportSceneTitle.Text(chainName)
+    return when (importType.chain) {
+        null -> ImportSceneTitle.Resource(R.string.wallet_multicoin)
+        else -> ImportSceneTitle.Text(chainName)
     }
 }
 
@@ -92,7 +98,7 @@ fun ImportScreen(
     onCancel: () -> Unit
 ) {
     DisableScreenShooting()
-    DetectScreenshot(AppUrl.docs(DocsUrl.HowToSecureSecretPhrase))
+    DetectScreenshot(AppUrl.howToSecureSecretPhrase)
 
     val viewModel: ImportViewModel = hiltViewModel()
 
@@ -109,6 +115,7 @@ fun ImportScreen(
         inputState = inputState,
         importType = uiState.importType,
         tabs = uiState.tabs,
+        input = uiState.input,
         defaultWalletName = uiState.defaultWalletName,
         chainName = uiState.chainName,
         nameResolveState = nameResolveState,
@@ -118,7 +125,7 @@ fun ImportScreen(
             viewModel.import(generatedName, value, onImported)
         },
         onInput = viewModel::onInput,
-        onTypeChange = viewModel::chainType,
+        onTypeChange = viewModel::importKind,
         invalidWords = viewModel::invalidPhraseWords,
         phraseSuggestions = viewModel::phraseSuggestions,
         onCancel = onCancel,
@@ -131,10 +138,10 @@ fun ImportScreen(
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .size(100.dp)
+                    .size(loadingDialogSize)
                     .background(
                         MaterialTheme.colorScheme.background,
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(paddingSmall)
                     )
             ) {
                 CircularProgressIndicator()
@@ -165,15 +172,16 @@ fun ImportScreen(
 private fun ImportScene(
     inputState: MutableState<TextFieldValue>,
     importType: ImportType,
-    tabs: List<WalletType>,
-    defaultWalletName: String,
+    tabs: List<ImportTabUIModel>,
+    input: ImportInputUIModel,
+    defaultWalletName: String?,
     chainName: String,
-    nameResolveState: NameRecordState,
+    nameResolveState: GemNameRecordState,
     dataError: Throwable?,
     buttonState: ButtonState,
     onImport: (generatedName: String, value: String) -> Unit,
     onInput: (String) -> Unit,
-    onTypeChange: (WalletType) -> Unit,
+    onTypeChange: (ImportType) -> Unit,
     invalidWords: (String) -> Set<String>,
     phraseSuggestions: (String) -> List<String>,
     onCancel: () -> Unit
@@ -182,7 +190,7 @@ private fun ImportScene(
         is ImportSceneTitle.Resource -> stringResource(sceneTitle.resId)
         is ImportSceneTitle.Text -> sceneTitle.value
     }
-    val generatedName = defaultWalletName
+    val generatedName = defaultWalletName.orEmpty()
     var dataErrorState by remember(dataError) { mutableStateOf(dataError) }
 
     Scene(
@@ -207,20 +215,20 @@ private fun ImportScene(
                         .fillMaxWidth()
                         .listItem(ListPosition.Single)
                         .padding(sceneContentPadding())
-                        .padding(bottom = 0.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                        .padding(bottom = space0),
+                    verticalArrangement = Arrangement.spacedBy(paddingHalfSmall)
                 ) {
-                    TypeSelection(importType, tabs) { walletType ->
-                        onTypeChange(walletType)
+                    TypeSelection(tabs) { type ->
+                        onTypeChange(type)
                         inputState.value = TextFieldValue()
                     }
-                    DataInput(importType, inputState, nameResolveState, invalidWords, phraseSuggestions, onInput) {
+                    DataInput(input, inputState, nameResolveState, invalidWords, phraseSuggestions, onInput) {
                         dataErrorState = null
                     }
                     ErrorMessage(dataErrorState)
                 }
             }
-            if (importType.kind.showsViewOnlyWarning()) {
+            if (input.showsViewOnlyWarning) {
                 item {
                     Text(
                         modifier = Modifier.sectionHeaderItem(),
@@ -239,20 +247,20 @@ private fun ImportScene(
 
 @Composable
 private fun DataInput(
-    importType: ImportType,
+    input: ImportInputUIModel,
     inputState: MutableState<TextFieldValue>,
-    nameResolveState: NameRecordState,
+    nameResolveState: GemNameRecordState,
     invalidWords: (String) -> Set<String>,
     phraseSuggestions: (String) -> List<String>,
     onInput: (String) -> Unit,
     onChange: () -> Unit,
 ) {
-    val suggestions = remember(importType.walletType) { mutableStateListOf<String>() }
+    val suggestions = remember(input) { mutableStateListOf<String>() }
 
     ImportInput(
         invalidWords = invalidWords,
         inputState = inputState.value,
-        importType = importType,
+        input = input,
         uiState = nameResolveState,
         onValueChange = { query ->
             inputState.value = query
@@ -261,7 +269,7 @@ private fun DataInput(
             onChange()
             onInput(query.text)
 
-            if (!importType.kind.supportsPhraseSuggestions()) {
+            if (!input.supportsPhraseSuggestions) {
                 return@ImportInput
             }
 
@@ -279,9 +287,9 @@ private fun DataInput(
         },
     )
 
-    if (suggestions.isNotEmpty() && importType.kind.supportsPhraseSuggestions()) {
+    if (suggestions.isNotEmpty() && input.supportsPhraseSuggestions) {
         LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(paddingSmall)
         ) {
             items(suggestions) { word ->
                 SuggestionChip(
@@ -301,22 +309,21 @@ private fun DataInput(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TypeSelection(
-    importType: ImportType,
-    tabs: List<WalletType>,
-    onTypeChange: (WalletType) -> Unit,
+    tabs: List<ImportTabUIModel>,
+    onTypeChange: (ImportType) -> Unit,
 ) {
     if (tabs.size < 2) {
         return
     }
     PrimaryTabRow(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(4.dp)),
-        selectedTabIndex = importTypeTabIndex(importType.walletType, tabs),
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(paddingHalfSmall)),
+        selectedTabIndex = tabs.indexOfFirst { it.isSelected }.coerceAtLeast(0),
         indicator = { Box {} },
         containerColor = Color.Transparent,
         divider = {}
     ) {
-        tabs.forEach { walletType ->
-            WalletTypeTab(walletType, importType.walletType, onTypeChange)
+        tabs.forEach { tab ->
+            ImportKindTab(tab, onTypeChange)
         }
     }
     Spacer16()
@@ -325,17 +332,11 @@ private fun TypeSelection(
 @Composable
 private fun ErrorMessage(error: Throwable?) {
     val text = when (error) {
-        is GemWalletImportException.InvalidSecretPhraseWords -> stringResource(
-            R.string.errors_import_invalid_secret_phrase_word,
-            error.words.joinToString()
-        )
-        is GemWalletImportException.InvalidSecretPhrase -> stringResource(R.string.errors_import_invalid_secret_phrase)
-        is GemWalletImportException.InvalidAddress -> stringResource(R.string.errors_invalid_address_name)
-        is GemWalletImportException.InvalidPrivateKey -> stringResource(R.string.errors_import_invalid_private_key)
+        is GemWalletImportException -> error.string()
         null -> return
         else -> stringResource(
             R.string.errors_create_wallet,
-            error.message?.takeIf { it.isNotBlank() } ?: stringResource(R.string.errors_unknown_try_again),
+            error.errorText().text().takeIf { it.isNotBlank() } ?: stringResource(R.string.errors_unknown_try_again),
         )
     }
     Text(text = text, color = MaterialTheme.colorScheme.error)
@@ -366,11 +367,21 @@ fun PreviewImportAddress() {
         Box(modifier = Modifier.fillMaxSize()) {
             ImportScene(
                 inputState = remember { mutableStateOf(TextFieldValue()) },
-                importType = ImportType(chain = Chain.Bitcoin, walletType = WalletType.View),
-                tabs = listOf(WalletType.Single, WalletType.View),
-                defaultWalletName = "Wallet #1",
+                importType = ImportType(GemWalletImportKind.ADDRESS, Chain.Bitcoin),
+                tabs = listOf(
+                    ImportTabUIModel(ImportType(GemWalletImportKind.PHRASE, Chain.Bitcoin), R.string.common_phrase, isSelected = false),
+                    ImportTabUIModel(ImportType(GemWalletImportKind.ADDRESS, Chain.Bitcoin), R.string.common_address, isSelected = true),
+                ),
+                input = ImportInputUIModel(
+                    placeholder = R.string.wallet_import_address_field,
+                    isPhrase = false,
+                    protectsInput = false,
+                    supportsPhraseSuggestions = false,
+                    showsViewOnlyWarning = true,
+                ),
+                defaultWalletName = "Wallet 1",
                 chainName = "Ethereum",
-                nameResolveState = NameRecordState.None,
+                nameResolveState = GemNameRecordState.None,
                 dataError = null,
                 buttonState = ButtonState.Enabled,
                 onImport = {_, _ -> },

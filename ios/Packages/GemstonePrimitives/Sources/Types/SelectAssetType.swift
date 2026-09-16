@@ -1,9 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import enum Gemstone.GemAssetAction
 import struct Gemstone.GemPaymentRecipient
-import struct Gemstone.GemSelectAssetFlow
 import enum Gemstone.GemSelectAssetType
 import Primitives
 
@@ -39,31 +37,23 @@ public extension SelectAssetType {
         case .receive(.collection): .receiveCollection
         case .buy: .buy
         case .swap(.pay): .swapPay
-        case .swap(.receive): .swapReceive
+        case let .swap(.receive(payAssetId)): .swapReceive(payAssetId: payAssetId?.identifier)
         case .manage: .manage
         case .priceAlert: .priceAlert
         case .deposit: .deposit
         case .withdraw: .withdraw
         }
     }
-
-    var flow: GemSelectAssetFlow {
-        flowType.flow()
-    }
-
-    var action: GemAssetAction? {
-        flow.action
-    }
 }
 
 public enum SelectAssetSwapType: Identifiable, Hashable, Sendable {
     case pay
-    case receive(chains: [Chain], assetIds: [AssetId])
+    case receive(payAssetId: AssetId?)
 
     public var id: String {
         switch self {
         case .pay: "pay"
-        case let .receive(chains, assetIds): "receive_\(chains)_\(assetIds)"
+        case let .receive(payAssetId): "receive_\(payAssetId?.identifier ?? "")"
         }
     }
 }

@@ -1,3 +1,7 @@
+use gem_evm::EVM_ZERO_ADDRESS;
+use gem_hash::keccak::keccak256;
+use gem_solana::{AccountMeta, Instruction, Pubkey, SYSTEM_PROGRAM_ID, SolanaAddress, anchor::global_discriminator};
+
 use crate::{
     SwapperError,
     mayan::{
@@ -12,11 +16,6 @@ use crate::{
         wormhole_chain::id_for_name as wormhole_chain_id,
     },
 };
-use gem_evm::EVM_ZERO_ADDRESS;
-use gem_hash::keccak::keccak256;
-use gem_solana::{SYSTEM_PROGRAM_ID, SolanaAddress};
-use solana_primitives::anchor::global_discriminator;
-use solana_primitives::{AccountMeta, Instruction, Pubkey};
 
 const SWIFT_ORDER_DATA_SIZE_V2: usize = 272;
 

@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.settings.contacts.presents
 
+import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.LocalAddressService
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -17,8 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.domains.asset.getIconUrl
-import com.gemwallet.android.ext.AddressFormatter
+import com.gemwallet.android.ui.format.rememberFormattedAddress
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAvatarState
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ManageContactUIState
@@ -37,10 +37,12 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.ContactAddress
+import androidx.compose.material3.SnackbarHostState
 
 @Composable
 fun ManageContactScene(
     state: ManageContactUIState,
+    snackbar: SnackbarHostState? = null,
     onNameChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onAction: (ManageContactAction) -> Unit,
@@ -50,6 +52,7 @@ fun ManageContactScene(
     Scene(
         title = stringResource(R.string.contacts_contact),
         onClose = { onAction(ManageContactAction.Cancel) },
+        snackbar = snackbar,
         actions = {
             IconButton(onClick = { onAction(ManageContactAction.Save) }, enabled = state.isSaveEnabled) {
                 Icon(imageVector = AppIcons.Check, contentDescription = "")
@@ -140,11 +143,11 @@ private fun ContactAddressItem(
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         listPosition = listPosition,
-        leading = { IconWithBadge(icon = address.chain.getIconUrl()) },
+        leading = { IconWithBadge(icon = address.chain.iconModel()) },
         title = { ListItemTitleText(text = address.chain.networkName()) },
         subtitle = {
             Text(
-                text = AddressFormatter(LocalAddressService.current, address = address.address, chain = address.chain).value(),
+                text = rememberFormattedAddress(address.address, address.chain),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.secondary,
             )

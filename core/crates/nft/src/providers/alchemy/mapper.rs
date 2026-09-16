@@ -38,7 +38,6 @@ pub fn map_collection(metadata: ContractMetadata, collection_id: NFTCollectionId
         },
         status,
         links: Vec::new(),
-        is_verified,
     }
 }
 
@@ -186,6 +185,6 @@ mod tests {
         let collection = map_collection(metadata, NFTCollectionId::new(Chain::SmartChain, TEST_BSC_COLLECTION));
 
         assert_eq!(collection.status, VerificationStatus::Suspicious);
-        assert!(!collection.is_verified);
+        assert_ne!(collection.status, VerificationStatus::Verified);
     }
 }

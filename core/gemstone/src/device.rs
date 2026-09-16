@@ -4,7 +4,7 @@ use zeroize::Zeroizing;
 
 use crate::GemstoneError;
 
-#[derive(Clone, uniffi::Record)]
+#[derive(Clone)]
 pub struct GemDeviceKeyPair {
     pub private_key: Vec<u8>,
     pub public_key: Vec<u8>,
@@ -19,7 +19,6 @@ impl fmt::Debug for GemDeviceKeyPair {
     }
 }
 
-#[uniffi::export]
 pub fn generate_device_key_pair() -> GemDeviceKeyPair {
     let seed = Zeroizing::new(gem_crypto::random::bytes::<32>().expect("OS RNG must provide 32 bytes for the device key"));
     let public_key = gem_auth::device_public_key(seed.as_slice()).expect("32 bytes is a valid Ed25519 seed");

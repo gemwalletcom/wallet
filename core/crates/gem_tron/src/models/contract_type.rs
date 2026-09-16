@@ -1,7 +1,6 @@
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error as _};
 use strum::{Display, EnumString};
 
-#[cfg(feature = "signer")]
 const TYPE_URL_PREFIX: &str = "type.googleapis.com/protocol.";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Display, EnumString)]
@@ -30,12 +29,10 @@ pub enum TronContractType {
 }
 
 impl TronContractType {
-    #[cfg(feature = "signer")]
     pub(crate) fn id(self) -> u64 {
         self as u64
     }
 
-    #[cfg(feature = "signer")]
     pub(crate) fn type_url(self) -> String {
         format!("{TYPE_URL_PREFIX}{self}")
     }

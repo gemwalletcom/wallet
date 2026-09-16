@@ -13,9 +13,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.domains.asset.getIconUrl
-import com.gemwallet.android.domains.asset.getSupportIconUrl
 import com.gemwallet.android.ui.theme.listItemIconSize
+import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.Asset
 
 @Composable
@@ -25,9 +24,9 @@ fun AssetIcon(
     badgeBackgroundColor: Color? = null,
 ) {
     IconWithBadge(
-        icon = asset.getIconUrl(),
-        placeholder = asset.type.string,
-        supportIcon = asset.getSupportIconUrl(),
+        icon = asset.iconModel(),
+        placeholder = asset.symbol,
+        supportIcon = asset.supportIconModel(),
         size = size,
         badgeBackgroundColor = badgeBackgroundColor,
     )
@@ -85,7 +84,7 @@ private const val LARGE_BADGE_CONTENT_SIZE_RATIO = 3f
 private const val BADGE_RING_WIDTH_RATIO = 32f
 private const val BADGE_OFFSET_RATIO = 5f
 private val LARGE_BADGE_THRESHOLD = 48.dp
-private val MAX_BADGE_RING_WIDTH = 2.dp
+private val MAX_BADGE_RING_WIDTH = space2
 
 internal data class BadgeLayout(
     val contentSize: Dp,

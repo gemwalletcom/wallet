@@ -26,6 +26,8 @@ just gemstone test-ios          # Run iOS integration tests (run in gemstone/)
 cargo test --test integration_test --package <CRATE> --features <FEATURE>  # Manual integration test
 ```
 
+`just test <CRATE>` includes `--lib` and requires a library target. For binary-only packages such as `img-downloader`, run `cargo test --locked -p img-downloader --bins --all-features` instead.
+
 Cargo accepts one positional test filter. Run multiple filters as separate commands. Confirm the active worktree and run commands from the directory assumed by the path arguments. If parallel Cargo commands contend on workspace locks or do not return a clear final status, rerun the closing checks individually.
 
 ## Code Quality

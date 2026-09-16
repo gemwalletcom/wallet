@@ -11,6 +11,14 @@ public struct TransactionId: Equatable, Hashable, Sendable {
         self.hash = hash
     }
 
+    public init(core id: String) {
+        do {
+            try self.init(id: id)
+        } catch {
+            preconditionFailure("failed to decode TransactionId from Core: \(id)")
+        }
+    }
+
     public init(id: String) throws {
         if let (chain, hash) = AssetId.getData(id: id), let hash {
             self.init(chain: chain, hash: hash)

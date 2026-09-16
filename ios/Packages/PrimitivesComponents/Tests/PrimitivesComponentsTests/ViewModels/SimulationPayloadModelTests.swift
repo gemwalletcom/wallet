@@ -71,11 +71,11 @@ struct SimulationPayloadModelTests {
         let link = BlockExplorerLink(name: "Etherscan", link: "https://etherscan.io/address/\(contract.value)")
         var openedURL: URL?
 
-        let items = SimulationPayloadModel.mock(primaryFields: [contract]).contextMenuItems(
-            for: contract,
+        let items = SimulationPayloadModel.mock(primaryFields: [contract]).fieldModels(
+            for: [contract],
             explorerLink: { _ in link },
             onOpenURL: { openedURL = $0 },
-        )
+        )[0].contextMenuItems
 
         #expect(items.count == 2)
         guard case let .url(title, onOpen) = items[1], let onOpen else {
@@ -92,11 +92,11 @@ struct SimulationPayloadModelTests {
     func textFieldContextMenuOmitsExplorerLink() {
         let method = SimulationPayloadField.standard(kind: .method, value: "approve", fieldType: .text, display: .secondary)
 
-        let items = SimulationPayloadModel.mock(secondaryFields: [method]).contextMenuItems(
-            for: method,
+        let items = SimulationPayloadModel.mock(secondaryFields: [method]).fieldModels(
+            for: [method],
             explorerLink: { BlockExplorerLink(name: "Etherscan", link: "https://etherscan.io/address/\($0)") },
             onOpenURL: { _ in },
-        )
+        )[0].contextMenuItems
 
         #expect(items.isEmpty)
     }

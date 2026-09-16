@@ -26,6 +26,24 @@ public extension SimulationResult {
     }
 }
 
+public extension SimulationResult {
+    static func mockPermitBatch(
+        warnings: [SimulationWarning] = [],
+        header: SimulationHeader? = nil,
+    ) -> SimulationResult {
+        .mock(
+            warnings: warnings,
+            payload: [
+                .standard(kind: .spender, value: "0x3333333333333333333333333333333333333333", fieldType: .address, display: .primary),
+                .standard(kind: .value, value: "Unlimited", fieldType: .text, display: .primary),
+                .standard(kind: .contract, value: "0x000000000022D473030F116dDEE9F6B43aC78BA3", fieldType: .address, display: .secondary),
+                .standard(kind: .method, value: "Permit Batch", fieldType: .text, display: .secondary),
+            ],
+            header: header,
+        )
+    }
+}
+
 public extension SimulationPayloadField {
     static func standard(
         kind: SimulationPayloadFieldKind,

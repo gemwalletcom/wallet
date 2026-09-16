@@ -13,6 +13,10 @@ let package = Package(
             name: "MarketInsight",
             targets: ["MarketInsight"],
         ),
+        .library(
+            name: "MarketInsightTestKit",
+            targets: ["MarketInsightTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
@@ -25,6 +29,7 @@ let package = Package(
         .package(name: "Gemstone", path: "../../Packages/Gemstone"),
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
         .package(name: "InfoSheet", path: "../InfoSheet"),
+        .package(name: "Style", path: "../../Packages/Style"),
     ],
     targets: [
         .target(
@@ -40,15 +45,28 @@ let package = Package(
                 "Components",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
                 "InfoSheet",
+                "Style",
             ],
             path: "Sources",
+        ),
+        .target(
+            name: "MarketInsightTestKit",
+            dependencies: [
+                "MarketInsight",
+                "Primitives",
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+            ],
+            path: "TestKit",
         ),
         .testTarget(
             name: "MarketInsightTests",
             dependencies: [
-                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "MarketInsight",
+                "MarketInsightTestKit",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
+                "GemstonePrimitives",
+                "Localization",
+                "Primitives",
             ],
         ),
     ],

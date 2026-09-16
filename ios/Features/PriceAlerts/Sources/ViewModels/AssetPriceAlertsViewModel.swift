@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.PriceAlertFormatter
 import Components
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import GemstoneServices
@@ -49,7 +50,7 @@ public final class AssetPriceAlertsViewModel: Sendable {
                 price: priceQuery.value?.price,
                 priceAlert: .default(for: asset.id, currency: .default),
             ),
-            currency: service.getCurrency(),
+            currency: currency,
         )
     }
 
@@ -62,11 +63,14 @@ public final class AssetPriceAlertsViewModel: Sendable {
         )
     }
 
-    var alertsModel: [PriceAlertItemViewModel] {
+    var alerts: [PriceAlertData] {
         priceAlerts
-            .filter { $0.priceAlert.type != .auto }
+            .filter { PriceAlertFormatter.shared.alertKind(alert: $0.priceAlert.toGem()).groupsByAsset() }
             .displayedAlerts
-            .map { PriceAlertItemViewModel(data: $0, currency: service.getCurrency()) }
+    }
+
+    var currency: Currency {
+        service.getCurrency().toPrimitives()
     }
 }
 
@@ -85,7 +89,7 @@ extension AssetPriceAlertsViewModel {
         do {
             try await service.setAutoAlert(assetId: asset.id.identifier, enabled: enabled)
         } catch {
-            debugLog("toggleAutoAlert error: \(error)")
+            isPresentingToastMessage = .error(error.localizedDescription)
         }
     }
 
@@ -93,7 +97,7 @@ extension AssetPriceAlertsViewModel {
         do {
             try await service.delete(priceAlerts: [priceAlert])
         } catch {
-            debugLog("deletePriceAlert error: \(error)")
+            isPresentingToastMessage = .error(error.localizedDescription)
         }
     }
 

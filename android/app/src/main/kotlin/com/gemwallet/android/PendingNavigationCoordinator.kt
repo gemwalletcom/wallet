@@ -3,15 +3,19 @@ package com.gemwallet.android
 import android.content.Intent
 import androidx.annotation.VisibleForTesting
 import androidx.navigation3.runtime.NavKey
+import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.serializer.decodeJson
-import com.wallet.core.primitives.Payment
+import com.wallet.core.primitives.FiatQuoteType
+import uniffi.gemstone.Payment
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import uniffi.gemstone.Deeplink
 import uniffi.gemstone.GemDeeplinkService
+import uniffi.gemstone.GemDeeplinkServiceInterface
 import uniffi.gemstone.UrlAction
 import uniffi.gemstone.WalletConnectLink
 
@@ -36,7 +40,8 @@ internal sealed interface PendingNavigation {
 class PendingNavigationCoordinator @Inject constructor(
     private val notificationNavigation: NotificationNavigation,
     private val paymentNavigation: PaymentNavigation,
-    private val deeplinkService: GemDeeplinkService,
+    private val assetNavigation: AssetNavigation,
+    private val deeplinkService: GemDeeplinkServiceInterface,
 ) {
 
     private val _pendingNavigation = MutableStateFlow<PendingNavigation?>(null)
@@ -59,7 +64,7 @@ class PendingNavigationCoordinator @Inject constructor(
     suspend fun buildRoutes(walletConnect: WalletConnectHandler): Boolean {
         val pending = _pendingNavigation.value as? PendingNavigation.Input ?: return true
         val action = pending.code?.let(deeplinkService::urlAction)
-        val loading = if (action is UrlAction.Payment && action.payment.decodeJson<Payment>() is Payment.Link) {
+        val loading = if (action is UrlAction.Payment && action.payment is Payment.Link) {
             PendingNavigation.Loading(pending).also { replace(pending, it) }
         } else {
             null
@@ -88,8 +93,14 @@ class PendingNavigationCoordinator @Inject constructor(
             }
             emptyList()
         }
-        is UrlAction.Deeplink -> listOfNotNull(action.deeplink.toRoute())
-        is UrlAction.Payment -> paymentNavigation.routes(action.payment.decodeJson())
+        is UrlAction.Deeplink -> routes(action.deeplink)
+        is UrlAction.Payment -> paymentNavigation.routes(action.payment)
+    }
+
+    private suspend fun routes(deeplink: Deeplink): List<NavKey> = when (deeplink) {
+        is Deeplink.Buy -> listOfNotNull(assetNavigation.fiatRoute(deeplink.assetId.toAssetId(), deeplink.amount, FiatQuoteType.Buy))
+        is Deeplink.Sell -> listOfNotNull(assetNavigation.fiatRoute(deeplink.assetId.toAssetId(), deeplink.amount, FiatQuoteType.Sell))
+        is Deeplink.Asset, is Deeplink.Receive, is Deeplink.Rewards, is Deeplink.Swap, Deeplink.Perpetuals -> listOfNotNull(deeplink.toRoute())
     }
 
     private fun replace(pending: PendingNavigation, replacement: PendingNavigation?) {

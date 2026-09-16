@@ -1,0 +1,21 @@
+{
+  "data": {
+    "id": 2781,
+    "symbol": "USD",
+    "name": "United States Dollar",
+    "amount": 1,
+    "last_updated": "2026-09-15T17:15:04.000Z",
+    "quote": {
+      "EUR": { "price": 0.85, "last_updated": "2026-09-15T17:16:05.000Z" },
+      "GBP": { "price": 0.75, "last_updated": "2026-09-15T17:16:05.000Z" },
+      "BYN": { "price": 3.034959, "last_updated": "2026-09-15T17:16:05.000Z" }
+    }
+  },
+  "status": {
+    "timestamp": "2026-09-15T17:17:02.444Z",
+    "error_code": 0,
+    "error_message": null,
+    "elapsed": 5,
+    "credit_count": 3
+  }
+}

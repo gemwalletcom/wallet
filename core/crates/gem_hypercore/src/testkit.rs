@@ -1,9 +1,15 @@
+use crate::models::balance::{Validator, ValidatorStats};
 pub use crate::models::metadata::{AssetMetadata, UniverseAsset};
 pub use crate::models::order::OpenOrder;
 pub use crate::models::portfolio::{HypercoreDataPoint, HypercorePortfolioResponse, HypercorePortfolioTimeframeData};
 pub use crate::models::position::{AssetPositions, MarginSummary};
+pub use crate::models::spot::OrderbookLevel;
+use crate::models::user::{AgentSession, DelegatorHistoryDelta, DelegatorHistoryUpdate, DelegatorWithdrawalDelta};
+use crate::models::websocket::HyperliquidSubscription;
 #[cfg(test)]
 use crate::rpc::client::HyperCoreClient;
+#[cfg(test)]
+use crate::{config::HypercoreConfig, provider::preload_cache::HyperCoreCache};
 #[cfg(test)]
 use gem_client::{ClientError, testkit::MockClient};
 #[cfg(test)]
@@ -89,6 +95,76 @@ impl AssetMetadata {
             impact_pxs: None,
             day_base_vlm: "250000".to_string(),
         }
+    }
+}
+
+impl OrderbookLevel {
+    pub fn mock(px: &str, sz: &str) -> Self {
+        Self {
+            px: px.to_string(),
+            sz: sz.to_string(),
+        }
+    }
+}
+
+impl HyperliquidSubscription {
+    pub fn mock_candle(symbol: &str) -> Self {
+        Self::Candle {
+            symbol: symbol.to_string(),
+            interval: "30m".to_string(),
+        }
+    }
+
+    pub fn mock_account_state() -> Self {
+        Self::AccountState { address: "0xabc".to_string() }
+    }
+}
+
+impl Validator {
+    pub fn mock(address: &str, name: &str, commission: f64, predicted_apr: Option<f64>) -> Self {
+        Self {
+            validator: address.to_string(),
+            name: name.to_string(),
+            commission,
+            is_active: true,
+            stats: predicted_apr
+                .map(|apr| vec![("month".to_string(), ValidatorStats { predicted_apr: apr })])
+                .unwrap_or_default(),
+        }
+    }
+}
+
+impl DelegatorHistoryUpdate {
+    pub fn mock_withdrawal(time: u64, amount: &str, phase: &str) -> Self {
+        Self {
+            time,
+            hash: "0x0".to_string(),
+            delta: DelegatorHistoryDelta {
+                c_deposit: None,
+                delegate: None,
+                withdrawal: Some(DelegatorWithdrawalDelta {
+                    amount: amount.to_string(),
+                    phase: phase.to_string(),
+                }),
+            },
+        }
+    }
+}
+
+impl AgentSession {
+    pub fn mock(name: &str, address: &str, valid_until: u64) -> Self {
+        Self {
+            name: name.to_string(),
+            address: address.to_string(),
+            valid_until,
+        }
+    }
+}
+
+#[cfg(test)]
+impl HyperCoreCache {
+    pub fn mock() -> Self {
+        Self::new(Arc::new(InMemoryPreferences::new()), HypercoreConfig::default())
     }
 }
 

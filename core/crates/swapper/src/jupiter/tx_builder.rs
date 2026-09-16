@@ -1,11 +1,12 @@
+use gem_encoding::encode_base64;
+use gem_solana::{
+    AddressLookupTableAccount, Base64InstructionData, DEFAULT_SWAP_GAS_LIMIT, JUPITER_PROGRAM_ID, MAX_TRANSACTION_SIZE, Pubkey, TransactionBuilder,
+    compute_budget::{ensure_compute_unit_price, parse_compute_unit_limit_data, set_compute_unit_limit},
+    instruction_from_primitive, instructions_from_primitives,
+};
+
 use super::model::BuildResponse;
 use crate::SwapperError;
-use gem_encoding::encode_base64;
-use gem_solana::{Base64InstructionData, DEFAULT_SWAP_GAS_LIMIT, JUPITER_PROGRAM_ID, instruction_from_primitive, instructions_from_primitives};
-use solana_primitives::{
-    AddressLookupTableAccount, MAX_TRANSACTION_SIZE, Pubkey, TransactionBuilder,
-    compute_budget::{ensure_compute_unit_price, parse_compute_unit_limit_data, set_compute_unit_limit},
-};
 
 impl BuildResponse {
     pub(super) fn into_transaction(self, payer: &str, fee_account: &str) -> Result<String, SwapperError> {
@@ -62,65 +63,31 @@ impl BuildResponse {
 
 #[cfg(test)]
 mod tests {
+    use super::super::testkit::{TEST_FEE_ACCOUNT, TEST_PAYER};
     use super::*;
-    use crate::jupiter::model::BlockhashWithMetadata;
     use gem_solana::{DEFAULT_SWAP_GAS_LIMIT, USDC_TOKEN_MINT, decode_transaction};
-    use primitives::{SolanaAccountMeta, SolanaInstruction};
-    use std::collections::BTreeMap;
-
-    const PAYER: &str = "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy";
-    const FEE_ACCOUNT: &str = "A21o4asMbFHYadqXdLusT9Bvx9xaC5YV9gcaidjqtdXC";
-
-    fn build_response() -> BuildResponse {
-        BuildResponse {
-            out_amount: "125000000".to_string(),
-            slippage_bps: 100,
-            compute_budget_instructions: Vec::new(),
-            setup_instructions: Vec::new(),
-            swap_instruction: SolanaInstruction {
-                program_id: JUPITER_PROGRAM_ID.to_string(),
-                accounts: vec![
-                    SolanaAccountMeta {
-                        pubkey: PAYER.to_string(),
-                        is_signer: true,
-                        is_writable: true,
-                    },
-                    SolanaAccountMeta {
-                        pubkey: FEE_ACCOUNT.to_string(),
-                        is_signer: false,
-                        is_writable: true,
-                    },
-                ],
-                data: String::new(),
-            },
-            cleanup_instruction: None,
-            other_instructions: Vec::new(),
-            tip_instruction: None,
-            addresses_by_lookup_table_address: Some(BTreeMap::new()),
-            blockhash_with_metadata: BlockhashWithMetadata { blockhash: [0; 32] },
-        }
-    }
+    use primitives::SolanaAccountMeta;
 
     #[test]
     fn test_into_transaction() {
-        let transaction = build_response().into_transaction(PAYER, FEE_ACCOUNT).unwrap();
+        let transaction = BuildResponse::mock().into_transaction(TEST_PAYER, TEST_FEE_ACCOUNT).unwrap();
         let decoded = decode_transaction(&transaction).unwrap();
         assert_eq!(decoded.get_compute_unit_limit(), Some(DEFAULT_SWAP_GAS_LIMIT));
         assert_eq!(decoded.get_compute_unit_price(), Some(0));
 
         assert_eq!(
-            build_response().into_transaction(PAYER, USDC_TOKEN_MINT),
+            BuildResponse::mock().into_transaction(TEST_PAYER, USDC_TOKEN_MINT),
             Err(SwapperError::ComputeQuoteError("Jupiter referral fee is missing from the swap instruction".to_string()))
         );
 
-        let mut build = build_response();
+        let mut build = BuildResponse::mock();
         build.swap_instruction.accounts.push(SolanaAccountMeta {
             pubkey: USDC_TOKEN_MINT.to_string(),
             is_signer: true,
             is_writable: false,
         });
         assert_eq!(
-            build.into_transaction(PAYER, FEE_ACCOUNT),
+            build.into_transaction(TEST_PAYER, TEST_FEE_ACCOUNT),
             Err(SwapperError::TransactionError("Jupiter transaction requires more than one signer".to_string()))
         );
     }

@@ -13,8 +13,8 @@ An asset is written as `{chain}` for a coin and `{chain}/{token_id}` for a token
 | Buy | `/tokens/{asset}/buy?amount={fiat}` | Amount is optional | iOS and Android |
 | Sell | `/tokens/{asset}/sell?amount={fiat}` | Amount is optional | iOS and Android |
 | Swap | `/tokens/{asset}/swap` | Opens swap with the asset to pay from | iOS and Android |
-| Perpetuals | `/perpetuals` | — | Android only; iOS association is outstanding |
-| Rewards | `/rewards?code={code}`, `/join/{code}` | Referral code is optional | Use `/join/{code}` for iOS and Android; `/rewards` is app-scheme only |
+| Perpetuals | `/perpetuals` | — | iOS and Android |
+| Rewards | `/rewards?code={code}`, `/join/{code}` | Referral code is optional | iOS and Android |
 
 Examples:
 
@@ -45,13 +45,13 @@ Support chat messages are parsed in Core, and a link whose URL is a deep link is
 - [UniFFI bridge](../core/gemstone/src/deeplink.rs)
 - [Support message links](../core/crates/support/src/text.rs)
 - iOS: [`NavigationHandler`](../ios/Gem/Navigation/NavigationHandler.swift), schemes and associated domains in `ios/Gem/Resources/Info.plist` and `ios/Gem/Resources/Gem.entitlements`
-- Android: [`WebDeepLinks`](../android/app/src/main/kotlin/com/gemwallet/android/WebDeepLinks.kt), intent filters in `android/app/src/main/AndroidManifest.xml`
+- Android: [`toRoute`](../android/app/src/main/kotlin/com/gemwallet/android/WebDeepLinks.kt), intent filters in `android/app/src/main/AndroidManifest.xml`
 
 ## Web requirements
 
 `https://gemwallet.com/` links only reach the app when the app declares them and the website publishes the matching association. They should also have a browser fallback for people without the app.
 
-- `https://gemwallet.com/.well-known/apple-app-site-association` currently lists token and join paths; `/perpetuals` and `/rewards` are not iOS Universal Links
+- `https://gemwallet.com/.well-known/apple-app-site-association` lists the WalletConnect, token, join, perpetual and rewards paths, each with its locale-prefixed form where the app declares one
 - `https://gemwallet.com/.well-known/assetlinks.json` must list the Android package and signing certificate
-- Android currently declares token, join, and perpetual paths; it does not declare `/rewards`
+- Android declares the same set in its intent filters, so a path added to one must be added to the other
 - As checked on 2026-09-02, token action URLs such as `/tokens/bitcoin/buy` return `404` in a browser. Publishing a non-app fallback remains required

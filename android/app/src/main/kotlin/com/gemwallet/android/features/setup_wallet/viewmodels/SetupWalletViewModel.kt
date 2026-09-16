@@ -1,12 +1,14 @@
 package com.gemwallet.android.features.setup_wallet.viewmodels
 
+import com.gemwallet.android.ext.toGem
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet.cases.GetWallet
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemErrorText
+import uniffi.gemstone.GemWalletRow
+import uniffi.gemstone.walletRow
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -16,11 +18,11 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import android.util.Log
 import com.gemwallet.android.ext.runCatchingCancellable
 import kotlinx.coroutines.Dispatchers
 import uniffi.gemstone.GemWalletServiceInterface
 import kotlinx.coroutines.launch
+import com.gemwallet.android.ext.errorText
 
 @HiltViewModel(assistedFactory = SetupWalletViewModel.Factory::class)
 class SetupWalletViewModel @AssistedInject constructor(
@@ -41,9 +43,7 @@ class SetupWalletViewModel @AssistedInject constructor(
                         it.copy(
                             walletName = wallet.name,
                             walletSource = wallet.source,
-                            walletType = wallet.type,
-                            walletChain = wallet.accounts.firstOrNull()?.chain,
-                            imageUrl = wallet.imageUrl,
+                            row = walletRow(wallet.toGem()),
                         )
                     }
                 }
@@ -55,24 +55,22 @@ class SetupWalletViewModel @AssistedInject constructor(
         state.update { it.copy(walletName = name) }
         viewModelScope.launch(Dispatchers.IO) {
             runCatchingCancellable { service.rename(walletId.id, name) }
-                .onFailure { Log.e(TAG, "renaming wallet ${walletId.id} failed", it) }
+                .onFailure { error -> state.update { it.copy(error = error.errorText()) } }
         }
     }
+
+    fun clearError() = state.update { it.copy(error = null) }
 
     @AssistedFactory
     interface Factory {
         fun create(walletId: WalletId): SetupWalletViewModel
     }
 
-    private companion object {
-        const val TAG = "SetupWallet"
-    }
 }
 
 data class SetupWalletViewModelState(
     val walletName: String = "",
     val walletSource: WalletSource = WalletSource.Create,
-    val walletType: WalletType? = null,
-    val walletChain: Chain? = null,
-    val imageUrl: String? = null,
+    val row: GemWalletRow? = null,
+    val error: GemErrorText? = null,
 )

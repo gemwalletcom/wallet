@@ -1,13 +1,13 @@
 use std::fs;
 
-use super::super::types::SecretKind;
-use super::testkit::{PHRASE, test_keystore, v4_path};
+use super::super::types::{FileKeystore, SecretKind};
+use super::testkit::{PHRASE, v4_path};
 use crate::Keystore;
 use crate::v3_testkit::{V3_MNEMONIC_FIXTURE, V3_MNEMONIC_PHRASE, V3_PASSWORD, V3_PRIVATE_KEY_FIXTURE};
 
 #[test]
 fn test_import_v3_mnemonic_fixture() {
-    let (dir, keystore) = test_keystore();
+    let (dir, keystore) = FileKeystore::mock();
     let v3_path = dir.path().join("v3.json");
     fs::write(&v3_path, V3_MNEMONIC_FIXTURE).unwrap();
     let meta = keystore.import_v3(&v3_path, V3_PASSWORD, b"new-password", None).unwrap();
@@ -18,7 +18,7 @@ fn test_import_v3_mnemonic_fixture() {
 
 #[test]
 fn test_delete_v3() {
-    let (dir, keystore) = test_keystore();
+    let (dir, keystore) = FileKeystore::mock();
     let legacy_id = "d6604f82-9e31-47b3-81db-bab91ab9d72d";
     let named = dir.path().join(legacy_id);
     let suffixed = dir.path().join(format!("UTC--2019-01-01T00-00-00Z--{legacy_id}"));

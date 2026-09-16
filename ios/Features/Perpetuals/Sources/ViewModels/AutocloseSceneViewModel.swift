@@ -3,7 +3,9 @@
 import Components
 import Formatters
 import Foundation
+import enum Gemstone.GemAutocloseConfirmPolicy
 import struct Gemstone.GemAutocloseModify
+import struct Gemstone.GemAutocloseSession
 import struct Gemstone.GemAutocloseField
 import GemstonePrimitives
 import Localization
@@ -30,7 +32,7 @@ public final class AutocloseSceneViewModel {
             GemAutocloseEstimator(
                 entryPrice: position.position.entryPrice,
                 positionSize: position.position.size,
-                direction: position.position.direction.map(),
+                direction: position.position.direction.toGem(),
                 leverage: position.position.leverage,
             )
         case let .open(data, _):
@@ -38,7 +40,7 @@ public final class AutocloseSceneViewModel {
                 marketPrice: data.marketPrice,
                 size: data.size,
                 leverage: data.leverage,
-                direction: data.direction.map(),
+                direction: data.direction.toGem(),
             )
         }
     }
@@ -86,8 +88,12 @@ public final class AutocloseSceneViewModel {
         }
     }
 
+    private var session: GemAutocloseSession {
+        GemAutocloseSession(modify: modify, policy: .whenBuildable, submitAttempted: false)
+    }
+
     public var confirmButtonType: ButtonType {
-        .primary(modify.canBuild() ? .normal : .disabled)
+        .primary(session.viewState().confirmEnabled ? .normal : .disabled)
     }
 }
 
@@ -107,11 +113,11 @@ public extension AutocloseSceneViewModel {
         input.update()
 
         let modify = modify
-        guard modify.canBuild() else { return }
+        guard session.onSubmitAttempt().viewState().confirmEnabled else { return }
 
         switch type {
         case let .modify(position, onTransferAction):
-            onTransferAction?(modify.transfer(provider: position.perpetual.provider.map(), asset: position.asset.map()))
+            onTransferAction?(modify.transfer(provider: position.perpetual.provider.toGem(), asset: position.asset.toGem()))
 
         case let .open(_, onComplete):
             onComplete(input.selection)
@@ -121,7 +127,7 @@ public extension AutocloseSceneViewModel {
     func onSelectPercent(_ percent: Int) {
         guard let type = input.focusedType, let focused = input.focused else { return }
         focused.text = perpetualFormatter.formatInputPrice(
-            estimator.targetPriceFromRoe(roePercent: Int32(percent), triggerType: type.map()),
+            estimator.targetPriceFromRoe(roePercent: Int32(percent), triggerType: type.toGem()),
             decimals: assetDecimals,
         )
     }
@@ -131,11 +137,11 @@ public extension AutocloseSceneViewModel {
 
 extension AutocloseSceneViewModel {
     private var takeProfitPrice: Double? {
-        NumericFormatter().double(from: input.takeProfit.text)
+        NumberInput.double(input.takeProfit.text)
     }
 
     private var stopLossPrice: Double? {
-        NumericFormatter().double(from: input.stopLoss.text)
+        NumberInput.double(input.stopLoss.text)
     }
 
     private var position: PerpetualPositionData? {
@@ -159,7 +165,7 @@ extension AutocloseSceneViewModel {
 
     private var modify: GemAutocloseModify {
         GemAutocloseModify(
-            direction: type.direction.map(),
+            direction: type.direction.toGem(),
             assetIndex: assetIndex,
             takeProfit: takeProfitField,
             stopLoss: stopLossField,
@@ -176,7 +182,7 @@ extension AutocloseSceneViewModel {
     private var takeProfitField: GemAutocloseField {
         let price: Double? = switch type {
         case let .modify(position, _): position.position.takeProfit?.price
-        case let .open(data, _): data.takeProfit.flatMap { NumericFormatter().double(from: $0) }
+        case let .open(data, _): data.takeProfit.flatMap { NumberInput.double($0) }
         }
         return input.field(
             type: .takeProfit,
@@ -190,7 +196,7 @@ extension AutocloseSceneViewModel {
     private var stopLossField: GemAutocloseField {
         let price: Double? = switch type {
         case let .modify(position, _): position.position.stopLoss?.price
-        case let .open(data, _): data.stopLoss.flatMap { NumericFormatter().double(from: $0) }
+        case let .open(data, _): data.stopLoss.flatMap { NumberInput.double($0) }
         }
         return input.field(
             type: .stopLoss,

@@ -8,6 +8,8 @@ import Components
 import struct Gemstone.GemRecipient
 import GemstoneServices
 import Foundation
+import func Gemstone.walletAvatarEmojis
+import func Gemstone.contactInitials
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -49,13 +51,15 @@ public final class ManageContactViewModel {
     let contactId: String
 
     var nameInputModel: InputValidationViewModel
+    private var isSaving = false
     var description: String = ""
     var avatar: Avatar = .empty
     var addresses: [ContactAddress] = []
     var isPresentingAddress: ManageContactAddressViewModel.Mode?
     var isPresentingAvatar: Bool = false
+    var isPresentingAlertMessage: AlertMessage?
 
-    let emojiList: [EmojiValue] = Emoji.WalletAvatar.allCases.map { EmojiValue(emoji: $0.rawValue, color: Colors.grayVeryLight) }
+    let emojiList: [EmojiValue] = walletAvatarEmojis().map { EmojiValue(emoji: $0, color: Colors.grayVeryLight) }
 
     public init(
         service: any GemManageContactServiceProtocol,
@@ -119,22 +123,15 @@ public final class ManageContactViewModel {
         Localized.Common.description
     }
 
-    var contactSectionTitle: String {
-        Localized.Contacts.contact
-    }
-
     var addressesSectionTitle: String {
         Localized.Contacts.addresses
     }
 
     var buttonState: ButtonState {
-        guard nameInputModel.isValid,
-              nameInputModel.text.isNotEmpty
-        else {
+        guard nameInputModel.isValid, service.canSave(name: nameInputModel.text, isSaving: isSaving) else {
             return .disabled
         }
-
-        return .normal
+        return isSaving ? .loading(showProgress: true) : .normal
     }
 
     var avatarImage: AssetImage {
@@ -179,7 +176,7 @@ public final class ManageContactViewModel {
     }
 
     private var initials: String {
-        String(nameInputModel.text.trim().prefix(2))
+        contactInitials(name: nameInputModel.text)
     }
 
     func listItemModel(for address: ContactAddress) -> ListItemModel {
@@ -214,8 +211,10 @@ public final class ManageContactViewModel {
         addresses.remove(atOffsets: offsets)
     }
 
-    func onSave() {
+    func onSave(dismiss: DismissAction) {
+        isSaving = true
         Task {
+            defer { isSaving = false }
             do {
                 let contact = try await service.saveContact(
                     id: contactId,
@@ -226,8 +225,9 @@ public final class ManageContactViewModel {
                     addresses: addresses,
                 )
                 avatar = Avatar(imageUrl: contact.imageUrl)
+                dismiss()
             } catch {
-                debugLog("ManageContactViewModel save error: \(error)")
+                isPresentingAlertMessage = AlertMessage(error: error)
             }
         }
     }

@@ -9,6 +9,7 @@ common_secret_phrase = Hemmelig sætning
 common_copy = Kopiér
 common_share = Del
 common_continue = Fortsæt
+common_sign_in_with = Log ind med %@
 common_provider = Udbyder
 common_loading = Indlæser
 common_address = Adresse
@@ -54,9 +55,9 @@ common_get_started = Kom i gang
 common_earn = Tjen
 common_method = Metode
 common_token = Token
+common_expiration = Udløb
 common_suspicious_address = Mistænkelig adresse
 common_refresh = Opdater
-common_no_thanks = Nej tak
 common_grant_permission = Giv tilladelse
 common_required_field = %@ er påkrævet
 
@@ -163,7 +164,6 @@ transfer_freeze_title = Fryse
 transfer_unfreeze_title = Optø
 transfer_review_request = Anmodning om gennemgang
 transfer_amount = Beløb
-transfer_amount_title = Beløb
 
 # Settings
 
@@ -207,7 +207,6 @@ support_message_placeholder = Besked
 
 # Errors
 
-errors_transfer = Overførselsfejl: %@
 errors_validation = Valideringsfejl: %@
 errors_create_wallet = Fejl ved oprettelse af tegnebog: %@
 errors_invalid_address_name = Ugyldig adresse eller navn
@@ -226,7 +225,6 @@ errors_cancelled = Annulleret
 errors_connections_user_cancelled = Bruger annulleret
 errors_not_supported = Ikke understøttet
 errors_permissions_not_granted = Tilladelser ikke givet
-errors_decoding = Afkodningsfejl
 errors_unknown = Ukendt
 errors_not_supported_qr = Denne enhed understøtter ikke QR-kodescanning. Du kan kun vælge QR-kodebillede fra biblioteket.
 errors_camera_permissions_not_granted = Kameratilladelse ikke givet. Aktiver kameraadgang i indstillingerne for at scanne QR-koden.
@@ -237,11 +235,8 @@ errors_invalid_asset_address = Ugyldig %@ adresse
 errors_dust_threshold = Transaktionen mislykkedes, fordi beløbet er for lille til at opfylde %@ netværkets minimumskrav (støvtærskel). Denne grænse sikrer, at transaktionsværdien dækker gebyrer og behandlingsomkostninger.
 errors_swap_no_quote_available = Ingen pris er tilgængelig.
 errors_swap_not_supported_asset = Ikke understøttet aktiv.
-errors_connections_invalid_send_parameters = Ugyldige parametre angivet til afsendelse af en transaktion.
-errors_connections_invalid_sign_parameters = Ugyldige parametre angivet til signering.
 errors_connections_no_supported_wallets = Ingen understøttede tegnebøger er tilgængelige.
 errors_connections_unsupported_chain = Den angivne kæde understøttes ikke.
-errors_connections_unsupported_method = Den ønskede metode understøttes ikke.
 errors_swap_amount_too_small = Beløbet er for lille
 errors_required = %@ er påkrævet
 errors_scan_transaction_malicious_description = Denne transaktion kan ikke gennemføres — destinationsadressen på tegnebogen er knyttet til mistænkelig eller skadelig aktivitet.
@@ -253,7 +248,6 @@ errors_dust_threshold_short = Netværket anser denne mængde for støv – gebyr
 errors_swap_minimum_amount = Minimumsbeløbet for handel er %@. Indtast venligst et højere beløb.
 errors_perpetual_trigger_price_lower = Triggerprisen skal være lavere end markedsprisen
 errors_perpetual_trigger_price_higher = Triggerprisen skal være højere end markedsprisen
-errors_token_unable_fetch_token_information = Kan ikke hente tokenoplysninger: %@
 errors_unknown_try_again = Der opstod en ukendt fejl. Prøv venligst igen.
 errors_network_error = Netværksfejl: %@
 errors_network_offline = Internetforbindelsen ser ud til at være offline.
@@ -277,7 +271,6 @@ update_app_action = Opdatering
 update_app_permission_title = Tillad installation
 update_app_permission_description = Gå til indstillinger og tillad installation fra eksterne kilder
 update_app_permission_open_settings = Gå til indstillinger
-update_app_downloading = Downloader...
 
 # Transaction
 
@@ -365,6 +358,7 @@ wallet_connect_state_empty_description = Scan eller indsæt kode for at oprette 
 wallet_connect_permissions_title = Tilladelser
 wallet_connect_permissions_view_balance = Se din saldo og aktivitet
 wallet_connect_permissions_approval_requests = Send godkendelsesanmodninger
+wallet_connect_request_expired = Anmodningen er udløbet
 
 # Swap
 
@@ -480,8 +474,6 @@ banner_account_activation_title = Kontoaktiveringsgebyr
 banner_account_activation_description = %@ netværket kræver et engangsgebyr på %@.
 banner_stake_title = Begynd at satse %@
 banner_stake_description = Optjen %@ belønninger på din indsats, mens du sover.
-banner_enable_notifications_title = Aktiver meddelelser
-banner_enable_notifications_description = Hold styr på din tegnebogsaktivitet.
 banner_activate_asset_description = For at bruge %@-aktivet skal du først aktivere det på %@-netværket ved at opfylde netværkets specifikke krav.
 banner_asset_status_title = Mistænkeligt aktiv
 banner_asset_status_description = Token kan være usikker eller vildledende. Fortsæt kun, hvis du har fuld tillid til det.
@@ -605,6 +597,7 @@ nft_report_reason_spam = Spam
 nft_report_reason_malicious = Ondsindet
 nft_report_reason_inappropriate = Upassende indhold
 nft_report_reason_copyright = Ophavsret
+nft_report_reason_other = Andet
 nft_report_report_button_title = Rapport
 
 # Permissions
@@ -629,7 +622,6 @@ networks_state_empty_search_title = Ingen netværk fundet
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Du får en hemmelig sætning – det er den eneste måde at få adgang til din tegnebog på.
-onboarding_security_create_wallet_confirm_title = Jeg forstår og vil gerne fortsætte
 onboarding_security_create_wallet_do_not_share_title = Del det ikke med nogen
 onboarding_security_create_wallet_do_not_share_subtitle = Enhver, der får din hemmelige sætning, kan tage fuld kontrol over din pung.
 onboarding_security_create_wallet_keep_safe_subtitle = Den hemmelige sætning er den eneste måde at få adgang til din tegnebog.
@@ -687,8 +679,9 @@ perpetual_margin_isolated = Isoleret
 # Perpetuals
 
 perpetuals_title = Perpetuals
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = Handl perpetuals
 perpetuals_markets = Markeder
-perpetuals_empty_state_no_markets = Ingen markeder
 perpetuals_empty_state_no_markets_found = Ingen markeder fundet
 
 # Rewards
@@ -760,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = Kameratilladelse kræves til QR-kodescanning.\nGiv venligst tilladelse.
 
 # Notifications Permission
 
-notifications_permission_request_notification = Der kræves tilladelse til at sende meddelelser for at få meddelelser om nye transaktioner.\nGiv venligst tilladelse.
 
 # Confirm
 
-confirm_fee_error = Fejl ved gebyrberegning
 
 # Rootcheck
 

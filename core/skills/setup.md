@@ -35,4 +35,4 @@ kache doctor         # verify wrapper, daemon, and cache integrity
 - After `brew upgrade kache`, run `kache daemon install` again; the launch agent points at the previous Cellar path otherwise.
 - The store cap lives in `~/.config/kache/config.toml` under `[cache] local_max_size`; edit the file and `kache daemon restart` (the `kache config` editor is a TUI). 20 GiB is plenty.
 - `kache why-miss <crate>` explains a miss; `kache stats` shows hit rates.
-- `RUSTC_WRAPPER` in the environment overrides the config wrapper. CI sets it to `sccache` deliberately; see [docs/DECISIONS.md](../../docs/DECISIONS.md) § Rust build cache.
+- `RUSTC_WRAPPER` in the environment overrides the config wrapper. CI sets it to `sccache` deliberately; see [docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md) § 14, Rust build cache.

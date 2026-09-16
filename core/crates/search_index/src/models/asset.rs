@@ -1,10 +1,10 @@
-use primitives::{Asset, AssetMarket, AssetProperties, AssetScore, AssetType, ChainAsset};
-use serde::{Deserialize, Serialize};
+use primitives::{Asset, AssetMarket, AssetProperties, AssetScore, AssetType, Chain, ChainAsset};
+use serde::Serialize;
 
 pub const ASSETS_INDEX_NAME: &str = "assets";
 pub const ASSETS_FILTERS: &[&str] = &[
-    "asset.chain",
-    "asset.tokenId",
+    "chain",
+    "tokenId",
     "asset.name",
     "asset.symbol",
     "asset.type",
@@ -21,7 +21,7 @@ pub const ASSETS_FILTERS: &[&str] = &[
     "market.totalVolume",
     "tags",
 ];
-pub const ASSETS_SEARCH_ATTRIBUTES: &[&str] = &["asset.tokenId", "asset.chain", "asset.name", "asset.symbol", "asset.type", "aliases"];
+pub const ASSETS_SEARCH_ATTRIBUTES: &[&str] = &["tokenId", "chain", "asset.name", "asset.symbol", "asset.type", "aliases"];
 pub const ASSETS_RANKING_RULES: &[&str] = &[
     "words",
     "typo",
@@ -43,11 +43,13 @@ pub const ASSETS_RANKING_RULES: &[&str] = &[
 
 pub const ASSETS_SORTS: &[&str] = &["score.rank"];
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AssetDocument {
     pub id: String,
     pub asset: Asset,
+    pub chain: Chain,
+    pub token_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub aliases: Option<Vec<String>>,
     pub properties: AssetProperties,
@@ -71,7 +73,7 @@ impl AssetDocument {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{AssetId, Chain};
+    use primitives::AssetId;
 
     #[test]
     fn native_asset_aliases_include_chain_id_and_network_name() {
@@ -91,7 +93,7 @@ mod tests {
 
     #[test]
     fn asset_chain_is_searchable_for_compound_queries() {
-        assert!(ASSETS_SEARCH_ATTRIBUTES.contains(&"asset.chain"));
+        assert!(ASSETS_SEARCH_ATTRIBUTES.contains(&"chain"));
         assert!(ASSETS_SEARCH_ATTRIBUTES.contains(&"aliases"));
     }
 

@@ -3,25 +3,27 @@ use crate::perpetual::GemPerpetual;
 use crate::services::transfer::GemTransferData;
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, TPSLOrderData};
-use primitives::{Asset, PerpetualDirection, PerpetualProvider, PerpetualType};
+use primitives::{Asset, AutocloseValidation, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAutocloseField {
+    pub tpsl_type: TpslType,
     pub price: Option<f64>,
     pub original_price: Option<f64>,
     pub formatted_price: Option<String>,
-    pub is_valid: bool,
+    pub validation: AutocloseValidation,
     pub order_id: Option<u64>,
 }
 
-#[uniffi::export]
 impl GemAutocloseField {
-    pub fn has_pending_change(&self) -> bool {
+    fn has_pending_change(&self) -> bool {
         self.is_cleared() || (self.price.is_some() && self.has_changed())
     }
-}
 
-impl GemAutocloseField {
+    fn is_valid(&self) -> bool {
+        self.price.is_some() && self.validation == AutocloseValidation::Valid
+    }
+
     fn has_changed(&self) -> bool {
         self.price != self.original_price
     }
@@ -31,7 +33,7 @@ impl GemAutocloseField {
     }
 
     fn should_set(&self) -> bool {
-        self.is_valid && self.has_changed()
+        self.is_valid() && self.has_changed()
     }
 
     fn should_update(&self) -> bool {
@@ -43,7 +45,7 @@ impl GemAutocloseField {
     }
 
     fn is_acceptable(&self) -> bool {
-        self.price.is_none() || self.is_valid
+        self.price.is_none() || self.is_valid()
     }
 
     fn cancel(&self, asset_index: i32) -> Option<CancelOrderData> {
@@ -68,10 +70,6 @@ pub struct GemAutocloseModify {
 
 #[uniffi::export]
 impl GemAutocloseModify {
-    pub fn can_build(&self) -> bool {
-        self.take_profit.is_acceptable() && self.stop_loss.is_acceptable() && (self.take_profit.should_update() || self.stop_loss.should_update())
-    }
-
     pub fn transfer(&self, provider: PerpetualProvider, asset: Asset) -> GemTransferData {
         let data = PerpetualModifyConfirmData {
             base_asset: HYPERCORE_PERPETUAL_USDC.clone(),
@@ -80,111 +78,206 @@ impl GemAutocloseModify {
             take_profit_order_id: self.take_profit.order_id,
             stop_loss_order_id: self.stop_loss.order_id,
         };
-        GemPerpetual::new(provider).transfer_data(asset, PerpetualType::Modify(data), GemBigInt::ZERO, false)
+        GemPerpetual::new(provider).transfer_data(asset, PerpetualType::Modify { data }, GemBigInt::ZERO, false)
+    }
+}
+
+impl GemAutocloseModify {
+    fn can_build(&self) -> bool {
+        self.take_profit.is_acceptable() && self.stop_loss.is_acceptable() && (self.take_profit.should_update() || self.stop_loss.should_update())
     }
 
-    pub fn build(&self) -> Vec<PerpetualModifyPositionType> {
+    fn build(&self) -> Vec<PerpetualModifyPositionType> {
         let cancels: Vec<CancelOrderData> = [&self.take_profit, &self.stop_loss]
             .into_iter()
             .filter_map(|field| field.cancel(self.asset_index))
             .collect();
         let mut result = Vec::new();
         if !cancels.is_empty() {
-            result.push(PerpetualModifyPositionType::Cancel(cancels));
+            result.push(PerpetualModifyPositionType::Cancel { orders: cancels });
         }
         if self.take_profit.should_set() || self.stop_loss.should_set() {
-            result.push(PerpetualModifyPositionType::Tpsl(TPSLOrderData {
-                direction: self.direction.clone(),
-                take_profit: self.take_profit.set_price(),
-                stop_loss: self.stop_loss.set_price(),
-                size: "0".to_string(),
-            }));
+            result.push(PerpetualModifyPositionType::Tpsl {
+                order: TPSLOrderData {
+                    direction: self.direction.clone(),
+                    take_profit: self.take_profit.set_price(),
+                    stop_loss: self.stop_loss.set_price(),
+                    size: "0".to_string(),
+                },
+            });
         }
         result
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemAutocloseConfirmPolicy {
+    WhenBuildable,
+    UntilSubmitted,
+}
 
-    fn field(price: Option<f64>, original_price: Option<f64>, is_valid: bool, order_id: Option<u64>) -> GemAutocloseField {
-        GemAutocloseField {
-            price,
-            original_price,
-            formatted_price: price.map(|price| format!("{price:.1}")),
-            is_valid,
-            order_id,
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAutocloseViewState {
+    pub confirm_enabled: bool,
+    pub shows_errors: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAutocloseSession {
+    pub modify: GemAutocloseModify,
+    pub policy: GemAutocloseConfirmPolicy,
+    pub submit_attempted: bool,
+}
+
+#[uniffi::export]
+impl GemAutocloseSession {
+    pub fn on_submit_attempt(&self) -> Self {
+        Self {
+            submit_attempted: true,
+            ..self.clone()
         }
     }
 
-    fn modify(take_profit: GemAutocloseField, stop_loss: GemAutocloseField) -> GemAutocloseModify {
-        GemAutocloseModify {
-            direction: PerpetualDirection::Long,
-            asset_index: 5,
-            take_profit,
-            stop_loss,
+    pub fn view_state(&self) -> GemAutocloseViewState {
+        let can_build = self.modify.can_build();
+        GemAutocloseViewState {
+            confirm_enabled: match (self.policy, self.submit_attempted) {
+                (GemAutocloseConfirmPolicy::WhenBuildable, _) | (GemAutocloseConfirmPolicy::UntilSubmitted, true) => can_build,
+                (GemAutocloseConfirmPolicy::UntilSubmitted, false) => self.modify.take_profit.has_pending_change() || self.modify.stop_loss.has_pending_change(),
+            },
+            shows_errors: self.submit_attempted,
         }
+    }
+}
+
+impl GemAutocloseSession {
+    pub fn new(modify: GemAutocloseModify, policy: GemAutocloseConfirmPolicy) -> Self {
+        Self {
+            modify,
+            policy,
+            submit_attempted: false,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn test_each_platform_gates_confirm_the_way_its_policy_says() {
+        let changed = GemAutocloseModify::mock(
+            GemAutocloseField::mock(Some(110.0), Some(100.0), true, None),
+            GemAutocloseField::mock(None, None, true, None),
+        );
+        let ios = GemAutocloseSession::new(changed.clone(), GemAutocloseConfirmPolicy::WhenBuildable);
+        let android = GemAutocloseSession::new(changed, GemAutocloseConfirmPolicy::UntilSubmitted);
+
+        assert_eq!(ios.view_state().confirm_enabled, ios.modify.can_build());
+        assert!(android.view_state().confirm_enabled, "a pending change is enough before a submit");
+        assert_eq!(android.on_submit_attempt().view_state().confirm_enabled, android.modify.can_build());
     }
 
     #[test]
-    fn test_field_rules() {
-        let empty = field(None, None, false, None);
-        assert!(!empty.has_pending_change());
-        assert!(!field(Some(100.0), Some(100.0), true, None).has_pending_change());
-        assert!(field(Some(110.0), Some(100.0), true, None).has_pending_change());
-        assert!(field(None, Some(100.0), false, Some(1)).has_pending_change());
+    fn test_errors_only_show_after_a_submit_attempt() {
+        let session = GemAutocloseSession::new(
+            GemAutocloseModify::mock(GemAutocloseField::mock(Some(110.0), None, false, None), GemAutocloseField::mock(None, None, true, None)),
+            GemAutocloseConfirmPolicy::UntilSubmitted,
+        );
 
-        let updated = field(Some(120.0), Some(100.0), true, Some(1));
+        assert!(!session.view_state().shows_errors);
+        assert!(session.on_submit_attempt().view_state().shows_errors);
+    }
+    use super::*;
+
+    #[test]
+    fn test_field_rules() {
+        let empty = GemAutocloseField::mock(None, None, false, None);
+        assert!(!empty.has_pending_change());
+        assert!(!GemAutocloseField::mock(Some(100.0), Some(100.0), true, None).has_pending_change());
+        assert!(GemAutocloseField::mock(Some(110.0), Some(100.0), true, None).has_pending_change());
+        assert!(GemAutocloseField::mock(None, Some(100.0), false, Some(1)).has_pending_change());
+
+        let updated = GemAutocloseField::mock(Some(120.0), Some(100.0), true, Some(1));
         assert!(updated.should_set() && updated.should_update() && updated.should_cancel());
-        let new = field(Some(120.0), None, true, None);
+        let new = GemAutocloseField::mock(Some(120.0), None, true, None);
         assert!(new.should_set() && !new.should_cancel());
-        let cleared = field(None, Some(100.0), false, Some(1));
+        let cleared = GemAutocloseField::mock(None, Some(100.0), false, Some(1));
         assert!(!cleared.should_set() && cleared.should_update() && cleared.should_cancel());
-        let invalid = field(Some(120.0), Some(100.0), false, Some(1));
+        let invalid = GemAutocloseField::mock(Some(120.0), Some(100.0), false, Some(1));
         assert!(!invalid.should_set() && !invalid.should_update() && !invalid.is_acceptable());
     }
 
     #[test]
     fn test_can_build() {
-        let none = field(None, None, false, None);
-        assert!(modify(field(Some(110.0), Some(100.0), true, None), none.clone()).can_build());
-        assert!(!modify(field(Some(100.0), Some(100.0), true, None), field(Some(90.0), Some(90.0), true, None)).can_build());
-        assert!(!modify(field(Some(110.0), Some(100.0), false, None), none.clone()).can_build());
-        assert!(modify(field(None, Some(100.0), false, None), none.clone()).can_build());
-        assert!(modify(none.clone(), field(Some(90.0), None, true, None)).can_build());
-        assert!(!modify(none.clone(), none.clone()).can_build());
-        assert!(!modify(field(Some(110.0), Some(100.0), false, None), field(Some(80.0), Some(90.0), false, None)).can_build());
-        assert!(!modify(field(Some(110.0), Some(100.0), true, None), field(Some(80.0), Some(90.0), false, None)).can_build());
+        let none = GemAutocloseField::mock(None, None, false, None);
+        assert!(GemAutocloseModify::mock(GemAutocloseField::mock(Some(110.0), Some(100.0), true, None), none.clone()).can_build());
+        assert!(
+            !GemAutocloseModify::mock(
+                GemAutocloseField::mock(Some(100.0), Some(100.0), true, None),
+                GemAutocloseField::mock(Some(90.0), Some(90.0), true, None)
+            )
+            .can_build()
+        );
+        assert!(!GemAutocloseModify::mock(GemAutocloseField::mock(Some(110.0), Some(100.0), false, None), none.clone()).can_build());
+        assert!(GemAutocloseModify::mock(GemAutocloseField::mock(None, Some(100.0), false, None), none.clone()).can_build());
+        assert!(GemAutocloseModify::mock(none.clone(), GemAutocloseField::mock(Some(90.0), None, true, None)).can_build());
+        assert!(!GemAutocloseModify::mock(none.clone(), none.clone()).can_build());
+        assert!(
+            !GemAutocloseModify::mock(
+                GemAutocloseField::mock(Some(110.0), Some(100.0), false, None),
+                GemAutocloseField::mock(Some(80.0), Some(90.0), false, None)
+            )
+            .can_build()
+        );
+        assert!(
+            !GemAutocloseModify::mock(
+                GemAutocloseField::mock(Some(110.0), Some(100.0), true, None),
+                GemAutocloseField::mock(Some(80.0), Some(90.0), false, None)
+            )
+            .can_build()
+        );
     }
 
     #[test]
     fn test_build_sets_and_cancels() {
-        let none = field(None, None, false, None);
-        let set_only = modify(field(Some(110.0), None, true, None), none.clone()).build();
-        assert!(matches!(&set_only[..], [PerpetualModifyPositionType::Tpsl(order)] if order.take_profit.as_deref() == Some("110.0") && order.stop_loss.is_none()));
+        let none = GemAutocloseField::mock(None, None, false, None);
+        let set_only = GemAutocloseModify::mock(GemAutocloseField::mock(Some(110.0), None, true, None), none.clone()).build();
+        assert!(matches!(&set_only[..], [PerpetualModifyPositionType::Tpsl { order }] if order.take_profit.as_deref() == Some("110.0") && order.stop_loss.is_none()));
 
-        let cancel_only = modify(field(None, Some(100.0), false, Some(12345)), none.clone()).build();
-        assert!(matches!(&cancel_only[..], [PerpetualModifyPositionType::Cancel(cancels)] if cancels.len() == 1 && cancels[0].order_id == 12345 && cancels[0].asset_index == 5));
-
-        let both = modify(field(Some(120.0), Some(100.0), true, Some(12345)), field(Some(80.0), Some(90.0), true, Some(67890))).build();
-        assert_eq!(both.len(), 2);
-        assert!(matches!(&both[0], PerpetualModifyPositionType::Cancel(cancels) if cancels.len() == 2));
+        let cancel_only = GemAutocloseModify::mock(GemAutocloseField::mock(None, Some(100.0), false, Some(12345)), none.clone()).build();
         assert!(
-            matches!(&both[1], PerpetualModifyPositionType::Tpsl(order) if order.take_profit.as_deref() == Some("120.0") && order.stop_loss.as_deref() == Some("80.0") && order.size == "0")
+            matches!(&cancel_only[..], [PerpetualModifyPositionType::Cancel { orders: cancels }] if cancels.len() == 1 && cancels[0].order_id == 12345 && cancels[0].asset_index == 5)
         );
 
-        let unchanged_stop_loss = modify(field(Some(120.0), Some(100.0), true, Some(12345)), field(Some(90.0), Some(90.0), true, Some(67890))).build();
-        assert!(matches!(&unchanged_stop_loss[1], PerpetualModifyPositionType::Tpsl(order) if order.stop_loss.is_none()));
+        let both = GemAutocloseModify::mock(
+            GemAutocloseField::mock(Some(120.0), Some(100.0), true, Some(12345)),
+            GemAutocloseField::mock(Some(80.0), Some(90.0), true, Some(67890)),
+        )
+        .build();
+        assert_eq!(both.len(), 2);
+        assert!(matches!(&both[0], PerpetualModifyPositionType::Cancel { orders: cancels } if cancels.len() == 2));
+        assert!(
+            matches!(&both[1], PerpetualModifyPositionType::Tpsl { order } if order.take_profit.as_deref() == Some("120.0") && order.stop_loss.as_deref() == Some("80.0") && order.size == "0")
+        );
+
+        let unchanged_stop_loss = GemAutocloseModify::mock(
+            GemAutocloseField::mock(Some(120.0), Some(100.0), true, Some(12345)),
+            GemAutocloseField::mock(Some(90.0), Some(90.0), true, Some(67890)),
+        )
+        .build();
+        assert!(matches!(&unchanged_stop_loss[1], PerpetualModifyPositionType::Tpsl { order } if order.stop_loss.is_none()));
     }
 
     #[test]
     fn test_transfer_carries_the_modify_and_the_order_ids_it_replaces() {
-        let modify = modify(field(Some(120.0), Some(100.0), true, Some(7)), field(None, None, false, None));
+        let modify = GemAutocloseModify::mock(
+            GemAutocloseField::mock(Some(120.0), Some(100.0), true, Some(7)),
+            GemAutocloseField::mock(None, None, false, None),
+        );
         let transfer = modify.transfer(PerpetualProvider::Hypercore, Asset::from_chain(primitives::Chain::HyperCore));
 
         let primitives::TransactionInputType::Perpetual {
-            perpetual_type: PerpetualType::Modify(data),
+            perpetual_type: PerpetualType::Modify { data },
             ..
         } = &transfer.input_type
         else {

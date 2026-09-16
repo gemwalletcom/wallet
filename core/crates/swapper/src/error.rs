@@ -1,8 +1,10 @@
-use crate::alien::AlienError;
+use std::fmt::Debug;
+
 use gem_client::ClientError;
 use gem_jsonrpc::types::JsonRpcError;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
-use std::fmt::Debug;
+
+use crate::alien::AlienError;
 
 pub const INVALID_AMOUNT: &str = "Invalid amount";
 pub const INVALID_ADDRESS: &str = "Invalid address";
@@ -184,8 +186,8 @@ mod tests {
     #[test]
     fn test_solana_error_mapping() {
         assert_eq!(
-            SwapperError::from(gem_solana::SolanaError::InvalidTransaction),
-            SwapperError::ComputeQuoteError("Solana error: Invalid transaction".to_string())
+            SwapperError::from(gem_solana::SolanaError::InvalidMessage),
+            SwapperError::ComputeQuoteError("Solana error: Invalid message".to_string())
         );
     }
 }

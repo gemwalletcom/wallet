@@ -3,17 +3,16 @@
 import Components
 import Primitives
 import SwiftUI
-import struct Gemstone.SimulationWarning
 
 public struct SimulationWarningsContent: View {
-    private let warnings: [SimulationWarning]
+    private let models: [SimulationWarningViewModel]
 
-    public init(warnings: [SimulationWarning]) {
-        self.warnings = warnings
+    public init(models: [SimulationWarningViewModel]) {
+        self.models = models
     }
 
     public var body: some View {
-        ForEach(warnings.map(SimulationWarningViewModel.init).filter(\.isVisible)) {
+        ForEach(models) {
             ListItemErrorView(
                 errorTitle: $0.title,
                 errorImageColor: $0.color,

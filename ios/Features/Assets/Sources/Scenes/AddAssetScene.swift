@@ -45,6 +45,7 @@ public struct AddAssetScene: View {
             }
             .listSectionSpacing(.compact)
             .navigationTitle(model.title)
+            .alertSheet($model.isPresentingAlertMessage)
             .navigationDestination(for: Scenes.NetworksSelector.self) { _ in
                 NetworkSelectorScene(
                     model: model.networksModel,
@@ -96,10 +97,9 @@ extension AddAssetScene {
                     .id(UUID())
             case let .data(asset):
                 Section {
-                    ListItemView(title: asset.nameTitle, subtitle: asset.name)
-                    ListItemView(title: asset.symbolTitle, subtitle: asset.symbol)
-                    ListItemView(title: asset.decimalsTitle, subtitle: asset.decimals)
-                    ListItemView(title: asset.typeTitle, subtitle: asset.type)
+                    ForEach(asset.rows, id: \.kind) { row in
+                        ListItemView(title: row.kind.title, subtitle: row.value)
+                    }
                 }
                 if let url = asset.explorerUrl, let text = asset.explorerText {
                     Section {
@@ -139,9 +139,7 @@ extension AddAssetScene {
     }
 
     private func onSelectImportToken() {
-        guard case let .data(asset) = model.state else { return }
-        model.add(asset.asset)
-        onComplete?()
+        model.onSelectImportToken(onComplete: onComplete)
     }
 
     private func onSelectScan() {

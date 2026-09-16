@@ -1,12 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.PriceAlertFormatter
 import protocol Gemstone.GemPriceAlertServiceProtocol
+import GemstonePrimitives
 import GemstoneServices
 import Localization
 import Primitives
 import PrimitivesComponents
 import Store
 import SwiftUI
+import Components
 
 @Observable
 @MainActor
@@ -19,6 +22,7 @@ public final class PriceAlertsSceneViewModel: Sendable {
     }
 
     var isPriceAlertsEnabled: Bool
+    var isPresentingAlertMessage: AlertMessage?
 
     public init(
         service: any GemPriceAlertServiceProtocol,
@@ -32,8 +36,8 @@ public final class PriceAlertsSceneViewModel: Sendable {
         Localized.Settings.PriceAlerts.title
     }
 
-    var currencyCode: String {
-        service.getCurrency()
+    var currency: Currency {
+        service.getCurrency().toPrimitives()
     }
 
     var enableTitle: String {
@@ -46,10 +50,10 @@ public final class PriceAlertsSceneViewModel: Sendable {
 
     func sections(for alerts: [PriceAlertData]) -> PriceAlertsSections {
         let (autoAlerts, manualGroups) = alerts.displayedAlerts.reduce(into: ([PriceAlertData](), [Asset: [PriceAlertData]]())) { result, alert in
-            switch alert.priceAlert.type {
-            case .auto:
+            switch PriceAlertFormatter.shared.alertKind(alert: alert.priceAlert.toGem()).groupsByAsset() {
+            case false:
                 result.0.append(alert)
-            case .price, .pricePercentChange:
+            case true:
                 result.1[alert.asset, default: []].append(alert)
             }
         }
@@ -76,7 +80,7 @@ extension PriceAlertsSceneViewModel {
         do {
             try await service.delete(priceAlerts: [priceAlert])
         } catch {
-            debugLog("deletePriceAlert error: \(error)")
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
 

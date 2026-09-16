@@ -1,8 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemBalanceResource
+import func Gemstone.balanceResourceRows
 import BigInt
 import Formatters
 import Foundation
+import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI
@@ -66,14 +69,6 @@ public struct BalanceViewModel: Sendable {
         formatter.string(value, decimals: asset.decimals.asInt, currency: asset.symbol)
     }
 
-    public var hasStakingResources: Bool {
-        usesFreeze
-    }
-
-    private var usesFreeze: Bool {
-        StakeChain(rawValue: asset.chain.rawValue)?.usesFreeze ?? false
-    }
-
     public var balanceTextColor: Color {
         guard !total.isZero else {
             return Colors.gray
@@ -82,13 +77,17 @@ public struct BalanceViewModel: Sendable {
     }
 
     public var energyText: String {
-        guard let metadata = balance.metadata else { return "" }
-        return "\(metadata.energyAvailable) / \(metadata.energyTotal)"
+        resourceText(.energy)
     }
 
     public var bandwidthText: String {
-        guard let metadata = balance.metadata else { return "" }
-        return "\(metadata.bandwidthAvailable) / \(metadata.bandwidthTotal)"
+        resourceText(.bandwidth)
+    }
+
+    private func resourceText(_ resource: GemBalanceResource) -> String {
+        balanceResourceRows(metadata: balance.metadata?.toGem())
+            .first { $0.resource == resource }?
+            .text ?? ""
     }
 
     var total: BigInt {

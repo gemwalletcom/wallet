@@ -48,6 +48,10 @@ pub fn map_asset_chain(asset: Asset) -> Option<Chain> {
         "cardano" => Some(Chain::Cardano),
         "fantom" => Some(Chain::Fantom),
         "monad" => Some(Chain::Monad),
+        "robinhood" => Some(Chain::Robinhood),
+        "hyperevm" => Some(Chain::Hyperliquid),
+        "tempo" => Some(Chain::Tempo),
+        "plasma" => Some(Chain::Plasma),
         _ => None,
     }
 }
@@ -103,7 +107,36 @@ fn map_status(status: &str) -> FiatTransactionStatus {
 mod tests {
     use super::*;
     use crate::providers::moonpay::client::MoonPayClient;
-    use primitives::{FiatTransactionStatus, FiatTransactionUpdate};
+    use primitives::asset_constants::{
+        HYPEREVM_USDC_ASSET_ID, PLASMA_USDT_ASSET_ID, ROBINHOOD_USDG_ASSET_ID, TEMPO_BRIDGED_USDC_ASSET_ID, TEMPO_PATHUSD_ASSET_ID, TEMPO_USDT0_ASSET_ID,
+    };
+    use primitives::{AssetId, FiatTransactionStatus, FiatTransactionUpdate};
+
+    #[test]
+    fn test_map_catalog_assets() {
+        let assets: Vec<Asset> = serde_json::from_str(include_str!("../../../testdata/moonpay/assets_new_networks.json")).unwrap();
+        let expected = [
+            ("eth_robinhood", AssetId::from_chain(Chain::Robinhood)),
+            ("hype_hyperevm", AssetId::from_chain(Chain::Hyperliquid)),
+            ("pathusd_tempo", TEMPO_PATHUSD_ASSET_ID.clone()),
+            ("usdce_tempo", TEMPO_BRIDGED_USDC_ASSET_ID.clone()),
+            ("usdc_hyperevm", HYPEREVM_USDC_ASSET_ID.clone()),
+            ("usdg_robinhood", ROBINHOOD_USDG_ASSET_ID.clone()),
+            ("usdt0_plasma", PLASMA_USDT_ASSET_ID.clone()),
+            ("usdt0_tempo", TEMPO_USDT0_ASSET_ID.clone()),
+        ];
+        assert_eq!(assets.len(), expected.len());
+
+        for (asset, (code, asset_id)) in assets.into_iter().zip(expected) {
+            let network = asset.metadata.as_ref().unwrap().network_code.clone();
+            let mapped = MoonPayClient::map_asset(asset).unwrap();
+
+            assert_eq!(mapped.asset_id(), Some(asset_id));
+            assert_eq!((mapped.id.as_str(), mapped.symbol.as_str(), mapped.network), (code, code, Some(network)));
+            assert_eq!((mapped.enabled, mapped.is_buy_enabled, mapped.is_sell_enabled), (true, true, false));
+            assert_eq!((mapped.buy_limits.len(), mapped.sell_limits.len()), (3, 0));
+        }
+    }
 
     #[test]
     fn test_map_order_buy_failed() {

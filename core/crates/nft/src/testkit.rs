@@ -6,7 +6,7 @@ use std::collections::HashMap;
 #[cfg(feature = "nft_integration_tests")]
 use gem_client::{RemoteProviderConfig, ReqwestClient};
 #[cfg(feature = "nft_integration_tests")]
-use settings::Settings;
+use settings::testkit::get_test_settings;
 
 #[cfg(feature = "nft_integration_tests")]
 use crate::AlchemyClient;
@@ -23,12 +23,6 @@ pub const TEST_SOLANA_COLLECTION_POOKS: &str = "pooks";
 pub const TEST_SOLANA_TOKEN_ID: &str = "HP82kPNXnQcozjDrV4dLYfV6wwABQDMVPJXezDbZXHEy";
 pub const TEST_BSC_ADDRESS: &str = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4";
 pub const TEST_BSC_COLLECTION: &str = "0x6dfbb01ecb7991366cd8acc4d18dcc67bbe345ba";
-
-#[cfg(feature = "nft_integration_tests")]
-fn get_test_settings() -> Settings {
-    let settings_path = std::env::current_dir().expect("Failed to get current directory").join("../../Settings.yaml");
-    Settings::new_setting_path(settings_path).expect("Failed to load settings for tests")
-}
 
 #[cfg(feature = "nft_integration_tests")]
 fn provider_client_with_header(config: RemoteProviderConfig, header: (&str, String)) -> ReqwestClient {

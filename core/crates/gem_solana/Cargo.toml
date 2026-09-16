@@ -12,7 +12,7 @@ rpc = [
     "dep:chain_traits",
     "dep:futures",
 ]
-signer = ["dep:num-traits"]
+signer = ["dep:num-traits", "dep:signer"]
 reqwest = ["gem_jsonrpc/reqwest"]
 chain_integration_tests = [
     "rpc",
@@ -27,10 +27,12 @@ bs58 = { workspace = true }
 borsh = { workspace = true }
 gem_encoding = { path = "../gem_encoding" }
 hex.workspace = true
+hex_lit = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 num-bigint = { workspace = true }
 chrono = { workspace = true }
+url = { workspace = true }
 serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 primitives = { path = "../primitives" }
 gem_jsonrpc = { path = "../gem_jsonrpc" }
@@ -39,8 +41,9 @@ gem_client = { path = "../gem_client", optional = true }
 chain_traits = { path = "../chain_traits", optional = true }
 futures = { workspace = true, optional = true }
 settings = { path = "../settings", features = ["testkit"], optional = true }
-solana-primitives = { workspace = true }
+curve25519-dalek = { workspace = true }
 num-traits = { workspace = true, optional = true }
+signer = { path = "../signer", optional = true }
 
 [dev-dependencies]
 chain_traits = { path = "../chain_traits", features = ["testkit"] }

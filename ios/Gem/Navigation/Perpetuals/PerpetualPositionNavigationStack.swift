@@ -1,13 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import enum Gemstone.GemPerpetualPositionAction
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import SwiftUI
 import Transfer
-import struct Gemstone.GemTransferData
 
 struct PerpetualPositionNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
@@ -38,7 +36,7 @@ struct PerpetualPositionNavigationStack: View {
                     ),
                     wallet: wallet,
                     onTransferAction: {
-                        navigationPath.append($0)
+                        navigationPath.append(ConfirmTransferInput(data: $0))
                     },
                 ),
             )
@@ -48,11 +46,11 @@ struct PerpetualPositionNavigationStack: View {
                     placement: .topBarLeading,
                 )
             }
-            .navigationDestination(for: GemTransferData.self) {
+            .navigationDestination(for: ConfirmTransferInput.self) {
                 ConfirmTransferNavigationView(
                     model: viewModelFactory.confirmTransferScene(
                         wallet: wallet,
-                        data: $0,
+                        data: $0.data,
                         onComplete: {
                             onComplete?()
                         },

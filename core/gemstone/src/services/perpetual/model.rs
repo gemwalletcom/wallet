@@ -1,9 +1,11 @@
-use crate::models::custom_types::{GemBigInt, GemBigUint};
+use super::rules;
+use crate::formatted_number::GemFormattedNumber;
+use crate::models::custom_types::GemBigInt;
 use crate::perpetual::GemPerpetual;
 use crate::services::failures::StepFailure;
 use crate::services::transfer::model::GemRecipient;
-use primitives::chart::ChartCandleUpdate;
-use primitives::{Asset, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualProvider};
+use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
+use primitives::{Asset, Perpetual, PerpetualAccountMode, PerpetualConfirmData, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, PerpetualType};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -63,10 +65,113 @@ pub struct GemPerpetualConnection {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAutocloseSummary {
-    pub take_profit: Option<f64>,
-    pub stop_loss: Option<f64>,
+    pub take_profit: Option<GemFormattedNumber>,
+    pub stop_loss: Option<GemFormattedNumber>,
     pub take_profit_cleared: bool,
     pub stop_loss_cleared: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
+pub enum GemPerpetualDetailsAction {
+    Open,
+    Close,
+    Increase,
+    Reduce,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemPerpetualDetails {
+    pub action: GemPerpetualDetailsAction,
+    pub direction: PerpetualDirection,
+    pub data: PerpetualConfirmData,
+}
+
+#[uniffi::export]
+pub fn perpetual_details(perpetual_type: PerpetualType) -> Option<GemPerpetualDetails> {
+    rules::details(&perpetual_type)
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemPerpetualPositionRow {
+    pub title: String,
+    pub leverage: String,
+    pub direction: PerpetualDirection,
+    pub liquidation_price: Option<GemFormattedNumber>,
+}
+
+#[uniffi::export]
+pub fn perpetual_position_row(perpetual: Perpetual, asset: Asset, position: PerpetualPosition) -> GemPerpetualPositionRow {
+    rules::position_row(&perpetual, &asset, &position)
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemPerpetualMarketRow {
+    pub title: String,
+    pub shows_price: bool,
+    pub volume_24h: GemFormattedNumber,
+    pub open_interest: GemFormattedNumber,
+}
+
+#[uniffi::export]
+pub fn perpetual_market_row(perpetual: Perpetual) -> GemPerpetualMarketRow {
+    rules::market_row(&perpetual)
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualChartLineKind {
+    Entry,
+    TakeProfit,
+    StopLoss,
+    Liquidation,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemPerpetualChartLine {
+    pub kind: GemPerpetualChartLineKind,
+    pub price: GemFormattedNumber,
+    pub overlap_level: u32,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemPerpetualChartLayout {
+    pub price_low: f64,
+    pub price_high: f64,
+    pub ticks: Vec<GemFormattedNumber>,
+    pub x_tick_count: u32,
+    pub lines: Vec<GemPerpetualChartLine>,
+    pub current_price: Option<GemFormattedNumber>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemCandleTooltipRow {
+    Open,
+    High,
+    Low,
+    Close,
+    Change,
+    Volume,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemCandleTooltipCell {
+    pub row: GemCandleTooltipRow,
+    pub value: GemFormattedNumber,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemCandleTooltip {
+    pub prices: Vec<GemCandleTooltipCell>,
+    pub summary: Vec<GemCandleTooltipCell>,
+}
+
+#[uniffi::export]
+pub fn candle_tooltip(candle: ChartCandleStick) -> GemCandleTooltip {
+    rules::candle_tooltip(&candle)
+}
+
+#[uniffi::export]
+pub fn perpetual_chart_layout(candles: Vec<ChartCandleStick>, position: Option<PerpetualPosition>) -> GemPerpetualChartLayout {
+    rules::chart_layout(&candles, position.as_ref())
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
@@ -95,6 +200,40 @@ impl StepFailure for GemPerpetualRefreshFailure {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualSection {
+    Position,
+    Info,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualPositionDetailRow {
+    Pnl,
+    Autoclose,
+    Size,
+    EntryPrice,
+    LiquidationPrice,
+    Margin,
+    FundingPayments,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualInfoRow {
+    DailyVolume,
+    OpenInterest,
+    FundingRate,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualButton {
+    Long,
+    Short,
+    Modify,
+    Close,
+    Increase,
+    Reduce,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, uniffi::Enum)]
 pub enum GemPerpetualPositionKind {
     Open { direction: PerpetualDirection },
@@ -115,18 +254,11 @@ pub struct GemPerpetualTransferData {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
 pub enum GemPerpetualPositionAction {
-    Open {
-        data: GemPerpetualTransferData,
-    },
-    Increase {
-        data: GemPerpetualTransferData,
-    },
-    Reduce {
-        data: GemPerpetualTransferData,
-        #[serde(with = "crate::models::custom_types::decimal_string")]
-        available: GemBigUint,
-    },
+    Open { data: GemPerpetualTransferData },
+    Increase { data: GemPerpetualTransferData },
+    Reduce { data: GemPerpetualTransferData, position: PerpetualPosition },
 }
 
 #[uniffi::export]
@@ -138,6 +270,10 @@ impl GemPerpetualPositionAction {
     pub fn recipient(&self) -> GemRecipient {
         GemPerpetual::new(self.data().provider.clone()).recipient()
     }
+
+    pub fn shows_autoclose(&self) -> bool {
+        matches!(self, Self::Open { .. })
+    }
 }
 
 impl GemPerpetualPositionAction {
@@ -148,27 +284,66 @@ impl GemPerpetualPositionAction {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+pub struct GemPerpetualMarketSections {
+    pub shows_positions: bool,
+    pub shows_recents: bool,
+    pub shows_pinned: bool,
+    pub shows_markets: bool,
+    pub shows_empty: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualMarketSection {
+    Positions,
+    Recents,
+    Pinned,
+    Markets,
+    Empty,
+}
+
+#[uniffi::export]
+impl GemPerpetualMarketSections {
+    pub fn list(&self) -> Vec<GemPerpetualMarketSection> {
+        super::rules::market_section_list(self)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+pub struct GemPerpetualMarketCounts {
+    pub positions: u32,
+    pub pinned: u32,
+    pub markets: u32,
+    pub recents: u32,
+}
+
+#[uniffi::export]
+impl GemPerpetualMarketCounts {
+    pub fn sections(&self, is_searching: bool, is_query_empty: bool) -> GemPerpetualMarketSections {
+        super::rules::market_sections(self, is_searching, is_query_empty)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_position_action_recipient_names_the_provider_without_an_address() {
-        let data = GemPerpetualTransferData {
-            provider: PerpetualProvider::Hypercore,
-            direction: PerpetualDirection::Long,
-            asset: Asset::mock(),
-            base_asset: Asset::mock(),
-            asset_index: 0,
-            price: 100.0,
-            leverage: 3,
-            margin_type: PerpetualMarginType::Cross,
-        };
+        let data = GemPerpetualTransferData::mock();
         let action = GemPerpetualPositionAction::Open { data };
 
         let recipient = action.recipient();
 
         assert_eq!(recipient.name.as_deref(), Some("Hyperliquid"));
         assert!(recipient.address.is_empty());
+    }
+
+    #[test]
+    fn test_only_opening_a_position_shows_autoclose() {
+        let data = GemPerpetualTransferData::mock();
+
+        assert!(GemPerpetualPositionAction::Open { data: data.clone() }.shows_autoclose());
+        assert!(!GemPerpetualPositionAction::Increase { data }.shows_autoclose());
     }
 }

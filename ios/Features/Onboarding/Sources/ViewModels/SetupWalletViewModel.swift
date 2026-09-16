@@ -8,6 +8,7 @@ import PrimitivesComponents
 import Store
 import Style
 import protocol Gemstone.GemWalletServiceProtocol
+import func Gemstone.walletRow
 import GemstonePrimitives
 
 @MainActor
@@ -23,6 +24,7 @@ public final class SetupWalletViewModel: Sendable {
     }
 
     var nameInput: String
+    var isPresentingAlertMessage: AlertMessage?
 
     public init(
         wallet: Wallet,
@@ -38,14 +40,11 @@ public final class SetupWalletViewModel: Sendable {
     }
 
     var title: String {
-        switch wallet.source {
-        case .create: Localized.Wallet.New.title
-        case .import: Localized.Wallet.Import.title
-        }
+        wallet.source.title
     }
 
     var avatarAssetImage: AssetImage {
-        let avatar = WalletViewModel(wallet: wallet).avatarImage
+        let avatar = walletRow(wallet: wallet.toGem()).avatarImage
         return AssetImage(
             type: avatar.type,
             imageURL: avatar.imageURL,
@@ -66,7 +65,7 @@ public final class SetupWalletViewModel: Sendable {
         do {
             try await service.rename(walletId: wallet.id, newName: nameInput)
         } catch {
-            debugLog("Rename wallet error: \(error)")
+            isPresentingAlertMessage = AlertMessage(title: Localized.Errors.errorOccurred, error: error)
         }
     }
 }

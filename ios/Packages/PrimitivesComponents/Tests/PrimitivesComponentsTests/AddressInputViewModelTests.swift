@@ -2,9 +2,9 @@
 
 import Foundation
 import GemstonePrimitives
-import GemstonePrimitivesTestKit
 import Primitives
 @testable import PrimitivesComponents
+import PrimitivesComponentsTestKit
 import PrimitivesTestKit
 import Testing
 import Validators
@@ -19,25 +19,57 @@ struct AddressInputViewModelTests {
         #expect(model.validate() == false)
 
         model.inputModel.text = "test.eth"
-        model.nameRecordViewModel.state = .loading
+        model.nameRecordViewModel.state = .loading(name: "test.eth")
         #expect(model.validate() == false)
 
         model.nameRecordViewModel.state = .error
         #expect(model.validate() == false)
 
-        model.nameRecordViewModel.state = .complete(.mock())
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock().toGem())
         #expect(model.validate())
 
-        model.nameRecordViewModel.state = .complete(.mock(name: "other.eth"))
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "other.eth").toGem())
         #expect(model.validate() == false)
 
-        model.nameRecordViewModel.state = .complete(.mock(address: "test.eth"))
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(address: "test.eth").toGem())
         #expect(model.validate() == false)
 
         model.chain = .near
         model.inputModel.text = "h3rman.near"
-        model.nameRecordViewModel.state = .complete(.mock(name: "h3rman.near", chain: .near, address: "h3rman.near", provider: .near))
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "h3rman.near", chain: .near, address: "h3rman.near", provider: .near).toGem())
         #expect(model.validate())
+    }
+
+    @Test
+    func aNameStillResolvingIsNotYetAnError() {
+        let model = AddressInputViewModel.mock()
+
+        model.inputModel.text = "test.eth"
+        model.nameRecordViewModel.state = .loading(name: "test.eth")
+
+        #expect(model.validate() == false)
+        #expect(model.inputModel.error == nil, "a name the resolver still owns must not read as a bad address")
+
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock().toGem())
+        #expect(model.validate())
+        #expect(model.inputModel.error == nil)
+    }
+
+    @Test
+    func anAddressThatIsNotOneShowsTheError() {
+        let model = AddressInputViewModel.mock()
+
+        model.inputModel.text = "gemcoder"
+        #expect(model.validate() == false)
+        #expect(model.inputModel.error != nil)
+
+        model.inputModel.text = ""
+        #expect(model.validate() == false)
+        #expect(model.inputModel.error != nil, "an empty field still reads as required")
+
+        model.inputModel.text = "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a"
+        #expect(model.validate())
+        #expect(model.inputModel.error == nil)
     }
 
     @Test
@@ -45,7 +77,7 @@ struct AddressInputViewModelTests {
         let model = AddressInputViewModel.mock()
 
         model.inputModel.text = "sometext"
-        model.nameRecordViewModel.state = .complete(.mock())
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock().toGem())
         model.chain = .bitcoin
 
         #expect(model.nameResolveState == .none)
@@ -61,13 +93,7 @@ struct AddressInputViewModelTests {
         model.inputModel.text = " \n\(address)\r "
         #expect(model.resolvedAddress == checksummed)
 
-        model.nameRecordViewModel.state = .complete(.mock(address: address))
+        model.nameRecordViewModel.state = .complete(record: NameRecord.mock(address: address).toGem())
         #expect(model.resolvedAddress == checksummed)
-    }
-}
-
-extension AddressInputViewModel {
-    static func mock(chain: Chain = .ethereum) -> AddressInputViewModel {
-        AddressInputViewModel(chain: chain, nameService: GemNameServiceMock(nameRecord: .mock()), placeholder: "Address")
     }
 }

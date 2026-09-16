@@ -8,7 +8,7 @@ pub enum SuiIndexerTarget {
 
 impl Target for SuiIndexerTarget {
     fn path(&self) -> String {
-        "/graphql".to_string()
+        String::new()
     }
 }
 

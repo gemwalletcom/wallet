@@ -13,6 +13,7 @@ Follow the [localization guide](../../../skills/localization.md) for sources and
 - Keep terminology consistent within its product context. Use existing corrected strings and user decisions as the reference; do not duplicate translations in a separate glossary. If particular wording must stay fixed, identify its locale and message key.
 - Keep text close to its current rendered length, especially compact controls. Preserve placeholders, argument roles, markup, plural rules, and safety meaning. Check actual sample values when character counts alone cannot establish fit.
 - **If meaning, terminology, regional usage, or fit is uncertain, ask the user before changing that text.** Continue independent work; unattended reviews leave uncertain text unchanged and report the question.
+- A key the apps no longer read is not automatically dead: the Fluent source is shared with other clients, so report it and get the translation owner's agreement before removing the key or its translations.
 - Edit only when authorized, preserve unrelated changes, and regenerate outputs from canonical sources. Scheduled reviews report findings without editing or publishing.
 - Before handoff, make two cleanup passes: simplify and check consistency, then review the final diff after verification. Check keys, placeholders, generated outputs, and affected builds/tests; report failures and anything skipped. For documentation-only edits, validate links and run `git diff --check`.
 

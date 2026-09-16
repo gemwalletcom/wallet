@@ -1,18 +1,30 @@
 mod rules;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use std::sync::Arc;
 
-use primitives::{Asset, AssetFiatValue, AssetId, BannerEvent, Currency, TotalFiatValue, Wallet};
+use primitives::{Asset, AssetFiatValue, AssetId, Banner, BannerEvent, Currency, PerpetualBalance, TotalFiatValue, Wallet};
 
 use crate::services::asset_discovery::GemAssetDiscoveryService;
-use crate::services::assets::model::GemHeaderButton;
+use crate::services::assets::model::{GemAssetRow, GemHeaderActions};
+use crate::services::assets::rules as asset_rules;
 use crate::services::balance::GemBalanceService;
 use crate::services::balance::rules as balance_rules;
-use crate::services::banner::{GemBannerAction, GemBannerContent, GemBannerKey, GemBannerService};
+use crate::services::banner::{GemBannerContent, GemBannerContext, GemBannerKey, GemBannerService};
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::wallet_preferences::{GemDiscoveryStep, GemWalletPreferencesService};
 use crate::services::wallet_session::GemWalletSessionService;
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemWalletHomeViewState {
+    pub total_value: TotalFiatValue,
+    pub shows_pnl: bool,
+    pub header_actions: GemHeaderActions,
+    pub show_collections: bool,
+    pub visible_banners: Vec<Banner>,
+}
 
 #[derive(uniffi::Object)]
 pub struct GemWalletHomeService {
@@ -49,28 +61,31 @@ impl GemWalletHomeService {
         self.preferences.get_currency()
     }
 
-    pub fn total_fiat_value(&self, balances: Vec<AssetFiatValue>) -> TotalFiatValue {
-        balance_rules::total_fiat_value(&balances)
+    pub fn asset_row(&self) -> GemAssetRow {
+        asset_rules::wallet_row()
     }
 
-    pub fn shows_pnl(&self, total: TotalFiatValue) -> bool {
-        balance_rules::shows_pnl(&total)
-    }
-
-    pub fn header_buttons(&self, wallet: Wallet, is_enabled: bool) -> Vec<GemHeaderButton> {
-        rules::header_buttons(&wallet, is_enabled)
+    pub fn view_state(
+        &self,
+        wallet: Wallet,
+        balances: Vec<AssetFiatValue>,
+        perpetual: Option<PerpetualBalance>,
+        banners: Vec<Banner>,
+        is_wallet_empty: bool,
+    ) -> GemWalletHomeViewState {
+        let chains = wallet.chains();
+        let total_value = self.total_fiat_value(balances, perpetual);
+        GemWalletHomeViewState {
+            shows_pnl: balance_rules::shows_pnl(&total_value),
+            header_actions: rules::header_actions(wallet.wallet_type, &chains, rules::header_buttons_enabled(&banners)),
+            show_collections: self.preferences.show_collections(wallet.wallet_type, chains),
+            visible_banners: GemBannerContext::wallet(wallet, is_wallet_empty).visible_banners(banners),
+            total_value,
+        }
     }
 
     pub async fn update_balances(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
         self.balances.update(self.session.current_wallet_id()?, asset_ids).await
-    }
-
-    pub fn includes_perpetual_collateral(&self) -> bool {
-        self.session
-            .get_current_wallet_id()
-            .ok()
-            .flatten()
-            .is_some_and(|wallet_id| self.wallet_preferences.includes_perpetual_collateral(wallet_id))
     }
 
     pub fn shows_initial_loading(&self) -> Result<bool, GemServiceError> {
@@ -98,7 +113,84 @@ impl GemWalletHomeService {
         self.banners.banner_content(event, asset)
     }
 
-    pub async fn apply_banner_action(&self, key: GemBannerKey, action: GemBannerAction) -> Result<(), GemServiceError> {
-        self.banners.apply_action(key, action).await
+    pub async fn close_banner(&self, key: GemBannerKey) -> Result<(), GemServiceError> {
+        self.banners.close(key).await
+    }
+}
+
+impl GemWalletHomeService {
+    fn total_fiat_value(&self, balances: Vec<AssetFiatValue>, perpetual: Option<PerpetualBalance>) -> TotalFiatValue {
+        balance_rules::total_fiat_value(&rules::wallet_balances(balances, perpetual.filter(|_| self.includes_perpetual_collateral())))
+    }
+
+    fn includes_perpetual_collateral(&self) -> bool {
+        self.session
+            .get_current_wallet_id()
+            .ok()
+            .flatten()
+            .is_some_and(|wallet_id| self.wallet_preferences.includes_perpetual_collateral(wallet_id))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use futures::executor::block_on;
+    use primitives::{AssetId, Chain};
+
+    use super::testkit::WalletHomeTestkit;
+    use crate::services::wallet_preferences::GemDiscoveryStep;
+
+    #[test]
+    fn test_refresh_runs_discovery_even_when_the_balance_update_fails() {
+        block_on(async {
+            let testkit = WalletHomeTestkit::with_status(503);
+            testkit
+                .balances
+                .enabled_asset_ids
+                .lock()
+                .unwrap()
+                .insert(testkit.wallet_id.clone(), vec![AssetId::from_chain(Chain::Ethereum)]);
+
+            assert!(testkit.service.refresh().await.is_err());
+
+            let paths = testkit.provider.requested_paths();
+            assert!(
+                paths.iter().any(|path| path.contains("gemnodes.com")),
+                "the balance branch never reached the gateway: {paths:?}"
+            );
+            assert!(paths.iter().any(|path| path.contains("devices/assets")), "the discovery branch never ran: {paths:?}");
+        })
+    }
+
+    #[test]
+    fn test_refresh_leaves_the_discovery_steps_incomplete_when_the_api_fails() {
+        block_on(async {
+            let testkit = WalletHomeTestkit::with_status(503);
+
+            assert!(testkit.service.refresh().await.is_err());
+
+            for step in [GemDiscoveryStep::Assets, GemDiscoveryStep::Transactions, GemDiscoveryStep::Nfts] {
+                assert!(
+                    !testkit.wallet_preferences.is_initial_load_completed(testkit.wallet_id.clone(), step).unwrap(),
+                    "{step:?} was marked complete after a failed refresh"
+                );
+            }
+        })
+    }
+
+    #[test]
+    fn test_shows_initial_loading_until_the_assets_step_completes() {
+        block_on(async {
+            let testkit = WalletHomeTestkit::with_status(503);
+
+            assert!(testkit.service.shows_initial_loading().unwrap());
+
+            testkit
+                .wallet_preferences
+                .set_initial_load_completed(testkit.wallet_id.clone(), GemDiscoveryStep::Assets)
+                .unwrap();
+
+            assert!(!testkit.service.shows_initial_loading().unwrap());
+        })
     }
 }

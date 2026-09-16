@@ -64,7 +64,7 @@ If `connectedAndroidTest` dies in `App.onCreate` with `SharedPreferences in cred
 
 ```bash
 ./gradlew clean
-just bootstrap
+just install
 ./gradlew build
 ```
 
@@ -74,7 +74,7 @@ If `gemcore/` or `core/` references are stale after a branch switch:
 ```bash
 cd .. && just setup-git
 ```
-Then rebuild: `./gradlew clean && just bootstrap`.
+Then rebuild: `./gradlew clean && just install`.
 
 ## Useful Paths
 

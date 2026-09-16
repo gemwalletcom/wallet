@@ -57,15 +57,9 @@ dependencies {
     implementation(project(":ui"))
     implementation(project(":features:asset_select:viewmodels"))
 
-    implementation(libs.hilt.android)
     implementation(libs.hilt.lifecycle.viewmodel.compose)
     implementation(libs.navigation3.runtime)
-    ksp(libs.hilt.compiler)
 
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.ui.tooling.preview)
-
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
 }

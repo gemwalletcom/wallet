@@ -1,10 +1,14 @@
 package com.gemwallet.android.ui.models.chart
 
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
+import com.gemwallet.android.model.text
 import com.wallet.core.primitives.ChartCandleStick
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemPerpetualChartLayout
+import uniffi.gemstone.GemPerpetualChartLine
+import uniffi.gemstone.GemPerpetualChartLineKind
+import uniffi.gemstone.formattedAdaptive
 
 class CandlestickChartUIModelTest {
 
@@ -14,108 +18,51 @@ class CandlestickChartUIModelTest {
         ChartCandleStick(date = 3_000L, open = 10.0, high = 10.0, low = 10.0, close = 10.0, volume = 120.0),
     )
 
+    private val layout = GemPerpetualChartLayout(
+        priceLow = 8.0,
+        priceHigh = 14.0,
+        ticks = listOf(9.0, 11.0, 13.0).map { formattedAdaptive(it, null) },
+        xTickCount = 6u,
+        lines = listOf(GemPerpetualChartLine(GemPerpetualChartLineKind.ENTRY, formattedAdaptive(10.5, null), 0u)),
+        currentPrice = formattedAdaptive(10.0, null),
+    )
+
     @Test
     fun candleDirectionsReflectOpenVsClose() {
-        val model = CandlestickChartUIModel.from(
-            candles = candles,
-            yTickFormatter = { "$it" },
-        )
-        assertEquals(ValueDirection.Up, model.candles[0].direction)
-        assertEquals(ValueDirection.Down, model.candles[1].direction)
-        assertEquals(ValueDirection.None, model.candles[2].direction)
+        val model = model()
+
+        assertEquals(GemValueTone.POSITIVE, model.candles[0].direction)
+        assertEquals(GemValueTone.NEGATIVE, model.candles[1].direction)
+        assertEquals(GemValueTone.NEUTRAL, model.candles[2].direction)
     }
 
     @Test
-    fun yRangeIncludesInRangeReferencesAndExpandsAccordingly() {
-        val referenceLines = listOf(
-            ChartReferenceLineUIModel(price = 14.0, label = "TP", role = ChartReferenceLineRole.TakeProfit),
-            ChartReferenceLineUIModel(price = 8.0, label = "SL", role = ChartReferenceLineRole.StopLoss),
-        )
-        val model = CandlestickChartUIModel.from(
-            candles = candles,
-            yTickFormatter = { "" },
-            referenceLines = referenceLines,
-        )
-        assertEquals(2, model.referenceLines.size)
-        assertTrue("yMin (${model.yMin}) must be at or below 8.0", model.yMin <= 8.0)
-        assertTrue("yMax (${model.yMax}) must be at or above 14.0", model.yMax >= 14.0)
+    fun yTicksAreFractionsOfTheLayoutRange() {
+        val model = model()
+
+        assertEquals(listOf("9.00", "11.00", "13.00"), model.yTicks.map { it.label })
+        assertEquals(listOf(1f / 6f, 0.5f, 5f / 6f), model.yTicks.map { it.fraction })
+        assertEquals(6.0, model.ySpan, 1e-9)
     }
 
     @Test
-    fun referenceLinesFarOutsideCandleRangeAreFiltered() {
-        val referenceLines = listOf(
-            ChartReferenceLineUIModel(price = 100.0, label = "TP", role = ChartReferenceLineRole.TakeProfit),
-            ChartReferenceLineUIModel(price = 1.0, label = "SL", role = ChartReferenceLineRole.StopLoss),
-            ChartReferenceLineUIModel(price = 10.5, label = "Entry", role = ChartReferenceLineRole.Entry),
-        )
-        val model = CandlestickChartUIModel.from(
-            candles = candles,
-            yTickFormatter = { "" },
-            referenceLines = referenceLines,
-        )
-        assertEquals(listOf(10.5), model.referenceLines.map { it.price })
-    }
+    fun referenceLinesCarryTheirLabels() {
+        val model = model()
 
-    @Test
-    fun closeReferencesGetSequentialOverlapLevels() {
-        val references = listOf(
-            ChartReferenceLineUIModel(price = 10.0, label = "A", role = ChartReferenceLineRole.Entry),
-            ChartReferenceLineUIModel(price = 10.1, label = "B", role = ChartReferenceLineRole.StopLoss),
-            ChartReferenceLineUIModel(price = 12.5, label = "C", role = ChartReferenceLineRole.TakeProfit),
-        )
-        val model = CandlestickChartUIModel.from(
-            candles = candles,
-            yTickFormatter = { "" },
-            referenceLines = references,
-        )
-        val levels = model.referenceLines.associate { it.label to it.overlapLevel }
-        assertEquals(0, levels["A"])
-        assertEquals(1, levels["B"])
-        assertEquals(0, levels["C"])
-    }
-
-    @Test
-    fun visibleReferencesAreSortedByPriceAscending() {
-        val referenceLines = listOf(
-            ChartReferenceLineUIModel(price = 12.0, label = "B", role = ChartReferenceLineRole.TakeProfit),
-            ChartReferenceLineUIModel(price = 9.5, label = "A", role = ChartReferenceLineRole.StopLoss),
-            ChartReferenceLineUIModel(price = 11.0, label = "C", role = ChartReferenceLineRole.Entry),
-        )
-        val model = CandlestickChartUIModel.from(
-            candles = candles,
-            yTickFormatter = { "" },
-            referenceLines = referenceLines,
-        )
-        assertEquals(listOf(9.5, 11.0, 12.0), model.referenceLines.map { it.price })
-    }
-
-    @Test
-    fun yTickCountMatchesIosFour() {
-        val model = CandlestickChartUIModel.from(
-            candles = candles,
-            yTickFormatter = { "%.1f".format(it) },
-        )
-        assertEquals(4, model.yTicks.size)
-        assertEquals(9.0, model.yTicks.first().value, 1e-9)
-        assertEquals(13.0, model.yTicks.last().value, 1e-9)
+        assertEquals(listOf("Entry | 10.50"), model.referenceLines.map { it.label })
+        assertEquals(GemPerpetualChartLineKind.ENTRY, model.referenceLines.single().line.kind)
     }
 
     @Test
     fun xGridlineFractionsSpanZeroToOne() {
-        val model = CandlestickChartUIModel.from(
-            candles = candles,
-            yTickFormatter = { "" },
-            xTickCount = 2,
-        )
+        val model = model(layout.copy(xTickCount = 2u))
+
         assertEquals(listOf(0f, 1f), model.xGridlineFractions)
     }
 
-    @Test
-    fun positiveLowestRangeRespectsFloorGuard() {
-        val model = CandlestickChartUIModel.from(
-            candles = candles,
-            yTickFormatter = { "" },
-        )
-        assertTrue("yMin (${model.yMin}) must be at least 95% of candleMin", model.yMin >= 9.0 * 0.95)
-    }
+    private fun model(layout: GemPerpetualChartLayout = this.layout) = CandlestickChartUIModel.from(
+        candles = candles,
+        layout = layout,
+        lineLabel = { "Entry | ${it.price.text()}" },
+    )
 }

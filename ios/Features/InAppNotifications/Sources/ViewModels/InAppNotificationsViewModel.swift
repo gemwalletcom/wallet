@@ -4,7 +4,6 @@ import Components
 import Foundation
 import protocol Gemstone.GemNotificationServiceProtocol
 import Localization
-import GemstoneServices
 import Primitives
 import PrimitivesComponents
 import Store

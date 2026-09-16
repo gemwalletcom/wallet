@@ -1,9 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemRewardsRedemption
+import struct Gemstone.RewardRedemptionOption
 import protocol Gemstone.GemRewardsServiceProtocol
+import struct Gemstone.GemWalletRow
+import func Gemstone.walletRow
+import func Gemstone.walletRows
 import struct Gemstone.GemRewardsState
 import GemstonePrimitives
-import GemstoneServices
 import Components
 import Foundation
 import Localization
@@ -24,21 +28,28 @@ public final class RewardsViewModel: Sendable {
 
     private let service: any GemRewardsServiceProtocol
     private let activateCode: String?
+    private let emptyState: GemRewardsState
 
     private(set) var selectedWallet: Wallet
     private(set) var wallets: [Wallet]
 
-    var state: StateViewType<Rewards> = .loading
+    var state: StateViewType<GemRewardsState> = .loading
     var toastMessage: ToastMessage?
     var isPresentingSheet: RewardsSheetType?
     var isPresentingAlert: AlertMessage?
 
-    public init?(service: any GemRewardsServiceProtocol, wallets: [Wallet], currentWallet: Wallet?, activateCode: String? = nil) {
-        let core = wallets.map { $0.map() }
-        guard let wallet = service.selectedWallet(current: currentWallet?.map(), wallets: core).map({ $0.map() }) else { return nil }
+    public init?(
+        service: any GemRewardsServiceProtocol,
+        wallets: [Wallet],
+        currentWallet: Wallet?,
+        activateCode: String? = nil,
+    ) {
+        let core = wallets.map { $0.toGem() }
+        guard let wallet = service.selectedWallet(current: currentWallet?.toGem(), wallets: core).map({ $0.toPrimitives() }) else { return nil }
         self.service = service
+        emptyState = service.state(rewards: nil)
         selectedWallet = wallet
-        self.wallets = service.wallets(wallets: core).map { $0.map() }
+        self.wallets = service.wallets(wallets: core).map { $0.toPrimitives() }
         self.activateCode = activateCode
     }
 
@@ -77,7 +88,7 @@ public final class RewardsViewModel: Sendable {
     }
 
     var createCodeDescription: String {
-        Localized.Rewards.InviteFriends.description(String(100).boldMarkdown())
+        Localized.Rewards.InviteFriends.description(String(rewardsState.inviteRewardPoints).boldMarkdown())
     }
 
     var activateCodeFooterTitle: String {
@@ -97,29 +108,45 @@ public final class RewardsViewModel: Sendable {
     }
 
     var walletSelectorModel: SelectWalletViewModel {
-        SelectWalletViewModel(wallets: wallets, selectedWallet: selectedWallet)
-    }
-
-    var rewards: Rewards? {
-        if case let .data(rewards) = state {
-            return rewards
-        }
-        return nil
+        SelectWalletViewModel(
+            rows: walletRows(wallets: wallets.map { $0.toGem() }),
+            selectedRow: selectedWalletRow,
+        )
     }
 
     var shareText: String? {
-        guard let code = rewards?.code else { return nil }
-        let link = (try? service.referralLink(code: code).absoluteString) ?? ""
-        return Localized.Rewards.shareText(link)
+        referralLink.map { Localized.Rewards.shareText($0) }
     }
 
     var referralLink: String? {
-        guard let code = rewards?.code else { return nil }
-        return (try? service.referralLink(code: code).absoluteString) ?? ""
+        rewardsState.referralLink
+    }
+
+    var redemptions: [GemRewardsRedemption] {
+        rewardsState.redemptions
     }
 
     var rewardsState: GemRewardsState {
-        service.state(rewards: rewards)
+        if case let .data(state) = state {
+            return state
+        }
+        return emptyState
+    }
+
+    var referralCode: String? {
+        rewardsState.referralCode
+    }
+
+    var referralCountText: String {
+        rewardsState.referralCountText
+    }
+
+    var pointsText: String {
+        rewardsState.pointsText
+    }
+
+    var invitedBy: String? {
+        rewardsState.usedReferralCode
     }
 
     var unverifiedTitle: String {
@@ -131,11 +158,11 @@ public final class RewardsViewModel: Sendable {
     }
 
     var disableReason: String? {
-        rewards?.disableReason
+        rewardsState.disableReason
     }
 
     var pendingVerificationAfter: Date? {
-        rewards?.verifyAfter
+        rewardsState.verifyAfter
     }
 
     var pendingReferralTitle: String {
@@ -159,9 +186,12 @@ public final class RewardsViewModel: Sendable {
         rewardsState.canActivatePendingReferral ? .primary() : .primary(.disabled)
     }
 
+    var selectedWalletRow: GemWalletRow {
+        walletRow(wallet: selectedWallet.toGem())
+    }
+
     var walletBarViewModel: WalletBarViewViewModel {
-        let walletVM = WalletViewModel(wallet: selectedWallet)
-        return WalletBarViewViewModel(name: walletVM.name, image: walletVM.avatarImage)
+        WalletBarViewViewModel(name: selectedWalletRow.name, image: selectedWalletRow.avatarImage)
     }
 
     var rewardsUrl: URL {
@@ -173,7 +203,8 @@ public final class RewardsViewModel: Sendable {
             service: service,
             wallet: selectedWallet,
         ) { [weak self] rewards in
-            self?.state = .data(rewards)
+            guard let self else { return }
+            state = .data(service.state(rewards: rewards))
         }
     }
 
@@ -191,7 +222,8 @@ public final class RewardsViewModel: Sendable {
 
     // MARK: - Actions
 
-    func selectWallet(_ wallet: Wallet) {
+    func selectWallet(id: String) {
+        guard let wallet = wallets.first(where: { $0.id.id == id }) else { return }
         selectedWallet = wallet
         Task { await load(wallet: wallet) }
     }
@@ -222,7 +254,7 @@ public final class RewardsViewModel: Sendable {
     }
 
     func activatePendingReferral() async {
-        guard let code = rewards?.usedReferralCode else { return }
+        guard let code = rewardsState.usedReferralCode else { return }
         do {
             try await service.useReferralCode(wallet: selectedWallet, code: code)
             showActivatedToast()
@@ -232,13 +264,9 @@ public final class RewardsViewModel: Sendable {
         }
     }
 
-    func canRedeem(option: RewardRedemptionOption) -> Bool {
-        guard let rewards else { return false }
-        return rewards.points >= option.points
-    }
-
-    func showRedemptionAlert(for option: RewardRedemptionOption) {
-        let viewModel = RewardRedemptionOptionViewModel(option: option)
+    func showRedemptionAlert(for redemption: GemRewardsRedemption) {
+        let viewModel = RewardRedemptionOptionViewModel(redemption: redemption)
+        let option = redemption.option
         isPresentingAlert = AlertMessage(
             title: viewModel.confirmationMessage,
             message: "",
@@ -279,7 +307,7 @@ public final class RewardsViewModel: Sendable {
         state = .loading
         do {
             let rewards = try await service.getRewards(wallet: wallet)
-            state = .data(rewards)
+            state = .data(service.state(rewards: rewards))
         } catch {
             state = .noData
         }

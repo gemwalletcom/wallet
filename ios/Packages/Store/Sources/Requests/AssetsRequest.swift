@@ -6,17 +6,20 @@ public struct AssetsRequest: DatabaseQueryable {
     public static let defaultQueryLimit = 100
 
     public var walletId: WalletId
+    public var scope: AssetsRequestScope
     public var searchBy: String
     public var filters: [AssetsRequestFilter]
     public var limit: Int?
 
     public init(
         walletId: WalletId,
+        scope: AssetsRequestScope = .wallet,
         searchBy: String = "",
         filters: [AssetsRequestFilter] = [],
         limit: Int? = AssetsRequest.defaultQueryLimit,
     ) {
         self.walletId = walletId
+        self.scope = scope
         self.searchBy = searchBy
         self.filters = filters
         self.limit = limit
@@ -31,17 +34,18 @@ public struct AssetsRequest: DatabaseQueryable {
             try filters + [.search(searchBy, hasPriorityAssets: hasPriorityAssets(db, query: searchBy))]
         }
 
-        if filters.contains(.priceAlerts) {
-            return try fetchAllAssetRecordsRequest(db, filters: filters)
+        switch scope {
+        case .wallet:
+            return try loadAssetsSearch(walletId: walletId, filters: filters)
+                .fetchAll(db)
+                .map(\.assetData)
+        case .allAssets:
+            return try allAssetRecords(db, filters: filters)
                 .map { $0.mapToEmptyAssetData() }
         }
-
-        return try loadAssetsSearch(walletId: walletId, filters: filters)
-            .fetchAll(db)
-            .map(\.assetData)
     }
 
-    static func applyFilters(request: QueryInterfaceRequest<AssetRecord>, _ filters: [AssetsRequestFilter]) -> QueryInterfaceRequest<AssetRecord> {
+    static func filtered(request: QueryInterfaceRequest<AssetRecord>, _ filters: [AssetsRequestFilter]) -> QueryInterfaceRequest<AssetRecord> {
         var request: QueryInterfaceRequest<AssetRecord> = request
         for filter in filters {
             switch filter {
@@ -56,9 +60,8 @@ public struct AssetsRequest: DatabaseQueryable {
                  .enabledBalance,
                  .disabledBalance,
                  .hasBalance,
-                 .hasAvailableBalance,
-                 .priceAlerts:
-                request = Self.applyFilter(request: request, filter)
+                 .hasAvailableBalance:
+                request = Self.filtered(request: request, filter)
             }
         }
         return request
@@ -75,7 +78,7 @@ extension AssetsRequest {
             .limit(1).fetchOne(db) != nil
     }
 
-    private static func applyFilter(request: QueryInterfaceRequest<AssetRecord>, _ filter: AssetsRequestFilter) -> QueryInterfaceRequest<AssetRecord> {
+    private static func filtered(request: QueryInterfaceRequest<AssetRecord>, _ filter: AssetsRequestFilter) -> QueryInterfaceRequest<AssetRecord> {
         switch filter {
         case let .search(query, hasPriorityAssets):
             if hasPriorityAssets {
@@ -148,8 +151,6 @@ extension AssetsRequest {
             return request
                 .filter(chains.contains(AssetRecord.Columns.chain) || assetIds.contains(AssetRecord.Columns.id))
                 .filter(AssetRecord.Columns.isEnabled == true || AssetRecord.Columns.isEnabled == false)
-        case .priceAlerts:
-            return request
         }
     }
 
@@ -176,7 +177,7 @@ extension AssetsRequest {
                 AssetRecord.Columns.rank.desc,
             )
 
-        return Self.applyFilters(request: limit.map { request.limit($0) } ?? request, filters)
+        return Self.filtered(request: limit.map { request.limit($0) } ?? request, filters)
             .asRequest(of: AssetRecordInfo.self)
     }
 }
@@ -185,7 +186,7 @@ extension AssetsRequest {
 /// This is necessary because watch-only wallets do not create accounts for other networks.
 /// On the price alerts screen, we fetch all assets and fill them with empty data.
 extension AssetsRequest {
-    private func fetchAllAssetRecordsRequest(
+    private func allAssetRecords(
         _ db: Database,
         filters: [AssetsRequestFilter],
     ) throws -> [PriceAlertAssetRecordInfo] {
@@ -196,7 +197,7 @@ extension AssetsRequest {
             .order(AssetRecord.Columns.rank.desc)
             .limit(Self.defaultQueryLimit)
 
-        request = Self.applyFilters(request: request, filters)
+        request = Self.filtered(request: request, filters)
 
         return try request
             .asRequest(of: PriceAlertAssetRecordInfo.self)
@@ -222,8 +223,7 @@ extension AssetsRequestFilter {
              .swappable,
              .stakeable,
              .chains,
-             .chainsOrAssets,
-             .priceAlerts:
+             .chainsOrAssets:
             false
         }
     }

@@ -32,21 +32,27 @@ pub fn map_transaction(chain: Chain, transaction: &Transaction) -> Option<primit
         .vin
         .iter()
         .filter(|i| i.is_address)
-        .map(|input| TransactionUtxoInput {
-            address: Address::new(input.addresses.clone().unwrap().first().unwrap(), chain).short().to_string(),
-            value: input.value.clone(),
+        .map(|input| {
+            Some(TransactionUtxoInput {
+                address: Address::new(input.addresses.as_deref().and_then(|addresses| addresses.first())?, chain).short().to_string(),
+                value: input.value.clone(),
+            })
         })
-        .collect();
+        .collect::<Option<Vec<_>>>()?;
 
     let outputs: Vec<TransactionUtxoInput> = transaction
         .vout
         .iter()
         .filter(|o| o.is_address)
-        .map(|output| TransactionUtxoInput {
-            address: Address::new(output.addresses.clone().unwrap_or_default().first().unwrap(), chain).short().to_string(),
-            value: output.value.clone(),
+        .map(|output| {
+            Some(TransactionUtxoInput {
+                address: Address::new(output.addresses.as_deref().and_then(|addresses| addresses.first())?, chain)
+                    .short()
+                    .to_string(),
+                value: output.value.clone(),
+            })
         })
-        .collect();
+        .collect::<Option<Vec<_>>>()?;
 
     if inputs.is_empty() || outputs.is_empty() {
         return None;
@@ -107,6 +113,31 @@ mod tests {
         let utxo_outputs = result.utxo_outputs.as_ref().unwrap();
         assert_eq!(utxo_outputs.len(), 1);
         assert_eq!(utxo_outputs[0].address, "bc1qoutput");
+    }
+
+    #[test]
+    fn a_vin_without_an_address_drops_the_transaction() {
+        let transaction = Transaction {
+            vin: vec![Input { addresses: None, ..Input::mock() }],
+            vout: vec![Output::mock()],
+            ..Transaction::mock()
+        };
+
+        assert!(map_transaction(Chain::Bitcoin, &transaction).is_none());
+    }
+
+    #[test]
+    fn a_vout_with_an_empty_address_list_drops_the_transaction() {
+        let transaction = Transaction {
+            vin: vec![Input::mock()],
+            vout: vec![Output {
+                addresses: Some(vec![]),
+                ..Output::mock()
+            }],
+            ..Transaction::mock()
+        };
+
+        assert!(map_transaction(Chain::Bitcoin, &transaction).is_none());
     }
 
     #[test]

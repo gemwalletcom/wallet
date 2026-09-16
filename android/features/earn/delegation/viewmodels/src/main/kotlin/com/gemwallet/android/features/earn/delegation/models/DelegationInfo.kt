@@ -1,40 +1,46 @@
 package com.gemwallet.android.features.earn.delegation.models
 
 import androidx.compose.runtime.Stable
-import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.model.CryptoFiatConverter
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.models.CryptoFormattedUIModel
 import com.gemwallet.android.ui.models.FiatFormattedUIModel
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Delegation
-
-interface DelegationInfoUIModel {
-
-    val iconUrl: String
-}
+import uniffi.gemstone.GemValidatorRow
+import uniffi.gemstone.GemValueStyle
 
 @Stable
 class HeadDelegationInfo(
     private val delegation: Delegation,
     private val assetInfo: AssetInfo,
     override val currency: Currency,
-) : DelegationInfoUIModel, CryptoFormattedUIModel, FiatFormattedUIModel {
+    private val validator: GemValidatorRow,
+) : CryptoFormattedUIModel, FiatFormattedUIModel {
 
-    override val iconUrl: String
-        get() = delegation.validator.getIconUrl()
+    val iconUrl: String
+        get() = validator.imageUrl
+
+    val iconPlaceholder: String
+        get() = validator.placeholder
 
     override val cryptoAmount: Double by lazy {
         Crypto(delegation.base.balance).value(asset.decimals).toDouble()
     }
 
     override val fiat: Double? by lazy {
-        val price = assetInfo.price?.price?.price ?: 0.0
-        if (price == 0.0) null else cryptoAmount * price
+        val price = assetInfo.price?.price?.price ?: return@lazy null
+        if (price == 0.0) null else CryptoFiatConverter.toFiat(Crypto(delegation.base.balance), asset.decimals, price).atomicValue.toDouble()
     }
 
     override val asset: Asset
         get() = assetInfo.asset
+
+    override val cryptoFormatted: String by lazy { ValueFormatter(style = GemValueStyle.AUTO).string(delegation.base.balance, asset) }
+
+    override val fiatFormatted: String by lazy { super<FiatFormattedUIModel>.fiatFormatted }
 
 }

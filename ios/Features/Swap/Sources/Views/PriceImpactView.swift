@@ -3,7 +3,6 @@
 import Components
 import Foundation
 import Primitives
-import Style
 import SwiftUI
 
 struct PriceImpactView: View {

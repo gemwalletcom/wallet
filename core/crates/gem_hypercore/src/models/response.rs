@@ -1,118 +1,62 @@
+use std::error::Error;
+
 use serde::{Deserialize, Serialize};
 
-use crate::models::{UInt64, transaction_id::HyperCoreTransactionId};
+use crate::models::UInt64;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Response {
-    pub status: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ErrorResponse {
-    pub response: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct StatusErrorResponse {
-    pub status: String,
-    pub response: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct OrderResponse {
-    pub status: String,
-    pub response: Option<OrderResponseData>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct OrderResponseData {
-    pub data: Option<OrderData>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct OrderData {
-    pub statuses: Option<Vec<OrderStatus>>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct OrderStatus {
-    pub filled: Option<OrderFilled>,
-    pub resting: Option<OrderResting>,
-    pub error: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct OrderFilled {
-    pub oid: UInt64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct OrderResting {
-    pub oid: UInt64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
+#[serde(tag = "status", content = "response", rename_all = "camelCase")]
 pub enum TransactionBroadcastResponse {
-    OrderResponse(OrderResponse),
-    StatusErrorResponse(StatusErrorResponse),
-    SimpleResponse(Response),
-    ErrorResponse(ErrorResponse),
+    Ok(ExchangeResponse),
+    Err(String),
+    Error,
 }
 
-#[derive(Debug)]
-pub enum BroadcastResult {
-    Success(String),
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", content = "data", rename_all = "camelCase")]
+pub enum ExchangeResponse {
+    Default,
+    Order(OrderData),
+    Cancel(OrderData),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrderData {
+    pub statuses: Vec<OrderStatus>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum OrderStatus {
+    Success,
+    WaitingForFill,
+    WaitingForTrigger,
+    Filled(OrderId),
+    Resting(OrderId),
     Error(String),
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrderId {
+    pub oid: UInt64,
+}
+
 impl TransactionBroadcastResponse {
-    pub fn into_result(self, action_id: Option<String>) -> BroadcastResult {
-        match self {
-            TransactionBroadcastResponse::OrderResponse(order) => {
-                if order.status == "ok" {
-                    if let Some(status) = order.response.and_then(|r| r.data).and_then(|d| d.statuses).and_then(|s| s.first().cloned()) {
-                        if let Some(error) = status.error {
-                            return BroadcastResult::Error(error);
-                        }
-                        if let Some(filled) = status.filled {
-                            return BroadcastResult::Success(HyperCoreTransactionId::Order(filled.oid).to_string());
-                        }
-                        if let Some(resting) = status.resting {
-                            return BroadcastResult::Success(HyperCoreTransactionId::Order(resting.oid).to_string());
-                        }
-                    }
-                    match action_id {
-                        Some(id) => BroadcastResult::Success(id),
-                        None => BroadcastResult::Error("Failed to parse action id".to_string()),
-                    }
-                } else {
-                    BroadcastResult::Error("Order failed".to_string())
-                }
-            }
-            TransactionBroadcastResponse::StatusErrorResponse(status_error) => {
-                if status_error.status == "err" {
-                    BroadcastResult::Error(status_error.response)
-                } else {
-                    BroadcastResult::Error(format!("Request failed with status: {}", status_error.status))
-                }
-            }
-            TransactionBroadcastResponse::SimpleResponse(simple) => match (simple.status.as_str(), action_id) {
-                ("ok", Some(id)) => BroadcastResult::Success(id),
-                ("ok", None) => BroadcastResult::Error("Failed to parse action id".to_string()),
-                _ => BroadcastResult::Error("Request failed".to_string()),
-            },
-            TransactionBroadcastResponse::ErrorResponse(error) => BroadcastResult::Error(error.response),
+    pub fn into_result(self) -> Result<Option<UInt64>, Box<dyn Error + Send + Sync>> {
+        let data = match self {
+            Self::Ok(ExchangeResponse::Default) => return Ok(None),
+            Self::Ok(ExchangeResponse::Order(data) | ExchangeResponse::Cancel(data)) => data,
+            Self::Err(error) => return Err(error.into()),
+            Self::Error => return Err("Request failed".into()),
+        };
+        if data.statuses.is_empty() {
+            return Err("Missing HyperCore action status".into());
         }
+        data.statuses.into_iter().try_fold(None, |order_id, status| match status {
+            OrderStatus::Filled(order) | OrderStatus::Resting(order) => Ok(order_id.or(Some(order.oid))),
+            OrderStatus::Success | OrderStatus::WaitingForFill | OrderStatus::WaitingForTrigger => Ok(order_id),
+            OrderStatus::Error(error) => Err(error.into()),
+        })
     }
 }
 
@@ -121,62 +65,44 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_order_broadcast_error() {
-        let result = serde_json::from_str::<TransactionBroadcastResponse>(include_str!("../../testdata/order_broadcast_error.json"))
-            .unwrap()
-            .into_result(None);
-        let BroadcastResult::Error(_) = result else { panic!("Expected error") };
+    fn test_into_result() {
+        for (response, expected) in [
+            (include_str!("../../testdata/order_broadcast_filled.json"), Ok(Some(134896397196))),
+            (include_str!("../../testdata/order_broadcast_resting.json"), Ok(Some(789012))),
+            (
+                include_str!("../../testdata/order_broadcast_error.json"),
+                Err("Reduce only order would increase position. asset=159"),
+            ),
+            (include_str!("../../testdata/order_broadcast_simple_error.json"), Err("Request failed")),
+            (
+                include_str!("../../testdata/transaction_broadcast_error_extra_agent.json"),
+                Err("Extra agent already used."),
+            ),
+            (r#"{"status":"ok","response":{"type":"default"}}"#, Ok(None)),
+            (r#"{"status":"ok","response":{"type":"cancel","data":{"statuses":["success"]}}}"#, Ok(None)),
+            (
+                r#"{"status":"ok","response":{"type":"order","data":{"statuses":["waitingForTrigger","waitingForFill"]}}}"#,
+                Ok(None),
+            ),
+            (
+                r#"{"status":"ok","response":{"type":"order","data":{"statuses":[]}}}"#,
+                Err("Missing HyperCore action status"),
+            ),
+        ] {
+            let result = serde_json::from_str::<TransactionBroadcastResponse>(response).unwrap().into_result();
+            assert_eq!(result.map_err(|error| error.to_string()), expected.map_err(str::to_string));
+        }
     }
 
     #[test]
-    fn test_order_broadcast_filled() {
-        let result = serde_json::from_str::<TransactionBroadcastResponse>(include_str!("../../testdata/order_broadcast_filled.json"))
-            .unwrap()
-            .into_result(None);
-        let BroadcastResult::Success(oid) = result else { panic!("Expected success") };
-        assert_eq!(oid, "order:134896397196");
-    }
-
-    #[test]
-    fn test_order_broadcast_resting() {
-        let result = serde_json::from_str::<TransactionBroadcastResponse>(include_str!("../../testdata/order_broadcast_resting.json"))
-            .unwrap()
-            .into_result(None);
-        let BroadcastResult::Success(oid) = result else { panic!("Expected success") };
-        assert_eq!(oid, "order:789012");
-    }
-
-    #[test]
-    fn test_order_broadcast_simple_error() {
-        let result = serde_json::from_str::<TransactionBroadcastResponse>(include_str!("../../testdata/order_broadcast_simple_error.json"))
-            .unwrap()
-            .into_result(None);
-        let BroadcastResult::Error(_) = result else { panic!("Expected error") };
-    }
-
-    #[test]
-    fn test_order_broadcast_without_order_id_uses_action_id() {
-        let result = serde_json::from_str::<TransactionBroadcastResponse>(r#"{"status":"ok","response":{"type":"order"}}"#)
-            .unwrap()
-            .into_result(Some("action:123".to_string()));
-        let BroadcastResult::Success(id) = result else { panic!("Expected success") };
-        assert_eq!(id, "action:123");
-    }
-
-    #[test]
-    fn test_simple_broadcast_uses_action_id() {
-        let result = serde_json::from_str::<TransactionBroadcastResponse>(r#"{"status":"ok"}"#)
-            .unwrap()
-            .into_result(Some("action:456".to_string()));
-        let BroadcastResult::Success(id) = result else { panic!("Expected success") };
-        assert_eq!(id, "action:456");
-    }
-
-    #[test]
-    fn test_order_broadcast_without_order_id_and_action_id_errors() {
-        let result = serde_json::from_str::<TransactionBroadcastResponse>(r#"{"status":"ok","response":{"type":"order"}}"#)
-            .unwrap()
-            .into_result(None);
-        let BroadcastResult::Error(_) = result else { panic!("Expected error") };
+    fn test_deserialize() {
+        for response in [
+            r#"{"status":"ok"}"#,
+            r#"{"status":"ok","response":{"type":"order"}}"#,
+            r#"{"status":"ok","response":{"type":"order","data":{"statuses":["unknown"]}}}"#,
+            r#"{"status":"ok","response":{"type":"unknown"}}"#,
+        ] {
+            assert!(serde_json::from_str::<TransactionBroadcastResponse>(response).is_err());
+        }
     }
 }

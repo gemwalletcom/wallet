@@ -1,10 +1,19 @@
+mod data;
+mod hash_impl;
+mod parse;
+
+#[cfg(test)]
+mod hash_tests;
+
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_serializers::deserialize_option_u64_from_str_or_int;
-use signer::validate_eip712_domain_chain_id_binding;
 use std::collections::HashMap;
 
 use crate::address::ethereum_address_checksum;
+use hash_impl::validate_eip712_domain_chain_id_binding;
+
+pub use hash_impl::hash_typed_data;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct EIP712Domain {

@@ -14,7 +14,6 @@ import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.features.swap.viewmodels.models.SwapUiState
-import uniffi.gemstone.GemSwapButtonAction
 
 @Composable
 internal fun SwapAction(
@@ -31,14 +30,7 @@ internal fun SwapAction(
         } else {
             Text(
                 modifier = Modifier.padding(paddingHalfSmall),
-                text = when (swapState.buttonAction) {
-                    GemSwapButtonAction.InsufficientBalance ->
-                        stringResource(R.string.transfer_insufficient_balance, pay?.asset?.symbol ?: "")
-                    is GemSwapButtonAction.UseMinimumAmount -> stringResource(R.string.swap_use_minimum_amount)
-                    GemSwapButtonAction.RetryQuote,
-                    GemSwapButtonAction.RetryTransfer -> stringResource(R.string.common_try_again)
-                    GemSwapButtonAction.Swap -> stringResource(R.string.wallet_swap)
-                },
+                text = stringResource(swapState.actionTitle, pay?.asset?.symbol ?: ""),
                 style = MaterialTheme.typography.bodyLarge,
             )
         }

@@ -152,6 +152,45 @@ pub static WALLET_DEFAULT_ASSETS: LazyLock<Vec<WalletDefaultAsset>> = LazyLock::
     ]
 });
 
+pub static USDT_ASSETS: LazyLock<Vec<&'static Asset>> = LazyLock::new(|| {
+    vec![
+        &ETHEREUM_USDT,
+        &ARBITRUM_USDT,
+        &LINEA_USDT,
+        &OPTIMISM_USDT,
+        &POLYGON_USDT,
+        &ZKSYNC_USDT,
+        &SMARTCHAIN_USDT,
+        &AVALANCHE_USDT,
+        &INK_USDT,
+        &MONAD_USDT,
+        &HYPEREVM_USDT,
+        &PLASMA_USDT,
+        &SOLANA_USDT,
+        &TRON_USDT,
+    ]
+});
+
+pub static USDC_ASSETS: LazyLock<Vec<&'static Asset>> = LazyLock::new(|| {
+    vec![
+        &ETHEREUM_USDC,
+        &ARBITRUM_USDC,
+        &BASE_USDC,
+        &LINEA_USDC,
+        &OPTIMISM_USDC,
+        &POLYGON_USDC,
+        &SMARTCHAIN_USDC,
+        &AVALANCHE_USDC,
+        &UNICHAIN_USDC,
+        &MONAD_USDC,
+        &HYPERCORE_SPOT_USDC,
+        &HYPERCORE_PERPETUAL_USDC,
+        &HYPEREVM_USDC,
+        &SOLANA_USDC,
+        &SUI_USDC,
+    ]
+});
+
 pub fn wallet_default_assets(chain: Chain) -> Vec<Asset> {
     WALLET_DEFAULT_ASSETS
         .iter()

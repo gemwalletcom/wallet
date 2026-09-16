@@ -1,26 +1,24 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
-import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.application.stake.cases.GetDelegations
-import com.gemwallet.android.application.stake.cases.GetRecommendedValidator
-import com.gemwallet.android.application.stake.cases.GetStakeValidator
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.application.stake.cases.GetValidators
 import uniffi.gemstone.GemAmountServiceInterface
-import uniffi.gemstone.GemPerpetualPositionAction
 import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.testkit.mockAmountParamsPerpetual
+import com.gemwallet.android.testkit.mockAmountParamsTransfer
 import com.gemwallet.android.testkit.mockAssetCosmos
-import com.gemwallet.android.testkit.mockGemPerpetualTransferData
-import com.wallet.core.primitives.PerpetualId
-import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.Resource
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -36,17 +34,20 @@ class AmountProviderFactoryTest {
             every { this@mockk.invoke(any(), any(), any()) } returns flowOf(null)
         },
         getDelegations = mockk<GetDelegations>(relaxed = true) {
-            every { this@mockk.invoke(any(), any()) } returns flowOf(emptyList())
-        },
-        getRecommendedValidator = mockk<GetRecommendedValidator>(relaxed = true) {
-            every { this@mockk.invoke(any()) } returns flowOf(null)
+            every { this@mockk.invoke(any(), any(), any()) } returns flowOf(emptyList())
         },
         getStakeValidator = mockk(relaxed = true),
+        getValidators = mockk<GetValidators>(relaxed = true) {
+            every { this@mockk.invoke(any(), any()) } returns flowOf(emptyList())
+        },
         getPerpetual = mockk<GetPerpetual>(relaxed = true) {
             every { getPerpetual(any()) } returns flowOf(null)
         },
         getPerpetualBalance = mockk<GetPerpetualBalance>(relaxed = true) {
             every { getBalance() } returns flowOf(null)
+        },
+        getSession = mockk<GetSession>(relaxed = true) {
+            every { this@mockk.invoke() } returns MutableStateFlow(null)
         },
         service = mockk<GemAmountServiceInterface>(relaxed = true),
     )
@@ -54,10 +55,7 @@ class AmountProviderFactoryTest {
 
     @Test
     fun `Transfer params produce TransferProvider`() {
-        val provider = factory.create(
-            AmountParams.Transfer(asset.id, GemRecipient("to", null), null),
-            scope,
-        )
+        val provider = factory.create(mockAmountParamsTransfer(), scope)
         assertTrue(provider is AmountTransferProvider)
     }
 
@@ -72,11 +70,7 @@ class AmountProviderFactoryTest {
 
     @Test
     fun `Perpetual params produce PerpetualProvider`() {
-        val positionAction = GemPerpetualPositionAction.Open(mockGemPerpetualTransferData())
-        val provider = factory.create(
-            AmountParams.Perpetual(asset.id, PerpetualId(PerpetualProvider.Hypercore, "BTC-PERP"), positionAction),
-            scope,
-        )
+        val provider = factory.create(mockAmountParamsPerpetual(), scope)
         assertTrue(provider is AmountPerpetualProvider)
     }
 }

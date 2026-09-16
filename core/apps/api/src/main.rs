@@ -7,6 +7,7 @@ mod chain;
 mod config;
 mod devices;
 mod markets;
+mod metrics;
 mod model;
 mod nft;
 mod params;
@@ -37,8 +38,8 @@ use cacher::{AccessTokenCacherClient, CacherClient};
 use config::ConfigClient;
 use devices::DevicesClient;
 use devices::{
-    AddressNamesClient, FiatQuotesClient, NotificationsClient, PortfolioClient, RewardsClient, RewardsRedemptionClient, ScanClient, TransactionsClient, WalletConfigurationClient,
-    WalletsClient, scan_providers,
+    AddressNamesClient, FiatQuotesClient, NotificationsClient, PortfolioClient, RewardsClient, RewardsRedemptionClient, ScanClient, TransactionScanConfig, TransactionsClient,
+    WalletConfigurationClient, WalletsClient, scan_providers,
 };
 use gem_auth::AuthClient;
 use gem_rewards::{AbuseIPDBClient, IpApiClient, IpCheckProvider, IpSecurityClient};
@@ -61,7 +62,7 @@ use crate::support::{SupportApiClient, SupportImageUploadConfig};
 
 fn mount_routes(rocket: Rocket<Build>, admin_enabled: bool) -> Rocket<Build> {
     let rocket = rocket
-        .mount("/", routes![status::get_status, status::get_health])
+        .mount("/", routes![status::get_status, status::get_health, metrics::get_metrics])
         .mount(
             "/v1",
             routes![
@@ -225,10 +226,15 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     let stream_producer = StreamProducer::new(&rabbitmq_config, "api", streamer::no_shutdown()).await.unwrap();
     let wallets_client = WalletsClient::new(database.clone(), stream_producer.clone());
 
+    let providers = scan_providers(&settings_clone, cacher_client.clone(), config_cacher.get_duration(ConfigKey::ScanTimeout)?)?;
+    let metrics = Arc::new(metrics::Metrics::new(&providers));
     let scan_client = ScanClient::new(
         database.clone(),
-        scan_providers(&settings_clone, cacher_client.clone(), config_cacher.get_duration(ConfigKey::ScanTimeout)?)?,
-        config_cacher.get_bool(ConfigKey::ScanEnable)?,
+        TransactionScanConfig {
+            providers,
+            required_successes: config_cacher.get_usize(ConfigKey::ScanRequiredSuccesses)?,
+        },
+        metrics.clone(),
     );
     let wallet_configuration_client = WalletConfigurationClient::new(database.clone(), ChainProviders::from_settings(&settings, &user_agent), cacher_client.clone());
     let assets_client = AssetsClient::new(database.clone(), price_config);
@@ -296,6 +302,7 @@ async fn rocket_api(settings: Settings) -> Result<Rocket<Build>, Box<dyn Error +
     };
     let auth_config = devices::auth_config::AuthConfig::new(settings.api.auth.tolerance, jwt_config);
     let rocket = rocket::build()
+        .manage(metrics)
         .manage(auth_config)
         .manage(database)
         .manage(fiat_quotes_client)

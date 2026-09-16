@@ -13,6 +13,11 @@ public enum Images {
         public static let agent = Image(.supportAgent)
     }
 
+    public enum Tokens {
+        public static let usdt = Image(.usdt)
+        public static let usdc = Image(.usdc)
+    }
+
     public enum Chains {
         public static let aptos = Image(.aptos)
         public static let arbitrum = Image(.arbitrum)
@@ -68,6 +73,7 @@ public enum Images {
         public static let robinhood = Image(.robinhood)
         public static let stable = Image(.stable)
         public static let tempo = Image(.tempo)
+        public static let arc = Image(.arc)
     }
 
     public enum SwapProviders {
@@ -156,7 +162,7 @@ public enum Images {
         public static let reddit = Image(.reddit)
         public static let youtube = Image(.youtube)
         public static let website = Image(.website)
-        public static let facebook = Image("") // TODO:
+        public static let facebook = Image(.website)
         public static let coinmarketcap = Image(.coinmarketcap)
         public static let opensea = Image(.opensea)
         public static let magiceden = Image(.magiceden)

@@ -35,7 +35,6 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
@@ -51,6 +50,7 @@ import com.gemwallet.android.ui.theme.headerIconSize
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingLarge
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.AssetId
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -185,7 +185,7 @@ private fun LazyListScope.assets(
     onExclude: (String) -> Unit,
 ) {
     itemsPositioned(data/*, key = { _, item -> item.id}*/) { position, item ->
-        var minActionWidth by remember { mutableStateOf(0.dp) }
+        var minActionWidth by remember { mutableStateOf(space0) }
         val density = LocalDensity.current
 
         SwipeableItemWithActions(

@@ -25,14 +25,10 @@ where
     };
 
     match (a_pri, b_pri) {
-        (Some(a), Some(b)) if a != b => {
-            let higher_pri = if a < b { a_provider } else { b_provider }.unwrap();
-            if exceeds_threshold(higher_pri, a_amount, b_amount, ascending) {
-                by_amount()
-            } else {
-                a.cmp(&b)
-            }
-        }
+        (Some(a), Some(b)) if a != b => match if a < b { a_provider } else { b_provider } {
+            Some(higher_pri) if !exceeds_threshold(higher_pri, a_amount, b_amount, ascending) => a.cmp(&b),
+            _ => by_amount(),
+        },
         (Some(_), None) => Ordering::Less,
         (None, Some(_)) => Ordering::Greater,
         _ => by_amount(),
@@ -56,88 +52,76 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    struct MockProvider {
-        id: String,
-        priority: i32,
-        threshold_bps: i32,
-    }
-
-    impl MockProvider {
-        fn new(id: &str, priority: i32, threshold_bps: i32) -> Self {
-            Self {
-                id: id.to_string(),
-                priority,
-                threshold_bps,
-            }
-        }
-    }
-
-    impl PrioritizedProvider for MockProvider {
-        fn provider_id(&self) -> &str {
-            &self.id
-        }
-        fn priority(&self) -> i32 {
-            self.priority
-        }
-        fn threshold_bps(&self) -> i32 {
-            self.threshold_bps
-        }
-    }
+    use crate::{FiatProvider, FiatProviderName};
 
     #[test]
     fn test_no_priority_sorts_by_amount_desc() {
-        let providers: Vec<MockProvider> = vec![];
-        let result = sort_by_priority_then_amount("a", "b", &100.0, &200.0, &providers, false);
+        let providers: Vec<FiatProvider> = vec![];
+        let result = sort_by_priority_then_amount("moonpay", "mercuryo", &100.0, &200.0, &providers, false);
         assert_eq!(result, Ordering::Greater);
     }
 
     #[test]
     fn test_priority_wins_over_amount() {
-        let providers = vec![MockProvider::new("a", 1, 0), MockProvider::new("b", 2, 0)];
-        let result = sort_by_priority_then_amount("a", "b", &100.0, &200.0, &providers, false);
+        let providers = vec![
+            FiatProvider::mock_with_priority(FiatProviderName::MoonPay, 1, None),
+            FiatProvider::mock_with_priority(FiatProviderName::Mercuryo, 2, None),
+        ];
+        let result = sort_by_priority_then_amount("moonpay", "mercuryo", &100.0, &200.0, &providers, false);
         assert_eq!(result, Ordering::Less);
     }
 
     #[test]
     fn test_threshold_override() {
-        let providers = vec![MockProvider::new("a", 1, 500), MockProvider::new("b", 2, 0)];
-        let result = sort_by_priority_then_amount("a", "b", &100.0, &200.0, &providers, false);
+        let providers = vec![
+            FiatProvider::mock_with_priority(FiatProviderName::MoonPay, 1, Some(500)),
+            FiatProvider::mock_with_priority(FiatProviderName::Mercuryo, 2, None),
+        ];
+        let result = sort_by_priority_then_amount("moonpay", "mercuryo", &100.0, &200.0, &providers, false);
         assert_eq!(result, Ordering::Greater);
     }
 
     #[test]
     fn test_threshold_not_exceeded() {
-        let providers = vec![MockProvider::new("a", 1, 5000), MockProvider::new("b", 2, 0)];
-        let result = sort_by_priority_then_amount("a", "b", &100.0, &110.0, &providers, false);
+        let providers = vec![
+            FiatProvider::mock_with_priority(FiatProviderName::MoonPay, 1, Some(5000)),
+            FiatProvider::mock_with_priority(FiatProviderName::Mercuryo, 2, None),
+        ];
+        let result = sort_by_priority_then_amount("moonpay", "mercuryo", &100.0, &110.0, &providers, false);
         assert_eq!(result, Ordering::Less);
     }
 
     #[test]
     fn test_unprioritized_sorted_after_prioritized() {
-        let providers = vec![MockProvider::new("a", 1, 0)];
-        let result = sort_by_priority_then_amount("a", "b", &50.0, &200.0, &providers, false);
+        let providers = vec![FiatProvider::mock_with_priority(FiatProviderName::MoonPay, 1, None)];
+        let result = sort_by_priority_then_amount("moonpay", "mercuryo", &50.0, &200.0, &providers, false);
         assert_eq!(result, Ordering::Less);
     }
 
     #[test]
     fn test_ascending_order() {
-        let providers: Vec<MockProvider> = vec![];
-        let result = sort_by_priority_then_amount("a", "b", &100.0, &200.0, &providers, true);
+        let providers: Vec<FiatProvider> = vec![];
+        let result = sort_by_priority_then_amount("moonpay", "mercuryo", &100.0, &200.0, &providers, true);
         assert_eq!(result, Ordering::Less);
     }
 
     #[test]
     fn test_same_priority_sorts_by_amount() {
-        let providers = vec![MockProvider::new("a", 1, 0), MockProvider::new("b", 1, 0)];
-        let result = sort_by_priority_then_amount("a", "b", &200.0, &100.0, &providers, false);
+        let providers = vec![
+            FiatProvider::mock_with_priority(FiatProviderName::MoonPay, 1, None),
+            FiatProvider::mock_with_priority(FiatProviderName::Mercuryo, 1, None),
+        ];
+        let result = sort_by_priority_then_amount("moonpay", "mercuryo", &200.0, &100.0, &providers, false);
         assert_eq!(result, Ordering::Less);
     }
 
     #[test]
     fn test_priority_zero_treated_as_unranked() {
-        let providers = vec![MockProvider::new("a", 0, 0), MockProvider::new("b", 1, 0)];
-        let result = sort_by_priority_then_amount("a", "b", &200.0, &100.0, &providers, false);
+        let providers = vec![
+            FiatProvider::mock_with_priority(FiatProviderName::MoonPay, 0, None),
+            FiatProvider::mock_with_priority(FiatProviderName::Mercuryo, 1, None),
+        ];
+        let result = sort_by_priority_then_amount("moonpay", "mercuryo", &200.0, &100.0, &providers, false);
         assert_eq!(result, Ordering::Greater);
     }
 }

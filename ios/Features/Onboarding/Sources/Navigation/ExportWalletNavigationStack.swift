@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import enum Gemstone.GemWalletSecret
-import Localization
 import Primitives
 import SwiftUI
 
@@ -20,19 +19,12 @@ public struct ExportWalletNavigationStack: View {
 
     public var body: some View {
         NavigationStack(path: $navigationPath) {
-            Group {
-                switch flow {
-                case .words:
-                    SecurityReminderScene(
-                        model: SecurityReminderViewModelDefault(
-                            title: Localized.Common.secretPhrase,
-                            onNext: onNext,
-                        ),
-                    )
-                case let .privateKey(key):
-                    ShowSecretDataScene(model: ShowPrivateKeyViewModel(text: key))
-                }
-            }
+            SecurityReminderScene(
+                model: SecurityReminderViewModel(
+                    title: flow.title,
+                    onNext: onNext,
+                ),
+            )
             .toolbarDismissItem(type: .close, placement: .topBarLeading)
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: ExportWalletDestination.self) {

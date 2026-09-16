@@ -2,6 +2,7 @@
 
 import Components
 import protocol Gemstone.GemAssetsServiceProtocol
+import enum Gemstone.GemTransactionHeaderAction
 import protocol Gemstone.GemNftServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import GemstonePrimitives
@@ -79,32 +80,32 @@ extension NavigationPresenter {
     }
 
     func handleTransactionHeaderAction(
-        _ action: TransactionHeaderAction,
+        _ action: GemTransactionHeaderAction,
         wallet: Wallet,
         navigationState: NavigationStateManager,
         nftDestination: NavigationPathState,
     ) async throws {
         switch action {
         case let .asset(assetId), let .perpetual(assetId):
-            guard let asset = try await assetsService.openAsset(for: assetId) else {
+            guard let asset = try await assetsService.openAsset(assetId: assetId)?.toPrimitives() else {
                 return
             }
             navigationState.openAsset(asset)
         case let .swap(fromAssetId, toAssetId):
             try await presentSwap(
-                from: fromAssetId,
-                to: toAssetId,
+                from: AssetId(core: fromAssetId),
+                to: AssetId(core: toAssetId),
                 wallet: wallet,
             )
         case let .nft(assetId):
-            let assetData = try await nftService.ensureAsset(assetId: assetId.identifier).map()
+            let assetData = try await nftService.ensureAsset(assetId: assetId).toPrimitives()
             nftDestination.append(Scenes.Collectible(assetData: assetData))
         }
     }
 
     func recordRecent(input: SelectedAssetInput) {
         guard let action = input.type.action else { return }
-        Task { try? await recentActivity.addRecent(action: action, asset: input.asset.map()) }
+        Task { try? await recentActivity.addRecent(action: action, asset: input.asset.toGem()) }
     }
 
     func completeSwap(fromAsset: Asset, navigationState: NavigationStateManager) async throws {

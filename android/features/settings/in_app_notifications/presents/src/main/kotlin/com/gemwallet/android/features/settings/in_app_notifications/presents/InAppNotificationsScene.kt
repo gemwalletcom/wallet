@@ -13,7 +13,8 @@ import com.gemwallet.android.features.settings.in_app_notifications.viewmodels.I
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
-import com.gemwallet.android.ui.components.list_item.dateGroupedList
+import com.gemwallet.android.ui.components.list_item.dateSectionedList
+import com.gemwallet.android.ui.components.list_item.rememberDateSections
 import com.gemwallet.android.ui.components.screen.Scene
 
 @Composable
@@ -27,6 +28,7 @@ fun InAppNotificationsScene(
         title = stringResource(R.string.settings_notifications_title),
         onClose = { onAction(InAppNotificationsAction.Cancel) },
     ) {
+        val sections = rememberDateSections(notifications) { it.createdAt }
         if (notifications.isEmpty()) {
             EmptyContentView(
                 type = EmptyContentType.Notifications,
@@ -34,9 +36,8 @@ fun InAppNotificationsScene(
             )
         } else {
             LazyColumn {
-                dateGroupedList(
-                    items = notifications,
-                    createdAt = { it.createdAt },
+                dateSectionedList(
+                    sections = sections,
                     key = { _, notification -> notification.item.id },
                 ) { listPosition, notification ->
                     NotificationItem(

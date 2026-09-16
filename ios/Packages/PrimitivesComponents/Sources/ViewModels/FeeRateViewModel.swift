@@ -2,7 +2,6 @@
 
 import BigInt
 import Components
-import Formatters
 import Foundation
 import Localization
 import Primitives
@@ -11,7 +10,7 @@ import SwiftUI
 
 public struct FeeRateViewModel: Identifiable {
     public let priority: FeePriority
-    public let unitValue: BigInt
+    public let displayValue: BigInt
     public let fee: BigInt?
     public let unitType: FeeUnitType
     public let decimals: Int
@@ -19,14 +18,14 @@ public struct FeeRateViewModel: Identifiable {
 
     public init(
         priority: FeePriority,
-        unitValue: BigInt,
+        displayValue: BigInt,
         fee: BigInt?,
         unitType: FeeUnitType,
         decimals: Int,
         symbol: String,
     ) {
         self.priority = priority
-        self.unitValue = unitValue
+        self.displayValue = displayValue
         self.fee = fee
         self.unitType = unitType
         self.decimals = decimals
@@ -45,15 +44,12 @@ public struct FeeRateViewModel: Identifiable {
     }
 
     public var title: String {
-        switch priority {
-        case .normal: Localized.FeeRates.normal
-        case .fast: Localized.FeeRates.fast
-        }
+        priority.title
     }
 
     public var feeUnitModel: FeeUnitViewModel {
         FeeUnitViewModel(
-            unit: FeeUnit(type: unitType, value: unitValue),
+            unit: FeeUnit(type: unitType, value: displayValue),
             decimals: decimals,
             symbol: symbol,
         )

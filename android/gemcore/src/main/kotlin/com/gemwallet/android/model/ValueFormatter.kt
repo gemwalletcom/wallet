@@ -1,7 +1,11 @@
 package com.gemwallet.android.model
 
+import uniffi.gemstone.GemPrecision
 import android.icu.text.CompactDecimalFormat
 import com.wallet.core.primitives.Asset
+import uniffi.gemstone.GemValueStyle
+import uniffi.gemstone.dustThreshold
+import uniffi.gemstone.dustThresholdPlaces
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode
@@ -10,11 +14,9 @@ import java.text.NumberFormat
 import java.util.Locale
 
 class ValueFormatter(
-    private val style: Style,
+    private val style: GemValueStyle,
     private val locale: Locale = Locale.getDefault(),
-    private val abbreviationThreshold: BigDecimal = ABBREVIATION_THRESHOLD,
 ) {
-    enum class Style { Full, Short, Auto }
 
     fun string(value: BigInteger, asset: Asset): String =
         string(value, decimals = asset.decimals, currency = asset.symbol)
@@ -25,11 +27,11 @@ class ValueFormatter(
     fun string(value: BigDecimal, currency: String = ""): String {
         if (value.signum() == 0) return appendCurrency("0", currency)
 
-        if (style == Style.Short && value.abs() >= abbreviationThreshold) {
+        if (style.abbreviates(value.toDouble())) {
             return appendCurrency(abbreviated(value), currency)
         }
 
-        if (style == Style.Short && value.abs() < DUST_THRESHOLD) {
+        if (style.isDust(value.toDouble())) {
             return appendCurrency("<${formattedDustThreshold()}", currency)
         }
 
@@ -41,15 +43,7 @@ class ValueFormatter(
 
     fun rounded(value: BigDecimal): BigDecimal = value.rounded(precision(value.abs()), ROUNDING_MODE)
 
-    private fun precision(magnitude: BigDecimal): Precision = when (style) {
-        Style.Full -> Precision.full
-        Style.Short -> if (magnitude >= SMALL_AMOUNT_THRESHOLD) Precision.upToTwoPlaces else Precision.upToFourPlaces
-        Style.Auto -> when {
-            magnitude >= BigDecimal.ONE -> Precision.upToTwoPlaces
-            magnitude >= DUST_THRESHOLD -> Precision.fourSignificant
-            else -> Precision.full
-        }
-    }
+    private fun precision(magnitude: BigDecimal): GemPrecision = style.precision(magnitude.toDouble())
 
     private fun abbreviated(decimal: BigDecimal): String {
         val formatter = CompactDecimalFormat.getInstance(locale, CompactDecimalFormat.CompactStyle.SHORT)
@@ -62,10 +56,10 @@ class ValueFormatter(
 
     private fun formattedDustThreshold(): String {
         val formatter = (NumberFormat.getInstance(locale) as DecimalFormat).apply {
-            minimumFractionDigits = 4
-            maximumFractionDigits = 4
+            minimumFractionDigits = dustThresholdPlaces().toInt()
+            maximumFractionDigits = dustThresholdPlaces().toInt()
         }
-        return formatter.format(DUST_THRESHOLD)
+        return formatter.format(dustThreshold())
     }
 
     private fun appendCurrency(value: String, currency: String): String =
@@ -73,8 +67,5 @@ class ValueFormatter(
 
     companion object {
         private val ROUNDING_MODE: RoundingMode = RoundingMode.DOWN
-        private val SMALL_AMOUNT_THRESHOLD: BigDecimal = BigDecimal("0.1")
-        private val DUST_THRESHOLD: BigDecimal = BigDecimal("0.0001")
-        val ABBREVIATION_THRESHOLD: BigDecimal = BigDecimal(100_000)
     }
 }

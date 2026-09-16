@@ -9,6 +9,7 @@ common_secret_phrase = Lihim na Parirala
 common_copy = Kopyahin
 common_share = Ibahagi
 common_continue = Magpatuloy
+common_sign_in_with = Mag-sign in gamit ang %@
 common_provider = Provider
 common_loading = Naglo-load
 common_address = Address
@@ -54,9 +55,9 @@ common_get_started = Magsimula
 common_earn = Kumita
 common_method = Paraan
 common_token = Token
+common_expiration = Pag-expire
 common_suspicious_address = Kahina-hinalang address
 common_refresh = I-refresh
-common_no_thanks = Hindi salamat
 common_grant_permission = Magbigay ng pahintulot
 common_required_field = Kinakailangan ang %@
 
@@ -163,7 +164,6 @@ transfer_freeze_title = I-freeze
 transfer_unfreeze_title = I-unfreeze
 transfer_review_request = Suriin ang Kahilingan
 transfer_amount = Halaga
-transfer_amount_title = Halaga
 
 # Settings
 
@@ -207,7 +207,6 @@ support_message_placeholder = Mensahe
 
 # Errors
 
-errors_transfer = Error sa Paglipat: %@
 errors_validation = Error sa Pagpapatunay: %@
 errors_create_wallet = Error sa Lumikha ng Wallet: %@
 errors_invalid_address_name = Di-wastong address o pangalan
@@ -226,7 +225,6 @@ errors_cancelled = Nakansela
 errors_connections_user_cancelled = Kinansela ang user
 errors_not_supported = Hindi Sinusuportahan
 errors_permissions_not_granted = Hindi Ipinagkaloob ang Mga Pahintulot
-errors_decoding = Error sa Pag-decode
 errors_unknown = Hindi alam
 errors_not_supported_qr = Hindi sinusuportahan ng device na ito ang pag-scan ng QR code. Maaari ka lamang pumili ng QR code na imahe mula sa library.
 errors_camera_permissions_not_granted = Hindi ibinigay ang pahintulot sa camera. Mangyaring paganahin ang access sa camera sa mga setting upang i-scan ang QR code.
@@ -237,11 +235,8 @@ errors_invalid_asset_address = Di-wastong %@ address
 errors_dust_threshold = Nabigo ang transaksyon dahil napakaliit ng halaga upang matugunan ang minimum na kinakailangan ng %@ network (dust threshold). Tinitiyak ng limitasyong ito na saklaw ng halaga ng transaksyon ang mga bayarin at gastos sa pagproseso.
 errors_swap_no_quote_available = Walang available na quote.
 errors_swap_not_supported_asset = Hindi sinusuportahang asset.
-errors_connections_invalid_send_parameters = Mga di-wastong parameter na ibinigay para sa pagpapadala ng transaksyon.
-errors_connections_invalid_sign_parameters = Mga di-wastong parameter na ibinigay para sa pagpirma.
 errors_connections_no_supported_wallets = Walang available na suportadong wallet.
 errors_connections_unsupported_chain = Ang ibinigay na chain ay hindi suportado.
-errors_connections_unsupported_method = Ang hiniling na paraan ay hindi suportado.
 errors_swap_amount_too_small = Masyadong maliit ang halaga
 errors_required = %@ ay kinakailangan
 errors_scan_transaction_malicious_description = Ang transaksyong ito ay hindi makukumpleto — ang patutunguhang wallet address ay naka-link sa kahina-hinala o nakakapinsalang aktibidad.
@@ -253,7 +248,6 @@ errors_dust_threshold_short = Itinuturing ng network ang halagang ito bilang ali
 errors_swap_minimum_amount = Ang minimum na halaga ng kalakalan ay %@. Mangyaring maglagay ng mas mataas na halaga.
 errors_perpetual_trigger_price_lower = Dapat mas mababa sa presyo sa merkado ang trigger price
 errors_perpetual_trigger_price_higher = Dapat mas mataas sa presyo sa merkado ang trigger price
-errors_token_unable_fetch_token_information = Hindi makuha ang impormasyon ng token: %@
 errors_unknown_try_again = May naganap na hindi kilalang error. Pakisubukang muli.
 errors_network_error = Error sa network: %@
 errors_network_offline = Mukhang offline ang koneksyon sa internet.
@@ -277,7 +271,6 @@ update_app_action = Update
 update_app_permission_title = Payagan ang pag-install
 update_app_permission_description = Pumunta sa mga setting at payagan ang pag-install mula sa mga panlabas na mapagkukunan
 update_app_permission_open_settings = Pumunta sa mga setting
-update_app_downloading = Dina-download...
 
 # Transaction
 
@@ -365,6 +358,7 @@ wallet_connect_state_empty_description = I-scan o i-paste ang code para kumonekt
 wallet_connect_permissions_title = Mga Pahintulot
 wallet_connect_permissions_view_balance = Tingnan ang iyong balanse at aktibidad
 wallet_connect_permissions_approval_requests = Magpadala ng mga kahilingan sa pag-apruba
+wallet_connect_request_expired = Nag-expire na ang kahilingan
 
 # Swap
 
@@ -480,8 +474,6 @@ banner_account_activation_title = Bayarin sa Pag-activate ng Account
 banner_account_activation_description = Ang %@ network ay nangangailangan ng isang beses na bayad na %@.
 banner_stake_title = Simulan ang staking %@
 banner_stake_description = Makakuha ng %@ reward sa iyong stake habang natutulog ka.
-banner_enable_notifications_title = Paganahin ang Mga Notification
-banner_enable_notifications_description = Manatili sa tuktok ng iyong aktibidad sa wallet.
 banner_activate_asset_description = Upang magamit ang asset na %@, dapat mo muna itong paganahin sa %@ network sa pamamagitan ng pagtupad sa mga partikular na kinakailangan ng network.
 banner_asset_status_title = Kahina-hinalang Asset
 banner_asset_status_description = Maaaring hindi ligtas o mapanlinlang ang token. Magpatuloy lamang kung lubos mong pinagkakatiwalaan ito.
@@ -605,6 +597,7 @@ nft_report_reason_spam = Spam
 nft_report_reason_malicious = Malisyoso
 nft_report_reason_inappropriate = Hindi Naaangkop na Nilalaman
 nft_report_reason_copyright = Copyright
+nft_report_reason_other = Iba pa
 nft_report_report_button_title = I-report
 
 # Permissions
@@ -629,7 +622,6 @@ networks_state_empty_search_title = Walang nakitang mga network
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Makakakuha ka ng Secret Phrase — ito lang ang paraan para ma-access ang iyong wallet.
-onboarding_security_create_wallet_confirm_title = Naiintindihan ko at gusto kong magpatuloy
 onboarding_security_create_wallet_do_not_share_title = Huwag Ibahagi Ito Kaninuman
 onboarding_security_create_wallet_do_not_share_subtitle = Ang sinumang makakakuha ng iyong sikretong parirala ay maaaring ganap na makontrol ang iyong pitaka.
 onboarding_security_create_wallet_keep_safe_subtitle = Ang lihim na parirala ay tanging paraan upang ma-access ang iyong pitaka.
@@ -687,8 +679,9 @@ perpetual_margin_isolated = Nakahiwalay
 # Perpetuals
 
 perpetuals_title = Perpetuals
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = Mag-trade ng Perpetuals
 perpetuals_markets = Mga pamilihan
-perpetuals_empty_state_no_markets = Walang mga merkado
 perpetuals_empty_state_no_markets_found = Walang nakitang mga merkado
 
 # Rewards
@@ -760,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = Kinakailangan ng pahintulot sa camera para sa pag-scan ng QR Code.\nPakibigay ng pahintulot.
 
 # Notifications Permission
 
-notifications_permission_request_notification = Kinakailangan ang pahintulot sa Post Notifications para makakuha ng mga notification tungkol sa mga bagong transaksyon.\nMangyaring magbigay ng pahintulot.
 
 # Confirm
 
-confirm_fee_error = Error sa pagkalkula ng bayad
 
 # Rootcheck
 

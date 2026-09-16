@@ -9,6 +9,7 @@ common_secret_phrase = 助記詞
 common_copy = 複製
 common_share = 分享
 common_continue = 繼續
+common_sign_in_with = 使用%@登入
 common_provider = 供應商
 common_loading = 載入中
 common_address = 地址
@@ -54,9 +55,9 @@ common_get_started = 開始使用
 common_earn = 賺取
 common_method = 方法
 common_token = 代幣
+common_expiration = 有效期限
 common_suspicious_address = 可疑地址
 common_refresh = 重新整理
-common_no_thanks = 不用，謝謝
 common_grant_permission = 允許
 common_required_field = %@ 為必填欄位
 
@@ -118,7 +119,7 @@ wallets_watch = 觀察
 # Receive
 
 receive_title = 接收%@
-receive_warning = 這是您的地址——請僅傳送 %@，並確保使用 %@ 網路。
+receive_warning = 請僅向此地址傳送 %2$@ 網路上的 %1$@。
 
 # Buy
 
@@ -133,7 +134,7 @@ transfer_network_fee = 網路手續費
 transfer_memo = 備註
 transfer_confirm = 確認
 transfer_from = 來自
-transfer_to = 傳送至
+transfer_to = 至
 transfer_max = 最大值
 transfer_network = 網路
 transfer_recipient_title = 收款人
@@ -163,7 +164,6 @@ transfer_freeze_title = 凍結
 transfer_unfreeze_title = 解凍
 transfer_review_request = 檢視請求
 transfer_amount = 數量
-transfer_amount_title = 金額
 
 # Settings
 
@@ -207,7 +207,6 @@ support_message_placeholder = 訊息
 
 # Errors
 
-errors_transfer = 轉帳錯誤：%@
 errors_validation = 驗證錯誤： %@
 errors_create_wallet = 建立錢包錯誤： %@
 errors_invalid_address_name = 地址或名稱無效
@@ -226,7 +225,6 @@ errors_cancelled = 已取消
 errors_connections_user_cancelled = 使用者已取消
 errors_not_supported = 不支援
 errors_permissions_not_granted = 未授予權限
-errors_decoding = 解碼錯誤
 errors_unknown = 未知
 errors_not_supported_qr = 此裝置不支援掃描 QR 碼，只能從照片圖庫選取 QR 碼圖片。
 errors_camera_permissions_not_granted = 尚未取得相機權限。請在設定中允許相機存取，以掃描 QR 碼。
@@ -237,11 +235,8 @@ errors_invalid_asset_address = 無效的 %@ 地址
 errors_dust_threshold = 交易失敗，因為金額太小，無法滿足 %@ 網路的最低要求（粉塵門檻）。此限制確保交易金額足以支付手續費和處理成本。
 errors_swap_no_quote_available = 暫無報價
 errors_swap_not_supported_asset = 不支援此資產。
-errors_connections_invalid_send_parameters = 發送交易時提供的參數無效。
-errors_connections_invalid_sign_parameters = 提供的簽名參數無效。
 errors_connections_no_supported_wallets = 目前沒有支援的錢包可用。
 errors_connections_unsupported_chain = 不支援指定的區塊鏈。
-errors_connections_unsupported_method = 不支援請求的方法。
 errors_swap_amount_too_small = 金額太小，請輸入更大的金額試試
 errors_required = %@ 為必填欄位
 errors_scan_transaction_malicious_description = 無法完成此交易：收款錢包位址與可疑或惡意行為有關。
@@ -253,7 +248,6 @@ errors_dust_threshold_short = 此網路將這筆金額視為粉塵金額，手�
 errors_swap_minimum_amount = 最低交易金額為 %@。請輸入更高的金額。
 errors_perpetual_trigger_price_lower = 觸發價格應低於市場價格
 errors_perpetual_trigger_price_higher = 觸發價格應高於市場價格
-errors_token_unable_fetch_token_information = 無法取得代幣資訊： %@
 errors_unknown_try_again = 發生未知錯誤，請重試
 errors_network_error = 網路錯誤： %@
 errors_network_offline = 網路連線似乎已斷開。
@@ -277,7 +271,6 @@ update_app_action = 更新
 update_app_permission_title = 允許安裝
 update_app_permission_description = 前往設定，並允許安裝來自外部來源的 App
 update_app_permission_open_settings = 前往設定
-update_app_downloading = 下載中...
 
 # Transaction
 
@@ -291,8 +284,8 @@ transaction_status_confirmed = 成功
 transaction_status_pending = 等待確認
 transaction_status_failed = 失敗
 transaction_status_reverted = 已撤銷
-transaction_title_received = 已收到
-transaction_title_sent = 已發送
+transaction_title_received = 轉入
+transaction_title_sent = 轉出
 transaction_swap_again = 再次兌換
 transaction_status_completed = 已完成
 transaction_status_inprogress = 進行中
@@ -365,11 +358,12 @@ wallet_connect_state_empty_description = 掃描 QR 碼或貼上連線連結，�
 wallet_connect_permissions_title = 權限
 wallet_connect_permissions_view_balance = 查看餘額和交易紀錄
 wallet_connect_permissions_approval_requests = 傳送授權請求
+wallet_connect_request_expired = 請求已過期
 
 # Swap
 
-swap_you_pay = 將支付
-swap_you_receive = 將收到
+swap_you_pay = 支付
+swap_you_receive = 預計收到
 swap_price_impact = 價格影響
 swap_slippage = 滑點
 swap_slippage_warning = 滑點過高。兌換可能以比預期更差的價格成交。
@@ -378,7 +372,7 @@ swap_slippage_auto_description = 自動設定最佳滑點以確保兌換成功�
 swap_price_impact_warning_description = 本次交易將損失 %@ 的 %@。確定要繼續嗎？
 swap_price_impact_warning_title = 價格影響
 swap_estimated_time_title = 預估時間
-swap_min_receive = 最少接收
+swap_min_receive = 最少收到
 swap_use_minimum_amount = 使用最低金額
 
 # Stake
@@ -480,8 +474,6 @@ banner_account_activation_title = 帳戶啟動費用
 banner_account_activation_description = %@ 網路需支付一次性費用：%@。
 banner_stake_title = 開始質押 %@
 banner_stake_description = 質押 %@ 賺取獎勵，躺著也賺
-banner_enable_notifications_title = 啟用通知
-banner_enable_notifications_description = 即時掌握錢包動態
 banner_activate_asset_description = 若要使用 %@ 資產，必須先符合 %@ 網路的特定要求，才能啟用該資產。
 banner_asset_status_title = 可疑資產
 banner_asset_status_description = 代幣可能不安全或具有誤導性。請僅在完全信任的情況下繼續操作。
@@ -605,6 +597,7 @@ nft_report_reason_spam = 垃圾內容
 nft_report_reason_malicious = 惡意
 nft_report_reason_inappropriate = 不當內容
 nft_report_reason_copyright = 版權
+nft_report_reason_other = 其他
 nft_report_report_button_title = 檢舉
 
 # Permissions
@@ -628,14 +621,13 @@ networks_state_empty_search_title = 未找到任何網路
 
 # Onboarding
 
-onboarding_security_create_wallet_intro_title = 將取得一組助記詞——這是存取錢包的唯一方式。
-onboarding_security_create_wallet_confirm_title = 我理解並希望繼續
-onboarding_security_create_wallet_do_not_share_title = 不要與任何人分享
-onboarding_security_create_wallet_do_not_share_subtitle = 任何取得您助記詞的人都能完全控制您的錢包。
-onboarding_security_create_wallet_keep_safe_subtitle = 助記詞是存取錢包的唯一方法。
-onboarding_security_create_wallet_no_recovery_subtitle = 助記詞一旦遺失，將無法存取錢包。
-onboarding_security_create_wallet_keep_safe_title = 將其存放在安全的地方
-onboarding_security_create_wallet_no_recovery_title = 我們無法協助復原
+onboarding_security_create_wallet_intro_title = 您將取得一組助記詞，請務必妥善備份。
+onboarding_security_create_wallet_do_not_share_title = 切勿洩漏助記詞
+onboarding_security_create_wallet_do_not_share_subtitle = 任何人取得助記詞，都能控制錢包並轉走資產。
+onboarding_security_create_wallet_keep_safe_subtitle = 請抄寫助記詞，並保存在只有您能取用的安全位置。
+onboarding_security_create_wallet_no_recovery_subtitle = 請保管好備份，以免裝置遺失或損壞後無法復原錢包。
+onboarding_security_create_wallet_keep_safe_title = 妥善備份助記詞
+onboarding_security_create_wallet_no_recovery_title = 我們無法找回助記詞
 onboarding_accept_terms_title = 接受條款
 onboarding_accept_terms_message = 請閱讀並同意以下條款後繼續。
 onboarding_accept_terms_item1_message = 我了解錢包的安全與備份完全由我自行負責，Gem 不承擔任何責任。
@@ -687,8 +679,9 @@ perpetual_margin_isolated = 逐倉
 # Perpetuals
 
 perpetuals_title = 永續合約
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = 交易永續合約
 perpetuals_markets = 市場
-perpetuals_empty_state_no_markets = 沒有市場
 perpetuals_empty_state_no_markets_found = 未找到任何市場
 
 # Rewards
@@ -707,7 +700,7 @@ rewards_get_rewards_title = 兌換積分
 rewards_activate_referral_code_description = 有朋友的邀請碼嗎？
 rewards_activate_referral_code_title = 兌換邀請碼
 rewards_create_referral_code_title = 建立使用者名稱
-rewards_create_referral_code_info = 這將是目前錢包的個人暱稱。
+rewards_create_referral_code_info = 為目前的錢包設定使用者名稱。
 rewards_username = 使用者名稱
 rewards_ways_spend_title = 積分兌換
 rewards_ways_spend_asset_title = 兌換 %@
@@ -760,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = 需要相機權限才能掃描 QR 碼。\n請允許存取相機。
 
 # Notifications Permission
 
-notifications_permission_request_notification = 需要通知權限才能接收新交易通知。\n請允許傳送通知。
 
 # Confirm
 
-confirm_fee_error = 費用計算錯誤
 
 # Rootcheck
 

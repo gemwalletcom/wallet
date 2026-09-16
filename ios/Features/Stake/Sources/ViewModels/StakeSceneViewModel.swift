@@ -5,6 +5,8 @@ import Formatters
 import Foundation
 import enum Gemstone.GemStakeAction
 import struct Gemstone.GemStakeActionItem
+import enum Gemstone.GemStakeInfoRow
+import enum Gemstone.GemStakeSection
 import struct Gemstone.GemClaimRewards
 import struct Gemstone.GemAssetBalance
 import protocol Gemstone.GemStakeServiceProtocol
@@ -34,7 +36,7 @@ public final class StakeSceneViewModel {
     public let assetQuery: ObservableQuery<AssetRequest>
 
     public var delegations: [Delegation] {
-        delegationsQuery.value
+        service.sortedDelegations(delegations: delegationsQuery.value.map { $0.toGem() }).map { Delegation(core: $0) }
     }
 
     public var validators: [DelegationValidator] {
@@ -69,50 +71,52 @@ public final class StakeSceneViewModel {
     }
 
     private func selectable(_ validators: [DelegationValidator]) -> [DelegationValidator] {
-        service.selectableValidators(validators: validators.map { $0.map() }).map { $0.map() }
+        service.selectableValidators(validators: validators.map { $0.toGem() }).map { $0.toPrimitives() }
     }
 
-    var stakeTitle: String {
-        Localized.Transfer.Stake.title
+    var sections: [GemStakeSection] {
+        service.stakeSections(chain: chain.chain.rawValue, hasActions: actions.isNotEmpty, hasDelegations: delegations.isNotEmpty)
     }
 
-    var rewardsTitle: String {
-        Localized.Transfer.ClaimRewards.title
+    var infoRows: [GemStakeInfoRow] {
+        service.stakeInfoRows(chain: chain.chain.rawValue, stakingApr: assetData.metadata.stakingApr)
     }
 
-    var delegationsTitle: String {
-        Localized.Stake.delegations
+    var actions: [GemStakeActionItem] {
+        stakeActions
     }
 
     var stakeAprModel: AprViewModel {
         AprViewModel(apr: assetData.metadata.stakingApr ?? .zero)
     }
 
-    var resourcesTitle: String {
-        Localized.Asset.resources
-    }
-
     var energyField: ListItemField {
-        ListItemField(title: ResourceViewModel(resource: .energy).title, value: balanceModel.energyText)
+        ListItemField(title: Resource.energy.title, value: balanceModel.energyText)
     }
 
     var bandwidthField: ListItemField {
-        ListItemField(title: ResourceViewModel(resource: .bandwidth).title, value: balanceModel.bandwidthText)
+        ListItemField(title: Resource.bandwidth.title, value: balanceModel.bandwidthText)
     }
 
-    var freezeTitle: String {
-        Localized.Transfer.Freeze.title
+    func infoField(for row: GemStakeInfoRow) -> ListItemField {
+        switch row {
+        case .apr: ListItemField(title: stakeAprModel.title, value: stakeAprModel.subtitle)
+        case .lockTime: ListItemField(title: row.title, value: lockTimeValue)
+        case .minimumAmount:
+            ListItemField(title: row.title, value: formatter.string(service.minStakeAmount(chain: chain.chain.rawValue), decimals: Int(asset.decimals), currency: asset.symbol))
+        }
     }
 
-    var unfreezeTitle: String {
-        Localized.Transfer.Unfreeze.title
+    func infoAction(for row: GemStakeInfoRow) -> InfoSheetAction? {
+        switch row {
+        case .apr: onAprInfo
+        case .lockTime: onLockTimeInfo
+        case .minimumAmount: nil
+        }
     }
 
-    var lockTimeField: ListItemField {
-        let now = Date.now
-        let date = now.addingTimeInterval(chain.lockTime)
-        let value = Self.lockTimeFormatter.string(from: now, to: date) ?? .empty
-        return ListItemField(title: Localized.Stake.lockTime, value: value)
+    private var lockTimeValue: String {
+        Self.lockTimeFormatter.string(from: TimeInterval(service.lockTimeSeconds(chain: chain.chain.rawValue))) ?? .empty
     }
 
     var lockTimeInfoSheet: InfoSheetType {
@@ -123,40 +127,25 @@ public final class StakeSceneViewModel {
         InfoSheetType.stakeApr(assetModel.assetImage.placeholder)
     }
 
-    var minAmountField: ListItemField? {
-        guard chain.minAmount != 0 else { return .none }
-        let value = formatter.string(chain.minAmount, decimals: Int(asset.decimals), currency: asset.symbol)
-        return ListItemField(title: Localized.Stake.minimumAmount, value: value)
-    }
-
-    var showManage: Bool {
-        stakeActions.isNotEmpty
-    }
-
-    var recommendedCurrentValidator: DelegationValidator? {
-        service.recommendedValidator(chain: chain.chain.rawValue, validators: validators.map { $0.map() }).map { $0.map() }
-    }
-
     var emptyContentModel: EmptyContentTypeViewModel {
         EmptyContentTypeViewModel(type: .stake(symbol: assetModel.symbol))
     }
 
     func navigationDestination(for delegation: DelegationViewModel) -> any Hashable {
-        switch service.delegationDestination(walletType: wallet.type.map(), asset: asset.map(), delegation: delegation.delegation.map()) {
-        case let .withdraw(transfer): transfer
-        case .details: delegation.delegation
-        }
-    }
-
-    var delegationsSectionTitle: String {
-        guard case let .data(delegations) = delegationsViewState, delegations.isNotEmpty else {
-            return .empty
-        }
-        return delegationsTitle
+        service.delegationDestination(walletType: wallet.type.toGem(), asset: asset.toGem(), delegation: delegation.delegation.toGem())
+            .navigationValue(delegation: delegation.delegation)
     }
 
     var delegationsViewState: StateViewType<[DelegationViewModel]> {
-        let delegationModels = delegations.map { DelegationViewModel(service: service, delegation: $0, asset: asset, currencyCode: service.getCurrency()) }
+        let currency = service.getCurrency().toPrimitives()
+        let delegationModels = delegations.map { delegation in
+            DelegationViewModel(
+                service: service,
+                delegation: delegation,
+                asset: asset,
+                currency: currency,
+            )
+        }
 
         switch delegationsState {
         case .noData: return .noData
@@ -170,53 +159,28 @@ public final class StakeSceneViewModel {
         formatter.string(claimRewards.value, decimals: asset.decimals.asInt, currency: asset.symbol)
     }
 
-    var showRewards: Bool {
-        stakeAction(.claimRewards) != nil
-    }
-
     var claimRewardsDestination: any Hashable {
         switch claimRewards.destination {
         case let .transfer(transfer): transfer
-        case let .amount(delegations): AmountInput(type: .stake(.claimRewards(delegations: delegations.map { Delegation(core: $0) })), asset: asset)
+        case let .amount(delegations): AmountInput(type: .stake(.rewards(delegations: delegations, validator: nil)), asset: asset)
         }
     }
 
-    var stakeDestination: any Hashable {
-        destination(
-            type: .stake(.stake(
-                validators: validators,
-                recommended: recommendedCurrentValidator,
-            )),
-        )
+    func destination(for action: GemStakeAction) -> any Hashable {
+        switch action {
+        case .stake: destination(type: .stake(.stake(validators: validators.map { $0.toGem() }, validator: nil)))
+        case .freeze: destination(type: .stake(.freeze(resource: Resource.bandwidth.toGem())))
+        case .unfreeze: destination(type: .stake(.unfreeze(resource: Resource.bandwidth.toGem())))
+        case .claimRewards: claimRewardsDestination
+        }
     }
 
-    var freezeDestination: any Hashable {
-        destination(type: .stake(.freeze(.bandwidth)))
+    func subtitle(for action: GemStakeAction) -> String? {
+        action == .claimRewards ? claimRewardsText : .none
     }
 
-    var unfreezeDestination: any Hashable {
-        destination(type: .stake(.unfreeze(.bandwidth)))
-    }
-
-    var showFreeze: Bool {
-        stakeAction(.freeze) != nil
-    }
-
-    var showUnfreeze: Bool {
-        stakeAction(.unfreeze) != nil
-    }
-
-    var isStakeEnabled: Bool {
-        stakeAction(.stake)?.isEnabled ?? false
-    }
-
-    var stakeInfoAction: InfoSheetAction? {
-        guard stakeAction(.stake)?.requiresFrozenBalance == true else { return nil }
-        return onStakeFrozenInfo
-    }
-
-    var showTronResources: Bool {
-        balanceModel.hasStakingResources
+    func frozenBalanceInfoAction(for item: GemStakeActionItem) -> InfoSheetAction? {
+        item.requiresFrozenBalance ? onStakeFrozenInfo : .none
     }
 }
 
@@ -267,20 +231,16 @@ extension StakeSceneViewModel {
 
     private var stakeActions: [GemStakeActionItem] {
         service.stakeActions(
-            walletType: wallet.type.map(),
+            walletType: wallet.type.toGem(),
             chain: chain.chain.rawValue,
             hasValidators: validators.isNotEmpty,
-            balance: GemAssetBalance(assetData.balance, assetId: asset.id),
-            delegations: delegations.map { $0.map() },
+            balance: GemAssetBalance(assetData.balance, assetId: asset.id, isActive: assetData.metadata.isActive),
+            delegations: delegations.map { $0.toGem() },
         )
     }
 
     private var claimRewards: GemClaimRewards {
-        service.claimRewards(chain: chain.chain.rawValue, delegations: delegations.map { $0.map() })
-    }
-
-    private func stakeAction(_ action: GemStakeAction) -> GemStakeActionItem? {
-        stakeActions.first { $0.action == action }
+        service.claimRewards(chain: chain.chain.rawValue, delegations: delegations.map { $0.toGem() })
     }
 
     private var balanceModel: BalanceViewModel {

@@ -23,7 +23,6 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemTransactionsService
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -35,7 +34,6 @@ class TransactionsViewModelSyncTest {
     }
     private val getTransactions = mockk<GetTransactions> {
         every { getTransactions(any()) } returns MutableStateFlow(emptyList<TransactionDataAggregate>())
-        every { transactions() } returns MutableStateFlow(emptyList())
     }
     private val getSession = mockk<GetSession>(relaxed = true) {
         every { this@mockk() } returns session
@@ -92,6 +90,5 @@ class TransactionsViewModelSyncTest {
         getSession = getSession,
         getTransactions = getTransactions,
         service = service,
-        assetConfig = GemAssetConfigService(),
     )
 }

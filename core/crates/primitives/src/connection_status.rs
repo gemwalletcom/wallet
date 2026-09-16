@@ -37,13 +37,9 @@ mod tests {
     fn test_from_unhealthy_components() {
         assert_eq!(ConnectionStatus::from_unhealthy_components(&[]), ConnectionStatus::Online);
         assert_eq!(ConnectionStatus::from_unhealthy_components(&[ConnectionComponent::Internet]), ConnectionStatus::NoInternet);
-        assert_eq!(ConnectionStatus::from_unhealthy_components(&[ConnectionComponent::Api]), ConnectionStatus::NoService);
+        assert_eq!(ConnectionStatus::from_unhealthy_components(&[ConnectionComponent::Stream]), ConnectionStatus::NoService);
         assert_eq!(
-            ConnectionStatus::from_unhealthy_components(&[ConnectionComponent::Nodes, ConnectionComponent::Stream]),
-            ConnectionStatus::NoService
-        );
-        assert_eq!(
-            ConnectionStatus::from_unhealthy_components(&[ConnectionComponent::Api, ConnectionComponent::Internet]),
+            ConnectionStatus::from_unhealthy_components(&[ConnectionComponent::Stream, ConnectionComponent::Internet]),
             ConnectionStatus::NoInternet
         );
     }

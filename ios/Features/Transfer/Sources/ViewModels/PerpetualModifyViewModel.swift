@@ -24,8 +24,8 @@ public struct PerpetualModifyViewModel: Sendable {
             return nil
         }
         let autoclose = autocloseFormatter.format(
-            takeProfit: summary.takeProfit,
-            stopLoss: summary.stopLoss,
+            takeProfitText: summary.takeProfit?.text(),
+            stopLossText: summary.stopLoss?.text(),
             takeProfitCanceled: summary.takeProfitCleared,
             stopLossCanceled: summary.stopLossCleared,
         )

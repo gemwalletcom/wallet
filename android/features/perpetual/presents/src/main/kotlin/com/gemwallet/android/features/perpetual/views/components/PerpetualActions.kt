@@ -11,61 +11,38 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.wallet.core.primitives.PerpetualDirection
+import com.gemwallet.android.features.perpetual.localization.stringRes
+import uniffi.gemstone.GemPerpetualButton
 
 @Composable
-fun PerpetualActions(
-    onOpenPosition: (PerpetualDirection) -> Unit,
+internal fun PerpetualActions(
+    buttons: List<GemPerpetualButton>,
+    onSelect: (GemPerpetualButton) -> Unit,
 ) {
     Row(
         modifier = Modifier.listItem().padding(paddingDefault),
         horizontalArrangement = Arrangement.spacedBy(paddingDefault),
     ) {
-        Button(
-            onClick = { onOpenPosition(PerpetualDirection.Long) },
-            colors = ButtonDefaults.buttonColors().copy(containerColor = MaterialTheme.colorScheme.tertiary),
-            modifier = Modifier.weight(1f),
-        ) {
-            Text(stringResource(R.string.perpetual_long))
-        }
-        Button(
-            onClick = { onOpenPosition(PerpetualDirection.Short) },
-            colors = ButtonDefaults.buttonColors().copy(containerColor = MaterialTheme.colorScheme.error),
-            modifier = Modifier.weight(1f),
-        ) {
-            Text(stringResource(R.string.perpetual_short))
+        buttons.forEach { button ->
+            Button(
+                onClick = { onSelect(button) },
+                colors = ButtonDefaults.buttonColors().copy(containerColor = button.containerColor()),
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(stringResource(button.stringRes()))
+            }
         }
     }
 }
 
 @Composable
-internal fun PerpetualPositionActions(
-    onModify: () -> Unit,
-    onClose: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.listItem().padding(paddingDefault),
-        horizontalArrangement = Arrangement.spacedBy(paddingDefault),
-    ) {
-        Button(
-            onClick = onModify,
-            colors = ButtonDefaults.buttonColors().copy(containerColor = MaterialTheme.colorScheme.primary),
-            modifier = Modifier.weight(1f),
-        ) {
-            Text(stringResource(R.string.perpetual_modify))
-        }
-        Button(
-            onClick = onClose,
-            colors = ButtonDefaults.buttonColors().copy(containerColor = MaterialTheme.colorScheme.error),
-            modifier = Modifier.weight(1f),
-        ) {
-            Text(stringResource(R.string.perpetual_close_position))
-        }
-    }
+private fun GemPerpetualButton.containerColor() = when (this) {
+    GemPerpetualButton.LONG -> MaterialTheme.colorScheme.tertiary
+    GemPerpetualButton.SHORT, GemPerpetualButton.CLOSE, GemPerpetualButton.REDUCE -> MaterialTheme.colorScheme.error
+    GemPerpetualButton.MODIFY, GemPerpetualButton.INCREASE -> MaterialTheme.colorScheme.primary
 }
 
 @Preview
@@ -73,18 +50,8 @@ internal fun PerpetualPositionActions(
 private fun PerpetualActionsPreview() {
     WalletTheme {
         PerpetualActions(
-            onOpenPosition = {},
-        )
-    }
-}
-
-@Preview
-@Composable
-private fun PositionActionsPreview() {
-    WalletTheme {
-        PerpetualPositionActions(
-            onClose =  {},
-            onModify = {}
+            buttons = listOf(GemPerpetualButton.LONG, GemPerpetualButton.SHORT),
+            onSelect = {},
         )
     }
 }

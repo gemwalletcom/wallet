@@ -1,4 +1,13 @@
 remote:
+  - Currency
+  - TransactionUtxoInput
+  - TransactionExtended
+  - TransactionDirection
+  - Transaction
+  - PriceProvider
+  - Price
+  - AuthNonce
+  - AuthPayload
   - Account
   - AccountDataType
   - AddressName
@@ -10,6 +19,7 @@ remote:
   - AssetFiatValue
   - AssetType
   - BannerEvent
+  - Banner
   - BalanceMetadata
   - BannerState
   - ChainAddress
@@ -18,6 +28,7 @@ remote:
   - ChartCandleUpdate
   - ChartDateValue
   - ChartPeriod
+  - ChartValuePercentage
   - DelegationState
   - ConnectionComponent
   - ConnectionStatus
@@ -28,16 +39,45 @@ remote:
   - DeviceLocale
   - Asset
   - AssetLink
+  - AssetRank
+  - AssetScore
+  - AssetProperties
+  - AssetBasic
+  - AssetList
+  - ChainAsset
+  - AssetAssociationType
+  - AssetAssociation
+  - PerpetualBasic
+  - AssetFull
+  - PaymentAmount
+  - PaymentRequest
+  - PaymentLink
+  - Payment
+  - AssetMarket
   - AssetMetaData
   - AssetPrice
   - FeePriority
   - FeeUnitType
   - FiatRate
   - FiatQuoteType
+  - FiatProviderName
+  - FiatProvider
+  - PaymentType
+  - FiatQuote
+  - FiatQuoteUrl
   - GasPriceType
   - PerpetualAccountMode
   - PerpetualDirection
   - PerpetualMarginType
+  - PerpetualAccountSummary
+  - PerpetualPortfolioTimeframeData
+  - PerpetualPortfolio
+  - TransactionPerpetualMetadata
+  - UTXO
+  - MarketsAssets
+  - MarketDominance
+  - Markets
+  - FiatAssets
   - PortfolioAsset
   - Perpetual
   - PerpetualBalance
@@ -49,6 +89,13 @@ remote:
   - PerpetualPositionsSummary
   - PerpetualProvider
   - PerpetualTriggerOrder
+  - PerpetualConfirmData
+  - CancelOrderData
+  - TPSLOrderData
+  - PerpetualModifyPositionType
+  - PerpetualModifyConfirmData
+  - PerpetualReduceData
+  - PerpetualType
   - Platform
   - PlatformStore
   - Wallet
@@ -61,6 +108,15 @@ remote:
   - WalletConnectionState
   - WalletConnectionVerificationStatus
   - VerificationStatus
+  - RewardStatus
+  - RewardRedemptionType
+  - RewardRedemptionOption
+  - ReferralQuota
+  - ReferralAllowance
+  - Rewards
+  - RewardRedemption
+  - RedemptionStatus
+  - RedemptionResult
   - RecentActivityType
   - Release
   - Resource
@@ -72,8 +128,10 @@ remote:
   - SimulationBalanceChange
   - SimulationHeader
   - SimulationResult
+  - SolanaNftStandard
   - SolanaTokenProgramId
   - StakeProviderType
+  - YieldProvider
   - SwapPriceImpact
   - SwapPriceImpactType
   - SwapProvider
@@ -97,7 +155,13 @@ remote:
   - NodeState
   - Latency
   - PortfolioType
+  - PortfolioChartType
+  - PortfolioMarginUsage
+  - PortfolioChartData
+  - PortfolioStatistic
+  - PortfolioData
   - PriceAlert
+  - PriceAlertData
   - PriceAlertDirection
   - PriceAlertNotificationType
   - ReportNft
@@ -120,9 +184,30 @@ remote:
   - SwapQuote
   - SwapData
   - ContractCallData
+  - TronVote
+  - TronUnfreeze
+  - TronStakeData
+  - PerpetualSearchData
+  - SearchResponse
+  - TransactionsResponse
+  - FiatQuoteRequest
+  - FiatTransactionStatus
+  - CoreEmoji
+  - CoreListItemBadge
+  - CoreListItemIcon
+  - CoreListItem
+  - InAppNotification
+  - SupportAgent
+  - SupportMessageSender
+  - SupportMessageStatus
+  - SupportMessageImage
+  - SupportMessage
+  - SupportTypingStatus
+  - SupportTyping
+  - FiatTransaction
+  - FiatTransactionData
 codes:
   - Chain
-  - Currency
 identifiers:
   - AssetId
   - NFTAssetId
@@ -147,7 +232,38 @@ scalars:
   - bool
   - f32
   - f64
+defaults:
+  PriceProvider: Coingecko
+  AssetRank: Unknown
+
+conversions:
+  UInt64:
+    kotlin:
+      - "{}.toLong()"
+      - "{}.toULong()"
+  BigInt:
+    kotlin:
+      - "{}.toString()"
+      - "java.math.BigInteger({})"
+    swift:
+      - "{}.description"
+      - "BigInt(stringLiteral: {})"
+  BigUint:
+    kotlin:
+      - "{}.toString()"
+      - "java.math.BigInteger({})"
+    swift:
+      - "{}.description"
+      - "BigUInt(stringLiteral: {})"
+  serde_json::Value:
+    swift:
+      - "AnyCodableValue(core: {})"
+      - "{}.json()"
+
 declared:
+  NaiveDateTime: primitives::chrono::NaiveDateTime
   BigInt: GemBigInt
+  UInt64: primitives::UInt64
+  serde_json::Value: GemJsonValue
   BigUint: GemBigUint
   DateTime<Utc>: chrono::DateTime<chrono::Utc>

@@ -26,10 +26,10 @@ public struct AssetPriceAlertsScene: View {
                 Text(Localized.PriceAlerts.autoFooter)
             }
 
-            if model.alertsModel.isNotEmpty {
+            if model.alerts.isNotEmpty {
                 Section {
-                    ForEach(model.alertsModel, id: \.data.priceAlert.id) { alertModel in
-                        alertView(model: alertModel)
+                    ForEach(model.alerts, id: \.priceAlert.id) { alert in
+                        PriceAlertItemView(alert: alert, currency: model.currency, onDelete: { onDelete(alert: $0) })
                     }
                 } header: {
                     Text(Localized.Stake.active)
@@ -54,16 +54,6 @@ public struct AssetPriceAlertsScene: View {
             SetPriceAlertNavigationStack(model: model.setPriceAlertModel())
         }
         .toast(message: $model.isPresentingToastMessage)
-    }
-
-    private func alertView(model: PriceAlertItemViewModel) -> some View {
-        ListAssetItemView(model: model)
-            .swipeActions(edge: .trailing) {
-                Button(Localized.Common.delete, role: .destructive) {
-                    onDelete(alert: model.data.priceAlert)
-                }
-                .tint(Colors.red)
-            }
     }
 }
 

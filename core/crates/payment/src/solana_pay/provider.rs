@@ -59,12 +59,9 @@ mod tests {
     const ACCOUNT: &str = "mvines9iiHiQTysrwkJjGf2gb9Ex9jXJX8ns3qwf2kN";
     const TRANSACTION: &str = "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAECC4JMKqNplIXybGb/GhK1ofdVWeuEjXnQor7gi0Y2hMcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQECAAAMAgAAAAAAAAAAAAAA";
 
-    fn addresses() -> Vec<ChainAddress> {
-        vec![ChainAddress::new(Chain::Solana, ACCOUNT.to_string())]
-    }
-
-    fn provider() -> SolanaPayProvider<MockClient> {
-        SolanaPayProvider::new(
+    #[tokio::test]
+    async fn test_transaction_request() {
+        let provider = SolanaPayProvider::new(
             MockClient::new()
                 .with_get(|path| {
                     assert_eq!(path, "");
@@ -76,12 +73,9 @@ mod tests {
                     Ok(format!(r#"{{"message":"Annual plan","transaction":"{TRANSACTION}"}}"#).into_bytes())
                 }),
             "https://constant-k.com/checkout".to_string(),
-        )
-    }
+        );
 
-    #[tokio::test]
-    async fn test_transaction_request() {
-        let transaction = provider().load(&addresses()).await.unwrap();
+        let transaction = provider.load(&[ChainAddress::new(Chain::Solana, ACCOUNT.to_string())]).await.unwrap();
 
         assert_eq!(transaction.merchant.name, "Constant K");
         assert!(!transaction.transaction.is_empty());

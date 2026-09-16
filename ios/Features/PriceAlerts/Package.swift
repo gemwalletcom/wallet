@@ -13,6 +13,10 @@ let package = Package(
             name: "PriceAlerts",
             targets: ["PriceAlerts"],
         ),
+        .library(
+            name: "PriceAlertsTestKit",
+            targets: ["PriceAlertsTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
@@ -24,6 +28,8 @@ let package = Package(
 
         .package(name: "Store", path: "../../Packages/Store"),
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
+        .package(name: "Formatters", path: "../../Packages/Formatters"),
+        .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
     ],
     targets: [
         .target(
@@ -35,16 +41,34 @@ let package = Package(
                 "Localization",
                 "PrimitivesComponents",
                 "Gemstone",
+                "GemstonePrimitives",
                 "Store",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
+                "Formatters",
             ],
             path: "Sources",
+        ),
+        .target(
+            name: "PriceAlertsTestKit",
+            dependencies: [
+                "PriceAlerts",
+                "Gemstone",
+                "Primitives",
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
+            ],
+            path: "TestKit",
         ),
         .testTarget(
             name: "PriceAlertsTests",
             dependencies: [
                 "PriceAlerts",
+                "PriceAlertsTestKit",
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
+                "Primitives",
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+                "Store",
             ],
         ),
     ],

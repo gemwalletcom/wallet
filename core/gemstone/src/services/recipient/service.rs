@@ -1,14 +1,13 @@
 use std::sync::Arc;
 
-use primitives::name::NameRecord;
 use primitives::{Chain, Wallet};
 
-use super::model::{GemRecipientError, GemRecipientNext, GemRecipientScan, GemRecipientType};
-use super::rules::{next_step, scan_route};
+use super::model::{GemRecipientError, GemRecipientNext, GemRecipientScan, GemRecipientSection, GemRecipientType};
+use super::rules::{next_step, recipient_sections, scan_route};
 use crate::GemstoneError;
 use crate::models::payment::GemPayment;
 use crate::payment::{GemPaymentDestination, GemPaymentRecipient, GemPaymentService, GemPaymentWalletAsset};
-use crate::services::name::GemNameService;
+use crate::services::name::{GemNameRecordState, GemNameService};
 use crate::services::transfer::model::GemRecipient;
 use crate::services::wallet_session::GemWalletSessionService;
 
@@ -26,20 +25,14 @@ impl GemRecipientService {
         Self { names, payments, session }
     }
 
-    pub fn recipient(
-        &self,
-        chain: Chain,
-        input: String,
-        name_record: Option<NameRecord>,
-        memo: Option<String>,
-        references: Vec<String>,
-    ) -> Result<GemRecipient, GemRecipientError> {
-        self.names.recipient(chain, input, name_record, memo, references)
+    pub fn recipient(&self, chain: Chain, input: String, state: GemNameRecordState, memo: Option<String>, references: Vec<String>) -> Result<GemRecipient, GemRecipientError> {
+        self.names.recipient(chain, input, state, memo, references)
     }
 
-    pub fn recipient_wallets(&self, wallets: Vec<Wallet>) -> Vec<Wallet> {
+    pub fn recipient_sections(&self, wallets: Vec<Wallet>, chain: Chain, has_contacts: bool) -> Vec<GemRecipientSection> {
         let current = self.session.get_current_wallet_id().unwrap_or_default();
-        wallets.into_iter().filter(|wallet| Some(&wallet.id) != current.as_ref()).collect()
+        let others = wallets.into_iter().filter(|wallet| Some(&wallet.id) != current.as_ref()).collect();
+        recipient_sections(others, chain, has_contacts)
     }
 
     pub fn scan(&self, url: String, recipient_type: GemRecipientType) -> Result<GemRecipientScan, GemRecipientError> {
@@ -64,8 +57,8 @@ impl GemRecipientService {
 impl GemRecipientService {
     fn scan_destination(&self, url: String, asset: GemPaymentWalletAsset) -> Result<GemPaymentDestination, GemstoneError> {
         Ok(match self.payments.decode_url(url)? {
-            GemPayment::Request(request) => self.payments.transfer_destination(request, asset),
-            GemPayment::Link(_) => GemPaymentDestination::Unsupported,
+            GemPayment::Request { request } => self.payments.transfer_destination(request, asset),
+            GemPayment::Link { link: _ } => GemPaymentDestination::Unsupported,
         })
     }
 }

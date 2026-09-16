@@ -1,90 +1,114 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 
-import uniffi.gemstone.GemChartServiceInterface
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.assets.cases.GetAssetById
 import com.gemwallet.android.application.assets.cases.GetAssetLinks
 import com.gemwallet.android.application.assets.cases.GetAssetMarket
+import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
+import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.features.asset.viewmodels.chart.models.AssetMarketUIModelFactory
 import com.gemwallet.android.features.asset.viewmodels.chart.models.AssetMarketUIModel
-import com.gemwallet.android.features.asset.viewmodels.chart.models.toModel
+import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.AssetLink
+import com.wallet.core.primitives.AssetMarket
+import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.PriceAlert
 import dagger.hilt.android.lifecycle.HiltViewModel
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import uniffi.gemstone.GemChartServiceInterface
 import javax.inject.Inject
-import com.gemwallet.android.ext.toPrimitives
 
 @HiltViewModel
 class AssetChartViewModel internal constructor(
-    getAssetById: GetAssetById,
+    getAssetTokenInfo: GetAssetTokenInfo,
     getAssetLinks: GetAssetLinks,
     getAssetMarket: GetAssetMarket,
+    getWalletAssets: GetWalletAssets,
     private val chartService: GemChartServiceInterface,
     getPriceAlerts: GetPriceAlerts,
     getCurrentCurrency: GetCurrentCurrency,
+    private val marketUIModelFactory: AssetMarketUIModelFactory,
+    private val ioDispatcher: CoroutineDispatcher,
     val assetId: AssetId,
 ) : ViewModel() {
 
-    val priceAlertsCount = getPriceAlerts(assetId)
-        .map { it.size }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
+    private val storedAssetInfo: AssetInfo? = getWalletAssets().value.firstOrNull { it.asset.id == assetId }
 
-    private val asset = getAssetById(assetId)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    private val assetInfo = getAssetTokenInfo(assetId)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, storedAssetInfo)
 
     private val links = getAssetLinks(assetId)
     private val market = getAssetMarket(assetId)
+    private val priceAlerts = getPriceAlerts(assetId).map { alerts -> alerts.map { it.priceAlert } }
 
-    val title = asset
-        .map { it?.name.orEmpty() }
+    val title = assetInfo
+        .map { it?.asset?.name.orEmpty() }
         .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, "")
+        .stateIn(viewModelScope, SharingStarted.Eagerly, storedAssetInfo?.asset?.name.orEmpty())
 
-    val marketUIModel = combine(
-        asset,
-        links,
-        market,
-        getCurrentCurrency.getCurrency(),
-    ) { asset, links, market, currency ->
-        asset?.let {
-            AssetMarketUIModel(
-                asset = it,
-                assetTitle = it.name,
-                assetLinks = links.toModel(),
-                currency = currency,
-                marketInfo = market,
-                tokenExplorerLink = it.id.tokenId?.let { tokenId ->
-                    chartService.tokenUrl(it.id.chain.string, tokenId)?.toPrimitives()
-                },
-            )
-        }
+    val marketUIModel = combine(assetInfo, links, market, priceAlerts, getCurrentCurrency.getCurrency(), ::marketUIModel)
+        .flowOn(ioDispatcher)
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Eagerly,
+            marketUIModel(storedAssetInfo, emptyList(), null, emptyList(), getCurrentCurrency.getCurrency().value),
+        )
+
+    private fun marketUIModel(
+        assetInfo: AssetInfo?,
+        links: List<AssetLink>,
+        market: AssetMarket?,
+        priceAlerts: List<PriceAlert>,
+        currency: Currency,
+    ): AssetMarketUIModel? = assetInfo?.let {
+        marketUIModelFactory.create(
+            asset = it.asset,
+            currency = currency,
+            sections = chartService.sections(
+                asset = it.asset.toGem(),
+                price = it.price?.price?.price,
+                market = market?.toGem(),
+                priceAlerts = priceAlerts.map { alert -> alert.toGem() },
+                links = links.map { link -> link.toGem() },
+            ),
+        )
     }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     @Inject
     constructor(
-        getAssetById: GetAssetById,
+        getAssetTokenInfo: GetAssetTokenInfo,
         getAssetLinks: GetAssetLinks,
         getAssetMarket: GetAssetMarket,
+        getWalletAssets: GetWalletAssets,
         chartService: GemChartServiceInterface,
         getPriceAlerts: GetPriceAlerts,
         getCurrentCurrency: GetCurrentCurrency,
+        marketUIModelFactory: AssetMarketUIModelFactory,
+        @IoDispatcher ioDispatcher: CoroutineDispatcher,
         savedStateHandle: SavedStateHandle,
     ) : this(
-        getAssetById = getAssetById,
+        getAssetTokenInfo = getAssetTokenInfo,
         getAssetLinks = getAssetLinks,
         getAssetMarket = getAssetMarket,
+        getWalletAssets = getWalletAssets,
         chartService = chartService,
         getPriceAlerts = getPriceAlerts,
         getCurrentCurrency = getCurrentCurrency,
+        marketUIModelFactory = marketUIModelFactory,
+        ioDispatcher = ioDispatcher,
         assetId = savedStateHandle.requireAssetId(),
     )
 }

@@ -67,14 +67,14 @@ where
 }
 
 impl ThorChain<RpcClient> {
-    pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Self {
-        let endpoint = rpc_provider.get_endpoint(Chain::Thorchain).expect("Failed to get Thorchain endpoint");
-        Self::with_endpoint(endpoint, rpc_provider, THORChainNetwork::Thorchain)
+    pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Option<Self> {
+        let endpoint = rpc_provider.get_endpoint(Chain::Thorchain).ok()?;
+        Some(Self::with_endpoint(endpoint, rpc_provider, THORChainNetwork::Thorchain))
     }
 
-    pub fn new_mayachain(rpc_provider: Arc<dyn RpcProvider>) -> Self {
-        let endpoint = rpc_provider.get_endpoint(Chain::Mayachain).expect("Failed to get Mayachain endpoint");
-        Self::with_endpoint(endpoint, rpc_provider, THORChainNetwork::Mayachain)
+    pub fn new_mayachain(rpc_provider: Arc<dyn RpcProvider>) -> Option<Self> {
+        let endpoint = rpc_provider.get_endpoint(Chain::Mayachain).ok()?;
+        Some(Self::with_endpoint(endpoint, rpc_provider, THORChainNetwork::Mayachain))
     }
 
     fn with_endpoint(endpoint: String, rpc_provider: Arc<dyn RpcProvider>, network: THORChainNetwork) -> Self {
@@ -235,9 +235,7 @@ where
             }
         };
 
-        let data = quote_data_mapper::map_quote_data(&from_asset, &route_data, quote.request.from_asset.asset_id().token_id, value, memo, approval);
-
-        Ok(data)
+        quote_data_mapper::map_quote_data(&from_asset, &route_data, quote.request.from_asset.asset_id().token_id, value, memo, approval)
     }
 
     async fn get_swap_result(&self, _chain: Chain, hash: &str) -> Result<SwapResult, SwapperError> {
@@ -264,17 +262,9 @@ mod tests {
     use gem_client::testkit::MockClient;
     use primitives::asset_constants::{ARBITRUM_USDC_ASSET_ID, THORCHAIN_TCY_ASSET_ID};
 
-    fn thorchain() -> ThorChain<MockClient> {
-        ThorChain::with_client(
-            ThorChainSwapClient::new(MockClient::new(), THORChainNetwork::Thorchain),
-            Arc::new(ProviderMock::new(String::new())),
-            THORChainNetwork::Thorchain,
-        )
-    }
-
     #[test]
     fn test_map_quote_error() {
-        let thorchain = thorchain();
+        let thorchain = ThorChain::mock(MockClient::new());
         let cases = [(18, "6614750000000000"), (8, "661475"), (6, "6614")];
 
         for (decimals, expected) in cases {
@@ -306,7 +296,7 @@ mod tests {
     #[test]
     fn test_supported_assets_contains_zcash() {
         let provider = Arc::new(ProviderMock::new(String::new()));
-        let swapper = ThorChain::new(provider);
+        let swapper = ThorChain::new(provider).unwrap();
 
         let supported = swapper.supported_assets();
         let has_zcash = supported.iter().any(|asset| match asset {
@@ -320,8 +310,8 @@ mod tests {
     #[test]
     fn test_mayachain_supported_assets() {
         let provider = Arc::new(ProviderMock::new(String::new()));
-        let thorchain = ThorChain::new(provider.clone());
-        let mayachain = ThorChain::new_mayachain(provider);
+        let thorchain = ThorChain::new(provider.clone()).unwrap();
+        let mayachain = ThorChain::new_mayachain(provider).unwrap();
 
         assert!(!thorchain.supported_assets().iter().any(|asset| asset.get_chain() == Chain::Arbitrum));
         assert!(mayachain.supported_assets().iter().any(|asset| asset.get_chain() == Chain::Arbitrum));
@@ -360,11 +350,7 @@ mod tests {
             assert_eq!(path, "/thorchain/inbound_addresses");
             Ok(include_str!("testdata/inbound_addresses_bsc_halted.json").as_bytes().to_vec())
         });
-        let swapper = ThorChain::with_client(
-            ThorChainSwapClient::new(client, THORChainNetwork::Thorchain),
-            Arc::new(ProviderMock::new(String::new())),
-            THORChainNetwork::Thorchain,
-        );
+        let swapper = ThorChain::mock(client);
         let bsc = SwapperQuoteAsset::from(Chain::SmartChain.as_asset_id());
         let bitcoin = SwapperQuoteAsset::from(Chain::Bitcoin.as_asset_id());
         swapper.preload_routes(&bsc.asset_id(), &bitcoin.asset_id()).await;
@@ -380,7 +366,7 @@ mod tests {
     #[tokio::test]
     async fn test_get_quote_data_uses_quote_from_value() {
         let provider = Arc::new(ProviderMock::new(String::new()));
-        let swapper = ThorChain::new(provider);
+        let swapper = ThorChain::new(provider).unwrap();
         let route_data = RouteData {
             router_address: None,
             inbound_address: "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML".to_string(),
@@ -420,7 +406,7 @@ mod tests {
     #[tokio::test]
     async fn test_get_quote_data_uses_mayachain_cardano_memo() {
         let provider = Arc::new(ProviderMock::new(String::new()));
-        let swapper = ThorChain::new_mayachain(provider);
+        let swapper = ThorChain::new_mayachain(provider).unwrap();
         let route_data = RouteData {
             router_address: None,
             inbound_address: "addr1v9mr3ts7yr83jphtmfc3256x0ncsj7tayvschr200jt94fg4a96ur".to_string(),
@@ -469,7 +455,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_thorchain_quote_trx_to_bnb() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let provider = Arc::new(NativeProvider::default());
-        let swapper = ThorChain::new(provider.clone());
+        let swapper = ThorChain::new(provider.clone()).unwrap();
 
         let from_asset = SwapperQuoteAsset::from(Chain::Tron.as_asset_id());
         let to_asset = SwapperQuoteAsset::from(Chain::SmartChain.as_asset_id());
@@ -488,7 +474,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_thorchain_quote_rune_to_cosmos() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let provider = Arc::new(NativeProvider::default());
-        let swapper = ThorChain::new(provider.clone());
+        let swapper = ThorChain::new(provider.clone()).unwrap();
 
         let from_asset = SwapperQuoteAsset::from(Chain::Thorchain.as_asset_id());
         let to_asset = SwapperQuoteAsset::from(Chain::Cosmos.as_asset_id());
@@ -508,7 +494,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_thorchain_quote_rejects_below_min_value() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let provider = Arc::new(NativeProvider::default());
-        let swapper = ThorChain::new(provider.clone());
+        let swapper = ThorChain::new(provider.clone()).unwrap();
 
         let from_asset = SwapperQuoteAsset::from(Chain::Xrp.as_asset_id());
         let to_asset = SwapperQuoteAsset::from(Chain::Thorchain.as_asset_id());
@@ -524,7 +510,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_thorchain_get_swap_result() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let provider = Arc::new(NativeProvider::default());
-        let swapper = ThorChain::new(provider.clone());
+        let swapper = ThorChain::new(provider.clone()).unwrap();
 
         let tx_hash = "324c16cf014cceca1b2e1c078417f736c9833197735b71a4e875bbb3b07b2fe4";
         let result = swapper.get_swap_result(Chain::Doge, tx_hash).await?;
@@ -543,7 +529,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_mayachain_quote_btc_to_eth() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let provider = Arc::new(NativeProvider::default());
-        let mayachain = ThorChain::new_mayachain(provider.clone());
+        let mayachain = ThorChain::new_mayachain(provider.clone()).unwrap();
 
         let from_asset = SwapperQuoteAsset::from(Chain::Bitcoin.as_asset_id());
         let to_asset = SwapperQuoteAsset::from(Chain::Ethereum.as_asset_id());

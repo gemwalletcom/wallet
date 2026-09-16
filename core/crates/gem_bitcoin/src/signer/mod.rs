@@ -4,9 +4,7 @@ mod chain_signer;
 mod encoding;
 mod personalization;
 mod planner;
-mod signature;
 mod transaction;
-mod types;
 mod zcash;
 
 #[cfg(feature = "rpc")]
@@ -20,8 +18,6 @@ use primitives::{AssetId, BitcoinChain, SignerError, SignerInput, TransactionFee
 pub use chain_signer::BitcoinChainSigner;
 #[cfg(test)]
 pub(crate) use planner::PlanInput;
-pub use signature::sign_personal;
-pub use types::{BitcoinSignDataResponse, BitcoinSignMessageData};
 
 #[cfg(feature = "rpc")]
 pub(crate) fn estimate_transaction_fee(chain: BitcoinChain, input: &TransactionLoadInput) -> Result<TransactionFee, SignerError> {

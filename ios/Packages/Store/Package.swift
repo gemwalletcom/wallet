@@ -33,6 +33,7 @@ let package = Package(
             dependencies: [
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 "Store",
+                "Primitives",
             ],
             path: "TestKit",
         ),
@@ -42,6 +43,8 @@ let package = Package(
                 "Store",
                 "StoreTestKit",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "GRDB", package: "GRDB"),
+                "Primitives",
             ],
         ),
     ],

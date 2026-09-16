@@ -2,6 +2,7 @@
 
 import Foundation
 import enum Gemstone.GemWalletDeletion
+import enum Gemstone.GemWalletImportResult
 import enum Gemstone.GemWalletImportType
 import protocol Gemstone.GemWalletServiceProtocol
 import Primitives
@@ -17,15 +18,11 @@ public extension GemWalletServiceProtocol {
     }
 
     func sorted(wallets: [Wallet]) -> [Wallet] {
-        sortedWallets(wallets: wallets.map { $0.map() }).map { $0.map() }
+        sortedWallets(wallets: wallets.map { $0.toGem() }).map { $0.toPrimitives() }
     }
 
-    func importWallet(name: String, type: GemWalletImportType, source: Primitives.WalletSource) async throws -> WalletImportResult {
-        let walletImport = try type.validated()
-        return switch try await importWallet(name: name, import: walletImport, source: source.map()) {
-        case let .new(wallet): .new(wallet.map())
-        case let .existing(wallet): .existing(wallet.map())
-        }
+    func importWallet(name: String, type: GemWalletImportType, source: Primitives.WalletSource) async throws -> GemWalletImportResult {
+        try await importWallet(name: name, import: type, source: source.toGem())
     }
 
     func delete(_ wallet: Wallet) async throws -> GemWalletDeletion {
@@ -49,6 +46,18 @@ public extension GemWalletServiceProtocol {
     }
 
     func getWallets() async throws -> [Wallet] {
-        try await wallets().map { $0.map() }
+        try await wallets().map { $0.toPrimitives() }
+    }
+
+    func setImage(data: Data, for wallet: Wallet) async throws {
+        try await setAvatarImage(walletId: wallet.id.id, image: data)
+    }
+
+    func setImage(url: URL, for wallet: Wallet) async throws {
+        try await setAvatarImageUrl(walletId: wallet.id.id, url: url.absoluteString)
+    }
+
+    func removeImage(for wallet: Wallet) async throws {
+        try await removeAvatarImage(walletId: wallet.id.id)
     }
 }

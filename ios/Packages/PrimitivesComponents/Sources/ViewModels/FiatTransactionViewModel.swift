@@ -4,6 +4,9 @@ import BigInt
 import Components
 import Formatters
 import Foundation
+import func Gemstone.fiatTransactionStatus
+import enum Gemstone.GemFiatTransactionBadge
+import GemstonePrimitives
 import Localization
 import Primitives
 import Style
@@ -11,9 +14,6 @@ import SwiftUI
 
 public struct FiatTransactionViewModel: Sendable {
     private let info: FiatTransactionAssetData
-    private var transaction: FiatTransaction {
-        info.transaction
-    }
 
     private let formatter: ValueFormatter
 
@@ -23,16 +23,16 @@ public struct FiatTransactionViewModel: Sendable {
     }
 
     public var listItemModel: ListItemModel {
-        let statusModel = FiatTransactionStatusViewModel(status: transaction.status)
+        let status = fiatTransactionStatus(status: info.status.toGem())
         return ListItemModel(
             title: typeTitle,
             titleStyle: TextStyle(font: Font.system(.body, weight: .medium), color: .primary),
-            titleTag: titleTag(statusModel),
-            titleTagStyle: titleTagStyle(statusModel),
-            titleExtra: "\(info.asset.name) (\(transaction.provider.displayName))",
+            titleTag: status.badge?.text,
+            titleTagStyle: status.badge.map(badgeStyle) ?? ListItemModel.StyleDefaults.titleTagStyle,
+            titleExtra: "\(info.asset.name) (\(info.provider.displayName))",
             titleStyleExtra: .footnote,
             subtitle: amount,
-            subtitleStyle: TextStyle(font: .callout, color: subtitleColor, fontWeight: .semibold),
+            subtitleStyle: TextStyle(font: .callout, color: status.isDimmed ? Colors.gray : Colors.black, fontWeight: .semibold),
             subtitleExtra: fiatValueText,
             subtitleStyleExtra: TextStyle(font: .footnote, color: Colors.gray),
             imageStyle: .asset(assetImage: providerImage),
@@ -48,44 +48,23 @@ public struct FiatTransactionViewModel: Sendable {
 
 extension FiatTransactionViewModel {
     private var typeTitle: String {
-        switch transaction.transactionType {
-        case .buy: Localized.Wallet.buy
-        case .sell: Localized.Wallet.sell
-        }
+        info.transactionType.action
     }
 
     private var providerImage: AssetImage {
-        .image(transaction.provider.image)
+        .image(info.provider.image)
     }
 
-    private func titleTag(_ model: FiatTransactionStatusViewModel) -> String? {
-        switch transaction.status {
-        case .complete, .unknown: .none
-        case .pending, .failed: model.title
-        }
-    }
-
-    private func titleTagStyle(_ model: FiatTransactionStatusViewModel) -> TextStyle {
-        TextStyle(
-            font: Font.system(.footnote, weight: .medium),
-            color: model.color,
-            background: model.background,
-        )
+    private func badgeStyle(_ badge: GemFiatTransactionBadge) -> TextStyle {
+        badge.textStyle
     }
 
     private var amount: String {
-        guard let value = BigInt(transaction.value) else { return "" }
+        guard let value = BigInt(info.value) else { return "" }
         return formatter.string(value, decimals: info.asset.decimals.asInt, currency: info.asset.symbol)
     }
 
     private var fiatValueText: String {
-        CurrencyFormatter(currencyCode: transaction.fiatCurrency).string(transaction.fiatAmount)
-    }
-
-    private var subtitleColor: Color {
-        switch transaction.status {
-        case .failed, .unknown: Colors.gray
-        case .pending, .complete: Colors.black
-        }
+        CurrencyFormatter(currencyCode: info.fiatCurrency).string(info.fiatAmount)
     }
 }

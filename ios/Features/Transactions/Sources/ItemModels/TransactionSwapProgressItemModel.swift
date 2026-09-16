@@ -1,32 +1,26 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemSwapProgressMarker
+import struct Gemstone.GemSwapProgressState
+import enum Gemstone.GemSwapProgressStep
 import Localization
 import Style
 import SwiftUI
 
 public struct TransactionSwapProgressItemModel: Equatable {
     public struct Step: Equatable {
-        public enum Status: Equatable {
-            case completed
-            case pending
-            case waiting
-            case failed
-            case reverted
-            case refunded
-        }
-
         public let title: String
         public let subtitle: String
-        public let status: Status
+        public let state: GemSwapProgressState
 
         public init(
             title: String,
             subtitle: String,
-            status: Status,
+            state: GemSwapProgressState,
         ) {
             self.title = title
             self.subtitle = subtitle
-            self.status = status
+            self.state = state
         }
     }
 
@@ -45,25 +39,13 @@ public struct TransactionSwapProgressItemModel: Equatable {
     }
 }
 
-extension TransactionSwapProgressItemModel.Step.Status {
-    var tagTitle: String? {
-        switch self {
-        case .completed: Localized.Transaction.Status.completed
-        case .pending: Localized.Transaction.Status.inprogress
-        case .waiting: nil
-        case .failed: Localized.Transaction.Status.failed
-        case .reverted: Localized.Transaction.Status.reverted
-        case .refunded: Localized.Transaction.Status.refunded
-        }
-    }
-
+extension GemSwapProgressStep {
     var color: Color {
         switch self {
         case .completed: Colors.green
         case .pending: Colors.blue
         case .waiting: Colors.gray
-        case .failed: Colors.red
-        case .reverted: Colors.red
+        case .failed, .reverted: Colors.red
         case .refunded: Colors.orange
         }
     }
@@ -78,11 +60,25 @@ extension TransactionSwapProgressItemModel.Step.Status {
         case .pending, .waiting, .failed, .reverted, .refunded: Colors.gray.opacity(.medium)
         }
     }
+}
+
+extension GemSwapProgressState {
+    var color: Color {
+        step.color
+    }
+
+    var background: Color {
+        step.background
+    }
+
+    var lineColor: Color {
+        step.lineColor
+    }
 
     var markerBackground: Color {
-        switch self {
-        case .completed, .failed, .reverted, .refunded: background
-        case .pending, .waiting: .clear
+        switch marker {
+        case .check, .cross, .swap: background
+        case .spinner, .dots: .clear
         }
     }
 }

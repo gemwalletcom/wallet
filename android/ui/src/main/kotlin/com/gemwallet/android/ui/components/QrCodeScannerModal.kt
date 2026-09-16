@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.components
 
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -18,7 +19,7 @@ fun QrCodeScannerModal(
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismissRequest,
-        skipPartiallyExpanded = true,
+        expansion = SheetExpansion.Full,
         shape = RectangleShape,
         dragHandle = null,
     ) {

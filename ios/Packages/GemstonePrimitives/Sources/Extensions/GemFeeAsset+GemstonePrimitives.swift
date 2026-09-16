@@ -2,7 +2,6 @@
 
 import BigInt
 import Foundation
-import enum Gemstone.GemApprovalValue
 import struct Gemstone.GemAssetBalance
 import struct Gemstone.GemConfirmMetadata
 import struct Gemstone.GemFeeAsset
@@ -21,27 +20,18 @@ public extension Primitives.Balance {
             reserved: BigInt(balance.reserved),
             withdrawable: BigInt(balance.withdrawable),
             earn: BigInt(balance.earn),
-            metadata: balance.metadata.map { $0.map() },
+            metadata: balance.metadata.map { $0.toPrimitives() },
         )
     }
 }
 
 public extension GemFeeAsset {
-    func map() -> (asset: Primitives.Asset, balance: Primitives.Balance, price: Primitives.Price?) {
+    func toPrimitives() -> (asset: Primitives.Asset, balance: Primitives.Balance, price: Primitives.Price?) {
         (
-            asset: asset.map(),
+            asset: asset.toPrimitives(),
             balance: Primitives.Balance(balance),
-            price: price.map { $0.map().mapToPrice() },
+            price: price.map { $0.toPrimitives().mapToPrice() },
         )
-    }
-}
-
-public extension GemApprovalValue {
-    func map() -> Primitives.ApprovalValue {
-        switch self {
-        case let .exact(value): .exact(BigInt(value))
-        case .unlimited: .unlimited
-        }
     }
 }
 
@@ -51,13 +41,13 @@ public extension GemConfirmMetadata {
 
     var available: BigInt { BigInt(assetBalance.available) }
 
-    var assetPrice: Primitives.Price? { assetPrice().map { $0.map().mapToPrice() } }
-    var feePrice: Primitives.Price? { feePrice().map { $0.map().mapToPrice() } }
+    var assetPrice: Primitives.Price? { assetPrice().map { $0.toPrimitives().mapToPrice() } }
+    var feePrice: Primitives.Price? { feePrice().map { $0.toPrimitives().mapToPrice() } }
 
     var balance: Primitives.Balance { Primitives.Balance(assetBalance) }
 
     func price(for assetId: String) -> Primitives.Price? {
-        price(assetId: assetId).map { $0.map().mapToPrice() }
+        price(assetId: assetId).map { $0.toPrimitives().mapToPrice() }
     }
 
     func price(for assetId: Primitives.AssetId) -> Primitives.Price? {
@@ -65,6 +55,6 @@ public extension GemConfirmMetadata {
     }
 
     var assetPrices: [Primitives.AssetId: Primitives.Price] {
-        Dictionary(uniqueKeysWithValues: prices.map { (Primitives.AssetId(core: $0.assetId), $0.map().mapToPrice()) })
+        Dictionary(uniqueKeysWithValues: prices.map { (Primitives.AssetId(core: $0.assetId), $0.toPrimitives().mapToPrice()) })
     }
 }

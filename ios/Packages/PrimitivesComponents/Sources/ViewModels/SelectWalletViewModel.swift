@@ -3,43 +3,44 @@
 import Components
 import Foundation
 import Localization
+import struct Gemstone.GemWalletRow
 import Primitives
 import Style
 
 public struct SelectWalletViewModel: SelectableListAdoptable {
-    public typealias Item = Wallet
+    public typealias Item = GemWalletRow
 
     public var title: String {
         Localized.Wallets.title
     }
 
-    public var state: StateViewType<SelectableListType<Wallet>>
-    public var selectedItems: Set<Wallet>
+    public var state: StateViewType<SelectableListType<GemWalletRow>>
+    public var selectedItems: Set<GemWalletRow>
     public var selectionType: SelectionType = .checkmark
 
     public init(
-        wallets: [Wallet],
-        selectedWallet: Wallet,
+        rows: [GemWalletRow],
+        selectedRow: GemWalletRow,
     ) {
-        let sections: [ListSection<Wallet>] = [
-            (Localized.Common.pinned, Images.System.pin, wallets.filter(\.isPinned)),
-            (nil, nil, wallets.filter { !$0.isPinned }),
+        let sections: [ListSection<GemWalletRow>] = [
+            (Localized.Common.pinned, Images.System.pin, rows.filter(\.isPinned)),
+            (nil, nil, rows.filter { !$0.isPinned }),
         ]
         .filter(\.2.isNotEmpty)
         .map { title, image, items in
-            ListSection(id: items.map(\.id.id).joined(), title: title, image: image, values: items)
+            ListSection(id: items.map(\.id).joined(), title: title, image: image, values: items)
         }
 
         self.init(
             state: .data(.section(sections)),
-            selectedItems: [selectedWallet],
+            selectedItems: [selectedRow],
             selectionType: .checkmark,
         )
     }
 
     public init(
-        state: StateViewType<SelectableListType<Wallet>>,
-        selectedItems: [Wallet],
+        state: StateViewType<SelectableListType<GemWalletRow>>,
+        selectedItems: [GemWalletRow],
         selectionType _: SelectionType,
     ) {
         self.state = state
@@ -48,13 +49,3 @@ public struct SelectWalletViewModel: SelectableListAdoptable {
 }
 
 extension SelectWalletViewModel: SelectableListNavigationAdoptable {}
-
-extension Wallet: @retroactive SimpleListItemViewable {
-    public var title: String {
-        name
-    }
-
-    public var assetImage: Components.AssetImage {
-        WalletViewModel(wallet: self).avatarImage
-    }
-}

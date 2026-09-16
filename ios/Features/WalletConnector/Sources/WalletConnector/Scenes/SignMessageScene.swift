@@ -21,9 +21,20 @@ public struct SignMessageScene: View {
 
     public var body: some View {
         List {
-            ListAssetHeaderView(model: model.appPreview, subtitleLayout: .vertical)
+            if let headerData = model.headerData {
+                TransactionHeaderListItemView(headerType: .assetValue(headerData), showClearHeader: true)
+            } else {
+                ListAssetHeaderView(model: model.appPreview, subtitleLayout: .vertical)
+            }
 
             Section {
+                if model.headerData != nil {
+                    ListItemImageView(
+                        title: Localized.WalletConnect.app,
+                        subtitle: model.appText,
+                        assetImage: model.appAssetImage,
+                    )
+                }
                 ListItemImageView(
                     title: Localized.Common.wallet,
                     subtitle: model.walletText,
@@ -38,17 +49,13 @@ public struct SignMessageScene: View {
 
             if model.hasWarnings {
                 Section {
-                    SimulationWarningsContent(warnings: model.simulationWarnings)
+                    SimulationWarningsContent(models: model.simulationWarningModels)
                 }
             }
 
             if model.payloadModel.hasFields {
                 Section {
-                    SimulationPayloadFieldsContent(
-                        fields: model.payloadModel.primaryFields,
-                        fieldViewModel: model.payloadModel.fieldViewModel(for:),
-                        contextMenuItems: model.contextMenuItems(for:),
-                    )
+                    SimulationPayloadFieldsContent(models: model.fieldModels(for: model.payloadModel.primaryFields))
 
                     NavigationCustomLink(with: ListItemView(title: Localized.Common.details)) {
                         model.onViewPayloadDetails()
@@ -71,15 +78,14 @@ public struct SignMessageScene: View {
             )
         }
         .navigationTitle(model.title)
+        .alertSheet($model.isPresentingAlertMessage)
         .safariSheet(url: $model.isPresentingUrl)
         .sheet(isPresented: $model.isPresentingPayloadDetails) {
             if model.payloadModel.hasFields {
                 NavigationStack {
                     SimulationPayloadDetailsScene(
-                        primaryFields: model.payloadModel.primaryFields,
-                        secondaryFields: model.payloadModel.secondaryFields,
-                        fieldViewModel: model.payloadModel.fieldViewModel(for:),
-                        contextMenuItems: model.contextMenuItems(for:),
+                        primaryModels: model.fieldModels(for: model.payloadModel.primaryFields),
+                        secondaryModels: model.fieldModels(for: model.payloadModel.secondaryFields),
                         actionTitle: Localized.SignMessage.viewFullMessage,
                         actionDestination: AnyView(TextMessageScene(model: model.textMessageViewModel)),
                     )
@@ -91,13 +97,6 @@ public struct SignMessageScene: View {
     }
 
     func sign() {
-        Task {
-            do {
-                try await model.signMessage()
-                onComplete()
-            } catch {
-                debugLog("sign message error \(error)")
-            }
-        }
+        model.onSign(onComplete: onComplete)
     }
 }

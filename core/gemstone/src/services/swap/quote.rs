@@ -1,12 +1,15 @@
 use std::sync::Arc;
 
 use primitives::{Asset, AssetId, Chain, Currency};
-use swapper::{AssetList, Quote, SwapperError, SwapperSlippage};
+use swapper::{Quote, SwapperError, SwapperSlippage};
 
+use super::slippage::{GemSlippageSelection, GemSlippageSession};
+
+use super::model::{GemSwapPairSelection, GemSwapSide};
 use super::rules;
 use super::{GemSwapPairSuggestion, GemSwapService, GemSwapSession, GemSwapTransfer};
 use crate::config::swap_config::{get_default_slippage, get_swap_config};
-use crate::models::custom_types::GemBigUint;
+use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::swap::GemSlippageCheck;
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
@@ -58,6 +61,26 @@ impl GemSwapQuoteService {
         self.preferences.set_swap_slippage_bps(bps)
     }
 
+    pub fn select_pair_asset(&self, selection: GemSwapPairSelection, side: GemSwapSide, asset_id: AssetId) -> GemSwapPairSelection {
+        rules::select_pair_asset(selection, side, asset_id)
+    }
+
+    pub fn new_slippage_session(&self, selection: GemSlippageSelection) -> GemSlippageSession {
+        GemSlippageSession::new(selection)
+    }
+
+    pub fn slippage_bps_from_percent(&self, percent: f64) -> Option<u32> {
+        rules::slippage_bps_from_percent(percent)
+    }
+
+    pub fn amount_for_percent(&self, available: GemBigInt, percent: u32) -> GemBigInt {
+        rules::amount_for_percent(&available, percent)
+    }
+
+    pub fn slippage_percent(&self, bps: u32) -> f64 {
+        rules::slippage_percent(bps)
+    }
+
     pub fn slippage_check(&self, bps: u32) -> GemSlippageCheck {
         rules::slippage_check(bps, &get_swap_config())
     }
@@ -74,17 +97,13 @@ impl GemSwapQuoteService {
         rules::quote_debounce_milliseconds()
     }
 
-    pub fn supported_assets(&self, asset_id: AssetId) -> AssetList {
-        self.swap.supported_assets(asset_id)
-    }
-
     pub async fn get_quotes(&self, from_asset: Asset, to_asset: Asset, value: GemBigUint, use_max_amount: bool, slippage_bps: Option<u32>) -> Result<Vec<Quote>, SwapperError> {
         let wallet = self.session.current_wallet().await.map_err(|error| SwapperError::ComputeQuoteError(error.to_string()))?;
         self.swap.get_quotes(wallet, from_asset, to_asset, value, use_max_amount, slippage_bps).await
     }
 
     pub async fn suggest_pair(&self, pay_asset_id: Option<AssetId>) -> Result<Option<GemSwapPairSuggestion>, GemServiceError> {
-        self.swap.suggest_pair(self.session.current_wallet_id()?, pay_asset_id).await
+        self.swap.suggest_pair(self.session.current_wallet().await?, pay_asset_id).await
     }
 
     pub async fn get_transfer(&self, quote: Quote) -> Result<GemSwapTransfer, SwapperError> {

@@ -8,10 +8,7 @@ impl GorushNotification {
             title: "Test".to_string(),
             message: "Test".to_string(),
             topic: None,
-            data: PushNotification {
-                data: None,
-                notification_type: PushNotificationTypes::Transaction,
-            },
+            data: PushNotification::mock(),
             device_id: "test-device-id".to_string(),
             dry_run: None,
         }
@@ -22,6 +19,15 @@ impl GorushNotification {
             tokens: vec![token.to_string()],
             device_id: device_id.to_string(),
             ..Self::mock()
+        }
+    }
+}
+
+impl PushNotification {
+    pub fn mock() -> Self {
+        Self {
+            notification_type: PushNotificationTypes::Test,
+            data: None,
         }
     }
 }

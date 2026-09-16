@@ -3,6 +3,9 @@
 import protocol Gemstone.GemStakeServiceProtocol
 import Components
 import Foundation
+import enum Gemstone.GemDelegationAction
+import enum Gemstone.GemDelegationCompletion
+import enum Gemstone.GemDelegationRow
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -40,38 +43,35 @@ public struct DelegationSceneViewModel {
     }
 
     public var title: String {
-        switch providerType {
-        case .stake: Localized.Transfer.Stake.title
-        case .earn: Localized.Common.earn
-        }
+        providerType.title
     }
 
-    public var providerField: ListItemField {
-        let title: String = switch providerType {
-        case .stake: Localized.Stake.validator
-        case .earn: Localized.Common.provider
-        }
-        return ListItemField(title: title, value: model.validatorText)
+    public var rows: [GemDelegationRow] {
+        service.delegationRows(delegation: model.delegation.toGem())
+    }
+
+    public var detailRows: [GemDelegationRow] {
+        rows.filter { $0 != .rewards }
+    }
+
+    public var rewardsRow: GemDelegationRow? {
+        rows.first { $0 == .rewards }
+    }
+
+    public func title(for row: GemDelegationRow) -> String {
+        delegationRowTitle(row, providerType: providerType, completion: model.status.completion)
     }
 
     public var aprModel: AprViewModel {
         AprViewModel(apr: model.delegation.validator.apr)
     }
 
-    public var stateTitle: String {
-        Localized.Transaction.status
-    }
-
     public var manageTitle: String {
         Localized.Common.manage
     }
 
-    public var rewardsTitle: String {
-        Localized.Stake.rewards
-    }
-
     public var stateModel: DelegationStateViewModel {
-        DelegationStateViewModel(state: model.state)
+        model.stateModel
     }
 
     public var providerUrl: URL? {
@@ -81,31 +81,12 @@ public struct DelegationSceneViewModel {
         }
     }
 
-    public var completionDateField: ListItemField? {
-        let title: String? = switch providerType {
-        case .stake:
-            switch model.state {
-            case .pending, .deactivating: Localized.Stake.availableIn
-            case .activating: Localized.Stake.activeIn
-            default: .none
-            }
-        case .earn: .none
-        }
-        let text: String? = switch providerType {
-        case .stake: model.completionDateText
-        case .earn: .none
-        }
-        guard let title, let text else { return nil }
-        return ListItemField(title: title, value: text)
-    }
-
     public var assetImageStyle: ListItemImageStyle? {
         .asset(assetImage: AssetViewModel(asset: asset).assetImage)
     }
 
-    public var availableActions: [DelegationActionType] {
-        service.delegationActions(walletType: wallet.type.map(), delegation: model.delegation.map())
-            .map(DelegationActionType.init)
+    public var availableActions: [GemDelegationAction] {
+        service.delegationActions(walletType: wallet.type.toGem(), delegation: model.delegation.toGem())
     }
 
     public var showManage: Bool {
@@ -113,45 +94,19 @@ public struct DelegationSceneViewModel {
     }
 
     public var canClaimRewards: Bool {
-        service.canClaimDelegationRewards(walletType: wallet.type.map(), delegation: model.delegation.map())
+        service.canClaimDelegationRewards(walletType: wallet.type.toGem(), delegation: model.delegation.toGem())
     }
 
-    public func actionTitle(_ action: DelegationActionType) -> String {
-        switch action {
-        case .stake: Localized.Transfer.Stake.title
-        case .unstake: Localized.Transfer.Unstake.title
-        case .redelegate: Localized.Transfer.Redelegate.title
-        case .deposit: Localized.Wallet.deposit
-        case .withdraw: Localized.Transfer.Withdraw.title
-        case .claimRewards: Localized.Transfer.ClaimRewards.title
-        }
-    }
 }
 
 // MARK: - Actions
 
 public extension DelegationSceneViewModel {
-    func onSelectAction(_ action: DelegationActionType) {
-        switch action {
-        case .stake:
-            onAmountInputAction?(amountInput(.stake(.stake(validators: validators, recommended: model.delegation.validator))))
-        case .unstake:
-            if stakeChain.canChangeAmountOnUnstake {
-                onAmountInputAction?(amountInput(.stake(.unstake(model.delegation))))
-            } else {
-                onTransferAction?(stakeTransferData(.unstake(model.delegation)))
-            }
-        case .redelegate:
-            onAmountInputAction?(amountInput(.stake(.redelegate(model.delegation, validators: validators, recommended: recommendedValidator))))
-        case .deposit:
-            onAmountInputAction?(amountInput(.earn(.deposit(model.delegation.validator))))
-        case .withdraw:
-            switch providerType {
-            case .stake: onTransferAction?(stakeTransferData(.withdraw(model.delegation)))
-            case .earn: onAmountInputAction?(amountInput(.earn(.withdraw(model.delegation))))
-            }
-        case .claimRewards:
-            onClaimRewards()
+    func onSelectAction(_ action: GemDelegationAction) {
+        switch service.delegationActionDestination(asset: asset.toGem(), delegation: model.delegation.toGem(), action: action, validators: validators.map { $0.toGem() }) {
+        case .details: break
+        case let .confirm(transfer): onTransferAction?(transfer)
+        case let .amount(asset, input): onAmountInputAction?(AmountInput(type: input.map(), asset: asset.toPrimitives()))
         }
     }
 
@@ -163,18 +118,10 @@ public extension DelegationSceneViewModel {
 // MARK: - Private
 
 extension DelegationSceneViewModel {
-    private func amountInput(_ type: AmountType) -> AmountInput {
-        AmountInput(type: type, asset: asset)
-    }
-
-    private func stakeTransferData(_ stakeType: StakeType) -> GemTransferData {
-        service.stakeTransferData(asset: asset.map(), stakeType: stakeType.map(), value: model.delegation.base.balance, useMaxAmount: false)
-    }
-
     private func claimRewardsTransferData() -> GemTransferData {
         service.stakeTransferData(
-            asset: asset.map(),
-            stakeType: StakeType.rewards([model.delegation.validator]).map(),
+            asset: asset.toGem(),
+            stakeType: StakeType.rewards([model.delegation.validator]).toGem(),
             value: model.delegation.base.rewards,
             useMaxAmount: false,
         )
@@ -184,14 +131,8 @@ extension DelegationSceneViewModel {
         model.delegation.validator.providerType
     }
 
-    private var stakeChain: StakeChain {
-        StakeChain(rawValue: asset.chain.rawValue)!
-    }
+}
 
-    private var recommendedValidator: DelegationValidator? {
-        service.recommendedValidator(
-            chain: model.delegation.base.assetId.chain.rawValue,
-            validators: validators.map { $0.map() },
-        ).map { $0.map() }
-    }
+extension GemDelegationAction: @retroactive Identifiable {
+    public var id: Self { self }
 }

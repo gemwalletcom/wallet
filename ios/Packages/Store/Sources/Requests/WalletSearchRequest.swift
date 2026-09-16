@@ -23,13 +23,15 @@ public struct WalletSearchResult: Equatable, Sendable {
 public struct WalletSearchRequest: DatabaseQueryable, Hashable {
     public var walletId: WalletId
     public var searchBy: String
+    public var searchKey: String
     public var scope: WalletSearchTag
     public var limit: Int
     public var types: [SearchItemType]
 
-    public init(walletId: WalletId, searchBy: String = "", scope: WalletSearchTag = .all, limit: Int = 5, types: [SearchItemType] = [.asset, .perpetual]) {
+    public init(walletId: WalletId, searchBy: String = "", searchKey: String = "", scope: WalletSearchTag = .all, limit: Int = 5, types: [SearchItemType] = [.asset, .perpetual]) {
         self.walletId = walletId
         self.searchBy = searchBy
+        self.searchKey = searchKey
         self.scope = scope
         self.limit = limit
         self.types = types
@@ -37,7 +39,6 @@ public struct WalletSearchRequest: DatabaseQueryable, Hashable {
 
     public func fetch(_ db: Database) throws -> WalletSearchResult {
         let query = searchBy.trim()
-        let searchKey = scope.searchKey(query: query)
 
         let assets = types.contains(.asset) ? try loadAssets(db, query: query, searchKey: searchKey, scope: scope) : []
         let perpetuals = types.contains(.perpetual) ? try loadPerpetuals(db, query: query, searchKey: searchKey, scope: scope) : []

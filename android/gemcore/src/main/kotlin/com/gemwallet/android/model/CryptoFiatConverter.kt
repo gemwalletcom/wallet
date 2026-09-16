@@ -2,7 +2,6 @@ package com.gemwallet.android.model
 
 import com.wallet.core.primitives.Currency
 import java.math.BigDecimal
-import uniffi.gemstone.GemstoneException
 import uniffi.gemstone.CryptoFiatConverter as GemCryptoFiatConverter
 
 object CryptoFiatConverter {
@@ -13,16 +12,4 @@ object CryptoFiatConverter {
 
     fun toFiatString(crypto: Crypto, decimals: Int, price: Double, currency: Currency): String =
         CurrencyFormatter(currency = currency).string(toFiat(crypto, decimals, price).atomicValue)
-
-    fun toCrypto(fiat: Fiat, decimals: Int, price: Double): Crypto? =
-        cryptoValue(fiat, decimals, price)?.let { Crypto(it, decimals) }
-
-    fun toCryptoAtDisplayPrecision(fiat: Fiat, decimals: Int, price: Double): Crypto? =
-        cryptoValue(fiat, decimals, price)?.let { Crypto(ValueFormatter(style = ValueFormatter.Style.Auto).rounded(it), decimals) }
-
-    private fun cryptoValue(fiat: Fiat, decimals: Int, price: Double): BigDecimal? = try {
-        BigDecimal(converter.toCrypto(fiat.atomicValue.toPlainString(), decimals.toUInt(), price))
-    } catch (e: GemstoneException) {
-        null
-    }
 }

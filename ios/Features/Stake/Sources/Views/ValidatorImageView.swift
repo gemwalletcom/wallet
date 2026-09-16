@@ -12,19 +12,17 @@ public struct ValidatorImageView: View {
     }
 
     public var body: some View {
-        switch model.validator.providerType {
-        case .stake:
-            AsyncImageView(
-                url: model.imageUrl,
-                size: .image.asset,
-                placeholder: .letter(model.validator.name.first ?? " "),
-            )
-        case .earn:
-            let image = model.image ?? Images.Logo.logo
-            image
+        if let providerImage = model.providerImage {
+            providerImage
                 .resizable()
                 .frame(width: Sizing.image.asset, height: Sizing.image.asset)
                 .clipShape(Circle())
+        } else {
+            AsyncImageView(
+                url: model.row.imageUrl.asURL,
+                size: .image.asset,
+                placeholder: .letter(model.row.placeholder.first ?? " "),
+            )
         }
     }
 }

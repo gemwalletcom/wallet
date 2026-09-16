@@ -1,16 +1,12 @@
 package com.gemwallet.android.data.coordinators.swap
 
-import com.gemwallet.android.testkit.mockAssetInfo
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.swap.cases.SwapQuoteRequestParams
 import com.gemwallet.android.application.swap.cases.SwapQuotesResult
 import com.gemwallet.android.application.swap.cases.matches
-import com.gemwallet.android.model.AssetBalance
-import com.gemwallet.android.model.AssetInfo
-import com.wallet.core.primitives.Account
-import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetType
-import com.wallet.core.primitives.Chain
+import com.gemwallet.android.testkit.mockGemSwapSession
+import com.gemwallet.android.testkit.mockSwapQuoteRequestParams
+import com.gemwallet.android.testkit.mockSwapQuotesResult
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancelAndJoin
@@ -26,17 +22,18 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemSlippageCheck
-import uniffi.gemstone.GemSwapQuotePhase
+import uniffi.gemstone.GemSwapPairSelection
+import uniffi.gemstone.GemSwapSide
 import uniffi.gemstone.GemSwapQuoteServiceInterface
 import uniffi.gemstone.GemSwapSession
-import uniffi.gemstone.GemSwapTransferPhase
 import uniffi.gemstone.SwapperSlippage
 import uniffi.gemstone.GemSwapPairSuggestion
 import uniffi.gemstone.GemSwapTransfer
-import uniffi.gemstone.SwapperAssetList
 import uniffi.gemstone.SwapperQuote
 import java.math.BigDecimal
 import java.math.BigInteger
+import uniffi.gemstone.GemSlippageSelection
+import uniffi.gemstone.GemSlippageSession
 
 class RequestSwapQuotesImplTest {
 
@@ -47,7 +44,7 @@ class RequestSwapQuotesImplTest {
     fun `canceled in flight quote request does not emit an error result`() = runBlocking {
         val fakeQuotes = StubSwapService(delayOnFirst = 5_000)
         val requester = RequestSwapQuotesImpl(fakeQuotes)
-        val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
+        val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(mockSwapQuoteRequestParams())
         val results = mutableListOf<SwapQuotesResult?>()
 
         val job = launch {
@@ -62,7 +59,7 @@ class RequestSwapQuotesImplTest {
         }
 
         awaitCondition { fakeQuotes.requestCount >= 1 }
-        requestParams.value = quoteRequestParams(BigDecimal("12"))
+        requestParams.value = mockSwapQuoteRequestParams(BigDecimal("12"))
         delay(700)
         job.cancelAndJoin()
 
@@ -73,7 +70,7 @@ class RequestSwapQuotesImplTest {
     fun `invalid input clears quote and late success is ignored`() = runBlocking {
         val fakeQuotes = StubSwapService(nonCancellableOnFirst = true)
         val requester = RequestSwapQuotesImpl(fakeQuotes)
-        val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
+        val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(mockSwapQuoteRequestParams())
         val results = mutableListOf<SwapQuotesResult?>()
 
         val job = launch {
@@ -97,8 +94,8 @@ class RequestSwapQuotesImplTest {
 
     @Test
     fun `quote request key ignores BigDecimal scale`() {
-        val integerKey = quoteRequestParams(BigDecimal("1")).key
-        val decimalKey = quoteRequestParams(BigDecimal("1.0")).key
+        val integerKey = mockSwapQuoteRequestParams(BigDecimal("1")).key
+        val decimalKey = mockSwapQuoteRequestParams(BigDecimal("1.0")).key
 
         assertEquals(integerKey, decimalKey)
         assertEquals(integerKey.hashCode(), decimalKey.hashCode())
@@ -106,22 +103,17 @@ class RequestSwapQuotesImplTest {
 
     @Test
     fun `quotes state matches numerically equal request values`() {
-        val pay = assetInfo(symbol = "CAKE", tokenId = "cake")
-        val receive = assetInfo(symbol = "BNB", tokenId = "bnb")
-        val quotesState = SwapQuotesResult(
-            requestKey = quoteRequestParams(BigDecimal("1")).key,
-            pay = pay,
-            receive = receive,
-        )
+        val params = mockSwapQuoteRequestParams(BigDecimal("1"))
+        val quotesState = mockSwapQuotesResult(params)
 
-        assertTrue(quotesState.matches(SwapQuoteRequestParams(BigDecimal("1.0"), pay, receive)))
+        assertTrue(quotesState.matches(params.copy(value = BigDecimal("1.0"))))
     }
 
     @Test
     fun `successful quote refresh waits for the configured interval`() = runBlocking {
         val fakeQuotes = StubSwapService()
         val requester = RequestSwapQuotesImpl(fakeQuotes)
-        val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
+        val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(mockSwapQuoteRequestParams())
 
         val job = launch {
             requester.invoke(
@@ -146,7 +138,7 @@ class RequestSwapQuotesImplTest {
     fun `quote errors do not schedule automatic retries`() = runBlocking {
         val fakeQuotes = StubSwapService(shouldFail = true)
         val requester = RequestSwapQuotesImpl(fakeQuotes)
-        val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
+        val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(mockSwapQuoteRequestParams())
         val results = mutableListOf<SwapQuotesResult?>()
 
         val job = launch {
@@ -173,7 +165,7 @@ class RequestSwapQuotesImplTest {
     fun `automatic refresh stops in background and resumes in foreground`() = runBlocking {
         val fakeQuotes = StubSwapService()
         val requester = RequestSwapQuotesImpl(fakeQuotes)
-        val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
+        val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(mockSwapQuoteRequestParams())
 
         val job = launch {
             requester.invoke(
@@ -227,7 +219,7 @@ class RequestSwapQuotesImplTest {
     fun `changing params during debounce does not emit stale result`() = runBlocking {
         val fakeQuotes = StubSwapService()
         val requester = RequestSwapQuotesImpl(fakeQuotes)
-        val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(quoteRequestParams(BigDecimal.ONE))
+        val requestParams = MutableStateFlow<SwapQuoteRequestParams?>(mockSwapQuoteRequestParams())
         val results = mutableListOf<SwapQuotesResult?>()
 
         val job = launch {
@@ -243,7 +235,7 @@ class RequestSwapQuotesImplTest {
 
         delay(200)
         assertEquals(0, fakeQuotes.requestCount)
-        requestParams.value = quoteRequestParams(BigDecimal("2"))
+        requestParams.value = mockSwapQuoteRequestParams(BigDecimal("2"))
 
         awaitCondition { fakeQuotes.requestCount >= 1 }
         delay(100)
@@ -260,29 +252,6 @@ class RequestSwapQuotesImplTest {
         }
     }
 
-    private fun assetInfo(symbol: String, tokenId: String): AssetInfo {
-        val asset = Asset(
-            id = AssetId(chain = Chain.SmartChain, tokenId = tokenId),
-            name = symbol,
-            symbol = symbol,
-            decimals = 18,
-            type = AssetType.TOKEN,
-        )
-        return mockAssetInfo(
-            asset = asset,
-            owner = Account(chain = Chain.SmartChain, address = "address", derivationPath = "m/44'/60'/0'/0/0"),
-            balance = AssetBalance.create(asset, available = BigInteger("100000000000000000000")),
-        )
-    }
-
-    private fun quoteRequestParams(value: BigDecimal): SwapQuoteRequestParams {
-        return SwapQuoteRequestParams(
-            value = value,
-            pay = assetInfo(symbol = "CAKE", tokenId = "cake"),
-            receive = assetInfo(symbol = "BNB", tokenId = "bnb"),
-        )
-    }
-
     private class StubSwapService(
         private val shouldFail: Boolean = false,
         private val delayOnFirst: Long = 0,
@@ -291,7 +260,7 @@ class RequestSwapQuotesImplTest {
         private val firstRequestStarted = CompletableDeferred<Unit>()
         var requestCount = 0
 
-        override fun newSession(): GemSwapSession = GemSwapSession(quotePhase = GemSwapQuotePhase.NoInput, transferPhase = GemSwapTransferPhase.Idle)
+        override fun newSession(): GemSwapSession = mockGemSwapSession()
 
         override suspend fun getQuotes(
             fromAsset: uniffi.gemstone.Asset,
@@ -314,13 +283,11 @@ class RequestSwapQuotesImplTest {
 
         override suspend fun getTransfer(quote: SwapperQuote): GemSwapTransfer = throw UnsupportedOperationException()
 
-        override fun supportedAssets(assetId: String): SwapperAssetList = SwapperAssetList(emptyList(), emptyList())
-
         override suspend fun suggestPair(payAssetId: String?): GemSwapPairSuggestion? = null
 
         override suspend fun addPrices(assetIds: List<String>) = Unit
 
-        override fun getCurrency(): String = "USD"
+        override fun getCurrency(): uniffi.gemstone.Currency = com.wallet.core.primitives.Currency.USD.toGem()
 
         override fun defaultSlippage(chain: String): SwapperSlippage = throw UnsupportedOperationException()
 
@@ -333,6 +300,18 @@ class RequestSwapQuotesImplTest {
         override fun slippageBps(): UInt? = null
 
         override fun slippageCheck(bps: UInt): GemSlippageCheck = throw UnsupportedOperationException()
+
+        override fun newSlippageSession(selection: GemSlippageSelection): GemSlippageSession = throw UnsupportedOperationException()
+
+        override fun amountForPercent(available: java.math.BigInteger, percent: UInt): java.math.BigInteger =
+            available * percent.toInt().toBigInteger() / java.math.BigInteger.valueOf(100)
+
+        override fun slippageBpsFromPercent(percent: Double): UInt? = throw UnsupportedOperationException()
+
+        override fun selectPairAsset(selection: GemSwapPairSelection, side: GemSwapSide, assetId: String): GemSwapPairSelection =
+            throw UnsupportedOperationException()
+
+        override fun slippagePercent(bps: UInt): Double = throw UnsupportedOperationException()
 
         override suspend fun updateBalances(assetIds: List<String>) = Unit
     }

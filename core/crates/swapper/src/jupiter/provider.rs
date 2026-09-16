@@ -1,8 +1,3 @@
-use super::{client::JupiterClient, model::BuildRequest};
-use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset,
-    SwapperQuoteData, error::INVALID_ADDRESS, fees::default_referral_fees,
-};
 use async_trait::async_trait;
 use gem_client::Client;
 use gem_jsonrpc::client::JsonRpcClient;
@@ -14,6 +9,12 @@ use gem_solana::{
 };
 use num_bigint::BigUint;
 use primitives::{AssetId, Chain, SolanaTokenProgramId};
+
+use super::{client::JupiterClient, model::BuildRequest};
+use crate::{
+    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset,
+    SwapperQuoteData, error::INVALID_ADDRESS, fees::default_referral_fees,
+};
 
 const MAX_ACCOUNTS: u8 = 64;
 const PREFERRED_FEE_MINTS: [&str; 4] = [USDC_TOKEN_MINT, USDT_TOKEN_MINT, USDS_TOKEN_MINT, WSOL_TOKEN_ADDRESS];
@@ -160,14 +161,14 @@ mod swap_integration_tests {
     use super::*;
     use crate::{FetchQuoteData, SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, models::Options};
     use gem_encoding::decode_base64;
+    use gem_solana::MAX_TRANSACTION_SIZE;
     use primitives::AssetId;
-    use solana_primitives::MAX_TRANSACTION_SIZE;
     use std::sync::Arc;
 
     #[tokio::test]
     async fn test_jupiter_provider_fetch_quote() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::default());
-        let provider = Jupiter::new(rpc_provider);
+        let provider = Jupiter::new(rpc_provider).unwrap();
 
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana)),

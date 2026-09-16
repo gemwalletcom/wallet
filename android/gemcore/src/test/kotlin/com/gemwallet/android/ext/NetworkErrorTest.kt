@@ -1,12 +1,12 @@
 package com.gemwallet.android.ext
 
-import com.gemwallet.android.model.GemNetworkError
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNull
 import org.junit.Test
 import uniffi.gemstone.AlienException
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GatewayException
 import java.io.EOFException
 import java.io.IOException
@@ -23,22 +23,22 @@ class NetworkErrorTest {
     fun mapsNetworkErrors() {
         listOf(
             GatewayException.NetworkException("Network error: certificate path failed") to
-                GemNetworkError.Display("Network error: certificate path failed"),
-            AlienException.RequestException("request failed") to GemNetworkError.Generic("request failed"),
-            AlienException.Offline() to GemNetworkError.Offline,
-            GatewayException.Offline() to GemNetworkError.Offline,
-            AlienException.ResponseException("response failed") to GemNetworkError.Generic("response failed"),
-            IOException("unexpected end of stream", EOFException()) to GemNetworkError.Offline,
+                GemErrorText.Message("Network error: certificate path failed"),
+            AlienException.RequestException("request failed") to GemErrorText.NetworkMessage("request failed"),
+            AlienException.Offline() to GemErrorText.NetworkOffline,
+            GatewayException.Offline() to GemErrorText.NetworkOffline,
+            AlienException.ResponseException("response failed") to GemErrorText.NetworkMessage("response failed"),
+            IOException("unexpected end of stream", EOFException()) to GemErrorText.NetworkOffline,
             IOException("unexpected end of stream on https://gemnodes.com/...") to
-                GemNetworkError.Generic("unexpected end of stream on https://gemnodes.com/..."),
-            SocketTimeoutException("timeout") to GemNetworkError.Generic("timeout"),
+                GemErrorText.NetworkMessage("unexpected end of stream on https://gemnodes.com/..."),
+            SocketTimeoutException("timeout") to GemErrorText.NetworkMessage("timeout"),
             IllegalStateException("outer", AlienException.RequestException("request failed")) to
-                GemNetworkError.Generic("request failed"),
+                GemErrorText.NetworkMessage("request failed"),
         ).forEach { (source, expected) ->
-            assertEquals(expected, source.toGemNetworkError())
+            assertEquals(expected, source.toGemErrorText())
         }
 
-        assertNull(IllegalStateException("bad state").toGemNetworkError())
+        assertNull(IllegalStateException("bad state").toGemErrorText())
     }
 
     @Test

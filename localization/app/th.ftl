@@ -9,6 +9,7 @@ common_secret_phrase = วลีลับ
 common_copy = คัดลอก
 common_share = แบ่งปัน
 common_continue = ดำเนินการต่อ
+common_sign_in_with = ลงชื่อเข้าใช้ด้วย %@
 common_provider = ผู้ให้บริการ
 common_loading = กำลังโหลด
 common_address = ที่อยู่
@@ -54,9 +55,9 @@ common_get_started = เริ่มต้นใช้งาน
 common_earn = รับผลตอบแทน
 common_method = วิธี
 common_token = โทเค็น
+common_expiration = วันหมดอายุ
 common_suspicious_address = ที่อยู่น่าสงสัย
 common_refresh = รีเฟรช
-common_no_thanks = ไม่ล่ะ ขอบคุณ
 common_grant_permission = ให้สิทธิ์
 common_required_field = จำเป็นต้องระบุ %@
 
@@ -163,7 +164,6 @@ transfer_freeze_title = ฟรีซ
 transfer_unfreeze_title = ยกเลิกการฟรีซ
 transfer_review_request = คำขอตรวจสอบ
 transfer_amount = จำนวน
-transfer_amount_title = จำนวน
 
 # Settings
 
@@ -207,7 +207,6 @@ support_message_placeholder = ข้อความ
 
 # Errors
 
-errors_transfer = ข้อผิดพลาดในการโอน: %@
 errors_validation = ข้อผิดพลาดในการตรวจสอบ: %@
 errors_create_wallet = สร้างกระเป๋าสตางค์ผิดพลาด: %@
 errors_invalid_address_name = ที่อยู่หรือชื่อไม่ถูกต้อง
@@ -226,7 +225,6 @@ errors_cancelled = ยกเลิกแล้ว
 errors_connections_user_cancelled = ผู้ใช้ยกเลิก
 errors_not_supported = ไม่รองรับ
 errors_permissions_not_granted = ไม่ได้รับสิทธิ์
-errors_decoding = ข้อผิดพลาดในการถอดรหัส
 errors_unknown = ไม่ทราบ
 errors_not_supported_qr = อุปกรณ์นี้ไม่รองรับการสแกนโค้ด QR คุณสามารถเลือกภาพรหัส QR จากห้องสมุดเท่านั้น
 errors_camera_permissions_not_granted = ไม่ได้รับอนุญาตให้ใช้กล้อง โปรดเปิดใช้งานการเข้าถึงกล้องในการตั้งค่าเพื่อสแกนโค้ด QR
@@ -237,11 +235,8 @@ errors_invalid_asset_address = ที่อยู่ %@ ไม่ถูกต้
 errors_dust_threshold = ธุรกรรมล้มเหลวเนื่องจากจำนวนเงินน้อยเกินไปที่จะตรงตามข้อกำหนดขั้นต่ำของเครือข่าย %@ (เกณฑ์ค่าฝุ่น) ขีดจำกัดนี้ช่วยให้มั่นใจว่ามูลค่าธุรกรรมครอบคลุมค่าธรรมเนียมและต้นทุนการประมวลผล เพิ่มจำนวนเงินหรือลดค่าธรรมเนียมเพื่อดำเนินการต่อ
 errors_swap_no_quote_available = ไม่มีราคาเสนอให้ใช้งาน
 errors_swap_not_supported_asset = ไม่รองรับสินทรัพย์นี้
-errors_connections_invalid_send_parameters = มีการระบุพารามิเตอร์ที่ไม่ถูกต้องสำหรับการส่งธุรกรรม
-errors_connections_invalid_sign_parameters = มีการระบุพารามิเตอร์ที่ไม่ถูกต้องสำหรับการลงนาม
 errors_connections_no_supported_wallets = ไม่มีกระเป๋าเงินที่รองรับ
 errors_connections_unsupported_chain = ไม่รองรับโซ่ที่ให้มา
-errors_connections_unsupported_method = วิธีการที่ร้องขอไม่ได้รับการรองรับ
 errors_swap_amount_too_small = จำนวนเงินน้อยเกินไป
 errors_required = %@ เป็นสิ่งจำเป็น
 errors_scan_transaction_malicious_description = ไม่สามารถทำธุรกรรมนี้ให้เสร็จสมบูรณ์ได้ — ที่อยู่กระเป๋าเงินปลายทางเชื่อมโยงกับกิจกรรมที่น่าสงสัยหรือเป็นอันตราย
@@ -253,7 +248,6 @@ errors_dust_threshold_short = เครือข่ายถือว่าจ�
 errors_swap_minimum_amount = จำนวนเงินขั้นต่ำในการซื้อขายคือ %@ กรุณาป้อนจำนวนเงินที่สูงกว่านี้
 errors_perpetual_trigger_price_lower = ราคา Trigger ควรต่ำกว่าราคาตลาด
 errors_perpetual_trigger_price_higher = ราคา Trigger ควรสูงกว่าราคาตลาด
-errors_token_unable_fetch_token_information = ไม่สามารถดึงข้อมูลโทเค็น: %@
 errors_unknown_try_again = เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ โปรดลองอีกครั้ง
 errors_network_error = เกิดข้อผิดพลาดเครือข่าย: %@
 errors_network_offline = ดูเหมือนว่าการเชื่อมต่ออินเทอร์เน็ตจะออฟไลน์
@@ -277,7 +271,6 @@ update_app_action = อัปเดต
 update_app_permission_title = อนุญาตให้ติดตั้ง
 update_app_permission_description = ไปที่การตั้งค่าและอนุญาตการติดตั้งจากแหล่งภายนอก
 update_app_permission_open_settings = ไปที่การตั้งค่า
-update_app_downloading = กำลังดาวน์โหลด...
 
 # Transaction
 
@@ -365,6 +358,7 @@ wallet_connect_state_empty_description = สแกนหรือวางรห
 wallet_connect_permissions_title = สิทธิ์การเข้าถึง
 wallet_connect_permissions_view_balance = ตรวจสอบยอดเงินคงเหลือและกิจกรรมของคุณ
 wallet_connect_permissions_approval_requests = ส่งคำขออนุมัติ
+wallet_connect_request_expired = คำขอหมดอายุแล้ว
 
 # Swap
 
@@ -480,8 +474,6 @@ banner_account_activation_title = ค่าธรรมเนียมการ�
 banner_account_activation_description = เครือข่าย %@ ต้องเสียค่าธรรมเนียมครั้งเดียวจำนวน %@
 banner_stake_title = เริ่มสเตค %@
 banner_stake_description = รับรางวัล %@ จากการสเตคของคุณในขณะที่คุณนอนหลับ
-banner_enable_notifications_title = เปิดใช้งานการแจ้งเตือน
-banner_enable_notifications_description = ติดตามกิจกรรมกระเป๋าเงินของคุณ
 banner_activate_asset_description = ในการใช้สินทรัพย์ %@ ก่อนอื่นคุณต้องเปิดใช้งานบนเครือข่าย %@ โดยปฏิบัติตามข้อกำหนดเฉพาะของเครือข่าย
 banner_asset_status_title = ทรัพย์สินที่น่าสงสัย
 banner_asset_status_description = โทเค็นอาจไม่ปลอดภัยหรือทำให้เข้าใจผิด ดำเนินการต่อเมื่อคุณเชื่อถืออย่างเต็มที่เท่านั้น
@@ -605,6 +597,7 @@ nft_report_reason_spam = สแปม
 nft_report_reason_malicious = อันตราย
 nft_report_reason_inappropriate = เนื้อหาที่ไม่เหมาะสม
 nft_report_reason_copyright = ลิขสิทธิ์
+nft_report_reason_other = อื่นๆ
 nft_report_report_button_title = รายงานปัญหา
 
 # Permissions
@@ -629,7 +622,6 @@ networks_state_empty_search_title = ไม่พบเครือข่าย
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = คุณจะได้รับวลีลับซึ่งเป็นวิธีเดียวที่จะเข้าถึงกระเป๋าเงินของคุณ
-onboarding_security_create_wallet_confirm_title = ฉันเข้าใจและต้องการดำเนินการต่อ
 onboarding_security_create_wallet_do_not_share_title = อย่าแบ่งปันกับใคร
 onboarding_security_create_wallet_do_not_share_subtitle = ใครก็ตามที่รู้วลีลับของคุณ สามารถควบคุมกระเป๋าเงินของคุณได้อย่างสมบูรณ์
 onboarding_security_create_wallet_keep_safe_subtitle = วลีลับเป็นวิธีเดียวที่จะเข้าถึงกระเป๋าเงินของคุณ
@@ -687,8 +679,9 @@ perpetual_margin_isolated = โดดเดี่ยว
 # Perpetuals
 
 perpetuals_title = นิรันดร์
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = เทรดนิรันดร์
 perpetuals_markets = ตลาด
-perpetuals_empty_state_no_markets = ไม่มีตลาด
 perpetuals_empty_state_no_markets_found = ไม่พบตลาด
 
 # Rewards
@@ -760,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = ต้องได้รับอนุญาตจากกล้องสำหรับการสแกน QR Code\nโปรดให้สิทธิ์
 
 # Notifications Permission
 
-notifications_permission_request_notification = จำเป็นต้องอนุญาตการโพสต์การแจ้งเตือนเพื่อรับการแจ้งเตือนเกี่ยวกับธุรกรรมใหม่\nโปรดให้สิทธิ์
 
 # Confirm
 
-confirm_fee_error = ข้อผิดพลาดในการคำนวณค่าธรรมเนียม
 
 # Rootcheck
 

@@ -1,14 +1,21 @@
-use crate::jsonrpc_types::RequestType;
-use primitives::Chain;
-use reqwest::{Method, header::HeaderMap};
-use std::time::Instant;
+use std::time::{Duration, Instant};
+
+use primitives::{Chain, ChainRequest, ChainRequestProtocol, ChainRequestType};
+use reqwest::Method;
+use reqwest::header::{HOST, HeaderMap, USER_AGENT};
+use rocket::http::Status;
+use settings_chain::BroadcastProviders;
+use url::Url;
 use uuid::Uuid;
+
+use crate::config::path::path_without_query;
+use crate::jsonrpc_types::{JsonRpcRequest, RequestType};
 
 fn generate_request_id() -> String {
     format!("{:016x}", Uuid::new_v4().as_u128() as u64)
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct ProxyRequest {
     pub id: String,
     pub method: Method,
@@ -24,6 +31,14 @@ pub struct ProxyRequest {
 }
 
 impl ProxyRequest {
+    pub fn from_http(method: Method, headers: HeaderMap, body: Vec<u8>, uri: &str, chain: Chain) -> Result<Self, Status> {
+        let host = headers.get(HOST).and_then(|header| header.to_str().ok()).ok_or(Status::BadRequest)?;
+        let host = Self::parse_hostname(host);
+        let user_agent = headers.get(USER_AGENT).and_then(|header| header.to_str().ok()).unwrap_or_default().to_string();
+        let (path, path_with_query) = Self::prepare_paths(uri);
+        Ok(Self::new(method, headers, body, path, path_with_query, host, user_agent, chain))
+    }
+
     pub fn new(method: Method, headers: HeaderMap, body: Vec<u8>, path: String, path_with_query: String, host: String, user_agent: String, chain: Chain) -> Self {
         let request_type = RequestType::from_request(method.as_str(), path_with_query.clone(), body.clone());
         Self {
@@ -41,23 +56,100 @@ impl ProxyRequest {
         }
     }
 
-    pub fn elapsed(&self) -> std::time::Duration {
+    pub fn elapsed(&self) -> Duration {
         self.request_start.elapsed()
     }
 
     pub fn request_type(&self) -> &RequestType {
         &self.request_type
     }
+
+    pub(crate) fn is_broadcast(&self, providers: &BroadcastProviders) -> bool {
+        let request = match self.request_type() {
+            RequestType::JsonRpc(JsonRpcRequest::Single(call)) => ChainRequest::new(ChainRequestProtocol::JsonRpc, &call.method, &self.path, &self.body),
+            RequestType::Regular { .. } => ChainRequest::new(ChainRequestProtocol::Http, self.method.as_str(), &self.path, &self.body),
+            RequestType::JsonRpc(JsonRpcRequest::Batch(_)) => return false,
+        };
+        providers.classify_request(self.chain, request) == ChainRequestType::Broadcast
+    }
+
+    fn prepare_paths(uri: &str) -> (String, String) {
+        let path_with_query = Self::canonicalize_path(&Self::remove_chain_from_path(uri));
+        let path = path_without_query(&path_with_query).to_string();
+        (path, path_with_query)
+    }
+
+    fn canonicalize_path(path_with_query: &str) -> String {
+        Url::parse("http://0.0.0.0")
+            .and_then(|base| base.join(path_with_query))
+            .map(|resolved| match resolved.query() {
+                Some(query) => format!("{}?{}", resolved.path(), query),
+                None => resolved.path().to_string(),
+            })
+            .unwrap_or_else(|_| path_with_query.to_string())
+    }
+
+    fn parse_hostname(host_header: &str) -> String {
+        let candidate = format!("http://{}", host_header);
+        Url::parse(&candidate)
+            .ok()
+            .and_then(|url| url.host_str().map(str::to_string))
+            .unwrap_or_else(|| host_header.to_string())
+    }
+
+    fn remove_chain_from_path(uri: &str) -> String {
+        let (path_part, query_part) = uri.split_once('?').unwrap_or((uri, ""));
+
+        let remaining = path_part
+            .trim_start_matches('/')
+            .split_once('/')
+            .map(|(_, rest)| format!("/{}", rest))
+            .unwrap_or_else(|| "/".to_string());
+
+        if query_part.is_empty() { remaining } else { format!("{}?{}", remaining, query_part) }
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::thread;
     use std::time::Duration;
 
+    use super::*;
+
     #[test]
-    fn request_creation() {
+    fn test_detect_broadcast_jsonrpc_single() {
+        let request = ProxyRequest::mock(
+            Chain::Ethereum,
+            Method::POST,
+            "/rpc",
+            br#"{"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0xdeadbeef"],"id":1}"#,
+        );
+
+        assert!(request.is_broadcast(&BroadcastProviders::from_chains([Chain::Ethereum, Chain::Tron])));
+    }
+
+    #[test]
+    fn test_detect_broadcast_batch_jsonrpc_skipped() {
+        let request = ProxyRequest::mock(
+            Chain::Ethereum,
+            Method::POST,
+            "/rpc",
+            br#"[{"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0x1"],"id":1},{"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0x2"],"id":2}]"#,
+        );
+
+        assert!(!request.is_broadcast(&BroadcastProviders::from_chains([Chain::Ethereum, Chain::Tron])));
+    }
+
+    #[test]
+    fn test_detect_broadcast_http_path() {
+        let request = ProxyRequest::mock(Chain::Tron, Method::POST, "/wallet/broadcasttransaction", br#"{"txID":"abc"}"#);
+
+        assert!(request.is_broadcast(&BroadcastProviders::from_chains([Chain::Ethereum, Chain::Tron])));
+    }
+
+    #[test]
+    fn test_request_creation() {
         let ctx = ProxyRequest::new(
             Method::GET,
             HeaderMap::new(),
@@ -77,17 +169,8 @@ mod tests {
     }
 
     #[test]
-    fn elapsed_time() {
-        let ctx = ProxyRequest::new(
-            Method::GET,
-            HeaderMap::new(),
-            vec![],
-            "/test".to_string(),
-            "/test".to_string(),
-            "example.com".to_string(),
-            "test-agent".to_string(),
-            Chain::Ethereum,
-        );
+    fn test_elapsed_time() {
+        let ctx = ProxyRequest::mock(Chain::Ethereum, Method::GET, "/test", &[]);
 
         thread::sleep(Duration::from_millis(1));
 
@@ -96,7 +179,7 @@ mod tests {
     }
 
     #[test]
-    fn generate_request_id_unique() {
+    fn test_generate_request_id_unique() {
         let id1 = super::generate_request_id();
         let id2 = super::generate_request_id();
         let id3 = super::generate_request_id();
@@ -108,5 +191,37 @@ mod tests {
         assert!(id1.chars().all(|c| c.is_ascii_hexdigit()));
         assert!(id2.chars().all(|c| c.is_ascii_hexdigit()));
         assert!(id3.chars().all(|c| c.is_ascii_hexdigit()));
+    }
+    #[test]
+    fn test_remove_chain_from_path() {
+        assert_eq!(ProxyRequest::remove_chain_from_path("/tron/wallet/getchainparameters"), "/wallet/getchainparameters");
+        assert_eq!(ProxyRequest::remove_chain_from_path("/ethereum/v1/some/path"), "/v1/some/path");
+        assert_eq!(ProxyRequest::remove_chain_from_path("/bitcoin"), "/");
+        assert_eq!(ProxyRequest::remove_chain_from_path("/solana?query=1"), "/?query=1");
+        assert_eq!(ProxyRequest::remove_chain_from_path("/chain/path?foo=bar&baz=qux"), "/path?foo=bar&baz=qux");
+    }
+
+    #[test]
+    fn test_prepare_paths() {
+        assert_eq!(
+            ProxyRequest::prepare_paths("/bitcoin/api/v2/address/../block/900000"),
+            ("/api/v2/block/900000".to_string(), "/api/v2/block/900000".to_string())
+        );
+        assert_eq!(
+            ProxyRequest::prepare_paths("/bitcoin/api/v2/address/%2e%2e/block"),
+            ("/api/v2/block".to_string(), "/api/v2/block".to_string())
+        );
+        assert_eq!(ProxyRequest::prepare_paths("/ethereum/../secret"), ("/secret".to_string(), "/secret".to_string()));
+        assert_eq!(
+            ProxyRequest::prepare_paths("/bitcoin/api/v2/address/bc1qtest?page=1"),
+            ("/api/v2/address/bc1qtest".to_string(), "/api/v2/address/bc1qtest?page=1".to_string())
+        );
+    }
+
+    #[test]
+    fn test_parse_hostname() {
+        assert_eq!(ProxyRequest::parse_hostname("example.com"), "example.com");
+        assert_eq!(ProxyRequest::parse_hostname("example.com:8080"), "example.com");
+        assert_eq!(ProxyRequest::parse_hostname("localhost:3000"), "localhost");
     }
 }

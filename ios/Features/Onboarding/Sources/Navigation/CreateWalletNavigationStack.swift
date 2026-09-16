@@ -20,10 +20,7 @@ public struct CreateWalletNavigationStack: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationDestination(for: Scenes.VerifyPhrase.self) { scene in
                     VerifyPhraseWalletScene(
-                        model: VerifyPhraseViewModel(
-                            words: scene.words,
-                            onComplete: onVerifyPhraseComplete,
-                        ),
+                        model: model.verifyPhraseModel(words: scene.words, onComplete: onVerifyPhraseComplete),
                     )
                 }
                 .navigationDestination(for: Scenes.WalletProfile.self) { scene in
@@ -48,6 +45,7 @@ public struct CreateWalletNavigationStack: View {
                         .toolbarDismissItem(type: .close, placement: .topBarLeading)
                     }
                 }
+                .alertSheet($model.isPresentingAlertMessage)
         }
     }
 
@@ -62,7 +60,7 @@ public struct CreateWalletNavigationStack: View {
 
     private var securityReminderScene: some View {
         SecurityReminderScene(
-            model: SecurityReminderViewModelDefault(
+            model: SecurityReminderViewModel(
                 title: Localized.Wallet.New.title,
                 onNext: { navigate(to: .createWallet) },
             ),
@@ -83,25 +81,16 @@ extension CreateWalletNavigationStack {
         }
     }
 
-    func onVerifyPhraseComplete(words: [String]) {
-        Task {
-            do {
-                let created = try await model.createWallet(words: words)
-
-                if created.hasExistingWallets {
-                    navigate(to: .walletProfile(wallet: created.wallet))
-                } else {
-                    onSetupWalletComplete(wallet: created.wallet)
-                }
-            } catch {
-                debugLog("Failed to create wallet: \(error)")
-            }
+    func onVerifyPhraseComplete(words: [String]) async throws {
+        let created = try await model.createWallet(words: words)
+        if created.hasExistingWallets {
+            navigate(to: .walletProfile(wallet: created.wallet))
+        } else {
+            onSetupWalletComplete(wallet: created.wallet)
         }
     }
 
     func onSetupWalletComplete(wallet: Wallet) {
-        Task {
-            await model.setupWalletComplete(wallet: wallet)
-        }
+        model.setupWalletComplete(wallet: wallet)
     }
 }

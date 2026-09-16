@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemSelectAssetType
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesComponentsTestKit
@@ -22,12 +23,12 @@ struct ListAssetItemViewModelTests {
         let collectionModel = ListAssetItemViewModel(
             showBalancePrivacy: .constant(false),
             assetDataModel: assetDataModel,
-            type: .copy(.collection),
+            row: GemSelectAssetType.receiveCollection.flow().row,
         )
         let assetModel = ListAssetItemViewModel(
             showBalancePrivacy: .constant(false),
             assetDataModel: assetDataModel,
-            type: .copy(.asset),
+            row: GemSelectAssetType.receive.flow().row,
         )
 
         #expect(collectionModel.name == "TON")

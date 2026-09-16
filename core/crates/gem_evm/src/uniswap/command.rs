@@ -12,16 +12,12 @@ pub const ADDRESS_THIS: &str = "0x0000000000000000000000000000000000000002";
 pub const V3_SWAP_EXACT_IN_COMMAND: u8 = 0x00;
 pub const V3_SWAP_EXACT_OUT_COMMAND: u8 = 0x01;
 pub const PERMIT2_TRANSFER_FROM_COMMAND: u8 = 0x02;
-pub const PERMIT2_PERMIT_BATCH_COMMAND: u8 = 0x03;
 pub const SWEEP_COMMAND: u8 = 0x04;
 pub const TRANSFER_COMMAND: u8 = 0x05;
 pub const PAY_PORTION_COMMAND: u8 = 0x06;
-pub const V2_SWAP_EXACT_IN_COMMAND: u8 = 0x08;
-pub const V2_SWAP_EXACT_OUT_COMMAND: u8 = 0x09;
 pub const PERMIT2_PERMIT_COMMAND: u8 = 0x0a;
 pub const WRAP_ETH_COMMAND: u8 = 0x0b;
 pub const UNWRAP_WETH_COMMAND: u8 = 0x0c;
-pub const PERMIT2_TRANSFER_FROM_BATCH_COMMAND: u8 = 0x0d;
 pub const V4_SWAP_COMMAND: u8 = 0x10;
 
 #[allow(non_camel_case_types)]
@@ -30,16 +26,12 @@ pub enum UniversalRouterCommand {
     V3_SWAP_EXACT_IN_V2_1(V3SwapExactInV2_1),
     V3_SWAP_EXACT_OUT(V3SwapExactOut),
     PERMIT2_TRANSFER_FROM(Transfer),
-    PERMIT2_PERMIT_BATCH,
     SWEEP(Sweep),
     TRANSFER(Transfer),
     PAY_PORTION(PayPortion),
-    V2_SWAP_EXACT_IN,
-    V2_SWAP_EXACT_OUT,
     PERMIT2_PERMIT(Permit2Permit),
     WRAP_ETH(WrapEth),
     UNWRAP_WETH(UnwrapWeth),
-    PERMIT2_TRANSFER_FROM_BATCH,
 
     // V4
     V4_SWAP { actions: Vec<V4Action> },
@@ -51,17 +43,12 @@ impl UniversalRouterCommand {
             Self::V3_SWAP_EXACT_IN(_) | Self::V3_SWAP_EXACT_IN_V2_1(_) => V3_SWAP_EXACT_IN_COMMAND,
             Self::V3_SWAP_EXACT_OUT(_) => V3_SWAP_EXACT_OUT_COMMAND,
             Self::PERMIT2_TRANSFER_FROM(_) => PERMIT2_TRANSFER_FROM_COMMAND,
-            Self::PERMIT2_PERMIT_BATCH => PERMIT2_PERMIT_BATCH_COMMAND,
             Self::SWEEP(_) => SWEEP_COMMAND,
             Self::TRANSFER(_) => TRANSFER_COMMAND,
             Self::PAY_PORTION(_) => PAY_PORTION_COMMAND,
-            Self::V2_SWAP_EXACT_IN => V2_SWAP_EXACT_IN_COMMAND,
-            // COMMAND_PLACEHOLDER = 0x07;
-            Self::V2_SWAP_EXACT_OUT => V2_SWAP_EXACT_OUT_COMMAND,
             Self::PERMIT2_PERMIT(_) => PERMIT2_PERMIT_COMMAND,
             Self::WRAP_ETH(_) => WRAP_ETH_COMMAND,
             Self::UNWRAP_WETH(_) => UNWRAP_WETH_COMMAND,
-            Self::PERMIT2_TRANSFER_FROM_BATCH => PERMIT2_TRANSFER_FROM_BATCH_COMMAND,
 
             Self::V4_SWAP { actions: _ } => V4_SWAP_COMMAND,
         }
@@ -80,7 +67,6 @@ impl UniversalRouterCommand {
             Self::PERMIT2_PERMIT(payload) => payload.abi_encode(),
             Self::PERMIT2_TRANSFER_FROM(payload) => payload.abi_encode(),
             Self::V4_SWAP { actions } => actions::encode_actions(actions),
-            Self::PERMIT2_PERMIT_BATCH | Self::PERMIT2_TRANSFER_FROM_BATCH | Self::V2_SWAP_EXACT_IN | Self::V2_SWAP_EXACT_OUT => todo!(),
         }
     }
 }

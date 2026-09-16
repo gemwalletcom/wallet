@@ -17,8 +17,8 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.AppUrl
-import uniffi.gemstone.DocsUrl
 import java.io.File
+import uniffi.gemstone.DocsUrl
 
 @Composable
 fun RootWarningDialog(onCancel: () -> Unit, onIgnore: () -> Unit) {

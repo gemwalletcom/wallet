@@ -1,37 +1,14 @@
 use gem_encoding::decode_base64;
-use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
-use primitives::{SolanaTokenProgramId, TransactionLoadMetadata};
-use solana_primitives::{CompiledInstruction, LegacyMessage, MessageHeader, Pubkey, VersionedTransaction, get_address};
+use signer::Ed25519KeyPair;
+
+use crate::{Pubkey, VersionedTransaction};
 
 pub const TEST_RECIPIENT: &str = "EN2sCsJ1WDV8UFqsiTXHcUPUxQ4juE71eCknHYYMifkd";
 pub const TEST_SENDER_TOKEN_ADDRESS: &str = "HEeranxp3y7kVQKVSLdZW1rUmnbs7bAtUTMu8o88Jash";
 
-pub fn sender_address() -> String {
-    sender_address_for_key(&TEST_PRIVATE_KEY)
-}
-
 pub fn sender_address_for_key(private_key: &[u8]) -> String {
-    get_address(private_key).unwrap()
-}
-
-pub fn solana_metadata(sender_token_address: Option<&str>, recipient_token_address: Option<&str>, token_program: Option<SolanaTokenProgramId>) -> TransactionLoadMetadata {
-    solana_metadata_with_references(sender_token_address, recipient_token_address, token_program, &[])
-}
-
-pub fn solana_metadata_with_references(
-    sender_token_address: Option<&str>,
-    recipient_token_address: Option<&str>,
-    token_program: Option<SolanaTokenProgramId>,
-    references: &[&str],
-) -> TransactionLoadMetadata {
-    TransactionLoadMetadata::Solana {
-        sender_token_address: sender_token_address.map(String::from),
-        recipient_token_address: recipient_token_address.map(String::from),
-        token_program,
-        nft: None,
-        block_hash: "11111111111111111111111111111111".to_string(),
-        references: references.iter().map(|reference| (*reference).to_string()).collect(),
-    }
+    let key_pair = Ed25519KeyPair::from_private_key(private_key).unwrap();
+    bs58::encode(key_pair.public_key_bytes).into_string()
 }
 
 pub fn private_key_base58(value: &str) -> Vec<u8> {
@@ -40,26 +17,6 @@ pub fn private_key_base58(value: &str) -> Vec<u8> {
 
 pub fn base58_transaction(encoded_base64: &str) -> String {
     bs58::encode(decode_base64(encoded_base64).unwrap()).into_string()
-}
-
-pub fn mock_legacy_transaction() -> VersionedTransaction {
-    VersionedTransaction::Legacy {
-        signatures: vec![],
-        message: LegacyMessage {
-            header: MessageHeader {
-                num_required_signatures: 1,
-                num_readonly_signed_accounts: 0,
-                num_readonly_unsigned_accounts: 1,
-            },
-            account_keys: vec![Pubkey::new([1; 32]), Pubkey::new([2; 32])],
-            recent_blockhash: [3; 32],
-            instructions: vec![CompiledInstruction {
-                program_id_index: 1,
-                accounts: vec![0],
-                data: vec![],
-            }],
-        },
-    }
 }
 
 pub fn program_id(transaction: &VersionedTransaction, index: usize) -> String {

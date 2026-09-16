@@ -13,7 +13,7 @@ pub struct HyperliquidOrder {
     pub agent_private_key: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub enum TransactionLoadMetadata {
     None,
     Solana {

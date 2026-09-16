@@ -27,7 +27,7 @@ public struct SwapScene: View {
                 Section {
                     ListItemErrorView(
                         errorTitle: model.errorTitle,
-                        error: error.asAnyError(asset: model.fromAsset?.asset),
+                        error: error,
                         infoAction: model.errorInfoAction,
                     )
                 }
@@ -123,7 +123,7 @@ extension SwapScene {
     private var swapToSectionView: some View {
         Section {
             SwapTokenView(
-                model: model.swapTokenModel(type: .receive(chains: [], assetIds: [])),
+                model: model.swapTokenModel(type: .receive(payAssetId: nil)),
                 text: $model.toValue,
                 showLoading: model.isReceiveFieldLoading,
                 onBalanceAction: {},

@@ -9,6 +9,7 @@ common_secret_phrase = 비밀 문구
 common_copy = 복사
 common_share = 공유
 common_continue = 계속
+common_sign_in_with = %@ 계정으로 로그인
 common_provider = 공급자
 common_loading = 로딩 중
 common_address = 주소
@@ -54,9 +55,9 @@ common_get_started = 시작하기
 common_earn = 적립
 common_method = 방법
 common_token = 토큰
+common_expiration = 만료
 common_suspicious_address = 의심스러운 주소
 common_refresh = 새로고침
-common_no_thanks = 사양할게요
 common_grant_permission = 권한 부여
 common_required_field = %@ 이(가) 필요합니다
 
@@ -163,7 +164,6 @@ transfer_freeze_title = 동결
 transfer_unfreeze_title = 녹이다
 transfer_review_request = 검토 요청
 transfer_amount = 금액
-transfer_amount_title = 금액
 
 # Settings
 
@@ -207,7 +207,6 @@ support_message_placeholder = 메시지
 
 # Errors
 
-errors_transfer = 전송 오류: %@
 errors_validation = 유효성 검사 오류: %@
 errors_create_wallet = 지갑 생성 오류: %@
 errors_invalid_address_name = 잘못된 주소 또는 이름
@@ -226,7 +225,6 @@ errors_cancelled = 취소됨
 errors_connections_user_cancelled = 사용자가 취소했습니다.
 errors_not_supported = 지원되지 않음
 errors_permissions_not_granted = 권한이 부여되지 않음
-errors_decoding = 디코딩 오류
 errors_unknown = 알 수 없음
 errors_not_supported_qr = 이 장치는 QR 코드 스캔을 지원하지 않습니다. 라이브러리에서는 QR 코드 이미지만 선택할 수 있습니다.
 errors_camera_permissions_not_granted = 카메라 권한이 부여되지 않았습니다. QR 코드를 스캔하려면 설정에서 카메라 액세스를 활성화하세요.
@@ -237,11 +235,8 @@ errors_invalid_asset_address = 잘못된 %@ 주소
 errors_dust_threshold = 거래가 %@ 네트워크의 최소 요구 사항(먼지 임계값)을 충족하기에 너무 적어 실패했습니다. 이 한도는 거래 금액이 수수료 및 처리 비용을 충당할 수 있도록 보장합니다.
 errors_swap_no_quote_available = 사용 가능한 견적이 없습니다.
 errors_swap_not_supported_asset = 지원되지 않는 자산입니다.
-errors_connections_invalid_send_parameters = 거래를 보내기 위한 매개변수가 잘못되었습니다.
-errors_connections_invalid_sign_parameters = 서명에 잘못된 매개변수가 제공되었습니다.
 errors_connections_no_supported_wallets = 지원되는 지갑이 없습니다.
 errors_connections_unsupported_chain = 제공된 체인은 지원되지 않습니다.
-errors_connections_unsupported_method = 요청하신 방법은 지원되지 않습니다.
 errors_swap_amount_too_small = 금액이 너무 적습니다
 errors_required = %@ 가 필요합니다
 errors_scan_transaction_malicious_description = 이 거래를 완료할 수 없습니다. 대상 지갑 주소가 의심스럽거나 유해한 활동과 연결되어 있습니다.
@@ -253,7 +248,6 @@ errors_dust_threshold_short = 네트워크는 이 금액을 먼지로 간주합�
 errors_swap_minimum_amount = 최소 거래 금액은 %@. 더 높은 금액을 입력해 주세요.
 errors_perpetual_trigger_price_lower = 트리거 가격은 시장 가격보다 낮아야 합니다
 errors_perpetual_trigger_price_higher = 트리거 가격은 시장 가격보다 높아야 합니다
-errors_token_unable_fetch_token_information = 토큰 정보를 가져올 수 없습니다: %@
 errors_unknown_try_again = 알 수 없는 오류가 발생했습니다. 다시 시도해 주세요.
 errors_network_error = 네트워크 오류: %@
 errors_network_offline = 인터넷 연결이 끊긴 것 같습니다.
@@ -277,7 +271,6 @@ update_app_action = 업데이트
 update_app_permission_title = 설치 허용
 update_app_permission_description = 설정으로 이동하여 외부 소스에서 설치를 허용하세요.
 update_app_permission_open_settings = 설정으로 이동
-update_app_downloading = 다운로드 중...
 
 # Transaction
 
@@ -365,6 +358,7 @@ wallet_connect_state_empty_description = DApp에 연결하려면 코드를 스�
 wallet_connect_permissions_title = 권한
 wallet_connect_permissions_view_balance = 잔액과 활동 내역을 확인하세요
 wallet_connect_permissions_approval_requests = 승인 요청 보내기
+wallet_connect_request_expired = 요청이 만료되었습니다
 
 # Swap
 
@@ -480,8 +474,6 @@ banner_account_activation_title = 계정 활성화 수수료
 banner_account_activation_description = %@ 네트워크에는 %@ 의 일회성 수수료가 필요합니다.
 banner_stake_title = 스테이킹 시작 %@
 banner_stake_description = 잠자는 동안 스테이크에 대한 %@ 보상을 받으세요.
-banner_enable_notifications_title = 알림 활성화
-banner_enable_notifications_description = 지갑 활동을 최신 상태로 유지하세요.
 banner_activate_asset_description = %@ 자산을 사용하려면 먼저 네트워크의 특정 요구 사항을 충족하여 %@ 네트워크에서 해당 자산을 활성화해야 합니다.
 banner_asset_status_title = 의심스러운 자산
 banner_asset_status_description = 토큰은 안전하지 않거나 오해의 소지가 있을 수 있습니다. 완전히 신뢰하는 경우에만 진행하세요.
@@ -605,6 +597,7 @@ nft_report_reason_spam = 스팸
 nft_report_reason_malicious = 악의 있는
 nft_report_reason_inappropriate = 부적절한 콘텐츠
 nft_report_reason_copyright = 저작권
+nft_report_reason_other = 기타
 nft_report_report_button_title = 신고
 
 # Permissions
@@ -629,7 +622,6 @@ networks_state_empty_search_title = 네트워크를 찾을 수 없습니다
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = 당신은 비밀 문구를 받게 될 것입니다. 이것이 당신의 지갑에 접근할 수 있는 유일한 방법입니다.
-onboarding_security_create_wallet_confirm_title = 이해했고 계속하고 싶습니다.
 onboarding_security_create_wallet_do_not_share_title = 누구와도 공유하지 마세요
 onboarding_security_create_wallet_do_not_share_subtitle = 누구든지 귀하의 비밀번호 문구를 알아내면 귀하의 지갑을 완전히 장악할 수 있습니다.
 onboarding_security_create_wallet_keep_safe_subtitle = 비밀 문구는 지갑에 접근할 수 있는 유일한 방법입니다.
@@ -687,8 +679,9 @@ perpetual_margin_isolated = 절연
 # Perpetuals
 
 perpetuals_title = 무기한 선물
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = 무기한 선물 거래
 perpetuals_markets = 시장
-perpetuals_empty_state_no_markets = 시장 없음
 perpetuals_empty_state_no_markets_found = 시장을 찾을 수 없습니다
 
 # Rewards
@@ -760,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = QR코드 스캔을 위해서는 카메라 권한이 필요합니다.\n권한을 부여해 주세요.
 
 # Notifications Permission
 
-notifications_permission_request_notification = 새로운 거래에 대한 알림을 받으려면 게시물 알림 권한이 필요합니다.\n권한을 부여해 주세요.
 
 # Confirm
 
-confirm_fee_error = 수수료 계산 오류
 
 # Rootcheck
 

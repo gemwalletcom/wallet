@@ -9,6 +9,7 @@ common_secret_phrase = Секретна фраза
 common_copy = Скопіювати
 common_share = Поділитися
 common_continue = Продовжити
+common_sign_in_with = Увійти через %@
 common_provider = Провайдер
 common_loading = Завантаження
 common_address = Адреса
@@ -54,9 +55,9 @@ common_get_started = Почати
 common_earn = Заробляти
 common_method = Метод
 common_token = Токен
+common_expiration = Термін дії
 common_suspicious_address = Підозріла адреса
 common_refresh = Оновити
-common_no_thanks = Ні, дякую
 common_grant_permission = Надати дозвіл
 common_required_field = %@ є обов'язковим
 
@@ -163,7 +164,6 @@ transfer_freeze_title = Заморозити
 transfer_unfreeze_title = Розморозити
 transfer_review_request = Переглянути запит
 transfer_amount = Сума
-transfer_amount_title = Сума
 
 # Settings
 
@@ -207,7 +207,6 @@ support_message_placeholder = Повідомлення
 
 # Errors
 
-errors_transfer = Помилка переказу: %@
 errors_validation = Помилка перевірки: %@
 errors_create_wallet = Помилка створення гаманця: %@
 errors_invalid_address_name = Недійсна адреса або ім'я
@@ -226,7 +225,6 @@ errors_cancelled = Скасовано
 errors_connections_user_cancelled = Скасовано користувачем
 errors_not_supported = Не підтримується
 errors_permissions_not_granted = Дозволу не надано
-errors_decoding = Помилка декодування
 errors_unknown = Невідомий
 errors_not_supported_qr = Цей пристрій не підтримує сканування QR-коду. Ви можете вибрати лише зображення QR-коду з бібліотеки.
 errors_camera_permissions_not_granted = Дозвіл на камеру не надано. Будь ласка, увімкніть доступ до камери в налаштуваннях, щоб відсканувати QR-код.
@@ -237,11 +235,8 @@ errors_invalid_asset_address = Недійсна адреса %@
 errors_dust_threshold = Транзакцію не вдалося виконати, оскільки сума занадто мала, щоб відповідати мінімальним вимогам мережі %@ (поріг пилу). Це обмеження гарантує, що сума транзакції покриває комісії та витрати на обробку.
 errors_swap_no_quote_available = Котирування недоступне.
 errors_swap_not_supported_asset = Не підтримуваний актив.
-errors_connections_invalid_send_parameters = Надано недійсні параметри для відправки транзакції.
-errors_connections_invalid_sign_parameters = Для підпису надано недійсні параметри.
 errors_connections_no_supported_wallets = Немає підтримуваних гаманців.
 errors_connections_unsupported_chain = Наданий ланцюжок не підтримується.
-errors_connections_unsupported_method = Потрібний метод не підтримується.
 errors_swap_amount_too_small = Сума занадто мала
 errors_required = %@ є обов'язковим
 errors_scan_transaction_malicious_description = Цю транзакцію неможливо завершити — адреса гаманця призначення пов'язана з підозрілою або шкідливою активністю.
@@ -253,7 +248,6 @@ errors_dust_threshold_short = Мережа вважає цю кількість 
 errors_swap_minimum_amount = Мінімально дозволена сума угоди становить %@. Будь ласка, введіть більшу суму.
 errors_perpetual_trigger_price_lower = Ціна спрацювання має бути нижчою за ринкову ціну
 errors_perpetual_trigger_price_higher = Ціна спрацювання має бути вищою за ринкову ціну
-errors_token_unable_fetch_token_information = Не вдається отримати інформацію про токен: %@
 errors_unknown_try_again = Сталася невідома помилка. Будь ласка, спробуйте ще раз.
 errors_network_error = Помилка мережі: %@
 errors_network_offline = Здається, підключення до Інтернету відсутнє.
@@ -277,7 +271,6 @@ update_app_action = Оновити
 update_app_permission_title = Дозволити встановлення
 update_app_permission_description = Перейдіть до налаштувань та дозвольте встановлення із зовнішніх джерел
 update_app_permission_open_settings = Відкрити налаштування
-update_app_downloading = Завантаження...
 
 # Transaction
 
@@ -365,6 +358,7 @@ wallet_connect_state_empty_description = Відскануйте або вста�
 wallet_connect_permissions_title = Дозволи
 wallet_connect_permissions_view_balance = Перегляд вашого балансу та активності
 wallet_connect_permissions_approval_requests = Надсилати запити на схвалення
+wallet_connect_request_expired = Термін запиту минув
 
 # Swap
 
@@ -480,8 +474,6 @@ banner_account_activation_title = Плата за активацію рахун�
 banner_account_activation_description = Мережа %@ вимагає одноразової оплати в розмірі %@.
 banner_stake_title = Почніть стейкінг %@
 banner_stake_description = Заробляйте %@ винагороди на свій стейк, поки ви спите.
-banner_enable_notifications_title = Увімкнути сповіщення
-banner_enable_notifications_description = Будьте в курсі активності гаманця.
 banner_activate_asset_description = Щоб використовувати ресурс %@, ви повинні спочатку ввімкнути його в мережі %@ виконавши спеціальні вимоги мережі.
 banner_asset_status_title = Підозрілий актив
 banner_asset_status_description = Маркер може бути небезпечним або оманливим. Продовжуйте, лише якщо ви повністю довіряєте цьому.
@@ -605,6 +597,7 @@ nft_report_reason_spam = Спам
 nft_report_reason_malicious = Шкідливий
 nft_report_reason_inappropriate = Неприйнятний контент
 nft_report_reason_copyright = Авторське право
+nft_report_reason_other = Інше
 nft_report_report_button_title = Поскаржитися
 
 # Permissions
@@ -629,7 +622,6 @@ networks_state_empty_search_title = Мереж не знайдено
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Ви отримаєте секретну фразу — це єдиний спосіб отримати доступ до вашого гаманця.
-onboarding_security_create_wallet_confirm_title = Я розумію і хочу продовжувати
 onboarding_security_create_wallet_do_not_share_title = Нікому не діліться
 onboarding_security_create_wallet_do_not_share_subtitle = Кожен, хто дізнається вашу секретну фразу, може повністю контролювати ваш гаманець.
 onboarding_security_create_wallet_keep_safe_subtitle = Секретна фраза - це єдиний спосіб отримати доступ до вашого гаманця.
@@ -687,8 +679,9 @@ perpetual_margin_isolated = Ізольовані
 # Perpetuals
 
 perpetuals_title = Перпетуали
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = Торгувати перпетуалами
 perpetuals_markets = Ринки
-perpetuals_empty_state_no_markets = Жодних ринків
 perpetuals_empty_state_no_markets_found = Ринків не знайдено
 
 # Rewards
@@ -760,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = Для сканування QR-коду потрібен дозвіл на камеру.\nБудь ласка, надайте дозвіл.
 
 # Notifications Permission
 
-notifications_permission_request_notification = Для отримання сповіщень про нові транзакції потрібен дозвіл на публікацію сповіщень.\n Будь ласка, дайте дозвіл.
 
 # Confirm
 
-confirm_fee_error = Помилка розрахунку комісії
 
 # Rootcheck
 

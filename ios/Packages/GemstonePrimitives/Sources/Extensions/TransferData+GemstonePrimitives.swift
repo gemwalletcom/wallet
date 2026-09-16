@@ -6,7 +6,7 @@ import Primitives
 
 public extension GemTransferData {
     var asset: Primitives.Asset {
-        inputAsset().map()
+        inputAsset().toPrimitives()
     }
 
     var chain: Chain {
@@ -15,7 +15,7 @@ public extension GemTransferData {
 
     var applicationMetadata: Primitives.ApplicationMetadata? {
         guard case let .generic(_, metadata, _) = inputType else { return nil }
-        return metadata.map()
+        return metadata.toPrimitives()
     }
 
     var id: String {

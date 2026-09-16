@@ -21,7 +21,8 @@ public struct AmountScene: View {
         @Bindable var model = model
         List {
             CurrencyInputValidationView(
-                model: $model.amountInputModel,
+                text: $model.amountInputModel.text,
+                error: model.amountInputModel.error,
                 config: model.inputConfig,
                 infoAction: model.infoAction(for:),
             )
@@ -65,11 +66,11 @@ public struct AmountScene: View {
                 case let .validator(validatorSelection):
                     Section(validatorSelection.title) {
                         if validatorSelection.isEnabled {
-                            NavigationLink(value: validatorSelection.selected) {
-                                ValidatorView(model: ValidatorViewModel(validator: validatorSelection.selected))
+                            NavigationLink(value: validatorSelection.selectedValidator) {
+                                ValidatorView(model: ValidatorViewModel(row: validatorSelection.selected))
                             }
                         } else {
-                            ValidatorView(model: ValidatorViewModel(validator: validatorSelection.selected))
+                            ValidatorView(model: ValidatorViewModel(row: validatorSelection.selected))
                         }
                     }
 
@@ -78,12 +79,12 @@ public struct AmountScene: View {
                     Section {
                         Picker("", selection: $resourceSelection.selected) {
                             ForEach(resourceSelection.options) { resource in
-                                Text(ResourceViewModel(resource: resource).title)
+                                Text(resource.title)
                                     .tag(resource)
                             }
                         }
                         .pickerStyle(.segmented)
-                        .frame(width: 200)
+                        .frame(width: Sizing.picker.segmentedWidth)
                         .onChange(of: resourceSelection.selected, model.onChangeResource)
                     }
                     .cleanListRow()
@@ -118,7 +119,7 @@ public struct AmountScene: View {
 
             case let .earn(earn):
                 Section(earn.providerTitle) {
-                    ValidatorView(model: ValidatorViewModel(validator: earn.provider))
+                    ValidatorView(model: ValidatorViewModel(row: earn.providerRow))
                 }
 
             case .transfer:
@@ -132,15 +133,30 @@ public struct AmountScene: View {
                 action: onSelectNextButton,
             )
         }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                if model.transferState.isLoading {
+                    ProgressView()
+                } else {
+                    Button(model.continueTitle, action: onSelectNextButton)
+                        .bold()
+                        .disabled(!model.isNextEnabled)
+                }
+            }
+        }
         .contentMargins([.top], .zero, for: .scrollContent)
         .listSectionSpacing(.custom(.medium))
         .frame(maxWidth: .infinity)
         .navigationTitle(model.title)
+        .onChange(of: model.amountInputModel.text, model.onChangeAmountText)
         .onAppear {
             model.onAppear()
             if model.shouldFocusOnAppear {
                 focusedField = true
             }
+        }
+        .onDisappear {
+            focusedField = false
         }
     }
 

@@ -7,7 +7,12 @@ import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
+import struct Gemstone.GemWalletDetails
+import struct Gemstone.GemWalletRow
 import enum Gemstone.GemWalletSecret
+import enum Gemstone.GemWalletSecretKind
+import func Gemstone.walletDetails
+import func Gemstone.walletRow
 import protocol Gemstone.GemWalletServiceProtocol
 import GemstoneServices
 
@@ -44,37 +49,36 @@ public final class WalletDetailViewModel {
         walletQuery = ObservableQuery(WalletRequest(walletId: wallet.id), initialValue: wallet)
     }
 
+    var details: GemWalletDetails {
+        walletDetails(wallet: wallet.toGem())
+    }
+
+    var row: GemWalletRow {
+        details.row
+    }
+
     var name: String {
-        wallet.name
+        row.name
     }
 
     var title: String {
         Localized.Common.wallet
     }
 
-    var address: WalletDetailAddress? {
-        switch wallet.type {
-        case .multicoin:
-            return .none
-        case .single, .view, .privateKey:
-            guard let account = wallet.accounts.first else { return .none }
-            return WalletDetailAddress.account(
-                SimpleAccount(
-                    name: .none,
-                    chain: account.chain,
-                    address: account.address,
-                    assetImage: .none,
-                ),
-            )
-        }
+    var secretKind: GemWalletSecretKind? {
+        details.secretKind
     }
 
-    func addressLink(account: SimpleAccount) -> BlockExplorerLink {
-        service.addressUrl(chain: account.chain.rawValue, address: account.address).map()
+    var address: WalletDetailAddress? {
+        guard let account = details.address?.toPrimitives() else { return .none }
+        return .account(
+            SimpleAccount(name: .none, chain: account.chain, address: account.address, assetImage: .none),
+            link: service.addressUrl(chain: account.chain.rawValue, address: account.address).toPrimitives(),
+        )
     }
 
     func avatarAssetImage(for wallet: Wallet) -> AssetImage {
-        let avatar = WalletViewModel(wallet: wallet).avatarImage
+        let avatar = walletRow(wallet: wallet.toGem()).avatarImage
         return AssetImage(
             type: avatar.type,
             imageURL: avatar.imageURL,
@@ -92,10 +96,7 @@ extension WalletDetailViewModel {
     }
 
     func delete() async throws {
-        switch try await service.delete(wallet) {
-        case .walletsRemaining: break
-        case .lastWalletDeleted: preferences.reload()
-        }
+        preferences.reload(after: try await service.delete(wallet))
     }
 
     func onSelectImage() {
@@ -119,7 +120,7 @@ extension WalletDetailViewModel {
             do {
                 isPresentingExportWallet = try await service.exportSecret(walletId: wallet.id.id)
             } catch {
-                isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
+                isPresentingAlertMessage = AlertMessage(error: error)
             }
         }
     }

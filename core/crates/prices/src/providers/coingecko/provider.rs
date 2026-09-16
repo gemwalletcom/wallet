@@ -6,9 +6,9 @@ use async_trait::async_trait;
 use coingecko::{CoinGeckoErrorResponse, CoinInfo, MAX_MARKETS_PER_PAGE, client::CoinGeckoClient, get_coingecko_market_id_for_chain, get_coingecko_platform_id_for_chain};
 use gem_client::{Client, RemoteProviderConfig, ReqwestClient};
 use gem_tracing::warn_with_fields;
-use primitives::{AssetId, Chain, ChartValue, DurationExt};
+use primitives::{AssetId, Chain, ChartValue, DurationExt, FiatRate, FiatRateProvider};
 
-use crate::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProvider, PriceProviderAsset, PriceProviderAssetMetadata};
+use crate::{AssetPriceFull, AssetPriceMapping, FiatRatesProvider, PriceAssetsProvider, PriceProvider, PriceProviderAsset, PriceProviderAssetMetadata};
 
 use super::mapper::{map_coin_info_metadata, map_coin_mappings, map_coin_markets, map_coins_to_assets, map_coins_to_mappings, map_market_chart};
 
@@ -21,6 +21,17 @@ impl CoinGeckoPricesProvider<ReqwestClient> {
         Self {
             client: CoinGeckoClient::new(config),
         }
+    }
+}
+
+#[async_trait]
+impl<C: Client + 'static> FiatRatesProvider for CoinGeckoPricesProvider<C> {
+    fn provider(&self) -> FiatRateProvider {
+        FiatRateProvider::Coingecko
+    }
+
+    async fn get_fiat_rates(&self) -> Result<Vec<FiatRate>, Box<dyn Error + Send + Sync>> {
+        self.client.get_fiat_rates().await
     }
 }
 

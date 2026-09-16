@@ -1,0 +1,28 @@
+{
+    "address": "TA7mCjHFfo68FG3wc6pDCeRGbJSPZkBfL7",
+    "transaction": {
+        "raw_data_hex": "0a026b31220831a1daef267a888740b8898ef488345af001081f12eb010a31747970652e676f6f676c65617069732e636f6d2f70726f746f636f6c2e54726967676572536d617274436f6e747261637412b5010a1541019e353a35efaa8e27c2a602a791ae1b19d9c9fa121541be365314f2e77fd1257d60c346bb32dbda36940322840187517c45000000000000000000000000a614f803b6fd780986a42c78ec9c7f77e6ded13c000000000000000000000000a31d689a84244bc01be56e07aeafb7686f56bb89000000000000000000000000ffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000000000006acb02687080c78af4883490018094ebdc03",
+        "raw_data": {
+            "expiration": 1789097379000,
+            "contract": [
+                {
+                    "type": "TriggerSmartContract",
+                    "parameter": {
+                        "type_url": "type.googleapis.com/protocol.TriggerSmartContract",
+                        "value": {
+                            "data": "87517c45000000000000000000000000a614f803b6fd780986a42c78ec9c7f77e6ded13c000000000000000000000000a31d689a84244bc01be56e07aeafb7686f56bb89000000000000000000000000ffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000000000006acb0268",
+                            "owner_address": "41019e353a35efaa8e27c2a602a791ae1b19d9c9fa",
+                            "contract_address": "41be365314f2e77fd1257d60c346bb32dbda369403"
+                        }
+                    }
+                }
+            ],
+            "ref_block_hash": "31a1daef267a8887",
+            "fee_limit": 1000000000,
+            "ref_block_bytes": "6b31",
+            "timestamp": 1789097321344
+        },
+        "txID": "451b32315766a2d3a519070c19aa7cfbf8bdba4544f4d315fbbf9f45de524372",
+        "visible": false
+    }
+}

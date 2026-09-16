@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.nft.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -30,12 +31,17 @@ class NftDetailsViewModel @Inject constructor(
     private val nftAssetId = savedStateHandle.requireNftAssetId()
 
     val nftAsset = getNftAssetDetails(nftAssetId)
-        .catch { }
+        .catch { Log.e(TAG, "Collectible details unavailable", it) }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     suspend fun refresh(): Boolean = withContext(Dispatchers.IO) {
         runCatchingCancellable { service.refreshAsset(nftAssetId.toIdentifier()) }.isSuccess
+    }
+
+    suspend fun setAsAvatar(): Boolean = withContext(Dispatchers.IO) {
+        val url = nftAsset.value?.asset?.images?.preview?.url ?: return@withContext false
+        runCatchingCancellable { service.setWalletAvatar(url) }.isSuccess
     }
 
     suspend fun report(reason: ReportReason): Boolean = withContext(Dispatchers.IO) {
@@ -48,3 +54,5 @@ class NftDetailsViewModel @Inject constructor(
         runCatchingCancellable { service.report(report.toGem()) }.isSuccess
     }
 }
+
+private const val TAG = "NftDetailsViewModel"

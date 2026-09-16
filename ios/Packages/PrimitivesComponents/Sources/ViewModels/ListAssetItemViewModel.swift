@@ -3,13 +3,15 @@
 import Components
 import Formatters
 import Foundation
+import struct Gemstone.GemAssetRow
+import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI
 
 public struct ListAssetItemViewModel: ListAssetItemViewable {
     let assetDataModel: AssetDataViewModel
-    let type: AssetListType
+    let row: GemAssetRow
 
     public let showBalancePrivacy: Binding<Bool>
     public var action: ((ListAssetItemAction) -> Void)?
@@ -17,12 +19,12 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
     public init(
         showBalancePrivacy: Binding<Bool>,
         assetDataModel: AssetDataViewModel,
-        type: AssetListType = .wallet,
+        row: GemAssetRow,
         action: ((ListAssetItemAction) -> Void)? = nil,
     ) {
         self.showBalancePrivacy = showBalancePrivacy
         self.assetDataModel = assetDataModel
-        self.type = type
+        self.row = row
         self.action = action
     }
 
@@ -30,45 +32,38 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
         showBalancePrivacy: Binding<Bool>,
         assetData: AssetData,
         formatter: ValueFormatter,
-        currencyCode: String,
+        currency: Currency,
+        row: GemAssetRow,
     ) {
         let model = AssetDataViewModel(
             assetData: assetData,
             formatter: formatter,
-            currencyCode: currencyCode,
+            currency: currency,
         )
         self.init(
             showBalancePrivacy: showBalancePrivacy,
             assetDataModel: model,
-            type: .wallet,
+            row: row,
             action: nil,
         )
     }
 
     public var name: String {
-        switch type {
-        case .copy(.collection):
-            assetDataModel.asset.chain.networkName
-        case .wallet, .manage, .view, .copy(.asset), .price:
-            assetDataModel.name
+        switch row.title {
+        case .asset: assetDataModel.name
+        case .canonicalAsset: assetDataModel.asset.id.type == .native ? assetDataModel.asset.chain.asset.name : assetDataModel.name
+        case .network: assetDataModel.asset.chain.networkName
         }
     }
 
     public var symbol: String? {
-        switch type {
-        case .wallet, .view, .copy(.collection):
-            return .none
-        case .manage, .price, .copy(.asset):
-            if name == assetDataModel.symbol {
-                return .none
-            }
-            return assetDataModel.symbol
-        }
+        guard row.showsSymbol, name != assetDataModel.symbol else { return .none }
+        return assetDataModel.symbol
     }
 
     public var subtitleView: ListAssetItemSubtitleView {
-        switch type {
-        case .wallet, .price:
+        switch row.subtitle {
+        case .price:
             .price(
                 price: TextValue(
                     text: assetDataModel.priceAmountText,
@@ -79,7 +74,7 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
                     style: TextStyle(font: .footnote, color: assetDataModel.priceChangeTextColor),
                 ),
             )
-        case .manage, .view, .copy:
+        case .network:
             switch assetDataModel.asset.id.type {
             case .native:
                 .none
@@ -95,8 +90,8 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
     }
 
     public var rightView: ListAssetItemRightView {
-        switch type {
-        case .wallet, .view:
+        switch row.trailing {
+        case .balance:
             .balance(
                 balance: TextValue(
                     text: assetDataModel.totalBalanceTextWithSymbol,
@@ -107,11 +102,11 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
                     style: TextStyle(font: .footnote, color: Colors.gray),
                 ),
             )
-        case .manage:
+        case .toggle:
             .toggle(assetDataModel.isEnabled)
         case .copy:
             .copy
-        case .price:
+        case .none:
             .none
         }
     }

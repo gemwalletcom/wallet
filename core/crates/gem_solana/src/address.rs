@@ -1,5 +1,6 @@
 use primitives::Address as AddressTrait;
-use solana_primitives::{Pubkey, SolanaError};
+
+use crate::{Pubkey, SolanaError};
 
 pub struct SolanaAddress(Pubkey);
 

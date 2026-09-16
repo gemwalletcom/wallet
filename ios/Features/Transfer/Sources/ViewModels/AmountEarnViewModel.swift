@@ -4,6 +4,8 @@ import BigInt
 import Foundation
 import enum Gemstone.GemAmountType
 import protocol Gemstone.GemAmountServiceProtocol
+import struct Gemstone.GemValidatorRow
+import enum Gemstone.EarnType
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -11,10 +13,10 @@ import struct Gemstone.GemTransferData
 
 public final class AmountEarnViewModel: AmountDataProvidable {
     let asset: Asset
-    let action: EarnType
+    let action: Gemstone.EarnType
     private let service: any GemAmountServiceProtocol
 
-    init(asset: Asset, action: EarnType, service: any GemAmountServiceProtocol) {
+    init(asset: Asset, action: Gemstone.EarnType, service: any GemAmountServiceProtocol) {
         self.asset = asset
         self.action = action
         self.service = service
@@ -22,9 +24,13 @@ public final class AmountEarnViewModel: AmountDataProvidable {
 
     var provider: DelegationValidator {
         switch action {
-        case let .deposit(provider): provider
-        case let .withdraw(delegation): delegation.validator
+        case let .deposit(provider): provider.toPrimitives()
+        case let .withdraw(delegation): delegation.validator.toPrimitives()
         }
+    }
+
+    var providerRow: GemValidatorRow {
+        service.validatorRow(validator: provider.toGem())
     }
 
     var providerTitle: String {
@@ -32,21 +38,14 @@ public final class AmountEarnViewModel: AmountDataProvidable {
     }
 
     var title: String {
-        switch action {
-        case .deposit: Localized.Wallet.deposit
-        case .withdraw: Localized.Wallet.withdraw
-        }
-    }
-
-    var amountType: AmountType {
-        .earn(action)
+        gemAmountType.title().title
     }
 
     var gemAmountType: GemAmountType {
-        service.earnAmountType(earnType: action.map())
+        service.earnAmountType(earnType: action)
     }
 
     func makeTransferData(value: BigInt, useMaxAmount: Bool) async throws -> GemTransferData {
-        try await service.earnTransferData(asset: asset.map(), earnType: action.map(), value: value, useMaxAmount: useMaxAmount)
+        try await service.earnTransferData(asset: asset.toGem(), earnType: action, value: value, useMaxAmount: useMaxAmount)
     }
 }

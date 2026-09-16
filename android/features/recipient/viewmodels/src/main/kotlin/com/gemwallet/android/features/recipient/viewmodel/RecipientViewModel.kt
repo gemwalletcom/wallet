@@ -16,7 +16,6 @@ import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.isMemoSupport
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
-import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientState
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.models.ButtonState
@@ -24,18 +23,18 @@ import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.name.AddressInputModel
-import com.gemwallet.android.ui.models.name.NameRecordState
+import uniffi.gemstone.GemNameRecordState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.optionalNftAssetId
 import com.gemwallet.android.ui.models.navigation.optionalPaymentRecipient
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.NFTAsset
-import com.wallet.core.primitives.NameRecord
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemRecipientException
 import uniffi.gemstone.GemRecipientNext
 import uniffi.gemstone.GemRecipientScan
+import uniffi.gemstone.GemRecipientSection
 import uniffi.gemstone.GemRecipientType
 import uniffi.gemstone.GemNameServiceInterface
 import uniffi.gemstone.GemRecipientServiceInterface
@@ -78,7 +77,7 @@ class RecipientViewModel @Inject constructor(
     private val addressInput = AddressInputModel(nameService, viewModelScope)
 
     val address: StateFlow<String> = addressInput.text
-    val nameResolveState: StateFlow<NameRecordState> = addressInput.nameResolveState
+    val nameResolveState: StateFlow<GemNameRecordState> = addressInput.nameResolveState
     val addressError: StateFlow<Boolean> = addressInput.showError
 
     private val _memo = MutableStateFlow("")
@@ -112,11 +111,9 @@ class RecipientViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, RecipientState.Loading)
 
-    val wallets = combine(session, getWallets()) { _, wallets ->
-        service.recipientWallets(wallets.map { it.toGem() }).map { it.toPrimitives() }
-    }
-    .flowOn(Dispatchers.IO)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    private val wallets = combine(session, getWallets()) { _, wallets -> wallets.map { it.toGem() } }
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val contacts: StateFlow<List<ContactRecipient>> = state
         .flatMapLatest { state ->
@@ -127,7 +124,15 @@ class RecipientViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val memoErrorState = MutableStateFlow<RecipientError>(RecipientError.None)
+    val sections: StateFlow<List<GemRecipientSection>> = combine(wallets, contacts, state) { wallets, contacts, state ->
+        when (state) {
+            RecipientState.Loading -> emptyList()
+            is RecipientState.Ready -> service.recipientSections(wallets, state.asset.chain.string, contacts.isNotEmpty())
+        }
+    }
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
 
     val buttonState: StateFlow<ButtonState> = addressInput.isValid
         .map { buttonState(enabled = it) }
@@ -153,13 +158,17 @@ class RecipientViewModel @Inject constructor(
         savedStateHandle.optionalPaymentRecipient(RouteArgument.Payment)?.let(::updateFrom)
     }
 
+    fun onValidateAddress() {
+        addressInput.validate()
+    }
+
     fun onNext(
         recipient: RecipientState.Ready,
         amountAction: AmountTransactionAction,
         confirmAction: ConfirmTransactionAction,
     ) {
         if (!addressInput.validate()) return
-        submit(recipient, address.value, addressInput.nameRecord, amountAction, confirmAction)
+        submit(recipient, address.value, addressInput.nameRecordState, amountAction, confirmAction)
     }
 
     fun onDestination(
@@ -168,20 +177,20 @@ class RecipientViewModel @Inject constructor(
         amountAction: AmountTransactionAction,
         confirmAction: ConfirmTransactionAction,
     ) {
-        submit(recipient, destination.address, null, amountAction, confirmAction, destination.name)
+        submit(recipient, destination.address, GemNameRecordState.None, amountAction, confirmAction, destination.name)
     }
 
     private fun submit(
         recipient: RecipientState.Ready,
         input: String,
-        nameRecord: NameRecord?,
+        state: GemNameRecordState,
         amountAction: AmountTransactionAction,
         confirmAction: ConfirmTransactionAction,
         selectedName: String? = null,
     ) {
         val asset = recipient.asset
         val resolved = try {
-            service.recipient(asset.chain.string, input, nameRecord?.toGem(), memo.value, references)
+            service.recipient(asset.chain.string, input, state, memo.value, references)
         } catch (_: GemRecipientException) {
             addressInput.markInvalid()
             return
@@ -229,7 +238,7 @@ class RecipientViewModel @Inject constructor(
     }
 
     private fun updateFrom(payment: GemPaymentRecipient) {
-        addressInput.applyExternalAddress(payment.recipient.address)
+        addressInput.setScannedAddress(payment.recipient.address)
         payment.recipient.memo?.let { _memo.value = it }
         references = payment.recipient.references
         requestedAmount = payment.amount

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemNftItem
 import Primitives
 import Store
 
@@ -11,11 +12,11 @@ struct WalletSearchSections: Equatable {
     let pinnedPerpetuals: [PerpetualData]
     let perpetuals: [PerpetualData]
 
-    let nfts: [NFTSearchItem]
+    let nfts: [GemNftItem]
 
     let lists: [AssetList]
 
-    static func from(_ result: WalletSearchResult, nfts: [NFTSearchItem]) -> WalletSearchSections {
+    static func from(_ result: WalletSearchResult, nfts: [GemNftItem]) -> WalletSearchSections {
         let (pinnedAssets, assets) = result.assets.reduce(into: ([AssetData](), [AssetData]())) {
             if $1.metadata.isPinned {
                 $0.0.append($1)

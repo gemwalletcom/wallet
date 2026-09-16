@@ -37,9 +37,25 @@ class DevelopViewModel @Inject constructor(
         }
     }
 
-    fun resetTransactions() {
-        viewModelScope.launch(Dispatchers.IO) {
-            service.clearPendingTransactions()
-        }
+    fun clearPendingTransactions() = launchAction { service.clearPendingTransactions() }
+
+    fun clearTransactions() = launchAction { service.clearTransactions() }
+
+    fun clearAssets() = launchAction { service.clearAssets() }
+
+    fun clearDelegations() = launchAction { service.clearDelegations() }
+
+    fun clearValidators() = launchAction { service.clearValidators() }
+
+    fun clearBanners() = launchAction { service.clearBanners() }
+
+    fun activateCancelledBanners() = launchAction { service.activateCancelledBanners() }
+
+    fun clearPrices() = launchAction { service.clearPrices() }
+
+    fun clearPerpetuals() = launchAction { service.clearPerpetualMarkets() }
+
+    private fun launchAction(action: suspend () -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) { action() }
     }
 }

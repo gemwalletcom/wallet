@@ -253,7 +253,7 @@ mod tests {
     use alloy_sol_types::SolCall;
     use gem_evm::eip712::parse_eip712_json;
     use primitives::{
-        Chain, SimulationPayloadFieldKind, SimulationResult, SimulationWarningType,
+        Chain, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationResult, SimulationWarningType,
         asset_constants::{ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDC_TOKEN_ID},
         contract_constants::UNISWAP_PERMIT2_CONTRACT,
     };
@@ -290,6 +290,19 @@ mod tests {
         matches!(warning, SimulationWarningType::NftCollectionApproval(_))
     }
 
+    fn kinds(result: &SimulationResult) -> Vec<SimulationPayloadFieldKind> {
+        result.payload.iter().map(|field| field.kind.clone()).collect()
+    }
+
+    fn primary_kinds(result: &SimulationResult) -> Vec<SimulationPayloadFieldKind> {
+        result
+            .payload
+            .iter()
+            .filter(|field| field.display == SimulationPayloadFieldDisplay::Primary)
+            .map(|field| field.kind.clone())
+            .collect()
+    }
+
     #[test]
     fn eip712_permit_simulation_result_contains_payload_and_warnings() {
         let json: Value = serde_json::from_str(include_str!("../../../gem_evm/testdata/1inch_permit.json")).unwrap();
@@ -297,12 +310,26 @@ mod tests {
         let result = simulate_eip712_message(Chain::Ethereum, &message);
 
         assert!(is_permit_warning(warning(&result)));
-        assert_eq!(result.payload[0].kind, SimulationPayloadFieldKind::Contract);
-        assert_eq!(result.payload[1].value, "Permit");
-        assert_eq!(result.payload[2].kind, SimulationPayloadFieldKind::Spender);
-        assert_eq!(result.payload[3].value, "Unlimited");
-        assert_eq!(result.payload[4].kind, SimulationPayloadFieldKind::Custom);
-        assert_eq!(result.payload[4].label.as_deref(), Some("expiration"));
+        assert_eq!(
+            kinds(&result),
+            vec![
+                SimulationPayloadFieldKind::Spender,
+                SimulationPayloadFieldKind::Value,
+                SimulationPayloadFieldKind::Expiration,
+                SimulationPayloadFieldKind::Contract,
+                SimulationPayloadFieldKind::Method,
+            ]
+        );
+        assert_eq!(
+            primary_kinds(&result),
+            vec![
+                SimulationPayloadFieldKind::Spender,
+                SimulationPayloadFieldKind::Value,
+                SimulationPayloadFieldKind::Expiration
+            ]
+        );
+        assert_eq!(result.payload[1].value, "Unlimited");
+        assert_eq!(result.payload[4].value, "Permit");
         assert_eq!(result.header.as_ref().map(|header| header.asset_id.clone()), Some(ETHEREUM_USDC_ASSET_ID.clone()));
         assert_eq!(result.header.as_ref().map(|header| header.is_unlimited), Some(true));
     }
@@ -325,13 +352,19 @@ mod tests {
         let result = simulate_eip712_message(Chain::Ethereum, &message);
 
         assert!(is_unlimited_permit_warning(warning(&result)));
-        assert_eq!(result.payload[0].kind, SimulationPayloadFieldKind::Contract);
-        assert_eq!(result.payload[1].value, "Permit Single");
-        assert_eq!(result.payload[2].kind, SimulationPayloadFieldKind::Token);
-        assert_eq!(result.payload[3].kind, SimulationPayloadFieldKind::Spender);
-        assert_eq!(result.payload[4].kind, SimulationPayloadFieldKind::Value);
-        assert_eq!(result.payload[4].value, "Unlimited");
-        assert_eq!(result.payload[5].label.as_deref(), Some("expiration"));
+        assert_eq!(
+            kinds(&result),
+            vec![
+                SimulationPayloadFieldKind::Spender,
+                SimulationPayloadFieldKind::Token,
+                SimulationPayloadFieldKind::Value,
+                SimulationPayloadFieldKind::Expiration,
+                SimulationPayloadFieldKind::Contract,
+                SimulationPayloadFieldKind::Method,
+            ]
+        );
+        assert_eq!(result.payload[2].value, "Unlimited");
+        assert_eq!(result.payload[5].value, "Permit Single");
     }
 
     #[test]
@@ -341,15 +374,15 @@ mod tests {
         let result = simulate_eip712_message(Chain::Ethereum, &message);
 
         assert!(is_permit_warning(warning(&result)));
-        assert_eq!(result.payload[1].value, "Permit Batch");
-        assert!(result.payload.iter().all(|field| match field.kind {
-            SimulationPayloadFieldKind::Token => false,
-            SimulationPayloadFieldKind::Contract
-            | SimulationPayloadFieldKind::Method
-            | SimulationPayloadFieldKind::Spender
-            | SimulationPayloadFieldKind::Value
-            | SimulationPayloadFieldKind::Custom => true,
-        }));
+        assert_eq!(
+            kinds(&result),
+            vec![
+                SimulationPayloadFieldKind::Spender,
+                SimulationPayloadFieldKind::Contract,
+                SimulationPayloadFieldKind::Method
+            ]
+        );
+        assert_eq!(result.payload[2].value, "Permit Batch");
         assert_eq!(result.header, None);
     }
 
@@ -378,9 +411,16 @@ mod tests {
         let message = parse_eip712_json(&json).unwrap();
         let result = simulate_eip712_message(Chain::Ethereum, &message);
 
-        assert_eq!(result.payload[2].kind, SimulationPayloadFieldKind::Token);
-        assert_eq!(result.payload[2].value, "0x1111111111111111111111111111111111111111");
-        assert_eq!(result.payload[3].kind, SimulationPayloadFieldKind::Spender);
+        assert_eq!(
+            kinds(&result),
+            vec![
+                SimulationPayloadFieldKind::Spender,
+                SimulationPayloadFieldKind::Token,
+                SimulationPayloadFieldKind::Contract,
+                SimulationPayloadFieldKind::Method
+            ]
+        );
+        assert_eq!(result.payload[1].value, "0x1111111111111111111111111111111111111111");
     }
 
     #[test]
@@ -401,11 +441,18 @@ mod tests {
         let result = simulate_evm_calldata(Chain::Ethereum, &calldata, ETHEREUM_USDC_TOKEN_ID);
 
         assert!(is_token_warning(warning(&result)));
-        assert_eq!(result.payload[0].kind, SimulationPayloadFieldKind::Contract);
-        assert_eq!(result.payload[1].value, "Approve");
-        assert_eq!(result.payload[2].kind, SimulationPayloadFieldKind::Spender);
-        assert_eq!(result.payload[3].kind, SimulationPayloadFieldKind::Value);
-        assert_eq!(result.payload[3].value, "Unlimited");
+        assert_eq!(
+            kinds(&result),
+            vec![
+                SimulationPayloadFieldKind::Spender,
+                SimulationPayloadFieldKind::Value,
+                SimulationPayloadFieldKind::Contract,
+                SimulationPayloadFieldKind::Method
+            ]
+        );
+        assert_eq!(primary_kinds(&result), vec![SimulationPayloadFieldKind::Spender, SimulationPayloadFieldKind::Value]);
+        assert_eq!(result.payload[1].value, "Unlimited");
+        assert_eq!(result.payload[3].value, "Approve");
     }
 
     #[test]
@@ -430,9 +477,15 @@ mod tests {
         let result = simulate_evm_calldata(Chain::Ethereum, &calldata, "0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85");
 
         assert!(is_nft_warning(warning(&result)));
-        assert_eq!(result.payload[0].kind, SimulationPayloadFieldKind::Contract);
-        assert_eq!(result.payload[1].value, "Set Approval For All");
-        assert_eq!(result.payload[2].kind, SimulationPayloadFieldKind::Spender);
+        assert_eq!(
+            kinds(&result),
+            vec![
+                SimulationPayloadFieldKind::Spender,
+                SimulationPayloadFieldKind::Contract,
+                SimulationPayloadFieldKind::Method
+            ]
+        );
+        assert_eq!(result.payload[2].value, "Set Approval For All");
     }
 
     #[test]
@@ -455,8 +508,7 @@ mod tests {
         let result = simulate_evm_calldata(Chain::Ethereum, &calldata, "0x495f947276749Ce646f68AC8c248420045cb7b5e");
 
         assert!(is_nft_warning(warning(&result)));
-        assert_eq!(result.payload[0].kind, SimulationPayloadFieldKind::Contract);
-        assert_eq!(result.payload[1].value, "Set Approval For All");
-        assert_eq!(result.payload[2].kind, SimulationPayloadFieldKind::Spender);
+        assert_eq!(primary_kinds(&result), vec![SimulationPayloadFieldKind::Spender]);
+        assert_eq!(result.payload[2].value, "Set Approval For All");
     }
 }

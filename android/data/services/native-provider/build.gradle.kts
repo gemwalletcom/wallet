@@ -3,7 +3,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 plugins {
     alias(libs.plugins.android.library)
-    id("com.google.devtools.ksp")
 }
 
 android {
@@ -37,7 +36,6 @@ android {
         }
     }
 
-
     packaging {
         resources {
             excludes += "META-INF/*"
@@ -50,19 +48,11 @@ android {
 }
 
 dependencies {
-    api(project(":gemcore"))
-    api(libs.okhttp)
+    implementation(project(":gemcore"))
+    implementation(libs.okhttp)
 
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
-
-    implementation(libs.ktx.core)
     implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.tink)
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk.android)
-    testImplementation(testFixtures(project(":gemcore")))
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
 }

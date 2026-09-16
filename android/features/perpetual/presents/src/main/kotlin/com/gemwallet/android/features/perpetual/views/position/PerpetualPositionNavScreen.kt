@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.perpetual.views.position
 
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -16,6 +17,11 @@ import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.wallet.core.primitives.TransactionId
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.screen.rememberSnackbarState
+import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
+import com.wallet.core.primitives.AssetId
+import com.gemwallet.android.ui.localization.text
 
 @Composable
 fun PerpetualPositionNavScreen(
@@ -23,6 +29,7 @@ fun PerpetualPositionNavScreen(
     confirmAction: ConfirmTransactionAction,
     onClose: () -> Unit,
     onTransaction: (TransactionId) -> Unit,
+    onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit,
     viewModel: PerpetualDetailsViewModel = hiltViewModel(),
 ) {
     LifecycleResumeEffect(Unit) {
@@ -41,6 +48,11 @@ fun PerpetualPositionNavScreen(
     val chart by viewModel.chart.collectAsStateWithLifecycle()
     val period by viewModel.period.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val sections by viewModel.sections.collectAsStateWithLifecycle()
+    val positionRows by viewModel.positionRows.collectAsStateWithLifecycle()
+    val buttons by viewModel.buttons.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
+    val snackbar = rememberSnackbarState(message = error?.text(), iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
     var showAutoclose by remember { mutableStateOf(false) }
 
     PerpetualPositionScene(
@@ -50,6 +62,12 @@ fun PerpetualPositionNavScreen(
         chart = chart,
         period = period,
         isRefreshing = isRefreshing,
+        sections = sections,
+        positionRows = positionRows,
+        infoRows = viewModel.infoRows,
+        buttons = buttons,
+        modifyButtons = viewModel.modifyButtons,
+        snackbar = snackbar,
         onAction = { action ->
             when (action) {
                 PerpetualDetailsAction.Close -> onClose()
@@ -68,13 +86,14 @@ fun PerpetualPositionNavScreen(
     ModalBottomSheet(
         isVisible = showAutoclose,
         onDismissRequest = { showAutoclose = false },
-        skipPartiallyExpanded = true,
+        expansion = SheetExpansion.Full,
         title = null,
         dragHandle = null,
     ) {
         AutocloseNavGraph(
             onDismiss = { showAutoclose = false },
             finishAction = FinishConfirmAction { _ -> viewModel.fetch() },
+            onAcquireAsset = onAcquireAsset,
         )
     }
 }

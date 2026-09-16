@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.asset_select.presents.views
 
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,7 +27,8 @@ import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.list_item.AssetListItem
-import com.gemwallet.android.ui.components.list_item.dateGroupedList
+import com.gemwallet.android.ui.components.list_item.dateSectionedList
+import com.gemwallet.android.ui.components.list_item.rememberDateSections
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -46,7 +48,7 @@ fun RecentsBottomSheet(
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismissRequest,
-        skipPartiallyExpanded = true,
+        expansion = SheetExpansion.Full,
     ) {
         Column(
             modifier = Modifier
@@ -82,14 +84,15 @@ fun RecentsBottomSheet(
                 }
             }
             SearchBar(query = query)
+            val recents = uiModel.items.sortedByDescending { it.addedAt }
+            val sections = rememberDateSections(recents) { it.addedAt }
             val empty = uiModel.emptyState
             if (empty != null) {
                 RecentsEmptyStateView(empty)
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    dateGroupedList(
-                        items = uiModel.items.sortedByDescending { it.addedAt },
-                        createdAt = { it.addedAt },
+                    dateSectionedList(
+                        sections = sections,
                         key = { _, recent -> "${recent.addedAt}-${recent.asset.id.toIdentifier()}" },
                     ) { position, recent ->
                         AssetListItem(

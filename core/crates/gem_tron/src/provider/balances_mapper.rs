@@ -112,7 +112,7 @@ fn new_stake_balance(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::{TronAccount, TronFrozen, TronReward, TronSmartContractResult, TronUnfrozen, TronVote};
+    use crate::models::{TriggerConstantContractResponse, TronAccount, TronFrozen, TronReward, TronUnfrozen, TronVote};
     use primitives::{AssetId, Chain, asset_constants::TRON_USDT_ASSET_ID};
     use serde_json;
 
@@ -127,7 +127,7 @@ mod tests {
 
     #[test]
     fn test_map_token_balance_with_real_payload() {
-        let response: TronSmartContractResult = serde_json::from_str(include_str!("../../testdata/balance_token.json")).unwrap();
+        let response: TriggerConstantContractResponse = serde_json::from_str(include_str!("../../testdata/balance_token.json")).unwrap();
         let asset_id: AssetId = TRON_USDT_ASSET_ID.clone();
         let balance = map_token_balance(&response.constant_result[0], asset_id.clone()).unwrap();
 
@@ -194,10 +194,7 @@ mod tests {
                     amount: 6000000,
                 },
             ]),
-            unfrozen_v2: Some(vec![TronUnfrozen {
-                unfreeze_amount: 2000000,
-                unfreeze_expire_time: Some(1234567890),
-            }]),
+            unfrozen_v2: Some(vec![TronUnfrozen::mock(2000000, 1234567890)]),
         };
 
         let reward = TronReward { reward: 100000 };
@@ -373,14 +370,7 @@ mod tests {
         };
 
         let reward = TronReward { reward: 0 };
-        let usage = TronAccountUsage {
-            energy_limit: 0,
-            energy_used: 0,
-            free_net_limit: 0,
-            free_net_used: 0,
-            net_used: 0,
-            net_limit: 0,
-        };
+        let usage = TronAccountUsage::mock(0, 0, 0);
 
         let balance = map_staking_balance(&account, &reward, &usage).unwrap();
         let metadata = balance.balance.metadata.as_ref().unwrap();

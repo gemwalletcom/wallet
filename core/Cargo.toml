@@ -1,5 +1,5 @@
 [workspace.package]
-version = "2.114.17"
+version = "2.114.31"
 edition = "2024"
 license = "MIT"
 homepage = "https://gemwallet.com/"
@@ -13,7 +13,6 @@ members = [
     "apps/api",
     "apps/daemon",
     "apps/dynode",
-    "apps/egress",
 
     "bin/cli",
     "bin/img-downloader",
@@ -44,6 +43,7 @@ members = [
 
     "crates/localizer",
     "crates/coinmarketcap",
+    "crates/dexscreener",
     "crates/jupiter",
     "crates/job_runner",
     "crates/metrics",
@@ -107,6 +107,7 @@ blake2b_simd = { version = "1.0.4" }
 bs58 = { version = "0.5.1", features = ["check"] }
 getrandom = { version = "0.4.3" }
 hex = { version = "0.4.3" }
+hex_lit = { version = "0.1.1", features = ["rust_v_1_46"] }
 crc = { version = "3.4.0" }
 num-bigint = { version = "0.5.1", features = ["std", "serde"] }
 num-traits = { version = "0.2.19" }
@@ -131,7 +132,6 @@ sui-types = { package = "sui-sdk-types", version = "0.3.2", features = [
     "hash",
     "serde",
 ] }
-solana-primitives = { version = "0.2.6" }
 k256 = { version = "0.14.0", features = ["ecdsa", "sha256"] }
 bip39 = { version = "2.2.2", default-features = false }
 

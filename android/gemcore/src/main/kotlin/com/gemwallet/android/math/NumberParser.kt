@@ -1,21 +1,29 @@
 package com.gemwallet.android.math
 
+import uniffi.gemstone.GemNumberFormat
 import java.math.BigDecimal
+import java.math.BigInteger
+import java.text.DecimalFormatSymbols
+import java.util.Locale
 
+fun numberFormat(locale: Locale = Locale.getDefault()): GemNumberFormat =
+    GemNumberFormat(DecimalFormatSymbols.getInstance(locale).decimalSeparator.toString())
 
-fun String.parseInputNumber(): BigDecimal {
-    val parts = trim().replace(",", ".")
-        .replace(" ", "")
-        .split(".")
-    val number = List(parts.size) { i ->
-        "${parts[i]}${if (i + 1 == parts.size - 1) "." else ""}"
-    }.joinToString("")
-    return BigDecimal(number.trim().replace("\uFEFF", ""))
-}
+fun String.plainInputNumber(): String = numberFormat().plain(this)
+
+fun String.parseInputNumber(): BigDecimal = BigDecimal(plainInputNumber())
 
 fun String.parseInputNumberOrNull(): BigDecimal? {
     return try {
         parseInputNumber()
+    } catch (_: Throwable) {
+        null
+    }
+}
+
+fun String.parseInputValueOrNull(decimals: Int): BigInteger? {
+    return try {
+        numberFormat().value(this, decimals.toUInt())
     } catch (_: Throwable) {
         null
     }

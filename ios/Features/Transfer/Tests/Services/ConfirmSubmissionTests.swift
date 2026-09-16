@@ -1,14 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemConfirmFeeSelection
 import Foundation
+import BigInt
 import enum Gemstone.GemConfirmError
-import struct Gemstone.GemConfirmMetadata
-import struct Gemstone.GemConfirmSimulation
 import enum Gemstone.GemExecuteResult
 import struct Gemstone.GemSimulationBalanceChange
 import struct Gemstone.GemSimulationValue
-import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServices
@@ -21,56 +18,44 @@ import StoreTestKit
 import Testing
 import struct Gemstone.SimulationPayloadField
 @testable import Transfer
+import TransferTestKit
 
 @MainActor
 struct ConfirmSubmissionTests {
     @Test
     func confirmReportsEveryHashAndTracksSentTransactions() async throws {
         let tracked = Primitives.Transaction.mock()
-        let gemConfirmService = GemConfirmServiceMock(execute: .success(.sent(hashes: ["hash-1", "hash-2"], transactions: [tracked.json()])))
         let reported = ReportedValues()
 
         let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
-        try await ConfirmTransferSceneViewModel.mock(request: request, gemConfirmService: gemConfirmService).submit(
+        try await ConfirmTransferSceneViewModel.mock(
             request: request,
-            confirmData: .mock(),
-            amount: .mock(),
-            simulation: nil,
-        )
+            execute: .success(.sent(hashes: ["hash-1", "hash-2"], transactions: [tracked.toGem()])),
+        ).submit(request: request)
 
         #expect(reported.values == ["hash-1", "hash-2"])
-        #expect(gemConfirmService.executedInputs.count == 1)
     }
 
     @Test
     func confirmReportsSignedDataWithoutTracking() async throws {
-        let gemConfirmService = GemConfirmServiceMock(execute: .success(.signed(data: ["signed"])))
         let reported = ReportedValues()
 
         let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
-        try await ConfirmTransferSceneViewModel.mock(request: request, gemConfirmService: gemConfirmService).submit(
-            request: request,
-            confirmData: .mock(),
-            amount: .mock(),
-            simulation: nil,
-        )
+        try await ConfirmTransferSceneViewModel.mock(request: request, execute: .success(.signed(data: ["signed"]))).submit(request: request)
 
         #expect(reported.values == ["signed"])
     }
 
     @Test
     func partialBroadcastReportsBroadcastHashesAndRethrows() async throws {
-        let gemConfirmService = GemConfirmServiceMock(execute: .failure(GemConfirmError.Broadcast(hashes: ["hash-1"], msg: "second leg failed")))
         let reported = ReportedValues()
 
         await #expect(throws: GemConfirmError.self) {
             let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
-            try await ConfirmTransferSceneViewModel.mock(request: request, gemConfirmService: gemConfirmService).submit(
+            try await ConfirmTransferSceneViewModel.mock(
                 request: request,
-                confirmData: .mock(),
-                amount: .mock(),
-                simulation: nil,
-            )
+                execute: .failure(GemConfirmError.Broadcast(hashes: ["hash-1"], msg: "second leg failed")),
+            ).submit(request: request)
         }
 
         #expect(reported.values == ["hash-1"])
@@ -80,19 +65,13 @@ struct ConfirmSubmissionTests {
     func simulationStateMapsTheHeader() async {
         let usdt = Asset.mockEthereumUSDT()
         let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
-            simulation: GemConfirmSimulation(
-                primaryFields: [],
-                secondaryFields: [],
-                header: GemSimulationValue(asset: usdt.map(), value: .exact(value: 1_000_000)),
-                balanceChanges: [],
-                hasCriticalWarning: false,
-            ),
+            simulation: .mock(header: GemSimulationValue(asset: usdt.toGem(), value: .exact(value: 1_000_000))),
         )))
         await model.load()
 
         let state = model.state.simulation
 
-        #expect(state.headerData == AssetValueHeaderData(asset: usdt, value: .exact(1_000_000)))
+        #expect(state.headerData == GemSimulationValue(asset: usdt.toGem(), value: .exact(value: BigUInt(1_000_000))))
         #expect(state.payload.primaryFields.isEmpty)
         #expect(state.payload.secondaryFields.isEmpty)
     }
@@ -101,24 +80,18 @@ struct ConfirmSubmissionTests {
     func simulationStateMapsAnUnlimitedHeader() async {
         let usdt = Asset.mockEthereumUSDT()
         let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
-            simulation: GemConfirmSimulation(
-                primaryFields: [],
-                secondaryFields: [],
-                header: GemSimulationValue(asset: usdt.map(), value: .unlimited),
-                balanceChanges: [],
-                hasCriticalWarning: false,
-            ),
+            simulation: .mock(header: GemSimulationValue(asset: usdt.toGem(), value: .unlimited)),
         )))
         await model.load()
 
-        #expect(model.state.simulation.headerData == AssetValueHeaderData(asset: usdt, value: .unlimited))
+        #expect(model.state.simulation.headerData == GemSimulationValue(asset: usdt.toGem(), value: .unlimited))
     }
 
     @Test
     func simulationStateKeepsPrimaryAndSecondaryFieldsApart() async {
         let primary = SimulationPayloadField.standard(kind: .contract, value: "0x1", fieldType: .text, display: .primary)
         let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
-            simulation: GemConfirmSimulation(primaryFields: [primary], secondaryFields: [], header: nil, balanceChanges: [], hasCriticalWarning: false),
+            simulation: .mock(primaryFields: [primary]),
         )))
         await model.load()
 
@@ -133,17 +106,11 @@ struct ConfirmSubmissionTests {
     func simulationStateMapsBalanceChanges() async {
         let usdt = Asset.mockEthereumUSDT()
         let model = ConfirmTransferSceneViewModel.mock(load: .success(.mock(
-            simulation: GemConfirmSimulation(
-                primaryFields: [],
-                secondaryFields: [],
-                header: nil,
-                balanceChanges: [GemSimulationBalanceChange(asset: usdt.map(), value: "-25")],
-                hasCriticalWarning: false,
-            ),
+            simulation: .mock(balanceChanges: [GemSimulationBalanceChange(asset: usdt.toGem(), value: "-25", sign: .outgoing)]),
         )))
         await model.load()
 
-        #expect(model.state.simulation.balanceChanges == [SimulationAssetChange(asset: usdt, value: -25)])
+        #expect(model.state.simulation.balanceChanges == [GemSimulationBalanceChange(asset: usdt.toGem(), value: "-25", sign: .outgoing)])
     }
 
 }

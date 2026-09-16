@@ -1,17 +1,17 @@
 package com.gemwallet.android.features.buy.views
 
 import androidx.compose.foundation.lazy.LazyListScope
-import com.gemwallet.android.ui.components.list_item.dateGroupedList
+import com.gemwallet.android.ui.components.list_item.DateSection
+import com.gemwallet.android.ui.components.list_item.dateSectionedList
 import com.wallet.core.primitives.FiatTransactionAssetData
 
 fun LazyListScope.fiatTransactionsList(
-    items: List<FiatTransactionAssetData>,
+    sections: List<DateSection<FiatTransactionAssetData>>,
     onTransactionClick: (FiatTransactionAssetData) -> Unit,
 ) {
-    dateGroupedList(
-        items = items,
-        createdAt = { it.transaction.createdAt },
-        key = { _, item -> item.transaction.id },
+    dateSectionedList(
+        sections = sections,
+        key = { _, item -> item.id },
     ) { position, item ->
         FiatTransactionItem(
             info = item,

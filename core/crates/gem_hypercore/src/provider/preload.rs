@@ -82,9 +82,9 @@ impl<C: Client> ChainTransactionLoad for HyperCoreClient<C> {
             }
             TransactionInputType::Perpetual { perpetual_type, .. } => {
                 let (fiat_value, fee_asset) = match perpetual_type {
-                    PerpetualType::Open(data) | PerpetualType::Increase(data) | PerpetualType::Close(data) => (data.fiat_value, data.base_asset.id.clone()),
-                    PerpetualType::Reduce(reduce_data) => (reduce_data.data.fiat_value, reduce_data.data.base_asset.id.clone()),
-                    PerpetualType::Modify(data) => (0.0, data.base_asset.id.clone()),
+                    PerpetualType::Open { data } | PerpetualType::Increase { data } | PerpetualType::Close { data } => (data.fiat_value, data.base_asset.id.clone()),
+                    PerpetualType::Reduce { data: reduce_data } => (reduce_data.data.fiat_value, reduce_data.data.base_asset.id.clone()),
+                    PerpetualType::Modify { data } => (0.0, data.base_asset.id.clone()),
                 };
                 let (order, fee_rates) = self.get_order(&input.sender_address).await?;
                 let fee_amount = calculate_perpetual_fee_amount(fiat_value, fee_rates.perpetual_cross, order.builder_fee_bps);

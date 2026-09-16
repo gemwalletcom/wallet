@@ -8,6 +8,7 @@ internal sealed interface RecipientAction {
     data class SetMemo(val memo: String) : RecipientAction
     data class Scan(val field: QrScanField) : RecipientAction
     data object Next : RecipientAction
+    data object ValidateAddress : RecipientAction
     data class Select(val destination: GemRecipient) : RecipientAction
     data object Cancel : RecipientAction
 }

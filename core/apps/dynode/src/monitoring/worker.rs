@@ -7,9 +7,8 @@ use tokio::sync::RwLock;
 use super::chain_monitor::ChainMonitor;
 use super::evaluator::NodeHealthEvaluator;
 use super::request_failure::RequestFailureSignal;
-use crate::config::{ChainConfig, NodeMonitoringConfig, Url};
+use crate::config::{ChainConfig, MonitoringConfig, Url};
 use crate::metrics::Metrics;
-use crate::proxy::NodeDomain;
 
 pub(crate) struct NodeMonitor {
     monitors: Vec<ChainMonitor>,
@@ -17,12 +16,7 @@ pub(crate) struct NodeMonitor {
 }
 
 impl NodeMonitor {
-    pub(crate) fn new(
-        chains: impl IntoIterator<Item = ChainConfig>,
-        nodes: Arc<RwLock<HashMap<Chain, NodeDomain>>>,
-        metrics: Arc<Metrics>,
-        monitoring_config: NodeMonitoringConfig,
-    ) -> Self {
+    pub(crate) fn new(chains: impl IntoIterator<Item = ChainConfig>, nodes: Arc<RwLock<HashMap<Chain, Url>>>, metrics: Arc<Metrics>, monitoring_config: MonitoringConfig) -> Self {
         let mut monitors = Vec::new();
         let mut signals = HashMap::new();
         if !monitoring_config.enabled {

@@ -13,6 +13,9 @@ import com.wallet.core.primitives.QRScanType
 import com.gemwallet.android.ui.components.screen.SelectChain
 import com.gemwallet.android.features.add_asset.viewmodels.AddAssetViewModel
 import com.gemwallet.android.features.add_asset.viewmodels.models.AddAssetUIState
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.screen.rememberSnackbarState
+import com.gemwallet.android.ui.localization.text
 
 @Composable
 fun AddAssetScreen(
@@ -25,9 +28,11 @@ fun AddAssetScreen(
     val chains by viewModel.chains.collectAsStateWithLifecycle()
     val network by viewModel.selectedChain.collectAsStateWithLifecycle()
     val token by viewModel.token.collectAsStateWithLifecycle()
+    val assetRows by viewModel.assetRows.collectAsStateWithLifecycle()
     val searchState by viewModel.searchState.collectAsStateWithLifecycle()
     val explorerLink by viewModel.explorerLink.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
+    val snackbar = rememberSnackbarState(message = uiState.error?.text(), iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 
     BackHandler(uiState.scene != AddAssetUIState.Scene.Form) {
         viewModel.cancelSelectChain()
@@ -54,9 +59,11 @@ fun AddAssetScreen(
                 addressState = viewModel.addressState,
                 network = network?.asset(),
                 token = token,
+                assetRows = assetRows,
                 explorerLink = explorerLink,
                 buttonState = buttonState,
                 canSelectChain = (availableChains?.size ?: 0) > 1,
+                snackbar = snackbar,
                 onAction = { action ->
                     when (action) {
                         AddAssetAction.Scan -> viewModel.onQrScan()

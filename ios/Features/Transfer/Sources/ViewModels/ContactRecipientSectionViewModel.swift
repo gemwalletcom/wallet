@@ -15,14 +15,19 @@ struct ContactRecipientSectionViewModel {
     }
 
     var listItems: [ListItemValue<GemRecipient>] {
-        contacts.flatMap { contactData in
-            contactData.addresses.map { address in
-                ListItemValue(
-                    title: contactData.contact.name,
-                    subtitle: GemAddressService.shared.format(address: address.address, chain: address.chain),
-                    value: GemRecipient(address: address.address, name: contactData.contact.name, memo: address.memo),
-                )
-            }
+        let entries = contacts.flatMap { contactData in
+            contactData.addresses.map { (contactData.contact.name, $0) }
+        }
+        let subtitles = GemAddressService.shared.formatAll(
+            addresses: entries.map { ChainAddress(chain: $0.1.chain, address: $0.1.address).toGem() },
+            style: .short,
+        )
+        return zip(entries, subtitles).map { entry, subtitle in
+            ListItemValue(
+                title: entry.0,
+                subtitle: subtitle,
+                value: GemRecipient(address: entry.1.address, name: entry.0, memo: entry.1.memo),
+            )
         }
     }
 }

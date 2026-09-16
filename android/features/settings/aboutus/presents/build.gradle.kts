@@ -51,12 +51,4 @@ android {
 
 dependencies {
     implementation(project(":ui"))
-    implementation(project(":ui-models"))
-
-    debugImplementation(libs.androidx.ui.tooling)
-    implementation(libs.androidx.ui.tooling.preview)
-
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
 }

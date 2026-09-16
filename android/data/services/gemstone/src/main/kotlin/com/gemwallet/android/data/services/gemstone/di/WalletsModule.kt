@@ -2,7 +2,6 @@ package com.gemwallet.android.data.services.gemstone.di
 
 import dagger.hilt.android.qualifiers.ApplicationContext
 import android.content.Context
-import uniffi.gemstone.GemLocalizer
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
@@ -51,7 +50,7 @@ object WalletsModule {
         walletPreferencesService: GemWalletPreferencesService,
         explorerService: GemExplorerService,
         addressStore: GemstoneAddressStore,
-        localizer: GemLocalizer,
+        avatarService: GemAvatarService,
     ): GemWalletService = GemWalletService(
         keystore,
         GemstoneKeystorePassword(passwordStore),
@@ -62,7 +61,7 @@ object WalletsModule {
         walletPreferencesService,
         explorerService,
         addressStore,
-        localizer,
+        avatarService,
     )
 
     @Provides

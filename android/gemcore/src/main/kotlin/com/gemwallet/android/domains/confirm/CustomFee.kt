@@ -1,11 +1,12 @@
 package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.math.parseInputNumberOrNull
+import com.gemwallet.android.math.parseInputValueOrNull
 import com.gemwallet.android.model.ValueFormatter
 import uniffi.gemstone.GemFeeRateRows
 import uniffi.gemstone.GemCustomFee
 import java.math.BigInteger
+import uniffi.gemstone.GemValueStyle
 
 data class CustomFee(
     val rate: BigInteger?,
@@ -26,7 +27,7 @@ data class CustomFee(
         ): CustomFee {
             val baseTotal = rows.selectedTotal ?: BigInteger.ZERO
             val normalTotal = rows.normalTotal ?: baseTotal
-            val rate = input.parseInputNumberOrNull()?.movePointRight(decimals)?.toBigInteger()?.takeIf { it > BigInteger.ZERO }
+            val rate = input.parseInputValueOrNull(decimals)?.takeIf { it > BigInteger.ZERO }
 
             return GemCustomFee.estimate(
                 chain = currentFee.feeAsset.chain.string,
@@ -37,7 +38,7 @@ data class CustomFee(
             ).use { estimate ->
                 CustomFee(
                     rate = rate,
-                    placeholder = ValueFormatter(style = ValueFormatter.Style.Auto).string(baseTotal, decimals),
+                    placeholder = ValueFormatter(style = GemValueStyle.AUTO).string(baseTotal, decimals),
                     networkFee = FeeUIModel.FeeInfo(estimate.feeValue(), currentFee.feeAsset, currentFee.price, currentFee.currency, currentFee.priority),
                     maxRateText = format(estimate.maxRate(), decimals),
                     minRateText = estimate.minimumRate()?.let { format(it, decimals) } ?: "",
@@ -52,6 +53,6 @@ data class CustomFee(
             value.toBigDecimal().movePointLeft(decimals).stripTrailingZeros().toPlainString()
 
         fun formatRate(value: BigInteger, decimals: Int, unitSymbol: String): String =
-            ValueFormatter(style = ValueFormatter.Style.Auto).string(value, decimals, unitSymbol)
+            ValueFormatter(style = GemValueStyle.AUTO).string(value, decimals, unitSymbol)
     }
 }

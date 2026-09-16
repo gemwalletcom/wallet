@@ -2,7 +2,9 @@
 
 import BigInt
 import Formatters
+import Foundation
 import class Gemstone.GemCustomFee
+import struct Gemstone.GemNumberFormat
 import GemstonePrimitives
 import Localization
 import Observation
@@ -13,22 +15,19 @@ import Primitives
 public final class NetworkFeeCustomViewModel {
     private let chain: Chain
     private let feeAsset: Asset
-    private let feeAssetPrice: Price?
-    private let currency: Currency
     private let unitType: FeeUnitType
     private let baseFee: BigInt?
     private let baseTotal: BigInt?
     private let normalTotal: BigInt?
     private let decimals: Int
     private let onSelect: @MainActor (BigInt) -> Void
+    private let display: (BigInt) -> AmountDisplay
 
     public var input: String = ""
 
     public init(
         chain: Chain,
         feeAsset: Asset,
-        feeAssetPrice: Price?,
-        currency: Currency,
         unitType: FeeUnitType,
         decimals: Int,
         baseFee: BigInt?,
@@ -36,17 +35,17 @@ public final class NetworkFeeCustomViewModel {
         normalTotal: BigInt?,
         initialRate: BigInt?,
         onSelect: @escaping @MainActor (BigInt) -> Void,
+        display: @escaping (BigInt) -> AmountDisplay,
     ) {
         self.chain = chain
         self.feeAsset = feeAsset
-        self.feeAssetPrice = feeAssetPrice
-        self.currency = currency
         self.unitType = unitType
         self.decimals = decimals
         self.baseFee = baseFee
         self.baseTotal = baseTotal
         self.normalTotal = normalTotal
         self.onSelect = onSelect
+        self.display = display
         input = initialRate.map { ValueFormatter.full.string($0, decimals: decimals) } ?? ""
     }
 
@@ -62,11 +61,11 @@ public final class NetworkFeeCustomViewModel {
     }
 
     public var value: String? {
-        feeAmount.map { display(for: $0).amount.text }
+        feeAmount.map { display($0).amount.text }
     }
 
     public var fiatValue: String? {
-        feeAmount.flatMap { display(for: $0).fiat?.text }
+        feeAmount.flatMap { display($0).fiat?.text }
     }
 
     public var errorText: String? {
@@ -86,7 +85,7 @@ public final class NetworkFeeCustomViewModel {
     }
 
     public func sanitize(_ text: String) -> String {
-        NumberSanitizer(maximumFractionDigits: decimals).sanitize(text)
+        NumberInput.format().sanitize(input: text, maximumFractionDigits: UInt32(decimals), maximumIntegerDigits: nil)
     }
 
     public func confirm() {
@@ -95,7 +94,7 @@ public final class NetworkFeeCustomViewModel {
     }
 
     private var rate: BigInt? {
-        guard let value = try? ValueFormatter.full.inputNumber(from: input, decimals: decimals), value > .zero else { return nil }
+        guard let value = try? NumberInput.value(input, decimals: decimals), value > .zero else { return nil }
         return value
     }
 
@@ -111,15 +110,5 @@ public final class NetworkFeeCustomViewModel {
 
     private var feeAmount: BigInt? {
         baseFee.map { _ in estimate.feeValue() }
-    }
-
-    private func display(for amount: BigInt) -> AmountDisplay {
-        AmountDisplay.numeric(
-            asset: feeAsset,
-            price: feeAssetPrice,
-            value: amount,
-            currency: currency.rawValue,
-            formatter: .auto,
-        )
     }
 }

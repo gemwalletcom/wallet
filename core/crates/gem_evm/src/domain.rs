@@ -1,6 +1,6 @@
 use url::Url;
 
-pub fn extract_host(url_or_domain: &str) -> Option<String> {
+pub fn host_with_port(url_or_domain: &str) -> Option<String> {
     if url_or_domain.is_empty() {
         return None;
     }
@@ -42,12 +42,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_extract_host() {
-        assert_eq!(extract_host(""), None);
-        assert_eq!(extract_host("example.com"), Some("example.com".to_string()));
-        assert_eq!(extract_host("https://example.com"), Some("example.com".to_string()));
-        assert_eq!(extract_host("example.com:8080"), Some("example.com:8080".to_string()));
-        assert_eq!(extract_host("https://example.com:8080"), Some("example.com:8080".to_string()));
+    fn test_host_with_port() {
+        assert_eq!(host_with_port(""), None);
+        assert_eq!(host_with_port("example.com"), Some("example.com".to_string()));
+        assert_eq!(host_with_port("https://example.com"), Some("example.com".to_string()));
+        assert_eq!(host_with_port("example.com:8080"), Some("example.com:8080".to_string()));
+        assert_eq!(host_with_port("https://example.com:8080"), Some("example.com:8080".to_string()));
     }
 
     #[test]

@@ -4,7 +4,6 @@ import Foundation
 import Localization
 import Primitives
 import PrimitivesComponents
-import Style
 import SwiftUI
 
 struct NewSecretPhraseViewModel: SecretPhraseViewableModel {
@@ -32,7 +31,7 @@ struct NewSecretPhraseViewModel: SecretPhraseViewableModel {
     }
 
     var type: SecretPhraseDataType {
-        .words(words: WordIndex.rows(for: words))
+        .words(rows: SecretPhraseRow.rows(for: words))
     }
 
     var copyModel: CopyTypeViewModel {

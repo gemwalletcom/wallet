@@ -17,6 +17,12 @@ public struct PriceStore: Sendable {
         }
     }
 
+    public func getRates() throws -> [FiatRateRecord] {
+        try db.read { db in
+            try FiatRateRecord.fetchAll(db)
+        }
+    }
+
     public func updatePrices(_ updates: [PriceUpdate]) throws {
         try db.write { db in
             for update in updates {
@@ -76,7 +82,7 @@ public struct PriceStore: Sendable {
             try PriceRecord
                 .filter(assetIds.contains(PriceRecord.Columns.assetId))
                 .fetchAll(db)
-                .compactMap { $0.mapToAssetPrice() }
+                .map { $0.mapToAssetPrice() }
         }
     }
 

@@ -84,7 +84,6 @@ fn build_collection(collection_id: &NFTCollectionId, address: &Address, info: &T
         },
         status: VerificationStatus::from_verified(is_verified),
         links: vec![],
-        is_verified,
     }
 }
 
@@ -185,7 +184,7 @@ mod tests {
         assert_eq!(collection.chain, Chain::Ton);
         assert_eq!(collection.contract_address, NUMBERS_COLLECTION);
         assert_eq!(collection.name, "Anonymous Telegram Numbers");
-        assert!(collection.is_verified);
+        assert_eq!(collection.status, VerificationStatus::Verified);
         assert_eq!(collection.status, VerificationStatus::Verified);
     }
 
@@ -196,7 +195,7 @@ mod tests {
         let collection = map_collection(response, collection_id).unwrap();
 
         assert_eq!(collection.status, VerificationStatus::Verified);
-        assert!(collection.is_verified);
+        assert_eq!(collection.status, VerificationStatus::Verified);
         assert_eq!(collection.links, vec![]);
     }
 

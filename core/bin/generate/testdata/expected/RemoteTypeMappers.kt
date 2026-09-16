@@ -20,6 +20,16 @@ fun com.wallet.core.primitives.ConnectionState.toGem(): uniffi.gemstone.Connecti
     com.wallet.core.primitives.ConnectionState.NotReachable -> uniffi.gemstone.ConnectionState.NOT_REACHABLE
 }
 
+fun uniffi.gemstone.StakeOwner.toPrimitives(): com.wallet.core.primitives.StakeOwner = when (this) {
+    is uniffi.gemstone.StakeOwner.Wallet -> com.wallet.core.primitives.StakeOwner.Wallet
+    is uniffi.gemstone.StakeOwner.Validator -> com.wallet.core.primitives.StakeOwner.Validator(v1.toPrimitives())
+}
+
+fun com.wallet.core.primitives.StakeOwner.toGem(): uniffi.gemstone.StakeOwner = when (this) {
+    is com.wallet.core.primitives.StakeOwner.Wallet -> uniffi.gemstone.StakeOwner.Wallet
+    is com.wallet.core.primitives.StakeOwner.Validator -> uniffi.gemstone.StakeOwner.Validator(data.toGem())
+}
+
 fun uniffi.gemstone.Account.toPrimitives(): com.wallet.core.primitives.Account = com.wallet.core.primitives.Account(
     chain = chain.toChain(),
     address = address,

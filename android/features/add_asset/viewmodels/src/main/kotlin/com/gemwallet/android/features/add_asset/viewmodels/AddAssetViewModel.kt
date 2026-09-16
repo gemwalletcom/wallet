@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.add_asset.viewmodels
 
 import com.gemwallet.android.ext.toGem
-import android.util.Log
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
@@ -13,7 +12,6 @@ import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.add_asset.viewmodels.models.AddAssetUIState
-import com.gemwallet.android.features.add_asset.viewmodels.models.TokenSearchState
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.Asset
@@ -33,8 +31,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemAddAssetServiceInterface
 import javax.inject.Inject
+import com.gemwallet.android.ext.errorText
+import uniffi.gemstone.GemAddAssetPhase
+import uniffi.gemstone.GemAddAssetSession
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -72,25 +74,32 @@ class AddAssetViewModel @Inject constructor(
 
     val addressState = mutableStateOf("")
 
-    val searchState = snapshotFlow { addressState.value }.combine(selectedChain) { address, chain -> chain to address }
+    private val session = snapshotFlow { addressState.value }.combine(selectedChain) { address, chain -> chain to address }
         .flatMapLatest { (chain, address) ->
             flow {
-                if (address.isEmpty() || chain == null) {
-                    emit(TokenSearchState.Idle)
+                val input = service.newSession(chain?.string).onAddress(address)
+                if (!input.searchesToken()) {
+                    emit(input)
                     return@flow
                 }
-                emit(TokenSearchState.Loading)
-                emit(searchToken(chain, address))
+                emit(input.onLoading())
+                emit(searchToken(input, requireNotNull(chain), address))
             }
         }
         .flowOn(Dispatchers.IO)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, TokenSearchState.Idle)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, service.newSession(null))
 
-    val token = searchState.map { (it as? TokenSearchState.Found)?.asset }
+    val searchState = session.map { it.viewState().phase }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, GemAddAssetPhase.Idle)
+
+    val token = session.map { it.asset?.toPrimitives() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val buttonState = combine(token, uiState) { token, uiState ->
-        buttonState(enabled = token != null, loading = uiState.isLoading)
+    val assetRows = session.map { it.assetRows() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val buttonState = combine(session, uiState) { session, uiState ->
+        buttonState(enabled = session.viewState().canAdd, loading = uiState.isLoading)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Disabled)
 
     val explorerLink = token.map { token ->
@@ -139,27 +148,25 @@ class AddAssetViewModel @Inject constructor(
             withContext(Dispatchers.IO) {
                 service.add(wallet.toGem(), asset.id.toIdentifier())
             }
-        }.onFailure { Log.e(TAG, "add custom token failed for ${asset.id.toIdentifier()}", it) }
-        state.update { it.copy(isImporting = false) }
+        }
+        state.update { it.copy(isImporting = false, error = added.exceptionOrNull()?.errorText()) }
         if (added.isSuccess) {
             onFinish()
         }
     }
 
-    private suspend fun searchToken(chain: Chain, address: String): TokenSearchState = try {
-        TokenSearchState.Found(service.token(chain.string, address).toPrimitives())
-    } catch (_: Exception) {
-        TokenSearchState.Error
-    }
+    fun clearError() = state.update { it.copy(error = null) }
 
-    private companion object {
-        const val TAG = "AddAsset"
-    }
+    private suspend fun searchToken(session: GemAddAssetSession, chain: Chain, address: String): GemAddAssetSession =
+        runCatchingCancellable { session.onFound(service.token(chain.string, address)) }
+            .getOrDefault(session.onFailed())
+
 
     private data class State(
         val isQrScan: Boolean = false,
         val isSelectChain: Boolean = false,
         val isImporting: Boolean = false,
+        val error: GemErrorText? = null,
     ) {
         fun toUIState(): AddAssetUIState {
             return AddAssetUIState(
@@ -169,6 +176,7 @@ class AddAssetViewModel @Inject constructor(
                     else -> AddAssetUIState.Scene.Form
                 },
                 isLoading = isImporting,
+                error = error,
             )
         }
     }

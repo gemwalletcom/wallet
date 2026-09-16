@@ -9,6 +9,7 @@ common_secret_phrase = Секретная фраза
 common_copy = Копировать
 common_share = Поделиться
 common_continue = Продолжить
+common_sign_in_with = Войти через %@
 common_provider = Провайдер
 common_loading = Загрузка
 common_address = Адрес
@@ -54,9 +55,9 @@ common_get_started = Начать
 common_earn = Заработать
 common_method = Метод
 common_token = Токен
+common_expiration = Срок действия
 common_suspicious_address = Подозрительный адрес
 common_refresh = Обновить
-common_no_thanks = Нет, спасибо
 common_grant_permission = Предоставить разрешение
 common_required_field = %@ является обязательным
 
@@ -163,7 +164,6 @@ transfer_freeze_title = Заморозить
 transfer_unfreeze_title = Разморозить
 transfer_review_request = Просмотр запроса
 transfer_amount = Сумма
-transfer_amount_title = Сумма
 
 # Settings
 
@@ -207,7 +207,6 @@ support_message_placeholder = Сообщение
 
 # Errors
 
-errors_transfer = Ошибка передачи: %@
 errors_validation = Ошибка проверки: %@
 errors_create_wallet = Ошибка создания кошелька: %@
 errors_invalid_address_name = Неправильный адрес или имя
@@ -226,7 +225,6 @@ errors_cancelled = Отменено
 errors_connections_user_cancelled = Отменено пользователем
 errors_not_supported = Не поддерживается
 errors_permissions_not_granted = Разрешения не предоставлены
-errors_decoding = Ошибка декодирования
 errors_unknown = Неизвестный
 errors_not_supported_qr = Данное устройство не поддерживает сканирование QR-кода. Вы можете выбрать только изображение QR-кода из библиотеки.
 errors_camera_permissions_not_granted = Разрешение на съемку не предоставлено. Пожалуйста, включите доступ к камере в настройках, чтобы отсканировать QR-код.
@@ -237,11 +235,8 @@ errors_invalid_asset_address = Неверный адрес %@
 errors_dust_threshold = Транзакция не удалась, так как сумма слишком мала для соответствия минимальным требованиям сети %@ (порог пыли). Этот предел гарантирует, что сумма транзакции покрывает комиссии и затраты на обработку.
 errors_swap_no_quote_available = Котировка недоступна.
 errors_swap_not_supported_asset = Неподдерживаемый актив.
-errors_connections_invalid_send_parameters = Для отправки транзакции указаны неверные параметры.
-errors_connections_invalid_sign_parameters = Для подписи предоставлены неверные параметры.
 errors_connections_no_supported_wallets = Поддерживаемые кошельки отсутствуют.
 errors_connections_unsupported_chain = Предоставленная цепочка не поддерживается.
-errors_connections_unsupported_method = Запрошенный метод не поддерживается.
 errors_swap_amount_too_small = Сумма слишком мала
 errors_required = %@ требуется
 errors_scan_transaction_malicious_description = Эту транзакцию невозможно завершить — адрес кошелька назначения связан с подозрительной или вредоносной активностью.
@@ -253,7 +248,6 @@ errors_dust_threshold_short = Эту сумму сеть считает пыль
 errors_swap_minimum_amount = Минимальная сумма сделки — %@. Введите, пожалуйста, сумму побольше.
 errors_perpetual_trigger_price_lower = Цена триггера должна быть ниже рыночной цены
 errors_perpetual_trigger_price_higher = Цена триггера должна быть выше рыночной цены
-errors_token_unable_fetch_token_information = Не удается получить информацию о токене: %@
 errors_unknown_try_again = Произошла неизвестная ошибка. Пожалуйста, повторите попытку.
 errors_network_error = Сетевая ошибка: %@
 errors_network_offline = По всей видимости, интернет-соединение отсутствует.
@@ -277,7 +271,6 @@ update_app_action = Обновить
 update_app_permission_title = Разрешить установку
 update_app_permission_description = Зайдите в настройки и разрешите установку из внешних источников
 update_app_permission_open_settings = Открыть настройки
-update_app_downloading = Загрузка...
 
 # Transaction
 
@@ -365,6 +358,7 @@ wallet_connect_state_empty_description = Отсканируйте или вст�
 wallet_connect_permissions_title = Разрешения
 wallet_connect_permissions_view_balance = Просматривать баланс и активность
 wallet_connect_permissions_approval_requests = Отправлять запросы на подтверждение
+wallet_connect_request_expired = Срок запроса истёк
 
 # Swap
 
@@ -480,8 +474,6 @@ banner_account_activation_title = Плата за активацию аккау�
 banner_account_activation_description = Сеть %@ требует единовременную плату в размере %@.
 banner_stake_title = Начните стейкинг %@
 banner_stake_description = Зарабатывайте %@ наград за свою стейк, пока спите.
-banner_enable_notifications_title = Включить уведомления
-banner_enable_notifications_description = Будьте в курсе активности вашего кошелька.
 banner_activate_asset_description = Чтобы использовать актив %@, необходимо сначала включить его в сети %@ выполнив особые требования сети.
 banner_asset_status_title = Подозрительный актив
 banner_asset_status_description = Токен может быть небезопасным или вводить в заблуждение. Продолжайте, только если вы полностью ему доверяете.
@@ -605,6 +597,7 @@ nft_report_reason_spam = Спам
 nft_report_reason_malicious = Вредоносный
 nft_report_reason_inappropriate = Неприемлемый контент
 nft_report_reason_copyright = Авторские права
+nft_report_reason_other = Прочее
 nft_report_report_button_title = Пожаловаться
 
 # Permissions
@@ -629,7 +622,6 @@ networks_state_empty_search_title = Сети не найдены
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Вы получите Секретную фразу — это единственный способ получить доступ к вашему кошельку.
-onboarding_security_create_wallet_confirm_title = Я понимаю и хочу продолжить
 onboarding_security_create_wallet_do_not_share_title = Не делитесь этим ни с кем
 onboarding_security_create_wallet_do_not_share_subtitle = Любой, кто узнает вашу секретную фразу, может получить полный контроль над вашим кошельком.
 onboarding_security_create_wallet_keep_safe_subtitle = Секретная фраза – это единственный способ получить доступ к своему кошельку.
@@ -687,8 +679,9 @@ perpetual_margin_isolated = Изолированная
 # Perpetuals
 
 perpetuals_title = Перпетуалы
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = Торговать перпетуалами
 perpetuals_markets = Рынки
-perpetuals_empty_state_no_markets = Нет рынков
 perpetuals_empty_state_no_markets_found = Рынки не найдены
 
 # Rewards
@@ -760,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = Требуется разрешение камеры для сканирования QR-кода.\nПожалуйста, предоставьте разрешение.
 
 # Notifications Permission
 
-notifications_permission_request_notification = Разрешение Post Notifications требуется для получения уведомлений о новых транзакциях.\nПожалуйста, предоставьте это разрешение.
 
 # Confirm
 
-confirm_fee_error = Ошибка при расчете комиссии
 
 # Rootcheck
 

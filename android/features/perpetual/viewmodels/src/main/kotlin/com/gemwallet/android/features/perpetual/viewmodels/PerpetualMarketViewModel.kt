@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import uniffi.gemstone.GemAssetAction
 import androidx.lifecycle.viewModelScope
 import android.util.Log
-import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
@@ -27,7 +27,6 @@ import kotlinx.coroutines.Dispatchers
 import uniffi.gemstone.GemMarketsRefreshTrigger
 import uniffi.gemstone.GemPerpetualServiceInterface
 import uniffi.gemstone.GemPerpetualSubscription
-import uniffi.gemstone.GemRecentActivityServiceInterface
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -44,9 +43,8 @@ class PerpetualMarketViewModel @Inject constructor(
     private val getPerpetuals: GetPerpetuals,
     private val getPositions: GetPerpetualPositions,
     private val getBalance: GetPerpetualBalance,
-    private val getRecentAssets: GetRecentAssets,
+    private val recentAssetsService: RecentAssetsService,
     private val service: GemPerpetualServiceInterface,
-    private val recentActivity: GemRecentActivityServiceInterface,
     private val perpetualObserver: PerpetualObserver,
 ) : ViewModel() {
 
@@ -64,7 +62,8 @@ class PerpetualMarketViewModel @Inject constructor(
     val positions = combine(getPositions.getPerpetualPositions(), query) { items, q ->
         val needle = q?.trim().orEmpty()
         if (needle.isEmpty()) items else items.filter {
-            it.name.contains(needle, ignoreCase = true) ||
+            it.title.contains(needle, ignoreCase = true) ||
+                it.perpetualId.symbol.contains(needle, ignoreCase = true) ||
                 it.asset.symbol.contains(needle, ignoreCase = true) ||
                 it.asset.name.contains(needle, ignoreCase = true)
         }
@@ -72,7 +71,7 @@ class PerpetualMarketViewModel @Inject constructor(
     val balance = getBalance.getDisplayBalance()
         .stateIn(viewModelScope, SharingStarted.Eagerly, EmptyPerpetualBalance)
     val recent: StateFlow<List<Asset>> =
-        getRecentAssets(RecentAssetsRequest(types = listOf(RecentActivityType.Perpetual)))
+        recentAssetsService.getRecentAssets(RecentAssetsRequest(types = listOf(RecentActivityType.Perpetual)))
             .map { items -> items.map { it.asset } }
             .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -105,7 +104,7 @@ class PerpetualMarketViewModel @Inject constructor(
 
     fun onOpenPerpetual(asset: Asset) {
         viewModelScope.launch(Dispatchers.IO) {
-            runCatchingCancellable { recentActivity.addRecent(GemAssetAction.OPEN, asset.toGem()) }
+            runCatchingCancellable { service.addRecent(GemAssetAction.OPEN, asset.toGem()) }
                 .onFailure { Log.e(TAG, "recording recent perpetual ${asset.id.toIdentifier()} failed", it) }
         }
     }

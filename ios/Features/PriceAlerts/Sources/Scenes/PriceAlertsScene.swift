@@ -23,7 +23,7 @@ public struct PriceAlertsScene: View {
                 list: model.sections(for: model.priceAlerts).list,
                 content: { alert in
                     NavigationLink(value: Scenes.Price(asset: alert.asset)) {
-                        alertView(alert: alert)
+                        PriceAlertItemView(alert: alert, currency: model.currency, onDelete: { onDelete(alert: $0) })
                     }
                 },
             )
@@ -44,6 +44,7 @@ public struct PriceAlertsScene: View {
             await model.load()
         }
         .navigationTitle(model.title)
+        .alertSheet($model.isPresentingAlertMessage)
     }
 }
 
@@ -60,16 +61,6 @@ private extension PriceAlertsScene {
         } footer: {
             Text(Localized.PriceAlerts.getNotifiedExplainMessage)
         }
-    }
-
-    func alertView(alert: PriceAlertData) -> some View {
-        ListAssetItemView(model: PriceAlertItemViewModel(data: alert, currency: model.currencyCode))
-            .swipeActions(edge: .trailing) {
-                Button(Localized.Common.delete, role: .destructive) {
-                    onDelete(alert: alert.priceAlert)
-                }
-                .tint(Colors.red)
-            }
     }
 }
 

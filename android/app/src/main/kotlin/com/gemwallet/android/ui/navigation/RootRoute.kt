@@ -1,7 +1,6 @@
 package com.gemwallet.android.ui.navigation
 
 import com.gemwallet.android.ui.LocalAssetsService
-import com.gemwallet.android.ui.LocalDeeplinkService
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.key
@@ -34,6 +33,7 @@ import com.gemwallet.android.ui.navigation.routes.AddAssetRoute
 import com.gemwallet.android.ui.navigation.routes.AddContactRoute
 import com.gemwallet.android.ui.navigation.routes.AddPriceAlertTargetRoute
 import com.gemwallet.android.ui.navigation.routes.AmountRoute
+import com.gemwallet.android.ui.navigation.routes.WalletConnectRequestRoute
 import com.gemwallet.android.ui.navigation.routes.AssetChartRoute
 import com.gemwallet.android.ui.navigation.routes.AssetPriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
@@ -70,6 +70,7 @@ import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute
 import com.gemwallet.android.ui.navigation.routes.ReferralRoute
 import com.gemwallet.android.ui.navigation.routes.SecurityRoute
 import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
+import com.gemwallet.android.ui.navigation.routes.EarnRoute
 import com.gemwallet.android.ui.navigation.routes.StakeRoute
 import com.gemwallet.android.ui.navigation.routes.SupportRoute
 import com.gemwallet.android.ui.navigation.routes.SwapPairRoute
@@ -90,7 +91,7 @@ import com.wallet.core.primitives.NFTAssetId
 import com.wallet.core.primitives.PortfolioType
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.WalletId
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemWalletSecretKind
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -98,6 +99,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemDeeplinkService
+import uniffi.gemstone.GemDeeplinkServiceInterface
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.UrlAction
@@ -115,8 +117,8 @@ data class SwapSelection(
 fun rememberWalletNavigationState(
     startDestination: NavKey,
     currentTab: MutableState<String>,
+    deeplinkService: GemDeeplinkService,
 ): WalletNavigator {
-    val deeplinkService = LocalDeeplinkService.current
     val assetsService = LocalAssetsService.current
     val scope = rememberCoroutineScope()
     return key(startDestination) {
@@ -136,7 +138,7 @@ fun rememberWalletNavigationState(
 class WalletNavigator(
     val backStack: NavBackStack<NavKey>,
     val currentTab: MutableState<String>,
-    private val deeplinkService: GemDeeplinkService,
+    private val deeplinkService: GemDeeplinkServiceInterface,
     private val assetsService: GemAssetsServiceInterface,
     private val scope: CoroutineScope,
 ) {
@@ -167,6 +169,15 @@ class WalletNavigator(
     fun pop() {
         if (backStack.size > 1) {
             backStack.removeLastOrNull()
+        }
+    }
+
+    fun showWalletConnectRequest(key: String?) {
+        val route = key?.let(::WalletConnectRequestRoute)
+        if (route != null && backStack.contains(route)) return
+        backStack.removeAll { it is WalletConnectRequestRoute }
+        if (route != null) {
+            push(route)
         }
     }
 
@@ -217,12 +228,12 @@ class WalletNavigator(
     fun openCreateWallet() = push(CreateWalletRoute)
     fun openImportWallet() = push(ImportSelectTypeRoute)
     fun openImportWallet(importType: ImportType) {
-        importType.toImportRoute()?.let(::push)
+        push(importType.toImportRoute())
     }
     fun openWallet(walletId: WalletId) = push(WalletDetailsRoute(walletId))
     fun openWalletImage(walletId: WalletId, source: WalletImageSource = WalletImageSource.Wallet) = push(WalletImageRoute(walletId, source))
-    fun openWalletSecurityReminder(walletId: WalletId, type: WalletType) = push(WalletSecurityReminderRoute(walletId, type))
-    fun finishWalletSecurityReminder(walletId: WalletId, type: WalletType) = replaceTop(WalletPhraseRoute(walletId, type))
+    fun openWalletSecurityReminder(walletId: WalletId, secretKind: GemWalletSecretKind) = push(WalletSecurityReminderRoute(walletId, secretKind))
+    fun finishWalletSecurityReminder(walletId: WalletId, secretKind: GemWalletSecretKind) = replaceTop(WalletPhraseRoute(walletId, secretKind))
     fun openSetupWallet(walletId: WalletId) = replaceTop(SetupWalletRoute(walletId))
     fun openAddAsset() = push(AddAssetRoute)
     fun openAsset(assetId: AssetId) = openAssetRoute(AssetRoute(assetId))
@@ -259,6 +270,8 @@ class WalletNavigator(
     fun openAddPriceAlertTarget(assetId: AssetId) = push(AddPriceAlertTargetRoute(assetId))
     fun openPerpetuals() = push(PerpetualRoute)
     fun openPerpetualDetails(assetId: AssetId) = push(PerpetualPositionRoute(assetId))
+    fun openEarn(assetId: AssetId) = push(EarnRoute(assetId))
+
     fun openStake(assetId: AssetId) = push(StakeRoute(assetId))
     fun openDelegation(validatorId: String, delegationId: String) = push(DelegationRoute(validatorId, delegationId))
     fun openReceive() = push(ReceiveSelectRoute)
@@ -330,21 +343,12 @@ class WalletNavigator(
         )
     }
 
-    internal fun openPendingNavigation(routes: List<NavKey>, confirmed: Boolean = false): Boolean {
+    internal fun openPendingNavigation(routes: List<NavKey>): Boolean {
         if (routes.isEmpty()) return false
-        if (!canOpenPendingNavigation()) return false
-        if (!confirmed && needsPendingNavigationConfirmation()) return false
+        if (backStack.firstOrNull() != WalletRootRoute) return false
         resetToWallet()
         routes.forEach(::push)
         return true
-    }
-
-    internal fun needsPendingNavigationConfirmation(): Boolean {
-        return canOpenPendingNavigation() && backStack.lastOrNull()?.isPendingNavigationProtectedRoute() == true
-    }
-
-    private fun canOpenPendingNavigation(): Boolean {
-        return backStack.firstOrNull() == WalletRootRoute
     }
 
     fun popConfirmFlow() {
@@ -371,6 +375,7 @@ internal fun NavKey.isConfirmFlowSegmentRoute(): Boolean {
         is ConfirmRoute,
         is DelegationRoute,
         is RecipientInputRoute,
+        is EarnRoute,
         is StakeRoute,
         is SwapPairRoute,
         is SwapSelectRoute -> true
@@ -378,17 +383,9 @@ internal fun NavKey.isConfirmFlowSegmentRoute(): Boolean {
     }
 }
 
-internal fun NavKey.isPendingNavigationProtectedRoute(): Boolean {
-    return isConfirmFlowSegmentRoute() ||
-        this is WalletSecurityReminderRoute ||
-        this is WalletPhraseRoute
-}
-
-private fun ImportType.toImportRoute(): NavKey? {
-    return when (walletType) {
-        WalletType.Multicoin -> ImportMulticoinWalletRoute
-        WalletType.Single,
-        WalletType.PrivateKey,
-        WalletType.View -> chain?.let { ImportChainWalletRoute(walletType, it) }
+private fun ImportType.toImportRoute(): NavKey {
+    return when (val chain = chain) {
+        null -> ImportMulticoinWalletRoute
+        else -> ImportChainWalletRoute(kind, chain)
     }
 }

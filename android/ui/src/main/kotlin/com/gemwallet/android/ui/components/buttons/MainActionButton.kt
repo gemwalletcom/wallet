@@ -14,13 +14,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.theme.alpha50
 import com.gemwallet.android.ui.theme.mainActionHeight
 
+import com.gemwallet.android.ui.theme.paddingHalfSmall
 @Composable
 fun MainActionButton(
     title: String,
@@ -34,7 +34,7 @@ fun MainActionButton(
             CircularProgressIndicator20(color = colors.contentColor)
         } else {
             Text(
-                modifier = Modifier.padding(4.dp),
+                modifier = Modifier.padding(paddingHalfSmall),
                 text = title,
                 fontSize = 18.sp,
                 textAlign = TextAlign.Center,

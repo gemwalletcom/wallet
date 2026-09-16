@@ -6,6 +6,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.data.service.store.database.GemDatabase
 import com.gemwallet.android.data.service.store.database.RoomStoreTransactionRunner
 import com.gemwallet.android.data.service.store.database.entities.toRecord
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockTransaction
@@ -40,43 +41,39 @@ class TransactionStateStoreTest {
             val metadata = TransactionSwapMetadata(mockAssetId(), "100", mockAssetId(chain = Chain.Ethereum), "200")
             val pending = mockTransaction(type = TransactionType.Swap, state = TransactionState.Pending, metadata = metadata.toJson())
             val confirmed = pending.copy(id = mockTransactionId(hash = "final-hash"), state = TransactionState.Confirmed, metadata = metadata.copy(toValue = "250").toJson())
-            store.addTransactions(wallet.id.id, listOf(pending.toJson(), confirmed.toJson()))
-            store.addTransactions(otherWallet.id.id, listOf(pending.toJson()))
+            store.addTransactions(wallet.id.id, listOf(pending.toGem(), confirmed.toGem()))
+            store.addTransactions(otherWallet.id.id, listOf(pending.toGem()))
             val recordId = database.transactionsDao().getTransaction(pending.id, wallet.id)?.recordId
 
             store.updateTransactionHash(wallet.id.id, pending.id.identifier, confirmed.id.hash)
             assertEquals(recordId, database.transactionsDao().getTransaction(confirmed.id, wallet.id)?.recordId)
-            database.openHelper.readableDatabase.query("SELECT tx_id, to_amount FROM tx_swap_metadata ORDER BY tx_id").use { cursor ->
+            database.openHelper.readableDatabase.query("SELECT tx_id FROM tx_swap_metadata ORDER BY tx_id").use { cursor ->
                 assertEquals(2, cursor.count)
                 cursor.moveToFirst()
                 assertEquals(confirmed.id.identifier, cursor.getString(0))
-                assertEquals("250", cursor.getString(1))
                 cursor.moveToNext()
                 assertEquals(pending.id.identifier, cursor.getString(0))
-                assertEquals("200", cursor.getString(1))
             }
 
             store.updateTransactionHash(otherWallet.id.id, pending.id.identifier, confirmed.id.hash)
-            database.openHelper.readableDatabase.query("SELECT tx_id, to_amount FROM tx_swap_metadata").use { cursor ->
+            database.openHelper.readableDatabase.query("SELECT tx_id FROM tx_swap_metadata").use { cursor ->
                 assertEquals(1, cursor.count)
                 cursor.moveToFirst()
                 assertEquals(confirmed.id.identifier, cursor.getString(0))
-                assertEquals("250", cursor.getString(1))
             }
             val updatedId = mockTransactionId(hash = "updated-swap")
             val swap = pending.copy(id = mockTransactionId(hash = "swap-hash"))
-            store.addTransactions(wallet.id.id, listOf(swap.toJson()))
+            store.addTransactions(wallet.id.id, listOf(swap.toGem()))
             store.updateTransactionHash(wallet.id.id, swap.id.identifier, updatedId.hash)
-            database.openHelper.readableDatabase.query("SELECT tx_id, to_amount FROM tx_swap_metadata WHERE tx_id IN (?, ?)", arrayOf(swap.id.identifier, updatedId.identifier)).use { cursor ->
+            database.openHelper.readableDatabase.query("SELECT tx_id FROM tx_swap_metadata WHERE tx_id IN (?, ?)", arrayOf(swap.id.identifier, updatedId.identifier)).use { cursor ->
                 assertEquals(1, cursor.count)
                 cursor.moveToFirst()
                 assertEquals(updatedId.identifier, cursor.getString(0))
-                assertEquals("200", cursor.getString(1))
             }
 
             val swapForTransfer = swap.copy(id = mockTransactionId(hash = "swap-for-transfer"))
             val transfer = confirmed.copy(id = mockTransactionId(hash = "transfer-hash"), type = TransactionType.Transfer, metadata = null)
-            store.addTransactions(wallet.id.id, listOf(swapForTransfer.toJson(), transfer.toJson()))
+            store.addTransactions(wallet.id.id, listOf(swapForTransfer.toGem(), transfer.toGem()))
             store.updateTransactionHash(wallet.id.id, swapForTransfer.id.identifier, transfer.id.hash)
             database.openHelper.readableDatabase.query("SELECT tx_id FROM tx_swap_metadata WHERE tx_id IN (?, ?)", arrayOf(swapForTransfer.id.identifier, transfer.id.identifier)).use { cursor ->
                 assertEquals(0, cursor.count)

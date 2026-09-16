@@ -1,43 +1,22 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemTransactionDetailRow
+import struct Gemstone.GemTransactionDetailSection
 import Foundation
 import Primitives
 import PrimitivesComponents
 import SwiftUI
 
-public enum TransactionSectionType: String, Identifiable, Equatable {
-    case header
-    case swapProgress
-    case swapAction
-    case details
-    case fee
-    case explorer
-
-    public var id: String {
-        rawValue
+extension GemTransactionDetailRow: @retroactive Identifiable {
+    public var id: Self {
+        self
     }
 }
 
-public enum TransactionItem: Identifiable, Equatable, Sendable {
-    case header
-    case swapProgress
-    case swapButton
-    case date
-    case status
-    case estimatedConfirmation
-    case participant
-    case memo
-    case rate
-    case network
-    case pnl
-    case price
-    case provider
-    case fee
-    case explorerLink
-
-    public var id: Self {
-        self
+public extension ListSection where T == GemTransactionDetailRow {
+    init(_ section: GemTransactionDetailSection) {
+        self.init(id: "\(section.rows[0])", title: nil, image: nil, values: section.rows)
     }
 }
 
@@ -54,10 +33,4 @@ public enum TransactionItemModel {
     case explorer(url: URL, text: String)
     case swapAgain(text: String)
     case empty
-}
-
-public extension ListSection where T == TransactionItem {
-    init(type: TransactionSectionType, _ items: [TransactionItem]) {
-        self.init(type: type, values: items)
-    }
 }

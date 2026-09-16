@@ -13,20 +13,20 @@ public struct StateButtonStyle: ButtonStyle {
     }
 
     public func makeBody(configuration: Configuration) -> some View {
-        ZStack {
-            adoptiveShape(configuration: configuration)
+        content(configuration: configuration)
+            .frame(maxWidth: .infinity, maxHeight: Self.maxHeight)
+            .background(adoptiveShape(configuration: configuration))
+    }
 
-            if variant.state.showProgress {
-                ProgressView()
-                    .progressViewStyle(.circular)
-                    .tint(Colors.whiteSolid)
-            } else {
-                configuration.label
-                    .lineLimit(1)
-                    .foregroundStyle(foreground(configuration: configuration))
-                    .padding(.horizontal, .medium)
-                    .frame(maxWidth: .infinity, maxHeight: Self.maxHeight)
-            }
+    @ViewBuilder
+    private func content(configuration: Configuration) -> some View {
+        if variant.state.showProgress {
+            ButtonProgressView()
+        } else {
+            configuration.label
+                .lineLimit(1)
+                .foregroundStyle(foreground(configuration: configuration))
+                .padding(.horizontal, .medium)
         }
     }
 

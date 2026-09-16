@@ -9,6 +9,7 @@ default = []
 reqwest_provider = ["dep:reqwest", "gem_client/reqwest"]
 unit_tests = ["reqwest_provider"]
 swap_integration_tests = ["reqwest_provider"]
+testkit = ["primitives/testkit"]
 
 [dependencies]
 primitives = { path = "../primitives" }
@@ -49,7 +50,6 @@ futures.workspace = true
 bs58 = { workspace = true }
 hmac = { workspace = true }
 sha2 = { workspace = true }
-solana-primitives = { workspace = true }
 bigdecimal.workspace = true
 rand.workspace = true
 
@@ -57,5 +57,6 @@ rand.workspace = true
 tokio.workspace = true
 primitives = { path = "../primitives", features = ["testkit"] }
 gem_client = { path = "../gem_client", features = ["testkit"] }
+gem_hypercore = { path = "../gem_hypercore", features = ["testkit"] }
 gem_sui = { path = "../gem_sui", features = ["reqwest"] }
 settings = { path = "../settings", features = ["testkit"] }

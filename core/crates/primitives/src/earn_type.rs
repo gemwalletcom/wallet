@@ -1,9 +1,6 @@
-use serde::{Deserialize, Serialize};
-
 use crate::{Delegation, DelegationValidator};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type", content = "content")]
+#[derive(Debug, Clone)]
 pub enum EarnType {
     Deposit(DelegationValidator),
     Withdraw(Delegation),

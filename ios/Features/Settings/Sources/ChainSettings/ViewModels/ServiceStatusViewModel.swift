@@ -1,18 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemLatencyStatus
 import struct Gemstone.GemServiceEndpoint
 import protocol Gemstone.GemServiceStatusProtocol
-import GemstonePrimitives
 import Localization
-import Primitives
 
 @Observable
 @MainActor
 public final class ServiceStatusViewModel {
     private let service: any GemServiceStatusProtocol
     private let endpoints: [GemServiceEndpoint]
-    private var statusStates: [ServiceStatusState]
+    private var statusStates: [GemLatencyStatus]
 
     public init(service: any GemServiceStatusProtocol) {
         self.service = service
@@ -26,7 +25,7 @@ public final class ServiceStatusViewModel {
 
     var itemModels: [ServiceStatusItemViewModel] {
         zip(endpoints, statusStates).map {
-            ServiceStatusItemViewModel(endpoint: $0, statusState: $1)
+            ServiceStatusItemViewModel(endpoint: $0, status: $1)
         }
     }
 }
@@ -38,14 +37,10 @@ extension ServiceStatusViewModel {
         statusStates = Array(repeating: .loading, count: endpoints.count)
 
         let service = service
-        await withTaskGroup(of: (Int, ServiceStatusState).self) { group in
+        await withTaskGroup(of: (Int, GemLatencyStatus).self) { group in
             for (index, endpoint) in endpoints.enumerated() {
                 group.addTask {
-                    do {
-                        return try await (index, .result(service.getEndpointLatency(url: endpoint.url).map()))
-                    } catch {
-                        return (index, .error)
-                    }
+                    await (index, service.getEndpointStatus(url: endpoint.url))
                 }
             }
 

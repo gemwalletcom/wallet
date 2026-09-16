@@ -1,14 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemRecentActivityServiceProtocol
-import class Gemstone.GemRecentActivityService
 import Components
 import GemstonePrimitivesTestKit
-import protocol Gemstone.GemPerpetualServiceProtocol
-import Store
-import StoreTestKit
-import GemstoneServices
-import GemstoneServicesTestKit
 @testable import Perpetuals
 import PerpetualsTestKit
 import Primitives
@@ -49,22 +42,5 @@ struct PerpetualsSceneViewModelTests {
 
         #expect(perpetuals.syncPositionsCount == 1)
         #expect(perpetuals.syncMarketsCount == 1)
-    }
-}
-
-extension PerpetualsSceneViewModel {
-    @MainActor
-    static func mock(
-        wallet: Wallet = .mock(),
-        perpetualService: any GemPerpetualServiceProtocol = GemPerpetualServiceMock(),
-        observerService: any PerpetualObservable = PerpetualObserverMock(),
-        recentAssetsService: any GemRecentActivityServiceProtocol = GemRecentActivityService(store: GemstoneRecentActivityStore(store: .mock()), session: .mock()),
-    ) -> PerpetualsSceneViewModel {
-        PerpetualsSceneViewModel(
-            wallet: wallet,
-            service: perpetualService,
-            observerService: observerService,
-            recentAssetsService: recentAssetsService,
-        )
     }
 }

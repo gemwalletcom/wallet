@@ -421,14 +421,7 @@ mod tests {
     use std::collections::HashMap;
 
     use super::*;
-    use primitives::{Chain, FiatAssetSymbol, FiatProviderName, PaymentType, currency::Currency, fiat_assets::FiatAssetLimits};
-
-    fn mock_quote(provider: FiatProviderName, crypto_amount: f64) -> FiatQuote {
-        let mut quote = FiatQuote::mock(provider);
-        quote.crypto_amount = crypto_amount;
-        quote.value = quote_value(&quote.asset, crypto_amount).unwrap();
-        quote
-    }
+    use primitives::{Chain, FiatAssetSymbol, FiatProviderName, PaymentType, fiat_assets::FiatAssetLimits};
 
     #[test]
     fn test_view_wallet_is_forbidden_from_device_fiat_flow() {
@@ -460,10 +453,9 @@ mod tests {
             },
             unsupported_countries: HashMap::new(),
             buy_limits: vec![FiatAssetLimits {
-                currency: Currency::USD,
-                payment_type: PaymentType::Card,
                 min_amount: Some(10.0),
                 max_amount: Some(15_000.0),
+                ..FiatAssetLimits::mock()
             }],
             sell_limits: vec![],
         };
@@ -491,11 +483,26 @@ mod tests {
         ];
 
         let mut quotes = [
-            mock_quote(FiatProviderName::Paybis, 0.50),
-            mock_quote(FiatProviderName::MoonPay, 0.45),
-            mock_quote(FiatProviderName::Flashnet, 0.40),
-            mock_quote(FiatProviderName::Transak, 0.47),
-            mock_quote(FiatProviderName::Mercuryo, 0.48),
+            FiatQuote {
+                crypto_amount: 0.50,
+                ..FiatQuote::mock(FiatProviderName::Paybis)
+            },
+            FiatQuote {
+                crypto_amount: 0.45,
+                ..FiatQuote::mock(FiatProviderName::MoonPay)
+            },
+            FiatQuote {
+                crypto_amount: 0.40,
+                ..FiatQuote::mock(FiatProviderName::Flashnet)
+            },
+            FiatQuote {
+                crypto_amount: 0.47,
+                ..FiatQuote::mock(FiatProviderName::Transak)
+            },
+            FiatQuote {
+                crypto_amount: 0.48,
+                ..FiatQuote::mock(FiatProviderName::Mercuryo)
+            },
         ];
         quotes.sort_by(|a, b| sort_quotes_by_crypto_amount_desc(a, b, &providers));
 
@@ -515,10 +522,22 @@ mod tests {
         ];
 
         let mut quotes = [
-            mock_quote(FiatProviderName::Paybis, 0.52),
-            mock_quote(FiatProviderName::Transak, 0.60),
-            mock_quote(FiatProviderName::Mercuryo, 0.48),
-            mock_quote(FiatProviderName::MoonPay, 0.45),
+            FiatQuote {
+                crypto_amount: 0.52,
+                ..FiatQuote::mock(FiatProviderName::Paybis)
+            },
+            FiatQuote {
+                crypto_amount: 0.60,
+                ..FiatQuote::mock(FiatProviderName::Transak)
+            },
+            FiatQuote {
+                crypto_amount: 0.48,
+                ..FiatQuote::mock(FiatProviderName::Mercuryo)
+            },
+            FiatQuote {
+                crypto_amount: 0.45,
+                ..FiatQuote::mock(FiatProviderName::MoonPay)
+            },
         ];
         quotes.sort_by(|a, b| sort_quotes_by_crypto_amount_desc(a, b, &providers));
 
@@ -533,10 +552,22 @@ mod tests {
         let providers = vec![PrimitiveFiatProvider::mock_with_priority(FiatProviderName::MoonPay, 1, Some(100))];
 
         let mut quotes = [
-            mock_quote(FiatProviderName::MoonPay, 0.0773),
-            mock_quote(FiatProviderName::Mercuryo, 0.0759),
-            mock_quote(FiatProviderName::Transak, 0.07505),
-            mock_quote(FiatProviderName::Paybis, 0.07721),
+            FiatQuote {
+                crypto_amount: 0.0773,
+                ..FiatQuote::mock(FiatProviderName::MoonPay)
+            },
+            FiatQuote {
+                crypto_amount: 0.0759,
+                ..FiatQuote::mock(FiatProviderName::Mercuryo)
+            },
+            FiatQuote {
+                crypto_amount: 0.07505,
+                ..FiatQuote::mock(FiatProviderName::Transak)
+            },
+            FiatQuote {
+                crypto_amount: 0.07721,
+                ..FiatQuote::mock(FiatProviderName::Paybis)
+            },
         ];
 
         quotes.sort_by(|a, b| sort_quotes_by_crypto_amount_desc(a, b, &providers));
@@ -552,9 +583,18 @@ mod tests {
         let providers: Vec<PrimitiveFiatProvider> = vec![];
 
         let mut quotes = [
-            mock_quote(FiatProviderName::MoonPay, 0.036108),
-            mock_quote(FiatProviderName::Mercuryo, 0.03311059),
-            mock_quote(FiatProviderName::Transak, 0.03086637),
+            FiatQuote {
+                crypto_amount: 0.036108,
+                ..FiatQuote::mock(FiatProviderName::MoonPay)
+            },
+            FiatQuote {
+                crypto_amount: 0.03311059,
+                ..FiatQuote::mock(FiatProviderName::Mercuryo)
+            },
+            FiatQuote {
+                crypto_amount: 0.03086637,
+                ..FiatQuote::mock(FiatProviderName::Transak)
+            },
         ];
 
         quotes.sort_by(|a, b| sort_quotes_by_crypto_amount_asc(a, b, &providers));

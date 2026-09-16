@@ -2,6 +2,8 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemDayBoundaries
+import GemstonePrimitives
 
 public struct DateSectionBuilder<Item, T: Sendable & Identifiable> {
     private let items: [Item]
@@ -19,12 +21,13 @@ public struct DateSectionBuilder<Item, T: Sendable & Identifiable> {
     }
 
     public func build() -> [ListSection<T>] {
-        Dictionary(grouping: items) { Calendar.current.startOfDay(for: $0[keyPath: dateKeyPath]) }
+        let boundaries = GemDayBoundaries.current
+        return Dictionary(grouping: items) { Calendar.current.startOfDay(for: $0[keyPath: dateKeyPath]) }
             .sorted { $0.key > $1.key }
             .map { date, items in
                 ListSection(
                     id: date.ISO8601Format(),
-                    title: TransactionDateFormatter(date: date).section,
+                    title: TransactionDateFormatter(date: date, boundaries: boundaries).section,
                     image: nil,
                     values: items.map(transform),
                 )

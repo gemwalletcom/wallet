@@ -1,23 +1,144 @@
-use num_bigint::BigUint;
-use primitives::{AssetId, Chain};
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
-use super::GemAssetBalance;
+use num_bigint::BigUint;
+use primitives::{AssetId, Chain, WalletId};
+
+use super::model::{GemBalanceRecord, GemBalanceUpdate, GemBalanceUpdateType};
+use super::store::GemBalanceStore;
+use super::{GemAssetBalance, GemBalanceService};
+use crate::api::GemApiClient;
+use crate::gateway::GemGateway;
+use crate::services::assets::GemAssetsService;
+use crate::services::assets::testkit::MemoryAssetStore;
+use crate::services::error::GemServiceError;
+use crate::services::preferences::{GemPreferencesService, testkit::MemoryPreferencesStore};
+use crate::services::price::{GemPriceService, testkit::MemoryPriceStore};
+use crate::services::stream::testkit::SubscriptionTestkit;
+use crate::services::wallet::testkit::MemoryWalletStore;
+use crate::services::wallet_session::{GemWalletSessionService, testkit::MemoryWalletSessionStore};
+use crate::testkit::{EmptyPreferences, TestAlienProvider};
 
 impl GemAssetBalance {
     pub fn mock() -> Self {
-        GemAssetBalance {
-            asset_id: AssetId::from_chain(Chain::Ethereum),
-            available: BigUint::ZERO,
-            frozen: BigUint::ZERO,
-            locked: BigUint::ZERO,
-            staked: BigUint::ZERO,
-            pending: BigUint::ZERO,
-            pending_unconfirmed: BigUint::ZERO,
-            rewards: BigUint::ZERO,
-            reserved: BigUint::ZERO,
-            withdrawable: BigUint::ZERO,
-            earn: BigUint::ZERO,
-            metadata: None,
+        Self::zero(AssetId::from_chain(Chain::Ethereum))
+    }
+
+    pub fn mock_with_available(available: u64) -> Self {
+        Self {
+            available: BigUint::from(available),
+            ..Self::mock()
         }
+    }
+}
+
+impl GemBalanceUpdate {
+    pub fn mock(update_type: GemBalanceUpdateType) -> Self {
+        Self {
+            asset_id: AssetId::from_chain(Chain::Ethereum),
+            update_type,
+            is_active: true,
+        }
+    }
+}
+
+#[derive(Default)]
+pub struct MemoryBalanceStore {
+    pub balances: Mutex<HashMap<WalletId, Vec<GemAssetBalance>>>,
+    pub enabled_asset_ids: Mutex<HashMap<WalletId, Vec<AssetId>>>,
+    pub requests: Mutex<Vec<WalletId>>,
+    pub balance_writes: Mutex<Vec<Vec<GemBalanceRecord>>>,
+    pub enable_writes: Mutex<Vec<(Vec<AssetId>, bool)>>,
+    pub pin_writes: Mutex<Vec<(AssetId, bool)>>,
+}
+
+impl MemoryBalanceStore {
+    pub fn with_balances(wallet_id: WalletId, balances: Vec<GemAssetBalance>) -> Self {
+        Self {
+            balances: Mutex::new(HashMap::from([(wallet_id, balances)])),
+            ..Default::default()
+        }
+    }
+
+    pub fn with_enabled_asset_ids(wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Self {
+        Self {
+            enabled_asset_ids: Mutex::new(HashMap::from([(wallet_id, asset_ids)])),
+            ..Default::default()
+        }
+    }
+}
+
+#[async_trait::async_trait]
+impl GemBalanceStore for MemoryBalanceStore {
+    async fn get_available_balances(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<Vec<GemAssetBalance>, GemServiceError> {
+        self.requests.lock().unwrap().push(wallet_id.clone());
+        Ok(self
+            .balances
+            .lock()
+            .unwrap()
+            .get(&wallet_id)
+            .into_iter()
+            .flatten()
+            .filter(|balance| asset_ids.contains(&balance.asset_id))
+            .cloned()
+            .collect())
+    }
+    async fn update_balances(&self, _: WalletId, balances: Vec<GemBalanceRecord>) -> Result<(), GemServiceError> {
+        self.balance_writes.lock().unwrap().push(balances);
+        Ok(())
+    }
+    async fn get_enabled_asset_ids(&self, wallet_id: WalletId) -> Result<Vec<AssetId>, GemServiceError> {
+        Ok(self.enabled_asset_ids.lock().unwrap().get(&wallet_id).cloned().unwrap_or_default())
+    }
+    async fn set_assets_enabled(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {
+        self.enable_writes.lock().unwrap().push((asset_ids.clone(), enabled));
+        let mut wallets = self.enabled_asset_ids.lock().unwrap();
+        let stored = wallets.entry(wallet_id).or_default();
+        if enabled {
+            stored.extend(asset_ids);
+        } else {
+            stored.retain(|asset_id| !asset_ids.contains(asset_id));
+        }
+        Ok(())
+    }
+    async fn set_asset_pinned(&self, _: WalletId, asset_id: AssetId, pinned: bool) -> Result<(), GemServiceError> {
+        self.pin_writes.lock().unwrap().push((asset_id, pinned));
+        Ok(())
+    }
+}
+
+pub struct BalanceTestkit {
+    pub service: GemBalanceService,
+    pub assets: Arc<MemoryAssetStore>,
+    pub balances: Arc<MemoryBalanceStore>,
+}
+
+impl BalanceTestkit {
+    pub fn new(balances: MemoryBalanceStore) -> Self {
+        let provider = Arc::new(TestAlienProvider::with_status(503));
+        let preferences_store = Arc::new(MemoryPreferencesStore::default());
+        let preferences = Arc::new(GemPreferencesService::new(preferences_store.clone()));
+        let gateway = Arc::new(GemGateway::new(provider.clone(), preferences_store, Arc::new(EmptyPreferences)));
+        let wallets = Arc::new(MemoryWalletStore::default());
+        let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets.clone()));
+        let assets = Arc::new(MemoryAssetStore::default());
+        let assets_service = Arc::new(GemAssetsService::new(
+            Arc::new(GemApiClient::new(provider)),
+            gateway.clone(),
+            assets.clone(),
+            Arc::new(GemPriceService::new(Arc::new(MemoryPriceStore::default()))),
+            preferences,
+            session,
+        ));
+        let balances = Arc::new(balances);
+        let service = GemBalanceService::new(
+            gateway,
+            wallets,
+            assets.clone(),
+            balances.clone(),
+            assets_service,
+            Arc::new(SubscriptionTestkit::new(&[], &[]).service),
+        );
+        Self { service, assets, balances }
     }
 }

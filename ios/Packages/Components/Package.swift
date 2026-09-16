@@ -24,7 +24,10 @@ let package = Package(
         ),
         .testTarget(
             name: "ComponentsTests",
-            dependencies: ["Components"],
+            dependencies: [
+                "Components",
+                "Style",
+            ],
         ),
     ],
 )

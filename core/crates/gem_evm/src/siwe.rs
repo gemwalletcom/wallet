@@ -1,9 +1,9 @@
 use alloy_primitives::Address;
 use chrono::DateTime;
-use primitives::{Chain, ChainType};
+use primitives::{Chain, ChainType, domain::parse_domain};
 use url::Url;
 
-use crate::domain::{extract_host, parse_url};
+use crate::domain::host_with_port;
 
 const PREAMBLE_SUFFIX: &str = " wants you to sign in with your Ethereum account:";
 const URI_PREFIX: &str = "URI:";
@@ -30,7 +30,7 @@ impl SiweMessage {
         let lines: Vec<_> = raw.lines().collect();
 
         let domain = lines.first()?.trim().strip_suffix(PREAMBLE_SUFFIX)?.trim();
-        let domain = extract_host(domain)?;
+        let domain = host_with_port(domain)?;
 
         let address = lines.get(1)?.trim().parse::<Address>().ok()?.to_checksum(None);
 
@@ -74,7 +74,7 @@ impl SiweMessage {
         DateTime::parse_from_rfc3339(&self.issued_at).map_err(|_| "Invalid timestamp".to_string())?;
 
         let uri = Url::parse(&self.uri).map_err(|_| "Invalid URI".to_string())?;
-        let domain_url = parse_url(&self.domain).ok_or("Invalid domain".to_string())?;
+        let domain_url = parse_domain(&self.domain).ok_or("Invalid domain".to_string())?;
 
         let uri_host = uri.host_str().ok_or("Invalid URI host".to_string())?;
         let domain_host = domain_url.host_str().ok_or("Invalid domain host".to_string())?;
@@ -100,32 +100,11 @@ impl SiweMessage {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    fn sample_message() -> String {
-        [
-            "login.xyz wants you to sign in with your Ethereum account:",
-            "0x6dD7802E6d44bE89a789C4bD60bD511B68F41c7c",
-            "",
-            "Sign in with Ethereum to the app.",
-            "",
-            "URI: https://login.xyz",
-            "Version: 1",
-            "Chain ID: 1",
-            "Nonce: 8hK9pX32",
-            "Issued At: 2024-04-01T12:00:00Z",
-            "Expiration Time: 2024-04-02T12:00:00Z",
-            "Not Before: 2024-04-01T11:00:00Z",
-            "Request ID: abc-123",
-            "Resources:",
-            "- https://example.com/terms",
-            "- https://example.com/privacy",
-        ]
-        .join("\n")
-    }
+    use crate::testkit::siwe_mock::{mock_siwe_message, mock_siwe_message_full};
 
     #[test]
     fn parses_valid_message() {
-        let message = sample_message();
+        let message = mock_siwe_message_full();
         let result = SiweMessage::try_parse(&message);
         assert!(result.is_some());
         let siwe = result.unwrap();
@@ -141,7 +120,7 @@ mod tests {
 
     #[test]
     fn parses_message_with_explicit_scheme() {
-        let message = sample_message().replacen(
+        let message = mock_siwe_message_full().replacen(
             "login.xyz wants you to sign in with your Ethereum account:",
             "https://login.xyz wants you to sign in with your Ethereum account:",
             1,
@@ -152,7 +131,7 @@ mod tests {
 
     #[test]
     fn parses_message_with_port() {
-        let message = sample_message().replacen(
+        let message = mock_siwe_message_full().replacen(
             "login.xyz wants you to sign in with your Ethereum account:",
             "login.xyz:8080 wants you to sign in with your Ethereum account:",
             1,
@@ -170,7 +149,7 @@ mod tests {
 
     #[test]
     fn errors_on_chain_mismatch() {
-        let message = sample_message();
+        let message = mock_siwe_message_full();
         let siwe = SiweMessage::try_parse(&message).unwrap();
         let err = siwe.validate(Chain::Polygon).unwrap_err();
         assert!(err.contains("mismatch"));
@@ -178,7 +157,7 @@ mod tests {
 
     #[test]
     fn errors_on_origin_mismatch() {
-        let message = sample_message();
+        let message = mock_siwe_message_full();
         let tampered = message.replace("https://login.xyz", "https://malicious.xyz");
         let siwe = SiweMessage::try_parse(&tampered).unwrap();
         let err = siwe.validate(Chain::Ethereum).unwrap_err();
@@ -186,8 +165,30 @@ mod tests {
     }
 
     #[test]
+    fn test_validate_invalid_domain() {
+        let message = SiweMessage::try_parse(&mock_siwe_message("example.com", 1)).unwrap();
+        for domain in [
+            "example.com/path",
+            "user@example.com",
+            "example.com?query",
+            "example.com#fragment",
+            "example.com\\path",
+            " example.com",
+        ] {
+            assert_eq!(
+                SiweMessage {
+                    domain: domain.to_string(),
+                    ..message.clone()
+                }
+                .validate(Chain::Ethereum),
+                Err("Invalid domain".to_string()),
+            );
+        }
+    }
+
+    #[test]
     fn ignores_port_when_matching_origin() {
-        let message = sample_message().replacen(
+        let message = mock_siwe_message_full().replacen(
             "login.xyz wants you to sign in with your Ethereum account:",
             "login.xyz:8080 wants you to sign in with your Ethereum account:",
             1,

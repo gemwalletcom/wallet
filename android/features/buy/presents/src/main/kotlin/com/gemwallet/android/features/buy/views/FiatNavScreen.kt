@@ -1,14 +1,18 @@
 package com.gemwallet.android.features.buy.views
 
+import com.gemwallet.android.features.buy.localization.titleRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,6 +29,8 @@ import com.gemwallet.android.features.buy.viewmodels.models.FiatUiState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.clickable
+import com.gemwallet.android.ui.components.screen.LoadingScene
+import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.iconSize
@@ -32,8 +38,7 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space6
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.FiatQuoteType
-import uniffi.gemstone.GemFiatAmountCheck
-import uniffi.gemstone.GemFiatQuotePhase
+import kotlinx.coroutines.launch
 
 @Composable
 fun FiatNavScreen(
@@ -52,12 +57,17 @@ fun FiatNavScreen(
 
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-    val currentAssetInfo = asset
-    val currentAsset = currentAssetInfo?.asset ?: return
+    val scope = rememberCoroutineScope()
+    val snackbar = remember { SnackbarHostState() }
+    val errorOccurred = stringResource(R.string.errors_error_occurred)
+    val title = stringResource(type.titleRes(), "")
+    val currentAssetInfo = asset ?: return LoadingScene(title = title, onCancel = { cancelAction() })
+    val currentAsset = currentAssetInfo.asset
 
     BuyScene(
         asset = currentAsset,
         assetInfo = currentAssetInfo,
+        snackbar = snackbar,
         uiState = uiState,
         type = type,
         providers = providers,
@@ -79,8 +89,10 @@ fun FiatNavScreen(
         onRetry = viewModel::retry,
         onFiatTransactions = onFiatTransactions,
         onBuy = {
-            viewModel.getUrl { url ->
-                url?.let { uriHandler.open(context, it) }
+            scope.launch {
+                viewModel.quoteUrl()
+                    .onSuccess { uriHandler.open(context, it) }
+                    .onFailure { snackbar.showSnackbar(errorOccurred, R.drawable.ic_error) }
             }
         }
     )
@@ -95,25 +107,11 @@ private fun FiatTitle(
 ) {
     if (showFiatTypePicker) {
         TabsBar(FiatQuoteType.entries, type, onTypeClick) { item ->
-            Text(
-                stringResource(
-                    when (item) {
-                        FiatQuoteType.Buy -> R.string.buy_title
-                        FiatQuoteType.Sell -> R.string.sell_title
-                    },
-                    "",
-                ),
-            )
+            Text(stringResource(item.titleRes(), ""))
         }
     } else {
         Text(
-            text = stringResource(
-                when (type) {
-                    FiatQuoteType.Buy -> R.string.buy_title
-                    FiatQuoteType.Sell -> R.string.sell_title
-                },
-                asset.name,
-            ),
+            text = stringResource(type.titleRes(), asset.name),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
@@ -139,26 +137,3 @@ fun LotButton(fiatSuggestion: FiatSuggestion, onLotClick: (FiatSuggestion) -> Un
     }
 }
 
-@Composable
-fun FiatUiState.errorText(type: FiatQuoteType, asset: Asset): String? = when (val phase = phase) {
-    is GemFiatQuotePhase.Invalid -> phase.check.errorText(asset)
-    GemFiatQuotePhase.InvalidInput -> stringResource(id = R.string.errors_invalid_amount)
-    GemFiatQuotePhase.NoInput -> stringResource(
-        R.string.input_enter_amount_to, when (type) {
-            FiatQuoteType.Buy -> stringResource(R.string.buy_title, "")
-            FiatQuoteType.Sell -> stringResource(R.string.sell_title, "")
-        }
-    )
-    GemFiatQuotePhase.NoQuotes -> stringResource(id = R.string.buy_no_results)
-    is GemFiatQuotePhase.Failed -> stringResource(R.string.errors_unknown_try_again)
-    is GemFiatQuotePhase.Loading -> null
-    GemFiatQuotePhase.Ready -> amountCheck.errorText(asset)
-}
-
-@Composable
-private fun GemFiatAmountCheck.errorText(asset: Asset): String? = when (this) {
-    is GemFiatAmountCheck.BelowMinimum -> stringResource(id = R.string.transfer_minimum_amount, "${minimum}$")
-    is GemFiatAmountCheck.AboveMaximum -> stringResource(id = R.string.transfer_maximum_amount, "${maximum}$")
-    is GemFiatAmountCheck.InsufficientBalance -> stringResource(R.string.transfer_insufficient_balance, "${asset.name} (${asset.symbol})")
-    GemFiatAmountCheck.Valid -> null
-}

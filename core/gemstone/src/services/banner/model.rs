@@ -1,11 +1,11 @@
 use crate::config::docs::DocsUrl;
 use crate::models::custom_types::GemBigInt;
-use primitives::{AssetId, BannerEvent, BannerState, Chain, Wallet, WalletId};
+use primitives::{Asset, AssetId, Banner, BannerEvent, BannerState, Chain, Wallet, WalletId};
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemBannerContext {
     pub wallet: Option<Wallet>,
-    pub asset_id: Option<AssetId>,
+    pub asset: Option<Asset>,
     pub is_stakeable: bool,
     pub has_stake_balance: bool,
     pub has_available_balance: bool,
@@ -16,12 +16,40 @@ pub struct GemBannerContext {
 
 #[uniffi::export]
 impl GemBannerContext {
-    pub fn visible_banners(&self, stored: Vec<GemBannerItem>) -> Vec<GemBannerItem> {
+    pub fn visible_banners(&self, stored: Vec<Banner>) -> Vec<Banner> {
         super::rules::visible_banners(stored, self)
     }
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+impl GemBannerContext {
+    pub fn wallet(wallet: Wallet, is_wallet_empty: bool) -> Self {
+        Self {
+            wallet: Some(wallet),
+            asset: None,
+            is_stakeable: false,
+            has_stake_balance: false,
+            has_available_balance: false,
+            is_asset_activated: true,
+            asset_rank_score: None,
+            is_wallet_empty,
+        }
+    }
+
+    pub(super) fn asset_id(&self) -> Option<AssetId> {
+        self.asset.as_ref().map(|asset| asset.id.clone())
+    }
+
+    pub(super) fn banner(&self, item: GemBannerItem) -> Banner {
+        Banner {
+            wallet_id: self.wallet.as_ref().map(|wallet| wallet.id.clone()),
+            asset: self.asset.clone(),
+            event: item.event,
+            state: item.state,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct GemBannerItem {
     pub event: BannerEvent,
     pub state: BannerState,
@@ -127,47 +155,49 @@ pub struct GemBannerContent {
     pub link: Option<GemBannerLink>,
 }
 
-#[derive(Debug, Clone, uniffi::Enum)]
-pub enum GemBannerAction {
-    Event { event: BannerEvent },
-    Button,
-    Close,
-}
-
-impl GemBannerAction {
-    pub fn is_dismissal(&self) -> bool {
-        matches!(self, Self::Close)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use primitives::Chain;
 
     #[test]
-    fn test_only_the_close_action_dismisses_a_banner() {
-        assert!(GemBannerAction::Close.is_dismissal());
-        assert!(!GemBannerAction::Button.is_dismissal());
-        assert!(!GemBannerAction::Event { event: BannerEvent::Stake }.is_dismissal());
-    }
-
-    #[test]
     fn test_banner_identifier() {
-        let key = |wallet_id: Option<&str>, asset_id: Option<AssetId>, event: BannerEvent| GemBannerKey {
-            wallet_id: wallet_id.map(|id| WalletId::Multicoin(id.to_string())),
-            asset_id,
-            event,
-        };
+        let wallet_id = WalletId::Multicoin("wallet-1".to_string());
 
         assert_eq!(
-            key(Some("wallet-1"), Some(AssetId::from_chain(Chain::Bitcoin)), BannerEvent::Stake).identifier(),
+            GemBannerKey {
+                wallet_id: Some(wallet_id.clone()),
+                asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
+                event: BannerEvent::Stake
+            }
+            .identifier(),
             "multicoin_wallet-1_bitcoin_stake"
         );
-        assert_eq!(key(None, None, BannerEvent::SuspiciousAsset).identifier(), "suspiciousAsset");
-        assert_eq!(key(Some("wallet-1"), None, BannerEvent::Onboarding).identifier(), "multicoin_wallet-1_onboarding");
         assert_eq!(
-            key(None, Some(AssetId::from_chain(Chain::Ethereum)), BannerEvent::ActivateAsset).identifier(),
+            GemBannerKey {
+                wallet_id: None,
+                asset_id: None,
+                event: BannerEvent::SuspiciousAsset
+            }
+            .identifier(),
+            "suspiciousAsset"
+        );
+        assert_eq!(
+            GemBannerKey {
+                wallet_id: Some(wallet_id),
+                asset_id: None,
+                event: BannerEvent::Onboarding
+            }
+            .identifier(),
+            "multicoin_wallet-1_onboarding"
+        );
+        assert_eq!(
+            GemBannerKey {
+                wallet_id: None,
+                asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
+                event: BannerEvent::ActivateAsset
+            }
+            .identifier(),
             "ethereum_activateAsset"
         );
     }

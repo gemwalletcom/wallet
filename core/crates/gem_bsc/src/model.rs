@@ -16,7 +16,6 @@ pub struct BscDelegation {
 }
 
 pub struct BscUndelegation {
-    pub delegator_address: String,
     pub validator_address: String,
     pub amount: BigUint,
     pub shares: BigUint,

@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import GemstonePrimitives
+import enum Gemstone.GemContactAddressField
 import Primitives
 import PrimitivesComponents
 import QRScanner
@@ -25,10 +25,8 @@ public struct ManageContactAddressScene: View {
 
     public var body: some View {
         List {
-            chainSection
-            addressSection
-            if model.showMemo {
-                memoSection
+            ForEach(model.fields, id: \.self) { field in
+                section(for: field)
             }
         }
         .toolbar {
@@ -59,8 +57,17 @@ public struct ManageContactAddressScene: View {
 // MARK: - UI Components
 
 extension ManageContactAddressScene {
+    @ViewBuilder
+    private func section(for field: GemContactAddressField) -> some View {
+        switch field {
+        case .network: chainSection
+        case .address: addressSection
+        case .memo: memoSection
+        }
+    }
+
     private var chainSection: some View {
-        Section(model.networkTitle) {
+        Section(GemContactAddressField.network.title) {
             NavigationLink(value: Scenes.NetworksSelector()) {
                 ChainView(model: ChainViewModel(chain: model.chain))
             }
@@ -80,7 +87,7 @@ extension ManageContactAddressScene {
     private var memoSection: some View {
         Section {
             FloatTextField(
-                model.memoTitle,
+                GemContactAddressField.memo.title,
                 text: $model.memo,
                 allowClean: true,
             )

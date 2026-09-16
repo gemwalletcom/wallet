@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.di
 
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import android.content.Context
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.GetPushToken
@@ -21,6 +22,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemDeviceApiClient
 import uniffi.gemstone.GemDeviceService
+import uniffi.gemstone.GemDeviceServiceInterface
+import uniffi.gemstone.GemNotificationPermissions
+import uniffi.gemstone.GemNotificationsService
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemSubscriptionService
 import javax.inject.Named
@@ -51,17 +55,29 @@ object DeviceModule {
 
     @Provides
     @Singleton
+    fun provideGemNotificationsService(
+        deviceService: GemDeviceService,
+        preferencesService: GemPreferencesService,
+        notificationPermissions: GemNotificationPermissions,
+    ): GemNotificationsService = GemNotificationsService(deviceService, preferencesService, notificationPermissions)
+
+    @Provides
+    @Singleton
     fun provideDevicePushSettings(
         @ApplicationContext context: Context,
         notificationsAvailable: NotificationsAvailable,
         preferencesService: GemPreferencesService,
         deviceService: Lazy<GemDeviceService>,
+        notificationsService: Lazy<GemNotificationsService>,
+        userConfig: UserConfig,
     ): DevicePushSettings = DevicePushSettings(
         context = context,
         configStore = ConfigStore(context.getSharedPreferences("device-info", Context.MODE_PRIVATE)),
         notificationsAvailable = notificationsAvailable,
         preferencesService = preferencesService,
         deviceService = deviceService,
+        notificationsService = notificationsService,
+        userConfig = userConfig,
     )
 
     @Provides
@@ -108,4 +124,8 @@ object DeviceModule {
         getWallets = getWallets,
         deviceService = deviceService,
     )
+
+    @Provides
+    @Singleton
+    fun provideDeviceServiceInterface(service: GemDeviceService): GemDeviceServiceInterface = service
 }

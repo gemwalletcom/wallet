@@ -9,9 +9,12 @@ import typealias Gemstone.Chain
 import typealias Gemstone.Currency
 import enum Gemstone.GemAssetAction
 import protocol Gemstone.GemAssetSelectionServiceProtocol
-import enum Gemstone.GemNftSearchItem
+import enum Gemstone.GemNftItem
+import struct Gemstone.GemSelectAssetFlow
+import enum Gemstone.GemSelectAssetType
 import struct Gemstone.GemWalletSearchLimits
 import struct Gemstone.Wallet
+import enum Gemstone.WalletType
 import typealias Gemstone.NftData
 import enum Gemstone.GemSearchScope
 import Primitives
@@ -36,23 +39,31 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
 
     public var perpetualsShown = true
     public var tokensSupported = true
-    public var nftSearchItems: [GemNftSearchItem] = []
+    public var nftSearchItems: [GemNftItem] = []
     public var filterChainsResult: [Gemstone.Chain] = []
     public private(set) var pinnedPerpetuals: [(perpetualId: String, pinned: Bool)] = []
+
+    public func flow(selectType: GemSelectAssetType) -> GemSelectAssetFlow {
+        selectType.flow()
+    }
+
+    public func searchDebounceMilliseconds() -> UInt64 {
+        250
+    }
 
     public func walletSearchLimits(query _: String) -> GemWalletSearchLimits {
         GemWalletSearchLimits(assets: 12, fetch: 13, perpetuals: 3, nfts: 3, results: 100)
     }
 
     public func getCurrency() -> Currency {
-        Primitives.Currency.usd.rawValue
+        Primitives.Currency.usd.toGem()
     }
 
-    public func showPerpetuals(wallet _: Gemstone.Wallet?) -> Bool {
+    public func showPerpetuals(walletType _: Gemstone.WalletType, chains _: [Gemstone.Chain]) -> Bool {
         perpetualsShown
     }
 
-    public func searchCollections(data _: [NftData], query _: String) -> [GemNftSearchItem] {
+    public func searchCollections(data _: [NftData], query _: String) -> [GemNftItem] {
         nftSearchItems
     }
 
@@ -67,6 +78,14 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
     public func search(query _: String, scope _: GemSearchScope) async throws -> Bool {
         if let error { throw error }
         return true
+    }
+
+    public func searchKey(query: String, scope: GemSearchScope) -> String {
+        let query = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        switch scope {
+        case .all: return query
+        case let .list(id): return query.isEmpty ? "tag:\(id)" : query
+        }
     }
 
     public func setAssetPinned(assetId: AssetId, pinned: Bool) async throws {

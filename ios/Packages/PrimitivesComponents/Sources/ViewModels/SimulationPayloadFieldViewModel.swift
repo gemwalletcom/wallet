@@ -14,17 +14,20 @@ public struct SimulationPayloadFieldViewModel: Identifiable {
     public let chain: Chain
     public let addressName: AddressName?
     public let relativeDateFormatter: RelativeDateFormatter
+    public let explorerItem: ContextMenuItemType?
 
     public init(
         field: SimulationPayloadField,
         chain: Chain,
         addressName: AddressName? = nil,
         relativeDateFormatter: RelativeDateFormatter = RelativeDateFormatter(),
+        explorerItem: ContextMenuItemType? = nil,
     ) {
         self.field = field
         self.chain = chain
         self.addressName = addressName
         self.relativeDateFormatter = relativeDateFormatter
+        self.explorerItem = explorerItem
     }
 
     public var id: SimulationPayloadField {
@@ -32,24 +35,7 @@ public struct SimulationPayloadFieldViewModel: Identifiable {
     }
 
     public var title: String {
-        if field.kind == .custom {
-            return field.label ?? ""
-        }
-
-        switch field.kind {
-        case .contract:
-            return Localized.Asset.contract
-        case .method:
-            return Localized.Common.method
-        case .token:
-            return Localized.Common.token
-        case .spender:
-            return Localized.Transfer.to
-        case .value:
-            return Localized.Perpetual.value
-        case .custom:
-            return field.label ?? ""
-        }
+        field.kind.title ?? field.label ?? ""
     }
 
     public var subtitle: String {
@@ -68,6 +54,9 @@ public struct SimulationPayloadFieldViewModel: Identifiable {
     }
 
     public var contextMenuItems: [ContextMenuItemType] {
-        field.fieldType == .address ? [.copy(value: field.value)] : []
+        guard field.fieldType == .address else {
+            return []
+        }
+        return [.copy(value: field.value)] + (explorerItem.map { [$0] } ?? [])
     }
 }

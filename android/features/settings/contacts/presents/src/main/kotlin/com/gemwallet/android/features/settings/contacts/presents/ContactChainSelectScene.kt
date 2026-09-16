@@ -1,12 +1,12 @@
 package com.gemwallet.android.features.settings.contacts.presents
 
-import uniffi.gemstone.GemChainService
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.ext.requireChain
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.features.settings.contacts.viewmodels.ContactChainSelectViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.SelectChain
 import com.wallet.core.primitives.Chain
@@ -15,17 +15,15 @@ import com.wallet.core.primitives.Chain
 fun ContactChainSelectScene(
     onSelect: (Chain) -> Unit,
     onCancel: () -> Unit,
+    viewModel: ContactChainSelectViewModel = hiltViewModel(),
 ) {
     BackHandler { onCancel() }
 
-    val chainFilter = rememberTextFieldState()
-    val query = chainFilter.text.toString()
-    val chainService = remember { GemChainService() }
-    val chains = remember(query) { chainService.getChains(query).map { it.requireChain() } }
+    val chains by viewModel.chains.collectAsStateWithLifecycle()
 
     SelectChain(
         chains = chains,
-        chainFilter = chainFilter,
+        chainFilter = viewModel.chainFilter,
         title = stringResource(R.string.transfer_network),
         onSelect = onSelect,
         onCancel = onCancel,

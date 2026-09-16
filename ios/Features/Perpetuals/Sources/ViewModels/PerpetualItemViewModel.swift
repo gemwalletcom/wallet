@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Formatters
 import Foundation
 import Primitives
 import PrimitivesComponents
@@ -32,7 +31,8 @@ struct PerpetualItemViewModel: ListAssetItemViewable {
     }
 
     var subtitleView: ListAssetItemSubtitleView {
-        .price(
+        guard model.row.showsPrice else { return .none }
+        return .price(
             price: TextValue(
                 text: model.priceText,
                 style: TextStyle(font: .footnote, color: Colors.gray),
@@ -47,7 +47,7 @@ struct PerpetualItemViewModel: ListAssetItemViewable {
     var rightView: ListAssetItemRightView {
         .balance(
             balance: TextValue(
-                text: model.volumeField.value.text,
+                text: model.infoField(for: .dailyVolume).value.text,
                 style: TextStyle(font: .body, color: .primary, fontWeight: .semibold),
             ),
             totalFiat: TextValue(

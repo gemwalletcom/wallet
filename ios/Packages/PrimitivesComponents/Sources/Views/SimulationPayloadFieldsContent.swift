@@ -3,29 +3,19 @@
 import Components
 import Primitives
 import SwiftUI
-import struct Gemstone.SimulationPayloadField
 
 public struct SimulationPayloadFieldsContent: View {
-    private let fields: [SimulationPayloadField]
-    private let fieldViewModel: (SimulationPayloadField) -> SimulationPayloadFieldViewModel
-    private let contextMenuItems: (SimulationPayloadField) -> [ContextMenuItemType]
+    private let models: [SimulationPayloadFieldViewModel]
 
-    public init(
-        fields: [SimulationPayloadField],
-        fieldViewModel: @escaping (SimulationPayloadField) -> SimulationPayloadFieldViewModel,
-        contextMenuItems: @escaping (SimulationPayloadField) -> [ContextMenuItemType],
-    ) {
-        self.fields = fields
-        self.fieldViewModel = fieldViewModel
-        self.contextMenuItems = contextMenuItems
+    public init(models: [SimulationPayloadFieldViewModel]) {
+        self.models = models
     }
 
     public var body: some View {
-        ForEach(Array(fields.enumerated()), id: \.offset) {
-            let field = $0.element
-            let viewModel = fieldViewModel(field)
-            ListItemView(title: viewModel.title, subtitle: viewModel.subtitle)
-                .contextMenu(contextMenuItems(field))
+        ForEach(Array(models.enumerated()), id: \.offset) {
+            let model = $0.element
+            ListItemView(title: model.title, subtitle: model.subtitle)
+                .contextMenu(model.contextMenuItems)
         }
     }
 }

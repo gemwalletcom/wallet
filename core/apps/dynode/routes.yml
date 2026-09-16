@@ -1,0 +1,45 @@
+request:
+  timeout: 3s
+
+headers:
+  forward:
+    - accept
+    - content-type
+    - content-encoding
+    - content-length
+    - grpc-accept-encoding
+    - grpc-encoding
+    - grpc-message
+    - grpc-status
+    - grpc-status-details-bin
+    - te
+
+retry:
+  cooldown: 60s
+  statuses: [403, 429]
+
+cache:
+  memory:
+    max: 64MB
+
+routes:
+  fastnear_transfers:
+    group: indexer
+    selection: ordered
+    allowlist:
+      - path: /
+        method: GET
+      - path: /v0/transfers
+        method: POST
+    endpoints:
+      - name: direct
+        url: https://transfers.main.fastnear.com
+  fastnear_tx:
+    group: indexer
+    selection: ordered
+    allowlist:
+      - path: /v0/transactions
+        method: POST
+    endpoints:
+      - name: direct
+        url: https://tx.main.fastnear.com

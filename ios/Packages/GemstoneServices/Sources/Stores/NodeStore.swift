@@ -16,11 +16,11 @@ public final class GemstoneNodeStore: GemNodeStore, Sendable {
     }
 
     public func getNodes(chain: Gemstone.Chain) async throws -> [Gemstone.Node] {
-        try store.nodes(chain: Primitives.Chain(id: chain)).map { $0.node.map() }
+        try store.nodes(chain: Primitives.Chain(id: chain)).map { $0.node.toGem() }
     }
 
     public func addNode(chain: Gemstone.Chain, node: Gemstone.Node) async throws {
-        try store.addNodes(chainNodes: [ChainNodes(chain: chain, nodes: [node.map()])])
+        try store.addNodes(chainNodes: [ChainNodes(chain: chain, nodes: [node.toPrimitives()])])
     }
 
     public func deleteNode(chain: Gemstone.Chain, url: String) async throws {

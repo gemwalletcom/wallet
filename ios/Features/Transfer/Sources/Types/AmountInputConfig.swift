@@ -2,38 +2,29 @@
 
 import Components
 import Formatters
+import enum Gemstone.GemAmountInputType
+import struct Gemstone.GemNumberFormat
 import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI
 
 struct AmountInputConfig: CurrencyInputConfigurable {
-    let sceneType: AmountType
     let canSwitchInputType: Bool
-    let inputType: AmountInputType
+    let inputType: GemAmountInputType
     let asset: Asset
     let currencyFormatter: CurrencyFormatter
-    let numberSanitizer: NumberSanitizer
+    let numberFormat: GemNumberFormat
     let secondaryText: String
     let onTapActionButton: (() -> Void)?
+    let usesWholeAmounts: Bool
 
     var placeholder: String {
         .zero
     }
 
-    private var usesWholeAmounts: Bool {
-        StakeChain(rawValue: asset.chain.rawValue)?.usesWholeAmounts ?? false
-    }
-
     var keyboardType: UIKeyboardType {
-        switch sceneType {
-        case .transfer, .deposit, .withdraw, .perpetual, .earn: .decimalPad
-        case let .stake(stakeType):
-            switch stakeType {
-            case .stake, .unstake: usesWholeAmounts ? .numberPad : .decimalPad
-            case .redelegate, .withdraw, .claimRewards, .freeze, .unfreeze: .decimalPad
-            }
-        }
+        usesWholeAmounts ? .numberPad : .decimalPad
     }
 
     var currencyPosition: CurrencyTextField.CurrencyPosition {
@@ -58,7 +49,7 @@ struct AmountInputConfig: CurrencyInputConfigurable {
         )
     }
 
-    var sanitizer: ((String) -> String)? {
-        { numberSanitizer.sanitize($0) }
+    func sanitize(_ text: String) -> String {
+        numberFormat.sanitize(input: text, maximumFractionDigits: nil, maximumIntegerDigits: nil)
     }
 }

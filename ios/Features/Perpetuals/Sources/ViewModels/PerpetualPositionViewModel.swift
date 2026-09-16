@@ -1,8 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.GemPerpetual
+import enum Gemstone.GemCurrencyStyle
 import Components
 import Formatters
 import Foundation
+import GemstonePrimitives
+import struct Gemstone.GemPerpetualPositionRow
+import enum Gemstone.GemPerpetualPositionDetailRow
+import func Gemstone.perpetualPositionRow
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -14,12 +20,15 @@ public struct PerpetualPositionViewModel {
     private let currencyFormatter: CurrencyFormatter
     private let percentFormatter = PercentFormatter.signed
     private let autocloseFormatter: AutocloseFormatter
+    private let row: GemPerpetualPositionRow
+    private let perpetual = GemPerpetual(provider: .hypercore)
 
     public init(
         _ data: PerpetualPositionData,
-        currencyStyle: CurrencyFormatterType = .currency,
+        currencyStyle: GemCurrencyStyle = .currency,
     ) {
         self.data = data
+        row = perpetualPositionRow(perpetual: data.perpetual.toGem(), asset: data.asset.toGem(), position: data.position.toGem())
         currencyFormatter = CurrencyFormatter(type: currencyStyle, currencyCode: Currency.usd.rawValue)
         autocloseFormatter = AutocloseFormatter(
             currencyFormatter: currencyFormatter,
@@ -32,16 +41,12 @@ public struct PerpetualPositionViewModel {
         AssetIdViewModel(assetId: data.perpetual.assetId).assetImage
     }
 
-    public var nameText: String {
-        data.perpetual.name
-    }
-
     public var symbolText: String {
-        data.asset.symbol
+        row.title
     }
 
     public var leverageText: String {
-        "\(Int(data.position.leverage))x"
+        row.leverage
     }
 
     public var directionText: String {
@@ -49,8 +54,9 @@ public struct PerpetualPositionViewModel {
     }
 
     public var positionTypeText: String {
-        "\(directionText.uppercased()) \(leverageText)"
+        perpetual.positionText(directionName: directionText, formattedLeverage: leverageText)
     }
+
 
     public var positionTypeColor: Color {
         PerpetualDirectionViewModel(direction: data.position.direction).color
@@ -65,11 +71,31 @@ public struct PerpetualPositionViewModel {
         )
     }
 
-    public var pnlField: ListItemField {
-        ListItemField(
-            title: TextValue(text: pnlViewModel.title, style: .body),
-            value: TextValue(text: pnlViewModel.text ?? "", style: pnlViewModel.textStyle),
-        )
+    public func detailField(for detailRow: GemPerpetualPositionDetailRow) -> ListItemField {
+        switch detailRow {
+        case .pnl: ListItemField(title: TextValue(text: detailRow.title, style: .body), value: TextValue(text: pnlViewModel.text ?? "", style: pnlViewModel.textStyle))
+        case .autoclose: ListItemField(title: detailRow.title, value: autocloseText.subtitle)
+        case .size: ListItemField(title: detailRow.title, value: currencyFormatter.string(data.position.sizeValue))
+        case .entryPrice: ListItemField(title: detailRow.title, value: currencyFormatter.string(data.position.entryPrice))
+        case .liquidationPrice:
+            ListItemField(
+                title: TextValue(text: detailRow.title, style: .body),
+                value: TextValue(text: row.liquidationPrice?.text() ?? Placeholder.empty, style: liquidationPriceTextStyle),
+            )
+        case .margin:
+            ListItemField(
+                title: detailRow.title,
+                value: perpetual.marginText(
+                    formattedAmount: currencyFormatter.string(data.position.marginAmount),
+                    marginTypeName: data.position.marginType.title,
+                ),
+            )
+        case .fundingPayments:
+            ListItemField(
+                title: TextValue(text: detailRow.title, style: .body),
+                value: TextValue(text: fundingPaymentsModel.text ?? Placeholder.empty, style: fundingPaymentsModel.textStyle),
+            )
+        }
     }
 
     public var pnlColor: Color {
@@ -88,10 +114,6 @@ public struct PerpetualPositionViewModel {
         currencyFormatter.string(data.position.marginAmount)
     }
 
-    var autocloseTitle: String {
-        Localized.Perpetual.autoClose
-    }
-
     var autocloseText: (subtitle: String, subtitleExtra: String?) {
         autocloseFormatter.format(
             takeProfit: data.position.takeProfit?.price,
@@ -99,47 +121,16 @@ public struct PerpetualPositionViewModel {
         )
     }
 
-    public var marginField: ListItemField {
-        let marginAmount = currencyFormatter.string(data.position.marginAmount)
-        return ListItemField(title: Localized.Perpetual.margin, value: "\(marginAmount) (\(data.position.marginType.title))")
-    }
-
-    public var fundingPaymentsField: ListItemField {
-        ListItemField(
-            title: TextValue(text: Localized.Info.Perpetual.FundingPayments.title, style: .body),
-            value: TextValue(text: fundingPaymentsModel.text ?? Placeholder.empty, style: fundingPaymentsModel.textStyle),
-        )
-    }
-
-    public var fundingPaymentsColor: Color {
-        fundingPaymentsModel.color
-    }
-
-    public var sizeField: ListItemField {
-        ListItemField(title: Localized.Perpetual.size, value: currencyFormatter.string(data.position.sizeValue))
-    }
-
-    public var entryPriceField: ListItemField {
-        ListItemField(title: Localized.Perpetual.entryPrice, value: currencyFormatter.string(data.position.entryPrice))
-    }
-
-    public var liquidationPriceField: ListItemField? {
-        guard let price = data.position.liquidationPrice, price > 0 else { return .none }
-        return ListItemField(
-            title: TextValue(text: Localized.Info.Perpetual.LiquidationPrice.title, style: .body),
-            value: TextValue(text: currencyFormatter.string(price), style: liquidationPriceTextStyle),
-        )
-    }
 }
 
 // MARK: - Private
 
 extension PerpetualPositionViewModel {
-    private var fundingPaymentsModel: PriceChangeViewModel {
+    var fundingPaymentsModel: PriceChangeViewModel {
         PriceChangeViewModel(value: data.position.funding.map { Double($0) }, currencyFormatter: currencyFormatter)
     }
 
-    private var liquidationPriceTextStyle: TextStyle {
+    var liquidationPriceTextStyle: TextStyle {
         TextStyle(font: .callout, color: Colors.secondaryText)
     }
 }

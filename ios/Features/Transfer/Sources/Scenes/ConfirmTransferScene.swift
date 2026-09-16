@@ -87,21 +87,17 @@ extension ConfirmTransferScene {
             } else {
                 ListItemView(model: model)
             }
-        case let .warnings(warnings):
-            SimulationWarningsContent(warnings: warnings)
+        case let .warnings(models):
+            SimulationWarningsContent(models: models)
         case let .balanceChange(model):
             ListItemView(
                 title: TextValue(text: model.assetTitle, style: .body, lineLimit: 1, truncationMode: .tail),
                 subtitle: model.amount,
                 imageStyle: .list(assetImage: model.assetImage, cornerRadiusType: .rounded),
             )
-        case let .payload(fields):
+        case let .payload(models):
             Group {
-                SimulationPayloadFieldsContent(
-                    fields: fields,
-                    fieldViewModel: self.model.payloadModel.fieldViewModel(for:),
-                    contextMenuItems: self.model.contextMenuItems(for:),
-                )
+                SimulationPayloadFieldsContent(models: models)
 
                 if self.model.payloadModel.hasDetails {
                     NavigationCustomLink(

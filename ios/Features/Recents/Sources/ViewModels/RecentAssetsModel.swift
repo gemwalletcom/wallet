@@ -2,7 +2,6 @@
 
 import enum Gemstone.GemAssetAction
 import protocol Gemstone.GemRecentActivityServiceProtocol
-import class Gemstone.GemRecentActivityService
 import GemstoneServices
 import Foundation
 import GemstonePrimitives
@@ -69,7 +68,7 @@ public extension RecentAssetsModel {
     func add(action: GemAssetAction, asset: Asset) {
         Task { [service] in
             do {
-                try await service.addRecent(action: action, asset: asset.map())
+                try await service.addRecent(action: action, asset: asset.toGem())
             } catch {
                 debugLog("Failed to update recent activity: \(error)")
             }

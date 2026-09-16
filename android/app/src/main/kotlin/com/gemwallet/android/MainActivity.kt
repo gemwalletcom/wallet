@@ -1,6 +1,19 @@
 package com.gemwallet.android
 
+import com.gemwallet.android.localization.stringRes
 import android.content.Intent
+import android.Manifest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import com.gemwallet.android.application.notifications.NotificationPermissionRequests
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -8,10 +21,11 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.CompositionLocalProvider
 import com.gemwallet.android.ui.LocalAddressService
-import com.gemwallet.android.ui.LocalAssetConfigService
+import com.gemwallet.android.ui.LocalConnectionStatus
+import com.gemwallet.android.ui.LocalStreamConnected
+import com.wallet.core.primitives.ConnectionComponent
 import com.gemwallet.android.ui.LocalChainService
 import com.gemwallet.android.ui.LocalAssetsService
-import com.gemwallet.android.ui.LocalDeeplinkService
 import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemChainService
@@ -44,12 +58,18 @@ class MainActivity : FragmentActivity(), AuthRequester {
     private lateinit var systemAuthenticator: SystemAuthenticator
 
     @Inject lateinit var connectionStatusObserver: ConnectionStatusObserver
+    @Inject lateinit var notificationPermissionRequests: NotificationPermissionRequests
     @Inject lateinit var activeWalletConnectRequest: ActiveWalletConnectRequest
     @Inject lateinit var addressService: GemAddressService
     @Inject lateinit var deeplinkService: GemDeeplinkService
     @Inject lateinit var assetsService: GemAssetsService
     @Inject lateinit var chainService: GemChainService
-    @Inject lateinit var assetConfigService: GemAssetConfigService
+
+    private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        pendingNotificationPermission?.complete(granted)
+        pendingNotificationPermission = null
+    }
+    private var pendingNotificationPermission: CompletableDeferred<Boolean>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -65,14 +85,32 @@ class MainActivity : FragmentActivity(), AuthRequester {
         viewModel.handleIntent(intent)
         viewModel.maintain()
 
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                notificationPermissionRequests.requests.collect { request ->
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                        request.complete(false)
+                        return@collect
+                    }
+                    pendingNotificationPermission = request
+                    notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+        }
+
         setContent {
             val state by viewModel.uiState.collectAsStateWithLifecycle()
             val pendingNavigation by viewModel.pendingNavigation.collectAsStateWithLifecycle()
             val systemAuthEnrollmentMissing by systemAuthenticator.enrollmentMissing.collectAsStateWithLifecycle()
             val connectionStatus by connectionStatusObserver.status.collectAsStateWithLifecycle()
+            val streamConnected = remember {
+                connectionStatusObserver.isHealthyByComponent
+                    .map { it[ConnectionComponent.Stream] == true }
+                    .stateIn(lifecycleScope, SharingStarted.Eagerly, false)
+            }
             val connectionBannerState = remember { ConnectionBannerState() }
             LaunchedEffect(connectionStatus) {
-                connectionBannerState.update(connectionStatus.bannerTitleRes()?.let(::getString))
+                connectionBannerState.update(connectionStatus.stringRes()?.let(::getString))
             }
             val appearance by viewModel.appearance.collectAsStateWithLifecycle()
             val darkTheme = when (appearance) {
@@ -80,18 +118,19 @@ class MainActivity : FragmentActivity(), AuthRequester {
                 Appearance.Light -> false
                 Appearance.Dark -> true
             }
-            LaunchedEffect(darkTheme) { applySystemBarsAppearance(darkTheme) }
+            LaunchedEffect(darkTheme) { setSystemBarsAppearance(darkTheme) }
 
             CompositionLocalProvider(
                 LocalConnectionBannerState provides connectionBannerState,
+                LocalConnectionStatus provides connectionStatusObserver.status,
+                LocalStreamConnected provides streamConnected,
                 LocalAddressService provides addressService,
-                LocalDeeplinkService provides deeplinkService,
                 LocalAssetsService provides assetsService,
                 LocalChainService provides chainService,
-                LocalAssetConfigService provides assetConfigService,
             ) {
                 MainContent(
                     state = state,
+                    deeplinkService = deeplinkService,
                     darkTheme = darkTheme,
                     pendingNavigation = pendingNavigation,
                     systemAuthEnrollmentMissing = systemAuthEnrollmentMissing,
@@ -110,7 +149,7 @@ class MainActivity : FragmentActivity(), AuthRequester {
         }
     }
 
-    private fun applySystemBarsAppearance(darkTheme: Boolean) {
+    private fun setSystemBarsAppearance(darkTheme: Boolean) {
         WindowCompat.getInsetsController(window, window.decorView).apply {
             isAppearanceLightStatusBars = !darkTheme
             isAppearanceLightNavigationBars = !darkTheme
@@ -143,8 +182,3 @@ class MainActivity : FragmentActivity(), AuthRequester {
     }
 }
 
-private fun ConnectionStatus.bannerTitleRes(): Int? = when (this) {
-    ConnectionStatus.Online -> null
-    ConnectionStatus.NoInternet -> R.string.errors_no_internet_connection
-    ConnectionStatus.NoService -> R.string.errors_no_service_connection
-}

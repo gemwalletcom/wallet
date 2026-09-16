@@ -1,7 +1,7 @@
 use number_formatter::price_suggestion;
-use primitives::{PriceAlert, PriceAlertDirection, PriceAlertNotificationType};
+use primitives::{Currency, PriceAlert, PriceAlertData, PriceAlertDirection, PriceAlertNotificationType};
 
-use crate::services::price_alert::rules;
+use crate::services::price_alert::rules::{self, GemPriceAlertKind, GemPriceAlertRow};
 
 #[derive(Default, uniffi::Object)]
 pub struct PriceAlertFormatter {}
@@ -17,16 +17,20 @@ impl PriceAlertFormatter {
         price_suggestion::percentage_suggestions(price)
     }
 
-    pub fn rounded_values(&self, price: f64, by_percent: f64) -> Vec<f64> {
-        price_suggestion::price_rounded_values(price, by_percent)
-    }
-
     pub fn alert_id(&self, alert: PriceAlert) -> String {
         alert.id()
     }
 
     pub fn notification_type(&self, alert: PriceAlert) -> PriceAlertNotificationType {
         alert.notification_type()
+    }
+
+    pub fn alert_kind(&self, alert: PriceAlert) -> GemPriceAlertKind {
+        rules::alert_kind(&alert)
+    }
+
+    pub fn row(&self, data: PriceAlertData, price_currency: Currency) -> GemPriceAlertRow {
+        rules::price_alert_row(&data, price_currency)
     }
 
     pub fn displayed_alert_ids(&self, alerts: Vec<PriceAlert>) -> Vec<String> {

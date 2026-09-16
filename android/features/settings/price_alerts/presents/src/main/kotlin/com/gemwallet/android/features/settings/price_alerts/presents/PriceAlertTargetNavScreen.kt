@@ -11,6 +11,8 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.rememberNotificationPermissionGate
 import com.wallet.core.primitives.PriceAlertDirection
 import com.wallet.core.primitives.PriceAlertNotificationType
+import com.gemwallet.android.ui.components.screen.rememberSnackbarState
+import com.gemwallet.android.ui.localization.text
 
 @Composable
 fun PriceAlertTargetNavScreen(
@@ -23,21 +25,23 @@ fun PriceAlertTargetNavScreen(
     val currentPriceFormatted by viewModel.currentPrice.collectAsStateWithLifecycle()
     val type by viewModel.type.collectAsStateWithLifecycle()
     val direction by viewModel.direction.collectAsStateWithLifecycle()
-    val resolvedDirection by viewModel.resolvedDirection.collectAsStateWithLifecycle()
+    val prompt by viewModel.prompt.collectAsStateWithLifecycle()
     val priceSuggestions by viewModel.priceSuggestions.collectAsStateWithLifecycle()
     val percentageSuggestions by viewModel.percentageSuggestions.collectAsStateWithLifecycle()
     val asset by viewModel.asset.collectAsStateWithLifecycle()
     val priceChangeFormatted by viewModel.priceChangeFormatted.collectAsStateWithLifecycle()
     val priceState by viewModel.priceState.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
+    val snackbar = rememberSnackbarState(message = error?.text(), iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 
-    val requestNotificationPermission = rememberNotificationPermissionGate(onGranted = viewModel::onPushNotificationGranted)
+    val requestNotificationPermission = rememberNotificationPermissionGate()
 
     PriceAlertTargetScene(
         value = viewModel.value,
         type = type,
         direction = direction,
-        resolvedDirection = resolvedDirection,
+        prompt = prompt,
         currency = currency,
         currentPriceFormatted = currentPriceFormatted,
         priceSuggestions = priceSuggestions,
@@ -47,16 +51,12 @@ fun PriceAlertTargetNavScreen(
         assetPriceChangeFormatted = priceChangeFormatted,
         assetValueDirection = priceState,
         buttonState = buttonState,
+        snackbar = snackbar,
         onType = viewModel::onType,
         onDirection = viewModel::onDirection,
         onConfirm = {
-            val result = viewModel.onConfirm()
-            requestNotificationPermission {
-                if (result != null) {
-                    onComplete(result.toMessage(resources))
-                } else {
-                    onCancel()
-                }
+            viewModel.onConfirm { result ->
+                requestNotificationPermission { onComplete(result.toMessage(resources)) }
             }
         },
         onCancel = onCancel,

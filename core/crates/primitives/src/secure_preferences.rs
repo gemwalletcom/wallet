@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     error::Error,
-    sync::Mutex,
+    sync::{Mutex, MutexGuard},
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -26,20 +26,24 @@ impl InMemoryPreferences {
     pub fn new() -> Self {
         Self { data: Mutex::new(HashMap::new()) }
     }
+
+    fn data(&self) -> Result<MutexGuard<'_, HashMap<String, String>>, Box<dyn Error + Send + Sync>> {
+        self.data.lock().map_err(|_| "in memory preferences lock is poisoned".into())
+    }
 }
 
 impl Preferences for InMemoryPreferences {
     fn get(&self, key: String) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
-        Ok(self.data.lock().unwrap().get(&key).cloned())
+        Ok(self.data()?.get(&key).cloned())
     }
 
     fn set(&self, key: String, value: String) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.data.lock().unwrap().insert(key, value);
+        self.data()?.insert(key, value);
         Ok(())
     }
 
     fn remove(&self, key: String) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.data.lock().unwrap().remove(&key);
+        self.data()?.remove(&key);
         Ok(())
     }
 }

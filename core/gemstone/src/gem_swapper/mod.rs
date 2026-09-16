@@ -7,7 +7,8 @@ mod remote_types;
 use remote_types::*;
 type Swapper = swapper::swapper::GemSwapper;
 
-use crate::alien::{AlienProvider, AlienProviderWrapper, coalescing_provider};
+use crate::alien::{AlienProvider, AlienProviderWrapper, PreferencesNodeEndpoints, coalescing_provider};
+use crate::services::preferences::GemPreferencesStore;
 use primitives::AssetId;
 use std::sync::Arc;
 
@@ -19,10 +20,11 @@ pub struct GemSwapper {
 #[uniffi::export]
 impl GemSwapper {
     #[uniffi::constructor]
-    pub fn new(rpc_provider: Arc<dyn AlienProvider>) -> Self {
+    pub fn new(rpc_provider: Arc<dyn AlienProvider>, preferences: Arc<dyn GemPreferencesStore>) -> Self {
         let rpc_provider = coalescing_provider(rpc_provider);
+        let endpoints = Arc::new(PreferencesNodeEndpoints::new(preferences));
         Self {
-            inner: Swapper::new(Arc::new(AlienProviderWrapper::new(rpc_provider))),
+            inner: Swapper::new(Arc::new(AlienProviderWrapper::with_endpoints(rpc_provider, endpoints))),
         }
     }
 }

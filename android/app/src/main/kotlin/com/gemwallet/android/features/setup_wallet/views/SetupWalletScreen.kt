@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.setup_wallet.views
 
+import com.gemwallet.android.localization.stringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,13 +20,15 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.image.WalletAvatar
-import com.gemwallet.android.ui.components.list_item.walletItemIconModel
+import com.gemwallet.android.ui.components.list_item.iconModel
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingLarge
 import com.wallet.core.primitives.WalletSource
+import com.gemwallet.android.ui.components.screen.rememberSnackbarState
+import com.gemwallet.android.ui.localization.text
 
 @Composable
 fun SetupWalletScreen(
@@ -34,17 +37,16 @@ fun SetupWalletScreen(
     viewModel: SetupWalletViewModel,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbar = rememberSnackbarState(message = uiState.error?.text(), iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 
     val handleDone = { onComplete() }
 
-    val title = when (uiState.walletSource) {
-        WalletSource.Create -> stringResource(id = R.string.wallet_new_title)
-        WalletSource.Import -> stringResource(id = R.string.wallet_import_title)
-    }
+    val title = stringResource(uiState.walletSource.stringRes())
 
     Scene(
         title = title,
         backHandle = true,
+        snackbar = snackbar,
         actions = {
             IconButton(onClick = handleDone) {
                 Icon(imageVector = AppIcons.Check, contentDescription = "")
@@ -65,8 +67,8 @@ fun SetupWalletScreen(
         ) {
             Spacer(modifier = Modifier.size(paddingDefault))
             WalletAvatar(
-                imageUrl = uiState.imageUrl,
-                placeholder = uiState.walletType?.let { walletItemIconModel(it, uiState.walletChain) },
+                imageUrl = uiState.row?.imageUrl,
+                placeholder = uiState.row?.placeholder?.iconModel(),
                 size = extraLargeIconSize,
                 supportIcon = R.drawable.ic_edit_badge,
                 onClick = onSelectImage,

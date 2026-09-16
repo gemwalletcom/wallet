@@ -1,6 +1,8 @@
 import BigInt
 import Components
 import Formatters
+import GemstonePrimitives
+import enum Gemstone.GemAmountSign
 import Primitives
 import Style
 import SwiftUI
@@ -15,12 +17,7 @@ public struct NumericViewModel: Sendable, AmountDisplayable {
     }
 
     public var amount: TextValue {
-        let prefix = switch style.sign {
-        case .incoming where !data.value.isZero: "+"
-        case .outgoing where !data.value.isZero: "-"
-        case .none, .incoming, .outgoing: ""
-        }
-
+        let sign: GemAmountSign = data.value.isZero ? .none : style.sign
         let crypto = style.formatter.string(
             data.value,
             decimals: data.asset.decimals.asInt,
@@ -32,33 +29,20 @@ public struct NumericViewModel: Sendable, AmountDisplayable {
             fontWeight: .medium,
         )
         return TextValue(
-            text: prefix + crypto,
+            text: sign.format(amount: crypto),
             style: viewStyle,
             lineLimit: 1,
         )
     }
 
     public var fiat: TextValue? {
-        guard let quote = data.price,
-              let value = try? style.formatter.double(
-                  from: data.value,
-                  decimals: data.asset.decimals.asInt,
-              )
+        guard let text = PriceViewModel(price: data.price, currencyCode: style.currencyCode)
+            .fiatValueText(value: data.value, decimals: data.asset.decimals.asInt)
         else { return nil }
 
-        let currencyFormatter = CurrencyFormatter(
-            type: .currency,
-            currencyCode: style.currencyCode,
-        )
-        let style = style.textStyle ?? TextStyle(
-            font: .footnote,
-            color: Colors.gray,
-            fontWeight: .medium,
-        )
-
         return TextValue(
-            text: currencyFormatter.string(quote.price * value),
-            style: style,
+            text: text,
+            style: style.textStyle ?? TextStyle(font: .footnote, color: Colors.gray, fontWeight: .medium),
             lineLimit: 1,
         )
     }

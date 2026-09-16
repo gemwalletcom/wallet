@@ -37,6 +37,8 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemChainService
+import uniffi.gemstone.GemChainServiceInterface
+import uniffi.gemstone.GemWalletConnectRejectionReason
 import uniffi.gemstone.GemWalletConnectServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -44,7 +46,7 @@ class WalletConnectCoordinator(
     private val connectionStore: GemstoneConnectionStore,
     private val walletConnectClient: WalletConnectClient,
     private val walletConnectService: GemWalletConnectServiceInterface,
-    private val chainService: GemChainService,
+    private val chainService: GemChainServiceInterface,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
 ) : IsWalletConnectEnabled,
     PairWalletConnect,
@@ -90,8 +92,6 @@ class WalletConnectCoordinator(
     override fun observeConnections(): Flow<List<WalletConnection>> = connectionStore.observeConnections()
 
     override fun observeConnection(connectionId: String): Flow<WalletConnection?> = connectionStore.observeConnection(connectionId)
-
-    override suspend fun getConnectionByTopic(topic: String): WalletConnection? = connectionStore.getConnectionBySessionId(topic)
 
     override suspend fun disconnect(connectionId: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
         walletConnectService.deleteSession(connectionId)
@@ -148,10 +148,25 @@ class WalletConnectCoordinator(
 
     override fun rejectConnection(
         proposal: WalletConnectSessionProposal,
+        reason: GemWalletConnectRejectionReason,
         onSuccess: () -> Unit,
         onError: (String) -> Unit,
     ) {
-        walletConnectClient.rejectSession(proposal, onSuccess, onError)
+        val rejection = walletConnectService.sessionRejection(reason)
+        walletConnectClient.rejectSession(
+            proposal = proposal,
+            rejection = rejection,
+            onSuccess = {
+                if (rejection.deletesSession) {
+                    scope.launch {
+                        runCatching { walletConnectService.deleteSession(proposal.pairingTopic) }
+                            .onFailure { Log.e("WalletConnect", "Delete rejected session failed", it) }
+                    }
+                }
+                onSuccess()
+            },
+            onError = onError,
+        )
     }
 
     override fun approveAuthentication(

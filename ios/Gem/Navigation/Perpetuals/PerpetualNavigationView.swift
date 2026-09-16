@@ -1,9 +1,6 @@
 import Components
 import enum Gemstone.GemPerpetualPositionAction
 import Perpetuals
-import GemstoneServices
-import GemstonePrimitives
-import Primitives
 import Store
 import Style
 import SwiftUI
@@ -27,7 +24,7 @@ public struct PerpetualNavigationView: View {
                     onComplete: model.onAutocloseComplete,
                 )
             }
-            .bindQuery(model.positionsQuery, model.perpetualQuery, model.transactionsQuery, model.perpetualFiatValuesQuery)
+            .bindQuery(model.positionsQuery, model.perpetualQuery, model.transactionsQuery)
             .onChange(of: isPresentingSheet) { oldValue, newValue in
                 guard newValue == nil else { return }
                 switch oldValue {

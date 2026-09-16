@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.referral.views.components
 
+import com.gemwallet.android.ext.toPrimitives
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.AlertDialog
@@ -13,11 +13,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
-import com.gemwallet.android.model.ValueFormatter
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
@@ -28,50 +26,37 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.theme.Spacer4
-import com.wallet.core.primitives.RewardRedemptionOption
-import com.wallet.core.primitives.Rewards
+import uniffi.gemstone.GemRewardsRedemption
+import uniffi.gemstone.GemRewardsState
+import uniffi.gemstone.RewardRedemptionOption
 
 internal fun LazyListScope.referralInfo(
-    rewards: Rewards,
-    onRedeem: (RewardRedemptionOption) -> Unit,
+    uiState: GemRewardsState,
+    onRedeem: (GemRewardsRedemption) -> Unit,
 ) {
     item {
         SubheaderItem(R.string.common_info)
         PropertyItem(
             title = R.string.rewards_my_referral_code,
-            data = rewards.code,
+            data = uiState.referralCode,
             listPosition = ListPosition.First
         )
         PropertyItem(
             title = R.string.rewards_referrals,
-            data = "${rewards.referralCount}",
+            data = uiState.referralCountText,
             listPosition = ListPosition.Middle
         )
         PropertyItem(
-            title = { PropertyTitleText(R.string.rewards_points) },
-            data = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        "${rewards.points}",
-                        overflow = TextOverflow.MiddleEllipsis,
-                        color = MaterialTheme.colorScheme.secondary,
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                    Spacer4()
-                    Text(
-                        text = "\uD83D\uDC8E",
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                }
-            },
+            title = R.string.rewards_points,
+            data = uiState.pointsText,
             listPosition = ListPosition.Last
         )
     }
 
-    if (rewards.redemptionOptions.isNotEmpty()) {
+    val redemptions = uiState.redemptions
+    if (redemptions.isNotEmpty()) {
         item { SubheaderItem(R.string.rewards_ways_spend_title) }
-        itemsPositioned(rewards.redemptionOptions.filter { it.asset != null }) { position, item ->
+        itemsPositioned(redemptions) { position, item ->
             RewardRedemptionOptionItem(item, position) { onRedeem(item) }
         }
     }
@@ -79,10 +64,11 @@ internal fun LazyListScope.referralInfo(
 
 @Composable
 private fun RewardRedemptionOptionItem(
-    option: RewardRedemptionOption,
+    redemption: GemRewardsRedemption,
     listPosition: ListPosition = ListPosition.Middle,
     onClick: () -> Unit
 ) {
+    val option = redemption.option
     val asset = option.asset ?: return
     var showConfirm by remember { mutableStateOf(false) }
     PropertyItem(
@@ -91,13 +77,13 @@ private fun RewardRedemptionOptionItem(
             .clickable { showConfirm = true },
         title = {
             PropertyTitleText(
-                text = stringResource(R.string.rewards_ways_spend_asset_title, option.valueText),
-                trailing = { AssetIcon(asset) },
+                text = stringResource(R.string.rewards_ways_spend_asset_title, redemption.value.text()),
+                trailing = { AssetIcon(asset.toPrimitives()) },
             )
         },
         data = {
             PropertyDataText(
-                text = option.pointsText,
+                text = redemption.pointsText,
                 badge = { DataBadgeChevron() },
             )
         },
@@ -111,7 +97,7 @@ private fun RewardRedemptionOptionItem(
         containerColor = MaterialTheme.colorScheme.background,
         text = {
             Text(
-                text = option.confirmationMessage(),
+                text = redemption.confirmationMessage(),
                 style = MaterialTheme.typography.bodyLarge,
             )
         },
@@ -134,14 +120,6 @@ private fun RewardRedemptionOptionItem(
 }
 
 @Composable
-private fun RewardRedemptionOption.confirmationMessage(): String {
-    return stringResource(R.string.rewards_confirm_redeem, valueText, pointsText)
-}
+private fun GemRewardsRedemption.confirmationMessage(): String =
+    stringResource(R.string.rewards_confirm_redeem, value.text(), pointsText)
 
-private val RewardRedemptionOption.valueText: String
-    get() = asset?.let {
-        ValueFormatter(style = ValueFormatter.Style.Short).string(value.toBigInteger(), it)
-    } ?: ""
-
-private val RewardRedemptionOption.pointsText: String
-    get() = "$points \uD83D\uDC8E"

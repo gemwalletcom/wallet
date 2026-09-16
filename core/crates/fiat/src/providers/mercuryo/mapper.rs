@@ -50,6 +50,7 @@ pub fn map_asset_chain(chain: String) -> Option<Chain> {
         "SUI" => Some(Chain::Sui),
         "SONIC" => Some(Chain::Sonic),
         "MONAD" => Some(Chain::Monad),
+        "ROBINHOOD" => Some(Chain::Robinhood),
         _ => None,
     }
 }
@@ -176,7 +177,28 @@ pub fn map_asset_limits(currency_limits: Option<&CurrencyLimits>, currency: Curr
 mod tests {
     use super::*;
     use crate::providers::mercuryo::models::{Asset, Currencies, Response, Webhook};
+    use primitives::asset_constants::ROBINHOOD_USDG_ASSET_ID;
     use primitives::{AssetId, FiatTransactionStatus};
+
+    #[test]
+    fn test_map_catalog_assets() {
+        let assets: Vec<Asset> = serde_json::from_str(include_str!("../../../testdata/mercuryo/assets_robinhood.json")).unwrap();
+        let currencies: Response<Currencies> = serde_json::from_str(include_str!("../../../testdata/mercuryo/assets.json")).unwrap();
+        let limits = map_asset_limits(None, Currency::USD, &currencies.data.fiat_payment_methods);
+        let expected = [("ETH", AssetId::from_chain(Chain::Robinhood)), ("USDG", ROBINHOOD_USDG_ASSET_ID.clone())];
+        assert_eq!(assets.len(), expected.len());
+        assert!(!limits.is_empty());
+
+        for (asset, (symbol, asset_id)) in assets.into_iter().zip(expected) {
+            let mapped = map_asset_with_limits(asset, limits.clone(), limits.clone()).unwrap();
+
+            assert_eq!(mapped.asset_id(), Some(asset_id));
+            assert_eq!(mapped.id, format!("{symbol}_ROBINHOOD"));
+            assert_eq!((mapped.symbol.as_str(), mapped.network.as_deref()), (symbol, Some("ROBINHOOD")));
+            assert_eq!((mapped.enabled, mapped.is_buy_enabled, mapped.is_sell_enabled), (true, true, true));
+            assert_eq!((mapped.buy_limits.len(), mapped.sell_limits.len()), (limits.len(), limits.len()));
+        }
+    }
 
     #[test]
     fn test_map_order_from_webhook_payloads() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -270,9 +292,11 @@ mod tests {
 
     #[test]
     fn test_map_asset_availability() {
-        let currencies = serde_json::from_str::<Response<Currencies>>(include_str!("../../../testdata/mercuryo/assets.json")).unwrap().data;
+        let currencies = serde_json::from_str::<Response<Currencies>>(include_str!("../../../testdata/mercuryo/assets.json"))
+            .unwrap()
+            .data;
         let limits = map_asset_limits(None, Currency::USD, &currencies.fiat_payment_methods);
-        assert_eq!(limits.is_empty(), false);
+        assert!(!limits.is_empty());
 
         for (buy, sell) in [(false, false), (false, true), (true, false), (true, true)] {
             let mut asset = currencies.config.crypto_currencies[0].clone();

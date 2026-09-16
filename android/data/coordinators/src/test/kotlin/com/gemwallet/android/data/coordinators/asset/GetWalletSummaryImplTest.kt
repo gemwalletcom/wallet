@@ -1,12 +1,7 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.domains.asset.getIconUrl
-import com.gemwallet.android.domains.price.ValueDirection
-import com.gemwallet.android.testkit.mockAccount
-import com.gemwallet.android.testkit.mockWallet
-import com.wallet.core.primitives.Chain
+import uniffi.gemstone.GemValueTone
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.WalletType
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import uniffi.gemstone.TotalFiatValue as GemTotalFiatValue
@@ -23,7 +18,7 @@ class GetWalletSummaryImplTest {
 
         assertEquals("-\$140.57", value.valueFormatted)
         assertEquals("2.84%", value.changePercentageFormatted)
-        assertEquals(ValueDirection.Down, value.state)
+        assertEquals(GemValueTone.NEGATIVE, value.state)
     }
 
     @Test
@@ -36,7 +31,7 @@ class GetWalletSummaryImplTest {
 
         assertEquals("+\$140.57", value.valueFormatted)
         assertEquals("2.84%", value.changePercentageFormatted)
-        assertEquals(ValueDirection.Up, value.state)
+        assertEquals(GemValueTone.POSITIVE, value.state)
     }
 
     @Test
@@ -61,23 +56,5 @@ class GetWalletSummaryImplTest {
 
         assertEquals("\$0.00", state.totalValue)
         assertEquals(null, state.changedValue)
-    }
-
-    @Test
-    fun walletSummaryAggregate_forBaseWallet_usesBaseChainIcon() {
-        val summary = WalletSummaryAggregateImpl(
-            wallet = mockWallet(
-                type = WalletType.Single,
-                accounts = listOf(mockAccount(chain = Chain.Base)),
-            ),
-            displayState = WalletSummaryDisplayState(
-                totalValue = "\$0.00",
-                changedValue = null,
-            ),
-            isBalanceHidden = false,
-            headerButtons = emptyList(),
-        )
-
-        assertEquals(Chain.Base.getIconUrl(), summary.walletIcon.placeholder)
     }
 }

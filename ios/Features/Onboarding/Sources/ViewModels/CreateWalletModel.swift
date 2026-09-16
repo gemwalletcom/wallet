@@ -1,32 +1,40 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemAvatarServiceProtocol
 import protocol Gemstone.GemWalletServiceProtocol
 import GemstoneServices
 import Foundation
 import GemstonePrimitives
 import Primitives
 import SwiftUI
+import Components
+import Localization
+import PrimitivesComponents
 
 @Observable
 @MainActor
 public final class CreateWalletModel {
     private let service: any GemWalletServiceProtocol
+
+    func verifyPhraseModel(words: [String], onComplete: @escaping ([String]) async throws -> Void) -> VerifyPhraseViewModel {
+        VerifyPhraseViewModel(
+            words: words,
+            shuffledWords: service.phraseVerificationWords(words: words),
+            onComplete: onComplete,
+        )
+    }
     private let preferences: ObservablePreferences
-    private let avatarService: any GemAvatarServiceProtocol
     let onComplete: VoidAction
 
     var isPresentingSelectImageWallet: Wallet?
+    var isPresentingAlertMessage: AlertMessage?
 
     public init(
         service: any GemWalletServiceProtocol,
         preferences: ObservablePreferences,
-        avatarService: any GemAvatarServiceProtocol,
         onComplete: VoidAction,
     ) {
         self.service = service
         self.preferences = preferences
-        self.avatarService = avatarService
         self.onComplete = onComplete
     }
 
@@ -44,7 +52,7 @@ public final class CreateWalletModel {
     }
 
     func walletImageModel(wallet: Wallet) -> WalletImageViewModel {
-        WalletImageViewModel(wallet: wallet, source: .onboarding, avatarService: avatarService)
+        WalletImageViewModel(wallet: wallet, source: .onboarding, service: service)
     }
 
     func dismiss() {
@@ -70,7 +78,7 @@ extension CreateWalletModel {
     func createWallet(words: [String]) async throws -> CreatedWallet {
         let name = try await service.defaultWalletName(chain: .none)
         let result = try await service.importWallet(
-            name: name.name,
+            name: name.text.text,
             type: try service.importRequest(kind: .phrase, chain: nil, input: words.joined(separator: " "), nameRecord: nil),
             source: .create,
         )
@@ -78,12 +86,12 @@ extension CreateWalletModel {
         return CreatedWallet(wallet: result.wallet, hasExistingWallets: name.hasExistingWallets)
     }
 
-    func setupWalletComplete(wallet: Wallet) async {
-        dismiss()
+    func setupWalletComplete(wallet: Wallet) {
         do {
             try service.setCurrentWalletId(walletId: wallet.id.id)
+            dismiss()
         } catch {
-            debugLog("set current wallet error: \(error)")
+            isPresentingAlertMessage = AlertMessage(title: Localized.Errors.errorOccurred, error: error)
         }
     }
 }

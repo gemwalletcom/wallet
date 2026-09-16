@@ -2,27 +2,30 @@
 
 import struct Gemstone.GemConfirmSimulation
 import struct Gemstone.GemConfirmSimulationState
+import struct Gemstone.GemSimulationBalanceChange
+import struct Gemstone.GemSimulationValue
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
+import struct Gemstone.GemSimulationWarningRow
 import struct Gemstone.SimulationResult
-import struct Gemstone.SimulationWarning
+import func Gemstone.simulationWarningRows
 
 struct ConfirmSimulationState {
     let result: SimulationResult?
-    let warnings: [SimulationWarning]
+    let warnings: [GemSimulationWarningRow]
     let hasCriticalWarning: Bool
     let payload: SimulationPayloadModel
-    let headerData: AssetValueHeaderData?
-    let balanceChanges: [SimulationAssetChange]
+    let headerData: GemSimulationValue?
+    let balanceChanges: [GemSimulationBalanceChange]
 
     init(
         result: SimulationResult?,
-        warnings: [SimulationWarning],
+        warnings: [GemSimulationWarningRow],
         hasCriticalWarning: Bool,
         payload: SimulationPayloadModel,
-        headerData: AssetValueHeaderData?,
-        balanceChanges: [SimulationAssetChange],
+        headerData: GemSimulationValue?,
+        balanceChanges: [GemSimulationBalanceChange],
     ) {
         self.result = result
         self.warnings = warnings
@@ -35,7 +38,7 @@ struct ConfirmSimulationState {
     init(result: SimulationResult?, chain: Primitives.Chain) {
         self.init(
             result: result,
-            warnings: result?.warnings ?? [],
+            warnings: simulationWarningRows(warnings: result?.warnings ?? []),
             hasCriticalWarning: false,
             payload: SimulationPayloadModel(chain: chain, primaryFields: [], secondaryFields: []),
             headerData: nil,
@@ -57,10 +60,8 @@ struct ConfirmSimulationState {
             warnings: state.warnings,
             hasCriticalWarning: details?.hasCriticalWarning ?? false,
             payload: payload,
-            headerData: details?.header.flatMap {
-                return AssetValueHeaderData(asset: $0.asset.map(), value: $0.value.map())
-            },
-            balanceChanges: details?.balanceChanges.map { SimulationAssetChange(asset: $0.asset.map(), value: $0.value) } ?? [],
+            headerData: details?.header,
+            balanceChanges: details?.balanceChanges ?? [],
         )
     }
 }

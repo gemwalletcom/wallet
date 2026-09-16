@@ -2,7 +2,6 @@
 
 import Primitives
 import Foundation
-import GemstoneServices
 import Localization
 
 public extension LockPeriod {

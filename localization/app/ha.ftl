@@ -9,6 +9,7 @@ common_secret_phrase = Kalmomin Sirri
 common_copy = Kwafi
 common_share = Raba
 common_continue = Ci gaba
+common_sign_in_with = Shiga da %@
 common_provider = Mai bayarwa
 common_loading = Ana lodawa
 common_address = Adireshi
@@ -54,9 +55,9 @@ common_get_started = Fara
 common_earn = Sami
 common_method = Hanyar
 common_token = Alamar Token
+common_expiration = Ƙarewa
 common_suspicious_address = Adireshin da ake zargi
 common_refresh = Sabuntawa
-common_no_thanks = A'a na gode
 common_grant_permission = Ba da izini
 common_required_field = %@ ana bukata
 
@@ -163,7 +164,6 @@ transfer_freeze_title = Daskare
 transfer_unfreeze_title = Cire daskarewa
 transfer_review_request = Buƙatar Bita
 transfer_amount = Adadin
-transfer_amount_title = Adadin
 
 # Settings
 
@@ -207,7 +207,6 @@ support_message_placeholder = Saƙo
 
 # Errors
 
-errors_transfer = Kuskuren Canja wurin: %@
 errors_validation = Kuskuren Tabbatarwa: %@
 errors_create_wallet = Ƙirƙiri Kuskuren Wallet: %@
 errors_invalid_address_name = Adireshi ko suna mara inganci
@@ -226,7 +225,6 @@ errors_cancelled = An soke
 errors_connections_user_cancelled = Mai amfani ya soke
 errors_not_supported = Ba a Tallafawa
 errors_permissions_not_granted = Ba a Ba da izini ba
-errors_decoding = Kuskuren yankewa
 errors_unknown = Ba a sani ba
 errors_not_supported_qr = Wannan na'urar baya goyan bayan duba lambar QR. Kuna iya zaɓar hoton lambar QR daga ɗakin karatu kawai.
 errors_camera_permissions_not_granted = Ba a ba da izinin kyamara ba. Da fatan za a ba da damar damar kyamara a cikin saitunan don bincika lambar QR.
@@ -237,11 +235,8 @@ errors_invalid_asset_address = Adireshin %@ mara inganci
 errors_dust_threshold = Kasuwancin ya gaza saboda adadin ya yi ƙanƙanta da zai iya biyan mafi ƙarancin buƙatun hanyar sadarwa na %@ (ƙafar ƙura). Wannan iyaka yana tabbatar da ƙimar ciniki ta rufe kudade da farashin sarrafawa.
 errors_swap_no_quote_available = Babu farashi a halin yanzu.
 errors_swap_not_supported_asset = Ba a goyan bayan kadari.
-errors_connections_invalid_send_parameters = An samar da sigogi marasa inganci don aika ma'amala.
-errors_connections_invalid_sign_parameters = An samar da sigogi marasa inganci don sa hannu.
 errors_connections_no_supported_wallets = Babu goyan bayan walat.
 errors_connections_unsupported_chain = Ba a tallafawa sarkar da aka bayar.
-errors_connections_unsupported_method = Hanyar da aka nema ba ta da tallafi.
 errors_swap_amount_too_small = Adadin yayi ƙanƙanta
 errors_required = %@ ana bukata
 errors_scan_transaction_malicious_description = Ba za a iya kammala wannan ma'amala ba - adireshin walat ɗin da ake nufi yana da alaƙa da ayyuka masu ban tsoro ko cutarwa.
@@ -253,7 +248,6 @@ errors_dust_threshold_short = Cibiyar sadarwa tana la'akari da wannan adadin ƙu
 errors_swap_minimum_amount = Mafi ƙarancin adadin ciniki shine %@. Da fatan a shigar da adadin da ya fi girma.
 errors_perpetual_trigger_price_lower = Farashin kunnawa ya kamata ya zama ƙasa da farashin kasuwa
 errors_perpetual_trigger_price_higher = Farashin kunnawa ya kamata ya zama sama da farashin kasuwa
-errors_token_unable_fetch_token_information = Ba a iya samo bayanan alamar: %@
 errors_unknown_try_again = An sami kuskuren da ba a sani ba. Da fatan za a sake gwadawa.
 errors_network_error = Kuskuren hanyar sadarwa: %@
 errors_network_offline = Da alama haɗin intanet ɗin ya katse.
@@ -277,7 +271,6 @@ update_app_action = Sabuntawa
 update_app_permission_title = Bada izinin shigarwa
 update_app_permission_description = Je zuwa saitunan kuma ba da izinin shigarwa daga kafofin waje
 update_app_permission_open_settings = Je zuwa saitunan
-update_app_downloading = Ana saukewa...
 
 # Transaction
 
@@ -365,6 +358,7 @@ wallet_connect_state_empty_description = Duba ko liƙa lamba don haɗi zuwa DApp
 wallet_connect_permissions_title = Izini
 wallet_connect_permissions_view_balance = Duba ma'aunin ku da ayyukan ku
 wallet_connect_permissions_approval_requests = Aika buƙatun amincewa
+wallet_connect_request_expired = Buƙatar ta ƙare
 
 # Swap
 
@@ -480,8 +474,6 @@ banner_account_activation_title = Kudin Kunna Asusu
 banner_account_activation_description = Cibiyar sadarwar %@ tana buƙatar kuɗin lokaci ɗaya na %@.
 banner_stake_title = Fara tarawa %@
 banner_stake_description = Sami %@ lada akan gungumen ku yayin barci.
-banner_enable_notifications_title = Kunna Fadakarwa
-banner_enable_notifications_description = Tsaya akan aikin walat ɗin ku.
 banner_activate_asset_description = Don amfani da kadarar %@, dole ne ka fara kunna ta akan hanyar sadarwar %@ ta hanyar cika takamaiman buƙatun cibiyar sadarwa.
 banner_asset_status_title = Dukiyar da ake tuhuma
 banner_asset_status_description = Alamar na iya zama mara lafiya ko yaudara. Ci gaba kawai idan kun amince da shi sosai.
@@ -605,6 +597,7 @@ nft_report_reason_spam = Spam
 nft_report_reason_malicious = Mai mugunta
 nft_report_reason_inappropriate = Abun ciki mara dacewa
 nft_report_reason_copyright = Haƙƙin mallaka
+nft_report_reason_other = Sauran
 nft_report_report_button_title = Yi korafi
 
 # Permissions
@@ -629,7 +622,6 @@ networks_state_empty_search_title = Babu cibiyoyin sadarwa da aka samu
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Za ku sami kalmar sirri - ita ce kawai hanyar samun damar walat ɗin ku.
-onboarding_security_create_wallet_confirm_title = Na fahimta kuma ina so in ci gaba
 onboarding_security_create_wallet_do_not_share_title = Kada Ku Raba Ga Kowa
 onboarding_security_create_wallet_do_not_share_subtitle = Duk wanda ya sami kalmar sirrin ku na iya ɗaukar cikakken iko da walat ɗin ku.
 onboarding_security_create_wallet_keep_safe_subtitle = Kalmar sirrin hanya ce kawai don samun damar walat ɗin ku.
@@ -687,8 +679,9 @@ perpetual_margin_isolated = Ware
 # Perpetuals
 
 perpetuals_title = Perpetuals
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = Ciniki Perpetuals
 perpetuals_markets = Kasuwanni
-perpetuals_empty_state_no_markets = Babu kasuwanni
 perpetuals_empty_state_no_markets_found = Babu kasuwanni da aka samu
 
 # Rewards
@@ -760,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = Ana buƙatar izinin kyamara don duba lambar QR.\nDa fatan za a ba da izini.
 
 # Notifications Permission
 
-notifications_permission_request_notification = Izinin Fadakarwa da ake buƙata don samun sanarwa game da sabbin ma'amaloli.\nDon Allah a ba da izini.
 
 # Confirm
 
-confirm_fee_error = Kuskuren lissafin kuɗin kuɗi
 
 # Rootcheck
 

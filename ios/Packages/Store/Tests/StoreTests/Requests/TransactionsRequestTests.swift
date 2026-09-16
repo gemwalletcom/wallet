@@ -12,10 +12,11 @@ struct TransactionsRequestTests {
         let assetId = AssetId(chain: .ethereum)
 
         #expect(
-            TransactionsRequest.assetScene(walletId: walletId, assetId: assetId) ==
+            TransactionsRequest.assetScene(walletId: walletId, assetId: assetId, limit: 250) ==
                 TransactionsRequest(
                     walletId: walletId,
                     type: .asset(assetId: assetId),
+                    limit: 250,
                 ),
         )
     }
@@ -29,6 +30,7 @@ struct TransactionsRequestTests {
             TransactionsRequest.perpetualScene(
                 walletId: walletId,
                 assetId: assetId,
+                limit: 250,
             ) ==
                 TransactionsRequest(
                     walletId: walletId,
@@ -37,6 +39,7 @@ struct TransactionsRequestTests {
                         TransactionType.perpetualOpenPosition.rawValue,
                         TransactionType.perpetualClosePosition.rawValue,
                     ])],
+                    limit: 250,
                 ),
         )
     }

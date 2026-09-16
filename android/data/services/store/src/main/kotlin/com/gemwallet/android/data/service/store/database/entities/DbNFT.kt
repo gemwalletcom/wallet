@@ -33,8 +33,6 @@ data class DbNFTCollection(
     val chain: Chain,
     val contractAddress: String,
     val imageUrl: String,
-    val previewImageUrl: String,
-    val originalSourceUrl: String,
     val status: VerificationStatus?,
     val links: List<AssetLink>? = null,
 )
@@ -69,8 +67,6 @@ data class DbNFTAsset(
     val chain: Chain,
     @ColumnInfo(name = "contract_address") val contractAddress: String?,
     @ColumnInfo(name = "image_url") val imageUrl: String,
-    @ColumnInfo(name = "preview_image_url") val previewImageUrl: String,
-    @ColumnInfo(name = "original_image_url") val originalSourceUrl: String,
     val attributes: List<NFTAttribute>? = null,
 )
 

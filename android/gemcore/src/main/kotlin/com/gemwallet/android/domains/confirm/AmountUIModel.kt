@@ -7,12 +7,11 @@ import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.NFTAsset
-import com.wallet.core.primitives.TransactionType
 import uniffi.gemstone.GemTransactionHeaderKind
 import java.math.BigInteger
+import uniffi.gemstone.GemValueStyle
 
 class AmountUIModel(
-    val transactionType: TransactionType,
     val headerKind: GemTransactionHeaderKind,
     val amount: BigInteger,
     val fromAsset: AssetPriceValue,
@@ -25,7 +24,7 @@ class AmountUIModel(
     val asset: Asset get() = fromAsset.asset
 
     val cryptoAmount: String by lazy {
-        ValueFormatter(style = ValueFormatter.Style.Full)
+        ValueFormatter(style = GemValueStyle.FULL)
             .string(amount, asset.decimals, asset.symbol)
     }
 

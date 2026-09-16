@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstoneServices
 import Components
 import FiatConnect
 import GemstonePrimitives
@@ -12,7 +11,6 @@ import Style
 import Swap
 import SwiftUI
 import Transfer
-import struct Gemstone.GemTransferData
 
 struct ConfirmTransferNavigationView: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
@@ -32,10 +30,8 @@ struct ConfirmTransferNavigationView: View {
                 case .payloadDetails:
                     NavigationStack {
                         SimulationPayloadDetailsScene(
-                            primaryFields: model.payloadModel.primaryFields,
-                            secondaryFields: model.payloadModel.secondaryFields,
-                            fieldViewModel: model.payloadModel.fieldViewModel(for:),
-                            contextMenuItems: model.contextMenuItems(for:),
+                            primaryModels: model.fieldModels(for: model.payloadModel.primaryFields),
+                            secondaryModels: model.fieldModels(for: model.payloadModel.secondaryFields),
                         )
                         .presentationDetents([.large])
                         .presentationBackground(Colors.grayBackground)
@@ -108,11 +104,11 @@ private struct GetAssetNavigationStack: View {
                     destination(for: action)
                         .toolbarDismissItem(type: .close, placement: .topBarLeading)
                         .navigationBarTitleDisplayMode(.inline)
-                        .navigationDestination(for: GemTransferData.self) { data in
+                        .navigationDestination(for: ConfirmTransferInput.self) { input in
                             ConfirmTransferNavigationView(
                                 model: viewModelFactory.confirmTransferScene(
                                     wallet: model.assetAcquisitionWallet,
-                                    data: data,
+                                    data: input.data,
                                     onComplete: { model.isPresentingSheet = nil },
                                 ),
                             )
@@ -145,7 +141,7 @@ private struct GetAssetNavigationStack: View {
                             toAssetId: asset.id,
                         ),
                     ),
-                    onSwap: { actionNavigationPath.append($0) },
+                    onSwap: { actionNavigationPath.append(ConfirmTransferInput(data: $0)) },
                 ),
             )
         case .receive:

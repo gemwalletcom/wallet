@@ -7,7 +7,6 @@ pub use primitives::swap::{ApprovalData, SwapData, SwapPriceImpact, SwapPriceImp
 pub use swapper::SwapperProvider;
 
 pub type GemApprovalData = ApprovalData;
-pub type GemSwapData = SwapData;
 pub type GemSwapQuoteData = SwapQuoteData;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -16,6 +15,16 @@ pub enum GemSlippageCheck {
     High,
     BelowMinimum,
     AboveMaximum,
+}
+
+#[uniffi::export]
+impl GemSlippageCheck {
+    pub fn allows_confirm(&self) -> bool {
+        match self {
+            Self::Valid | Self::High => true,
+            Self::BelowMinimum | Self::AboveMaximum => false,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Object)]
@@ -35,17 +44,15 @@ impl GemSwapValue {
     pub fn price_impact(&self, receive: Arc<GemSwapValue>) -> Option<SwapPriceImpact> {
         calculate_swap_price_impact(self.fiat_value()?, receive.fiat_value()?)
     }
-}
 
-impl GemSwapValue {
-    fn fiat_value(&self) -> Option<f64> {
+    pub fn fiat_value(&self) -> Option<f64> {
         let price = self.price?;
         let amount = BigNumberFormatter::value_as_f64(&self.value.to_string(), self.decimals).ok()?;
         Some(amount * price)
     }
 }
 
-pub fn calculate_swap_price_impact(pay_fiat_value: f64, receive_fiat_value: f64) -> Option<SwapPriceImpact> {
+fn calculate_swap_price_impact(pay_fiat_value: f64, receive_fiat_value: f64) -> Option<SwapPriceImpact> {
     if pay_fiat_value <= 0.0 || receive_fiat_value <= 0.0 || !pay_fiat_value.is_finite() || !receive_fiat_value.is_finite() {
         return None;
     }
@@ -63,6 +70,7 @@ pub fn calculate_swap_price_impact(pay_fiat_value: f64, receive_fiat_value: f64)
         percentage,
         impact_type,
         is_high: rounded_percentage.abs() >= get_swap_config().high_price_impact_percent as f64,
+        shows_in_summary: matches!(impact_type, SwapPriceImpactType::Medium | SwapPriceImpactType::High),
     })
 }
 
@@ -73,17 +81,31 @@ fn round_to_places(value: f64, places: i32) -> f64 {
 
 #[cfg(test)]
 mod tests {
-    use super::{GemSwapValue, SwapPriceImpact, SwapPriceImpactType, calculate_swap_price_impact, round_to_places};
+    use super::{GemSlippageCheck, GemSwapValue, SwapPriceImpact, SwapPriceImpactType, calculate_swap_price_impact, round_to_places};
     use std::sync::Arc;
 
     #[test]
+    fn test_a_high_slippage_still_confirms_and_a_bounded_one_does_not() {
+        assert!(GemSlippageCheck::Valid.allows_confirm());
+        assert!(GemSlippageCheck::High.allows_confirm());
+        assert!(!GemSlippageCheck::BelowMinimum.allows_confirm());
+        assert!(!GemSlippageCheck::AboveMaximum.allows_confirm());
+    }
+
+    #[test]
     fn test_swap_price_impact_needs_a_price_on_both_sides() {
-        let priced = |value: u32, price: Option<f64>| Arc::new(GemSwapValue::new(value.into(), 2, price));
+        assert_eq!(
+            Arc::new(GemSwapValue::new(100u32.into(), 2, None)).price_impact(Arc::new(GemSwapValue::new(100u32.into(), 2, Some(1.0)))),
+            None
+        );
+        assert_eq!(
+            Arc::new(GemSwapValue::new(100u32.into(), 2, Some(1.0))).price_impact(Arc::new(GemSwapValue::new(100u32.into(), 2, None))),
+            None
+        );
 
-        assert_eq!(priced(100, None).price_impact(priced(100, Some(1.0))), None);
-        assert_eq!(priced(100, Some(1.0)).price_impact(priced(100, None)), None);
-
-        let impact = priced(200, Some(1.0)).price_impact(priced(100, Some(1.0))).expect("impact");
+        let impact = Arc::new(GemSwapValue::new(200u32.into(), 2, Some(1.0)))
+            .price_impact(Arc::new(GemSwapValue::new(100u32.into(), 2, Some(1.0))))
+            .expect("impact");
         assert_eq!(impact.percentage, -50.0);
     }
 
@@ -97,11 +119,13 @@ mod tests {
                 percentage: round_to_places(impact.percentage, 2),
                 impact_type: impact.impact_type,
                 is_high: impact.is_high,
+                shows_in_summary: impact.shows_in_summary,
             }),
             Some(SwapPriceImpact {
                 percentage: 0.5,
                 impact_type: SwapPriceImpactType::Positive,
                 is_high: false,
+                shows_in_summary: false,
             })
         );
 
@@ -110,11 +134,13 @@ mod tests {
                 percentage: round_to_places(impact.percentage, 2),
                 impact_type: impact.impact_type,
                 is_high: impact.is_high,
+                shows_in_summary: impact.shows_in_summary,
             }),
             Some(SwapPriceImpact {
                 percentage: -1.0,
                 impact_type: SwapPriceImpactType::Low,
                 is_high: false,
+                shows_in_summary: false,
             })
         );
 
@@ -123,11 +149,13 @@ mod tests {
                 percentage: round_to_places(impact.percentage, 2),
                 impact_type: impact.impact_type,
                 is_high: impact.is_high,
+                shows_in_summary: impact.shows_in_summary,
             }),
             Some(SwapPriceImpact {
                 percentage: -5.0,
                 impact_type: SwapPriceImpactType::Medium,
                 is_high: false,
+                shows_in_summary: true,
             })
         );
 
@@ -136,11 +164,13 @@ mod tests {
                 percentage: round_to_places(impact.percentage, 2),
                 impact_type: impact.impact_type,
                 is_high: impact.is_high,
+                shows_in_summary: impact.shows_in_summary,
             }),
             Some(SwapPriceImpact {
                 percentage: -11.0,
                 impact_type: SwapPriceImpactType::High,
                 is_high: true,
+                shows_in_summary: true,
             })
         );
     }

@@ -276,8 +276,37 @@ fn should_publish_transaction(notification_type: &TransactionNotificationType, i
 #[cfg(test)]
 mod tests {
     use super::*;
+    use gem_solana::{
+        models::{BlockTransaction, SingleTransaction},
+        provider::transaction_mapper::map_transaction,
+    };
     use num_bigint::BigUint;
-    use primitives::{AssetId, Device, SwapProvider, TransactionSwapMetadata, WalletId, contract_constants::SOLANA_RELAY_DEPOSITORY_PROGRAM_ID};
+    use primitives::{
+        AssetId, Device, JsonRpcResult, SwapProvider, TransactionSwapMetadata, WalletId, asset_constants::SOLANA_USDC_ASSET_ID,
+        contract_constants::SOLANA_RELAY_DEPOSITORY_PROGRAM_ID,
+    };
+
+    #[test]
+    fn test_relay_lookup_table_deposit_enters_cross_chain_processing() {
+        let response: JsonRpcResult<SingleTransaction> =
+            serde_json::from_str(include_str!("../../../../../crates/gem_solana/testdata/relay_deposit_token_lookup_table.json")).unwrap();
+        let source = BlockTransaction {
+            meta: response.result.meta,
+            transaction: response.result.transaction,
+        };
+        let transaction = map_transaction(&source, response.result.block_time).unwrap();
+        let deposit_addresses = DepositAddressMap::from([(SOLANA_RELAY_DEPOSITORY_PROGRAM_ID.to_string(), SwapProvider::Relay)]);
+        let transactions = StoreTransactionsConsumer::transactions_for_storage(vec![transaction], &deposit_addresses, &SendAddressMap::new());
+
+        assert_eq!(transactions.len(), 1);
+        let transaction = &transactions[0];
+        assert_eq!(transaction.transaction_type, TransactionType::Swap);
+        assert_eq!(transaction.state, TransactionState::InTransit);
+        assert_eq!(transaction.asset_id, SOLANA_USDC_ASSET_ID.clone());
+        assert_eq!(transaction.value, BigUint::from(5_000_000u64));
+        assert_eq!(transaction.metadata, None);
+        assert_eq!(cross_chain::swap_provider_with_vault_addresses(transaction, &deposit_addresses), Some(SwapProvider::Relay));
+    }
 
     #[test]
     fn test_supported_nft_asset_ids() {

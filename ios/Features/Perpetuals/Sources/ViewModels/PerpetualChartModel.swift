@@ -70,7 +70,9 @@ private extension PerpetualChartModel {
     }
 
     func updateCandlesticks(perpetual: Perpetual) async {
-        state = .loading
+        if state.value == nil {
+            state = .loading
+        }
         do {
             let candlesticks = try await service.candlesticks(perpetual: perpetual, period: currentPeriod)
             state = .data(candlesticks)

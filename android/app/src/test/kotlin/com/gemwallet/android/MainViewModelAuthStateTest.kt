@@ -5,9 +5,7 @@ import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.pricealerts.MigratePriceAlertsPreference
 import com.gemwallet.android.model.AuthState
-import com.gemwallet.android.services.CheckAccountsService
 import com.gemwallet.android.services.MigrateV3KeystoreService
-import com.gemwallet.android.services.SyncService
 import com.wallet.core.primitives.Appearance
 import io.mockk.every
 import io.mockk.mockk
@@ -17,6 +15,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemAppStartServiceInterface
 
 class MainViewModelAuthStateTest {
 
@@ -96,11 +95,10 @@ class MainViewModelAuthStateTest {
             userConfig = userConfig,
             isWalletConnectEnabledCase = mockk<IsWalletConnectEnabled>(relaxed = true),
             pairWalletConnect = mockk<PairWalletConnect>(relaxed = true),
-            syncService = mockk<SyncService>(relaxed = true),
+            appStartService = mockk<GemAppStartServiceInterface>(relaxed = true),
             migrateV3KeystoreService = mockk<MigrateV3KeystoreService>(relaxed = true),
             walletService = mockk<uniffi.gemstone.GemWalletService>(relaxed = true),
             migratePriceAlertsPreference = mockk<MigratePriceAlertsPreference>(relaxed = true),
-            checkAccountsService = mockk<CheckAccountsService>(relaxed = true),
             lockTimer = mockk<LockTimer>(relaxed = true),
             pendingNavigationCoordinator = mockk<PendingNavigationCoordinator>(relaxed = true),
         )

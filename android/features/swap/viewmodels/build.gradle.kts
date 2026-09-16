@@ -48,21 +48,19 @@ android {
 }
 
 dependencies {
-    api(project(":ui-models"))
     implementation(project(":ui"))
+    api(project(":ui-models"))
     implementation(project(":data:services:gemstone"))
     implementation(project(":features:asset_select:viewmodels"))
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
-    implementation(libs.lifecycle.runtime.ktx)
+    implementation(libs.lifecycle.viewmodel)
     implementation(libs.lifecycle.viewmodel.savedstate)
 
     testImplementation(testFixtures(project(":gemcore")))
     testImplementation(libs.junit)
     testImplementation(libs.mockk.android)
     testImplementation(libs.kotlinx.coroutines.test)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
 }

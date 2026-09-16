@@ -4,7 +4,7 @@ use std::time::Duration;
 use cacher::CacherClient;
 use gem_tracing::info_with_fields;
 use pricer::PriceClient;
-use primitives::{AssetPrice, StreamEvent, StreamMessage, device_stream_channel};
+use primitives::{AssetPrice, StreamEvent, StreamMessage, Version, device_stream_channel};
 use redis::PushInfo;
 use redis::aio::MultiplexedConnection;
 use rocket::futures::SinkExt;
@@ -29,12 +29,12 @@ pub struct StreamObserverClient {
 }
 
 impl StreamObserverClient {
-    pub fn new(device_id: String, price_client: PriceClient) -> Self {
+    pub fn new(device_id: String, version: Version, price_client: PriceClient) -> Self {
         let device_channel = device_stream_channel(&device_id);
         Self {
             device_id,
             device_channel,
-            price_handler: PriceHandler::new(price_client),
+            price_handler: PriceHandler::new(price_client, version),
         }
     }
 
@@ -63,7 +63,7 @@ impl StreamObserverClient {
     ) -> Result<(), Box<dyn Error + Send + Sync>> {
         match message {
             Message::Binary(data) => self.handle_message_payload(data, redis_connection, stream).await,
-            Message::Text(text) => self.handle_message_payload(text.into_bytes(), redis_connection, stream).await.or(Ok(())),
+            Message::Text(text) => self.handle_message_payload(text.into_bytes(), redis_connection, stream).await,
             Message::Ping(data) => Ok(stream.send(Message::Pong(data)).await?),
             Message::Close(_) => {
                 info_with_fields!("websocket client closed connection gracefully", status = "ok");

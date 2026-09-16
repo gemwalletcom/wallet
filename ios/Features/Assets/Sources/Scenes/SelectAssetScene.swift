@@ -24,6 +24,7 @@ public struct SelectAssetScene: View {
         .if(model.isNetworkSearchEnabled) {
             $0.debounce(
                 value: $model.searchableQuery.wrappedValue,
+                interval: model.searchDebounce,
                 action: model.search(query:),
             )
         }
@@ -100,8 +101,8 @@ public struct SelectAssetScene: View {
         ForEach(assets) { assetData in
             let itemView = ListAssetItemSelectionView(
                 assetData: model.displayAssetData(assetData),
-                currencyCode: model.currencyCode,
-                type: model.presentation.listType,
+                currency: model.currency,
+                row: model.flow.row,
                 action: model.onAssetAction,
             )
             switch model.flow.rowAction {

@@ -9,6 +9,7 @@ common_secret_phrase = Phrase secrète
 common_copy = Copier
 common_share = Partager
 common_continue = Continuer
+common_sign_in_with = Se connecter avec %@
 common_provider = Fournisseur
 common_loading = Chargement
 common_address = Adresse
@@ -54,9 +55,9 @@ common_get_started = Commencer
 common_earn = Gagner
 common_method = Méthode
 common_token = Jeton
+common_expiration = Expiration
 common_suspicious_address = Adresse suspecte
 common_refresh = Rafraîchir
-common_no_thanks = Non merci
 common_grant_permission = Donner la permission
 common_required_field = %@ est requis
 
@@ -163,7 +164,6 @@ transfer_freeze_title = Geler
 transfer_unfreeze_title = Dégeler
 transfer_review_request = Examiner la demande
 transfer_amount = Montant
-transfer_amount_title = Montant
 
 # Settings
 
@@ -207,7 +207,6 @@ support_message_placeholder = Message
 
 # Errors
 
-errors_transfer = Erreur de transfert : %@
 errors_validation = Erreur de validation : %@
 errors_create_wallet = Erreur de création de portefeuille : %@
 errors_invalid_address_name = Adresse ou nom invalide
@@ -226,7 +225,6 @@ errors_cancelled = Annulé
 errors_connections_user_cancelled = Utilisateur annulé
 errors_not_supported = Non pris en charge
 errors_permissions_not_granted = Autorisations non accordées
-errors_decoding = Erreur de décodage
 errors_unknown = Inconnu
 errors_not_supported_qr = Cet appareil ne prend pas en charge la numérisation de code QR. Vous pouvez uniquement sélectionner l'image du code QR dans la bibliothèque.
 errors_camera_permissions_not_granted = Autorisation de la caméra non accordée. Veuillez activer l'accès à la caméra dans les paramètres pour scanner le code QR.
@@ -237,11 +235,8 @@ errors_invalid_asset_address = Adresse %@ invalide
 errors_dust_threshold = La transaction a échoué car le montant est trop faible pour atteindre le seuil minimal du réseau %@. Cette limite garantit que la valeur de la transaction couvre les frais et les coûts de traitement.
 errors_swap_no_quote_available = Aucun devis disponible.
 errors_swap_not_supported_asset = Actif non pris en charge.
-errors_connections_invalid_send_parameters = Paramètres non valides fournis pour l'envoi d'une transaction.
-errors_connections_invalid_sign_parameters = Paramètres non valides fournis pour la signature.
 errors_connections_no_supported_wallets = Aucun portefeuille pris en charge n'est disponible.
 errors_connections_unsupported_chain = La chaîne fournie n'est pas prise en charge.
-errors_connections_unsupported_method = La méthode demandée n'est pas prise en charge.
 errors_swap_amount_too_small = Montant trop petit
 errors_required = %@ est requis
 errors_scan_transaction_malicious_description = Cette transaction ne peut être effectuée — l'adresse du portefeuille de destination est liée à une activité suspecte ou malveillante.
@@ -253,7 +248,6 @@ errors_dust_threshold_short = Le réseau considère ce montant comme négligeabl
 errors_swap_minimum_amount = Le montant minimum de transaction est %@. Veuillez saisir un montant plus élevé.
 errors_perpetual_trigger_price_lower = Le prix de déclenchement doit être inférieur au prix du marché
 errors_perpetual_trigger_price_higher = Le prix de déclenchement doit être supérieur au prix du marché
-errors_token_unable_fetch_token_information = Impossible de récupérer les informations du jeton : %@
 errors_unknown_try_again = Une erreur inconnue s'est produite. Veuillez réessayer.
 errors_network_error = Erreur réseau : %@
 errors_network_offline = La connexion Internet semble être hors ligne.
@@ -277,7 +271,6 @@ update_app_action = Mise à jour
 update_app_permission_title = Autoriser l'installation
 update_app_permission_description = Accédez aux paramètres et autorisez l'installation à partir de sources externes
 update_app_permission_open_settings = Accéder aux paramètres
-update_app_downloading = Téléchargement...
 
 # Transaction
 
@@ -365,6 +358,7 @@ wallet_connect_state_empty_description = Scannez ou collez le code pour vous con
 wallet_connect_permissions_title = Autorisations
 wallet_connect_permissions_view_balance = Consultez votre solde et votre activité
 wallet_connect_permissions_approval_requests = Envoyer les demandes d'approbation
+wallet_connect_request_expired = Demande expirée
 
 # Swap
 
@@ -480,8 +474,6 @@ banner_account_activation_title = Frais d'activation de compte
 banner_account_activation_description = Le réseau %@ nécessite des frais uniques de %@.
 banner_stake_title = Commencez le staking de %@
 banner_stake_description = Gagnez des récompenses %@ sur votre staking pendant que vous dormez.
-banner_enable_notifications_title = Activer les notifications
-banner_enable_notifications_description = Restez au courant de l'activité de votre portefeuille.
 banner_activate_asset_description = Pour utiliser la ressource %@, vous devez d'abord l'activer sur le réseau %@ en remplissant les exigences spécifiques du réseau.
 banner_asset_status_title = Actif suspect
 banner_asset_status_description = Le jeton peut être dangereux ou trompeur. Ne procédez que si vous lui faites pleinement confiance.
@@ -605,6 +597,7 @@ nft_report_reason_spam = Spam
 nft_report_reason_malicious = Malveillant
 nft_report_reason_inappropriate = Contenu inapproprié
 nft_report_reason_copyright = Droits d'auteur
+nft_report_reason_other = Autre
 nft_report_report_button_title = Signaler
 
 # Permissions
@@ -629,7 +622,6 @@ networks_state_empty_search_title = Aucun réseau trouvé
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Vous recevrez une phrase secrète : c'est le seul moyen d'accéder à votre portefeuille.
-onboarding_security_create_wallet_confirm_title = Je comprends et je veux continuer
 onboarding_security_create_wallet_do_not_share_title = Ne le partagez avec personne
 onboarding_security_create_wallet_do_not_share_subtitle = Quiconque obtient votre phrase secrète peut prendre le contrôle total de votre portefeuille.
 onboarding_security_create_wallet_keep_safe_subtitle = La phrase secrète est le seul moyen d'accéder à votre portefeuille.
@@ -687,8 +679,9 @@ perpetual_margin_isolated = Isolé
 # Perpetuals
 
 perpetuals_title = Perpétuels
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = Trader les perpétuels
 perpetuals_markets = Marchés
-perpetuals_empty_state_no_markets = Pas de marchés
 perpetuals_empty_state_no_markets_found = Aucun marché trouvé
 
 # Rewards
@@ -760,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = Autorisation de l'appareil photo requise pour la numérisation du code QR.\nVeuillez accorder l'autorisation.
 
 # Notifications Permission
 
-notifications_permission_request_notification = Autorisation de publication de notifications requise pour recevoir des notifications sur les nouvelles transactions.\nVeuillez accorder l'autorisation.
 
 # Confirm
 
-confirm_fee_error = Erreur de calcul des frais
 
 # Rootcheck
 

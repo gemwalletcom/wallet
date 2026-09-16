@@ -8,14 +8,12 @@ The source-of-truth details stay in the topic-specific skills. This file should 
 
 ## Review Setup
 
-1. Read `AGENTS.md`, `skills/cross-platform-awareness.md`, and `skills/engineering-principles.md`.
+1. Follow the task setup and guidance precedence in `AGENTS.md` and `skills/task-workflow.md`.
 2. Read the platform guide for every changed area: `ios/AGENTS.md`, `android/AGENTS.md`, or `core/AGENTS.md`.
 3. Read `skills/security.md` before reviewing key management, wallet import/export, seed phrases, signing, transaction construction, auth, secure storage, external payload parsing, or cryptographic flows.
 4. Fix the review range with `skills/task-workflow.md` § 1 and § 2: a PR's actual base rather than `main`, the PR addressed explicitly from a detached checkout, and for a large refactor the architectural start and every affected surface before the range is frozen. Do not claim full coverage while inventory, discovery, validation, or attack-path work is incomplete.
-6. Inspect the diff, then read the full changed files, callers, exports, configuration, and nearby patterns before judging the change.
-7. Check whether generated files, localization outputs, or mobile bindings were edited directly. Generated outputs must come from the source inputs.
-
-Review is findings-only by default. Do not edit code, commit, push, open or update PRs/issues, post review comments, or resolve threads unless the user separately requests that action.
+5. Inspect the diff, then read the changed files, callers, exports, configuration, and relevant examples before judging the change.
+6. Check whether generated files, localization outputs, or mobile bindings were edited directly. Generated outputs must come from the source inputs.
 
 ## 1. Correct Implementation and Cross-Platform Consistency
 
@@ -33,14 +31,9 @@ Review is findings-only by default. Do not edit code, commit, push, open or upda
 
 ## 2. Coding Style, Codebase Convention, and Reviewability
 
-- Match the local platform style before introducing a new pattern. Prefer existing domain types, mappers, repositories, view models, storage layers, and helper APIs.
-- Keep the patch small and reviewable. Remove unrelated formatting, drive-by refactors, speculative abstractions, and unused public API.
-- Reduce duplication when the repeated logic has the same domain meaning, but avoid abstractions that hide simple platform-specific behavior.
-- Prefer clear domain names over generic names. Use full terms such as `transaction`, `address`, `wallet`, and `amount` unless preserving external protocol names.
-- Keep functions and types single-purpose. Split large changes when separate concerns make review harder.
-- Prefer explicit data flow over hidden globals, implicit defaults, or broad mutable state.
-- Avoid ad hoc parsing when a structured parser, generated model, mapper, or existing primitive already exists.
-- Keep imports, localization keys, generated outputs, and test fixtures consistent with nearby files.
+- Apply [Engineering Principles](engineering-principles.md#clean-code-principles) and the affected platform style. Compare the implementation with the existing owner and the relevant documented example.
+- For each new abstraction or public symbol, identify its current consumer or required contract. Flag forwarding-only wrappers, duplicate loading paths, ad hoc parsers, and new infrastructure whose need is hypothetical.
+- Keep unrelated formatting and refactors out. Shared syntax alone does not justify merging different domain rules.
 
 ## 3. Adversary Review and Security Hardening
 
@@ -65,4 +58,4 @@ When the agent's built-in review workflow has its own severity labels, use those
 - Medium: edge-case correctness bugs, brittle error handling, test gaps for changed behavior, or maintainability issues that slow review
 - Low: small style or convention issues that are safe to batch with other edits
 
-When asked to fix issues, implement only the findings the user selected, make the smallest scoped patch, rerun the affected checks from `skills/quality-checks.md`, and re-review the resulting diff before handoff.
+When asked to fix issues, apply the authorized scope (selected findings or all findings), make the smallest complete patch, rerun affected [Quality Checks](quality-checks.md), and re-review the diff.

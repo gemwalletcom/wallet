@@ -1,16 +1,27 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import Foundation
+import enum Gemstone.GemSecurityReminderItem
+import func Gemstone.securityReminderItems
+import GemstonePrimitives
 import Localization
-import Style
 
-protocol SecurityReminderViewModel {
-    var title: String { get }
-    var message: String { get }
-    var items: [SecurityReminderItem] { get set }
-    var buttonTitle: String { get }
-    var docsUrl: URL { get }
+@Observable
+final class SecurityReminderViewModel {
+    let title: String
+    let onNext: () -> Void
 
-    var onNext: () -> Void { get }
+    init(
+        title: String,
+        onNext: @escaping () -> Void,
+    ) {
+        self.title = title
+        self.onNext = onNext
+    }
+
+    var message: String = Localized.Onboarding.Security.CreateWallet.Intro.title
+    var items: [GemSecurityReminderItem] = securityReminderItems()
+    var docsUrl: URL {
+        AppUrl.docs(.whatIsSecretPhrase)
+    }
 }

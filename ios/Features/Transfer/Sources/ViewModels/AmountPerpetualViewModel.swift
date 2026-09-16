@@ -23,7 +23,6 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     let leverageTextStyle: TextStyle
     let currencyFormatter: CurrencyFormatter
     private let service: any GemAmountServiceProtocol
-    private let numericFormatter = NumericFormatter()
 
     var takeProfit: String?
     var stopLoss: String?
@@ -34,13 +33,9 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         self.asset = asset
         self.action = action
         self.service = service
-        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: service.getCurrency())
+        currencyFormatter = CurrencyFormatter(type: .currency, currencyCode: service.getCurrency().toPrimitives().rawValue)
         (leverageSelection, leverageTextStyle) = Self.makeLeverageSelection(action: action, service: service)
         (takeProfit, stopLoss) = Self.makeDefaultAutoclose(action: action, leverage: leverageSelection?.selected.value ?? action.transferData().leverage, service: service)
-    }
-
-    var leverageTitle: String {
-        Localized.Perpetual.leverage
     }
 
     var autocloseTitle: String {
@@ -56,14 +51,11 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     }
 
     var isAutocloseEnabled: Bool {
-        switch action {
-        case .open: true
-        case .increase, .reduce: false
-        }
+        action.showsAutoclose()
     }
 
     private var direction: PerpetualDirection {
-        transferData.direction.map()
+        transferData.direction.toPrimitives()
     }
 
     var autocloseText: (subtitle: String, subtitleExtra: String?) {
@@ -71,21 +63,13 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
             takeProfitLabel: Localized.Perpetual.takeProfit,
             stopLossLabel: Localized.Perpetual.stopLoss,
         ).format(
-            takeProfit: takeProfit.flatMap { numericFormatter.double(from: $0) },
-            stopLoss: stopLoss.flatMap { numericFormatter.double(from: $0) },
+            takeProfit: takeProfit.flatMap { NumberInput.double($0) },
+            stopLoss: stopLoss.flatMap { NumberInput.double($0) },
         )
     }
 
     var title: String {
-        switch action {
-        case .open: PerpetualDirectionViewModel(direction: direction).title
-        case .increase: PerpetualDirectionViewModel(direction: direction).increaseTitle
-        case .reduce: PerpetualDirectionViewModel(direction: direction).reduceTitle
-        }
-    }
-
-    var amountType: AmountType {
-        .perpetual(action)
+        gemAmountType.title().title
     }
 
     var gemAmountType: GemAmountType {
@@ -98,14 +82,14 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
             value: value,
             useMaxAmount: useMaxAmount,
             leverage: leverage,
-            takeProfit: takeProfit.flatMap { numericFormatter.double(from: $0) },
-            stopLoss: stopLoss.flatMap { numericFormatter.double(from: $0) },
+            takeProfit: takeProfit.flatMap { NumberInput.double($0) },
+            stopLoss: stopLoss.flatMap { NumberInput.double($0) },
         )
     }
 
     func makeAutocloseData(size: Double) -> AutocloseOpenData {
         AutocloseOpenData(
-            assetId: transferData.asset.map().id,
+            assetId: transferData.asset.toPrimitives().id,
             symbol: transferData.asset.symbol,
             direction: direction,
             marketPrice: transferData.price,
@@ -139,7 +123,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         let maxLeverage = openData.leverage
         let textStyle = TextStyle(
             font: .callout,
-            color: PerpetualDirectionViewModel(direction: openData.direction.map()).color,
+            color: PerpetualDirectionViewModel(direction: openData.direction.toPrimitives()).color,
         )
         let selection = SelectionState(
             options: LeverageOption.options(maxLeverage: maxLeverage),

@@ -11,10 +11,6 @@ import kotlinx.serialization.SerialName
 enum class ConnectionComponent(val string: String) {
 	@SerialName("internet")
 	Internet("internet"),
-	@SerialName("api")
-	Api("api"),
-	@SerialName("nodes")
-	Nodes("nodes"),
 	@SerialName("stream")
 	Stream("stream"),
 }

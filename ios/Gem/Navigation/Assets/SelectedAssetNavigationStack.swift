@@ -7,7 +7,6 @@ import PrimitivesComponents
 import Swap
 import SwiftUI
 import Transfer
-import struct Gemstone.GemTransferData
 
 struct SelectedAssetNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
@@ -41,10 +40,10 @@ struct SelectedAssetNavigationStack: View {
                             type: type,
                             recipient: input.recipient,
                             onRecipientDataAction: {
-                                navigationPath.append($0)
+                                navigationPath.append(AmountInput(type: .transfer(recipient: $0), asset: input.asset))
                             },
                             onTransferAction: {
-                                navigationPath.append($0)
+                                navigationPath.append(ConfirmTransferInput(data: $0))
                             },
                         ),
                     )
@@ -79,7 +78,7 @@ struct SelectedAssetNavigationStack: View {
                                 ),
                             ),
                             onSwap: {
-                                navigationPath.append($0)
+                                navigationPath.append(ConfirmTransferInput(data: $0))
                             },
                         ),
                     )
@@ -92,25 +91,21 @@ struct SelectedAssetNavigationStack: View {
                         navigationPath: $navigationPath,
                     )
                 case .earn:
-                    #if DEBUG
-                        EarnNavigationView(
-                            wallet: wallet,
-                            asset: input.asset,
-                            viewModelFactory: viewModelFactory,
-                            navigationPath: $navigationPath,
-                        )
-                    #else
-                        EmptyView()
-                    #endif
+                    EarnNavigationView(
+                        wallet: wallet,
+                        asset: input.asset,
+                        viewModelFactory: viewModelFactory,
+                        navigationPath: $navigationPath,
+                    )
                 }
             }
             .toolbarDismissItem(type: .close, placement: .topBarLeading)
             .navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(for: GemTransferData.self) { data in
+            .navigationDestination(for: ConfirmTransferInput.self) { confirm in
                 ConfirmTransferNavigationView(
                     model: viewModelFactory.confirmTransferScene(
                         wallet: wallet,
-                        data: data,
+                        data: confirm.data,
                         onComplete: onComplete,
                     ),
                 )

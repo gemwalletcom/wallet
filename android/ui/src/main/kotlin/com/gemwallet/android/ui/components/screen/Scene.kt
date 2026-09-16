@@ -9,10 +9,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -30,8 +32,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.components.ConnectionStatusBannerHost
+import com.gemwallet.android.ui.components.keyboard
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.Spacer16
@@ -40,6 +42,7 @@ import com.gemwallet.android.ui.theme.isCompactDimension
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.sceneContentPadding
 
+import com.gemwallet.android.ui.theme.space0
 enum class MainActionWidth {
     Constrained,
     FillWidth,
@@ -49,7 +52,7 @@ enum class MainActionWidth {
 fun Scene(
     title: String,
     backHandle: Boolean = false,
-    padding: PaddingValues = PaddingValues(horizontal = 0.dp),
+    padding: PaddingValues = PaddingValues(horizontal = space0),
     onClose: (() -> Unit)? = null,
     closeIcon: Boolean = false,
     actions: @Composable RowScope.() -> Unit = {},
@@ -97,7 +100,7 @@ fun SceneTitle(text: String) {
 fun Scene(
     titleContent: @Composable () -> Unit,
     backHandle: Boolean = false,
-    contentPadding: PaddingValues = PaddingValues(horizontal = 0.dp),
+    contentPadding: PaddingValues = PaddingValues(horizontal = space0),
     onClose: (() -> Unit)? = null,
     closeIcon: Boolean = false,
     actions: @Composable RowScope.() -> Unit = {},
@@ -143,7 +146,10 @@ fun Scene(
         bottomBar = {
             Column(
                 modifier = Modifier.windowInsetsPadding(
-                    WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)
+                    WindowInsets.systemBars
+                        .union(WindowInsets.displayCutout)
+                        .union(WindowInsets.keyboard)
+                        .only(WindowInsetsSides.Bottom)
                 ),
             ) {
                 ConnectionStatusBannerHost()

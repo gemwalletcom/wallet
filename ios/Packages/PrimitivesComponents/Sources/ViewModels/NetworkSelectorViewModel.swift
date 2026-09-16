@@ -36,11 +36,6 @@ public struct NetworkSelectorViewModel: SelectableSheetViewable {
         )
     }
 
-    public var cancelButtonTitle: String { Localized.Common.cancel }
-    public var clearButtonTitle: String { Localized.Filter.clear }
-    public var doneButtonTitle: String { Localized.Common.done }
-    public var confirmButtonTitle: String { Localized.Transfer.confirm }
-
     private func filter(chain: Chain, query: String) -> Bool {
         !GemChainService.shared.getMatchingChains(chains: [chain.rawValue], query: query).isEmpty
     }

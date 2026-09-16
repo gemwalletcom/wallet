@@ -15,6 +15,8 @@ fun Wallet.getAccount(chain: Chain): Account? {
 
 fun Wallet.getAccount(assetId: AssetId): Account? = getAccount(assetId.chain)
 
+val Wallet.chainIds: List<String> get() = accounts.map { it.chain.string }
+
 val WalletType.isViewOnly: Boolean get() = this == WalletType.View
 
 val HypercoreUSDC: Asset = requireNotNull(assetConfig.defaultAsset(Chain.HyperCore.string, AssetType.PERPETUAL.toGem())) {

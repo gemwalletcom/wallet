@@ -4,9 +4,9 @@ import Components
 import Primitives
 
 public extension Contact {
-    var avatarImage: AssetImage {
+    func avatarImage(initials: String) -> AssetImage {
         AssetImage(
-            type: .text(String(name.prefix(2))),
+            type: .text(initials),
             imageURL: imageUrl.map { ImageSource($0).url },
         )
     }

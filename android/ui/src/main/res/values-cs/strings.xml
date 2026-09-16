@@ -9,6 +9,7 @@
   <string name="common_copy">Kopírovat</string>
   <string name="common_share">Sdílet</string>
   <string name="common_continue">Pokračovat</string>
+  <string name="common_sign_in_with">Přihlásit se pomocí %1$s</string>
   <string name="common_provider">Poskytovatel</string>
   <string name="common_loading">Načítání</string>
   <string name="common_address">Adresa</string>
@@ -54,9 +55,9 @@
   <string name="common_earn">Vydělat</string>
   <string name="common_method">Metoda</string>
   <string name="common_token">Token</string>
+  <string name="common_expiration">Vypršení platnosti</string>
   <string name="common_suspicious_address">Podezřelá adresa</string>
   <string name="common_refresh">Obnovit</string>
-  <string name="common_no_thanks">Ne, děkuji</string>
   <string name="common_grant_permission">Udělte povolení</string>
   <string name="common_required_field">Je vyžadováno %1$s</string>
   <string name="welcome_title">Vítejte v Gem Family</string>
@@ -142,7 +143,6 @@
   <string name="transfer_unfreeze_title">Uvolnit</string>
   <string name="transfer_review_request">Žádost o kontrolu</string>
   <string name="transfer_amount">Množství</string>
-  <string name="transfer_amount_title">Množství</string>
   <string name="settings_terms_of_services">Podmínky služeb</string>
   <string name="settings_privacy_policy">Zásady ochrany osobních údajů</string>
   <string name="settings_title">Nastavení</string>
@@ -177,7 +177,6 @@
   <string name="support_state_empty_title">Jak vám můžeme pomoci?</string>
   <string name="support_state_empty_description">Zeptejte se nás na cokoli. Jsme tu, abychom vám pomohli.</string>
   <string name="support_message_placeholder">Zpráva</string>
-  <string name="errors_transfer">Chyba přenosu: %1$s</string>
   <string name="errors_validation">Chyba ověření: %1$s</string>
   <string name="errors_create_wallet">Chyba vytvoření peněženky: %1$s</string>
   <string name="errors_invalid_address_name">Neplatná adresa nebo jméno</string>
@@ -196,7 +195,6 @@
   <string name="errors_connections_user_cancelled">Uživatel zrušen</string>
   <string name="errors_not_supported">Není podporováno</string>
   <string name="errors_permissions_not_granted">Oprávnění nebyla udělena</string>
-  <string name="errors_decoding">Chyba dekódování</string>
   <string name="errors_unknown">Neznámý</string>
   <string name="errors_not_supported_qr">Toto zařízení nepodporuje skenování QR kódu. Můžete vybrat pouze obrázek QR kódu z knihovny.</string>
   <string name="errors_camera_permissions_not_granted">Nebylo uděleno povolení k fotoaparátu. Chcete-li naskenovat QR kód, povolte v nastavení přístup k fotoaparátu.</string>
@@ -207,11 +205,8 @@
   <string name="errors_dust_threshold">Transakce se nezdařila, protože částka je příliš malá na to, aby splnila minimální požadavek sítě %1$s (prahová hodnota prachu). Tento limit zajišťuje, že hodnota transakce pokryje poplatky a náklady na zpracování.</string>
   <string name="errors_swap_no_quote_available">Není dostupná žádná nabídka.</string>
   <string name="errors_swap_not_supported_asset">Nepodporované aktivum.</string>
-  <string name="errors_connections_invalid_send_parameters">Zadané neplatné parametry pro odeslání transakce.</string>
-  <string name="errors_connections_invalid_sign_parameters">Zadané neplatné parametry pro podepisování.</string>
   <string name="errors_connections_no_supported_wallets">Nejsou k dispozici žádné podporované peněženky.</string>
   <string name="errors_connections_unsupported_chain">Zadaný řetězec není podporován.</string>
-  <string name="errors_connections_unsupported_method">Požadovaná metoda není podporována.</string>
   <string name="errors_swap_amount_too_small">Příliš malé množství</string>
   <string name="errors_required">%1$s je vyžadováno</string>
   <string name="errors_scan_transaction_malicious_description">Tuto transakci nelze dokončit – cílová adresa peněženky je spojena s podezřelou nebo škodlivou aktivitou.</string>
@@ -223,7 +218,6 @@
   <string name="errors_swap_minimum_amount">Minimální částka obchodu je %1$s. Zadejte prosím vyšší částku.</string>
   <string name="errors_perpetual_trigger_price_lower">Spouštěcí cena musí být nižší než tržní cena</string>
   <string name="errors_perpetual_trigger_price_higher">Spouštěcí cena musí být vyšší než tržní cena</string>
-  <string name="errors_token_unable_fetch_token_information">Nelze načíst informace o tokenu: %1$s</string>
   <string name="errors_unknown_try_again">Došlo k neznámé chybě. Zkuste to prosím znovu.</string>
   <string name="errors_network_error">Chyba sítě: %1$s</string>
   <string name="errors_network_offline">Zdá se, že je internetové připojení offline.</string>
@@ -241,7 +235,6 @@
   <string name="update_app_permission_title">Povolit instalaci</string>
   <string name="update_app_permission_description">Přejděte do nastavení a povolte instalaci z externích zdrojů</string>
   <string name="update_app_permission_open_settings">Přejít do nastavení</string>
-  <string name="update_app_downloading">Stahování...</string>
   <string name="transaction_recipient">Příjemce</string>
   <string name="transaction_sender">Odesílatel</string>
   <string name="transaction_date">Datum</string>
@@ -314,6 +307,7 @@
   <string name="wallet_connect_permissions_title">Oprávnění</string>
   <string name="wallet_connect_permissions_view_balance">Zobrazení zůstatku a aktivity</string>
   <string name="wallet_connect_permissions_approval_requests">Odeslat žádosti o schválení</string>
+  <string name="wallet_connect_request_expired">Platnost žádosti vypršela</string>
   <string name="swap_you_pay">Vy platíte</string>
   <string name="swap_you_receive">Přijímáte</string>
   <string name="swap_price_impact">Vliv ceny</string>
@@ -396,8 +390,6 @@
   <string name="banner_account_activation_description">Síť %1$s vyžaduje jednorázový poplatek %2$s.</string>
   <string name="banner_stake_title">Začněte sázet %1$s</string>
   <string name="banner_stake_description">Získejte %1$s odměn na svůj vklad, když budete spát.</string>
-  <string name="banner_enable_notifications_title">Povolit oznámení</string>
-  <string name="banner_enable_notifications_description">Mějte přehled o své peněžence.</string>
   <string name="banner_activate_asset_description">Chcete-li použít aktivum %1$s, musíte jej nejprve povolit v síti %2$s splněním specifických požadavků sítě.</string>
   <string name="banner_asset_status_title">Podezřelé aktivum</string>
   <string name="banner_asset_status_description">Token může být nebezpečný nebo zavádějící. Pokračujte, pouze pokud tomu plně důvěřujete.</string>
@@ -494,6 +486,7 @@
   <string name="nft_report_reason_malicious">Zlomyslný</string>
   <string name="nft_report_reason_inappropriate">Nevhodný obsah</string>
   <string name="nft_report_reason_copyright">Autorská práva</string>
+  <string name="nft_report_reason_other">Ostatní</string>
   <string name="nft_report_report_button_title">Nahlásit</string>
   <string name="permissions_access_denied">Přístup odepřen</string>
   <string name="permissions_image_photo_access_denied_description">Tato aplikace nemá oprávnění k přístupu do vaší knihovny fotografií. Povolte přístup v nastavení zařízení.</string>
@@ -503,7 +496,6 @@
   <string name="search_state_empty_description">Zkontrolujte pravopis nebo zkuste nové vyhledávání.</string>
   <string name="networks_state_empty_search_title">Nenalezeny žádné sítě</string>
   <string name="onboarding_security_create_wallet_intro_title">Dostanete tajnou frázi – je to jediný způsob, jak se dostat ke své peněžence.</string>
-  <string name="onboarding_security_create_wallet_confirm_title">Rozumím a chci pokračovat</string>
   <string name="onboarding_security_create_wallet_do_not_share_title">S nikým to nesdílejte</string>
   <string name="onboarding_security_create_wallet_do_not_share_subtitle">Každý, kdo získá vaši tajnou frázi, může převzít plnou kontrolu nad vaší peněženkou.</string>
   <string name="onboarding_security_create_wallet_keep_safe_subtitle">Tajná fráze je jediný způsob, jak se dostat do vaší peněženky.</string>
@@ -552,8 +544,8 @@
   <string name="perpetual_margin_cross">Cross</string>
   <string name="perpetual_margin_isolated">Izolovaný</string>
   <string name="perpetuals_title">Věčné</string>
+  <string name="perpetuals_trade">Obchodovat věčné</string>
   <string name="perpetuals_markets">Trhy</string>
-  <string name="perpetuals_empty_state_no_markets">Žádné trhy</string>
   <string name="perpetuals_empty_state_no_markets_found">Nenalezeny žádné trhy</string>
   <string name="rewards_title">Odměny</string>
   <string name="rewards_share_text">Připojte se ke Gem Wallet pomocí mého doporučovacího odkazu a získejte odměny: %1$s</string>
@@ -601,9 +593,6 @@
   <string name="simulation_warning_nft_collection_approval_title">Požadován plný přístup k NFT kolekci</string>
   <string name="simulation_warning_unlimited_token_approval_title">Neomezené schvalování tokenů</string>
   <string name="application_name">Gem</string>
-  <string name="camera_permission_request_camera">Pro skenování QR kódu je vyžadováno oprávnění k fotoaparátu.\nUdělte prosím oprávnění.</string>
-  <string name="notifications_permission_request_notification">Chcete-li dostávat oznámení o nových transakcích, je vyžadováno oprávnění k odesílání oznámení.\nUdělte prosím oprávnění.</string>
-  <string name="confirm_fee_error">Chyba výpočtu poplatku</string>
   <string name="rootcheck_security_alert">Bezpečnostní varování</string>
   <string name="rootcheck_body">Zdá se, že vaše zařízení má přístup root, což může výrazně zvýšit bezpečnostní rizika. Používání této aplikace na zakořeněném zařízení může vystavit váš majetek neoprávněnému přístupu a potenciální ztrátě. Pro bezpečnost vašich finančních prostředků důrazně doporučujeme používat nerootované zařízení.</string>
   <string name="rootcheck_ignore">Ignorovat</string>

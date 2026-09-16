@@ -13,29 +13,22 @@ use primitives::{AssetId, AssetMarket, AssetPrice, FiatRate};
 pub use model::GemPriceUpdate;
 pub use store::GemPriceStore;
 
-use crate::api::{GemApiClient, GemApiError};
-
 #[derive(uniffi::Object)]
 pub struct GemPriceService {
-    api: Arc<GemApiClient>,
     store: Arc<dyn GemPriceStore>,
 }
 
 #[uniffi::export]
 impl GemPriceService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemApiClient>, store: Arc<dyn GemPriceStore>) -> Self {
-        Self { api, store }
+    pub fn new(store: Arc<dyn GemPriceStore>) -> Self {
+        Self { store }
     }
 }
 
 impl GemPriceService {
     pub async fn prices(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetPrice>, GemServiceError> {
-        self.store.get_prices(asset_ids).await
-    }
-
-    pub async fn get_prices(&self, currency: Currency, asset_ids: Vec<AssetId>) -> Result<Vec<AssetPrice>, GemApiError> {
-        Ok(self.api.client.get_prices(Some(currency), asset_ids).await?)
+        Ok(self.store.get_prices(asset_ids).await?.into_iter().filter(AssetPrice::has_price).collect())
     }
 
     pub async fn update_prices(&self, prices: Vec<AssetPrice>, currency: Currency) -> Result<(), GemServiceError> {
@@ -78,15 +71,24 @@ async fn update_prices(store: &dyn GemPriceStore, prices: Vec<AssetPrice>, curre
     let Some(rate) = rules::rate_or_base(currency.clone(), store.get_rate(currency.clone()).await?) else {
         return Ok(());
     };
-    store.save_prices(currency, rules::fiat_prices(prices, &rate)).await
+    let stored = store.get_prices(prices.iter().map(|price| price.asset_id.clone()).collect()).await?;
+    let updates = rules::changed_prices(stored, rules::fiat_prices(prices, &rate));
+    if updates.is_empty() {
+        return Ok(());
+    }
+    store.save_prices(currency, updates).await
 }
 
 async fn update_rates(store: &dyn GemPriceStore, rates: Vec<FiatRate>, currency: Currency) -> Result<(), GemServiceError> {
     if rates.is_empty() {
         return Ok(());
     }
-    let current = rates.iter().find(|rate| rate.symbol == currency).map(|rate| rate.rate);
-    store.save_rates(rates).await?;
+    let changed = rules::changed_rates(store.get_rates().await?, rates);
+    if changed.is_empty() {
+        return Ok(());
+    }
+    let current = changed.iter().find(|rate| rate.symbol == currency).map(|rate| rate.rate);
+    store.save_rates(changed).await?;
     if let Some(rate) = current {
         store.convert_prices(currency, rate).await?;
     }
@@ -99,24 +101,13 @@ mod tests {
     use super::*;
     use chrono::Utc;
     use primitives::Chain;
-    use std::sync::Mutex;
-
-    fn store_with_rate(currency: Currency, rate: f64) -> MemoryPriceStore {
-        MemoryPriceStore {
-            rates: Mutex::new(vec![FiatRate { symbol: currency, rate }]),
-            ..Default::default()
-        }
-    }
-
-    fn price(value: f64) -> AssetPrice {
-        AssetPrice::new(AssetId::from_chain(Chain::Solana), value, 1.5, Utc::now())
-    }
 
     #[test]
     fn test_prices_are_converted_with_the_stored_rate() {
-        let store = store_with_rate(Currency::EUR, 0.5);
+        let store = MemoryPriceStore::with_rate(Currency::EUR, 0.5);
+        let price = AssetPrice::new(AssetId::from_chain(Chain::Solana), 100.0, 1.5, Utc::now());
 
-        futures::executor::block_on(update_prices(&store, vec![price(100.0)], Currency::EUR)).unwrap();
+        futures::executor::block_on(update_prices(&store, vec![price], Currency::EUR)).unwrap();
 
         let saved = store.saved.lock().unwrap();
         assert_eq!(saved[0].0, Currency::EUR);
@@ -127,17 +118,18 @@ mod tests {
     #[test]
     fn test_prices_are_dropped_without_a_stored_rate_except_usd() {
         let store = MemoryPriceStore::default();
+        let price = AssetPrice::new(AssetId::from_chain(Chain::Solana), 100.0, 1.5, Utc::now());
 
-        futures::executor::block_on(update_prices(&store, vec![price(100.0)], Currency::EUR)).unwrap();
+        futures::executor::block_on(update_prices(&store, vec![price.clone()], Currency::EUR)).unwrap();
         assert!(store.saved.lock().unwrap().is_empty());
 
-        futures::executor::block_on(update_prices(&store, vec![price(100.0)], Currency::USD)).unwrap();
+        futures::executor::block_on(update_prices(&store, vec![price], Currency::USD)).unwrap();
         assert_eq!(store.saved.lock().unwrap()[0].1[0].price, 100.0);
     }
 
     #[test]
     fn test_asset_without_price_stores_zeroed_row() {
-        let store = store_with_rate(Currency::EUR, 0.5);
+        let store = MemoryPriceStore::with_rate(Currency::EUR, 0.5);
         let asset_id = AssetId::from_chain(Chain::Solana);
 
         futures::executor::block_on(update_prices(&store, vec![AssetPrice::empty(asset_id.clone())], Currency::EUR)).unwrap();
@@ -149,6 +141,21 @@ mod tests {
     }
 
     #[test]
+    fn test_unchanged_prices_are_not_saved() {
+        let store = MemoryPriceStore::with_rate(Currency::EUR, 0.5);
+        let price = AssetPrice::new(AssetId::from_chain(Chain::Solana), 100.0, 1.5, Utc::now());
+
+        futures::executor::block_on(update_prices(&store, vec![price.clone()], Currency::EUR)).unwrap();
+        futures::executor::block_on(update_prices(&store, vec![price.clone()], Currency::EUR)).unwrap();
+        assert_eq!(store.saved.lock().unwrap().len(), 1);
+
+        futures::executor::block_on(update_prices(&store, vec![AssetPrice { price: 101.0, ..price }], Currency::EUR)).unwrap();
+        let saved = store.saved.lock().unwrap();
+        assert_eq!(saved.len(), 2);
+        assert_eq!(saved[1].1[0].price_usd, 101.0);
+    }
+
+    #[test]
     fn test_new_rate_for_current_currency_reconverts_stored_prices() {
         let store = MemoryPriceStore::default();
         let rates = vec![FiatRate { symbol: Currency::EUR, rate: 0.9 }, FiatRate { symbol: Currency::GBP, rate: 0.8 }];
@@ -156,6 +163,61 @@ mod tests {
         futures::executor::block_on(update_rates(&store, rates.clone(), Currency::EUR)).unwrap();
         futures::executor::block_on(update_rates(&store, rates, Currency::JPY)).unwrap();
 
+        assert_eq!(*store.converted.lock().unwrap(), vec![(Currency::EUR, 0.9)]);
+    }
+
+    #[test]
+    fn test_a_price_event_without_rates_leaves_the_rate_table_unread() {
+        let store = MemoryPriceStore::default();
+
+        futures::executor::block_on(update_rates(&store, vec![], Currency::EUR)).unwrap();
+
+        assert_eq!(*store.rate_reads.lock().unwrap(), 0, "a tick carries no rates and must not read the table");
+    }
+
+    #[test]
+    fn test_unchanged_rate_does_not_reconvert_stored_prices() {
+        let store = MemoryPriceStore::default();
+        let rates = vec![FiatRate { symbol: Currency::EUR, rate: 0.9 }];
+
+        futures::executor::block_on(update_rates(&store, rates.clone(), Currency::EUR)).unwrap();
+        futures::executor::block_on(update_rates(&store, rates, Currency::EUR)).unwrap();
+        assert_eq!(*store.converted.lock().unwrap(), vec![(Currency::EUR, 0.9)]);
+
+        futures::executor::block_on(update_rates(&store, vec![FiatRate { symbol: Currency::EUR, rate: 1.1 }], Currency::EUR)).unwrap();
+        assert_eq!(*store.converted.lock().unwrap(), vec![(Currency::EUR, 0.9), (Currency::EUR, 1.1)]);
+    }
+
+    #[test]
+    fn test_only_moved_rates_are_saved() {
+        let store = MemoryPriceStore::default();
+
+        futures::executor::block_on(update_rates(
+            &store,
+            vec![FiatRate { symbol: Currency::EUR, rate: 0.9 }, FiatRate { symbol: Currency::GBP, rate: 0.8 }],
+            Currency::EUR,
+        ))
+        .unwrap();
+        futures::executor::block_on(update_rates(
+            &store,
+            vec![FiatRate { symbol: Currency::EUR, rate: 0.9 }, FiatRate { symbol: Currency::GBP, rate: 0.8 }],
+            Currency::EUR,
+        ))
+        .unwrap();
+        futures::executor::block_on(update_rates(
+            &store,
+            vec![FiatRate { symbol: Currency::EUR, rate: 0.9 }, FiatRate { symbol: Currency::GBP, rate: 0.7 }],
+            Currency::EUR,
+        ))
+        .unwrap();
+
+        assert_eq!(
+            *store.rate_writes.lock().unwrap(),
+            vec![
+                vec![FiatRate { symbol: Currency::EUR, rate: 0.9 }, FiatRate { symbol: Currency::GBP, rate: 0.8 }],
+                vec![FiatRate { symbol: Currency::GBP, rate: 0.7 }]
+            ]
+        );
         assert_eq!(*store.converted.lock().unwrap(), vec![(Currency::EUR, 0.9)]);
     }
 }

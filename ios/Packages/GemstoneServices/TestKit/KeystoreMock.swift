@@ -2,12 +2,9 @@
 
 public import struct Gemstone.GemSignedTransaction
 public import struct Gemstone.GemSignerInput
-public import class Gemstone.MessageSigner
-public import GemstonePrimitives
 import Foundation
 import GemstoneServices
 import Primitives
-import PrimitivesTestKit
 
 public struct KeystoreMock: Keystore {
     public init() {}
@@ -22,10 +19,6 @@ public struct KeystoreMock: Keystore {
 
     public func sign(wallet _: Primitives.Wallet, input _: GemSignerInput) throws -> [GemSignedTransaction] {
         []
-    }
-
-    public func signMessage(signer _: MessageSigner, wallet _: Primitives.Wallet) throws -> String {
-        .empty
     }
 
     public func getPasswordAuthentication() throws -> KeystoreAuthentication {

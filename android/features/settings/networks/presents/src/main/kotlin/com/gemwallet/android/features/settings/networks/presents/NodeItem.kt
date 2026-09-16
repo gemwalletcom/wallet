@@ -1,14 +1,12 @@
 package com.gemwallet.android.features.settings.networks.presents
 
-import android.icu.text.DecimalFormat
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeRowUiModel
+import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ActionIcon
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -20,14 +18,13 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingSmall
-import uniffi.gemstone.GemNodeStatusState
-import uniffi.gemstone.Latency
-import uniffi.gemstone.LatencyType
-import com.gemwallet.android.ui.theme.Placeholder
+import com.gemwallet.android.features.settings.networks.viewmodels.models.LatencyTone
+import com.gemwallet.android.features.settings.networks.viewmodels.models.LatencyUIModel
+import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeRowUIModel
 
 @Composable
 internal fun NodeItem(
-    model: NodeRowUiModel,
+    model: NodeRowUIModel,
     listPosition: ListPosition,
     isDeleteRevealed: Boolean,
     onDeleteReveal: () -> Unit,
@@ -40,23 +37,20 @@ internal fun NodeItem(
             modifier = Modifier.clickable(onClick = { onSelect(model.url) }),
             title = {
                 ListItemTitleText(
-                    text = model.title(),
+                    text = model.title,
                     titleBadge = {
-                        LatencyStatusBadge(
-                            latency = model.statusState.latency,
-                            isLoading = model.statusState is GemNodeStatusState.Loading,
-                        )
+                        LatencyStatusBadge(latency = model.latency)
                     },
                 )
             },
             subtitle = {
                 ListItemSupportText(
-                    text = model.latestBlockText(),
+                    text = model.subtitle,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
             },
             listPosition = position,
-            trailing = if (model.selected) {
+            trailing = if (model.isSelected) {
                 @Composable {
                     SelectionCheckmark(modifier = Modifier.padding(end = paddingSmall))
                 }
@@ -86,39 +80,19 @@ internal fun NodeItem(
     )
 }
 
-@Composable
-private fun NodeRowUiModel.title(): String {
-    return gemNodeFlag?.let { "${stringResource(R.string.nodes_gem_wallet_node)} $it" } ?: host
-}
-
-@Composable
-private fun NodeRowUiModel.latestBlockText(): String {
-    val blockValue = when (val currentState = statusState) {
-        GemNodeStatusState.Error,
-        GemNodeStatusState.Loading -> Placeholder.empty
-        is GemNodeStatusState.Result -> DecimalFormat.getInstance().format(currentState.latestBlockNumber.toLong())
-    }
-
-    return "${stringResource(R.string.nodes_import_node_latest_block)}: $blockValue"
-}
-
-private val GemNodeStatusState.latency: Latency?
-    get() = (this as? GemNodeStatusState.Result)?.latency
-
 @Preview
 @Composable
 fun NodeItemPreview() {
     WalletTheme {
         NodeItem(
-            model = NodeRowUiModel(
+            model = NodeRowUIModel(
                 url = "https://some.url.eth",
                 host = "some.url.eth",
-                selected = true,
+                title = "some.url.eth",
+                subtitle = "Latest block: 123902302938",
+                latency = LatencyUIModel(text = "440 ms", tone = LatencyTone.Fast),
+                isSelected = true,
                 canDelete = true,
-                statusState = GemNodeStatusState.Result(
-                    latestBlockNumber = 123902302938UL,
-                    latency = Latency(LatencyType.FAST, 440.0),
-                ),
             ),
             listPosition = ListPosition.Middle,
             isDeleteRevealed = false,

@@ -75,28 +75,19 @@ pub fn subscription_changes(local: Vec<WalletSubscription>, remote: Vec<WalletSu
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{Account, WalletId, WalletSource, WalletType};
-
-    fn local(wallet_id: &str, subscriptions: Vec<(&str, Vec<Chain>)>) -> WalletSubscription {
-        WalletSubscription {
-            wallet_id: WalletId::Multicoin(wallet_id.into()),
-            source: Some(WalletSource::Import),
-            subscriptions: subscriptions.into_iter().map(|(address, chains)| AddressChains::new(address.into(), chains)).collect(),
-        }
-    }
-
-    fn remote(wallet_id: &str, chains: Vec<Chain>) -> WalletSubscriptionChains {
-        WalletSubscriptionChains {
-            wallet_id: WalletId::Multicoin(wallet_id.into()),
-            chains,
-        }
-    }
+    use primitives::{Account, WalletId};
 
     #[test]
     fn test_add_new_chain_to_existing_wallet() {
         let changes = subscription_changes(
-            vec![local("wallet1", vec![("btc1", vec![Chain::Bitcoin]), ("eth1", vec![Chain::Ethereum])])],
-            vec![remote("wallet1", vec![Chain::Bitcoin])],
+            vec![WalletSubscription::mock(
+                "wallet1",
+                vec![
+                    AddressChains::new("btc1".into(), vec![Chain::Bitcoin]),
+                    AddressChains::new("eth1".into(), vec![Chain::Ethereum]),
+                ],
+            )],
+            vec![WalletSubscriptionChains::mock("wallet1", vec![Chain::Bitcoin])],
         );
 
         assert_eq!(changes.to_add.len(), 1);
@@ -107,21 +98,24 @@ mod tests {
     #[test]
     fn test_remove_chain_from_existing_wallet() {
         let changes = subscription_changes(
-            vec![local("wallet1", vec![("btc1", vec![Chain::Bitcoin])])],
-            vec![remote("wallet1", vec![Chain::Bitcoin, Chain::Ethereum])],
+            vec![WalletSubscription::mock("wallet1", vec![AddressChains::new("btc1".into(), vec![Chain::Bitcoin])])],
+            vec![WalletSubscriptionChains::mock("wallet1", vec![Chain::Bitcoin, Chain::Ethereum])],
         );
 
         assert!(changes.to_add.is_empty());
-        assert_eq!(changes.to_delete, vec![remote("wallet1", vec![Chain::Ethereum])]);
+        assert_eq!(changes.to_delete, vec![WalletSubscriptionChains::mock("wallet1", vec![Chain::Ethereum])]);
     }
 
     #[test]
     fn test_delete_entire_wallet_and_add_new_wallet() {
-        let deleted = subscription_changes(vec![], vec![remote("wallet1", vec![Chain::Bitcoin, Chain::Ethereum])]);
+        let deleted = subscription_changes(vec![], vec![WalletSubscriptionChains::mock("wallet1", vec![Chain::Bitcoin, Chain::Ethereum])]);
         assert!(deleted.to_add.is_empty());
-        assert_eq!(deleted.to_delete, vec![remote("wallet1", vec![Chain::Bitcoin, Chain::Ethereum])]);
+        assert_eq!(deleted.to_delete, vec![WalletSubscriptionChains::mock("wallet1", vec![Chain::Bitcoin, Chain::Ethereum])]);
 
-        let added = subscription_changes(vec![local("wallet2", vec![("sol1", vec![Chain::Solana])])], vec![]);
+        let added = subscription_changes(
+            vec![WalletSubscription::mock("wallet2", vec![AddressChains::new("sol1".into(), vec![Chain::Solana])])],
+            vec![],
+        );
         assert_eq!(added.to_add.len(), 1);
         assert_eq!(added.to_add[0].wallet_id, WalletId::Multicoin("wallet2".into()));
         assert!(added.to_delete.is_empty());
@@ -130,8 +124,14 @@ mod tests {
     #[test]
     fn test_no_changes_when_in_sync() {
         let changes = subscription_changes(
-            vec![local("wallet1", vec![("btc1", vec![Chain::Bitcoin]), ("eth1", vec![Chain::Ethereum])])],
-            vec![remote("wallet1", vec![Chain::Bitcoin, Chain::Ethereum])],
+            vec![WalletSubscription::mock(
+                "wallet1",
+                vec![
+                    AddressChains::new("btc1".into(), vec![Chain::Bitcoin]),
+                    AddressChains::new("eth1".into(), vec![Chain::Ethereum]),
+                ],
+            )],
+            vec![WalletSubscriptionChains::mock("wallet1", vec![Chain::Bitcoin, Chain::Ethereum])],
         );
 
         assert!(changes.is_empty());
@@ -141,10 +141,19 @@ mod tests {
     fn test_multiple_wallets_with_changes() {
         let changes = subscription_changes(
             vec![
-                local("wallet1", vec![("btc1", vec![Chain::Bitcoin])]),
-                local("wallet2", vec![("eth1", vec![Chain::Ethereum]), ("poly1", vec![Chain::Polygon])]),
+                WalletSubscription::mock("wallet1", vec![AddressChains::new("btc1".into(), vec![Chain::Bitcoin])]),
+                WalletSubscription::mock(
+                    "wallet2",
+                    vec![
+                        AddressChains::new("eth1".into(), vec![Chain::Ethereum]),
+                        AddressChains::new("poly1".into(), vec![Chain::Polygon]),
+                    ],
+                ),
             ],
-            vec![remote("wallet1", vec![Chain::Bitcoin, Chain::Ethereum]), remote("wallet3", vec![Chain::Solana])],
+            vec![
+                WalletSubscriptionChains::mock("wallet1", vec![Chain::Bitcoin, Chain::Ethereum]),
+                WalletSubscriptionChains::mock("wallet3", vec![Chain::Solana]),
+            ],
         );
 
         assert_eq!(
@@ -152,27 +161,24 @@ mod tests {
             vec![WalletId::Multicoin("wallet2".into())]
         );
         assert_eq!(changes.to_add[0].subscriptions.len(), 2);
-        assert_eq!(changes.to_delete, vec![remote("wallet1", vec![Chain::Ethereum]), remote("wallet3", vec![Chain::Solana])]);
+        assert_eq!(
+            changes.to_delete,
+            vec![
+                WalletSubscriptionChains::mock("wallet1", vec![Chain::Ethereum]),
+                WalletSubscriptionChains::mock("wallet3", vec![Chain::Solana])
+            ]
+        );
     }
 
     #[test]
     fn test_wallet_subscriptions_group_chains_by_address() {
-        let account = |chain: Chain, address: &str| Account {
-            chain,
-            address: address.into(),
-            derivation_path: "".into(),
-            extended_public_key: None,
-        };
         let wallet = Wallet {
             id: WalletId::Multicoin("wallet1".into()),
-            external_id: None,
-            name: "wallet".into(),
-            index: 0,
-            wallet_type: WalletType::Multicoin,
-            accounts: vec![account(Chain::Ethereum, "0xevm"), account(Chain::Polygon, "0xevm"), account(Chain::Bitcoin, "bc1")],
-            is_pinned: false,
-            image_url: None,
-            source: WalletSource::Import,
+            ..Wallet::mock_with_accounts(vec![
+                Account::mock(Chain::Ethereum, "0xevm"),
+                Account::mock(Chain::Polygon, "0xevm"),
+                Account::mock(Chain::Bitcoin, "bc1"),
+            ])
         };
 
         let subscriptions = wallet_subscriptions(&[wallet]);

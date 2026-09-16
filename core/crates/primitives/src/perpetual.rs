@@ -114,9 +114,7 @@ pub struct PerpetualMetadata {
     pub is_pinned: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PerpetualConfirmData {
     pub direction: PerpetualDirection,
     pub margin_type: PerpetualMarginType,
@@ -142,77 +140,46 @@ pub enum AccountDataType {
     Activate,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Clone)]
 pub struct CancelOrderData {
     pub asset_index: i32,
     pub order_id: UInt64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Clone)]
 pub struct TPSLOrderData {
     pub direction: PerpetualDirection,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub take_profit: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub stop_loss: Option<String>,
     pub size: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
-#[serde(tag = "type", content = "content")]
+#[derive(Debug, Clone)]
 pub enum PerpetualModifyPositionType {
-    Tpsl(TPSLOrderData),
-    Cancel(Vec<CancelOrderData>),
+    Tpsl { order: TPSLOrderData },
+    Cancel { orders: Vec<CancelOrderData> },
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Clone)]
 pub struct PerpetualModifyConfirmData {
     pub base_asset: Asset,
     pub asset_index: i32,
     pub modify_types: Vec<PerpetualModifyPositionType>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub take_profit_order_id: Option<UInt64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub stop_loss_order_id: Option<UInt64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Clone)]
 pub struct PerpetualReduceData {
     pub data: PerpetualConfirmData,
     pub position_direction: PerpetualDirection,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
-#[serde(rename_all = "camelCase")]
-pub struct AutocloseOpenData {
-    pub asset_id: AssetId,
-    pub symbol: String,
-    pub direction: PerpetualDirection,
-    pub market_price: f64,
-    pub leverage: u8,
-    pub size: f64,
-    pub asset_decimals: i32,
-    pub take_profit: Option<String>,
-    pub stop_loss: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
-#[serde(tag = "type", content = "content")]
+#[derive(Debug, Clone)]
 pub enum PerpetualType {
-    Open(PerpetualConfirmData),
-    Close(PerpetualConfirmData),
-    Modify(PerpetualModifyConfirmData),
-    Increase(PerpetualConfirmData),
-    Reduce(PerpetualReduceData),
+    Open { data: PerpetualConfirmData },
+    Close { data: PerpetualConfirmData },
+    Modify { data: PerpetualModifyConfirmData },
+    Increase { data: PerpetualConfirmData },
+    Reduce { data: PerpetualReduceData },
 }

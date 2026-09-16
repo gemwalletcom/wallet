@@ -31,13 +31,16 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.open
-import com.gemwallet.android.ui.theme.Emoji
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.gemwallet.android.AppUrl
+import com.gemwallet.android.features.create_wallet.localization.subtitleRes
+import com.gemwallet.android.features.create_wallet.localization.titleRes
+import com.gemwallet.android.features.create_wallet.style.emoji
+import uniffi.gemstone.securityReminderItems
 import uniffi.gemstone.DocsUrl
 
 private val emojiFontSize = 24.sp
@@ -76,21 +79,9 @@ fun PhraseAlertDialog(
             verticalArrangement = Arrangement.spacedBy(paddingDefault),
         ) {
             CenteredDescriptionText(stringResource(R.string.onboarding_security_create_wallet_intro_title))
-            InfoBlock(
-                Emoji.lock,
-                R.string.onboarding_security_create_wallet_keep_safe_title,
-                R.string.onboarding_security_create_wallet_keep_safe_subtitle,
-            )
-            InfoBlock(
-                Emoji.warning,
-                R.string.onboarding_security_create_wallet_do_not_share_title,
-                R.string.onboarding_security_create_wallet_do_not_share_subtitle,
-            )
-            InfoBlock(
-                Emoji.gem,
-                R.string.onboarding_security_create_wallet_no_recovery_title,
-                R.string.onboarding_security_create_wallet_no_recovery_subtitle,
-            )
+            securityReminderItems().forEach { item ->
+                InfoBlock(item.emoji(), item.titleRes(), item.subtitleRes())
+            }
             Spacer(modifier = Modifier.size(it.calculateBottomPadding()))
         }
     }

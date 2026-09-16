@@ -9,6 +9,7 @@
   <string name="common_copy">Copier</string>
   <string name="common_share">Partager</string>
   <string name="common_continue">Continuer</string>
+  <string name="common_sign_in_with">Se connecter avec %1$s</string>
   <string name="common_provider">Fournisseur</string>
   <string name="common_loading">Chargement</string>
   <string name="common_address">Adresse</string>
@@ -54,9 +55,9 @@
   <string name="common_earn">Gagner</string>
   <string name="common_method">Méthode</string>
   <string name="common_token">Jeton</string>
+  <string name="common_expiration">Expiration</string>
   <string name="common_suspicious_address">Adresse suspecte</string>
   <string name="common_refresh">Rafraîchir</string>
-  <string name="common_no_thanks">Non merci</string>
   <string name="common_grant_permission">Donner la permission</string>
   <string name="common_required_field">%1$s est requis</string>
   <string name="welcome_title">Bienvenue dans la famille Gem</string>
@@ -142,7 +143,6 @@
   <string name="transfer_unfreeze_title">Dégeler</string>
   <string name="transfer_review_request">Examiner la demande</string>
   <string name="transfer_amount">Montant</string>
-  <string name="transfer_amount_title">Montant</string>
   <string name="settings_terms_of_services">Conditions d\'utilisation</string>
   <string name="settings_privacy_policy">Politique de confidentialité</string>
   <string name="settings_title">Paramètres</string>
@@ -177,7 +177,6 @@
   <string name="support_state_empty_title">Comment pouvons-nous vous aider ?</string>
   <string name="support_state_empty_description">Posez-nous toutes vos questions. Nous sommes là pour vous aider.</string>
   <string name="support_message_placeholder">Message</string>
-  <string name="errors_transfer">Erreur de transfert : %1$s</string>
   <string name="errors_validation">Erreur de validation : %1$s</string>
   <string name="errors_create_wallet">Erreur de création de portefeuille : %1$s</string>
   <string name="errors_invalid_address_name">Adresse ou nom invalide</string>
@@ -196,7 +195,6 @@
   <string name="errors_connections_user_cancelled">Utilisateur annulé</string>
   <string name="errors_not_supported">Non pris en charge</string>
   <string name="errors_permissions_not_granted">Autorisations non accordées</string>
-  <string name="errors_decoding">Erreur de décodage</string>
   <string name="errors_unknown">Inconnu</string>
   <string name="errors_not_supported_qr">Cet appareil ne prend pas en charge la numérisation de code QR. Vous pouvez uniquement sélectionner l\'image du code QR dans la bibliothèque.</string>
   <string name="errors_camera_permissions_not_granted">Autorisation de la caméra non accordée. Veuillez activer l\'accès à la caméra dans les paramètres pour scanner le code QR.</string>
@@ -207,11 +205,8 @@
   <string name="errors_dust_threshold">La transaction a échoué car le montant est trop faible pour atteindre le seuil minimal du réseau %1$s. Cette limite garantit que la valeur de la transaction couvre les frais et les coûts de traitement.</string>
   <string name="errors_swap_no_quote_available">Aucun devis disponible.</string>
   <string name="errors_swap_not_supported_asset">Actif non pris en charge.</string>
-  <string name="errors_connections_invalid_send_parameters">Paramètres non valides fournis pour l\'envoi d\'une transaction.</string>
-  <string name="errors_connections_invalid_sign_parameters">Paramètres non valides fournis pour la signature.</string>
   <string name="errors_connections_no_supported_wallets">Aucun portefeuille pris en charge n\'est disponible.</string>
   <string name="errors_connections_unsupported_chain">La chaîne fournie n\'est pas prise en charge.</string>
-  <string name="errors_connections_unsupported_method">La méthode demandée n\'est pas prise en charge.</string>
   <string name="errors_swap_amount_too_small">Montant trop petit</string>
   <string name="errors_required">%1$s est requis</string>
   <string name="errors_scan_transaction_malicious_description">Cette transaction ne peut être effectuée — l\'adresse du portefeuille de destination est liée à une activité suspecte ou malveillante.</string>
@@ -223,7 +218,6 @@
   <string name="errors_swap_minimum_amount">Le montant minimum de transaction est %1$s. Veuillez saisir un montant plus élevé.</string>
   <string name="errors_perpetual_trigger_price_lower">Le prix de déclenchement doit être inférieur au prix du marché</string>
   <string name="errors_perpetual_trigger_price_higher">Le prix de déclenchement doit être supérieur au prix du marché</string>
-  <string name="errors_token_unable_fetch_token_information">Impossible de récupérer les informations du jeton : %1$s</string>
   <string name="errors_unknown_try_again">Une erreur inconnue s\'est produite. Veuillez réessayer.</string>
   <string name="errors_network_error">Erreur réseau : %1$s</string>
   <string name="errors_network_offline">La connexion Internet semble être hors ligne.</string>
@@ -241,7 +235,6 @@
   <string name="update_app_permission_title">Autoriser l\'installation</string>
   <string name="update_app_permission_description">Accédez aux paramètres et autorisez l\'installation à partir de sources externes</string>
   <string name="update_app_permission_open_settings">Accéder aux paramètres</string>
-  <string name="update_app_downloading">Téléchargement...</string>
   <string name="transaction_recipient">Destinataire</string>
   <string name="transaction_sender">Expéditeur</string>
   <string name="transaction_date">Date</string>
@@ -314,6 +307,7 @@
   <string name="wallet_connect_permissions_title">Autorisations</string>
   <string name="wallet_connect_permissions_view_balance">Consultez votre solde et votre activité</string>
   <string name="wallet_connect_permissions_approval_requests">Envoyer les demandes d\'approbation</string>
+  <string name="wallet_connect_request_expired">Demande expirée</string>
   <string name="swap_you_pay">Vous payez</string>
   <string name="swap_you_receive">Vous recevez</string>
   <string name="swap_price_impact">Impact sur les prix</string>
@@ -396,8 +390,6 @@
   <string name="banner_account_activation_description">Le réseau %1$s nécessite des frais uniques de %2$s.</string>
   <string name="banner_stake_title">Commencez le staking de %1$s</string>
   <string name="banner_stake_description">Gagnez des récompenses %1$s sur votre staking pendant que vous dormez.</string>
-  <string name="banner_enable_notifications_title">Activer les notifications</string>
-  <string name="banner_enable_notifications_description">Restez au courant de l\'activité de votre portefeuille.</string>
   <string name="banner_activate_asset_description">Pour utiliser la ressource %1$s, vous devez d\'abord l\'activer sur le réseau %2$s en remplissant les exigences spécifiques du réseau.</string>
   <string name="banner_asset_status_title">Actif suspect</string>
   <string name="banner_asset_status_description">Le jeton peut être dangereux ou trompeur. Ne procédez que si vous lui faites pleinement confiance.</string>
@@ -494,6 +486,7 @@
   <string name="nft_report_reason_malicious">Malveillant</string>
   <string name="nft_report_reason_inappropriate">Contenu inapproprié</string>
   <string name="nft_report_reason_copyright">Droits d\'auteur</string>
+  <string name="nft_report_reason_other">Autre</string>
   <string name="nft_report_report_button_title">Signaler</string>
   <string name="permissions_access_denied">Accès refusé</string>
   <string name="permissions_image_photo_access_denied_description">Cette application n\'a pas l\'autorisation d\'accéder à votre photothèque. Veuillez autoriser l\'accès dans les paramètres de votre appareil.</string>
@@ -503,7 +496,6 @@
   <string name="search_state_empty_description">Vérifiez l\'orthographe ou essayez une nouvelle recherche.</string>
   <string name="networks_state_empty_search_title">Aucun réseau trouvé</string>
   <string name="onboarding_security_create_wallet_intro_title">Vous recevrez une phrase secrète : c\'est le seul moyen d\'accéder à votre portefeuille.</string>
-  <string name="onboarding_security_create_wallet_confirm_title">Je comprends et je veux continuer</string>
   <string name="onboarding_security_create_wallet_do_not_share_title">Ne le partagez avec personne</string>
   <string name="onboarding_security_create_wallet_do_not_share_subtitle">Quiconque obtient votre phrase secrète peut prendre le contrôle total de votre portefeuille.</string>
   <string name="onboarding_security_create_wallet_keep_safe_subtitle">La phrase secrète est le seul moyen d\'accéder à votre portefeuille.</string>
@@ -552,8 +544,8 @@
   <string name="perpetual_margin_cross">Cross</string>
   <string name="perpetual_margin_isolated">Isolé</string>
   <string name="perpetuals_title">Perpétuels</string>
+  <string name="perpetuals_trade">Trader les perpétuels</string>
   <string name="perpetuals_markets">Marchés</string>
-  <string name="perpetuals_empty_state_no_markets">Pas de marchés</string>
   <string name="perpetuals_empty_state_no_markets_found">Aucun marché trouvé</string>
   <string name="rewards_title">Récompenses</string>
   <string name="rewards_share_text">Rejoignez Gem Wallet avec mon lien de parrainage et gagnez des récompenses : %1$s</string>
@@ -601,9 +593,6 @@
   <string name="simulation_warning_nft_collection_approval_title">Demande d\'accès à l\'intégralité de la collection NFT</string>
   <string name="simulation_warning_unlimited_token_approval_title">Approbation illimitée des jetons</string>
   <string name="application_name">Gem</string>
-  <string name="camera_permission_request_camera">Autorisation de l\'appareil photo requise pour la numérisation du code QR.\nVeuillez accorder l\'autorisation.</string>
-  <string name="notifications_permission_request_notification">Autorisation de publication de notifications requise pour recevoir des notifications sur les nouvelles transactions.\nVeuillez accorder l\'autorisation.</string>
-  <string name="confirm_fee_error">Erreur de calcul des frais</string>
   <string name="rootcheck_security_alert">Avertissement de sécurité</string>
   <string name="rootcheck_body">Votre appareil semble disposer d\'un accès root, ce qui peut augmenter considérablement les risques de sécurité. L\'utilisation de cette application sur un appareil rooté peut exposer vos actifs à un accès non autorisé et à une perte potentielle. Pour la sécurité de vos fonds, nous vous recommandons fortement d\'utiliser un appareil non rooté.</string>
   <string name="rootcheck_ignore">Ignorer</string>

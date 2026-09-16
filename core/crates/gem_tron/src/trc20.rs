@@ -4,20 +4,17 @@ use primitives::Address as _;
 use crate::address::TronAddress;
 
 const ABI_WORD_LEN: usize = 32;
-#[cfg(feature = "rpc")]
 const GASFREE_PERMIT_TRANSFER_SELECTOR: [u8; 4] = [0x6f, 0x21, 0xb8, 0x98];
-const TRC20_APPROVE_SELECTOR: [u8; 4] = [0x09, 0x5e, 0xa7, 0xb3];
-#[cfg(feature = "signer")]
+pub(crate) const TRC20_APPROVE_SELECTOR: [u8; 4] = [0x09, 0x5e, 0xa7, 0xb3];
 const TRC20_TRANSFER_SELECTOR: [u8; 4] = [0xa9, 0x05, 0x9c, 0xbb];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct ApprovalCall {
+pub struct ApprovalCall {
     pub spender: TronAddress,
     pub value: BigUint,
 }
 
-#[cfg(feature = "signer")]
-pub(crate) fn encode_transfer(destination: &TronAddress, value: &str) -> Result<Vec<u8>, &'static str> {
+pub fn encode_transfer(destination: &TronAddress, value: &str) -> Result<Vec<u8>, &'static str> {
     let amount = value.parse::<BigUint>().map_err(|_| "invalid TRC20 amount")?;
     let mut data = TRC20_TRANSFER_SELECTOR.to_vec();
     data.extend(pad_left(destination.as_bytes(), ABI_WORD_LEN)?);
@@ -25,18 +22,18 @@ pub(crate) fn encode_transfer(destination: &TronAddress, value: &str) -> Result<
     Ok(data)
 }
 
-pub(crate) fn encode_approval_max(spender: &TronAddress) -> Result<Vec<u8>, &'static str> {
+pub fn encode_approval_max(spender: &TronAddress) -> Result<Vec<u8>, &'static str> {
     let mut data = TRC20_APPROVE_SELECTOR.to_vec();
     data.extend(pad_left(spender.as_bytes(), ABI_WORD_LEN)?);
     data.extend([0xff; ABI_WORD_LEN]);
     Ok(data)
 }
 
-pub(crate) fn decode_approval_hex(data: &str) -> Option<ApprovalCall> {
+pub fn decode_approval_hex(data: &str) -> Option<ApprovalCall> {
     decode_approval(&hex::decode(data).ok()?)
 }
 
-pub(crate) fn decode_approval(data: &[u8]) -> Option<ApprovalCall> {
+pub fn decode_approval(data: &[u8]) -> Option<ApprovalCall> {
     if data.len() != TRC20_APPROVE_SELECTOR.len() + ABI_WORD_LEN * 2 || !data.starts_with(&TRC20_APPROVE_SELECTOR) {
         return None;
     }
@@ -47,8 +44,7 @@ pub(crate) fn decode_approval(data: &[u8]) -> Option<ApprovalCall> {
     Some(ApprovalCall { spender, value })
 }
 
-#[cfg(feature = "rpc")]
-pub(crate) fn decode_gasfree_permit_transfer_hex(data: &str) -> Option<(TronAddress, TronAddress, BigUint)> {
+pub fn decode_gasfree_permit_transfer_hex(data: &str) -> Option<(TronAddress, TronAddress, BigUint)> {
     let data = hex::decode(data).ok()?;
     let arguments = data.strip_prefix(&GASFREE_PERMIT_TRANSFER_SELECTOR)?;
     let mut words = arguments.chunks_exact(ABI_WORD_LEN);

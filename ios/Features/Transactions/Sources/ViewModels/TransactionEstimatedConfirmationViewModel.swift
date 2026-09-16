@@ -2,6 +2,7 @@
 
 import Components
 import Formatters
+import GemstonePrimitives
 import Localization
 import Primitives
 

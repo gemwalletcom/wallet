@@ -9,12 +9,9 @@ import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import io.mockk.every
-import io.mockk.mockk
 import uniffi.gemstone.AlienException
 import uniffi.gemstone.AlienHttpMethod
 import uniffi.gemstone.AlienTarget
-import uniffi.gemstone.GemNodeServiceInterface
 import java.io.EOFException
 import java.io.IOException
 import java.net.UnknownHostException
@@ -136,21 +133,10 @@ class NativeProviderTest {
         assertEquals(0L, sent?.body?.contentLength())
     }
 
-    @Test
-    fun getEndpointUsesTheNodeService() {
-        val provider = nativeProvider()
-
-        assertEquals("https://gemnodes.com/bitcoin", provider.getEndpoint("bitcoin"))
-    }
 
     private fun nativeProvider(
         httpClient: OkHttpClient = OkHttpClient(),
     ): NativeProvider {
-        return NativeProvider(
-            nodeService = mockk<GemNodeServiceInterface> {
-                every { nodeUrl(any()) } answers { "https://gemnodes.com/${firstArg<String>()}" }
-            },
-            httpClient = httpClient,
-        )
+        return NativeProvider(httpClient = httpClient)
     }
 }

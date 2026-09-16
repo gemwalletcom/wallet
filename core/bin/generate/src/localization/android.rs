@@ -1,6 +1,6 @@
-use crate::localization::DEFAULT_LANGUAGE;
-
 use std::{collections::BTreeMap, error::Error, fs, path::Path};
+
+use crate::localization::DEFAULT_LANGUAGE;
 
 pub fn write(localizations: &BTreeMap<String, Vec<(String, String)>>, output_path: &Path) -> Result<(), Box<dyn Error + Send + Sync>> {
     for (language, entries) in localizations {
@@ -46,6 +46,18 @@ fn android_value(value: &str) -> String {
     while let Some(character) = characters.next() {
         if character == '%' {
             match characters.peek() {
+                Some('0'..='9') => {
+                    output.push('%');
+                    while let Some(digit) = characters.next_if(char::is_ascii_digit) {
+                        output.push(digit);
+                    }
+                    if characters.next_if_eq(&'$').is_some() {
+                        output.push('$');
+                        if characters.next_if_eq(&'@').is_some() {
+                            output.push('s');
+                        }
+                    }
+                }
                 Some('@') => {
                     characters.next();
                     output.push_str(&format!("%{index}$s"));
@@ -65,4 +77,19 @@ fn android_value(value: &str) -> String {
         }
     }
     output
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_android_value() {
+        assert_eq!(android_value("%2$@ 网络上的 %1$@"), "%2$s 网络上的 %1$s");
+        assert_eq!(android_value("%1$@ / %1$@ / %12$@"), "%1$s / %1$s / %12$s");
+        assert_eq!(android_value("%@: %d"), "%1$s: %2$d");
+        assert_eq!(android_value("%2$@ %@ %1$d %d"), "%2$s %1$s %1$d %2$d");
+        assert_eq!(android_value("%% %@"), "%% %1$s");
+        assert_eq!(android_value("Wallet's 100%"), "Wallet\\'s 100%");
+    }
 }

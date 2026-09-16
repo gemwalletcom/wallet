@@ -3,6 +3,7 @@ package com.gemwallet.android.features.bridge.views
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -20,8 +21,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.ext.getShortUrl
-import com.gemwallet.android.ext.shortName
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DocsInfoButton
 import com.gemwallet.android.ui.components.QrCodeScannerModal
@@ -38,11 +37,11 @@ import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.features.bridge.viewmodels.ConnectionsViewModel
-import com.wallet.core.primitives.WalletConnection
 import kotlinx.coroutines.launch
 import com.gemwallet.android.AppUrl
-import uniffi.gemstone.DocsUrl
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
+import uniffi.gemstone.GemConnection
+import uniffi.gemstone.DocsUrl
 
 @Composable
 fun ConnectionsScene(
@@ -53,7 +52,7 @@ fun ConnectionsScene(
     val clipboardManager = LocalContext.current.clipboardManager()
     var scannerShowed by remember { mutableStateOf(false) }
 
-    val connections by viewModel.connections.collectAsStateWithLifecycle()
+    val sections by viewModel.sections.collectAsStateWithLifecycle()
 
     var pairError by remember { mutableStateOf("") }
 
@@ -104,13 +103,16 @@ fun ConnectionsScene(
                     listPosition = ListPosition.Last,
                 )
             }
-            if (connections.isEmpty()) {
+            if (sections.isEmpty()) {
                 item {
                     EmptyContentView(type = EmptyContentType.WalletConnect, modifier = Modifier.fillParentMaxHeight(0.7f))
                 }
             } else {
-                itemsIndexed(connections) { index, item ->
-                    ConnectionItem(item, ListPosition.getPosition(index, connections.size), onConnection)
+                sections.forEach { section ->
+                    item { SubheaderItem(title = section.title) }
+                    itemsIndexed(section.connections) { index, item ->
+                        ConnectionItem(item, ListPosition.getPosition(index, section.connections.size), onConnection)
+                    }
                 }
             }
         }
@@ -139,21 +141,21 @@ fun ConnectionsScene(
 
 @Composable
 fun ConnectionItem(
-    connection: WalletConnection,
+    model: GemConnection,
     listPosition: ListPosition,
     onClick: ((String) -> Unit)? = null,
 ) {
+    val row = model.row
     ListItem(
-        modifier = if (onClick == null) Modifier else Modifier.clickable { onClick(connection.session.id) },
+        modifier = if (onClick == null) Modifier else Modifier.clickable { onClick(model.connection.session.id) },
         leading = {
-            val name = connection.session.metadata.shortName
             IconWithBadge(
-                connection.session.metadata.icon,
-                placeholder = if (name.isEmpty()) "WC" else name[0].toString()
+                row.iconUrl,
+                placeholder = row.initial ?: "WC",
             )
         },
-        title = { ListItemTitleText(connection.session.metadata.shortName) },
-        subtitle = { ListItemSupportText(connection.session.metadata.url.getShortUrl() ?: connection.session.metadata.url) },
+        title = { ListItemTitleText(row.title) },
+        subtitle = row.host?.let { host -> { ListItemSupportText(host) } },
         listPosition = listPosition
     )
 }

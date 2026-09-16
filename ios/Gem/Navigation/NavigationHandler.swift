@@ -6,6 +6,7 @@ import enum Gemstone.Deeplink
 import protocol Gemstone.GemAssetsServiceProtocol
 import class Gemstone.GemDeeplinkService
 import class Gemstone.GemPaymentService
+import enum Gemstone.Payment
 import enum Gemstone.GemPushNotification
 import protocol Gemstone.GemPushNotificationServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
@@ -131,7 +132,7 @@ extension NavigationHandler {
     private func handleURLAction(_ action: UrlAction) async throws {
         switch action {
         case let .deeplink(deeplink): try await handleDeepLink(deeplink)
-        case let .payment(payment): try await handlePayment(Payment(payment))
+        case let .payment(payment): try await handlePayment(payment)
         case let .walletConnect(link): await handleWalletConnect(link)
         }
     }
@@ -168,7 +169,7 @@ extension NavigationHandler {
 
 @MainActor
 extension NavigationHandler {
-    private func handlePayment(_ payment: Payment) async throws {
+    private func handlePayment(_ payment: Gemstone.Payment) async throws {
         guard let wallet = await walletSessionService.currentWallet else { return }
         switch payment {
         case let .request(request):
@@ -176,7 +177,7 @@ extension NavigationHandler {
             presenter.isPresentingPayment.wrappedValue = try PaymentDestinationBuilder.build(payment: request, assets: assets, paymentService: paymentService)
         case let .link(link):
             toastPresenter.toastMessage = ToastMessage(title: Localized.Common.loading, image: SystemImage.network)
-            let addresses = wallet.accounts.map { ChainAddress(chain: $0.chain, address: $0.address) }
+            let addresses = wallet.accounts.map { ChainAddress(chain: $0.chain, address: $0.address).toGem() }
             let transaction = try await paymentService.load(link: link, addresses: addresses)
             let asset = try await assetsService.ensureTokenAsset(for: Primitives.AssetId(core: paymentService.transactionAssetId(transaction: transaction)))
             toastPresenter.toastMessage = nil
@@ -222,7 +223,7 @@ extension NavigationHandler {
             try await navigateToTransaction(
                 walletId: Primitives.WalletId.from(id: walletId),
                 assetId: Primitives.AssetId(id: assetId),
-                transaction: Primitives.Transaction(transaction),
+                transaction: transaction.toPrimitives(),
             )
         case let .buyAsset(assetId):
             try await presentFiat(type: .buy, assetId: Primitives.AssetId(id: assetId), amount: .none)
@@ -267,14 +268,13 @@ extension NavigationHandler {
             return
         }
 
-        await selectWalletIfNeeded(walletId)
-        navigationState.openAsset(asset)
+        try openWallet(walletId, path: getPath(for: asset))
     }
 
     private func trackNotificationTransaction(walletId: WalletId, transaction: Primitives.Transaction) {
         Task {
             do {
-                try await transactionStateService.track(walletId: walletId.id, transactions: [transaction.json()])
+                try await transactionStateService.track(walletId: walletId.id, transactions: [transaction.toGem()])
             } catch {
                 debugLog("navigation: transaction tracking failed \(error)")
             }
@@ -284,42 +284,38 @@ extension NavigationHandler {
     private func navigateToTransaction(walletId: WalletId, assetId: AssetId, transaction: Primitives.Transaction) async throws {
         guard let wallet = try? await walletSessionService.getWallet(walletId: walletId),
               let asset = try await transactionStateService.addNotificationTransaction(
-                  wallet: wallet.map(),
+                  wallet: wallet.toGem(),
                   assetId: assetId.identifier,
-                  transaction: transaction.json(),
-              ).map({ $0.map() })
+                  transaction: transaction.toGem(),
+              ).map({ $0.toPrimitives() })
         else {
             return
         }
         trackNotificationTransaction(walletId: walletId, transaction: transaction)
         let transaction = try transactionStore.getTransaction(walletId: walletId, transactionId: transaction.id)
 
-        await selectWalletIfNeeded(walletId)
-        switch asset.type {
-        case .perpetual:
-            navigationState.wallet.setPath([Scenes.Perpetuals(), Scenes.Perpetual(asset), Scenes.Transaction(transaction: transaction)])
-        default:
-            navigationState.wallet.setPath([Scenes.Asset(asset: asset), Scenes.Transaction(transaction: transaction)])
-        }
-
-        navigationState.selectedTab = .wallet
+        try openWallet(walletId, path: getPath(for: asset, transaction: transaction))
     }
 
-    private func selectWalletIfNeeded(_ walletId: WalletId) async {
+    private func openWallet(_ walletId: WalletId, path: [any Hashable & Codable]) throws {
         guard walletSessionService.currentWalletId != walletId else {
-            return
+            return navigationState.openWallet(path: path)
         }
+        try walletSessionService.setCurrent(walletId: walletId)
+        navigationState.pendingWalletPath = path
+    }
 
-        do {
-            try walletSessionService.setCurrent(walletId: walletId)
-        } catch {
-            debugLog("set current wallet error: \(error)")
-            return
+    private func getPath(for asset: Asset) -> [any Hashable & Codable] {
+        switch asset.type {
+        case .perpetual: [Scenes.Perpetual(asset)]
+        default: [Scenes.Asset(asset: asset)]
         }
-        await withCheckedContinuation { continuation in
-            RunLoop.main.perform(inModes: [.common]) {
-                continuation.resume()
-            }
+    }
+
+    private func getPath(for asset: Asset, transaction: TransactionExtended) -> [any Hashable & Codable] {
+        switch asset.type {
+        case .perpetual: [Scenes.Perpetuals(), Scenes.Perpetual(asset), Scenes.Transaction(transaction: transaction)]
+        default: [Scenes.Asset(asset: asset), Scenes.Transaction(transaction: transaction)]
         }
     }
 
@@ -348,8 +344,7 @@ extension NavigationHandler {
     }
 
     func resetNavigation() {
-        navigationState.clearAll()
-        navigationState.selectedTab = .wallet
+        navigationState.reset()
     }
 }
 

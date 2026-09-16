@@ -1,24 +1,25 @@
 package com.gemwallet.android.features.asset.viewmodels.details.models
 
 import androidx.annotation.StringRes
-import com.gemwallet.android.domains.price.ValueDirection
+import com.gemwallet.android.domains.banner.BannerRow
+import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.BalanceMetadata
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.VerificationStatus
 import uniffi.gemstone.GemAssetDetailsState
+import uniffi.gemstone.GemAssetNetworkDestination
 
 class AssetInfoUIModel(
     val assetInfo: AssetInfo,
     val name: String = "",
-    val iconUrl: String = "",
+    val iconUrl: Any? = null,
     val priceValue: String = "0",
     val priceDayChanges: String = "0",
-    val priceChangedType: ValueDirection = ValueDirection.Up,
+    val priceChangedType: GemValueTone = GemValueTone.POSITIVE,
     val tokenType: AssetType = AssetType.NATIVE,
     val accountInfoUIModel: AccountInfoUIModel = AccountInfoUIModel(),
     val isBuyEnabled: Boolean = false,
@@ -29,10 +30,10 @@ class AssetInfoUIModel(
     val explorerAddressUrl: String? = null,
     val explorerTokenUrl: String? = null,
     val verificationStatus: VerificationStatus? = null,
-    val networkDestination: NetworkDestination? = null,
+    val networkDestination: GemAssetNetworkDestination? = null,
     val shareUrl: String = "",
     val detailsState: GemAssetDetailsState,
-    val updated: Long = System.currentTimeMillis(),
+    val banners: List<BannerRow>,
 ) {
 
     val asset: Asset get() = assetInfo.asset
@@ -45,11 +46,6 @@ class AssetInfoUIModel(
         val balanceMetadata: BalanceMetadata? = null,
     )
 
-    sealed interface NetworkDestination {
-        data class Asset(val assetId: AssetId) : NetworkDestination
-        data class Assets(val chain: Chain) : NetworkDestination
-    }
-
     data class BalanceUIModel(
         val type: BalanceViewType,
         val value: String = "0",
@@ -59,6 +55,7 @@ class AssetInfoUIModel(
     enum class BalanceViewType(@param:StringRes val label: Int) {
         Available(R.string.asset_balances_available),
         Stake(R.string.wallet_stake),
+        Earn(R.string.common_earn),
         PendingUnconfirmed(R.string.stake_pending),
         Reserved(R.string.asset_balances_reserved)
     }

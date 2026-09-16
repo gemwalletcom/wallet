@@ -1,15 +1,13 @@
-use crate::{
-    get_token_program_by_id,
-    signer::{instructions::reference_accounts, transaction},
-};
 use primitives::{Asset, SignerError, SignerInput, SolanaTokenProgramId};
-use solana_primitives::{
-    Instruction, Pubkey,
+
+use crate::{
+    Instruction, Pubkey, get_token_program_by_id,
     instructions::{
         associated_token::{create_associated_token_account_idempotent, get_associated_token_address_with_program_id},
         memo::memo,
         token::transfer_checked_with_program_id,
     },
+    signer::{instructions::reference_accounts, transaction},
 };
 
 pub(in crate::signer) fn token_transfer(input: &SignerInput, sender: Pubkey) -> Result<Vec<Instruction>, SignerError> {
@@ -41,8 +39,8 @@ pub(in crate::signer::instructions) fn spl_transfer_checked(
         Some(recipient_token_address) => Pubkey::from_base58(&recipient_token_address).map_err(SignerError::from_display)?,
         None => {
             let recipient = Pubkey::from_base58(&input.destination_address).map_err(SignerError::from_display)?;
-            let recipient_token_address = get_associated_token_address_with_program_id(&recipient, &mint, &token_program_id);
-            instructions.push(create_associated_token_account_idempotent(&sender, &recipient, &mint, &token_program_id));
+            let recipient_token_address = get_associated_token_address_with_program_id(&recipient, &mint, &token_program_id)?;
+            instructions.push(create_associated_token_account_idempotent(&sender, &recipient, &mint, &token_program_id)?);
             recipient_token_address
         }
     };
@@ -77,15 +75,18 @@ fn token_decimals(asset: &Asset) -> Result<u8, SignerError> {
 #[cfg(test)]
 mod tests {
     use crate::signer::{SolanaChainSigner, testkit::*};
-    use num_bigint::BigUint;
-    use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
-    use primitives::{Asset, AssetId, AssetType, Chain, ChainSigner, GasPriceType, SignerInput, SolanaTokenProgramId, TransactionFee, TransactionInputType, TransactionLoadInput};
-    use solana_primitives::{
+    use crate::{
         Pubkey,
         instructions::{
             associated_token::get_associated_token_address_with_program_id,
-            program_ids::{ASSOCIATED_TOKEN_PROGRAM_ID, MEMO_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID, token_program},
+            program_ids::{SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID, SOLANA_MEMO_PROGRAM_ID, SOLANA_TOKEN_2022_PROGRAM_ID, SOLANA_TOKEN_PROGRAM_ID, token_program},
         },
+    };
+    use num_bigint::BigUint;
+    use primitives::testkit::signer_mock::{TEST_PRIVATE_KEY, TEST_PRIVATE_KEY_SOLANA_ADDRESS};
+    use primitives::{
+        Asset, AssetId, AssetType, Chain, ChainSigner, GasPriceType, SignerInput, SolanaTokenProgramId, TransactionFee, TransactionInputType, TransactionLoadInput,
+        TransactionLoadMetadata,
     };
 
     fn transfer_checked_data(amount: u64, decimals: u8) -> Vec<u8> {
@@ -98,27 +99,23 @@ mod tests {
     #[test]
     fn test_sign_token_transfer() {
         let signer = SolanaChainSigner;
-        let input = TransactionLoadInput {
-            input_type: TransactionInputType::Transfer { asset: Asset::mock_spl_token() },
-            sender_address: sender_address(),
-            destination_address: TEST_RECIPIENT.to_string(),
-            value: BigUint::from(123456u64),
-            gas_price: GasPriceType::regular(0),
-            memo: None,
-            is_max_value: false,
-            metadata: solana_metadata(Some(TEST_SENDER_TOKEN_ADDRESS), None, Some(SolanaTokenProgramId::Token)),
-        };
-        let input = SignerInput::new(input, TransactionFee::mock());
+        let input = SignerInput::mock_with_input_type(
+            TransactionInputType::Transfer { asset: Asset::mock_spl_token() },
+            TEST_PRIVATE_KEY_SOLANA_ADDRESS,
+            TEST_RECIPIENT,
+            "123456",
+            TransactionLoadMetadata::mock_solana_transfer(Some(TEST_SENDER_TOKEN_ADDRESS), None, Some(SolanaTokenProgramId::Token), &[]),
+        );
 
         let result = signer.sign_token_transfer(&input, &TEST_PRIVATE_KEY).unwrap();
 
         let transaction = crate::decode_transaction(&result).unwrap();
         let mint = Pubkey::from_base58(Asset::mock_spl_token().id.get_token_id().unwrap()).unwrap();
         let recipient = Pubkey::from_base58(TEST_RECIPIENT).unwrap();
-        let recipient_token_address = get_associated_token_address_with_program_id(&recipient, &mint, &token_program());
+        let recipient_token_address = get_associated_token_address_with_program_id(&recipient, &mint, &token_program()).unwrap();
         assert_eq!(
             (0..transaction.instructions().len()).map(|index| program_id(&transaction, index)).collect::<Vec<_>>(),
-            vec![ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID]
+            vec![SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID, SOLANA_TOKEN_PROGRAM_ID]
         );
         assert_eq!(transaction.instructions()[0].data, vec![1]);
         assert_eq!(account_key(&transaction, 0, 1), recipient_token_address);
@@ -132,37 +129,29 @@ mod tests {
             6,
             AssetType::SPL2022,
         );
-        let input = TransactionLoadInput {
-            input_type: TransactionInputType::Transfer { asset: spl2022_asset },
-            sender_address: sender_address(),
-            destination_address: TEST_RECIPIENT.to_string(),
-            value: BigUint::from(7u64),
-            gas_price: GasPriceType::regular(0),
-            memo: None,
-            is_max_value: false,
-            metadata: solana_metadata(Some(TEST_SENDER_TOKEN_ADDRESS), Some(TEST_SENDER_TOKEN_ADDRESS), Some(SolanaTokenProgramId::Token2022)),
-        };
-        let input = SignerInput::new(input, TransactionFee::mock());
+        let input = SignerInput::mock_with_input_type(
+            TransactionInputType::Transfer { asset: spl2022_asset },
+            TEST_PRIVATE_KEY_SOLANA_ADDRESS,
+            TEST_RECIPIENT,
+            "7",
+            TransactionLoadMetadata::mock_solana_transfer(Some(TEST_SENDER_TOKEN_ADDRESS), Some(TEST_SENDER_TOKEN_ADDRESS), Some(SolanaTokenProgramId::Token2022), &[]),
+        );
 
         let result = signer.sign_token_transfer(&input, &TEST_PRIVATE_KEY).unwrap();
 
         let transaction = crate::decode_transaction(&result).unwrap();
         assert_eq!(transaction.instructions().len(), 1);
-        assert_eq!(program_id(&transaction, 0), TOKEN_2022_PROGRAM_ID);
+        assert_eq!(program_id(&transaction, 0), SOLANA_TOKEN_2022_PROGRAM_ID);
         assert_eq!(transaction.instructions()[0].data, transfer_checked_data(7, 6));
 
         let mismatched_asset = Asset::mock_spl_token();
-        let input = TransactionLoadInput {
-            input_type: TransactionInputType::Transfer { asset: mismatched_asset },
-            sender_address: sender_address(),
-            destination_address: TEST_RECIPIENT.to_string(),
-            value: BigUint::from(7u64),
-            gas_price: GasPriceType::regular(0),
-            memo: None,
-            is_max_value: false,
-            metadata: solana_metadata(Some(TEST_SENDER_TOKEN_ADDRESS), Some(TEST_SENDER_TOKEN_ADDRESS), Some(SolanaTokenProgramId::Token2022)),
-        };
-        let input = SignerInput::new(input, TransactionFee::mock());
+        let input = SignerInput::mock_with_input_type(
+            TransactionInputType::Transfer { asset: mismatched_asset },
+            TEST_PRIVATE_KEY_SOLANA_ADDRESS,
+            TEST_RECIPIENT,
+            "7",
+            TransactionLoadMetadata::mock_solana_transfer(Some(TEST_SENDER_TOKEN_ADDRESS), Some(TEST_SENDER_TOKEN_ADDRESS), Some(SolanaTokenProgramId::Token2022), &[]),
+        );
         assert_eq!(
             signer.sign_token_transfer(&input, &TEST_PRIVATE_KEY).unwrap_err().to_string(),
             "Invalid input: Solana token program metadata does not match asset type"
@@ -170,20 +159,20 @@ mod tests {
 
         let input = TransactionLoadInput {
             input_type: TransactionInputType::Transfer { asset: Asset::mock_spl_token() },
-            sender_address: sender_address(),
+            sender_address: TEST_PRIVATE_KEY_SOLANA_ADDRESS.to_string(),
             destination_address: TEST_RECIPIENT.to_string(),
             value: BigUint::from(123456u64),
             gas_price: GasPriceType::regular(0),
             memo: Some("token memo".to_string()),
             is_max_value: false,
-            metadata: solana_metadata(Some(TEST_SENDER_TOKEN_ADDRESS), Some(TEST_SENDER_TOKEN_ADDRESS), Some(SolanaTokenProgramId::Token)),
+            metadata: TransactionLoadMetadata::mock_solana_transfer(Some(TEST_SENDER_TOKEN_ADDRESS), Some(TEST_SENDER_TOKEN_ADDRESS), Some(SolanaTokenProgramId::Token), &[]),
         };
         let input = SignerInput::new(input, TransactionFee::mock());
         let result = signer.sign_token_transfer(&input, &TEST_PRIVATE_KEY).unwrap();
         let transaction = crate::decode_transaction(&result).unwrap();
         assert_eq!(
             (0..transaction.instructions().len()).map(|index| program_id(&transaction, index)).collect::<Vec<_>>(),
-            vec![MEMO_PROGRAM_ID, TOKEN_PROGRAM_ID]
+            vec![SOLANA_MEMO_PROGRAM_ID, SOLANA_TOKEN_PROGRAM_ID]
         );
         assert_eq!(transaction.instructions()[0].accounts, Vec::<u8>::new());
         assert_eq!(transaction.instructions()[0].data, b"token memo");
@@ -192,7 +181,7 @@ mod tests {
     #[test]
     fn test_sign_payment_references() {
         let references = ["82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny", "7GUcQZQwHHa9GBPhVq7v2LArSsp5VmGXV5zXnQ8Q7N3a"];
-        let metadata = solana_metadata_with_references(
+        let metadata = TransactionLoadMetadata::mock_solana_transfer(
             Some(TEST_SENDER_TOKEN_ADDRESS),
             Some(TEST_SENDER_TOKEN_ADDRESS),
             Some(SolanaTokenProgramId::Token),
@@ -200,7 +189,7 @@ mod tests {
         );
         let input = TransactionLoadInput {
             input_type: TransactionInputType::Transfer { asset: Asset::mock_spl_token() },
-            sender_address: sender_address(),
+            sender_address: TEST_PRIVATE_KEY_SOLANA_ADDRESS.to_string(),
             destination_address: TEST_RECIPIENT.to_string(),
             value: BigUint::from(123456u64),
             gas_price: GasPriceType::regular(0),
@@ -214,8 +203,8 @@ mod tests {
             .unwrap();
         let transaction = crate::decode_transaction(&result).unwrap();
 
-        assert_eq!(program_id(&transaction, 0), MEMO_PROGRAM_ID);
-        assert_eq!(program_id(&transaction, 1), TOKEN_PROGRAM_ID);
+        assert_eq!(program_id(&transaction, 0), SOLANA_MEMO_PROGRAM_ID);
+        assert_eq!(program_id(&transaction, 1), SOLANA_TOKEN_PROGRAM_ID);
         assert_eq!(account_key(&transaction, 1, 4), Pubkey::from_base58(references[0]).unwrap());
         assert_eq!(account_key(&transaction, 1, 5), Pubkey::from_base58(references[1]).unwrap());
     }

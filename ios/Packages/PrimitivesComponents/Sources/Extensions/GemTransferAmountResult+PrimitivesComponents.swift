@@ -8,7 +8,7 @@ import Foundation
 public typealias TransferAmountValidation = Result<GemTransferAmount, GemConfirmError>
 
 public extension GemTransferAmountResult {
-    func map() -> TransferAmountValidation {
+    func toPrimitives() -> TransferAmountValidation {
         switch self {
         case let .amount(amount): .success(amount)
         case let .error(error): .failure(error)

@@ -1,9 +1,13 @@
 use gem_encoding::{decode_base64, encode_base64};
 use num_bigint::BigUint;
 use primitives::{AssetId, Chain, SolanaInstruction, TransactionType};
-use solana_primitives::{
-    AccountMeta, AddressLookupTableAccount, Instruction, Pubkey, TransactionBuilder, VersionedTransaction,
-    instructions::program_ids::{ASSOCIATED_TOKEN_PROGRAM_ID, COMPUTE_BUDGET_PROGRAM_ID, MEMO_PROGRAM_ID, SYSTEM_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID},
+
+use crate::{
+    AccountMeta, AddressLookupTableAccount, CompiledInstruction, Instruction, Pubkey, TransactionBuilder, VersionedTransaction,
+    instructions::program_ids::{
+        SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID, SOLANA_COMPUTE_BUDGET_PROGRAM_ID, SOLANA_MEMO_PROGRAM_ID, SOLANA_SYSTEM_PROGRAM_ID, SOLANA_TOKEN_2022_PROGRAM_ID,
+        SOLANA_TOKEN_PROGRAM_ID,
+    },
 };
 
 pub trait VersionedTransactionExt {
@@ -27,24 +31,18 @@ pub struct SolanaTransfer {
 
 impl VersionedTransactionExt for VersionedTransaction {
     fn account_keys_mut(&mut self) -> &mut [Pubkey] {
-        match self {
-            Self::Legacy { message, .. } => &mut message.account_keys,
-            Self::V0 { message, .. } => &mut message.account_keys,
-        }
+        &mut self.message_mut().account_keys
     }
 
     fn recent_blockhash_mut(&mut self) -> &mut [u8; 32] {
-        match self {
-            Self::Legacy { message, .. } => &mut message.recent_blockhash,
-            Self::V0 { message, .. } => &mut message.recent_blockhash,
-        }
+        &mut self.message_mut().recent_blockhash
     }
 
     fn memo(&self) -> Option<String> {
         let account_keys = self.account_keys();
         self.instructions().iter().find_map(|instruction| {
             let program = account_keys.get(instruction.program_id_index as usize)?;
-            if program.to_base58() != MEMO_PROGRAM_ID {
+            if program.to_base58() != SOLANA_MEMO_PROGRAM_ID {
                 return None;
             }
             String::from_utf8(instruction.data.clone()).ok().filter(|memo| !memo.is_empty())
@@ -70,9 +68,9 @@ fn decode_transfer(transaction: &VersionedTransaction, signer: Option<&Pubkey>) 
     for instruction in transaction.instructions() {
         let program = account_keys.get(instruction.program_id_index as usize)?.to_base58();
         let decoded = match program.as_str() {
-            SYSTEM_PROGRAM_ID => Some(system_transfer(instruction, account_keys, signer)?),
-            TOKEN_PROGRAM_ID | TOKEN_2022_PROGRAM_ID => Some(token_transfer(transaction, instruction, account_keys, signer)?),
-            ASSOCIATED_TOKEN_PROGRAM_ID | MEMO_PROGRAM_ID | COMPUTE_BUDGET_PROGRAM_ID => None,
+            SOLANA_SYSTEM_PROGRAM_ID => Some(system_transfer(instruction, account_keys, signer)?),
+            SOLANA_TOKEN_PROGRAM_ID | SOLANA_TOKEN_2022_PROGRAM_ID => Some(token_transfer(transaction, instruction, account_keys, signer)?),
+            SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID | SOLANA_MEMO_PROGRAM_ID | SOLANA_COMPUTE_BUDGET_PROGRAM_ID => None,
             _ => return None,
         };
         if let Some(decoded) = decoded
@@ -92,7 +90,7 @@ fn authorized(account: &Pubkey, signer: Option<&Pubkey>) -> bool {
     }
 }
 
-fn system_transfer(instruction: &solana_primitives::CompiledInstruction, account_keys: &[Pubkey], signer: Option<&Pubkey>) -> Option<SolanaTransfer> {
+fn system_transfer(instruction: &CompiledInstruction, account_keys: &[Pubkey], signer: Option<&Pubkey>) -> Option<SolanaTransfer> {
     let data: &[u8; 12] = instruction.data.as_slice().try_into().ok()?;
     (data[..4] == 2u32.to_le_bytes()).then_some(())?;
     authorized(instruction_account(instruction, account_keys, 0)?, signer).then_some(())?;
@@ -104,12 +102,7 @@ fn system_transfer(instruction: &solana_primitives::CompiledInstruction, account
     })
 }
 
-fn token_transfer(
-    transaction: &VersionedTransaction,
-    instruction: &solana_primitives::CompiledInstruction,
-    account_keys: &[Pubkey],
-    signer: Option<&Pubkey>,
-) -> Option<SolanaTransfer> {
+fn token_transfer(transaction: &VersionedTransaction, instruction: &CompiledInstruction, account_keys: &[Pubkey], signer: Option<&Pubkey>) -> Option<SolanaTransfer> {
     let data: &[u8; 10] = instruction.data.as_slice().try_into().ok()?;
     (data[0] == 12).then_some(())?;
     authorized(instruction_account(instruction, account_keys, 3)?, signer).then_some(())?;
@@ -128,14 +121,14 @@ fn associated_token_owner<'a>(transaction: &'a VersionedTransaction, token_accou
     transaction.instructions().iter().find_map(|instruction| {
         let program = account_keys.get(instruction.program_id_index as usize)?;
         let creates_account = instruction.data.is_empty() || instruction.data.as_slice() == [1];
-        if program.to_base58() != ASSOCIATED_TOKEN_PROGRAM_ID || !creates_account || instruction_account(instruction, account_keys, 1)? != token_account {
+        if program.to_base58() != SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID || !creates_account || instruction_account(instruction, account_keys, 1)? != token_account {
             return None;
         }
         instruction_account(instruction, account_keys, 2)
     })
 }
 
-fn instruction_account<'a>(instruction: &solana_primitives::CompiledInstruction, account_keys: &'a [Pubkey], position: usize) -> Option<&'a Pubkey> {
+fn instruction_account<'a>(instruction: &CompiledInstruction, account_keys: &'a [Pubkey], position: usize) -> Option<&'a Pubkey> {
     account_keys.get(*instruction.accounts.get(position)? as usize)
 }
 
@@ -226,9 +219,9 @@ pub fn instructions_from_primitives<D: InstructionDataDecoder>(instructions: Vec
 #[cfg(test)]
 mod tests {
     use super::*;
-    #[cfg(feature = "signer")]
-    use crate::signer::testkit::{SINGLE_SIG_TX, mock_legacy_transaction};
     use crate::testkit::{mock_transaction, mock_transaction_with_accounts};
+    #[cfg(feature = "signer")]
+    use crate::{signer::testkit::SINGLE_SIG_TX, testkit::mock_legacy_transaction};
 
     #[test]
     fn test_try_decode_blockhash() {
@@ -248,29 +241,29 @@ mod tests {
             source,
             mint,
             destination,
-            Pubkey::from_base58(TOKEN_PROGRAM_ID).unwrap(),
-            Pubkey::from_base58(MEMO_PROGRAM_ID).unwrap(),
+            Pubkey::from_base58(SOLANA_TOKEN_PROGRAM_ID).unwrap(),
+            Pubkey::from_base58(SOLANA_MEMO_PROGRAM_ID).unwrap(),
         ];
         let mut transfer_data = vec![12];
         transfer_data.extend_from_slice(&19_000_000u64.to_le_bytes());
         transfer_data.push(6);
         let mut legacy_transfer_data = vec![3];
         legacy_transfer_data.extend_from_slice(&19_000_000u64.to_le_bytes());
-        let transfer_instruction = solana_primitives::CompiledInstruction {
+        let transfer_instruction = CompiledInstruction {
             program_id_index: 4,
             accounts: vec![1, 2, 3, 0],
             data: transfer_data,
         };
-        let memo_instruction = solana_primitives::CompiledInstruction {
+        let memo_instruction = CompiledInstruction {
             program_id_index: 5,
             accounts: vec![],
             data: b"payment memo".to_vec(),
         };
         let transfer = mock_transaction_with_accounts(account_keys.clone(), vec![transfer_instruction.clone(), memo_instruction]);
-        let truncated_transfer = mock_transaction(&[(TOKEN_PROGRAM_ID, vec![12])]);
+        let truncated_transfer = mock_transaction(&[(SOLANA_TOKEN_PROGRAM_ID, vec![12])]);
         let legacy_transfer = mock_transaction_with_accounts(
             account_keys.clone(),
-            vec![solana_primitives::CompiledInstruction {
+            vec![CompiledInstruction {
                 program_id_index: 4,
                 accounts: vec![1, 3, 0],
                 data: legacy_transfer_data,
@@ -300,19 +293,19 @@ mod tests {
             mint,
             token_account,
             recipient,
-            Pubkey::from_base58(ASSOCIATED_TOKEN_PROGRAM_ID).unwrap(),
-            Pubkey::from_base58(TOKEN_PROGRAM_ID).unwrap(),
+            Pubkey::from_base58(SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID).unwrap(),
+            Pubkey::from_base58(SOLANA_TOKEN_PROGRAM_ID).unwrap(),
         ];
         let mut transfer_data = vec![12];
         transfer_data.extend_from_slice(&19_000_000u64.to_le_bytes());
         transfer_data.push(6);
         let instructions = vec![
-            solana_primitives::CompiledInstruction {
+            CompiledInstruction {
                 program_id_index: 5,
                 accounts: vec![0, 3, 4, 2],
                 data: vec![1],
             },
-            solana_primitives::CompiledInstruction {
+            CompiledInstruction {
                 program_id_index: 6,
                 accounts: vec![1, 2, 3, 0],
                 data: transfer_data,

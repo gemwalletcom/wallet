@@ -2,7 +2,6 @@
 
 import class Gemstone.GemMnemonic
 import Foundation
-import GemstoneServices
 
 struct WordSuggester {
     func wordSuggestionCalculate(value: String) -> [String] {

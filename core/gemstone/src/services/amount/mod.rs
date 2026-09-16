@@ -1,11 +1,16 @@
+#![allow(clippy::result_large_err)]
+
 pub mod model;
 pub mod rules;
 
 use std::sync::Arc;
 
-use primitives::{Asset, Currency, Delegation, PerpetualDirection, StakeType};
+use primitives::{Asset, Chain, Currency, DelegationValidator, PerpetualDirection, StakeType};
 
-pub use model::{GemAmountEarnType, GemAmountError, GemAmountInput, GemAmountPerpetualPosition, GemAmountStakeType, GemAmountTransfer, GemAmountType, GemPerpetualAutoclose};
+pub use model::{
+    GemAmountEarnType, GemAmountEntry, GemAmountEquivalent, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType,
+    GemAmountTransfer, GemAmountType, GemPerpetualAutoclose,
+};
 
 use crate::config::perpetual_config::{leverage_options, select_leverage};
 
@@ -15,7 +20,8 @@ use crate::services::error::GemServiceError;
 use crate::services::perpetual::GemPerpetualPositionAction;
 use crate::services::perpetual::rules as perpetual_rules;
 use crate::services::preferences::GemPreferencesService;
-use crate::services::stake::GemStakeService;
+use crate::services::stake::rules as stake_rules;
+use crate::services::stake::{GemStakeAmountInput, GemStakeService, GemStakeValidatorSelection, GemValidatorRow};
 use crate::services::transfer::rules as transfer_rules;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use crate::services::wallet_session::GemWalletSessionService;
@@ -68,8 +74,12 @@ impl GemAmountService {
         rules::perpetual_amount_type(&action, leverage)
     }
 
-    pub fn stake_amount_type(&self, stake_type: StakeType, delegations: Vec<Delegation>) -> GemAmountType {
-        rules::stake_amount_type(stake_type, delegations)
+    pub fn stake_validator_selection(&self, chain: Chain, input: GemStakeAmountInput) -> GemStakeValidatorSelection {
+        stake_rules::validator_selection(chain, &input)
+    }
+
+    pub fn validator_row(&self, validator: DelegationValidator) -> GemValidatorRow {
+        stake_rules::validator_row(&validator)
     }
 
     pub fn earn_amount_type(&self, earn_type: GemEarnType) -> GemAmountType {

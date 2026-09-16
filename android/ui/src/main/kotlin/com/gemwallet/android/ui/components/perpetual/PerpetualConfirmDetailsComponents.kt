@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.components.perpetual
 
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
@@ -8,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.color
+import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
@@ -16,7 +17,10 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.perpetual.PerpetualConfirmDetailsUIModel
-import com.gemwallet.android.ui.models.perpetual.PerpetualConfirmDetailsUIModel.Action
+import uniffi.gemstone.GemPerpetualDetailsAction.CLOSE
+import uniffi.gemstone.GemPerpetualDetailsAction.INCREASE
+import uniffi.gemstone.GemPerpetualDetailsAction.OPEN
+import uniffi.gemstone.GemPerpetualDetailsAction.REDUCE
 
 @Composable
 fun PerpetualDetailsSummaryItem(
@@ -44,13 +48,12 @@ fun PerpetualDetailsBottomSheet(
     model: PerpetualConfirmDetailsUIModel?,
     onDismiss: () -> Unit,
 ) {
-    if (model == null) return
     ModalBottomSheet(
-        isVisible = isVisible,
+        item = model.takeIf { isVisible },
         onDismissRequest = onDismiss,
-        skipPartiallyExpanded = true,
-        title = stringResource(R.string.common_details),
-    ) {
+        expansion = SheetExpansion.Full,
+        title = { stringResource(R.string.common_details) },
+    ) { model ->
         Column {
             PropertyItem(
                 title = stringResource(R.string.perpetual_position),
@@ -105,15 +108,15 @@ fun PerpetualDetailsBottomSheet(
 
 @Composable
 private fun PerpetualConfirmDetailsUIModel.summaryText(): String? = when (action) {
-    Action.Open -> direction.titleAndLeverage(leverage)
-    Action.Close -> pnl?.text
-    Action.Increase -> stringResource(R.string.perpetual_increase_direction, direction.title())
-    Action.Reduce -> stringResource(R.string.perpetual_reduce_direction, direction.title())
+    OPEN -> direction.titleAndLeverage(leverage)
+    CLOSE -> pnl?.text
+    INCREASE -> stringResource(R.string.perpetual_increase_direction, direction.title())
+    REDUCE -> stringResource(R.string.perpetual_reduce_direction, direction.title())
 }
 
 @Composable
 private fun PerpetualConfirmDetailsUIModel.summaryColor(): Color = when (action) {
-    Action.Open -> direction.color()
-    Action.Close -> pnl?.direction?.color() ?: MaterialTheme.colorScheme.secondary
-    Action.Increase, Action.Reduce -> MaterialTheme.colorScheme.secondary
+    OPEN -> direction.color()
+    CLOSE -> pnl?.direction?.color() ?: MaterialTheme.colorScheme.secondary
+    INCREASE, REDUCE -> MaterialTheme.colorScheme.secondary
 }

@@ -1,10 +1,15 @@
 package com.gemwallet.android.features.perpetual.viewmodels
 
+import kotlinx.coroutines.flow.first
+import com.gemwallet.android.testkit.mockAsset
+import com.wallet.core.primitives.PerpetualProvider
+import com.wallet.core.primitives.PerpetualId
+import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregate
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
-import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.wallet.core.primitives.Chain
 import androidx.lifecycle.viewModelScope
 import io.mockk.coEvery
@@ -66,25 +71,41 @@ class PerpetualMarketViewModelTest {
         assertEquals(GemMarketsRefreshTrigger.SCHEDULED, trigger.await())
     }
 
-    private fun viewModel(service: GemPerpetualServiceInterface): PerpetualMarketViewModel {
+    private fun viewModel(
+        service: GemPerpetualServiceInterface,
+        positions: List<PerpetualPositionDataAggregate> = emptyList(),
+    ): PerpetualMarketViewModel {
         val getPerpetuals = mockk<GetPerpetuals>()
         every { getPerpetuals.getPerpetuals(any<Flow<String?>>()) } returns flowOf(emptyList())
         val getPositions = mockk<GetPerpetualPositions>()
-        every { getPositions.getPerpetualPositions() } returns flowOf(emptyList())
+        every { getPositions.getPerpetualPositions() } returns flowOf(positions)
         val getBalance = mockk<GetPerpetualBalance>()
         every { getBalance.getDisplayBalance() } returns emptyFlow()
-        val getRecentAssets = mockk<GetRecentAssets>()
-        every { getRecentAssets(any()) } returns flowOf(emptyList())
+        val recentAssetsService = mockk<RecentAssetsService>()
+        every { recentAssetsService.getRecentAssets(any()) } returns flowOf(emptyList())
         val perpetualObserver = mockk<PerpetualObserver>()
 
         return PerpetualMarketViewModel(
             getPerpetuals = getPerpetuals,
             getPositions = getPositions,
             getBalance = getBalance,
-            getRecentAssets = getRecentAssets,
+            recentAssetsService = recentAssetsService,
             service = service,
-            recentActivity = mockk(),
             perpetualObserver = perpetualObserver,
         ).also { model = it }
+    }
+
+    @Test
+    fun `a position is found by its perpetual symbol like on iOS`() = runTest(dispatcher) {
+        val position = mockk<PerpetualPositionDataAggregate>(relaxed = true) {
+            every { title } returns "Bitcoin"
+            every { perpetualId } returns PerpetualId(PerpetualProvider.Hypercore, "BTC-USD")
+            every { asset } returns mockAsset(chain = Chain.Bitcoin, name = "Bitcoin", symbol = "BTC")
+        }
+        val viewModel = viewModel(mockk(relaxed = true), positions = listOf(position))
+        viewModel.setQuery("btc-usd")
+        assertEquals(listOf(position), viewModel.positions.first { it.isNotEmpty() })
+        viewModel.setQuery("zzz")
+        assertEquals(emptyList<PerpetualPositionDataAggregate>(), viewModel.positions.first { it.isEmpty() })
     }
 }

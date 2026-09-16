@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.buy.views
 
+import com.gemwallet.android.ui.components.image.iconModel
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,7 +11,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.domains.asset.getFiatProviderIcon
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.image.IconWithBadge
@@ -22,7 +22,7 @@ import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.features.buy.viewmodels.models.BuyFiatProviderUIModel
-import com.wallet.core.primitives.FiatProvider
+import com.wallet.core.primitives.FiatProviderName
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,7 +30,7 @@ fun ProviderList(
     isShow: MutableState<Boolean>,
     providers: List<BuyFiatProviderUIModel>,
     selectedProvider: BuyFiatProviderUIModel?,
-    onProviderSelect: (FiatProvider) -> Unit,
+    onProviderSelect: (FiatProviderName) -> Unit,
 ) {
     ModalBottomSheet(
         isVisible = isShow.value,
@@ -42,7 +42,7 @@ fun ProviderList(
                 FiatProviderListItemView(
                     provider = item,
                     listPosition = ListPosition.getPosition(index, providers.size),
-                    isSelected = item.provider.name == selectedProvider?.provider?.name,
+                    isSelected = item.provider == selectedProvider?.provider,
                     onProviderSelect = {
                         onProviderSelect(item.provider)
                         isShow.value = false
@@ -69,18 +69,18 @@ private fun FiatProviderListItemView(
                     badge = { SelectionCheckmark() },
                 ) {
                     AsyncImage(
-                        model = provider.provider.getFiatProviderIcon(),
+                        model = provider.provider.iconModel(),
                         size = listItemIconSize,
                     )
                 }
             } else {
                 AsyncImage(
-                    model = provider.provider.getFiatProviderIcon(),
+                    model = provider.provider.iconModel(),
                     size = listItemIconSize,
                 )
             }
         },
-        title = { ListItemTitleText(provider.provider.name) },
+        title = { ListItemTitleText(provider.providerName) },
         trailing = {
             Column(horizontalAlignment = Alignment.End) {
                 ListItemTitleText(provider.cryptoText)

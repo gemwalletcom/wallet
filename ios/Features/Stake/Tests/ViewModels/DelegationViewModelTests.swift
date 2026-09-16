@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitivesTestKit
 import Foundation
 import Primitives
-import PrimitivesTestKit
 import Stake
+import StakeTestKit
 import Testing
 
 struct DelegationViewModelTests {
@@ -33,37 +32,7 @@ struct DelegationViewModelTests {
     func completionDate() {
         let completionDate = Date.now.addingTimeInterval(86400)
 
-        #expect(
-            DelegationViewModel
-                .mock(completionDate: completionDate, completionDateShown: true)
-                .completionDateText == "23 hours, 59 minutes",
-        )
-        #expect(DelegationViewModel.mock(completionDate: completionDate, completionDateShown: false).completionDateText == nil)
-    }
-}
-
-extension DelegationViewModel {
-    static func mock(
-        state: DelegationState = .active,
-        completionDate: Date? = nil,
-        rewardsShown: Bool = false,
-        completionDateShown: Bool = false,
-    ) -> DelegationViewModel {
-        DelegationViewModel(
-            service: GemStakeServiceMock(rewardsShown: rewardsShown, completionDateShown: completionDateShown),
-            delegation: .mock(
-                state: state,
-                price: Price.mock(price: 2.0),
-                base: .mock(
-                    state: state,
-                    assetId: .mock(.tron),
-                    balance: 1_500_000_000,
-                    rewards: 500_000_000,
-                    completionDate: completionDate,
-                ),
-            ),
-            asset: Chain.tron.asset,
-            currencyCode: "USD",
-        )
+        #expect(DelegationViewModel.mock(state: .pending, completionDate: completionDate).completionDateText == "23 hours, 59 minutes")
+        #expect(DelegationViewModel.mock(state: .active, completionDate: completionDate).completionDateText == nil)
     }
 }

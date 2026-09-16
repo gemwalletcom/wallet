@@ -26,6 +26,8 @@ let package = Package(
         .package(name: "Style", path: "../../Packages/Style"),
         .package(name: "Store", path: "../../Packages/Store"),
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
+        .package(name: "Gemstone", path: "../../Packages/Gemstone"),
+        .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
     ],
     targets: [
         .target(
@@ -38,6 +40,8 @@ let package = Package(
                 "Style",
                 "Store",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
+                "Gemstone",
+                "GemstonePrimitives",
             ],
             path: "Sources",
         ),
@@ -47,6 +51,8 @@ let package = Package(
                 "Recents",
                 .product(name: "StoreTestKit", package: "Store"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
+                "Gemstone",
+                "Primitives",
             ],
             path: "TestKit",
         ),

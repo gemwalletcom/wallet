@@ -1,9 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemHeaderButtonKind
 import Components
+import Formatters
 import Foundation
-import class Gemstone.GemAddressService
-import struct Gemstone.GemCollectibleLinks
+import enum Gemstone.GemCollectibleAttributeValue
+import struct Gemstone.GemCollectibleDetails
+import enum Gemstone.GemCollectibleSection
 import protocol Gemstone.GemCollectibleServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
@@ -15,12 +18,16 @@ import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
+import func Gemstone.socialLinks
+import typealias Gemstone.AssetLink
+import enum Gemstone.GemCollectibleRow
 
 @Observable
 @MainActor
 public final class CollectibleViewModel {
     private let wallet: Wallet
     private let service: any GemCollectibleServiceProtocol
+    private let dateFormatter = RelativeDateFormatter(type: .date)
 
     public let query: ObservableQuery<NFTAssetRequest>
 
@@ -70,97 +77,27 @@ public final class CollectibleViewModel {
         ]
     }
 
-    var collectionField: ListItemField {
-        ListItemField(title: Localized.Nft.collection, value: assetData.collection.name)
-    }
-
     var isVerified: Bool {
         assetData.collection.status == .verified
     }
 
-    var networkField: ListItemField {
-        ListItemField(title: Localized.Transfer.network, value: assetData.asset.chain.networkName)
+    var details: GemCollectibleDetails {
+        service.details(walletType: wallet.type.toGem(), assetData: assetData.toGem(), isOwned: query.value.isOwned)
     }
 
-    var contractField: ListItemField? {
-        if contractValue.isEmpty || contractValue == assetData.asset.tokenId {
-            return .none
-        }
-        let text = GemAddressService.shared.format(address: contractValue, chain: assetData.asset.chain)
-        return ListItemField(title: Localized.Asset.contract, value: text)
-    }
-
-    var contractExplorerLink: BlockExplorerLink? {
-        links.contract.map { $0.map() }
-    }
-
-    var contractExplorerContext: ExplorerContextData? {
-        contractExplorerLink.map {
-            ExplorerContextData(copyValue: .address(value: contractValue, chain: assetData.asset.chain), explorerLink: $0)
-        }
-    }
-
-    var contractRow: CollectibleInfoRow? {
-        contractField.map {
-            CollectibleInfoRow(
-                field: $0,
-                action: contractExplorerContext.map { .explorer($0) } ?? .copy(contractValue),
-            )
-        }
-    }
-
-    var tokenIdValue: String {
-        assetData.asset.tokenId
-    }
-
-    var tokenIdField: ListItemField {
-        let text = if assetData.asset.tokenId.count > 16 {
-            GemAddressService.shared.format(address: assetData.asset.tokenId, chain: assetData.asset.chain)
-        } else {
-            "#\(assetData.asset.tokenId)"
-        }
-        return ListItemField(title: Localized.Asset.tokenId, value: text)
-    }
-
-    var tokenIdExplorerLink: BlockExplorerLink? {
-        links.token.map { $0.map() }
-    }
-
-    var tokenIdExplorerContext: ExplorerContextData? {
-        tokenIdExplorerLink.map {
-            ExplorerContextData(copyValue: .plain(tokenIdValue), explorerLink: $0)
-        }
-    }
-
-    var attributesTitle: String {
-        Localized.Nft.properties
-    }
-
-    var attributes: [NFTAttributeViewModel] {
-        assetData.asset.attributes.map { NFTAttributeViewModel(attribute: $0) }
+    var sections: [GemCollectibleSection] {
+        details.sections
     }
 
     var assetImage: AssetImage {
         NFTAssetViewModel(asset: assetData.asset).assetImage
     }
 
-    var networkAssetImage: AssetImage {
-        AssetImage(
-            imageURL: .none,
-            placeholder: ChainImage(chain: assetData.asset.chain).image,
-            chainPlaceholder: .none,
-        )
-    }
-
-    var isSendEnabled: Bool {
-        service.canSend(wallet: wallet.map(), chain: assetData.asset.chain.map(), isOwned: query.value.isOwned)
-    }
-
     var headerButtons: [HeaderButton] {
         [
             HeaderButton(
                 type: .send,
-                isEnabled: isSendEnabled,
+                isEnabled: details.canSend,
             ),
             HeaderButton(
                 type: .more,
@@ -178,66 +115,82 @@ public final class CollectibleViewModel {
         ]
     }
 
-    var showAttributes: Bool {
-        attributes.isNotEmpty
-    }
-
-    var showLinks: Bool {
-        assetData.collection.links.isNotEmpty
-    }
-
-    var statusViewModel: VerificationStatusViewModel {
-        VerificationStatusViewModel(status: assetData.collection.status)
-    }
-
-    var showStatus: Bool {
-        assetData.collection.status != .verified
-    }
-
-    var socialLinksViewModel: SocialLinksViewModel {
-        SocialLinksViewModel(assetLinks: assetData.collection.links)
-    }
-
-    var tokenIdRow: CollectibleInfoRow {
-        CollectibleInfoRow(
-            field: tokenIdField,
-            action: tokenIdExplorerContext.map { .explorer($0) } ?? .copy(tokenIdValue),
+    func networkImage(chain: Chain) -> AssetImage {
+        AssetImage(
+            imageURL: .none,
+            placeholder: ChainImage(chain: chain).image,
+            chainPlaceholder: .none,
         )
+    }
+
+    func infoRows(_ rows: [GemCollectibleRow]) -> [CollectibleInfoRowModel] {
+        rows.map(infoRow)
+    }
+
+    private func infoRow(_ row: GemCollectibleRow) -> CollectibleInfoRowModel {
+        switch row {
+        case let .collection(name):
+            return CollectibleInfoRowModel(title: row.title, subtitle: name)
+        case let .network(chain):
+            let chain = Primitives.Chain(core: chain)
+            return CollectibleInfoRowModel(title: row.title, subtitle: chain.networkName, assetImage: networkImage(chain: chain))
+        case let .contract(identifier):
+            return CollectibleInfoRowModel(
+                title: row.title,
+                subtitle: identifier.text,
+                copyValue: .address(value: identifier.value, chain: assetData.asset.chain),
+                explorer: identifier.explorer.map { $0.toPrimitives() },
+            )
+        case let .tokenId(identifier):
+            return CollectibleInfoRowModel(
+                title: row.title,
+                subtitle: identifier.text,
+                copyValue: .plain(identifier.value),
+                explorer: identifier.explorer.map { $0.toPrimitives() },
+            )
+        }
+    }
+
+    func socialLinksModel(_ links: [Gemstone.AssetLink]) -> SocialLinksViewModel {
+        SocialLinksViewModel(links: socialLinks(links: links))
+    }
+
+    func attributeText(_ value: GemCollectibleAttributeValue) -> String {
+        switch value {
+        case let .text(value): value
+        case let .date(date): dateFormatter.string(from: date)
+        }
     }
 }
 
 // MARK: - Business Logic
 
 extension CollectibleViewModel {
-    func onSelectCopyValue(_ value: CopyValue) {
-        isPresentingToast = .copied(value.displayValue)
-    }
-
     func onSelectCopyValue(_ value: String) {
         isPresentingToast = .copied(value)
     }
 
-    func onSelectHeaderButton(type: HeaderButtonType) {
+    func onSelectHeaderButton(type: GemHeaderButtonKind) {
         guard let account = try? wallet.account(for: assetData.asset.chain) else {
             return
         }
         switch type {
         case .send:
             isPresentingSelectedAssetInput.wrappedValue = SelectedAssetInput(
-                type: .send(.nft(nftAsset: assetData.asset.map())),
+                type: .send(.nft(nftAsset: assetData.asset.toGem())),
                 assetData: .with(asset: account.chain.asset, account: account),
             )
-        case .buy, .sell, .receive, .swap, .stake, .more, .deposit, .withdraw:
+        case .buy, .receive, .swap, .more, .deposit, .withdraw:
             fatalError()
         }
     }
 
     func onSelectSaveToGallery() {
         Task {
-            do {
+            do throws(ImageGalleryServiceError) {
                 try await saveImageToGallery()
                 isPresentingToast = .success(Localized.Nft.saveToPhotos)
-            } catch let error as ImageGalleryServiceError {
+            } catch {
                 switch error {
                 case .wrongURL, .invalidData, .invalidResponse, .unexpectedStatusCode, .urlSessionError:
                     isPresentingAlertMessage = AlertMessage(message: Localized.Errors.errorOccurred)
@@ -269,7 +222,7 @@ extension CollectibleViewModel {
                 try await setWalletAvatar()
                 isPresentingToast = .success(Localized.Nft.setAsAvatar)
             } catch {
-                debugLog("Set nft avatar error: \(error)")
+                isPresentingAlertMessage = AlertMessage(error: error)
             }
         }
     }
@@ -307,14 +260,6 @@ extension CollectibleViewModel {
 // MARK: - Private
 
 extension CollectibleViewModel {
-    private var contractValue: String {
-        assetData.collection.contractAddress
-    }
-
-    private var links: GemCollectibleLinks {
-        service.links(chain: assetData.asset.chain.rawValue, contractAddress: contractValue, tokenId: tokenIdValue)
-    }
-
     private func openSettings() {
         guard let settingsURL = URL(string: UIApplication.openSettingsURLString) else { return }
         UIApplication.shared.open(settingsURL)
@@ -332,4 +277,22 @@ extension CollectibleViewModel {
         let saver = ImageGalleryService()
         try await saver.saveImageFromURL(url)
     }
+}
+
+public struct CollectibleInfoRowModel: Identifiable {
+    public let title: String
+    public let subtitle: String
+    public let assetImage: AssetImage?
+    public let copyValue: CopyValue?
+    public let explorer: BlockExplorerLink?
+
+    init(title: String, subtitle: String, assetImage: AssetImage? = nil, copyValue: CopyValue? = nil, explorer: BlockExplorerLink? = nil) {
+        self.title = title
+        self.subtitle = subtitle
+        self.assetImage = assetImage
+        self.copyValue = copyValue
+        self.explorer = explorer
+    }
+
+    public var id: String { "\(title)-\(subtitle)" }
 }

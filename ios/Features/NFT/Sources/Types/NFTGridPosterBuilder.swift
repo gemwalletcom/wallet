@@ -2,37 +2,49 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemNftItem
+import struct Gemstone.GemNftRow
+import func Gemstone.nftRows
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Store
 import SwiftUI
 
 public enum NFTGridPosterBuilder {
-    public static func item(from data: NFTData) -> GridPosterViewItem {
-        if data.assets.count == 1, let asset = data.assets.first {
-            return item(collection: data.collection, asset: asset)
+    public static func items(_ items: [GemNftItem]) -> [GridPosterViewItem] {
+        zip(items, nftRows(items: items)).map(item)
+    }
+
+    private static func item(_ item: GemNftItem, _ row: GemNftRow) -> GridPosterViewItem {
+        switch item {
+        case let .collection(data): collection(data.toPrimitives(), row)
+        case let .asset(data): asset(data.toPrimitives(), row)
         }
-        return GridPosterViewItem(
-            id: data.id,
-            destination: Scenes.Collection(id: data.collection.id.identifier, name: data.collection.name),
-            model: GridPosterViewModel(
-                assetImage: AssetImage(type: .text(data.collection.name), imageURL: data.collection.images.preview.url.asURL),
-                title: data.collection.name,
-                count: data.assets.count,
-                isVerified: data.collection.status == .verified,
-            ),
+    }
+
+    private static func collection(_ data: NFTData, _ row: GemNftRow) -> GridPosterViewItem {
+        GridPosterViewItem(
+            id: row.id,
+            destination: Scenes.Collection(id: data.collection.id.identifier),
+            model: model(row),
         )
     }
 
-    public static func item(collection: NFTCollection, asset: NFTAsset) -> GridPosterViewItem {
+    private static func asset(_ data: NFTAssetData, _ row: GemNftRow) -> GridPosterViewItem {
         GridPosterViewItem(
-            id: asset.id.identifier,
-            destination: Scenes.Collectible(assetData: NFTAssetData(collection: collection, asset: asset)),
-            model: GridPosterViewModel(
-                assetImage: AssetImage(type: .text(collection.name), imageURL: asset.images.preview.url.asURL),
-                title: asset.name,
-                isVerified: collection.status == .verified,
-            ),
+            id: row.id,
+            destination: Scenes.Collectible(assetData: data),
+            model: model(row),
+        )
+    }
+
+    private static func model(_ row: GemNftRow) -> GridPosterViewModel {
+        GridPosterViewModel(
+            assetImage: AssetImage(type: .text(row.title), imageURL: row.imageUrl.asURL),
+            title: row.title,
+            count: row.count.map { Int($0) },
+            isVerified: row.isVerified,
         )
     }
 }

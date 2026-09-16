@@ -14,13 +14,23 @@ struct Migrations {
     }
 
     private static func clearChainData(_ db: Database, chain: String) throws {
-        try? db.execute(sql: "DELETE FROM \(TransactionAssetAssociationRecord.databaseTableName) WHERE assetId LIKE ? COLLATE NOCASE", arguments: ["\(chain)%"])
-        try? db.execute(sql: "DELETE FROM \(TransactionRecord.databaseTableName) WHERE chain = ?", arguments: [chain])
-        try? db.execute(sql: "DELETE FROM \(BalanceRecord.databaseTableName) WHERE assetId LIKE ? COLLATE NOCASE", arguments: ["\(chain)%"])
-        try? db.execute(sql: "DELETE FROM \(PriceRecord.databaseTableName) WHERE assetId LIKE ? COLLATE NOCASE", arguments: ["\(chain)%"])
-        try? db.execute(sql: "DELETE FROM \(AssetLinkRecord.databaseTableName) WHERE assetId LIKE ? COLLATE NOCASE", arguments: ["\(chain)%"])
-        try? db.execute(sql: "DELETE FROM \(PerpetualRecord.databaseTableName) WHERE assetId LIKE ? COLLATE NOCASE", arguments: ["\(chain)%"])
-        try? db.execute(sql: "DELETE FROM \(AssetRecord.databaseTableName) WHERE chain = ?", arguments: [chain])
+        let byAssetId = [
+            TransactionAssetAssociationRecord.databaseTableName,
+            BalanceRecord.databaseTableName,
+            PriceRecord.databaseTableName,
+            AssetLinkRecord.databaseTableName,
+            PerpetualRecord.databaseTableName,
+        ]
+        let byChain = [
+            TransactionRecord.databaseTableName,
+            AssetRecord.databaseTableName,
+        ]
+        for tableName in byAssetId where try db.tableExists(tableName) {
+            try db.execute(sql: "DELETE FROM \(tableName) WHERE assetId LIKE ? COLLATE NOCASE", arguments: ["\(chain)%"])
+        }
+        for tableName in byChain where try db.tableExists(tableName) {
+            try db.execute(sql: "DELETE FROM \(tableName) WHERE chain = ?", arguments: [chain])
+        }
     }
 
     private static func clearTables(_ db: Database, tableNames: [String]) throws {
@@ -286,7 +296,7 @@ struct Migrations {
         }
 
         migrator.registerMigration("Add Perpetuals tables") { db in
-            try? Self.clearChainData(db, chain: "hypercore")
+            try Self.clearChainData(db, chain: "hypercore")
 
             try? db.drop(table: PerpetualRecord.databaseTableName)
             try? db.drop(table: PerpetualPositionRecord.databaseTableName)
@@ -525,6 +535,11 @@ struct Migrations {
         migrator.registerMigration("Recreate \(PriceAlertRecord.databaseTableName) with Core identifiers") { db in
             try? db.drop(table: PriceAlertRecord.databaseTableName)
             try PriceAlertRecord.create(db: db)
+        }
+
+        migrator.registerMigration("Delete \(FiatRateRecord.databaseTableName) rows with an unknown currency") { db in
+            let known = Currency.allCases.map { "'\($0.rawValue)'" }.joined(separator: ",")
+            try db.execute(sql: "DELETE FROM \(FiatRateRecord.databaseTableName) WHERE \(FiatRateRecord.Columns.symbol.name) NOT IN (\(known))")
         }
 
         try migrator.migrate(dbQueue)

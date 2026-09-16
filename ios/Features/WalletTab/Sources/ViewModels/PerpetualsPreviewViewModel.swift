@@ -2,6 +2,7 @@
 
 import Formatters
 import Foundation
+import Localization
 import GemstonePrimitives
 import Primitives
 import Store
@@ -19,7 +20,7 @@ final class PerpetualsPreviewViewModel {
     }
 
     var walletBalance: WalletBalance {
-        walletBalanceQuery.value
+        walletBalanceQuery.value.map { WalletBalance.perpetual(available: $0.available, reserved: $0.reserved) } ?? .zero
     }
 
     init(walletId: WalletId, currencyFormatter: CurrencyFormatter = .usd) {
@@ -27,8 +28,12 @@ final class PerpetualsPreviewViewModel {
         positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: walletId), initialValue: [])
         walletBalanceQuery = ObservableQuery(
             PerpetualWalletBalanceRequest(walletId: walletId, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
-            initialValue: .zero,
+            initialValue: nil,
         )
+    }
+
+    var tradePerpetualsTitle: String {
+        Localized.Perpetuals.trade
     }
 
     var tradePerpetualsSubtitle: String {

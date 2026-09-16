@@ -17,7 +17,7 @@ public final class KeystoreTransactionSigner: GemTransactionSigner {
 
     public func sign(wallet: Gemstone.Wallet, input: GemSignerInput) async throws -> [GemSignedTransaction] {
         do {
-            return try await keystore.sign(wallet: wallet.map(), input: input)
+            return try await keystore.sign(wallet: wallet.toPrimitives(), input: input)
         } catch where error.isAuthenticationCancelled {
             throw GemstoneError.Cancelled
         }

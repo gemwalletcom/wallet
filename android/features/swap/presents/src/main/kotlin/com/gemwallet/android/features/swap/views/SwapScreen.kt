@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.swap.views
 
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -104,7 +105,7 @@ fun SwapScreen(
         isLoading = swapState.isQuoteLoading && swapDetails == null,
         model = swapDetails,
         onDismiss = { isShowDetails = false },
-        skipPartiallyExpanded = true,
+        expansion = SheetExpansion.Full,
         onProviderSelect = if (swapState.isQuoteInteractionEnabled) viewModel::setProvider else null,
     )
 
@@ -113,7 +114,9 @@ fun SwapScreen(
         isVisible = isShowSlippage,
         currentBps = slippageSeedBps,
         defaultBps = defaultSlippageBps,
-        slippageCheck = viewModel::slippageCheck,
+        newSession = viewModel::newSlippageSession,
+        slippageBps = viewModel::slippageBps,
+        slippagePercent = viewModel::slippagePercent,
         onConfirm = viewModel::setSlippage,
         onDismiss = { isShowSlippage = false },
     )

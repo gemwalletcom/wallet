@@ -4,44 +4,23 @@ import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
 import java.text.DecimalFormat
+import uniffi.gemstone.GemPrecision
+import uniffi.gemstone.adaptivePrecision as gemAdaptivePrecision
 
-internal sealed interface Precision {
-    data class Fraction(val min: Int, val max: Int) : Precision
-    data class Significant(val max: Int) : Precision
-
-    companion object {
-        val twoPlaces = Fraction(min = 2, max = 2)
-        val upToTwoPlaces = Fraction(min = 0, max = 2)
-        val upToFourPlaces = Fraction(min = 0, max = 4)
-        val fourSignificant = Significant(max = 4)
-        val full = Fraction(min = 0, max = 32)
-    }
+internal fun BigDecimal.rounded(precision: GemPrecision, roundingMode: RoundingMode): BigDecimal = when (precision) {
+    is GemPrecision.Fraction -> setScale(precision.max.toInt(), roundingMode)
+    is GemPrecision.Significant -> round(MathContext(precision.max.toInt(), roundingMode)).stripTrailingZeros()
 }
 
-internal fun BigDecimal.rounded(precision: Precision, roundingMode: RoundingMode): BigDecimal = when (precision) {
-    is Precision.Fraction -> setScale(precision.max, roundingMode)
-    is Precision.Significant -> round(MathContext(precision.max, roundingMode)).stripTrailingZeros()
-}
-
-internal fun DecimalFormat.format(value: BigDecimal, precision: Precision): String = when (precision) {
-    is Precision.Fraction -> apply {
-        minimumFractionDigits = precision.min
-        maximumFractionDigits = precision.max
+internal fun DecimalFormat.format(value: BigDecimal, precision: GemPrecision): String = when (precision) {
+    is GemPrecision.Fraction -> apply {
+        minimumFractionDigits = precision.min.toInt()
+        maximumFractionDigits = precision.max.toInt()
     }.format(value.rounded(precision, roundingMode))
-    is Precision.Significant -> apply {
+    is GemPrecision.Significant -> apply {
         minimumFractionDigits = 0
         maximumFractionDigits = Int.MAX_VALUE
     }.format(value.rounded(precision, roundingMode))
 }
 
-internal fun adaptivePrecision(magnitude: BigDecimal): Precision =
-    if (magnitude < DUST_THRESHOLD || magnitude >= SMALL_VALUE_THRESHOLD) {
-        Precision.twoPlaces
-    } else {
-        Precision.fourSignificant
-    }
-
-internal val ABBREVIATION_THRESHOLD: BigDecimal = BigDecimal(100_000)
-
-private val SMALL_VALUE_THRESHOLD: BigDecimal = BigDecimal("0.99")
-private val DUST_THRESHOLD: BigDecimal = BigDecimal("0.0000000001")
+internal fun adaptivePrecision(magnitude: BigDecimal): GemPrecision = gemAdaptivePrecision(magnitude.toDouble())

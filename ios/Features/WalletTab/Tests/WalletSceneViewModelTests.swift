@@ -15,12 +15,10 @@ struct WalletSceneViewModelTests {
     @Test
     func renameNotifiesWalletBar() async throws {
         let wallet = Wallet.mock(id: .multicoin(address: "0x1"), name: "First")
-        let db = DB.mock()
+        let db = try DB.mockWithWallets([wallet])
         let store = WalletStore.mock(db: db)
-        try store.addWallet(wallet)
 
-        let model = WalletSceneViewModel.mock(wallet: wallet)
-        model.walletQuery.bind(dbQueue: db.dbQueue)
+        let model = WalletSceneViewModel.mock(wallet: wallet, db: db)
 
         #expect(model.walletBarModel.name == "First")
 
@@ -42,19 +40,13 @@ struct WalletSceneViewModelTests {
 
     @Test
     func onboardingBannerShowsOnlyWhileEveryBalanceIsZero() throws {
-        let funded = try onboardingModel(db: DB.mockAssets())
-        let empty = try onboardingModel(db: DB.mockAssets(assets: [.mock()]))
+        let fundedDB = DB.mockAssets()
+        let emptyDB = DB.mockAssets(assets: [.mock()])
+        let banner = NewBanner(id: "onboarding", walletId: Wallet.mock().id.id, event: .onboarding, state: .active)
+        try BannerStore.mock(db: fundedDB).addBanners([banner])
+        try BannerStore.mock(db: emptyDB).addBanners([banner])
 
-        #expect(funded.visibleBanners.map(\.event) == [])
-        #expect(empty.visibleBanners.map(\.event) == [.onboarding])
-    }
-
-    private func onboardingModel(db: DB) throws -> WalletSceneViewModel {
-        let wallet = Wallet.mock()
-        try BannerStore(db: db).addBanners([NewBanner(id: "onboarding", walletId: wallet.id.id, event: .onboarding, state: .active)])
-        let model = WalletSceneViewModel.mock(wallet: wallet)
-        model.assetsQuery.bind(dbQueue: db.dbQueue)
-        model.bannersQuery.bind(dbQueue: db.dbQueue)
-        return model
+        #expect(WalletSceneViewModel.mock(db: fundedDB).homeState.visibleBanners.map(\.event) == [])
+        #expect(WalletSceneViewModel.mock(db: emptyDB).homeState.visibleBanners.map(\.event) == [.onboarding])
     }
 }

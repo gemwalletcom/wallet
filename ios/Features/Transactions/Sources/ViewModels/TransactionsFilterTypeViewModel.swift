@@ -19,7 +19,7 @@ public struct TransactionsFilterTypeViewModel: FilterTypeRepresentable {
         case .allTypes:
             Localized.Common.all
         case let .type(type):
-            TransactionFilterTypeViewModel(type: type).title
+            type.title
         case let .types(selected):
             "\(selected.count)"
         }

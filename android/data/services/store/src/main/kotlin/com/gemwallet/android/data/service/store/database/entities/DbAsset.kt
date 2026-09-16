@@ -39,7 +39,6 @@ data class DbAsset(
     @ColumnInfo("is_earn_enabled", defaultValue = "0") val isEarnEnabled: Boolean = false,
     @ColumnInfo("earn_apr") val earnApr: Double? = null,
     @ColumnInfo("rank") val rank: Int = 0,
-    @ColumnInfo("updated_at") val updatedAt: Long = 0,
     @ColumnInfo("associations", defaultValue = "[]") val associations: List<AssetAssociation> = emptyList(),
 )
 
@@ -163,14 +162,13 @@ fun AssetFull.toRecord() = DbAsset(
     associations = associations,
 )
 
-fun Asset.toRecord(updatedAt: Long = System.currentTimeMillis()) = DbAsset(
+fun Asset.toRecord() = DbAsset(
     id = id.toIdentifier(),
     chain = id.chain,
     name = name,
     symbol = symbol,
     decimals = decimals,
     type = type,
-    updatedAt = updatedAt,
 )
 
 fun AssetBasic.toRecord() = DbAsset(

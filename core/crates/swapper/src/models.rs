@@ -42,16 +42,16 @@ impl ProviderType {
             | SwapperProvider::Jupiter
             | SwapperProvider::Oku
             | SwapperProvider::Wagmi
-            | SwapperProvider::CetusAggregator
             | SwapperProvider::CetusClmm
             | SwapperProvider::StonfiV2
             | SwapperProvider::Aerodrome
             | SwapperProvider::Orca
             | SwapperProvider::Okx => SwapProviderMode::OnChain,
-            SwapperProvider::Mayan | SwapperProvider::Mayachain | SwapperProvider::Chainflip | SwapperProvider::Squid | SwapperProvider::SwapsXyz => SwapProviderMode::CrossChain,
+            SwapperProvider::Mayan | SwapperProvider::Mayachain | SwapperProvider::Squid | SwapperProvider::SwapsXyz => SwapProviderMode::CrossChain,
+            SwapperProvider::Chainflip => SwapProviderMode::OmniChain(vec![Chain::Tron]),
             SwapperProvider::Thorchain => SwapProviderMode::OmniChain(vec![Chain::Thorchain, Chain::Tron]),
             SwapperProvider::NearIntents => SwapProviderMode::OmniChain(vec![Chain::Near, Chain::Tron]),
-            SwapperProvider::Relay => SwapProviderMode::OmniChain(vec![Chain::Hyperliquid, Chain::Berachain]),
+            SwapperProvider::Relay => SwapProviderMode::OmniChain(vec![Chain::Hyperliquid, Chain::Berachain, Chain::Arc]),
             SwapperProvider::Across => SwapProviderMode::Bridge,
             SwapperProvider::Hyperliquid => SwapProviderMode::OmniChain(vec![Chain::HyperCore, Chain::Hyperliquid]),
         }
@@ -67,7 +67,6 @@ impl ProviderType {
             | SwapperProvider::Jupiter
             | SwapperProvider::Oku
             | SwapperProvider::Wagmi
-            | SwapperProvider::CetusAggregator
             | SwapperProvider::CetusClmm
             | SwapperProvider::StonfiV2
             | SwapperProvider::Aerodrome

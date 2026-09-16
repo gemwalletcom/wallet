@@ -8,11 +8,10 @@ use crate::{ApplicationMetadata, Asset, AssetId, GasPriceType, PerpetualType, Si
 use num_bigint::BigInt;
 use num_bigint::BigUint;
 use num_traits::ToPrimitive;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::ops::Deref;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 #[allow(clippy::large_enum_variant)]
 pub enum TransactionInputType {
     Transfer {
@@ -173,9 +172,9 @@ impl TransactionInputType {
             TransactionInputType::TransferNft { .. } => TransactionType::TransferNFT,
             TransactionInputType::Account { .. } => TransactionType::AssetActivation,
             TransactionInputType::Perpetual { perpetual_type, .. } => match perpetual_type {
-                PerpetualType::Open(_) | PerpetualType::Increase(_) => TransactionType::PerpetualOpenPosition,
-                PerpetualType::Close(_) | PerpetualType::Reduce(_) => TransactionType::PerpetualClosePosition,
-                PerpetualType::Modify(_) => TransactionType::PerpetualModifyPosition,
+                PerpetualType::Open { .. } | PerpetualType::Increase { .. } => TransactionType::PerpetualOpenPosition,
+                PerpetualType::Close { .. } | PerpetualType::Reduce { .. } => TransactionType::PerpetualClosePosition,
+                PerpetualType::Modify { .. } => TransactionType::PerpetualModifyPosition,
             },
             TransactionInputType::Earn { earn_type, .. } => match earn_type {
                 EarnType::Deposit(_) => TransactionType::EarnDeposit,
@@ -185,12 +184,11 @@ impl TransactionInputType {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct TransactionLoadInput {
     pub input_type: TransactionInputType,
     pub sender_address: String,
     pub destination_address: String,
-    #[serde(serialize_with = "serde_serializers::serialize_biguint", deserialize_with = "serde_serializers::deserialize_biguint_from_str")]
     pub value: BigUint,
     pub gas_price: GasPriceType,
     pub memo: Option<String>,
@@ -228,7 +226,7 @@ impl TransactionLoadInput {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct SignerInput {
     pub input: TransactionLoadInput,
     pub fee: TransactionFee,
@@ -286,7 +284,7 @@ impl Deref for SignerInput {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct TransactionLoadData {
     pub fee: TransactionFee,
     pub metadata: TransactionLoadMetadata,
@@ -297,18 +295,6 @@ mod tests {
     use super::*;
     use crate::{Asset, Chain, DelegationValidator, PerpetualConfirmData, PerpetualDirection, Resource, SwapProvider};
 
-    fn swap_signer_input(swap_data: SwapData, value: &str) -> SignerInput {
-        SignerInput::mock_evm(
-            TransactionInputType::Swap {
-                from_asset: Asset::from_chain(Chain::Ethereum),
-                to_asset: Asset::from_chain(Chain::Tron),
-                swap_data,
-            },
-            value,
-            21000,
-        )
-    }
-
     #[test]
     fn test_swap_value() {
         let fee = 21000u64 * 20_000_000_000;
@@ -316,21 +302,53 @@ mod tests {
         let mut swap_data = SwapData::mock_transfer(SwapProvider::NearIntents, value, "1", "0x0000000000000000000000000000000000000001");
         swap_data.quote.use_max_amount = Some(true);
 
-        let input = swap_signer_input(swap_data.clone(), value);
+        let input = SignerInput::mock_evm(
+            TransactionInputType::Swap {
+                from_asset: Asset::from_chain(Chain::Ethereum),
+                to_asset: Asset::from_chain(Chain::Tron),
+                swap_data: swap_data.clone(),
+            },
+            value,
+            21000,
+        );
         assert_eq!(input.swap_value().unwrap(), BigInt::from(1_000_000_000_000_000_000u64 - fee));
 
         swap_data.quote.use_max_amount = Some(false);
-        let input = swap_signer_input(swap_data.clone(), value);
+        let input = SignerInput::mock_evm(
+            TransactionInputType::Swap {
+                from_asset: Asset::from_chain(Chain::Ethereum),
+                to_asset: Asset::from_chain(Chain::Tron),
+                swap_data: swap_data.clone(),
+            },
+            value,
+            21000,
+        );
         assert_eq!(input.swap_value().unwrap(), BigInt::from(1_000_000_000_000_000_000u64));
 
         swap_data.quote.use_max_amount = Some(true);
         swap_data.quote.min_from_value = Some(value.parse().unwrap());
-        let input = swap_signer_input(swap_data.clone(), value);
+        let input = SignerInput::mock_evm(
+            TransactionInputType::Swap {
+                from_asset: Asset::from_chain(Chain::Ethereum),
+                to_asset: Asset::from_chain(Chain::Tron),
+                swap_data: swap_data.clone(),
+            },
+            value,
+            21000,
+        );
         assert_eq!(input.swap_value().unwrap_err(), SignerError::SwapValueBelowMinimum);
 
         swap_data.quote.min_from_value = None;
         swap_data.data.data_type = SwapQuoteDataType::Contract;
-        let input = swap_signer_input(swap_data, value);
+        let input = SignerInput::mock_evm(
+            TransactionInputType::Swap {
+                from_asset: Asset::from_chain(Chain::Ethereum),
+                to_asset: Asset::from_chain(Chain::Tron),
+                swap_data,
+            },
+            value,
+            21000,
+        );
         assert_eq!(input.swap_value().unwrap(), BigInt::from(1_000_000_000_000_000_000u64));
     }
 
@@ -364,7 +382,9 @@ mod tests {
         assert_eq!(
             TransactionInputType::Perpetual {
                 asset: Asset::mock(),
-                perpetual_type: PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None))
+                perpetual_type: PerpetualType::Open {
+                    data: PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None)
+                }
             }
             .transaction_type(),
             TransactionType::PerpetualOpenPosition
@@ -382,14 +402,16 @@ mod tests {
             }
         }
 
-        let perpetual_type = PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 11, None, None));
+        let perpetual_type = PerpetualType::Open {
+            data: PerpetualConfirmData::mock(PerpetualDirection::Long, 11, None, None),
+        };
         let perpetual_input = TransactionInputType::Perpetual {
             asset: Asset::mock(),
             perpetual_type,
         };
         match perpetual_input.get_perpetual_type().unwrap() {
-            PerpetualType::Open(data) => assert_eq!(data.asset_index, 11),
-            PerpetualType::Close(_) | PerpetualType::Modify(_) | PerpetualType::Increase(_) | PerpetualType::Reduce(_) => panic!("expected open perpetual type"),
+            PerpetualType::Open { data } => assert_eq!(data.asset_index, 11),
+            PerpetualType::Close { .. } | PerpetualType::Modify { .. } | PerpetualType::Increase { .. } | PerpetualType::Reduce { .. } => panic!("expected open perpetual type"),
         }
 
         assert_eq!(

@@ -3,9 +3,11 @@ use std::str::FromStr;
 use alloy_consensus::TxEip1559;
 use alloy_primitives::{Address, Bytes, TxKind, U256};
 use primitives::{ChainSigner, NFTType, SignerError, SignerInput, StakeType, decode_hex, swap::SwapQuoteDataType};
+use signer::Signer;
 
 use super::model::TransactionParams;
 use super::sign_eip1559_tx;
+use crate::eip712::hash_typed_data;
 use crate::encode::{encode_erc20_approve_max_value, encode_erc20_transfer, encode_erc721_transfer, encode_erc1155_transfer};
 
 pub trait EvmSigner: Send + Sync {
@@ -164,7 +166,9 @@ impl ChainSigner for EvmChainSigner {
 
     fn sign_message(&self, message: &[u8], private_key: &[u8]) -> Result<String, SignerError> {
         let json_str = std::str::from_utf8(message).map_err(|_| SignerError::invalid_input("message must be valid UTF-8"))?;
-        Ok(format!("0x{}", signer::Signer::sign_eip712(json_str, private_key)?))
+        let digest = hash_typed_data(json_str)?;
+        let signature = Signer::sign_ethereum_digest(&digest, private_key)?;
+        Ok(format!("0x{}", hex::encode(signature)))
     }
 }
 
@@ -226,12 +230,25 @@ fn sign_contract_call(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use gem_hash::keccak::keccak256;
     use num_bigint::BigUint;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use primitives::{
         ApplicationMetadata, Asset, Chain, ChainSigner, DelegationValidator, NFTType, SignerInput, TransactionInputType, TransactionLoadMetadata, TransferDataExtra,
         contract_call_data::ContractCallData, nft::NFTAsset, swap::*,
     };
+
+    #[test]
+    fn test_sign_message_matches_eip712_reference_vector() {
+        let signer = EvmChainSigner::default();
+        let message = include_bytes!("../../testdata/eip712_reference_vector.json");
+        let private_key = keccak256(b"cow");
+
+        assert_eq!(
+            signer.sign_message(message, &private_key).unwrap(),
+            "0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d07299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b915621c"
+        );
+    }
 
     #[test]
     fn test_sign_transfer() {

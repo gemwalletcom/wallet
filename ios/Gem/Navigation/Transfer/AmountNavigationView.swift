@@ -49,27 +49,15 @@ struct AmountNavigationView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    if model.transferState.isLoading {
-                        ProgressView()
-                    } else {
-                        Button(model.continueTitle, action: model.onSelectNextButton)
-                            .bold()
-                            .disabled(!model.isNextEnabled)
-                    }
-                }
-            }
             .navigationDestination(for: DelegationValidator.self) { validator in
                 if case let .stake(stake) = model.provider,
                    case let .validator(validatorSelection) = stake.selection
                 {
                     ValidatorSelectScene(
                         model: viewModelFactory.validatorSelectScene(
-                            type: stake.validatorSelectType,
-                            chain: model.asset.chain,
                             currentValidator: validator,
-                            validators: validatorSelection.options,
+                            recommended: stake.recommendedValidators,
+                            validators: validatorSelection.options.map { $0.validator.toPrimitives() },
                             selectValidator: model.onValidatorSelected,
                         ),
                     )

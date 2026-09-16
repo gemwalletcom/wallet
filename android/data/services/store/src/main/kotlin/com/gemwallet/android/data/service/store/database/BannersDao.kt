@@ -38,17 +38,16 @@ interface BannersDao {
     """)
     fun observeWalletBanners(walletId: String, events: List<BannerEvent>): Flow<List<DbBannerWithAsset>>
 
-    @Query("""
-        SELECT state FROM
-            banners
-        WHERE
-            wallet_id=:walletId AND event = "AccountBlockedMultiSignature"
-    """)
-    fun getMultisign(walletId: String): Flow<List<BannerState>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveBanner(banner: DbBanner)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun addBanners(banners: List<DbBanner>)
+
+    @Query("DELETE FROM banners")
+    suspend fun deleteAll()
+
+    @Query("UPDATE banners SET state = :to WHERE state = :from")
+    suspend fun updateStates(from: BannerState, to: BannerState)
 }

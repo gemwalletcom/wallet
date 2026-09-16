@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemPriceAlertServiceProtocol
 import GemstonePrimitivesTestKit
 import Foundation
 @testable import PriceAlerts
-import GemstoneServices
+import PriceAlertsTestKit
 import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
@@ -23,21 +22,7 @@ struct AssetPriceAlertsViewModelTests {
         let model = AssetPriceAlertsViewModel.mock()
         model.query.value = [alert1, alert2, alert3, autoAlert]
 
-        #expect(model.alertsModel.map(\.data) == [alert3, alert2, alert1])
+        #expect(model.alerts == [alert3, alert2, alert1])
         #expect(model.isAutoAlertEnabledBinding.wrappedValue == true)
-    }
-}
-
-extension AssetPriceAlertsViewModel {
-    static func mock(
-        service: any GemPriceAlertServiceProtocol = GemPriceAlertServiceMock(),
-        walletId: WalletId = .mock(),
-        asset: Asset = .mock(),
-    ) -> AssetPriceAlertsViewModel {
-        AssetPriceAlertsViewModel(
-            service: service,
-            walletId: walletId,
-            asset: asset,
-        )
     }
 }

@@ -11,39 +11,37 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.ui.R
+import com.gemwallet.android.features.perpetual.localization.stringRes
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
+import uniffi.gemstone.GemPerpetualButton
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.mainActionHeight
 
 @Composable
 internal fun PerpetualModifyBottomSheet(
     isVisible: Boolean,
+    buttons: List<GemPerpetualButton>,
     onDismiss: () -> Unit,
-    onIncreasePosition: () -> Unit,
-    onReducePosition: () -> Unit,
+    onSelect: (GemPerpetualButton) -> Unit,
 ) {
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismiss,
-        title = stringResource(R.string.perpetual_modify),
+        title = stringResource(GemPerpetualButton.MODIFY.stringRes()),
     ) {
-        ModifyOption(
-            label = stringResource(R.string.perpetual_increase_position),
-            onClick = {
-                onDismiss()
-                onIncreasePosition()
-            },
-        )
-        HorizontalDivider()
-        ModifyOption(
-            label = stringResource(R.string.perpetual_reduce_position),
-            color = MaterialTheme.colorScheme.error,
-            onClick = {
-                onDismiss()
-                onReducePosition()
-            },
-        )
+        buttons.forEachIndexed { index, button ->
+            if (index > 0) {
+                HorizontalDivider()
+            }
+            ModifyOption(
+                label = stringResource(button.stringRes()),
+                color = if (button == GemPerpetualButton.REDUCE) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                onClick = {
+                    onDismiss()
+                    onSelect(button)
+                },
+            )
+        }
         Spacer16()
     }
 }

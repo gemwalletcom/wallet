@@ -10,6 +10,7 @@ import Primitives
 import PrimitivesComponents
 import Style
 import struct Gemstone.GemTransferData
+import class Gemstone.GemPerpetual
 
 public struct TransactionInputViewModel: Sendable {
     let data: GemTransferData
@@ -45,7 +46,7 @@ public struct TransactionInputViewModel: Sendable {
 
     var asset: Asset {
         switch data.inputType {
-        case let .perpetual(_, type): Primitives.PerpetualType(core: type).baseAsset
+        case let .perpetual(_, type): type.baseAsset
         default: data.asset
         }
     }
@@ -59,14 +60,23 @@ public struct TransactionInputViewModel: Sendable {
             feeAssetPrice: metaData?.feePrice,
             value: value,
             feeValue: fee?.fee,
-            direction: nil,
+            sign: .none,
         )
     }
 
     private var displayAsset: Asset {
         switch data.inputType {
-        case .withdrawal: PerpetualConfig.depositAsset
-        default: data.asset
+        case .withdrawal: GemPerpetual(provider: .hypercore).depositAsset().toPrimitives()
+        case .transfer,
+             .deposit,
+             .swap,
+             .stake,
+             .tokenApprove,
+             .generic,
+             .transferNft,
+             .account,
+             .perpetual,
+             .earn: data.asset
         }
     }
 
@@ -76,10 +86,6 @@ public struct TransactionInputViewModel: Sendable {
 
     var networkFeeFiatText: String? {
         infoModel.feeDisplay?.fiat?.text
-    }
-
-    var networkFeeAmount: BigInt? {
-        fee?.fee
     }
 
     var headerType: TransactionHeaderType {

@@ -116,7 +116,8 @@ public struct ReceiveScene: View {
             model: model.copyModel,
             isPresenting: $model.isPresentingCopyToast,
         )
-        .task {
+        .alertSheet($model.isPresentingAlertMessage)
+        .task(id: model.address) {
             await model.onLoadImage()
         }
         .taskOnce(model.onTaskOnce)

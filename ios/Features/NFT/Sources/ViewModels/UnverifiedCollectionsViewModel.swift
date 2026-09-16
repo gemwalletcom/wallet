@@ -1,22 +1,24 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import Foundation
-import Localization
+import protocol Gemstone.GemNftServiceProtocol
 import GemstonePrimitives
+import Localization
 import Primitives
-import PrimitivesComponents
 import Store
 import SwiftUI
 
 @Observable
 @MainActor
 public final class UnverifiedCollectionsViewModel: CollectionsViewable, Sendable {
+    private let service: any GemNftServiceProtocol
+
     public let query: ObservableQuery<NFTRequest>
 
     public var isPresentingReceiveSelectAssetType: SelectAssetType?
 
-    public init(wallet: Wallet) {
+    public init(service: any GemNftServiceProtocol, wallet: Wallet) {
+        self.service = service
         query = ObservableQuery(NFTRequest(walletId: wallet.id, filter: .unverified), initialValue: [])
     }
 
@@ -25,6 +27,6 @@ public final class UnverifiedCollectionsViewModel: CollectionsViewable, Sendable
     }
 
     public var content: CollectionsContent {
-        CollectionsContent(items: query.value.map { buildGridItem(from: $0) })
+        CollectionsContent(items: NFTGridPosterBuilder.items(service.listItems(data: query.value.map { $0.toGem() }, list: .unverified)))
     }
 }

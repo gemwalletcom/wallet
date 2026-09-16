@@ -7,43 +7,42 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.ext.toCurrency
-import com.gemwallet.android.features.transfer_amount.models.AmountError
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountDataProvider
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountProviderFactory
-import com.gemwallet.android.math.parseInputNumberOrNull
+import com.gemwallet.android.math.plainInputNumber
 import com.gemwallet.android.model.AmountParams
-import uniffi.gemstone.GemTransferData
+import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.CryptoFiatConverter
-import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.CurrencyFormatter
-import com.gemwallet.android.ui.models.AmountInputType
+import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemAmountEntry
+import uniffi.gemstone.GemAmountEquivalent
+import uniffi.gemstone.GemAmountInputType
+import uniffi.gemstone.GemAmountServiceInterface
+import uniffi.gemstone.GemTransferData
 import java.math.BigInteger
 import javax.inject.Inject
-import uniffi.gemstone.GemAmountServiceInterface
-import uniffi.gemstone.GemAmountInput
-import uniffi.gemstone.GemAmountType
-import uniffi.gemstone.GemAssetBalance
+import uniffi.gemstone.GemValueStyle
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AmountViewModel @Inject constructor(
     service: GemAmountServiceInterface,
@@ -51,16 +50,33 @@ class AmountViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val valueFormatter = ValueFormatter(style = ValueFormatter.Style.Auto)
+    private val valueFormatter = ValueFormatter(style = GemValueStyle.AUTO)
 
     private val params: AmountParams = savedStateHandle.requireAmountParams()
     val provider: AmountDataProvider = factory.create(params, viewModelScope)
 
-    var amount by mutableStateOf(params.amount.orEmpty())
+    var amount by mutableStateOf(provider.prefilledAmount.orEmpty())
         private set
 
-    val amountInputType = MutableStateFlow(AmountInputType.Crypto)
-    val amountError = MutableStateFlow<AmountError>(AmountError.None)
+    val amountInputType = MutableStateFlow(GemAmountInputType.ASSET)
+    val amountError = MutableStateFlow<Throwable?>(null)
+
+    val currency: Currency = service.getCurrency().toPrimitives()
+    private val currencyFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)
+
+    private val entry: StateFlow<GemAmountEntry?> = combine(
+        snapshotFlow { amount },
+        amountInputType,
+        provider.assetInfo,
+        provider.amountType,
+        provider.input,
+    ) { text, inputType, current, amountType, input ->
+        if (current == null || amountType == null || input == null) {
+            null
+        } else {
+            amountType.entry(current.asset.toGem(), input, current.price?.price?.price, inputType, text.plainInputNumber())
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val availableBalanceFormatted: StateFlow<String> = combine(
         provider.input,
@@ -71,48 +87,34 @@ class AmountViewModel @Inject constructor(
 
     val reserveForFeeFormatted: StateFlow<String?> = combine(
         provider.assetInfo,
-        snapshotFlow { amount },
-        provider.input,
-    ) { current, typed, input ->
+        entry,
+    ) { current, entry ->
         val asset = current?.asset ?: return@combine null
-        val reservedFee = input?.reservedFee ?: return@combine null
-        if (typed == maxAmountInput(asset, input)) valueFormatter.string(reservedFee, asset) else null
+        entry?.reservedFee?.let { valueFormatter.string(it, asset) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val amountEquivalent: StateFlow<String> = combine(
-        snapshotFlow { amount },
-        amountInputType,
         provider.assetInfo,
-    ) { input, direction, current ->
-        val price = current?.price ?: return@combine ""
-        calculateEquivalent(input, direction, current.asset, price.price.price, price.currency)
+        entry,
+    ) { current, entry ->
+        val asset = current?.asset ?: return@combine ""
+        when (val equivalent = entry?.equivalent) {
+            is GemAmountEquivalent.Fiat -> currencyFormatter.string(equivalent.amount)
+            is GemAmountEquivalent.Asset -> valueFormatter.string(equivalent.value, asset.decimals, asset.symbol)
+            null -> ""
+        }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
-    val currency: Currency = service.getCurrency().toCurrency()
-
-    val buttonState: StateFlow<ButtonState> = combine(
-        snapshotFlow { amount },
-        amountError,
-    ) { input, error ->
-        val valid = (input.parseInputNumberOrNull()?.signum() ?: 0) > 0 && error is AmountError.None
-        buttonState(enabled = valid)
+    val buttonState: StateFlow<ButtonState> = entry.map { entry ->
+        buttonState(enabled = entry?.allowsConfirm() == true)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Disabled)
 
     init {
-        combine(
-            snapshotFlow { amount },
-            amountInputType,
-            provider.assetInfo,
-            provider.amountType,
-            provider.balance,
-        ) { input, type, current, amountType, balance ->
-            ValidationInputs(input, type, current?.asset, amountType, balance)
-        }
-            .mapLatest { validate(it) }
-            .onEach { amountError.value = it }
+        entry
+            .onEach { amountError.value = it?.error }
             .launchIn(viewModelScope)
 
-        combine(provider.input.filterNotNull(), provider.assetInfo.filterNotNull()) { input, current -> if (input.canChangeValue) null else maxAmountInput(current.asset, input) }
+        combine(provider.input.filterNotNull(), provider.assetInfo.filterNotNull()) { input, current -> if (input.canChangeValue) null else maxAmountText(current.asset, input.maxEntry().value) }
             .filterNotNull()
             .onEach { updateAmount(it) }
             .launchIn(viewModelScope)
@@ -124,93 +126,36 @@ class AmountViewModel @Inject constructor(
 
     fun onMaxAmount() {
         val current = provider.assetInfo.value ?: return
-        val input = provider.input.value ?: return
-        updateAmount(maxAmountInput(current.asset, input))
+        val max = provider.input.value?.maxEntry() ?: return
+        val text = maxAmountText(current.asset, max.value) ?: return
+        amountInputType.value = max.inputType
+        updateAmount(text)
     }
 
-    private fun maxAmountInput(asset: Asset, input: GemAmountInput): String =
-        Crypto(input.maxValue).value(asset.decimals).stripTrailingZeros().toPlainString()
+    private fun maxAmountText(asset: Asset, value: BigInteger): String? =
+        numberFormat().inputText(value.toString(), asset.decimals.toUInt())
 
     fun switchInputType() {
-        amountInputType.update { if (it == AmountInputType.Crypto) AmountInputType.Fiat else AmountInputType.Crypto }
+        amountInputType.update { it.toggled() }
         amount = ""
     }
 
     fun onNext(onConfirm: (GemTransferData) -> Unit) {
         viewModelScope.launch {
+            val entry = entry.value ?: return@launch
+            entry.error?.let {
+                amountError.value = it
+                return@launch
+            }
+            val value = entry.value ?: return@launch
             try {
-                val current = provider.assetInfo.value ?: return@launch
-                val asset = current.asset
-                AmountValidation.parseAmount(asset, amount)
-                val price = current.price?.price?.price ?: 0.0
-                val crypto = amountInputType.value.getAmount(amount, asset.decimals, price)
-                val amountType = provider.amountType.value ?: return@launch
-                val balance = provider.balance.value ?: return@launch
-                val input = provider.input.value ?: return@launch
-                AmountValidation.validate(amountType, asset, crypto, balance)
-                amountError.value = AmountError.None
-                onConfirm(provider.buildTransfer(crypto, crypto.atomicValue == input.maxValue))
-            } catch (err: AmountError) {
-                amountError.value = err
+                amountError.value = null
+                onConfirm(provider.buildTransfer(Crypto(value), entry.isMax))
+            } catch (err: CancellationException) {
+                throw err
             } catch (err: Throwable) {
-                amountError.value = AmountError.Unknown(err.message.orEmpty())
-            }
-        }
-    }
-
-    private fun validate(inputs: ValidationInputs): AmountError {
-        if (inputs.amount.isEmpty()) return AmountError.None
-        if (inputs.amount.parseInputNumberOrNull()?.signum() == 0) return AmountError.None
-        val asset = inputs.asset ?: return AmountError.None
-        val current = provider.assetInfo.value ?: return AmountError.None
-        return try {
-            AmountValidation.parseAmount(asset, inputs.amount)
-            val price = current.price?.price?.price ?: 0.0
-            val crypto = inputs.inputType.getAmount(inputs.amount, asset.decimals, price)
-            val amountType = inputs.amountType ?: return AmountError.None
-            val balance = inputs.balance ?: return AmountError.None
-            AmountValidation.validate(amountType, asset, crypto, balance)
-            AmountError.None
-        } catch (err: Throwable) {
-            err as? AmountError ?: AmountError.None
-        }
-    }
-
-    private fun calculateEquivalent(
-        input: String,
-        direction: AmountInputType,
-        asset: Asset,
-        price: Double,
-        currency: Currency,
-    ): String {
-        val currencyFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)
-        return try {
-            when (direction) {
-                AmountInputType.Crypto -> {
-                    AmountValidation.parseAmount(asset, input)
-                    val crypto = direction.getAmount(input, asset.decimals, price)
-                    val unit = CryptoFiatConverter.toFiat(crypto, asset.decimals, price)
-                    currencyFormatter.string(unit.atomicValue)
-                }
-                AmountInputType.Fiat -> {
-                    val crypto = direction.getAmount(input, asset.decimals, price)
-                    AmountValidation.parseAmount(asset, crypto.value(asset.decimals).toPlainString())
-                    valueFormatter.string(crypto.atomicValue, asset.decimals, asset.symbol)
-                }
-            }
-        } catch (_: Throwable) {
-            when (direction) {
-                AmountInputType.Crypto -> currencyFormatter.string(0.0)
-                AmountInputType.Fiat -> valueFormatter.string(BigInteger.ZERO, asset)
+                amountError.value = err
             }
         }
     }
 }
-
-private data class ValidationInputs(
-    val amount: String,
-    val inputType: AmountInputType,
-    val asset: Asset?,
-    val amountType: GemAmountType?,
-    val balance: GemAssetBalance?,
-)

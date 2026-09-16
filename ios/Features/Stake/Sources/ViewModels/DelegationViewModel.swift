@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import func Gemstone.delegationStatus
+import struct Gemstone.GemDelegationStatus
 import protocol Gemstone.GemStakeServiceProtocol
 import GemstonePrimitives
 import Formatters
@@ -12,49 +14,35 @@ import SwiftUI
 
 public struct DelegationViewModel: Sendable {
     public let delegation: Delegation
-    public let currencyCode: String
+    public let currency: Currency
     private let asset: Asset
     private let formatter: ValueFormatter
     private let service: any GemStakeServiceProtocol
-    private let priceFormatter: CurrencyFormatter
-
-    private static let dateFormatterDefault: DateComponentsFormatter = {
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.day, .hour]
-        formatter.zeroFormattingBehavior = .dropLeading
-        formatter.unitsStyle = .full
-        return formatter
-    }()
-
-    private static let dateFormatterDay: DateComponentsFormatter = {
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.hour, .minute]
-        formatter.zeroFormattingBehavior = .dropLeading
-        formatter.unitsStyle = .full
-        return formatter
-    }()
+    private let priceViewModel: PriceViewModel
+    public let validatorModel: ValidatorViewModel
 
     public init(
         service: any GemStakeServiceProtocol,
         delegation: Delegation,
         asset: Asset,
         formatter: ValueFormatter = .short,
-        currencyCode: String,
+        currency: Currency,
     ) {
         self.delegation = delegation
-        self.currencyCode = currencyCode
+        self.currency = currency
         self.asset = asset
         self.formatter = formatter
         self.service = service
-        priceFormatter = CurrencyFormatter(type: .currency, currencyCode: currencyCode)
+        priceViewModel = PriceViewModel(price: delegation.price, currencyCode: currency.rawValue)
+        validatorModel = ValidatorViewModel(row: service.validatorRow(validator: delegation.validator.toGem()))
     }
 
-    public var state: DelegationState {
-        delegation.base.state
+    public var status: GemDelegationStatus {
+        delegationStatus(delegation: delegation.toGem())
     }
 
     public var stateModel: DelegationStateViewModel {
-        DelegationStateViewModel(state: state)
+        DelegationStateViewModel(status: status)
     }
 
     public var titleStyle: TextStyle {
@@ -74,15 +62,11 @@ public struct DelegationViewModel: Sendable {
     }
 
     public var fiatValueText: String? {
-        guard
-            let price = delegation.price,
-            let balance = try? formatter.double(from: delegation.base.balance, decimals: asset.decimals.asInt)
-        else { return nil }
-        return priceFormatter.string(price.price * balance)
+        priceViewModel.fiatValueText(value: delegation.base.balance, decimals: asset.decimals.asInt)
     }
 
     private var showsRewards: Bool {
-        service.showsRewards(delegation: delegation.base.map())
+        service.showsRewards(delegation: delegation.base.toGem())
     }
 
     public var rewardsText: String? {
@@ -91,16 +75,8 @@ public struct DelegationViewModel: Sendable {
     }
 
     public var rewardsFiatValueText: String? {
-        guard
-            showsRewards,
-            let price = delegation.price,
-            let rewards = try? formatter.double(from: delegation.base.rewards, decimals: asset.decimals.asInt)
-        else { return nil }
-        return priceFormatter.string(price.price * rewards)
-    }
-
-    public var validatorModel: ValidatorViewModel {
-        ValidatorViewModel(validator: delegation.validator)
+        guard showsRewards else { return nil }
+        return priceViewModel.fiatValueText(value: delegation.base.rewards, decimals: asset.decimals.asInt)
     }
 
     public var validatorText: String {
@@ -112,19 +88,17 @@ public struct DelegationViewModel: Sendable {
     }
 
     public var validatorUrl: URL? {
-        service.validatorUrl(validator: delegation.validator.map()).map { $0.map() }?.url
+        service.validatorUrl(validator: delegation.validator.toGem()).map { $0.toPrimitives() }?.url
     }
 
     public var completionDateText: String? {
-        guard service.showsCompletionDate(delegation: delegation.base.map()) else { return nil }
-        let now = Date.now
-        if let completionDate = delegation.base.completionDate, completionDate > now {
-            if now.distance(to: completionDate) < 86400 {
-                return Self.dateFormatterDay.string(from: .now, to: completionDate)
-            }
-            return Self.dateFormatterDefault.string(from: .now, to: completionDate)
-        }
-        return .none
+        guard
+            status.completion != nil,
+            let completionDate = delegation.base.completionDate,
+            case let remaining = Date.now.distance(to: completionDate),
+            remaining > 0
+        else { return nil }
+        return CountdownFormatter().string(seconds: Int64(remaining))
     }
 }
 

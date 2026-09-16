@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.PriceChangeCalculator
 import Components
 import Formatters
 import Foundation
@@ -37,11 +38,10 @@ public struct AutocloseViewModel {
     }
 
     public var title: String {
-        switch type {
-        case .takeProfit: Localized.Perpetual.AutoClose.takeProfit
-        case .stopLoss: Localized.Perpetual.AutoClose.stopLoss
-        }
+        type.autocloseTitle
     }
+
+    private let priceChangeCalculator = PriceChangeCalculator()
 
     public var profitTitle: String {
         let isProfit = price.map { estimator.pnl(price: $0) >= 0 } ?? (type == .takeProfit)
@@ -58,9 +58,8 @@ public struct AutocloseViewModel {
             return percentText
         }
 
-        let amount = currencyFormatter.string(abs(pnl))
-        let sign = pnl >= 0 ? "+" : "-"
-        return "\(sign)\(amount) (\(percentText))"
+        let amount = priceChangeCalculator.sign(value: pnl).format(amount: currencyFormatter.string(abs(pnl)))
+        return priceChangeCalculator.pnlText(formattedAmount: amount, formattedPercentage: percentText)
     }
 
     public var roeColor: Color {

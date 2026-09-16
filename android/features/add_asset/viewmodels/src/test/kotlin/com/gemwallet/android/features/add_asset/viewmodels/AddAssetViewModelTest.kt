@@ -5,7 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.features.add_asset.viewmodels.models.TokenSearchState
+import uniffi.gemstone.GemErrorText
+import uniffi.gemstone.GemAddAssetPhase
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockSession
@@ -22,6 +23,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -31,6 +33,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAddAssetServiceInterface
+import uniffi.gemstone.GemServiceException
+import com.gemwallet.android.ext.toPrimitives
+import uniffi.gemstone.GemAddAssetSession
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AddAssetViewModelTest {
@@ -38,6 +43,9 @@ class AddAssetViewModelTest {
     private val wallet = mockWallet(accounts = listOf(mockAccount(chain = Chain.Ethereum)))
     private val token = mockAsset(chain = Chain.Ethereum, tokenId = "0x1", name = "Token", symbol = "TKN", decimals = 18, type = AssetType.ERC20)
     private val service = mockk<GemAddAssetServiceInterface> {
+        every { newSession(any()) } answers {
+            GemAddAssetSession(chain = firstArg(), address = "", asset = null, isLoading = false, failed = false)
+        }
         every { chains(any()) } returns listOf(Chain.Ethereum.string)
         every { defaultChain(any()) } returns Chain.Ethereum.string
         every { matchingChains(any(), any()) } answers { firstArg() }
@@ -57,10 +65,12 @@ class AddAssetViewModelTest {
     fun `typed address resolves the token through the service`() = runTest {
         val viewModel = AddAssetViewModel(getSession, service)
         try {
-            viewModel.addressState.value = "0x1"
-            Snapshot.sendApplyNotifications()
+            withContext(Dispatchers.Main) {
+                viewModel.addressState.value = "0x1"
+                Snapshot.sendApplyNotifications()
+            }
 
-            assertEquals(TokenSearchState.Found(token), viewModel.searchState.first { it is TokenSearchState.Found })
+            assertEquals(token, (viewModel.searchState.first { it is GemAddAssetPhase.Found } as GemAddAssetPhase.Found).asset.toPrimitives())
             assertEquals(token, viewModel.token.first { it != null })
         } finally {
             viewModel.viewModelScope.coroutineContext.job.cancelAndJoin()
@@ -71,8 +81,10 @@ class AddAssetViewModelTest {
     fun `addAsset adds the found token to the current wallet`() = runTest {
         val viewModel = AddAssetViewModel(getSession, service)
         try {
-            viewModel.addressState.value = "0x1"
-            Snapshot.sendApplyNotifications()
+            withContext(Dispatchers.Main) {
+                viewModel.addressState.value = "0x1"
+                Snapshot.sendApplyNotifications()
+            }
             viewModel.token.first { it != null }
 
             var finished = false
@@ -80,6 +92,32 @@ class AddAssetViewModelTest {
 
             coVerify(exactly = 1) { service.add(wallet.toGem(), token.id.toIdentifier()) }
             assertEquals(true, finished)
+        } finally {
+            viewModel.viewModelScope.coroutineContext.job.cancelAndJoin()
+        }
+    }
+
+    @Test
+    fun `a failed add stays on the screen and reports the Core message`() = runTest {
+        coEvery { service.add(any(), any()) } throws GemServiceException.Store("disk full")
+        val viewModel = AddAssetViewModel(getSession, service)
+        try {
+            withContext(Dispatchers.Main) {
+                viewModel.addressState.value = "0x1"
+                Snapshot.sendApplyNotifications()
+            }
+            viewModel.token.first { it != null }
+
+            var finished = false
+            viewModel.addAsset { finished = true }.join()
+
+            assertEquals(false, finished)
+            val failed = viewModel.uiState.first { it.error != null }
+            assertEquals(GemErrorText.Message("disk full"), failed.error)
+            assertEquals(false, failed.isLoading)
+
+            viewModel.clearError()
+            assertEquals(null, viewModel.uiState.first { it.error == null }.error)
         } finally {
             viewModel.viewModelScope.coroutineContext.job.cancelAndJoin()
         }

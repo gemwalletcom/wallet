@@ -56,11 +56,13 @@ fun mockAssetEthereum() = mockAsset(
     decimals = 18,
 )
 
-fun mockAssetMonad() = mockAsset(
-    chain = Chain.Monad,
-    name = "Monad",
-    symbol = "MON",
-    decimals = 18,
+fun mockAssetEthereumUSDT() = mockAsset(
+    chain = Chain.Ethereum,
+    tokenId = "0xdac17f958d2ee523a2206206994597c13d831ec7",
+    name = "Tether",
+    symbol = "USDT",
+    decimals = 6,
+    type = AssetType.ERC20,
 )
 
 fun mockAssetCosmos() = mockAsset(
@@ -75,15 +77,6 @@ fun mockAssetTron() = mockAsset(
     name = "Tron",
     symbol = "TRX",
     decimals = 6,
-)
-
-fun mockAssetHyperCoreHype() = mockAsset(
-    chain = Chain.HyperCore,
-    tokenId = "HYPE::0x0d01dc56dcaaca66ad901c959b4011ec::150",
-    name = "Hyperliquid",
-    symbol = "HYPE",
-    decimals = 8,
-    type = AssetType.TOKEN,
 )
 
 fun mockAssetHyperCoreUSDC() = mockAsset(

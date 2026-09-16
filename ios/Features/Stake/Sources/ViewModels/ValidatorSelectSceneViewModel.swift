@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import protocol Gemstone.GemStakeServiceProtocol
+import struct Gemstone.GemValidatorRow
 import Components
 import GemstonePrimitives
 import Foundation
@@ -10,62 +11,51 @@ import PrimitivesComponents
 
 @Observable
 public final class ValidatorSelectSceneViewModel {
-    private let type: ValidatorSelectType
-    private let chain: Chain
     public let currentValidator: DelegationValidator?
+    private let recommended: [DelegationValidator]
     private let validators: [DelegationValidator]
     public var selectValidator: ((DelegationValidator) -> Void)?
     private let service: any GemStakeServiceProtocol
+    private let rowsById: [String: GemValidatorRow]
+    private let explorerLinksById: [String: BlockExplorerLink]
 
     public init(
         service: any GemStakeServiceProtocol,
-        type: ValidatorSelectType,
-        chain: Chain,
         currentValidator: DelegationValidator?,
+        recommended: [DelegationValidator],
         validators: [DelegationValidator],
         selectValidator: ((DelegationValidator) -> Void)? = nil,
     ) {
         self.service = service
-        self.type = type
-        self.chain = chain
         self.currentValidator = currentValidator
+        self.recommended = recommended
         self.validators = validators
         self.selectValidator = selectValidator
+
+        let all = recommended + validators
+        rowsById = Dictionary(
+            zip(all.map(\.id), service.validatorRows(validators: all.map { $0.toGem() })),
+            uniquingKeysWith: { first, _ in first },
+        )
+        explorerLinksById = Dictionary(
+            all.compactMap { validator in service.validatorUrl(validator: validator.toGem()).map { (validator.id, $0.toPrimitives()) } },
+            uniquingKeysWith: { first, _ in first },
+        )
     }
 
     public var title: String {
         Localized.Stake.validators
     }
 
-    private var recommendedValidators: [DelegationValidator] {
-        service.recommendedValidators(chain: chain.rawValue, validators: validators.map { $0.map() }).map { $0.map() }
-    }
-
     public var list: [ListItemValueSection<DelegationValidator>] {
-        switch type {
-        case .stake:
-            return [
-                listSection(
-                    title: Localized.Common.recommended,
-                    validators: recommendedValidators,
-                ),
-                listSection(
-                    title: Localized.Stake.active,
-                    validators: validators,
-                ),
-            ].filter(\.values.isNotEmpty)
-        case .unstake:
-            return [
-                listSection(
-                    title: Localized.Stake.active,
-                    validators: validators,
-                ),
-            ]
-        }
+        [
+            listSection(title: Localized.Common.recommended, validators: recommended),
+            listSection(title: Localized.Stake.active, validators: validators),
+        ].filter(\.values.isNotEmpty)
     }
 
     public func explorerLink(for validator: DelegationValidator) -> BlockExplorerLink? {
-        service.validatorUrl(validator: validator.map()).map { $0.map() }
+        explorerLinksById[validator.id]
     }
 
     public func explorerContext(for validator: DelegationValidator) -> ExplorerContextData? {
@@ -82,11 +72,15 @@ public final class ValidatorSelectSceneViewModel {
     }
 
     public func listItem(validator: DelegationValidator) -> ListItemValue<DelegationValidator> {
-        let model = ValidatorViewModel(validator: validator)
+        let model = ValidatorViewModel(row: validatorRow(for: validator))
         return ListItemValue(
             title: model.name,
             subtitle: model.aprModel.text,
             value: validator,
         )
+    }
+
+    public func validatorRow(for validator: DelegationValidator) -> GemValidatorRow {
+        rowsById[validator.id] ?? service.validatorRow(validator: validator.toGem())
     }
 }

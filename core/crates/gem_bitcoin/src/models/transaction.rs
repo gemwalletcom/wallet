@@ -2,14 +2,6 @@ use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_biguint_from_str, serialize_biguint};
 
-use super::UInt64;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct BitcoinTransaction {
-    pub block_height: UInt64,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BitcoinTransactionBroadcastResult {
     pub error: Option<BitcoinTransactionBroadcastError>,

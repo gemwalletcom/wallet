@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.transfer_amount.presents.dialogs
 
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -15,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uniffi.gemstone.GemAutocloseEstimator
-import com.gemwallet.android.domains.perpetual.autoclose.AutocloseField
+import uniffi.gemstone.GemAutocloseField
 import uniffi.gemstone.AutocloseValidator
 import com.gemwallet.android.ext.PerpetualFormatter
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountPerpetualProvider
@@ -38,7 +39,6 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TpslType
-import com.gemwallet.android.domains.perpetual.toGem
 import com.gemwallet.android.ext.toGem
 
 @Composable
@@ -101,7 +101,7 @@ internal fun AmountAutocloseSheet(
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismiss,
-        skipPartiallyExpanded = true,
+        expansion = SheetExpansion.Full,
         title = stringResource(R.string.perpetual_auto_close),
     ) {
         Column(
@@ -196,8 +196,8 @@ private fun buildField(
     estimator: GemAutocloseEstimator,
     showErrors: Boolean,
 ): AutocloseUIModel.Field {
-    val field = AutocloseField(
-        type = type,
+    val field = GemAutocloseField(
+        tpslType = type.toGem(),
         price = price,
         originalPrice = null,
         formattedPrice = null,

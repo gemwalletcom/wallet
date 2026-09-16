@@ -1,8 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import GemstonePrimitivesTestKit
-import Components
 @testable import Contacts
+import ContactsTestKit
+import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
 import Testing
@@ -11,7 +12,7 @@ import Testing
 struct ManageContactAddressViewModelTests {
     @Test
     func buttonStateAddMode() {
-        let model = ManageContactAddressViewModel.mock(mode: .add)
+        let model = ManageContactAddressViewModel.mock()
 
         #expect(model.buttonState == .disabled)
 
@@ -32,44 +33,31 @@ struct ManageContactAddressViewModelTests {
     }
 
     @Test
-    func showMemo() {
-        let model = ManageContactAddressViewModel.mock(mode: .add)
+    func memoFieldFollowsTheChain() {
+        let model = ManageContactAddressViewModel.mock()
 
         model.addressInputModel.chain = .bitcoin
-        #expect(model.showMemo == false)
+        #expect(model.fields == [.network, .address])
 
         model.addressInputModel.chain = .cosmos
-        #expect(model.showMemo == true)
+        #expect(model.fields == [.network, .address, .memo])
     }
 
     @Test
     func nameResolveState() {
-        let model = ManageContactAddressViewModel.mock(mode: .add)
+        let model = ManageContactAddressViewModel.mock()
         model.addressInputModel.text = "john"
 
-        model.addressInputModel.nameRecordViewModel.state = .loading
+        model.addressInputModel.nameRecordViewModel.state = .loading(name: "john")
         #expect(model.buttonState == .disabled)
 
         model.addressInputModel.nameRecordViewModel.state = .error
         #expect(model.buttonState == .disabled)
 
-        model.addressInputModel.nameRecordViewModel.state = .complete(.mock(name: "john", chain: .bitcoin, address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"))
+        model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "john", chain: .bitcoin, address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh").toGem())
         #expect(model.buttonState == .normal)
 
         model.onSelectChain(.bitcoin)
         #expect(model.addressInputModel.nameRecordViewModel.state == .none)
-    }
-}
-
-// MARK: - Mock
-
-extension ManageContactAddressViewModel {
-    static func mock(mode: Mode) -> ManageContactAddressViewModel {
-        ManageContactAddressViewModel(
-            service: GemManageContactServiceMock(),
-            nameService: GemNameServiceMock(),
-            mode: mode,
-            onComplete: { _ in },
-        )
     }
 }

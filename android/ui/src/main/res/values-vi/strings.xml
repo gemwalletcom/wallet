@@ -9,6 +9,7 @@
   <string name="common_copy">Sao chép</string>
   <string name="common_share">Chia sẻ</string>
   <string name="common_continue">Tiếp tục</string>
+  <string name="common_sign_in_with">Đăng nhập bằng %1$s</string>
   <string name="common_provider">Nhà cung cấp</string>
   <string name="common_loading">Đang tải</string>
   <string name="common_address">Địa chỉ</string>
@@ -54,9 +55,9 @@
   <string name="common_earn">Kiếm tiền</string>
   <string name="common_method">Phương thức</string>
   <string name="common_token">Token</string>
+  <string name="common_expiration">Hết hạn</string>
   <string name="common_suspicious_address">Địa chỉ đáng ngờ</string>
   <string name="common_refresh">Làm mới</string>
-  <string name="common_no_thanks">Không, cám ơn</string>
   <string name="common_grant_permission">Cấp phép</string>
   <string name="common_required_field">%1$s là bắt buộc</string>
   <string name="welcome_title">Chào mừng đến với Gem Family</string>
@@ -142,7 +143,6 @@
   <string name="transfer_unfreeze_title">Giải đông</string>
   <string name="transfer_review_request">Yêu cầu xem xét</string>
   <string name="transfer_amount">Số lượng</string>
-  <string name="transfer_amount_title">Số lượng</string>
   <string name="settings_terms_of_services">Điều khoản dịch vụ</string>
   <string name="settings_privacy_policy">Chính sách bảo mật</string>
   <string name="settings_title">Cài đặt</string>
@@ -177,7 +177,6 @@
   <string name="support_state_empty_title">Chúng tôi có thể giúp gì cho bạn?</string>
   <string name="support_state_empty_description">Hãy hỏi chúng tôi bất cứ điều gì. Chúng tôi luôn sẵn sàng hỗ trợ bạn.</string>
   <string name="support_message_placeholder">Tin nhắn</string>
-  <string name="errors_transfer">Lỗi chuyển giao: %1$s</string>
   <string name="errors_validation">Lỗi xác thực: %1$s</string>
   <string name="errors_create_wallet">Lỗi tạo ví: %1$s</string>
   <string name="errors_invalid_address_name">Địa chỉ hoặc tên không hợp lệ</string>
@@ -196,7 +195,6 @@
   <string name="errors_connections_user_cancelled">Người dùng đã hủy</string>
   <string name="errors_not_supported">Không được hỗ trợ</string>
   <string name="errors_permissions_not_granted">Quyền không được cấp</string>
-  <string name="errors_decoding">Lỗi giải mã</string>
   <string name="errors_unknown">Không xác định</string>
   <string name="errors_not_supported_qr">Thiết bị này không hỗ trợ quét mã QR. Bạn chỉ có thể chọn hình ảnh mã QR từ thư viện.</string>
   <string name="errors_camera_permissions_not_granted">Quyền sử dụng máy ảnh không được cấp. Vui lòng bật quyền truy cập máy ảnh trong cài đặt để quét mã QR.</string>
@@ -207,11 +205,8 @@
   <string name="errors_dust_threshold">Giao dịch không thành công vì số tiền quá nhỏ để đáp ứng yêu cầu tối thiểu của mạng %1$s (ngưỡng bụi). Giới hạn này đảm bảo giá trị giao dịch bao gồm phí và chi phí xử lý.</string>
   <string name="errors_swap_no_quote_available">Không có báo giá khả dụng.</string>
   <string name="errors_swap_not_supported_asset">Tài sản không được hỗ trợ.</string>
-  <string name="errors_connections_invalid_send_parameters">Tham số được cung cấp để gửi giao dịch không hợp lệ.</string>
-  <string name="errors_connections_invalid_sign_parameters">Các tham số được cung cấp để ký không hợp lệ.</string>
   <string name="errors_connections_no_supported_wallets">Không có ví nào được hỗ trợ.</string>
   <string name="errors_connections_unsupported_chain">Chuỗi được cung cấp không được hỗ trợ.</string>
-  <string name="errors_connections_unsupported_method">Phương pháp yêu cầu không được hỗ trợ.</string>
   <string name="errors_swap_amount_too_small">Số lượng quá nhỏ</string>
   <string name="errors_required">%1$s là bắt buộc</string>
   <string name="errors_scan_transaction_malicious_description">Giao dịch này không thể hoàn tất — địa chỉ ví đích được liên kết với hoạt động đáng ngờ hoặc có hại.</string>
@@ -223,7 +218,6 @@
   <string name="errors_swap_minimum_amount">Số tiền giao dịch tối thiểu là %1$s. Vui lòng nhập số tiền lớn hơn.</string>
   <string name="errors_perpetual_trigger_price_lower">Giá kích hoạt phải thấp hơn giá thị trường</string>
   <string name="errors_perpetual_trigger_price_higher">Giá kích hoạt phải cao hơn giá thị trường</string>
-  <string name="errors_token_unable_fetch_token_information">Không thể tìm nạp thông tin mã thông báo: %1$s</string>
   <string name="errors_unknown_try_again">Đã xảy ra lỗi không xác định. Vui lòng thử lại.</string>
   <string name="errors_network_error">Lỗi mạng: %1$s</string>
   <string name="errors_network_offline">Kết nối Internet dường như đang bị ngắt.</string>
@@ -241,7 +235,6 @@
   <string name="update_app_permission_title">Cho phép cài đặt</string>
   <string name="update_app_permission_description">Vào cài đặt và cho phép cài đặt từ các nguồn bên ngoài</string>
   <string name="update_app_permission_open_settings">Đi đến cài đặt</string>
-  <string name="update_app_downloading">Đang tải xuống...</string>
   <string name="transaction_recipient">Người nhận</string>
   <string name="transaction_sender">Người gửi</string>
   <string name="transaction_date">Ngày</string>
@@ -314,6 +307,7 @@
   <string name="wallet_connect_permissions_title">Quyền hạn</string>
   <string name="wallet_connect_permissions_view_balance">Xem số dư và hoạt động của bạn</string>
   <string name="wallet_connect_permissions_approval_requests">Gửi yêu cầu phê duyệt</string>
+  <string name="wallet_connect_request_expired">Yêu cầu đã hết hạn</string>
   <string name="swap_you_pay">Bạn trả</string>
   <string name="swap_you_receive">Bạn nhận được</string>
   <string name="swap_price_impact">Tác động giá</string>
@@ -396,8 +390,6 @@
   <string name="banner_account_activation_description">Mạng %1$s yêu cầu một khoản phí một lần là %2$s.</string>
   <string name="banner_stake_title">Bắt đầu đặt cược %1$s</string>
   <string name="banner_stake_description">Kiếm %1$s phần thưởng cho số tiền đặt cược của bạn khi bạn ngủ.</string>
-  <string name="banner_enable_notifications_title">Bật thông báo</string>
-  <string name="banner_enable_notifications_description">Theo dõi hoạt động chi tiêu của bạn.</string>
   <string name="banner_activate_asset_description">Để sử dụng tài sản %1$s, trước tiên bạn phải bật nó trên mạng %2$s bằng cách đáp ứng các yêu cầu cụ thể của mạng.</string>
   <string name="banner_asset_status_title">Tài sản đáng ngờ</string>
   <string name="banner_asset_status_description">Mã thông báo có thể không an toàn hoặc gây hiểu lầm. Chỉ tiếp tục nếu bạn hoàn toàn tin tưởng nó.</string>
@@ -494,6 +486,7 @@
   <string name="nft_report_reason_malicious">Độc hại</string>
   <string name="nft_report_reason_inappropriate">Nội dung không phù hợp</string>
   <string name="nft_report_reason_copyright">Bản quyền</string>
+  <string name="nft_report_reason_other">Khác</string>
   <string name="nft_report_report_button_title">Báo cáo</string>
   <string name="permissions_access_denied">Truy cập bị từ chối</string>
   <string name="permissions_image_photo_access_denied_description">Ứng dụng này không có quyền truy cập vào thư viện ảnh của bạn. Vui lòng bật quyền truy cập trong cài đặt thiết bị của bạn.</string>
@@ -503,7 +496,6 @@
   <string name="search_state_empty_description">Kiểm tra lỗi chính tả hoặc thử tìm kiếm mới.</string>
   <string name="networks_state_empty_search_title">Không tìm thấy mạng lưới nào</string>
   <string name="onboarding_security_create_wallet_intro_title">Bạn sẽ nhận được Cụm từ bí mật — đây là cách duy nhất để truy cập vào ví của bạn.</string>
-  <string name="onboarding_security_create_wallet_confirm_title">Tôi hiểu và muốn tiếp tục</string>
   <string name="onboarding_security_create_wallet_do_not_share_title">Không Chia Sẻ Với Bất Kỳ Ai</string>
   <string name="onboarding_security_create_wallet_do_not_share_subtitle">Bất kỳ ai có được cụm từ bí mật của bạn đều có thể kiểm soát hoàn toàn ví của bạn.</string>
   <string name="onboarding_security_create_wallet_keep_safe_subtitle">Cụm từ bí mật là cách duy nhất để truy cập vào ví của bạn.</string>
@@ -552,8 +544,8 @@
   <string name="perpetual_margin_cross">Chéo</string>
   <string name="perpetual_margin_isolated">Bị cô lập</string>
   <string name="perpetuals_title">Perpetual</string>
+  <string name="perpetuals_trade">Giao dịch Perpetual</string>
   <string name="perpetuals_markets">Thị trường</string>
-  <string name="perpetuals_empty_state_no_markets">Không có thị trường</string>
   <string name="perpetuals_empty_state_no_markets_found">Không tìm thấy thị trường</string>
   <string name="rewards_title">Phần thưởng</string>
   <string name="rewards_share_text">Tham gia Gem Wallet Sử dụng liên kết giới thiệu của tôi và nhận phần thưởng: %1$s</string>
@@ -601,9 +593,6 @@
   <string name="simulation_warning_nft_collection_approval_title">Yêu cầu quyền truy cập đầy đủ vào bộ sưu tập NFT</string>
   <string name="simulation_warning_unlimited_token_approval_title">Phê duyệt mã thông báo không giới hạn</string>
   <string name="application_name">Gem</string>
-  <string name="camera_permission_request_camera">Cần có sự cho phép của máy ảnh để quét Mã QR.\nVui lòng cấp quyền.</string>
-  <string name="notifications_permission_request_notification">Cần có quyền Đăng thông báo để nhận thông báo về các giao dịch mới.\nVui lòng cấp quyền.</string>
-  <string name="confirm_fee_error">Lỗi tính phí</string>
   <string name="rootcheck_security_alert">Cảnh báo an ninh</string>
   <string name="rootcheck_body">Thiết bị của bạn có vẻ như có quyền truy cập gốc, điều này có thể làm tăng đáng kể rủi ro bảo mật. Sử dụng ứng dụng này trên thiết bị đã root có thể khiến tài sản của bạn bị truy cập trái phép và có khả năng mất mát. Để đảm bảo an toàn cho tiền của bạn, chúng tôi đặc biệt khuyên bạn nên sử dụng thiết bị không root.</string>
   <string name="rootcheck_ignore">Bỏ qua</string>

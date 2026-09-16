@@ -6,6 +6,7 @@ mod access_token_cacher;
 pub use self::access_token_cacher::{AccessTokenCacher, AccessTokenFuture};
 
 #[macro_use]
+pub mod known_entries;
 pub mod string_serde;
 
 mod async_result;
@@ -36,7 +37,7 @@ pub use self::chain_type::ChainType;
 pub mod chain_transaction_timeout;
 pub use self::chain_transaction_timeout::{chain_transaction_timeout, swap_transaction_timeout};
 pub mod chain_evm;
-pub use self::chain_evm::EVMChain;
+pub use self::chain_evm::{EVMChain, EvmNativeCurrency};
 pub mod chain_bitcoin;
 pub use self::chain_bitcoin::{BITCOINCASH_PREFIX, BitcoinChain};
 pub mod name;
@@ -51,8 +52,6 @@ pub mod node_sync_status;
 pub use self::node_sync_status::{NodeStatusState, NodeSyncStatus};
 pub mod latency_type;
 pub use self::latency_type::{Latency, LatencyType};
-pub mod service_status;
-pub use self::service_status::ServiceStatusState;
 pub mod price;
 pub use self::price::Price;
 pub mod price_change;
@@ -84,7 +83,7 @@ pub mod asset_id;
 pub use self::asset_id::{AssetId, AssetIdVecExt, CHAIN_SEPARATOR, TOKEN_ID_SEPARATOR};
 pub use crate::asset::AssetHashSetExt;
 pub mod asset_score;
-pub use self::asset_score::AssetScore;
+pub use self::asset_score::{AssetRank, AssetScore};
 pub mod asset_type;
 pub use self::asset_type::{AssetSubtype, AssetType};
 pub mod asset_price;
@@ -97,8 +96,6 @@ pub mod balance_calculator;
 pub use self::balance_calculator::BalanceCalculator;
 pub mod banner;
 pub use self::banner::{Banner, BannerEvent, BannerState};
-pub mod total_value_type;
-pub use self::total_value_type::TotalValueType;
 pub mod asset_price_info;
 pub use self::asset_price_info::AssetPriceInfo;
 pub mod asset_details;
@@ -121,6 +118,8 @@ pub mod fiat_quote_request;
 pub use self::fiat_quote_request::FiatQuoteRequest;
 pub mod fiat_rate;
 pub use self::fiat_rate::FiatRate;
+pub mod fiat_rate_provider;
+pub use self::fiat_rate_provider::FiatRateProvider;
 pub mod fiat_provider_id;
 pub use self::fiat_provider_id::FiatProviderId;
 pub mod platform;
@@ -142,7 +141,7 @@ pub use self::device_token::DeviceToken;
 pub mod defi;
 pub use self::defi::{DefiPosition, DefiPositionAsset, DefiPositionMetadata, DefiPositionType, DefiProtocol, DefiProvider};
 pub mod pagination;
-pub use self::pagination::{MAX_QUERY_LIMIT, MAX_QUERY_PAGES};
+pub use self::pagination::{MAX_QUERY_LIMIT, TRANSACTIONS_LIMIT, transactions_page_limit};
 pub mod transaction;
 pub use self::transaction::{Transaction, TransactionsResponse};
 pub mod transaction_type;
@@ -195,7 +194,7 @@ pub use self::gorush::{FailedNotification, GorushNotification, GorushNotificatio
 pub mod admin;
 pub use self::admin::{AdminDevice, AdminWalletOverview};
 pub mod scan;
-pub use self::scan::{AddressType, ScanAddress, ScanAddressTarget, ScanTransaction, ScanTransactionPayload};
+pub use self::scan::{AddressType, ScanAddress, ScanAddressTarget, ScanProvider, ScanSource, ScanTransaction, ScanTransactionPayload};
 pub mod hex;
 pub use self::hex::{HexError, decode_hex, decode_hex_array};
 pub mod transaction_metadata_types;
@@ -229,9 +228,12 @@ pub use self::wallet_connector::{
 pub mod nft;
 pub use self::nft::{NFTAsset, NFTAssetData, NFTAssetId, NFTAttribute, NFTAttributeType, NFTCollection, NFTCollectionId, NFTData, NFTImages, NFTResource, NFTType, ReportNft};
 pub mod price_alert;
-pub use self::price_alert::{DevicePriceAlert, PriceAlert, PriceAlertDirection, PriceAlertNotificationType, PriceAlertType, PriceAlerts};
+pub use self::price_alert::{DevicePriceAlert, PriceAlert, PriceAlertData, PriceAlertDirection, PriceAlertNotificationType, PriceAlertType, PriceAlerts};
 pub mod rewards;
-pub use self::rewards::{ReferralCode, ReferralLeader, ReferralLeaderboard, RewardEvent, RewardEventType, RewardLevel, RewardStatus, Rewards};
+pub use self::rewards::{
+    RedemptionResult, RedemptionStatus, ReferralAllowance, ReferralCode, ReferralLeader, ReferralLeaderboard, ReferralQuota, RewardEvent, RewardEventType, RewardLevel,
+    RewardRedemption, RewardRedemptionOption, RewardRedemptionType, RewardStatus, Rewards,
+};
 pub mod tag;
 pub use self::tag::AssetTag;
 pub mod chain_cosmos;
@@ -362,6 +364,8 @@ pub use self::secure_preferences::{InMemoryPreferences, Preferences, Preferences
 
 pub mod signer_error;
 pub use self::signer_error::SignerError;
+pub mod domain;
+
 pub mod date_ext;
 pub use self::date_ext::{DurationExt, NaiveDateTimeExt, now};
 pub mod number_incrementer;
@@ -396,6 +400,8 @@ pub mod connection_status;
 pub use self::connection_status::ConnectionStatus;
 pub mod metrics;
 pub use self::metrics::{ConsumerStatus, ParserStatus, ReportedError};
+pub mod version;
+pub use self::version::{Version, is_version_higher};
 pub mod value_access;
 pub use self::value_access::{JsonDecode, ValueAccess};
 

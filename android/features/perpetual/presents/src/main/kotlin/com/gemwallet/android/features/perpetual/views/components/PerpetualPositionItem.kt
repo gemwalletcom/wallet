@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregate
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.ui.components.perpetual.color
 import com.gemwallet.android.ui.components.perpetual.text
 import com.gemwallet.android.ui.components.image.AssetIcon
@@ -18,7 +18,7 @@ import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
-import com.gemwallet.android.ui.components.list_item.color
+import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.adaptivePadding
@@ -34,6 +34,8 @@ import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
 
+private val trailingMinWidth = 40.dp
+
 @Composable
 fun PerpetualPositionItem(
     data: PerpetualPositionDataAggregate,
@@ -47,11 +49,11 @@ fun PerpetualPositionItem(
         contentPadding = adaptivePadding(default = paddingMiddle, compact = space6),
         titleSubtitleSpacing = space0,
         leading = @Composable { AssetIcon(data.asset) },
-        title = @Composable { ListItemTitleText(data.asset.symbol.ifEmpty { data.name }) },
+        title = @Composable { ListItemTitleText(data.title) },
         subtitle = { ListItemSupportText(data.direction.text(data.leverage), color = data.direction.color()) },
         trailing = {
             Column(
-                modifier = Modifier.defaultMinSize(40.dp),
+                modifier = Modifier.defaultMinSize(trailingMinWidth),
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(paddingHalfSmall)
             ) {
@@ -74,15 +76,14 @@ private fun PerpetualPositionLongItemPreview() {
     )
 
     val sampleData = object : PerpetualPositionDataAggregate {
-        override val positionId: String = "pos_btc_001"
         override val perpetualId: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
         override val asset: Asset = sampleAsset
-        override val name: String = "BTC"
+        override val title: String = "BTC"
         override val direction: PerpetualDirection = PerpetualDirection.Long
-        override val leverage: Int = 40
+        override val leverage: String = "40x"
         override val marginAmount: String = "$1,000.00"
         override val pnlWithPercentage: String = "+$1,250.00 (+12.50%)"
-        override val pnlState: ValueDirection = ValueDirection.Up
+        override val pnlState: GemValueTone = GemValueTone.POSITIVE
     }
 
     WalletTheme {
@@ -102,15 +103,14 @@ private fun PerpetualPositionShortItemPreview() {
     )
 
     val sampleData = object : PerpetualPositionDataAggregate {
-        override val positionId: String = "pos_btc_001"
         override val perpetualId: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
         override val asset: Asset = sampleAsset
-        override val name: String = "BTC"
+        override val title: String = "BTC"
         override val direction: PerpetualDirection = PerpetualDirection.Short
-        override val leverage: Int = 40
+        override val leverage: String = "40x"
         override val marginAmount: String = "$1,000.00"
         override val pnlWithPercentage: String = "-$1,250.00 (+12.50%)"
-        override val pnlState: ValueDirection = ValueDirection.Down
+        override val pnlState: GemValueTone = GemValueTone.NEGATIVE
     }
 
     WalletTheme {

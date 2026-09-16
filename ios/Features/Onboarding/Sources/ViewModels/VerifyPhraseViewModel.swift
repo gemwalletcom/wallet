@@ -8,14 +8,13 @@ import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
-import GemstoneServices
 
 @Observable
 @MainActor
 final class VerifyPhraseViewModel {
     private let words: [String]
     private let shuffledWords: [String]
-    private let onComplete: ([String]) -> Void
+    private let onComplete: ([String]) async throws -> Void
 
     var wordsVerified: [String]
     var wordsIndex: Int = 0
@@ -25,10 +24,11 @@ final class VerifyPhraseViewModel {
 
     init(
         words: [String],
-        onComplete: @escaping ([String]) -> Void,
+        shuffledWords: [String],
+        onComplete: @escaping ([String]) async throws -> Void,
     ) {
         self.words = words
-        shuffledWords = words.shuffleInGroups(groupSize: 4)
+        self.shuffledWords = shuffledWords
         wordsVerified = Array(repeating: "", count: words.count)
         self.onComplete = onComplete
     }
@@ -41,13 +41,8 @@ final class VerifyPhraseViewModel {
         AppUrl.docs(.howToSecureSecretPhrase)
     }
 
-    var rows: [[WordIndex]] {
-        wordsVerified
-            .enumerated()
-            .map {
-                WordIndex(index: $0.offset, word: $0.element)
-            }
-            .splitInSubArrays(into: wordsVerified.count / 2)
+    var rows: [SecretPhraseRow] {
+        SecretPhraseRow.rows(for: wordsVerified)
     }
 
     var rowsSections: [[WordIndex]] {
@@ -84,6 +79,17 @@ final class VerifyPhraseViewModel {
 extension VerifyPhraseViewModel {
     func onContinue() {
         buttonState = .loading(showProgress: true)
-        onComplete(words)
+        Task {
+            await complete()
+        }
+    }
+
+    func complete() async {
+        do {
+            try await onComplete(words)
+        } catch {
+            buttonState = .normal
+            isPresentingAlertMessage = AlertMessage(title: Localized.Errors.createWallet(""), error: error)
+        }
     }
 }

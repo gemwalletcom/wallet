@@ -4,7 +4,6 @@ import com.gemwallet.android.ext.toGem
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.device.cases.EnableDevicePush
 import com.gemwallet.android.application.pricealerts.cases.GetAssetPriceAlertState
 import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
 import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
@@ -30,7 +29,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import android.util.Log
 import com.gemwallet.android.ext.runCatchingCancellable
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemPriceAlertServiceInterface
+import com.gemwallet.android.ext.errorText
+import kotlinx.coroutines.flow.StateFlow
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -38,7 +40,6 @@ class PriceAlertViewModel @Inject constructor(
     getPriceAlerts: GetPriceAlerts,
     private val getAssetPriceAlertState: GetAssetPriceAlertState,
     private val getAssetTokenInfo: GetAssetTokenInfo,
-    private val enableDevicePush: EnableDevicePush,
     private val service: GemPriceAlertServiceInterface,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -69,6 +70,9 @@ class PriceAlertViewModel @Inject constructor(
 
     val isRefreshing = refreshState.asStateFlow()
 
+    private val errorState = MutableStateFlow<GemErrorText?>(null)
+    val error: StateFlow<GemErrorText?> = errorState.asStateFlow()
+
     init {
         val initialAssetId = savedStateHandle.get<String?>(RouteArgument.AssetId.key)?.toAssetId()
         viewModelScope.launch(Dispatchers.IO) {
@@ -97,10 +101,6 @@ class PriceAlertViewModel @Inject constructor(
         alertsEnabled.update { service.isEnabled() }
     }
 
-    fun onPushNotificationGranted() = viewModelScope.launch(Dispatchers.IO) {
-        enableDevicePush()
-    }
-
     fun toggleAutoAlert(enabled: Boolean) = viewModelScope.launch(Dispatchers.IO) {
         val assetId = assetId.value ?: return@launch
         setAutoAlert(assetId, enabled)
@@ -109,7 +109,7 @@ class PriceAlertViewModel @Inject constructor(
     fun excludeAsset(priceAlertId: String) = viewModelScope.launch(Dispatchers.IO) {
         val alert = data.value.values.flatten().firstOrNull { it.id == priceAlertId } ?: return@launch
         runCatchingCancellable { service.deletePriceAlerts(listOf(alert.priceAlert.toGem())) }
-            .onFailure { Log.e(TAG, "deleting the price alert for ${alert.assetId.toIdentifier()} failed", it) }
+            .onFailure { errorState.value = it.errorText() }
     }
 
     fun includeAsset(assetId: AssetId, callback: (Asset) -> Unit) = viewModelScope.launch(Dispatchers.IO) {
@@ -121,8 +121,10 @@ class PriceAlertViewModel @Inject constructor(
 
     private suspend fun setAutoAlert(assetId: AssetId, enabled: Boolean) {
         runCatchingCancellable { service.setAutoAlert(assetId.toIdentifier(), enabled) }
-            .onFailure { Log.e(TAG, "setting the auto price alert for ${assetId.toIdentifier()} failed", it) }
+            .onFailure { errorState.value = it.errorText() }
     }
+
+    fun clearError() = errorState.update { null }
 
     private companion object {
         const val TAG = "PriceAlerts"

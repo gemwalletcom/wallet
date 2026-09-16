@@ -141,7 +141,15 @@ impl MoonPayClient {
         })
     }
 
-    pub fn quote_redirect_url(&self, quote_type: FiatQuoteType, amount: f64, symbol: &str, wallet_address: &str, external_transaction_id: &str, ip_address: &str) -> String {
+    pub fn quote_redirect_url(
+        &self,
+        quote_type: FiatQuoteType,
+        amount: f64,
+        symbol: &str,
+        wallet_address: &str,
+        external_transaction_id: &str,
+        ip_address: &str,
+    ) -> Result<String, url::ParseError> {
         MoonPayWidget::new(self.api_key.clone(), self.secret_key.clone()).redirect_url(quote_type, amount, symbol, wallet_address, external_transaction_id, ip_address)
     }
 }

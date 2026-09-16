@@ -9,6 +9,7 @@
   <string name="common_copy">Kopiér</string>
   <string name="common_share">Del</string>
   <string name="common_continue">Fortsæt</string>
+  <string name="common_sign_in_with">Log ind med %1$s</string>
   <string name="common_provider">Udbyder</string>
   <string name="common_loading">Indlæser</string>
   <string name="common_address">Adresse</string>
@@ -54,9 +55,9 @@
   <string name="common_earn">Tjen</string>
   <string name="common_method">Metode</string>
   <string name="common_token">Token</string>
+  <string name="common_expiration">Udløb</string>
   <string name="common_suspicious_address">Mistænkelig adresse</string>
   <string name="common_refresh">Opdater</string>
-  <string name="common_no_thanks">Nej tak</string>
   <string name="common_grant_permission">Giv tilladelse</string>
   <string name="common_required_field">%1$s er påkrævet</string>
   <string name="welcome_title">Velkommen til Gem Family</string>
@@ -142,7 +143,6 @@
   <string name="transfer_unfreeze_title">Optø</string>
   <string name="transfer_review_request">Anmodning om gennemgang</string>
   <string name="transfer_amount">Beløb</string>
-  <string name="transfer_amount_title">Beløb</string>
   <string name="settings_terms_of_services">Servicevilkår</string>
   <string name="settings_privacy_policy">Privatlivspolitik</string>
   <string name="settings_title">Indstillinger</string>
@@ -177,7 +177,6 @@
   <string name="support_state_empty_title">Hvordan kan vi hjælpe?</string>
   <string name="support_state_empty_description">Spørg os om hvad som helst. Vi er her for at hjælpe.</string>
   <string name="support_message_placeholder">Besked</string>
-  <string name="errors_transfer">Overførselsfejl: %1$s</string>
   <string name="errors_validation">Valideringsfejl: %1$s</string>
   <string name="errors_create_wallet">Fejl ved oprettelse af tegnebog: %1$s</string>
   <string name="errors_invalid_address_name">Ugyldig adresse eller navn</string>
@@ -196,7 +195,6 @@
   <string name="errors_connections_user_cancelled">Bruger annulleret</string>
   <string name="errors_not_supported">Ikke understøttet</string>
   <string name="errors_permissions_not_granted">Tilladelser ikke givet</string>
-  <string name="errors_decoding">Afkodningsfejl</string>
   <string name="errors_unknown">Ukendt</string>
   <string name="errors_not_supported_qr">Denne enhed understøtter ikke QR-kodescanning. Du kan kun vælge QR-kodebillede fra biblioteket.</string>
   <string name="errors_camera_permissions_not_granted">Kameratilladelse ikke givet. Aktiver kameraadgang i indstillingerne for at scanne QR-koden.</string>
@@ -207,11 +205,8 @@
   <string name="errors_dust_threshold">Transaktionen mislykkedes, fordi beløbet er for lille til at opfylde %1$s netværkets minimumskrav (støvtærskel). Denne grænse sikrer, at transaktionsværdien dækker gebyrer og behandlingsomkostninger.</string>
   <string name="errors_swap_no_quote_available">Ingen pris er tilgængelig.</string>
   <string name="errors_swap_not_supported_asset">Ikke understøttet aktiv.</string>
-  <string name="errors_connections_invalid_send_parameters">Ugyldige parametre angivet til afsendelse af en transaktion.</string>
-  <string name="errors_connections_invalid_sign_parameters">Ugyldige parametre angivet til signering.</string>
   <string name="errors_connections_no_supported_wallets">Ingen understøttede tegnebøger er tilgængelige.</string>
   <string name="errors_connections_unsupported_chain">Den angivne kæde understøttes ikke.</string>
-  <string name="errors_connections_unsupported_method">Den ønskede metode understøttes ikke.</string>
   <string name="errors_swap_amount_too_small">Beløbet er for lille</string>
   <string name="errors_required">%1$s er påkrævet</string>
   <string name="errors_scan_transaction_malicious_description">Denne transaktion kan ikke gennemføres — destinationsadressen på tegnebogen er knyttet til mistænkelig eller skadelig aktivitet.</string>
@@ -223,7 +218,6 @@
   <string name="errors_swap_minimum_amount">Minimumsbeløbet for handel er %1$s. Indtast venligst et højere beløb.</string>
   <string name="errors_perpetual_trigger_price_lower">Triggerprisen skal være lavere end markedsprisen</string>
   <string name="errors_perpetual_trigger_price_higher">Triggerprisen skal være højere end markedsprisen</string>
-  <string name="errors_token_unable_fetch_token_information">Kan ikke hente tokenoplysninger: %1$s</string>
   <string name="errors_unknown_try_again">Der opstod en ukendt fejl. Prøv venligst igen.</string>
   <string name="errors_network_error">Netværksfejl: %1$s</string>
   <string name="errors_network_offline">Internetforbindelsen ser ud til at være offline.</string>
@@ -241,7 +235,6 @@
   <string name="update_app_permission_title">Tillad installation</string>
   <string name="update_app_permission_description">Gå til indstillinger og tillad installation fra eksterne kilder</string>
   <string name="update_app_permission_open_settings">Gå til indstillinger</string>
-  <string name="update_app_downloading">Downloader...</string>
   <string name="transaction_recipient">Modtager</string>
   <string name="transaction_sender">Afsender</string>
   <string name="transaction_date">Dato</string>
@@ -314,6 +307,7 @@
   <string name="wallet_connect_permissions_title">Tilladelser</string>
   <string name="wallet_connect_permissions_view_balance">Se din saldo og aktivitet</string>
   <string name="wallet_connect_permissions_approval_requests">Send godkendelsesanmodninger</string>
+  <string name="wallet_connect_request_expired">Anmodningen er udløbet</string>
   <string name="swap_you_pay">Du betaler</string>
   <string name="swap_you_receive">Du modtager</string>
   <string name="swap_price_impact">Prispåvirkning</string>
@@ -396,8 +390,6 @@
   <string name="banner_account_activation_description">%1$s netværket kræver et engangsgebyr på %2$s.</string>
   <string name="banner_stake_title">Begynd at satse %1$s</string>
   <string name="banner_stake_description">Optjen %1$s belønninger på din indsats, mens du sover.</string>
-  <string name="banner_enable_notifications_title">Aktiver meddelelser</string>
-  <string name="banner_enable_notifications_description">Hold styr på din tegnebogsaktivitet.</string>
   <string name="banner_activate_asset_description">For at bruge %1$s-aktivet skal du først aktivere det på %2$s-netværket ved at opfylde netværkets specifikke krav.</string>
   <string name="banner_asset_status_title">Mistænkeligt aktiv</string>
   <string name="banner_asset_status_description">Token kan være usikker eller vildledende. Fortsæt kun, hvis du har fuld tillid til det.</string>
@@ -494,6 +486,7 @@
   <string name="nft_report_reason_malicious">Ondsindet</string>
   <string name="nft_report_reason_inappropriate">Upassende indhold</string>
   <string name="nft_report_reason_copyright">Ophavsret</string>
+  <string name="nft_report_reason_other">Andet</string>
   <string name="nft_report_report_button_title">Rapport</string>
   <string name="permissions_access_denied">Adgang nægtet</string>
   <string name="permissions_image_photo_access_denied_description">Denne app har ikke tilladelse til at få adgang til dit fotobibliotek. Aktiver venligst adgang i dine enhedsindstillinger.</string>
@@ -503,7 +496,6 @@
   <string name="search_state_empty_description">Tjek stavningen eller prøv en ny søgning.</string>
   <string name="networks_state_empty_search_title">Ingen netværk fundet</string>
   <string name="onboarding_security_create_wallet_intro_title">Du får en hemmelig sætning – det er den eneste måde at få adgang til din tegnebog på.</string>
-  <string name="onboarding_security_create_wallet_confirm_title">Jeg forstår og vil gerne fortsætte</string>
   <string name="onboarding_security_create_wallet_do_not_share_title">Del det ikke med nogen</string>
   <string name="onboarding_security_create_wallet_do_not_share_subtitle">Enhver, der får din hemmelige sætning, kan tage fuld kontrol over din pung.</string>
   <string name="onboarding_security_create_wallet_keep_safe_subtitle">Den hemmelige sætning er den eneste måde at få adgang til din tegnebog.</string>
@@ -552,8 +544,8 @@
   <string name="perpetual_margin_cross">Kors</string>
   <string name="perpetual_margin_isolated">Isoleret</string>
   <string name="perpetuals_title">Perpetuals</string>
+  <string name="perpetuals_trade">Handl perpetuals</string>
   <string name="perpetuals_markets">Markeder</string>
-  <string name="perpetuals_empty_state_no_markets">Ingen markeder</string>
   <string name="perpetuals_empty_state_no_markets_found">Ingen markeder fundet</string>
   <string name="rewards_title">Belønninger</string>
   <string name="rewards_share_text">Deltag Gem Wallet med mit henvisningslink og optjen belønninger: %1$s</string>
@@ -601,9 +593,6 @@
   <string name="simulation_warning_nft_collection_approval_title">Fuld adgang til NFT-samling anmodes</string>
   <string name="simulation_warning_unlimited_token_approval_title">Ubegrænset tokengodkendelse</string>
   <string name="application_name">Gem</string>
-  <string name="camera_permission_request_camera">Kameratilladelse kræves til QR-kodescanning.\nGiv venligst tilladelse.</string>
-  <string name="notifications_permission_request_notification">Der kræves tilladelse til at sende meddelelser for at få meddelelser om nye transaktioner.\nGiv venligst tilladelse.</string>
-  <string name="confirm_fee_error">Fejl ved gebyrberegning</string>
   <string name="rootcheck_security_alert">Sikkerhedsadvarsel</string>
   <string name="rootcheck_body">Din enhed ser ud til at have root-adgang, hvilket kan øge sikkerhedsrisiciene betydeligt. Brug af denne app på en rootet enhed kan udsætte dine aktiver for uautoriseret adgang og potentielt tab. Af hensyn til dine penges sikkerhed anbefaler vi kraftigt at bruge en enhed uden rod.</string>
   <string name="rootcheck_ignore">Ignorer</string>

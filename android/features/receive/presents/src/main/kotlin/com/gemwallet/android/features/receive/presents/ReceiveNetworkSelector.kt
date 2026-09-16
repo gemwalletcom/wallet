@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.receive.presents
 
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,7 +28,7 @@ internal fun ReceiveNetworkSelector(
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismiss,
-        skipPartiallyExpanded = true,
+        expansion = SheetExpansion.Full,
         title = stringResource(R.string.settings_networks_title),
     ) {
         LazyColumn(

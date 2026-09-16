@@ -49,6 +49,7 @@ public struct WalletImageScene: View {
         .bindQuery(model.walletQuery, model.nftQuery)
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
+        .alertSheet($model.isPresentingAlertMessage)
         .background(Colors.grayBackground)
     }
 

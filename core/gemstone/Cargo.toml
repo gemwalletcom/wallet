@@ -76,6 +76,7 @@ strum = { workspace = true }
 url = { workspace = true }
 num-bigint.workspace = true
 futures.workspace = true
+tracing.workspace = true
 bs58 = { workspace = true }
 zeroize = { workspace = true }
 
@@ -84,4 +85,5 @@ uniffi = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 primitives = { path = "../crates/primitives", features = ["testkit"] }
+swapper = { path = "../crates/swapper", features = ["testkit"] }
 tempfile = "3.24.0"

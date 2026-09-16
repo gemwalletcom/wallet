@@ -5,8 +5,10 @@ Use the iOS `justfile` commands by default.
 ## Build and Test
 
 ```bash
-just bootstrap              # first-time setup
+just install                # first-time setup
 just clean                  # clean DerivedData and build artifacts
+just check GemstonePrimitives # compile ONE package with SwiftPM (~1-2s) — use this while iterating
+just check-test Primitives  # run ONE package's tests with SwiftPM (~2s)
 just build                  # build the app
 just build-for-testing      # build once for repeated test runs
 just build-package Primitives # build one Swift package/scheme
@@ -16,6 +18,29 @@ just test AssetsTests       # run a specific test target
 just test-integration       # run iOS integration/UI tests
 just test-ui                # run iOS integration/UI tests
 ```
+
+## Pick the cheapest command that can fail
+
+Measured on a warm tree, so the gap is iteration cost, not first-build cost:
+
+| command | warm | use it for |
+|---|---|---|
+| `just check <Package>` | 1-2s | does this package still compile — the default while editing a platform-independent package |
+| `just check-test <Package>` | 2s | that package's tests, same limits as above |
+| `just test <TestTarget>` | ~35s | one test target, including Gemstone-dependent ones |
+| `just build` | ~30s even with nothing to do | the app links, before a commit |
+| `just test` | ~50s | the whole suite, before a commit |
+
+SwiftPM builds for the host, so the two `check` recipes only cover packages that import neither UIKit nor
+SwiftUI, and among those only ones that do not link Gemstone can run their tests — the static library is
+built for the simulator. Everything with a UI or a Gemstone dependency goes through `just build` and
+`just test <TestTarget>`.
+
+`swift build` reports every error in the package; `xcodebuild` stops at the first failing target, so a
+compile-fix loop driven by `just build` costs one full build per error batch. Two habits worth keeping:
+`just test` builds what it needs, so running `just build` first is a wasted 30s, and `just generate-stone`
+is only needed when Core's FFI surface changed, not after every Core edit.
+
 
 ## Generation and Localization
 
@@ -65,4 +90,4 @@ just spm-resolve-all
 - Use `just` commands for builds and tests, not `xcrun swift test`
 - Build logs live under `build/DerivedData`
 - If `just build` is insufficient for debugging, use `xcodebuild` directly against `Gem.xcodeproj`
-- `just bootstrap` installs `swiftformat`
+- `just install` installs `swiftformat`, `swiftlint`, and `xcbeautify`

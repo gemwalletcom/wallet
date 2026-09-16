@@ -30,10 +30,6 @@ pub struct NFTCollection {
     pub chain: Chain,
     pub contract_address: String,
     pub images: NFTImages,
-    // TODO: Remove after all Rust callers and downstream indexes migrate to `status`.
-    #[serde(default)]
-    #[typeshare(skip)]
-    pub is_verified: bool,
     pub status: VerificationStatus,
     pub links: Vec<AssetLink>,
 }

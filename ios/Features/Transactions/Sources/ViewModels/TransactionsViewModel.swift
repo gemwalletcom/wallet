@@ -9,6 +9,7 @@ import Localization
 import Primitives
 import PrimitivesComponents
 import Store
+import func Gemstone.transactionsEmptyState
 
 @Observable
 @MainActor
@@ -18,7 +19,7 @@ public final class TransactionsViewModel {
 
     public let wallet: Wallet
 
-    public var transactions: [TransactionExtended] {
+    public var sections: [ListSection<TransactionViewModel>] {
         filterModel.query.value
     }
 
@@ -39,7 +40,7 @@ public final class TransactionsViewModel {
     }
 
     private static func filterChains(_ service: any GemTransactionsServiceProtocol, wallet: Wallet) -> [Chain] {
-        service.filterChains(wallet: wallet.map()).map { Chain(core: $0) }
+        service.filterChains(wallet: wallet.toGem()).map { Chain(core: $0) }
     }
 
     public var title: String {
@@ -50,14 +51,18 @@ public final class TransactionsViewModel {
         wallet.id
     }
 
-    public var currency: String {
-        service.getCurrency()
+    public var currency: Currency {
+        service.getCurrency().toPrimitives()
     }
 
     public var emptyContentModel: EmptyContentTypeViewModel {
-        if !filterModel.isAnyFilterSpecified {
+        switch transactionsEmptyState(
+            chains: filterModel.chainsFilter.selectedChains.map { $0.rawValue },
+            filters: filterModel.transactionTypesFilter.selectedTypes,
+        ) {
+        case .noActivity:
             EmptyContentTypeViewModel(type: .activity(receive: onSelectReceive, buy: onSelectBuy, isViewOnly: wallet.isViewOnly))
-        } else {
+        case .noResults:
             EmptyContentTypeViewModel(type: .search(type: .activity, action: onSelectCleanFilters))
         }
     }

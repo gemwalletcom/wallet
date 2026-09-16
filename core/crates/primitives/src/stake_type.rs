@@ -19,8 +19,7 @@ pub enum Resource {
     Energy,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type", content = "content")]
+#[derive(Debug, Clone)]
 pub enum StakeType {
     Stake(DelegationValidator),
     Unstake(Delegation),
@@ -39,7 +38,6 @@ pub struct TronVote {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 pub struct TronUnfreeze {
     pub resource: Resource,
     pub amount: UInt64,
@@ -47,10 +45,9 @@ pub struct TronUnfreeze {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", content = "content")]
-#[typeshare(swift = "Equatable, Sendable, Hashable")]
 pub enum TronStakeData {
-    Votes(Vec<TronVote>),
-    Unfreeze(Vec<TronUnfreeze>),
+    Votes { votes: Vec<TronVote> },
+    Unfreeze { unfreezes: Vec<TronUnfreeze> },
 }
 
 #[cfg(test)]

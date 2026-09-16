@@ -1,15 +1,16 @@
 package com.gemwallet.android.features.buy.viewmodels
 
+import com.gemwallet.android.features.buy.localization.errorText
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
 import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
-import com.gemwallet.android.domains.asset.aggregates.AssetRowNaming
+import uniffi.gemstone.GemAssetRowTitle
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.tickerFlow
-import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
@@ -18,15 +19,15 @@ import com.gemwallet.android.features.buy.viewmodels.models.FiatUiState
 import com.gemwallet.android.features.buy.viewmodels.models.createFiatUiState
 import com.gemwallet.android.features.buy.viewmodels.models.toProviderUIModel
 import com.gemwallet.android.model.AssetData
-import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.FiatProvider
-import com.wallet.core.primitives.FiatQuote
+import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.FiatQuoteType
-import com.wallet.core.primitives.FiatQuoteUrl
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.withContext
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -44,13 +45,14 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import uniffi.gemstone.GemFiatQuoteRequest
 import uniffi.gemstone.GemFiatQuoteServiceInterface
 import uniffi.gemstone.GemFiatQuotesResult
 import uniffi.gemstone.GemServiceException
-import java.math.BigInteger
 import javax.inject.Inject
+import dagger.hilt.android.qualifiers.ApplicationContext
+import android.content.Context
+import com.gemwallet.android.model.text
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
@@ -58,10 +60,12 @@ class FiatViewModel @Inject constructor(
     getBuyAssetInfo: GetBuyAssetInfo,
     getAssetPriceUsd: GetAssetPriceUsd,
     private val service: GemFiatQuoteServiceInterface,
+    @ApplicationContext private val context: Context,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val currency = service.getCurrency().toCurrency()
+    private val currency = service.getCurrency().toPrimitives()
     private val currencySymbol = java.util.Currency.getInstance(currency.name).symbol
     private val assetId: AssetId = savedStateHandle.requireAssetId(RouteArgument.AssetId)
 
@@ -76,21 +80,25 @@ class FiatViewModel @Inject constructor(
     val type: StateFlow<FiatQuoteType> = session.map { it.quoteType.toPrimitives() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.quoteType.toPrimitives())
 
-    val amount: StateFlow<String> = session.map { it.current().amount }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.current().amount)
-
     private val assetData: StateFlow<AssetData?> = getBuyAssetInfo(assetId)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val assetPriceUsd: StateFlow<Double?> = getAssetPriceUsd(assetId)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    private val viewState = combine(session, isUrlLoading, assetPriceUsd) { session, isUrlLoading, priceUsd ->
+        session.viewState(priceUsd, isUrlLoading)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, session.value.viewState(null, false))
+
+    val amount: StateFlow<String> = viewState.map { it.amount }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.amount)
+
     val assetInfoUIModel = assetData
         .mapNotNull { it }
         .map {
             val assetInfo = it.toAssetInfo()
             assetInfo.toAssetInfoDataAggregate(
-                naming = AssetRowNaming.CanonicalNative,
+                naming = GemAssetRowTitle.CANONICAL_ASSET,
                 displayedAmount = assetInfo.balance.balanceAmount.available,
             )
         }
@@ -103,25 +111,23 @@ class FiatViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val suggestedAmounts = type.mapLatest {
-        service.config().suggestedAmounts.map {
+        service.suggestedAmounts().map {
             FiatSuggestion.SuggestionAmount("$currencySymbol$it", it.toDouble())
         } + FiatSuggestion.RandomAmount
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val uiState: StateFlow<FiatUiState> = combine(session, isUrlLoading) { session, isUrlLoading ->
-        createFiatUiState(session, isUrlLoading)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, createFiatUiState(session.value, false))
+    val uiState: StateFlow<FiatUiState> = combine(viewState, assetInfoUIModel) { state, asset ->
+        createFiatUiState(state, state.errorText(context, asset?.asset?.name.orEmpty(), asset?.asset?.symbol.orEmpty()))
+    }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, createFiatUiState(viewState.value, null))
 
-    val quotes: StateFlow<List<FiatQuote>> = session
-        .map { it.current().quotes.map { quote -> quote.decodeJson<FiatQuote>() } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val providers = combine(assetInfoUIModel.filterNotNull(), quotes, assetPriceUsd) { asset, quotes, priceUsd ->
-        quotes.map { quote -> quote.toProviderUIModel(asset.asset, currency, priceUsd) }
+    val providers = combine(assetInfoUIModel.filterNotNull(), viewState) { asset, state ->
+        state.quoteRows.map { row -> row.toProviderUIModel(asset.asset) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val selectedProvider = combine(assetInfoUIModel, session) { asset, session ->
-        asset?.let { session.selectedQuote()?.decodeJson<FiatQuote>()?.toProviderUIModel(it.asset, currency) }
+    val selectedProvider = combine(assetInfoUIModel, viewState) { asset, state ->
+        asset?.let { state.selectedQuoteRow?.toProviderUIModel(it.asset) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val ticker = tickerFlow(service.quoteRefreshIntervalMilliseconds().toLong()) {}
@@ -152,7 +158,7 @@ class FiatViewModel @Inject constructor(
     private suspend fun loadQuotes(request: GemFiatQuoteRequest, assetId: AssetId) {
         session.update { it.onFetchStarted(request) }
         val results = try {
-            GemFiatQuotesResult(request, service.quotes(request.quoteType, assetId.toIdentifier(), request.amount), null)
+            GemFiatQuotesResult(request, withContext(ioDispatcher) { service.quotes(request.quoteType, assetId.toIdentifier(), request.amount) }, null)
         } catch (err: CancellationException) {
             throw err
         } catch (err: Throwable) {
@@ -174,8 +180,8 @@ class FiatViewModel @Inject constructor(
         updateAmount(value)
     }
 
-    fun setProvider(provider: FiatProvider) {
-        session.update { it.onProviderSelected(provider.id) }
+    fun setProvider(provider: FiatProviderName) {
+        session.update { it.onProviderSelected(provider.toGem()) }
     }
 
     fun setType(type: FiatQuoteType) {
@@ -186,15 +192,14 @@ class FiatViewModel @Inject constructor(
         quoteRetry.value += 1
     }
 
-    fun getUrl(callback: (String?) -> Unit) {
-        val quoteId = session.value.selectedQuote()?.decodeJson<FiatQuote>()?.id ?: return callback(null)
-        viewModelScope.launch {
-            isUrlLoading.value = true
-            val url = runCatching { service.quoteUrl(assetId.toIdentifier(), quoteId).decodeJson<FiatQuoteUrl>().redirectUrl }
+    suspend fun quoteUrl(): Result<String> {
+        val quoteId = requireNotNull(viewState.value.selectedQuoteRow).quoteId
+        isUrlLoading.value = true
+        try {
+            return runCatchingCancellable { service.quoteUrl(assetId.toIdentifier(), quoteId).redirectUrl }
                 .onFailure { Log.e(TAG, "fiat quote url request failed", it) }
-                .getOrNull()
+        } finally {
             isUrlLoading.value = false
-            callback(url)
         }
     }
 

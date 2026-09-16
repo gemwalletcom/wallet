@@ -43,37 +43,25 @@ public struct WalletDetailScene: View {
                         Spacer()
                     }
                 }
-                switch model.wallet.type {
-                case .multicoin, .single:
+                if let secretKind = model.secretKind {
                     Section {
                         NavigationCustomLink(
-                            with: ListItemView(title: Localized.Common.show(Localized.Common.secretPhrase)),
+                            with: ListItemView(title: Localized.Common.show(secretKind.title)),
                             action: model.onShowSecret,
                         )
                     } header: {
-                        Text(Localized.Common.secretPhrase)
+                        Text(secretKind.title)
                     }
-                case .privateKey:
-                    Section {
-                        NavigationCustomLink(
-                            with: ListItemView(title: Localized.Common.show(Localized.Common.privateKey)),
-                            action: model.onShowSecret,
-                        )
-                    } header: {
-                        Text(Localized.Common.privateKey)
-                    }
-                case .view:
-                    EmptyView()
                 }
                 Section {
                     switch model.address {
-                    case let .account(account):
+                    case let .account(account, link):
                         AddressListItemView(
                             model: AddressListItemViewModel(
                                 title: Localized.Common.address,
                                 account: account,
                                 mode: .auto(addressStyle: .short),
-                                addressLink: model.addressLink(account: account),
+                                addressLink: link,
                             ),
                         )
                     case .none:

@@ -19,7 +19,6 @@ pub enum WalletConnectionState {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[typeshare(swift = "CaseIterable, Sendable")]
 pub enum WalletConnectionMethods {
     #[serde(rename = "eth_chainId")]
     EthChainId,
@@ -33,8 +32,6 @@ pub enum WalletConnectionMethods {
     EthSignTransaction,
     #[serde(rename = "eth_sendTransaction")]
     EthSendTransaction,
-    #[serde(rename = "eth_sendRawTransaction")]
-    EthSendRawTransaction,
     #[serde(rename = "wallet_switchEthereumChain")]
     WalletSwitchEthereumChain,
     #[serde(rename = "wallet_addEthereumChain")]
@@ -76,7 +73,6 @@ impl WalletConnectionMethods {
             Self::EthSignTypedDataV4,
             Self::EthSignTransaction,
             Self::EthSendTransaction,
-            Self::EthSendRawTransaction,
             Self::WalletSwitchEthereumChain,
             Self::WalletAddEthereumChain,
             Self::SolanaSignMessage,
@@ -103,7 +99,6 @@ impl WalletConnectionMethods {
             | Self::EthSignTypedDataV4
             | Self::EthSignTransaction
             | Self::EthSendTransaction
-            | Self::EthSendRawTransaction
             | Self::WalletSwitchEthereumChain
             | Self::WalletAddEthereumChain => ChainType::Ethereum,
             Self::SolanaSignMessage | Self::SolanaSignTransaction | Self::SolanaSignAndSendTransaction | Self::SolanaSignAllTransactions => ChainType::Solana,

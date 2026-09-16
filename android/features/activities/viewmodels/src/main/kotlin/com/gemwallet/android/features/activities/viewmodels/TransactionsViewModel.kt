@@ -6,9 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.ui.models.TransactionTypeFilter
+import com.gemwallet.android.ext.toPrimitives
+import uniffi.gemstone.GemTransactionFilter
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.GemAssetConfigServiceInterface
 import uniffi.gemstone.GemTransactionsServiceInterface
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.requireChain
@@ -39,7 +39,6 @@ class TransactionsViewModel @Inject constructor(
     getSession: GetSession,
     getTransactions: GetTransactions,
     private val service: GemTransactionsServiceInterface,
-    private val assetConfig: GemAssetConfigServiceInterface,
 ) : ViewModel() {
 
     private val _isRefreshing = MutableStateFlow(false)
@@ -47,7 +46,7 @@ class TransactionsViewModel @Inject constructor(
 
     val chainsFilter = MutableStateFlow<List<Chain>>(emptyList())
 
-    val typeFilter = MutableStateFlow<List<TransactionTypeFilter>>(emptyList())
+    val typeFilter = MutableStateFlow<List<GemTransactionFilter>>(emptyList())
 
     val session = getSession()
         .stateIn(viewModelScope, started = SharingStarted.Eagerly, null)
@@ -66,18 +65,13 @@ class TransactionsViewModel @Inject constructor(
         chainsFilter,
         typeFilter,
     ) { chains, types ->
-        buildList {
-            addAll(TransactionsRequestFilter.activityDefaults(assetConfig))
-            if (chains.isNotEmpty()) add(TransactionsRequestFilter.Chains(chains))
-            val allowedTypes = types.flatMap { it.types }
-            if (allowedTypes.isNotEmpty()) add(TransactionsRequestFilter.Types(allowedTypes))
-        }
+        TransactionsRequestFilter.activity(chains, types)
     }
     .flatMapLatest { filters -> getTransactions.getTransactions(filters) }
     .stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = getTransactions.transactions().value,
+        initialValue = null,
     )
 
     init {
@@ -118,11 +112,11 @@ class TransactionsViewModel @Inject constructor(
         }
     }
 
-    fun applyChainsFilter(chains: List<Chain>) {
+    fun setChainsFilter(chains: List<Chain>) {
         chainsFilter.update { chains }
     }
 
-    fun applyTypesFilter(types: List<TransactionTypeFilter>) {
+    fun setTypesFilter(types: List<GemTransactionFilter>) {
         typeFilter.update { types }
     }
 

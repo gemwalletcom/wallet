@@ -18,6 +18,7 @@ import com.gemwallet.android.AppUrl
 import com.gemwallet.android.features.import_wallet.viewmodels.ChainUIState
 import com.gemwallet.android.features.import_wallet.viewmodels.SelectImportTypeViewModel
 import com.gemwallet.android.model.ImportType
+import uniffi.gemstone.GemWalletImportKind
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DocsInfoButton
 import com.gemwallet.android.ui.components.SearchBar
@@ -25,7 +26,6 @@ import com.gemwallet.android.ui.components.list_item.ChainItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.WalletType
 import uniffi.gemstone.DocsUrl
 
 @Composable
@@ -70,7 +70,7 @@ private fun SelectImportTypeScene(
                     icon = R.drawable.multicoin_wallet,
                     listPosition = ListPosition.Single,
                 ) {
-                    onSelect(ImportType(WalletType.Multicoin))
+                    onSelect(ImportType(GemWalletImportKind.PHRASE))
                 }
             }
             itemsIndexed(chains) { index, item ->
@@ -79,7 +79,7 @@ private fun SelectImportTypeScene(
                     icon = item.chain,
                     listPosition = ListPosition.getPosition(index, chains.size),
                 ) {
-                    onSelect(ImportType(WalletType.Single, item.chain))
+                    onSelect(ImportType(GemWalletImportKind.PHRASE, item.chain))
                 }
             }
         }

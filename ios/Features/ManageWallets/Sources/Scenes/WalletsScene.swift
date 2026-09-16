@@ -45,6 +45,7 @@ public struct WalletsScene: View {
                     ForEach(model.pinnedWallets) {
                         WalletListItemView(
                             wallet: $0,
+                            row: model.row(for: $0),
                             currentWalletId: model.currentWalletId,
                             onSelect: { model.onSelect(wallet: $0, dismiss: dismiss) },
                             onEdit: model.onEdit,
@@ -64,6 +65,7 @@ public struct WalletsScene: View {
                 ForEach(model.wallets) {
                     WalletListItemView(
                         wallet: $0,
+                        row: model.row(for: $0),
                         currentWalletId: model.currentWalletId,
                         onSelect: { model.onSelect(wallet: $0, dismiss: dismiss) },
                         onEdit: model.onEdit,

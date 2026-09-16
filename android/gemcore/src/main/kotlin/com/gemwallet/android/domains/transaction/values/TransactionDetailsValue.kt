@@ -1,7 +1,7 @@
 package com.gemwallet.android.domains.transaction.values
 
-import com.gemwallet.android.domains.price.ValueDirection
-import uniffi.gemstone.GemSwapProgressStep
+import uniffi.gemstone.GemValueTone
+import uniffi.gemstone.GemSwapProgressState
 import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.model.AssetPriceValue
 import com.wallet.core.primitives.AddressType
@@ -13,6 +13,7 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
 import com.wallet.core.primitives.TransactionState
+import uniffi.gemstone.GemTransactionStatus
 import java.math.BigInteger
 
 sealed interface TransactionDetailsValue {
@@ -85,7 +86,7 @@ sealed interface TransactionDetailsValue {
         class Provider(name: String) : Destination(name)
     }
 
-    class Status(val data: TransactionState) : TransactionDetailsValue
+    class Status(val data: TransactionState, val status: GemTransactionStatus) : TransactionDetailsValue
 
     class EstimatedConfirmation(val seconds: UInt) : TransactionDetailsValue
 
@@ -95,8 +96,8 @@ sealed interface TransactionDetailsValue {
         val fromAsset: Asset,
         val fromValue: BigInteger,
         val providerName: String,
-        val transfer: GemSwapProgressStep,
-        val swap: GemSwapProgressStep,
+        val transfer: GemSwapProgressState,
+        val swap: GemSwapProgressState,
         val etaInSeconds: UInt?,
     ) : TransactionDetailsValue
 
@@ -111,7 +112,7 @@ sealed interface TransactionDetailsValue {
 
     class Network(val data: Asset) : TransactionDetailsValue
 
-    class Pnl(val value: String, val direction: ValueDirection) : TransactionDetailsValue
+    class Pnl(val value: String, val direction: GemValueTone) : TransactionDetailsValue
 
     class Price(val data: String) : TransactionDetailsValue
 

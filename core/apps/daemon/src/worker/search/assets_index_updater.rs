@@ -54,6 +54,8 @@ impl AssetsIndexUpdater {
                 AssetDocument {
                     id: sanitize_index_primary_id(asset_id),
                     aliases: AssetDocument::aliases(&asset),
+                    chain: asset.chain(),
+                    token_id: asset.token_id().map(str::to_string),
                     asset,
                     properties: x.asset.clone().as_property_primitive(),
                     score: x.asset.clone().as_score_primitive(),
@@ -77,6 +79,33 @@ impl AssetsIndexUpdater {
 mod tests {
     use super::*;
     use primitives::{AssetId, Chain};
+    use serde_json::Value;
+    use storage::models::AssetRow;
+
+    #[test]
+    fn test_build_documents_preserves_chain_and_token_search_fields() {
+        let token_id = "0xbe9D156892E55e7154BcD3cB0FEA677F9D3103E1";
+        let assets = [AssetId::token(Chain::SmartChain, token_id), AssetId::from_chain(Chain::Ethereum)]
+            .into_iter()
+            .map(|id| PriceAssetDataRow {
+                asset: AssetRow {
+                    id: id.to_string(),
+                    chain: id.chain.into(),
+                    token_id: id.token_id,
+                    ..AssetRow::mock()
+                },
+                price: None,
+            })
+            .collect::<Vec<_>>();
+
+        let documents = AssetsIndexUpdater::build_documents(&assets, &HashMap::new(), &HashMap::new());
+        let indexed = serde_json::to_value(documents).unwrap();
+
+        assert_eq!(indexed[0]["chain"].as_str(), Some("smartchain"));
+        assert_eq!(indexed[0]["tokenId"].as_str(), Some(token_id));
+        assert_eq!(indexed[1]["chain"].as_str(), Some("ethereum"));
+        assert_eq!(indexed[1]["tokenId"], Value::Null);
+    }
 
     #[test]
     fn asset_tags_by_asset_includes_internal_tags() {

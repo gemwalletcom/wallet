@@ -1,6 +1,5 @@
 package com.gemwallet.android.di
 
-import com.gemwallet.android.services.SyncService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,7 +26,6 @@ import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
 import uniffi.gemstone.GemConfirmService
 import uniffi.gemstone.GemConfirmServiceInterface
-import uniffi.gemstone.GemAppStartService
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemChainSettingsService
 import uniffi.gemstone.GemChainSettingsServiceInterface
@@ -35,6 +33,7 @@ import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPriceAlertService
 import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.GemSearchService
+import uniffi.gemstone.GemSwapService
 import uniffi.gemstone.GemScanService
 import uniffi.gemstone.GemTransactionStateService
 import uniffi.gemstone.GemSimulationService
@@ -74,6 +73,7 @@ object DataModule {
         preferencesService: GemPreferencesService,
         perpetualService: GemPerpetualService,
         walletSessionService: GemWalletSessionService,
+        swapService: GemSwapService,
     ): GemAssetSelectionServiceInterface = GemAssetSelectionService(
         searchService,
         balanceService,
@@ -82,6 +82,7 @@ object DataModule {
         preferencesService,
         perpetualService,
         walletSessionService,
+        swapService,
     )
 
     @Provides
@@ -94,7 +95,6 @@ object DataModule {
         passwordStore: PasswordStore,
         recentActivity: GemRecentActivityService,
         preferencesService: GemPreferencesService,
-        walletSessionService: GemWalletSessionService,
     ): GemConfirmTransferService = GemConfirmTransferService(
         confirmService as GemConfirmService,
         explorerService,
@@ -104,7 +104,6 @@ object DataModule {
         GemstoneKeystorePassword(passwordStore),
         recentActivity,
         preferencesService,
-        walletSessionService,
     )
 
     @Provides
@@ -113,12 +112,6 @@ object DataModule {
         explorerService: GemExplorerService,
         gateway: GemGateway,
     ): GemChainSettingsServiceInterface = GemChainSettingsService(nodeService, explorerService, gateway)
-
-    @Singleton
-    @Provides
-    fun provideSyncService(
-        appStartService: GemAppStartService,
-    ): SyncService = SyncService(appStartService = appStartService)
 
     @Provides
     fun provideGemRecentActivityServiceInterface(service: GemRecentActivityService): GemRecentActivityServiceInterface = service

@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.GemRecipient
 import Components
 import Primitives
 import PrimitivesComponents
@@ -32,10 +31,10 @@ public struct RecipientScene: View {
                 Group {
                     switch model.type {
                     case let .asset(asset):
-                        AssetPreviewView(model: AssetViewModel(asset: asset.map()))
+                        AssetPreviewView(model: AssetViewModel(asset: asset.toPrimitives()))
                     case let .nft(nftAsset):
                         NftPreviewView(
-                            assetImage: model.nftAssetImage(for: nftAsset.map()),
+                            assetImage: model.nftAssetImage(for: nftAsset.toPrimitives()),
                             name: nftAsset.name,
                             size: .image.large,
                         )
@@ -80,7 +79,10 @@ public struct RecipientScene: View {
                         let recipient = $0.value
                         NavigationCustomLink(
                             with: ListItemView(title: $0.title ?? $0.value.name, subtitle: $0.subtitle),
-                            action: { onSelectRecipient(recipient) },
+                            action: {
+                                focusedField = nil
+                                model.onSelectRecipient(recipient)
+                            },
                         )
                     }
                 } header: {
@@ -118,11 +120,6 @@ public struct RecipientScene: View {
 // MARK: - Actions
 
 extension RecipientScene {
-    private func onSelectRecipient(_ recipient: GemRecipient) {
-        focusedField = nil
-        model.onSelectRecipient(recipient)
-    }
-
     private func onSelectContinue() {
         focusedField = nil
         model.onContinue()

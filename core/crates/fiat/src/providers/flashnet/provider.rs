@@ -61,10 +61,6 @@ impl FiatProvider for FlashnetClient {
         Ok(FiatQuoteResponse::new(generate_quote_id(), request.amount, crypto_amount))
     }
 
-    async fn get_quote_sell(&self, _request: FiatQuoteRequest, _request_map: FiatMapping) -> Result<FiatQuoteResponse, Box<dyn Error + Send + Sync>> {
-        Err("not implemented".into())
-    }
-
     async fn get_quote_url(&self, data: FiatQuoteUrlData) -> Result<FiatQuoteUrl, Box<dyn Error + Send + Sync>> {
         let network = FiatMapping::get_network(data.asset_symbol.network.clone())?;
         let amount = map_amount(data.quote.crypto_amount, data.quote.asset.decimals as u32);

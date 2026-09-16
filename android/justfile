@@ -1,23 +1,16 @@
 list:
     just --list
 
-bootstrap: install-rust install-toolchains install-ndk
+install: install-java install-toolchains install-ndk
 
 install-java:
     @echo "==> Install Temurin JDK 17"
     @brew install --cask temurin@17
-
-install-rust:
-    @echo Install Rust
-    @cd ../core && just install-rust
+    @./gradlew --version
 
 install-toolchains:
     @echo Install toolchains for uniffi
     @cd ../core && just gemstone install-android-targets
-
-install-typeshare:
-    @echo "==> Install typeshare-cli"
-    @cd ../core && just install-typeshare
 
 install-ndk:
     @cd ../core && just gemstone install-ndk
@@ -122,7 +115,7 @@ localize:
 
 generate: generate-models
 
-generate-models: install-typeshare
+generate-models:
     @echo "==> Generate typeshare for Android"
     @cd ../core && cargo run --package generate --bin generate android ../android/gemcore/src/main/kotlin/com/wallet/core
 

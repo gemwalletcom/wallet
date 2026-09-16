@@ -1,16 +1,13 @@
 package com.gemwallet.android.domains.confirm
 
-import com.gemwallet.android.model.AssetPriceValue
+import com.gemwallet.android.testkit.mockAmountUIModel
 import com.gemwallet.android.testkit.mockAssetPriceInfo
+import com.gemwallet.android.testkit.mockAssetPriceValue
 import com.gemwallet.android.testkit.mockAssetSolana
-import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.TransactionType
-import uniffi.gemstone.GemTransactionHeaderKind
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import java.math.BigInteger
 import java.util.Locale
 
 class AmountUIModelTest {
@@ -26,21 +23,9 @@ class AmountUIModelTest {
         Locale.setDefault(originalLocale)
     }
 
-    private fun model(price: Double?) = AmountUIModel(
-        transactionType = TransactionType.Transfer,
-        headerKind = GemTransactionHeaderKind.Amount(showsFiat = true),
-        amount = BigInteger("1000000000"),
-        fromAsset = AssetPriceValue(mockAssetSolana(), price?.let { mockAssetPriceInfo(price = it) }),
-        toAsset = null,
-        fromAmount = BigInteger("1000000000"),
-        toAmount = null,
-        nftAsset = null,
-        currency = Currency.USD,
-    )
-
     @Test fun formatsCryptoAndEquivalent() {
-        assertEquals("1 SOL", model(price = null).cryptoAmount)
-        assertEquals("", model(price = null).amountEquivalent)
-        assertEquals("$200.00", model(price = 200.0).amountEquivalent)
+        assertEquals("1 SOL", mockAmountUIModel().cryptoAmount)
+        assertEquals("", mockAmountUIModel().amountEquivalent)
+        assertEquals("$200.00", mockAmountUIModel(fromAsset = mockAssetPriceValue(mockAssetSolana(), mockAssetPriceInfo(price = 200.0))).amountEquivalent)
     }
 }

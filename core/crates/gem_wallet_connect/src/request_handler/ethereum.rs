@@ -100,20 +100,6 @@ mod tests {
     use super::*;
     use gem_evm::testkit::eip712_mock::mock_eip712_json;
 
-    fn eip712_params(chain_id: u64) -> Value {
-        let eip712_json = mock_eip712_json(chain_id);
-        serde_json::json!(["0x123", eip712_json])
-    }
-
-    fn eip712_params_object(chain_id: u64) -> Value {
-        let eip712_value: Value = serde_json::from_str(&mock_eip712_json(chain_id)).unwrap();
-        serde_json::json!(["0x123", eip712_value])
-    }
-
-    fn eip712_params_without_domain_chain_id() -> Value {
-        serde_json::json!(["0x123", include_str!("../../../gem_evm/testdata/ens_upload_avatar.json")])
-    }
-
     #[test]
     fn test_parse_personal_sign() {
         let params = serde_json::from_str(r#"["0x48656c6c6f"]"#).unwrap();
@@ -130,54 +116,60 @@ mod tests {
 
     #[test]
     fn test_parse_sign_typed_data_matching_chain() {
-        let result = EthereumRequestHandler::parse_sign_typed_data(Chain::Ethereum, eip712_params(1));
+        let result = EthereumRequestHandler::parse_sign_typed_data(Chain::Ethereum, serde_json::json!(["0x123", mock_eip712_json(1)]));
         assert!(result.is_ok());
     }
 
     #[test]
     fn test_parse_sign_typed_data_chain_id_mismatch_polygon_on_ethereum() {
-        let result = EthereumRequestHandler::parse_sign_typed_data(Chain::Ethereum, eip712_params(137));
+        let result = EthereumRequestHandler::parse_sign_typed_data(Chain::Ethereum, serde_json::json!(["0x123", mock_eip712_json(137)]));
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("Chain ID mismatch"));
     }
 
     #[test]
     fn test_parse_sign_typed_data_chain_id_mismatch_ethereum_on_polygon() {
-        let result = EthereumRequestHandler::parse_sign_typed_data(Chain::Polygon, eip712_params(1));
+        let result = EthereumRequestHandler::parse_sign_typed_data(Chain::Polygon, serde_json::json!(["0x123", mock_eip712_json(1)]));
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("Chain ID mismatch"));
     }
 
     #[test]
     fn test_parse_sign_typed_data_polygon_matching() {
-        assert!(EthereumRequestHandler::parse_sign_typed_data(Chain::Polygon, eip712_params(137)).is_ok());
+        assert!(EthereumRequestHandler::parse_sign_typed_data(Chain::Polygon, serde_json::json!(["0x123", mock_eip712_json(137)])).is_ok());
     }
 
     #[test]
     fn test_parse_sign_typed_data_bsc_matching() {
-        assert!(EthereumRequestHandler::parse_sign_typed_data(Chain::SmartChain, eip712_params(56)).is_ok());
+        assert!(EthereumRequestHandler::parse_sign_typed_data(Chain::SmartChain, serde_json::json!(["0x123", mock_eip712_json(56)])).is_ok());
     }
 
     #[test]
     fn test_parse_sign_typed_data_arbitrum_matching() {
-        assert!(EthereumRequestHandler::parse_sign_typed_data(Chain::Arbitrum, eip712_params(42161)).is_ok());
+        assert!(EthereumRequestHandler::parse_sign_typed_data(Chain::Arbitrum, serde_json::json!(["0x123", mock_eip712_json(42161)])).is_ok());
     }
 
     #[test]
     fn test_parse_sign_typed_data_object_params() {
-        assert!(EthereumRequestHandler::parse_sign_typed_data(Chain::Ethereum, eip712_params_object(1)).is_ok());
+        assert!(EthereumRequestHandler::parse_sign_typed_data(Chain::Ethereum, serde_json::json!(["0x123", serde_json::from_str::<Value>(&mock_eip712_json(1)).unwrap()])).is_ok());
     }
 
     #[test]
     fn test_parse_sign_typed_data_object_params_chain_mismatch() {
-        let result = EthereumRequestHandler::parse_sign_typed_data(Chain::Ethereum, eip712_params_object(137));
+        let result = EthereumRequestHandler::parse_sign_typed_data(
+            Chain::Ethereum,
+            serde_json::json!(["0x123", serde_json::from_str::<Value>(&mock_eip712_json(137)).unwrap()]),
+        );
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("Chain ID mismatch"));
     }
 
     #[test]
     fn test_parse_sign_typed_data_without_domain_chain_id() {
-        let result = EthereumRequestHandler::parse_sign_typed_data(Chain::Ethereum, eip712_params_without_domain_chain_id());
+        let result = EthereumRequestHandler::parse_sign_typed_data(
+            Chain::Ethereum,
+            serde_json::json!(["0x123", include_str!("../../../gem_evm/testdata/ens_upload_avatar.json")]),
+        );
         assert!(result.is_ok());
     }
 

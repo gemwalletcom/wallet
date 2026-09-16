@@ -1,8 +1,9 @@
-use crate::decode_transaction;
 use gem_encoding::encode_base64;
 use num_traits::ToPrimitive;
 use primitives::{SignerError, SignerInput, TransactionFee};
-use solana_primitives::sign_message as sign_solana_message;
+
+use super::sign_message as sign_solana_message;
+use crate::decode_transaction;
 
 pub(crate) fn sign(input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
     let swap_data = input.input_type.get_swap_data()?;
@@ -32,14 +33,10 @@ fn sign_transaction(transaction_base64: &str, private_key: &[u8], unit_price: u6
             }
         };
         if unit_price > 0 {
-            transaction
-                .set_compute_unit_price(unit_price)
-                .map_err(|e| SignerError::invalid_input(format!("set compute unit price: {e}")))?;
+            transaction.set_compute_unit_price(unit_price);
         }
         if let Some(gas_limit) = gas_limit.filter(|gas_limit| *gas_limit > 0) {
-            transaction
-                .set_compute_unit_limit(gas_limit)
-                .map_err(|e| SignerError::invalid_input(format!("set compute unit limit: {e}")))?;
+            transaction.set_compute_unit_limit(gas_limit);
         }
     }
 
@@ -47,10 +44,9 @@ fn sign_transaction(transaction_base64: &str, private_key: &[u8], unit_price: u6
     let sig = sign_solana_message(private_key, &message_bytes).map_err(|e| SignerError::signing_error(format!("sign: {e}")))?;
 
     let sigs = transaction.signatures_mut();
-    if sigs.is_empty() {
-        sigs.push(sig);
-    } else {
-        sigs[0] = sig;
+    match sigs.first_mut() {
+        Some(signature) => *signature = sig,
+        None => sigs.push(sig),
     }
 
     let bytes = transaction.serialize().map_err(|e| SignerError::signing_error(format!("serialize transaction: {e}")))?;

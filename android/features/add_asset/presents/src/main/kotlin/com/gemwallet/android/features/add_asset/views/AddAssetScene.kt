@@ -48,21 +48,29 @@ import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.space24
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.sceneContentPadding
-import com.gemwallet.android.features.add_asset.viewmodels.models.TokenSearchState
+import com.gemwallet.android.features.add_asset.localization.stringRes
+import uniffi.gemstone.GemAddAssetPhase
+import uniffi.gemstone.GemAssetInfoKind
+import uniffi.gemstone.GemAssetInfoRow
 import com.gemwallet.android.ui.components.fields.AddressChainField
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BlockExplorerLink
+import androidx.compose.material3.SnackbarHostState
 import uniffi.gemstone.DocsUrl
+
+private val networkItemHeight = 64.dp
 
 @Composable
 internal fun AddAssetScene(
-    searchState: TokenSearchState,
+    searchState: GemAddAssetPhase,
     addressState: MutableState<String>,
     network: Asset?,
     token: Asset?,
+    assetRows: List<GemAssetInfoRow>,
     explorerLink: BlockExplorerLink?,
     buttonState: ButtonState,
     canSelectChain: Boolean,
+    snackbar: SnackbarHostState? = null,
     onAction: (AddAssetAction) -> Unit,
 ) {
     val uriHandler = LocalUriHandler.current
@@ -70,6 +78,7 @@ internal fun AddAssetScene(
 
     Scene(
         title = stringResource(id = R.string.wallet_add_token_title),
+        snackbar = snackbar,
         actions = {
             DocsInfoButton(AppUrl.docs(DocsUrl.AddCustomToken))
         },
@@ -85,7 +94,7 @@ internal fun AddAssetScene(
         SubheaderItem(R.string.transfer_network)
         if (network != null) {
             ChainItem(
-                modifier = Modifier.height(64.dp),
+                modifier = Modifier.height(networkItemHeight),
                 title = network.name,
                 icon = network.chain,
                 onClick = if (canSelectChain) {
@@ -107,12 +116,12 @@ internal fun AddAssetScene(
                 onQrScanner = { onAction(AddAssetAction.Scan) },
             )
         }
-        if (searchState is TokenSearchState.Loading) {
+        if (searchState is GemAddAssetPhase.Loading) {
             Box {
                 CircularProgressIndicator16(modifier = Modifier.align(Alignment.Center))
             }
         }
-        if (searchState is TokenSearchState.Error) {
+        if (searchState is GemAddAssetPhase.Failed) {
             Card(
                 modifier = Modifier.padding(horizontal = sceneContentPadding()),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
@@ -134,7 +143,7 @@ internal fun AddAssetScene(
                 }
             }
         }
-        AssetInfoTable(token)
+        AssetInfoTable(token, assetRows)
         if (explorerLink != null && token != null) {
             PropertyItem(
                 modifier = Modifier.clickable { uriHandler.open(context, explorerLink.link) },
@@ -147,7 +156,7 @@ internal fun AddAssetScene(
             Card(
                 modifier = Modifier.padding(horizontal = sceneContentPadding()),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
-                onClick = { uriHandler.open(context, AppUrl.docs(DocsUrl.TokenVerification)) },
+                onClick = { uriHandler.open(context, AppUrl.tokenVerification) },
             ) {
                 Row(modifier = Modifier.defaultPadding()) {
                     Text(text = Emoji.warning, fontSize = space24.value.sp)
@@ -184,29 +193,21 @@ internal fun AddAssetScene(
 }
 
 @Composable
-private fun ColumnScope.AssetInfoTable(asset: Asset?) {
+private fun ColumnScope.AssetInfoTable(asset: Asset?, rows: List<GemAssetInfoRow>) {
     if (asset == null) {
         return
     }
-    PropertyItem(
-        title = { PropertyTitleText(R.string.asset_name) },
-        data = { PropertyDataText(asset.name, badge = { DataBadgeChevron(asset, false) }) },
-        listPosition = ListPosition.First,
-    )
-    PropertyItem(
-        R.string.asset_symbol,
-        asset.symbol,
-        listPosition = ListPosition.Middle,
-    )
-    PropertyItem(
-        R.string.asset_decimals,
-        asset.decimals.toString(),
-        listPosition = ListPosition.Middle,
-    )
-    PropertyItem(
-        R.string.common_type,
-        asset.type.string,
-        listPosition = ListPosition.Last,
-    )
+    rows.forEachIndexed { index, row ->
+        PropertyItem(
+            title = { PropertyTitleText(row.kind.stringRes()) },
+            data = {
+                when (row.kind) {
+                    GemAssetInfoKind.NAME -> PropertyDataText(row.value, badge = { DataBadgeChevron(asset, false) })
+                    else -> PropertyDataText(row.value)
+                }
+            },
+            listPosition = ListPosition.getPosition(index, rows.size),
+        )
+    }
 }
 

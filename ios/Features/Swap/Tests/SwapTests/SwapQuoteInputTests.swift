@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
 @testable import Swap

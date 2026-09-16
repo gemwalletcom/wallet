@@ -2,9 +2,11 @@
 
 import GemstonePrimitives
 import struct Gemstone.GemConfirmMetadata
-import protocol Gemstone.GemConfirmTransferServiceProtocol
+import protocol Gemstone.GemConfirmationProtocol
 import enum Gemstone.TransactionInputType
-import class Gemstone.GemSwapQuoteSummary
+import struct Gemstone.GemSwapQuoteSummary
+import func Gemstone.perpetualDetails
+import func Gemstone.swapQuoteSummary
 import BigInt
 import Components
 import Primitives
@@ -14,19 +16,16 @@ import Swap
 public struct ConfirmDetailsViewModel {
     private let type: TransactionInputType
     private let metadata: GemConfirmMetadata?
-    private let currency: String
-    private let service: any GemConfirmTransferServiceProtocol
+    private let confirmation: any GemConfirmationProtocol
 
     init(
         type: TransactionInputType,
         metadata: GemConfirmMetadata?,
-        currency: String,
-        service: any GemConfirmTransferServiceProtocol,
+        confirmation: any GemConfirmationProtocol,
     ) {
         self.type = type
         self.metadata = metadata
-        self.currency = currency
-        self.service = service
+        self.confirmation = confirmation
     }
 }
 
@@ -36,33 +35,28 @@ extension ConfirmDetailsViewModel: ItemModelProvidable {
     public var itemModel: ConfirmTransferItemModel {
         switch type {
         case let .swap(fromAsset, toAsset, swapData):
-            let toAsset = toAsset.map()
             let quote = swapData.quote
-            let summary = GemSwapQuoteSummary(quote: quote)
-            let fromAssetPrice = AssetPriceValue(asset: fromAsset.map(), price: metadata?.assetPrice)
+            let summary = swapQuoteSummary(quote: quote, fromAsset: fromAsset, toAsset: toAsset)
+            let toAsset = toAsset.toPrimitives()
+            let fromAssetPrice = AssetPriceValue(asset: fromAsset.toPrimitives(), price: metadata?.assetPrice)
             let toAssetPrice = AssetPriceValue(asset: toAsset, price: metadata?.assetPrices[toAsset.id])
             return .swapDetails(
                 SwapDetailsViewModel(
                     fromAssetPrice: fromAssetPrice,
                     toAssetPrice: toAssetPrice,
-                    selectedQuote: quote,
-                    slippage: .manual(bps: quote.slippageBps),
-                    currency: currency,
+                    summary: summary,
+                    slippagePercent: summary.slippagePercent(),
+                    currency: confirmation.currency.rawValue,
                     swapPriceImpact: fromAssetPrice.swapValue(quote.fromValue)
-                        .priceImpact(receive: toAssetPrice.swapValue(quote.toValue))
-                        .map { $0.map() },
-                    minReceiveValue: BigInt(summary.minReceiveValue()),
-                    etaMinutes: summary.etaMinutes(),
+                        .priceImpact(receive: toAssetPrice.swapValue(quote.toValue)),
                 ),
             )
         case let .perpetual(_, perpetualType):
-            let perpetualType = Primitives.PerpetualType(core: perpetualType)
-            return switch perpetualType {
-            case .open, .close, .increase, .reduce:
-                .perpetualDetails(PerpetualDetailsViewModel(type: PerpetualDetailsType(perpetualType)))
-            case let .modify(data):
-                .perpetualModifyPosition(PerpetualModifyViewModel(summary: service.autocloseSummary(data: data.json())))
+            if case let .modify(data) = perpetualType {
+                return .perpetualModifyPosition(PerpetualModifyViewModel(summary: confirmation.autocloseSummary(data: data)))
             }
+            guard let details = perpetualDetails(perpetualType: perpetualType) else { return .empty }
+            return .perpetualDetails(PerpetualDetailsViewModel(details: details))
         case .transfer,
              .deposit,
              .withdrawal,

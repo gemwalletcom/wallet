@@ -1,25 +1,18 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.models
 
-import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
-import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.BlockExplorerLink
-import com.wallet.core.primitives.AssetMarket
+import com.gemwallet.android.ui.components.list_item.property.SocialLinkUIModel
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 
 class AssetMarketUIModel(
-    val asset: Asset,
-    val assetTitle: String,
-    val assetLinks: List<Link> = emptyList(),
-    val currency: Currency = Currency.USD,
-    val tokenExplorerLink: BlockExplorerLink? = null,
-    val marketInfo: AssetMarket? = null,
-) {
-    class Link(
-        val type: String,
-        val url: String,
-        @get:StringRes val label: Int,
-        @get:DrawableRes val icon: Int,
-        val host: String? = null,
-    )
+    val chain: Chain,
+    val currency: Currency,
+    val sections: List<ChartSectionUIModel>,
+)
+
+sealed interface ChartSectionUIModel {
+    data class PriceAlerts(val count: Int) : ChartSectionUIModel
+    data object SetPriceAlert : ChartSectionUIModel
+    data class Market(val rows: List<MarketRowUIModel>) : ChartSectionUIModel
+    data class Links(val links: List<SocialLinkUIModel>) : ChartSectionUIModel
 }

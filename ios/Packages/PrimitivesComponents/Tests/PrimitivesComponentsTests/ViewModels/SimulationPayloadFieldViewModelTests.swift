@@ -104,6 +104,11 @@ struct SimulationPayloadFieldViewModelTests {
             field: .standard(kind: .spender, value: "0x1", fieldType: .address, display: .primary),
             chain: .ethereum,
         ).title == Localized.Transfer.to)
+
+        #expect(SimulationPayloadFieldViewModel(
+            field: .standard(kind: .expiration, value: "1712600000", fieldType: .timestamp, display: .primary),
+            chain: .ethereum,
+        ).title == Localized.Common.expiration)
     }
 
     @Test

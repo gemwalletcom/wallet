@@ -45,7 +45,7 @@ impl ChainClientFactory {
     }
 
     pub async fn create(&self, chain: Chain) -> Result<Arc<dyn ChainTraits>, GatewayError> {
-        let url = self.alien.get_endpoint(chain).map_err(|e| GatewayError::PlatformError { msg: e.to_string() })?;
+        let url = crate::services::node::node_url(self.preferences.as_ref(), chain);
         self.create_with_url(chain, url).await
     }
 
@@ -104,13 +104,12 @@ impl ChainClientFactory {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::gateway::preferences::EmptyPreferences;
-    use crate::testkit::TestAlienProvider;
+    use crate::testkit::{EmptyPreferences, TestAlienProvider};
     use futures::executor::block_on;
 
     #[test]
     fn test_get_is_token_address_matches_chain_config() {
-        let factory = ChainClientFactory::new(Arc::new(TestAlienProvider::with_status(404)), Arc::new(EmptyPreferences {}), Arc::new(EmptyPreferences {}));
+        let factory = ChainClientFactory::new(Arc::new(TestAlienProvider::with_status(404)), Arc::new(EmptyPreferences), Arc::new(EmptyPreferences));
         for chain in Chain::all() {
             let client = block_on(factory.create(chain)).unwrap();
             let is_token_supported = chain.default_asset_type().is_some();

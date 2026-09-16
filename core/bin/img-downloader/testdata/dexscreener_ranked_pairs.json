@@ -1,0 +1,205 @@
+[
+  {
+    "chainId": "base",
+    "baseToken": {
+      "address": "0x0000000000000000000000000000000000000001"
+    },
+    "info": {
+      "imageUrl": "https://example.com/1.png"
+    },
+    "marketCap": 2000000.5,
+    "liquidity": {
+      "usd": 500000.25
+    },
+    "volume": {
+      "h24": 150000,
+      "h1": 4000
+    }
+  },
+  {
+    "chainId": "base",
+    "baseToken": {
+      "address": "0x0000000000000000000000000000000000000002"
+    },
+    "info": {
+      "imageUrl": "https://example.com/2.png"
+    },
+    "marketCap": 2000000,
+    "liquidity": {
+      "usd": 200000
+    },
+    "volume": {
+      "h24": 250000,
+      "h1": 2000
+    }
+  },
+  {
+    "chainId": "base",
+    "baseToken": {
+      "address": "0x0000000000000000000000000000000000000001"
+    },
+    "info": {
+      "imageUrl": "https://example.com/1.png"
+    },
+    "marketCap": 2000000,
+    "liquidity": {
+      "usd": 500000.25
+    },
+    "volume": {
+      "h24": 150000,
+      "h1": 4000
+    }
+  },
+  {
+    "chainId": "base",
+    "baseToken": {
+      "address": "0x0000000000000000000000000000000000000001"
+    },
+    "info": {
+      "imageUrl": "https://example.com/1.png"
+    },
+    "marketCap": 2000000,
+    "liquidity": {
+      "usd": 150000
+    },
+    "volume": {
+      "h24": 1000000,
+      "h1": 100000
+    }
+  },
+  {
+    "chainId": "base",
+    "baseToken": {
+      "address": "0x0000000000000000000000000000000000000003"
+    },
+    "info": {
+      "imageUrl": "https://example.com/3.png"
+    },
+    "marketCap": 1000000,
+    "liquidity": {
+      "usd": 100000
+    },
+    "volume": {
+      "h24": 50000,
+      "h1": 100
+    }
+  },
+  {
+    "chainId": "base",
+    "baseToken": {
+      "address": "0x0000000000000000000000000000000000000004"
+    },
+    "info": {
+      "imageUrl": "https://example.com/4.png"
+    },
+    "marketCap": 999999,
+    "liquidity": {
+      "usd": 200000
+    },
+    "volume": {
+      "h24": 1000000,
+      "h1": 100000
+    }
+  },
+  {
+    "chainId": "base",
+    "baseToken": {
+      "address": "0x0000000000000000000000000000000000000005"
+    },
+    "info": {
+      "imageUrl": "https://example.com/5.png"
+    },
+    "marketCap": 2000000,
+    "liquidity": {
+      "usd": 99999.99
+    },
+    "volume": {
+      "h24": 1000000,
+      "h1": 100000
+    }
+  },
+  {
+    "chainId": "base",
+    "baseToken": {
+      "address": "0x0000000000000000000000000000000000000006"
+    },
+    "info": {
+      "imageUrl": "https://example.com/6.png"
+    },
+    "marketCap": 2000000,
+    "liquidity": {
+      "usd": 200000
+    },
+    "volume": {
+      "h24": 49999.99,
+      "h1": 100000
+    }
+  },
+  {
+    "chainId": "base",
+    "baseToken": {
+      "address": "0x0000000000000000000000000000000000000007"
+    },
+    "info": {
+      "imageUrl": "https://example.com/7.png"
+    },
+    "marketCap": null,
+    "liquidity": {
+      "usd": 200000
+    },
+    "volume": {
+      "h24": 1000000,
+      "h1": 100000
+    },
+    "fdv": 10000000
+  },
+  {
+    "chainId": "base",
+    "baseToken": {
+      "address": "0x0000000000000000000000000000000000000008"
+    },
+    "info": {
+      "imageUrl": "https://example.com/8.png"
+    },
+    "marketCap": 2000000,
+    "liquidity": {
+      "usd": 200000
+    },
+    "volume": {
+      "h24": null,
+      "h1": 100000
+    }
+  },
+  {
+    "chainId": "base",
+    "baseToken": {
+      "address": "0x0000000000000000000000000000000000000009"
+    },
+    "info": null,
+    "marketCap": 2000000,
+    "liquidity": {
+      "usd": 200000
+    },
+    "volume": {
+      "h24": 1000000,
+      "h1": 100000
+    }
+  },
+  {
+    "chainId": "unsupported",
+    "baseToken": {
+      "address": "0x000000000000000000000000000000000000000a"
+    },
+    "info": {
+      "imageUrl": "https://example.com/10.png"
+    },
+    "marketCap": 2000000,
+    "liquidity": {
+      "usd": 200000
+    },
+    "volume": {
+      "h24": 1000000,
+      "h1": 100000
+    }
+  }
+]

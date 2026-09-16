@@ -1,4 +1,5 @@
 mod error;
+mod percent_encoding;
 #[cfg(feature = "protobuf")]
 pub mod protobuf;
 
@@ -8,6 +9,7 @@ mod base32;
 mod base64;
 
 pub use error::{EncodingError, EncodingType};
+pub use percent_encoding::is_valid_percent_encoding;
 
 #[cfg(feature = "base32")]
 pub use crate::base32::{decode_base32, encode_base32};

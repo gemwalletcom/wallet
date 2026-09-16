@@ -11,15 +11,12 @@ pub struct GemDeviceStreamRequest {
     pub authorization: String,
 }
 
-#[derive(uniffi::Object)]
 pub struct GemDeviceRequestSigner {
     private_key: Zeroizing<Vec<u8>>,
     public_key_hex: String,
 }
 
-#[uniffi::export]
 impl GemDeviceRequestSigner {
-    #[uniffi::constructor]
     pub fn new(private_key: Vec<u8>) -> Result<Self, GemServiceError> {
         let private_key = Zeroizing::new(private_key);
         let public_key = gem_auth::device_public_key(&private_key).map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
@@ -34,17 +31,15 @@ impl GemDeviceRequestSigner {
         gem_auth::build_device_auth_header(&self.private_key, &method, &path, &wallet_id, &body, timestamp_ms).map_err(|error| GemServiceError::Core { msg: error.to_string() })
     }
 
+    pub fn public_key_hex(&self) -> String {
+        self.public_key_hex.clone()
+    }
+
     pub fn device_stream_request(&self) -> Result<GemDeviceStreamRequest, GemServiceError> {
         Ok(GemDeviceStreamRequest {
             url: device_stream_url(),
             authorization: self.sign("GET".to_string(), DEVICE_STREAM_PATH.to_string(), String::new(), Vec::new())?,
         })
-    }
-}
-
-impl GemDeviceRequestSigner {
-    pub fn public_key_hex(&self) -> String {
-        self.public_key_hex.clone()
     }
 }
 

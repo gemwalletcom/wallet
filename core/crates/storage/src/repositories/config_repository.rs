@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use primitives::ConfigKey;
+use primitives::{ConfigKey, ConfigParamKey};
 
 use crate::database::config::ConfigStore;
 use crate::models::ConfigRow;
@@ -9,6 +9,8 @@ use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 pub trait ConfigRepository {
     fn get_config(&mut self, key: ConfigKey) -> Result<String, DatabaseError>;
     fn get_config_i64(&mut self, key: ConfigKey) -> Result<i64, DatabaseError>;
+    fn get_config_bool(&mut self, key: ConfigKey) -> Result<bool, DatabaseError>;
+    fn get_config_param_bool(&mut self, key: ConfigParamKey) -> Result<bool, DatabaseError>;
     fn get_config_duration(&mut self, key: ConfigKey) -> Result<Duration, DatabaseError>;
     fn get_config_keys(&mut self) -> Result<Vec<String>, DatabaseError>;
     fn add_config(&mut self, configs: Vec<ConfigRow>) -> Result<usize, DatabaseError>;
@@ -25,6 +27,16 @@ impl ConfigRepository for DatabaseClient {
 
     fn get_config_i64(&mut self, key: ConfigKey) -> Result<i64, DatabaseError> {
         Ok(self.get_config(key)?.parse()?)
+    }
+
+    fn get_config_bool(&mut self, key: ConfigKey) -> Result<bool, DatabaseError> {
+        Ok(self.get_config(key)?.parse()?)
+    }
+
+    fn get_config_param_bool(&mut self, key: ConfigParamKey) -> Result<bool, DatabaseError> {
+        let key = key.key();
+        let result = ConfigStore::get_config_key(self, &key).or_not_found(key)?;
+        Ok(result.value.parse()?)
     }
 
     fn get_config_duration(&mut self, key: ConfigKey) -> Result<Duration, DatabaseError> {

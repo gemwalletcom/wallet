@@ -1,8 +1,6 @@
 use crate::swap::ApprovalData;
-use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Clone)]
 pub struct ContractCallData {
     pub contract_address: String,
     pub call_data: String,

@@ -1,5 +1,9 @@
 package com.gemwallet.android.features.create_wallet.views
 
+import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.text
+import uniffi.gemstone.GemErrorText
+import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemWalletDefaultName
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
@@ -16,7 +20,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -34,19 +40,22 @@ import com.gemwallet.android.features.create_wallet.viewmodels.CreateWalletViewM
 import com.gemwallet.android.ui.DetectScreenshot
 import com.gemwallet.android.ui.DisableScreenShooting
 import com.gemwallet.android.ui.R
-import uniffi.gemstone.DocsUrl
 import com.gemwallet.android.ui.components.buttons.CopyButton
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.components.screen.PhraseLayout
+import com.gemwallet.android.ui.components.screen.phraseRows
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.sceneContentPaddingValues
+import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.WalletId
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
+
+private val loadingDialogSize = 100.dp
 
 @Composable
 fun CreateWalletScreen(
@@ -54,7 +63,7 @@ fun CreateWalletScreen(
     onCreated: (walletId: WalletId?) -> Unit,
 ) {
     DisableScreenShooting()
-    DetectScreenshot(AppUrl.docs(DocsUrl.HowToSecureSecretPhrase))
+    DetectScreenshot(AppUrl.howToSecureSecretPhrase)
 
     val viewModel: CreateWalletViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -73,6 +82,7 @@ fun CreateWalletScreen(
         when (state) {
             true -> CheckPhrase(
                 words = uiState.data,
+                verificationWords = remember(uiState.data) { viewModel.phraseVerificationWords(uiState.data) },
                 loading = uiState.loading,
                 onDone = { viewModel.handleCreate(onCreated) },
                 onCancel = viewModel::handleCreateDismiss,
@@ -94,10 +104,10 @@ fun CreateWalletScreen(
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .size(100.dp)
+                    .size(loadingDialogSize)
                     .background(
                         MaterialTheme.colorScheme.background,
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(paddingSmall)
                     )
             ) {
                 CircularProgressIndicator()
@@ -110,13 +120,13 @@ fun CreateWalletScreen(
 private fun UI(
     defaultName: GemWalletDefaultName?,
     data: List<String>,
-    dataError: String?,
+    dataError: GemErrorText?,
     onCreate: (String) -> Unit,
     onCancel: () -> Unit,
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
-    val name = defaultName?.name.orEmpty()
+    val name = defaultName?.text?.string(context).orEmpty()
     Scene(
         title = stringResource(id = R.string.wallet_new_title),
         onClose = onCancel,
@@ -135,7 +145,7 @@ private fun UI(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             if (dataError != null) {
-                Text(text = dataError.ifBlank { stringResource(id = R.string.errors_unknown_try_again) })
+                Text(text = dataError.text().ifBlank { stringResource(id = R.string.errors_unknown_try_again) })
             } else {
                 Text(
                     text = stringResource(id = R.string.secret_phrase_save_phrase_safely),
@@ -144,7 +154,7 @@ private fun UI(
                 )
                 Spacer16()
                 PhraseLayout(
-                    words = data,
+                    rows = remember(data) { phraseRows(data) },
                     modifier = Modifier.widthIn(max = SceneSizing.contentMaxWidth),
                 )
             }
@@ -166,7 +176,7 @@ fun PreviewCreateUI() {
     WalletTheme {
         Column {
             UI(
-                defaultName = GemWalletDefaultName("Wallet #2", true),
+                defaultName = GemWalletDefaultName(GemLocalizedText.WalletDefaultName(2), true),
                 data = listOf(
                     "cinnamon", "two", "three", "cinnamon", "five", "six",
                     "seven", "eight", "cinnamon", "ten", "eleven", "twelve"

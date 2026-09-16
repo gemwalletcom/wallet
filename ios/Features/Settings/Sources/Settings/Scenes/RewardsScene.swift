@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemRewardsRedemption
+import struct Gemstone.RewardRedemptionOption
 import Components
 import Localization
 import Primitives
@@ -21,17 +23,17 @@ public struct RewardsScene: View {
                 CenterLoadingView()
             case let .error(error):
                 stateErrorView(error: error)
-            case let .data(rewards):
+            case .data:
                 inviteFriendsSection
                 if let disableReason = model.disableReason {
                     disableReasonSection(reason: disableReason)
                 }
                 statusSection
                 if model.rewardsState.showsInfo {
-                    infoSection(rewards: rewards)
+                    infoSection
                 }
-                if rewards.redemptionOptions.isNotEmpty {
-                    redemptionOptionsSection(options: rewards.redemptionOptions)
+                if model.redemptions.isNotEmpty {
+                    redemptionOptionsSection(redemptions: model.redemptions)
                 }
             case .noData:
                 inviteFriendsSection
@@ -62,9 +64,9 @@ public struct RewardsScene: View {
             case .walletSelector:
                 SelectableListNavigationStack(
                     model: model.walletSelectorModel,
-                    onFinishSelection: { wallets in
-                        if let wallet = wallets.first {
-                            model.selectWallet(wallet)
+                    onFinishSelection: { rows in
+                        if let row = rows.first {
+                            model.selectWallet(id: row.id)
                         }
                         model.isPresentingSheet = nil
                     },
@@ -185,9 +187,10 @@ public struct RewardsScene: View {
         .frame(maxWidth: .infinity)
     }
 
-    private func redemptionOptionsSection(options: [RewardRedemptionOption]) -> some View {
+    private func redemptionOptionsSection(redemptions: [GemRewardsRedemption]) -> some View {
         Section {
-            ForEach(options.map { RewardRedemptionOptionViewModel(option: $0) }) { viewModel in
+            ForEach(redemptions, id: \.option.id) { redemption in
+                let viewModel = RewardRedemptionOptionViewModel(redemption: redemption)
                 NavigationCustomLink(
                     with: ListItemView(
                         title: viewModel.title,
@@ -195,8 +198,8 @@ public struct RewardsScene: View {
                         imageStyle: .asset(assetImage: viewModel.assetImage),
                     ),
                 ) {
-                    if model.canRedeem(option: viewModel.option) {
-                        model.showRedemptionAlert(for: viewModel.option)
+                    if redemption.canRedeem {
+                        model.showRedemptionAlert(for: redemption)
                     } else {
                         model.showError(Localized.Rewards.insufficientPoints)
                     }
@@ -207,9 +210,10 @@ public struct RewardsScene: View {
         }
     }
 
-    private func infoSection(rewards: Rewards) -> some View {
+    @ViewBuilder
+    private var infoSection: some View {
         Section {
-            if let code = rewards.code {
+            if let code = model.referralCode {
                 ListItemView(
                     title: model.myReferralCodeTitle,
                     subtitle: code,
@@ -218,13 +222,13 @@ public struct RewardsScene: View {
             }
             ListItemView(
                 title: model.referralCountTitle,
-                subtitle: "\(rewards.referralCount)",
+                subtitle: model.referralCountText,
             )
             ListItemView(
                 title: model.pointsTitle,
-                subtitle: "\(rewards.points) 💎",
+                subtitle: model.pointsText,
             )
-            if let invitedBy = rewards.usedReferralCode {
+            if let invitedBy = model.invitedBy {
                 ListItemView(
                     title: model.invitedByTitle,
                     subtitle: invitedBy,

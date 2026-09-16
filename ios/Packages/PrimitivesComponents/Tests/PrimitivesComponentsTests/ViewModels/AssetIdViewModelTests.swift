@@ -31,6 +31,27 @@ struct AssetIdViewModelTests {
     }
 
     @Test
+    func knownStablecoinsDrawTheBundledLogo() {
+        let usdt = AssetId(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7")
+        let usdc = AssetId(chain: .solana, tokenId: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")
+
+        #expect(
+            AssetIdViewModel(assetId: usdt).assetImage == AssetImage(
+                type: .text("ERC20"),
+                placeholder: TokenImage(token: .usdt).image,
+                chainPlaceholder: ChainImage(chain: .ethereum).image,
+            ),
+        )
+        #expect(
+            AssetIdViewModel(assetId: usdc).assetImage == AssetImage(
+                type: .text("SPL"),
+                placeholder: TokenImage(token: .usdc).image,
+                chainPlaceholder: ChainImage(chain: .solana).image,
+            ),
+        )
+    }
+
+    @Test
     func assetImage() {
         #expect(
             AssetIdViewModel(assetId: .mock(.bitcoin)).assetImage == AssetImage(

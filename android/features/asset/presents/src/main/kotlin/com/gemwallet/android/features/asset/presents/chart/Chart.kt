@@ -10,12 +10,9 @@ import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
-import com.gemwallet.android.features.asset.viewmodels.chart.models.PricePoint
-import com.gemwallet.android.features.asset.viewmodels.chart.models.chartHeader
 import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.ChartViewModel
 import com.gemwallet.android.ui.components.chart.ChartStateView
 import com.gemwallet.android.ui.components.chart.GemLineChart
-import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
 import com.gemwallet.android.ui.models.dataOrNull
 import com.wallet.core.primitives.ChartPeriod
 
@@ -23,10 +20,7 @@ import com.wallet.core.primitives.ChartPeriod
 fun Chart(viewModel: ChartViewModel = hiltViewModel()) {
     val state by viewModel.chartUIState.collectAsStateWithLifecycle()
 
-    ChartSection(
-        state = state,
-        onPeriodSelect = viewModel::setPeriod,
-    ) { uiModel, selectedPoint -> chartHeader(uiModel, selectedPoint) }
+    ChartSection(state = state, onPeriodSelect = viewModel::setPeriod)
 }
 
 @Composable
@@ -34,19 +28,15 @@ internal fun ChartSection(
     state: ChartUIModel.State,
     onPeriodSelect: (ChartPeriod) -> Unit,
     periods: List<ChartPeriod> = ChartPeriod.entries,
-    header: (ChartUIModel, PricePoint?) -> ChartHeaderUIModel?,
 ) {
     key(state.period) {
         var selectedIndex by remember { mutableStateOf<Int?>(null) }
 
         val uiModel = state.chart.dataOrNull
-        val selectedPoint = uiModel?.let { model ->
-            selectedIndex?.let { model.chartPoints.getOrNull(it) }
-        }
 
         ChartStateView(
             state = state.chart,
-            header = uiModel?.let { header(it, selectedPoint) },
+            header = uiModel?.header(selectedIndex),
             period = state.period,
             onPeriodSelect = onPeriodSelect,
             periods = periods,

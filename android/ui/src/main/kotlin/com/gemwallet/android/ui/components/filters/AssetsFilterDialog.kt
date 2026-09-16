@@ -15,6 +15,7 @@ import com.wallet.core.primitives.Chain
 
 @Composable
 fun AssetsFilter(
+    isVisible: Boolean,
     availableChains: List<Chain>,
     chainFilter: List<Chain>,
     balanceFilter: Boolean,
@@ -27,7 +28,9 @@ fun AssetsFilter(
     val query = rememberTextFieldState()
     val chainService = LocalChainService.current
 
+    val matchingChains = rememberMatchingChains(availableChains, query.text.toString())
     FormDialog(
+        isVisible = isVisible,
         title = stringResource(R.string.filter_title),
         onDismiss = onDismissRequest,
         onClear = onClearFilters,
@@ -37,7 +40,7 @@ fun AssetsFilter(
             HasBalances(isActive = balanceFilter, onBalanceFilter)
         }
         LazyColumn(modifier = Modifier.Companion.fillMaxSize()) {
-            selectFilterChain(availableChains, chainFilter, query.text.toString(), chainService, onChainFilter)
+            selectFilterChain(matchingChains, chainFilter, onChainFilter)
         }
     }
 }

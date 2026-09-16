@@ -159,7 +159,7 @@ name:
   ud:
     url: https://api.unstoppabledomains.com
   sns:
-    url: https://sdk-proxy.sns.id
+    url: https://sdk-proxy-v2.sns.id
   ton:
     url: https://toncenter.com
   spaceid:
@@ -296,6 +296,8 @@ chains:
     url: https://rpc.stable.xyz
   tempo:
     url: https://rpc.tempo.xyz
+  arc:
+    url: https://rpc.mainnet.arc.io
 
 pusher:
   url: "http://localhost:8088"
@@ -321,6 +323,10 @@ security:
       secret: ""
   ipapi:
     url: https://api.ipapi.is
+    key:
+      secret: ""
+  tronscan:
+    url: "https://apilist.tronscanapi.com"
     key:
       secret: ""
 
@@ -396,7 +402,7 @@ indexer:
     key:
       secret: ""
   sui:
-    url: "https://graphql.mainnet.sui.io"
+    url: "https://graphql.mainnet.sui.io/graphql"
     key:
       secret: ""
   ton:

@@ -26,7 +26,7 @@ class WalletsViewModel @Inject constructor(
 ) : ViewModel() {
 
     val wallets = getAllWallets.getAllWallets()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, getAllWallets.getAllWallets().value)
 
     fun selectWallet(walletId: WalletId) = viewModelScope.launch(Dispatchers.IO) {
         setCurrentWallet.setCurrentWallet(walletId)
@@ -37,7 +37,7 @@ class WalletsViewModel @Inject constructor(
     }
 
     fun togglePin(walletId: WalletId) = viewModelScope.launch(Dispatchers.IO) {
-        val wallet = wallets.value.firstOrNull { it.id == walletId.id } ?: return@launch
-        service.setPinned(walletId.id, !wallet.isPinned)
+        val wallet = wallets.value.firstOrNull { it.row.id == walletId.id } ?: return@launch
+        service.setPinned(walletId.id, !wallet.row.isPinned)
     }
 }

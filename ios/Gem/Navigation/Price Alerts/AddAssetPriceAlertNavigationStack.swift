@@ -2,7 +2,6 @@
 
 import Assets
 import Foundation
-import PriceAlerts
 import Primitives
 import PrimitivesComponents
 import SwiftUI

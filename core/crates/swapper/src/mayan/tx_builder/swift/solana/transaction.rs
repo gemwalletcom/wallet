@@ -1,3 +1,17 @@
+use std::fmt::Debug;
+
+use gem_client::Client;
+use gem_evm::EVM_ZERO_ADDRESS;
+use gem_solana::{
+    Instruction, Pubkey, SolanaAddress, WSOL_TOKEN_ADDRESS,
+    associated_token::{create_associated_token_account_idempotent_with_address, get_associated_token_address_with_program_id},
+    compute_budget, find_program_address,
+    instructions::program_ids,
+    system, token,
+};
+use primitives::Chain;
+use rand::RngExt;
+
 use super::{
     order::{create_init_instruction, create_order_hash},
     payload::{create_payload_writer_close_instruction, create_payload_writer_create_instruction},
@@ -18,15 +32,6 @@ use crate::{
         },
     },
 };
-use gem_client::Client;
-use gem_evm::EVM_ZERO_ADDRESS;
-use gem_solana::{SolanaAddress, WSOL_TOKEN_ADDRESS};
-use primitives::Chain;
-use rand::RngExt;
-use solana_primitives::associated_token::{create_associated_token_account_idempotent_with_address, get_associated_token_address_with_program_id};
-use solana_primitives::instructions::program_ids;
-use solana_primitives::{Instruction, Pubkey, compute_budget, find_program_address, system, token};
-use std::fmt::Debug;
 
 struct SwiftBuildContext {
     trader: Pubkey,
@@ -70,9 +75,9 @@ impl SwiftBuildContext {
         } else {
             SolanaAddress::parse(&swift_input_contract).map_err(solana_error)?.into()
         };
-        let state_account = get_associated_token_address_with_program_id(&state, &swift_input_mint, &token_program);
+        let state_account = get_associated_token_address_with_program_id(&state, &swift_input_mint, &token_program).map_err(solana_error)?;
         let relayer = trader;
-        let relayer_account = get_associated_token_address_with_program_id(&relayer, &swift_input_mint, &token_program);
+        let relayer_account = get_associated_token_address_with_program_id(&relayer, &swift_input_mint, &token_program).map_err(solana_error)?;
 
         Ok(Self {
             trader,
@@ -152,7 +157,7 @@ fn add_direct_swift_instructions(route: &MayanSwiftQuote, context: &SwiftBuildCo
         return Ok(());
     }
 
-    let source_account = get_associated_token_address_with_program_id(&context.trader, &context.swift_input_mint, &context.token_program);
+    let source_account = get_associated_token_address_with_program_id(&context.trader, &context.swift_input_mint, &context.token_program).map_err(solana_error)?;
     let mut transfer = token::transfer(&source_account, &context.state_account, &context.trader, amount_in);
     transfer.program_id = context.token_program;
     instructions.push(wrap_instruction_in_cpi_proxy(transfer)?);

@@ -1,15 +1,8 @@
 package com.gemwallet.android.domains.wallet.aggregates
 
-import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemWalletRow
 
 interface WalletDataAggregate {
-    val id: String
     val isCurrent: Boolean
-    val name: String
-    val type: WalletType
-    val walletAddress: String?
-    val walletChain: Chain?
-    val isPinned: Boolean
-    val imageUrl: String?
+    val row: GemWalletRow
 }

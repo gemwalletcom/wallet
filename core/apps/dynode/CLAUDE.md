@@ -1,43 +1,31 @@
 # Dynode
 
-A high-performance blockchain proxy service written in Rust that routes requests to multiple blockchain nodes with automatic failover and load balancing.
-
-## What it does
-
-- **Multi-chain proxy**: Supports 9 blockchains (Ethereum, Bitcoin, Solana, Cosmos, Ton, Tron, Aptos, Sui, XRP, Near)
-- **Intelligent routing**: Monitors node health and automatically switches to the best performing node
-- **Metrics collection**: Exposes Prometheus metrics for monitoring proxy performance and node status
-- **Block synchronization**: Tracks latest block numbers to ensure nodes are synchronized
+Read [README.md](README.md) for local usage and configuration.
 
 ## Architecture
 
-- `main.rs` - Starts a single HTTP server for proxy, auth, health, and metrics
-- `node_service.rs` - Manages node health monitoring and failover logic
-- `proxy_request_service.rs` - Handles incoming requests and proxies to blockchain nodes  
-- `chain_service/` - Blockchain-specific API implementations
-- `metrics.rs` - Prometheus metrics collection
-- `config.rs` - YAML configuration management
+- `src/main.rs` loads configured capabilities and preserves the optional positional chain argument.
+- `src/server.rs` owns server startup, health, metrics, and configured routing.
+- `src/node_service.rs` and `src/monitoring/` own chain health and node selection.
+- `src/proxy/` owns blockchain request forwarding, JSON-RPC behavior, and shared HTTP transport.
+- `src/gateway/` owns provider routes, source attribution, endpoint selection, quotas, and cooldowns.
+- `src/config/` owns the shared configuration, node and provider settings, path rules, and cache rules.
+- `src/cache/` owns the reusable cache implementation, independent family budgets, and node decoders; `src/webhook.rs` owns transaction webhooks.
+- `src/metrics/` owns request metrics and chain monitoring metrics.
 
 ## Configuration
 
-Uses `config.yml` to define:
-- Blockchain domains and their RPC endpoints
-- Node health check intervals and block delay thresholds
-- Custom headers and URL overrides per endpoint
+`DYNODE_CONFIG` selects the root configuration; `EGRESS_CONFIG` remains a compatibility override. Preserve environment expansion and ordered chain-file overlays when changing the loader.
+
+Keep node/provider retry and health policies explicit. Reuse shared transport and cache mechanics without coupling their settings or state.
 
 ## Commands
 
-```bash
-cargo build      # Build the project
-cargo run        # Start the proxy service  
-cargo test       # Run tests
-cargo clippy     # Code quality checks
+Run from `core/`:
+
+```sh
+cargo build --locked -p dynode
+cargo run --locked -p dynode
+cargo test --locked -p dynode --all-features
+cargo clippy --locked -p dynode --all-features --all-targets -- -D warnings
 ```
-
-## Metrics
-
-Exposes metrics on `/metrics` endpoint including:
-- Request counts by host and method
-- Response latency histograms  
-- Current active node per domain
-- Block height tracking

@@ -12,17 +12,17 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.sp
 import androidx.core.util.PatternsCompat
 
-fun parseMarkdownToAnnotatedString(markdown: String, linkColor: Color = Color.Blue): AnnotatedString {
-    val linkRegex = """\[(.*?)\]\((.*?)\)""".toRegex()
-    val autolinkRegex = """<(https?://[^>\s]+)>""".toRegex()
-    val boldRegex = """\*\*(.*?)\*\*""".toRegex()
-    val italicRegex = """\*(.*?)\*""".toRegex()
-    val codeBlockRegex = """```([\s\S]*?)```""".toRegex()
-    val inlineCodeRegex = """`(.*?)`""".toRegex()
-    val headingRegex = """^(#{1,2})\s*(.*)""".toRegex(RegexOption.MULTILINE)
-    val listRegex = """^- (.*)""".toRegex(RegexOption.MULTILINE)
-    val blockquoteRegex = """^>\s+(.*)""".toRegex(RegexOption.MULTILINE)
+private val linkRegex = """\[(.*?)\]\((.*?)\)""".toRegex()
+private val autolinkRegex = """<(https?://[^>\s]+)>""".toRegex()
+private val boldRegex = """\*\*(.*?)\*\*""".toRegex()
+private val italicRegex = """\*(.*?)\*""".toRegex()
+private val codeBlockRegex = """```([\s\S]*?)```""".toRegex()
+private val inlineCodeRegex = """`(.*?)`""".toRegex()
+private val headingRegex = """^(#{1,2})\s*(.*)""".toRegex(RegexOption.MULTILINE)
+private val listRegex = """^- (.*)""".toRegex(RegexOption.MULTILINE)
+private val blockquoteRegex = """^>\s+(.*)""".toRegex(RegexOption.MULTILINE)
 
+fun parseMarkdownToAnnotatedString(markdown: String, linkColor: Color = Color.Blue): AnnotatedString {
     val tokens = mutableListOf<MarkdownToken>()
     fun addMatches(pattern: Regex, type: TokenType, groupCount: Int) {
         pattern.findAll(markdown).forEach { result ->

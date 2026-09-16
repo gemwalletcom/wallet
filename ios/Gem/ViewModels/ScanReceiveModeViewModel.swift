@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import Localization
 import Primitives
+import PrimitivesComponents
 
 struct ScanReceiveModeViewModel: Identifiable {
     let mode: ScanReceiveMode
@@ -10,9 +10,6 @@ struct ScanReceiveModeViewModel: Identifiable {
     var id: ScanReceiveMode { mode }
 
     var title: String {
-        switch mode {
-        case .scan: Localized.Wallet.scan
-        case .receive: Localized.Wallet.receive
-        }
+        mode.title
     }
 }

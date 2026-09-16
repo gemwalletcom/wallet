@@ -21,16 +21,18 @@ pub fn decode(path: &str) -> Result<Payment> {
         return Err(PaymentDecoderError::InvalidFormat("Unsupported transfer payload".to_string()));
     }
 
-    Ok(Payment::Request(PaymentRequest {
-        address: address(path)?,
-        amount: query::value(&parameters, QUERY_AMOUNT)
-            .and_then(|value| amount::exact_from_atomic(&value, Chain::Ton))
-            .map(PaymentAmount::ExactValue),
-        memo: query::value(&parameters, QUERY_TEXT),
-        label: None,
-        references: None,
-        asset_id: Some(AssetId::from_chain(Chain::Ton)),
-    }))
+    Ok(Payment::Request {
+        request: PaymentRequest {
+            address: address(path)?,
+            amount: query::value(&parameters, QUERY_AMOUNT)
+                .and_then(|value| amount::exact_from_atomic(&value, Chain::Ton))
+                .map(|value| PaymentAmount::ExactValue { value }),
+            memo: query::value(&parameters, QUERY_TEXT),
+            label: None,
+            references: None,
+            asset_id: Some(AssetId::from_chain(Chain::Ton)),
+        },
+    })
 }
 
 fn address(path: &str) -> Result<String> {
@@ -52,22 +54,26 @@ mod tests {
 
     #[test]
     fn test_decode() {
-        let ton = Payment::Request(PaymentRequest {
-            address: ADDRESS.to_string(),
-            asset_id: Some(AssetId::from_chain(Chain::Ton)),
-            ..PaymentRequest::mock()
-        });
+        let ton = Payment::Request {
+            request: PaymentRequest {
+                address: ADDRESS.to_string(),
+                asset_id: Some(AssetId::from_chain(Chain::Ton)),
+                ..PaymentRequest::mock()
+            },
+        };
 
         assert_eq!(
             decode(&format!("//transfer/{ADDRESS}?amount=1000000000&text=order+7")).unwrap(),
-            Payment::Request(PaymentRequest {
-                address: ADDRESS.to_string(),
-                amount: Some(PaymentAmount::ExactValue("1".to_string())),
-                memo: Some("order 7".to_string()),
-                label: None,
-                references: None,
-                asset_id: Some(AssetId::from_chain(Chain::Ton)),
-            })
+            Payment::Request {
+                request: PaymentRequest {
+                    address: ADDRESS.to_string(),
+                    amount: Some(PaymentAmount::ExactValue { value: "1".to_string() }),
+                    memo: Some("order 7".to_string()),
+                    label: None,
+                    references: None,
+                    asset_id: Some(AssetId::from_chain(Chain::Ton)),
+                }
+            }
         );
         assert_eq!(decode(&format!("//transfer/{ADDRESS}")).unwrap(), ton);
         assert_eq!(decode(ADDRESS).unwrap(), ton);

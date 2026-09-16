@@ -9,6 +9,7 @@ common_secret_phrase = গোপন বাক্যাংশ
 common_copy = কপি
 common_share = শেয়ার করুন
 common_continue = চালিয়ে যান
+common_sign_in_with = %@ দিয়ে সাইন ইন করুন
 common_provider = প্রদানকারী
 common_loading = লোড হচ্ছে
 common_address = ঠিকানা
@@ -54,9 +55,9 @@ common_get_started = শুরু করুন
 common_earn = আয় করুন
 common_method = পদ্ধতি
 common_token = টোকেন
+common_expiration = মেয়াদ শেষ
 common_suspicious_address = সন্দেহজনক ঠিকানা
 common_refresh = রিফ্রেশ
-common_no_thanks = না ধন্যবাদ
 common_grant_permission = অনুমতি দিন
 common_required_field = %@ প্রয়োজন
 
@@ -163,7 +164,6 @@ transfer_freeze_title = ফ্রিজ করুন
 transfer_unfreeze_title = আনফ্রিজ করুন
 transfer_review_request = পর্যালোচনার অনুরোধ
 transfer_amount = পরিমাণ
-transfer_amount_title = পরিমাণ
 
 # Settings
 
@@ -207,7 +207,6 @@ support_message_placeholder = বার্তা
 
 # Errors
 
-errors_transfer = স্থানান্তর ত্রুটি: %@
 errors_validation = যাচাইকরণ ত্রুটি: %@
 errors_create_wallet = ওয়ালেট তৈরির ত্রুটি: %@
 errors_invalid_address_name = অবৈধ ঠিকানা বা নাম
@@ -226,7 +225,6 @@ errors_cancelled = বাতিল করা হয়েছে
 errors_connections_user_cancelled = ব্যবহারকারী বাতিল করা হয়েছে
 errors_not_supported = সমর্থিত নয়
 errors_permissions_not_granted = অনুমতি দেওয়া হয়নি
-errors_decoding = ডিকোডিং ত্রুটি৷
 errors_unknown = অজানা
 errors_not_supported_qr = এই ডিভাইস QR কোড স্ক্যানিং সমর্থন করে না। আপনি শুধুমাত্র লাইব্রেরি থেকে QR কোড ছবি নির্বাচন করতে পারেন।
 errors_camera_permissions_not_granted = ক্যামেরার অনুমতি দেওয়া হয়নি। QR কোড স্ক্যান করতে সেটিংসে ক্যামেরা অ্যাক্সেস সক্ষম করুন।
@@ -237,11 +235,8 @@ errors_invalid_asset_address = অবৈধ %@ ঠিকানা
 errors_dust_threshold = লেনদেন ব্যর্থ হয়েছে কারণ পরিমাণটি %@ নেটওয়ার্কের ন্যূনতম প্রয়োজনীয়তা (ডাস্ট থ্রেশহোল্ড) পূরণ করতে খুব কম। এই সীমা নিশ্চিত করে যে লেনদেনের মূল্য ফি এবং প্রক্রিয়াকরণের খরচ কভার করে।
 errors_swap_no_quote_available = কোনো কোট উপলব্ধ নেই।
 errors_swap_not_supported_asset = সমর্থিত সম্পদ নয়।
-errors_connections_invalid_send_parameters = একটি লেনদেন পাঠানোর জন্য অবৈধ প্যারামিটার প্রদান করা হয়েছে৷
-errors_connections_invalid_sign_parameters = স্বাক্ষর করার জন্য অবৈধ পরামিতি প্রদান করা হয়েছে.
 errors_connections_no_supported_wallets = কোনও সমর্থিত ওয়ালেট উপলব্ধ নেই।
 errors_connections_unsupported_chain = প্রদত্ত চেইনটি সমর্থিত নয়।
-errors_connections_unsupported_method = অনুরোধকৃত পদ্ধতিটি সমর্থিত নয়।
 errors_swap_amount_too_small = পরিমাণ খুব কম
 errors_required = %@ প্রয়োজন
 errors_scan_transaction_malicious_description = এই লেনদেনটি সম্পন্ন করা যাবে না — গন্তব্যস্থলের ওয়ালেট ঠিকানাটি সন্দেহজনক বা ক্ষতিকারক কার্যকলাপের সাথে যুক্ত।
@@ -253,7 +248,6 @@ errors_dust_threshold_short = নেটওয়ার্ক এই পরিম
 errors_swap_minimum_amount = সর্বনিম্ন ট্রেডের পরিমাণ হল %@. অনুগ্রহ করে আরও বেশি পরিমাণ লিখুন।
 errors_perpetual_trigger_price_lower = ট্রিগার মূল্য বাজার মূল্যের চেয়ে কম হওয়া উচিত
 errors_perpetual_trigger_price_higher = ট্রিগার মূল্য বাজার মূল্যের চেয়ে বেশি হওয়া উচিত
-errors_token_unable_fetch_token_information = টোকেন তথ্য আনতে অক্ষম: %@
 errors_unknown_try_again = একটি অজানা ত্রুটি ঘটেছে. আবার চেষ্টা করুন.
 errors_network_error = নেটওয়ার্ক ত্রুটি: %@
 errors_network_offline = ইন্টারনেট সংযোগটি অফলাইন বলে মনে হচ্ছে।
@@ -277,7 +271,6 @@ update_app_action = আপডেট
 update_app_permission_title = ইনস্টলেশনের অনুমতি দিন
 update_app_permission_description = সেটিংসে যান এবং বহিরাগত উৎস থেকে ইনস্টলেশনের অনুমতি দিন
 update_app_permission_open_settings = সেটিংসে যান
-update_app_downloading = ডাউনলোড হচ্ছে...
 
 # Transaction
 
@@ -365,6 +358,7 @@ wallet_connect_state_empty_description = DApp-এর সাথে সংযো�
 wallet_connect_permissions_title = অনুমতি
 wallet_connect_permissions_view_balance = আপনার ব্যালেন্স এবং কার্যকলাপ দেখুন
 wallet_connect_permissions_approval_requests = অনুমোদনের অনুরোধ পাঠান
+wallet_connect_request_expired = অনুরোধের মেয়াদ শেষ
 
 # Swap
 
@@ -480,8 +474,6 @@ banner_account_activation_title = অ্যাকাউন্ট অ্যাক
 banner_account_activation_description = %@ নেটওয়ার্কের জন্য %@ এর এককালীন ফি প্রয়োজন।
 banner_stake_title = %@ স্টেক করা শুরু করুন
 banner_stake_description = আপনি যখন ঘুমান তখন আপনার বাজিতে %@ পুরষ্কার অর্জন করুন।
-banner_enable_notifications_title = বিজ্ঞপ্তি সক্রিয় করুন
-banner_enable_notifications_description = আপনার ওয়ালেট কার্যকলাপের শীর্ষে থাকুন।
 banner_activate_asset_description = %@ সম্পদ ব্যবহার করতে, আপনাকে প্রথমে নেটওয়ার্কের নির্দিষ্ট প্রয়োজনীয়তা পূরণ করে %@ নেটওয়ার্কে এটি সক্রিয় করতে হবে।
 banner_asset_status_title = সন্দেহজনক সম্পদ
 banner_asset_status_description = টোকেন অনিরাপদ বা বিভ্রান্তিকর হতে পারে। আপনি সম্পূর্ণরূপে বিশ্বাস করলেই এগিয়ে যান।
@@ -605,6 +597,7 @@ nft_report_reason_spam = স্প্যাম
 nft_report_reason_malicious = দূষিত
 nft_report_reason_inappropriate = অনুপযুক্ত কন্টেন্ট
 nft_report_reason_copyright = কপিরাইট
+nft_report_reason_other = অন্যান্য
 nft_report_report_button_title = রিপোর্ট করুন
 
 # Permissions
@@ -629,7 +622,6 @@ networks_state_empty_search_title = কোনও নেটওয়ার্ক 
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = তুমি একটি গোপন বাক্যাংশ পাবে — এটি তোমার ওয়ালেট অ্যাক্সেস করার একমাত্র উপায়।
-onboarding_security_create_wallet_confirm_title = আমি বুঝতে পারি এবং চালিয়ে যেতে চাই
 onboarding_security_create_wallet_do_not_share_title = কারো সাথে শেয়ার করবেন না
 onboarding_security_create_wallet_do_not_share_subtitle = যে কেউ আপনার গোপন বাক্যাংশ পায় সে আপনার ওয়ালেটের সম্পূর্ণ নিয়ন্ত্রণ নিতে পারে।
 onboarding_security_create_wallet_keep_safe_subtitle = গোপন বাক্যাংশটি আপনার ওয়ালেট অ্যাক্সেস করার একমাত্র উপায়।
@@ -687,8 +679,9 @@ perpetual_margin_isolated = বিচ্ছিন্ন
 # Perpetuals
 
 perpetuals_title = পারপেচুয়াল
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = পারপেচুয়াল ট্রেড করুন
 perpetuals_markets = বাজার
-perpetuals_empty_state_no_markets = বাজার নেই
 perpetuals_empty_state_no_markets_found = কোন বাজার খুঁজে পাওয়া যায়নি
 
 # Rewards
@@ -760,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = QR কোড স্ক্যানের জন্য ক্যামেরার অনুমতি প্রয়োজন।\nঅনুগ্রহ করে অনুমতি দিন।
 
 # Notifications Permission
 
-notifications_permission_request_notification = নতুন লেনদেন সম্পর্কে বিজ্ঞপ্তি পেতে পোস্ট বিজ্ঞপ্তি অনুমতি প্রয়োজন।\nঅনুগ্রহ করে অনুমতি দিন।
 
 # Confirm
 
-confirm_fee_error = ফি গণনার ত্রুটি
 
 # Rootcheck
 

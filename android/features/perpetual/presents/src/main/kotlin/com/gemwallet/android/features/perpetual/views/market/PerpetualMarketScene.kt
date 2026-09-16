@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.perpetual.views.market
 
+import uniffi.gemstone.GemPerpetualMarketCounts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -27,15 +28,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregate
 import com.gemwallet.android.domains.perpetual.values.PerpetualBalance
 import com.gemwallet.android.ui.components.SearchBar
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.features.perpetual.localization.stringRes
+import uniffi.gemstone.GemPerpetualMarketSection
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
@@ -54,6 +56,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallIconSize
+import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualMarketSceneState
 import com.gemwallet.android.features.perpetual.views.components.MarketHeadActions
 import com.gemwallet.android.features.perpetual.views.components.PerpetualItem
@@ -80,15 +83,20 @@ internal fun PerpetualMarketScene(
 ) {
     val longPressedAsset = remember { mutableStateOf<PerpetualId?>(null) }
     var isSearching by rememberSaveable { mutableStateOf(false) }
-    val showRecents = isSearching && query.text.isEmpty() && recent.isNotEmpty()
-    val showMarkets = !isSearching || unpinnedPerpetuals.isNotEmpty() || positions.isEmpty()
+    val sections = GemPerpetualMarketCounts(
+        positions = positions.size.toUInt(),
+        pinned = pinnedPerpetuals.size.toUInt(),
+        markets = unpinnedPerpetuals.size.toUInt(),
+        recents = recent.size.toUInt(),
+    ).sections(isSearching, query.text.isEmpty())
+    val sectionList = sections.list()
 
     Scene(
         titleContent = {
             if (isSearching) {
                 SearchBar(
                     query = query,
-                    modifier = Modifier.listItem(com.gemwallet.android.ui.models.ListPosition.Single, paddingHorizontal = 0.dp),
+                    modifier = Modifier.listItem(com.gemwallet.android.ui.models.ListPosition.Single, paddingHorizontal = space0),
                 )
             } else {
                 Text(stringResource(R.string.perpetuals_title))
@@ -117,13 +125,6 @@ internal fun PerpetualMarketScene(
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
             ) {
-                if (showRecents) {
-                    recentPerpetuals(
-                        items = recent,
-                        onSeeAll = { onAction(PerpetualMarketAction.OpenRecentsSheet) },
-                        onSelect = { asset -> onAction(PerpetualMarketAction.OpenRecent(asset)) },
-                    )
-                }
                 if (!isSearching) {
                     item {
                         AmountListHead(
@@ -141,54 +142,56 @@ internal fun PerpetualMarketScene(
                         }
                     }
                 }
-                positions.takeIf { it.isNotEmpty() }?.let {
-                    item { SubheaderItem(R.string.perpetual_positions) }
-                    itemsPositioned(positions) { position, item ->
-                        PerpetualPositionItem(
-                            data = item,
-                            listPosition = position,
-                            modifier = Modifier.clickable { onAction(PerpetualMarketAction.OpenPerpetual(item.asset)) }
+                sectionList.forEach { section ->
+                    when (section) {
+                        GemPerpetualMarketSection.RECENTS -> recentPerpetuals(
+                            items = recent,
+                            onSeeAll = { onAction(PerpetualMarketAction.OpenRecentsSheet) },
+                            onSelect = { asset -> onAction(PerpetualMarketAction.OpenRecent(asset)) },
                         )
-                    }
-                }
-                if (pinnedPerpetuals.isNotEmpty()) {
-                    item {
-                        Spacer16()
-                        PinnedAssetsHeaderItem(AssetsGroupType.Pinned)
-                    }
-                    itemsPositioned(pinnedPerpetuals) { position, item ->
-                        PerpetualItem(
-                            item = item,
-                            listPosition = position,
-                            longPressState = longPressedAsset,
-                            onTogglePin = { onAction(PerpetualMarketAction.TogglePin(it)) },
-                            onClick = { onAction(PerpetualMarketAction.OpenPerpetual(item.asset)) },
-                        )
-                    }
-                }
-                if (showMarkets) {
-                    if (unpinnedPerpetuals.isEmpty()) {
-                        if (isSearching) {
-                            item {
-                                EmptyContentView(
-                                    type = EmptyContentType.SearchPerpetuals,
-                                    modifier = Modifier
-                                        .animateItem()
-                                        .fillParentMaxSize(),
+                        GemPerpetualMarketSection.POSITIONS -> {
+                            section.stringRes()?.let { title -> item { SubheaderItem(title) } }
+                            itemsPositioned(positions) { position, item ->
+                                PerpetualPositionItem(
+                                    data = item,
+                                    listPosition = position,
+                                    modifier = Modifier.clickable { onAction(PerpetualMarketAction.OpenPerpetual(item.asset)) }
                                 )
                             }
                         }
-                    } else {
-                        item {
-                            SubheaderItem(R.string.markets_title)
+                        GemPerpetualMarketSection.PINNED -> {
+                            item {
+                                Spacer16()
+                                PinnedAssetsHeaderItem(AssetsGroupType.Pinned)
+                            }
+                            itemsPositioned(pinnedPerpetuals) { position, item ->
+                                PerpetualItem(
+                                    item = item,
+                                    listPosition = position,
+                                    longPressState = longPressedAsset,
+                                    onTogglePin = { onAction(PerpetualMarketAction.TogglePin(it)) },
+                                    onClick = { onAction(PerpetualMarketAction.OpenPerpetual(item.asset)) },
+                                )
+                            }
                         }
-                        itemsPositioned(unpinnedPerpetuals) { position, item ->
-                            PerpetualItem(
-                                item = item,
-                                listPosition = position,
-                                longPressState = longPressedAsset,
-                                onTogglePin = { onAction(PerpetualMarketAction.TogglePin(it)) },
-                                onClick = { onAction(PerpetualMarketAction.OpenPerpetual(item.asset)) },
+                        GemPerpetualMarketSection.MARKETS -> {
+                            section.stringRes()?.let { title -> item { SubheaderItem(title) } }
+                            itemsPositioned(unpinnedPerpetuals) { position, item ->
+                                PerpetualItem(
+                                    item = item,
+                                    listPosition = position,
+                                    longPressState = longPressedAsset,
+                                    onTogglePin = { onAction(PerpetualMarketAction.TogglePin(it)) },
+                                    onClick = { onAction(PerpetualMarketAction.OpenPerpetual(item.asset)) },
+                                )
+                            }
+                        }
+                        GemPerpetualMarketSection.EMPTY -> item {
+                            EmptyContentView(
+                                type = EmptyContentType.SearchPerpetuals,
+                                modifier = Modifier
+                                    .animateItem()
+                                    .fillParentMaxSize(),
                             )
                         }
                     }
@@ -220,7 +223,7 @@ private fun LazyListScope.recentPerpetuals(
             items(items) { asset ->
                 Row(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
+                        .clip(RoundedCornerShape(paddingDefault))
                         .background(MaterialTheme.colorScheme.background)
                         .clickable { onSelect(asset) }
                         .padding(paddingSmall),
@@ -250,7 +253,6 @@ fun PreviewPerpetualMarketScene() {
             },
             positions = listOf(
                 object : PerpetualPositionDataAggregate {
-                    override val positionId: String = "pos_btc_001"
                     override val perpetualId: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
                     override val asset: Asset = Asset(
                         id = AssetId(Chain.Bitcoin),
@@ -259,15 +261,14 @@ fun PreviewPerpetualMarketScene() {
                         decimals = 8,
                         type = AssetType.NATIVE
                     )
-                    override val name: String = "BTC/USD 10x Long"
+                    override val title: String = "BTC/USD 10x Long"
                     override val direction: PerpetualDirection = PerpetualDirection.Long
-                    override val leverage: Int = 10
+                    override val leverage: String = "10x"
                     override val marginAmount: String = "$10,000.00"
                     override val pnlWithPercentage: String = "+$1,250.00 (+12.50%)"
-                    override val pnlState: ValueDirection = ValueDirection.Up
+                    override val pnlState: GemValueTone = GemValueTone.POSITIVE
                 },
                 object : PerpetualPositionDataAggregate {
-                    override val positionId: String = "pos_eth_002"
                     override val perpetualId: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "ETH")
                     override val asset: Asset = Asset(
                         id = AssetId(Chain.Ethereum),
@@ -276,18 +277,19 @@ fun PreviewPerpetualMarketScene() {
                         decimals = 18,
                         type = AssetType.NATIVE
                     )
-                    override val name: String = "ETH/USD 5x Short"
+                    override val title: String = "ETH/USD 5x Short"
                     override val direction: PerpetualDirection = PerpetualDirection.Short
-                    override val leverage: Int = 20
+                    override val leverage: String = "20x"
                     override val marginAmount: String = "$5,000.00"
                     override val pnlWithPercentage: String = "-$180.00 (-3.60%)"
-                    override val pnlState: ValueDirection = ValueDirection.Down
+                    override val pnlState: GemValueTone = GemValueTone.NEGATIVE
                 }
             ),
             unpinnedPerpetuals = listOf(
                 object : PerpetualDataAggregate {
                     override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
-                    override val name: String = "BTC/USD"
+                    override val title: String = "BTC/USD"
+                    override val showsPrice: Boolean = true
                     override val price = object : EquivalentValue {
                         override val currency = Currency.USD
                         override val value: Double = 95420.50
@@ -305,7 +307,8 @@ fun PreviewPerpetualMarketScene() {
                 },
                 object : PerpetualDataAggregate {
                     override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "ETH")
-                    override val name: String = "ETH/USD"
+                    override val title: String = "ETH/USD"
+                    override val showsPrice: Boolean = true
                     override val price = object : EquivalentValue {
                         override val currency = Currency.USD
                         override val value: Double = 3625.75
@@ -323,7 +326,8 @@ fun PreviewPerpetualMarketScene() {
                 },
                 object : PerpetualDataAggregate {
                     override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "SOL")
-                    override val name: String = "SOL/USD"
+                    override val title: String = "SOL/USD"
+                    override val showsPrice: Boolean = true
                     override val price = object : EquivalentValue {
                         override val currency = Currency.USD
                         override val value: Double = 235.40
@@ -341,7 +345,8 @@ fun PreviewPerpetualMarketScene() {
                 },
                 object : PerpetualDataAggregate {
                     override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "AVAX")
-                    override val name: String = "AVAX/USD"
+                    override val title: String = "AVAX/USD"
+                    override val showsPrice: Boolean = true
                     override val price = object : EquivalentValue {
                         override val currency = Currency.USD
                         override val value: Double = 41.85
@@ -359,7 +364,8 @@ fun PreviewPerpetualMarketScene() {
                 },
                 object : PerpetualDataAggregate {
                     override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "LINK")
-                    override val name: String = "LINK/USD"
+                    override val title: String = "LINK/USD"
+                    override val showsPrice: Boolean = true
                     override val price = object : EquivalentValue {
                         override val currency = Currency.USD
                         override val value: Double = 21.45
@@ -379,7 +385,8 @@ fun PreviewPerpetualMarketScene() {
             pinnedPerpetuals = listOf(
                 object : PerpetualDataAggregate {
                     override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "BTC")
-                    override val name: String = "BTC/USD"
+                    override val title: String = "BTC/USD"
+                    override val showsPrice: Boolean = true
                     override val price = object : EquivalentValue {
                         override val currency = Currency.USD
                         override val value: Double = 95420.50
@@ -397,7 +404,8 @@ fun PreviewPerpetualMarketScene() {
                 },
                 object : PerpetualDataAggregate {
                     override val id: PerpetualId = PerpetualId(PerpetualProvider.Hypercore, "ETH")
-                    override val name: String = "ETH/USD"
+                    override val title: String = "ETH/USD"
+                    override val showsPrice: Boolean = true
                     override val price = object : EquivalentValue {
                         override val currency = Currency.USD
                         override val value: Double = 3625.75

@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset_select.viewmodels.models.RecentsSheetUIModel
 import com.gemwallet.android.model.AssetFilter
@@ -18,10 +18,10 @@ import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.Asset
 import dagger.hilt.android.lifecycle.HiltViewModel
-import uniffi.gemstone.GemAssetConfigServiceInterface
 import uniffi.gemstone.GemRecentActivityServiceInterface
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.Dispatchers
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -38,9 +38,9 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class RecentsSheetViewModel @Inject constructor(
-    private val getRecentAssets: GetRecentAssets,
+    private val recentAssetsService: RecentAssetsService,
     private val recentActivityService: GemRecentActivityServiceInterface,
-    private val assetConfig: GemAssetConfigServiceInterface,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     val query = TextFieldState()
@@ -55,12 +55,12 @@ class RecentsSheetViewModel @Inject constructor(
         .filterNotNull()
         .flatMapLatest { config ->
             combine(
-                getRecentAssets(RecentAssetsRequest(types = config.types, filters = config.filters, limit = 0)),
+                recentAssetsService.getRecentAssets(RecentAssetsRequest(types = config.types, filters = config.filters, limit = 0)),
                 snapshotFlow { query.text.toString() },
                 ::buildUIModel,
             )
         }
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, RecentsSheetUIModel.Empty)
 
     fun show(filters: Set<AssetFilter> = emptySet(), types: List<RecentActivityType> = RecentActivityType.entries) {
@@ -74,18 +74,15 @@ class RecentsSheetViewModel @Inject constructor(
 
     fun onClear() {
         val types = config.value?.types ?: RecentActivityType.entries
-        viewModelScope.launch(Dispatchers.IO) { recentActivityService.clear(types.map { it.toGem() }) }
+        viewModelScope.launch(ioDispatcher) { recentActivityService.clear(types.map { it.toGem() }) }
     }
 
     private fun buildUIModel(items: List<RecentAsset>, searchText: String): RecentsSheetUIModel {
-        val matching = assetConfig.matchingAssets(items.map { it.asset.toGem() }, searchText)
-            .map { it.toPrimitives().id.toIdentifier() }
-            .toSet()
-        val filtered = items.filter { it.asset.id.toIdentifier() in matching }
+        val state = recentActivityService.viewState(items.map { it.asset.toGem() }, searchText)
+        val matching = state.matchingAssetIds.toSet()
         return RecentsSheetUIModel(
-            items = filtered.toImmutableList(),
-            hasAnyRecents = items.isNotEmpty(),
-            searchActive = searchText.isNotBlank(),
+            items = items.filter { it.asset.id.toIdentifier() in matching }.toImmutableList(),
+            sections = state.sections,
         )
     }
 

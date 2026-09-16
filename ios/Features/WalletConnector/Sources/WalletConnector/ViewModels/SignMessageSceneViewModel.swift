@@ -1,9 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import struct Gemstone.GemSignMessagePreview
+import struct Gemstone.GemWalletRow
+import func Gemstone.walletRow
 import protocol Gemstone.GemSignMessageServiceProtocol
 import Components
 import Foundation
+import struct Gemstone.GemSimulationValue
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -11,7 +14,8 @@ import PrimitivesComponents
 import Style
 import WalletConnectorService
 import struct Gemstone.SimulationPayloadField
-import struct Gemstone.SimulationWarning
+import struct Gemstone.GemSimulationWarningRow
+import func Gemstone.simulationWarningRows
 
 @Observable
 @MainActor
@@ -20,9 +24,11 @@ public final class SignMessageSceneViewModel {
     private let payload: SignMessagePayload
     private let confirmTransferDelegate: TransferDataCallback.ConfirmTransferDelegate
     private let preview: GemSignMessagePreview
+    private let row: GemWalletRow
 
     public var isPresentingUrl: URL?
     public var isPresentingPayloadDetails: Bool = false
+    public var isPresentingAlertMessage: AlertMessage?
     private var payloadAddressNames: [ChainAddress: AddressName] = [:]
 
     public init(
@@ -33,7 +39,8 @@ public final class SignMessageSceneViewModel {
         self.service = service
         self.payload = payload
         self.confirmTransferDelegate = confirmTransferDelegate
-        preview = service.preview(message: payload.message, simulation: payload.simulation)
+        row = walletRow(wallet: payload.wallet.toGem())
+        preview = service.preview(message: payload.message, simulation: payload.simulation, assets: payload.assets.map { $0.toGem() })
     }
 
     public var networkText: String {
@@ -41,7 +48,7 @@ public final class SignMessageSceneViewModel {
     }
 
     public var title: String {
-        Localized.Transfer.reviewRequest
+        preview.messageType.title
     }
 
     public var walletText: String {
@@ -52,20 +59,16 @@ public final class SignMessageSceneViewModel {
         Localized.Transfer.confirm
     }
 
-    public var connectionViewModel: WalletConnectionViewModel {
-        WalletConnectionViewModel(connection: WalletConnection(session: payload.session, wallet: payload.wallet))
-    }
-
     public var appName: String {
         payload.session.metadata.shortName
     }
 
     public var appAssetImage: AssetImage {
-        AssetImage(imageURL: connectionViewModel.imageUrl)
+        AssetImage(imageURL: payload.session.metadata.iconURL)
     }
 
     public var walletAssetImage: AssetImage {
-        WalletViewModel(wallet: payload.wallet).avatarImage
+        row.avatarImage
     }
 
     public var networkAssetImage: AssetImage {
@@ -80,8 +83,12 @@ public final class SignMessageSceneViewModel {
         AppPreviewModel(
             assetImage: appAssetImage,
             name: appName,
-            subtitleSymbol: connectionViewModel.hostText,
+            subtitleSymbol: payload.session.metadata.host,
         )
+    }
+
+    public var headerData: GemSimulationValue? {
+        preview.header
     }
 
     var messageText: String {
@@ -92,8 +99,12 @@ public final class SignMessageSceneViewModel {
         TextMessageViewModel(message: preview.text)
     }
 
-    public var simulationWarnings: [SimulationWarning] {
-        payload.simulation.warnings
+    public var simulationWarningModels: [SimulationWarningViewModel] {
+        simulationWarnings.map(SimulationWarningViewModel.init)
+    }
+
+    public var simulationWarnings: [GemSimulationWarningRow] {
+        simulationWarningRows(warnings: payload.simulation.warnings)
     }
 
     public var payloadModel: SimulationPayloadModel {
@@ -121,6 +132,17 @@ public final class SignMessageSceneViewModel {
         let signature = try await service.sign(walletId: payload.wallet.id.id, message: payload.message)
         confirmTransferDelegate(.success(signature))
     }
+
+    public func onSign(onComplete: @escaping () -> Void) {
+        Task {
+            do {
+                try await signMessage()
+                onComplete()
+            } catch {
+                isPresentingAlertMessage = AlertMessage(error: error)
+            }
+        }
+    }
 }
 
 // MARK: - Actions
@@ -132,10 +154,10 @@ public extension SignMessageSceneViewModel {
         }
     }
 
-    func contextMenuItems(for field: SimulationPayloadField) -> [ContextMenuItemType] {
-        payloadModel.contextMenuItems(
-            for: field,
-            explorerLink: { service.addressUrl(chain: payload.chain.rawValue, address: $0).map() },
+    func fieldModels(for fields: [SimulationPayloadField]) -> [SimulationPayloadFieldViewModel] {
+        payloadModel.fieldModels(
+            for: fields,
+            explorerLink: { service.addressUrl(chain: payload.chain.rawValue, address: $0).toPrimitives() },
             onOpenURL: { [weak self] in self?.isPresentingUrl = $0 },
         )
     }

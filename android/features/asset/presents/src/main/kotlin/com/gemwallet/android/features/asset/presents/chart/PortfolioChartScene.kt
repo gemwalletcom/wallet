@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.asset.presents.chart
 
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -21,7 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.asset.viewmodels.chart.models.portfolioChartHeader
+import com.gemwallet.android.features.asset.presents.localization.stringRes
 import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.PortfolioChartViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.TabsBar
@@ -29,8 +30,8 @@ import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.StateViewType
-import com.wallet.core.primitives.PortfolioChartType
 import com.wallet.core.primitives.PortfolioType
+import uniffi.gemstone.PortfolioChartType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,7 +53,7 @@ fun PortfolioChartScene(
             if (showSegmentedControl) {
                 PortfolioTypeSelector(selected = selectedType, onSelect = viewModel::setType)
             } else {
-                Text(stringResource(selectedType.titleRes()))
+                Text(stringResource(selectedType.stringRes()))
             }
         },
         onClose = onCancel,
@@ -67,7 +68,7 @@ fun PortfolioChartScene(
             onRefresh = viewModel::refresh,
             containerColor = PullToRefreshDefaults.indicatorContainerColor,
         ) {
-            LazyColumn {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item { PortfolioChart(viewModel) }
                 if (state.chart is StateViewType.Data || state.chart == StateViewType.NoData) {
                     portfolioStatistics(currency, statistics)
@@ -80,7 +81,7 @@ fun PortfolioChartScene(
 @Composable
 private fun PortfolioTypeSelector(selected: PortfolioType, onSelect: (PortfolioType) -> Unit) {
     TabsBar(PortfolioType.entries, selected, onSelect) { type ->
-        Text(stringResource(type.titleRes()))
+        Text(stringResource(type.stringRes()))
     }
 }
 
@@ -90,7 +91,7 @@ private fun ChartTypeSelector(selected: PortfolioChartType, onSelect: (Portfolio
     TextButton(onClick = { expanded = true }) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = stringResource(selected.titleRes()),
+                text = stringResource(selected.stringRes()),
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.SemiBold,
             )
@@ -104,7 +105,7 @@ private fun ChartTypeSelector(selected: PortfolioChartType, onSelect: (Portfolio
     DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
         PortfolioChartType.entries.forEach { type ->
             DropdownMenuItem(
-                text = { Text(stringResource(type.titleRes())) },
+                text = { Text(stringResource(type.stringRes())) },
                 onClick = {
                     onSelect(type)
                     expanded = false
@@ -123,15 +124,6 @@ private fun PortfolioChart(viewModel: PortfolioChartViewModel) {
         state = state,
         onPeriodSelect = viewModel::setPeriod,
         periods = periods,
-    ) { uiModel, selectedPoint -> portfolioChartHeader(uiModel, selectedPoint) }
+    )
 }
 
-private fun PortfolioType.titleRes(): Int = when (this) {
-    PortfolioType.Wallet -> R.string.wallet_portfolio_title
-    PortfolioType.Perpetuals -> R.string.perpetuals_title
-}
-
-private fun PortfolioChartType.titleRes(): Int = when (this) {
-    PortfolioChartType.Value -> R.string.perpetual_value
-    PortfolioChartType.Pnl -> R.string.perpetual_pnl
-}

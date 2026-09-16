@@ -4,9 +4,9 @@ import Foundation
 import Localization
 import Primitives
 import PrimitivesComponents
+import struct Gemstone.Rewards
 import protocol Gemstone.GemRewardsServiceProtocol
 import GemstonePrimitives
-import GemstoneServices
 
 @Observable
 @MainActor

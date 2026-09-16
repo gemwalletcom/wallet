@@ -16,10 +16,6 @@ impl AssetScore {
         let rank_type = AssetRank::from_rank(rank);
         Self { rank, rank_type }
     }
-
-    pub fn rank_type(&self) -> AssetRank {
-        AssetRank::from_rank(self.rank)
-    }
 }
 
 impl Default for AssetScore {

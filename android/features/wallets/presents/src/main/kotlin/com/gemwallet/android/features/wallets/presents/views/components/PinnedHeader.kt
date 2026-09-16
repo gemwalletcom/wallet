@@ -11,7 +11,6 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.sectionHeaderHorizontalPadding
 import com.gemwallet.android.ui.icons.AppIcons
@@ -19,13 +18,14 @@ import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.tinyIconSize
 
+import com.gemwallet.android.ui.theme.space24
 internal fun LazyListScope.pinnedHeader() {
     item {
         Row(
             modifier = Modifier.padding(
                 start = sectionHeaderHorizontalPadding,
                 end = sectionHeaderHorizontalPadding,
-                top = 24.dp,
+                top = space24,
                 bottom = paddingSmall
             ),
             verticalAlignment = Alignment.CenterVertically,

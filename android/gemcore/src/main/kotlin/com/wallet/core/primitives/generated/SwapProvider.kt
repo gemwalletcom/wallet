@@ -39,8 +39,6 @@ enum class SwapProvider(val string: String) {
 	Chainflip("chainflip"),
 	@SerialName("near_intents")
 	NearIntents("near_intents"),
-	@SerialName("cetus_aggregator")
-	CetusAggregator("cetus_aggregator"),
 	@SerialName("cetus_clmm")
 	CetusClmm("cetus_clmm"),
 	@SerialName("relay")

@@ -11,7 +11,3 @@ inline fun <reified T> T.packRoutePayload(): String? = runCatching {
 inline fun <reified T> unpackRoutePayload(input: String): T? = runCatching {
     jsonEncoder.decodeFromString<T>(String(Base64.getDecoder().decode(input.urlDecode())))
 }.getOrNull()
-
-fun String.packRouteString(): String? = Base64.getEncoder().encodeToString(toByteArray()).urlEncode()
-
-fun String.unpackRouteString(): String = String(Base64.getDecoder().decode(urlDecode()))

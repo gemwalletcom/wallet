@@ -1,95 +1,39 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import Formatters
 import Foundation
-import GemstoneFormatters
+import GemstonePrimitives
 import Primitives
 
-public struct AmountValidator: FormattedValidator {
-    public enum Source: Sendable {
-        case asset
-        case fiat(price: AssetPrice?, converter: AssetValueConverter)
-    }
-
-    public typealias Formatted = BigInt
-
-    public let validators: [any ValueValidator<BigInt>]
-
-    private let formatter: ValueFormatter
+public struct AmountValidator: TextValidator {
+    private let validators: [any ValueValidator<BigInt>]
     private let decimals: Int
-    private let source: Source
 
     public init(
-        formatter: ValueFormatter,
         decimals: Int,
-        source: Source,
         validators: [any ValueValidator<BigInt>],
     ) {
-        self.formatter = formatter
         self.decimals = decimals
-        self.source = source
         self.validators = validators
     }
 
     public var id: String {
-        "AmountValidator<\(Formatted.self)>"
+        "AmountValidator<\(BigInt.self)>"
     }
 
-    public func format(_ text: String) throws -> BigInt {
-        switch source {
-        case .asset:
-            return try formatter.inputNumber(from: text, decimals: decimals)
-        case let .fiat(price, converter):
-            guard let price else { throw TransferError.invalidAmount }
-            return (try? converter.convertToDisplayedAmount(
-                fiatValue: text,
-                price: price,
-                decimals: decimals,
-            )) ?? .zero
-        }
+    public func validate(_ text: String) throws {
+        let value = try NumberInput.value(text, decimals: decimals)
+        try validators.forEach { try $0.validate(value) }
     }
 }
 
 public extension TextValidator where Self == AmountValidator {
-    static func amount(
-        source: AmountValidator.Source,
-        formatter: ValueFormatter = .init(style: .full),
-        decimals: Int,
-        validators: [any ValueValidator<BigInt>],
-    ) -> Self {
-        .init(
-            formatter: formatter,
-            decimals: decimals,
-            source: source,
-            validators: validators,
-        )
-    }
-
     static func assetAmount(
-        formatter: ValueFormatter = .init(style: .full),
         decimals: Int,
         validators: [any ValueValidator<BigInt>],
     ) -> Self {
         .init(
-            formatter: formatter,
             decimals: decimals,
-            source: .asset,
-            validators: validators,
-        )
-    }
-
-    static func fiatAmount(
-        formatter: ValueFormatter = .init(style: .full),
-        converter: AssetValueConverter = .init(),
-        price: AssetPrice?,
-        decimals: Int,
-        validators: [any ValueValidator<BigInt>],
-    ) -> Self {
-        .init(
-            formatter: formatter,
-            decimals: decimals,
-            source: .fiat(price: price, converter: converter),
             validators: validators,
         )
     }

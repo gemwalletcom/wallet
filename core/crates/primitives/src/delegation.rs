@@ -6,13 +6,14 @@ use strum::{AsRefStr, Display, EnumString};
 use typeshare::typeshare;
 
 use crate::stake_provider_type::StakeProviderType;
-use crate::{AssetId, Chain, StakeValidator};
+use crate::{AssetId, Chain, Price, StakeValidator};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Delegation {
     pub base: DelegationBase,
     pub validator: DelegationValidator,
+    pub price: Option<Price>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

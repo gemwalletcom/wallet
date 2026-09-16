@@ -1,7 +1,11 @@
 use num_bigint::BigInt;
 use num_traits::Zero;
-use primitives::{AssetId, Chain, SimulationBalanceChange, SimulationResult, SimulationWarning};
+use primitives::{
+    AssetId, Chain, SimulationBalanceChange, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType,
+    SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningApproval, SimulationWarningType,
+};
 
+use crate::TransactionApproval;
 use crate::address::TronAddress;
 use crate::models::TriggerConstantContractResponse;
 use crate::provider::balance_diff::token_balance_deltas;
@@ -16,6 +20,57 @@ pub fn map_simulation_result(owner: &TronAddress, response: &TriggerConstantCont
         balance_changes: map_balance_changes(owner, response, call_value),
         ..Default::default()
     }
+}
+
+pub(crate) fn map_approval_simulation(decoded: TransactionApproval) -> SimulationResult {
+    let TransactionApproval { approval, contract, expiration } = decoded;
+    let asset_id = AssetId::from_token(Chain::Tron, &approval.token);
+    let value = (!approval.is_unlimited).then_some(approval.value);
+    let mut result = SimulationResult {
+        header: Some(SimulationHeader {
+            asset_id: asset_id.clone(),
+            value: value.clone(),
+            is_unlimited: approval.is_unlimited,
+        }),
+        warnings: vec![SimulationWarning::new(
+            SimulationSeverity::Low,
+            SimulationWarningType::TokenApproval(SimulationWarningApproval {
+                asset_id,
+                value: value.map(BigInt::from),
+            }),
+            None,
+        )],
+        payload: vec![
+            SimulationPayloadField::standard(
+                SimulationPayloadFieldKind::Spender,
+                approval.spender,
+                SimulationPayloadFieldType::Address,
+                SimulationPayloadFieldDisplay::Primary,
+            ),
+            SimulationPayloadField::standard(
+                SimulationPayloadFieldKind::Contract,
+                contract,
+                SimulationPayloadFieldType::Address,
+                SimulationPayloadFieldDisplay::Secondary,
+            ),
+            SimulationPayloadField::standard(
+                SimulationPayloadFieldKind::Method,
+                "approve",
+                SimulationPayloadFieldType::Text,
+                SimulationPayloadFieldDisplay::Secondary,
+            ),
+        ],
+        balance_changes: vec![],
+    };
+    if let Some(expiration) = expiration {
+        result.payload.push(SimulationPayloadField::standard(
+            SimulationPayloadFieldKind::Expiration,
+            expiration.to_string(),
+            SimulationPayloadFieldType::Timestamp,
+            SimulationPayloadFieldDisplay::Primary,
+        ));
+    }
+    result
 }
 
 fn map_balance_changes(owner: &TronAddress, response: &TriggerConstantContractResponse, call_value: Option<u64>) -> Vec<SimulationBalanceChange> {
@@ -38,17 +93,38 @@ fn map_balance_changes(owner: &TronAddress, response: &TriggerConstantContractRe
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::Address as _;
+    use num_bigint::BigUint;
+    use primitives::{Address as _, ApprovalData};
 
-    fn mock_owner() -> TronAddress {
-        TronAddress::from_hex_or_base58("TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM").unwrap()
+    #[test]
+    fn test_map_approval_simulation() {
+        for (value, is_unlimited) in [(BigUint::from(100u32), false), (BigUint::from_bytes_be(&[0xff; 32]), true)] {
+            let result = map_approval_simulation(TransactionApproval {
+                contract: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t".to_string(),
+                expiration: None,
+                approval: ApprovalData {
+                    token: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t".to_string(),
+                    spender: "TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM".to_string(),
+                    value: value.clone(),
+                    is_unlimited,
+                },
+            });
+            assert_eq!(
+                result.header,
+                Some(SimulationHeader {
+                    asset_id: AssetId::from_token(Chain::Tron, "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"),
+                    value: if is_unlimited { None } else { Some(value) },
+                    is_unlimited
+                })
+            );
+        }
     }
 
     #[test]
     fn test_map_simulation_result_swap_with_logs() {
         let response: TriggerConstantContractResponse = serde_json::from_str(include_str!("../../testdata/trigger_constant_contract_swap_with_logs.json")).unwrap();
 
-        let result = map_simulation_result(&mock_owner(), &response, Some(1_000_000));
+        let result = map_simulation_result(&TronAddress::mock(), &response, Some(1_000_000));
 
         assert!(result.warnings.is_empty());
         let output_token = TronAddress::from_hex("4e4bee11cea0070f957b98fd8cf4138ef3295e0e").unwrap().encode();
@@ -65,7 +141,7 @@ mod tests {
     fn test_map_simulation_result_reverted_returns_validation_warning() {
         let response: TriggerConstantContractResponse = serde_json::from_str(include_str!("../../testdata/trigger_constant_contract_reverted.json")).unwrap();
 
-        let result = map_simulation_result(&mock_owner(), &response, Some(1_000_000));
+        let result = map_simulation_result(&TronAddress::mock(), &response, Some(1_000_000));
 
         assert_eq!(result.warnings, vec![SimulationWarning::execution_error("REVERT opcode executed")]);
         assert!(result.balance_changes.is_empty());

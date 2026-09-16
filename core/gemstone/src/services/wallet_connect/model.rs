@@ -1,5 +1,7 @@
+use crate::application::GemConnectionRow;
+use crate::models::custom_types::DateTimeUtc;
 use crate::services::transfer::GemTransferData;
-use primitives::{Account, Chain, SimulationResult, Wallet, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus};
+use primitives::{Account, Asset, Chain, SimulationResult, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus};
 
 use crate::message::sign_type::SignMessage;
 use crate::wallet_connect::WalletConnectResponseType;
@@ -13,12 +15,37 @@ pub struct GemWalletConnectSessionRequest {
     pub chain_id: Option<String>,
     pub origin: Option<String>,
     pub validation: WalletConnectionVerificationStatus,
+    pub expiry: Option<u64>,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemWalletConnectAuthAccount {
+    pub account: Account,
+    pub chain_id: String,
+    pub issuer: String,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemWalletConnectRpcError {
     pub code: i32,
     pub message: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemWalletConnectRejectionReason {
+    UserRejected,
+    UnsupportedChains,
+    UnsupportedMethods,
+    UnsupportedAccounts,
+    UnsupportedEvents,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemWalletConnectRejection {
+    pub reason: GemWalletConnectRejectionReason,
+    pub code: i32,
+    pub message: String,
+    pub deletes_session: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -31,6 +58,7 @@ pub enum GemWalletConnectResponse {
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemWalletConnectFailure {
     MaliciousOrigin,
+    Expired,
     Failed { message: String },
 }
 
@@ -41,6 +69,15 @@ pub struct GemWalletConnectOutcome {
 }
 
 impl GemWalletConnectOutcome {
+    pub fn expired() -> Self {
+        Self {
+            response: Some(GemWalletConnectResponse::Error {
+                error: crate::services::wallet_connect::rules::request_expired_error(),
+            }),
+            failure: Some(GemWalletConnectFailure::Expired),
+        }
+    }
+
     pub fn rejected(failure: Option<GemWalletConnectFailure>) -> Self {
         Self {
             response: Some(GemWalletConnectResponse::Error {
@@ -78,6 +115,7 @@ pub struct GemWalletConnectMessageRequest {
     pub session: WalletConnectionSession,
     pub simulation: SimulationResult,
     pub message: SignMessage,
+    pub assets: Vec<Asset>,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -96,4 +134,59 @@ pub struct GemWalletConnectTransactionRequest {
 pub enum GemWalletConnectTransactionAction {
     Sign,
     Send,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemVerificationLevel {
+    Verified,
+    Unverified,
+    Suspicious,
+}
+
+#[uniffi::export]
+pub fn verification_level(status: WalletConnectionVerificationStatus) -> GemVerificationLevel {
+    match status {
+        WalletConnectionVerificationStatus::Verified => GemVerificationLevel::Verified,
+        WalletConnectionVerificationStatus::Unknown => GemVerificationLevel::Unverified,
+        WalletConnectionVerificationStatus::Invalid | WalletConnectionVerificationStatus::Malicious => GemVerificationLevel::Suspicious,
+    }
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemConnection {
+    pub connection: WalletConnection,
+    pub row: GemConnectionRow,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemConnectionSection {
+    pub title: String,
+    pub connections: Vec<GemConnection>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemConnectionDetailRow {
+    Wallet,
+    Date,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemConnectionDetails {
+    pub connection: GemConnection,
+    pub rows: Vec<GemConnectionDetailRow>,
+    pub wallet: String,
+    pub date: DateTimeUtc,
+}
+
+#[cfg(test)]
+mod verification_tests {
+    use super::*;
+
+    #[test]
+    fn test_an_invalid_origin_reads_as_suspicious_and_an_unknown_one_only_as_unverified() {
+        assert_eq!(verification_level(WalletConnectionVerificationStatus::Verified), GemVerificationLevel::Verified);
+        assert_eq!(verification_level(WalletConnectionVerificationStatus::Unknown), GemVerificationLevel::Unverified);
+        assert_eq!(verification_level(WalletConnectionVerificationStatus::Invalid), GemVerificationLevel::Suspicious);
+        assert_eq!(verification_level(WalletConnectionVerificationStatus::Malicious), GemVerificationLevel::Suspicious);
+    }
 }

@@ -6,7 +6,5 @@ import Foundation
 
 public enum ConnectionComponent: String, Codable, Equatable, Sendable {
 	case internet
-	case api
-	case nodes
 	case stream
 }

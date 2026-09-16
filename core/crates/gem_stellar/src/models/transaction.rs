@@ -71,6 +71,9 @@ pub struct Payment {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StellarPaymentTransaction {
     pub memo: Option<String>,
+    #[serde(default)]
+    #[serde(deserialize_with = "serde_serializers::deserialize_option_biguint_from_str")]
+    pub fee_charged: Option<BigUint>,
 }
 
 #[cfg(feature = "rpc")]
@@ -113,7 +116,16 @@ impl Payment {
     pub fn get_memo(&self) -> Option<String> {
         self.transaction.as_ref()?.memo.clone()
     }
+
+    pub fn fee_charged(&self) -> BigUint {
+        self.transaction
+            .as_ref()
+            .and_then(|transaction| transaction.fee_charged.clone())
+            .unwrap_or_else(|| BigUint::from(BASE_FEE_STROOPS))
+    }
 }
+
+const BASE_FEE_STROOPS: u32 = 100;
 
 const ORDER_DESCENDING: &str = "desc";
 const JOIN_TRANSACTIONS: &str = "transactions";

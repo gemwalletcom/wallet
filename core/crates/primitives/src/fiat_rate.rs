@@ -4,7 +4,7 @@ use typeshare::typeshare;
 use crate::currency::Currency;
 
 #[typeshare(swift = "Sendable")]
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct FiatRate {
     pub symbol: Currency,
     pub rate: f64,

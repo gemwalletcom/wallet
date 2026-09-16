@@ -1,7 +1,6 @@
 package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.model.FeeSelection
 import com.wallet.core.primitives.FeeUnitType
 import uniffi.gemstone.GemFeeRateRows
 
@@ -18,11 +17,10 @@ class FeeDetailsModel(
         FeeRateUIModel(
             row = row,
             feeAsset = feeAsset.priceValue,
-            feeUnitType = feeUnitType,
             feeRateDecimals = decimals,
             unitSymbol = unitSymbol,
         )
     }
 
-    fun customFee(input: String, selection: FeeSelection): CustomFee = CustomFee.from(input, currentFee, rows, decimals)
+    fun customFee(input: String): CustomFee = CustomFee.from(input, currentFee, rows, decimals)
 }

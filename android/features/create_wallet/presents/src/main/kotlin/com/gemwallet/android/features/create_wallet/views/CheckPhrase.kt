@@ -18,15 +18,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.AppUrl
 import com.gemwallet.android.features.create_wallet.components.WordChip
-import com.gemwallet.android.ui.DetectScreenshot
-import com.gemwallet.android.ui.DisableScreenShooting
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.CenteredDescriptionText
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.components.screen.PhraseLayout
+import com.gemwallet.android.ui.components.screen.phraseRows
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.theme.SceneSizing
 import com.gemwallet.android.ui.theme.space8
@@ -35,33 +33,24 @@ import com.gemwallet.android.ui.theme.WindowDimension
 import com.gemwallet.android.ui.theme.isCompactDimension
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.sceneContentPaddingValues
-import uniffi.gemstone.DocsUrl
 import kotlin.math.min
 
 private const val wordsPerGroup = 4
+
 private const val verifyGroupCount = 3
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun CheckPhrase(
     words: List<String>,
+    verificationWords: List<String>,
     loading: Boolean,
     onDone: () -> Unit,
     onCancel: () -> Unit,
 ) {
-    DisableScreenShooting()
-    DetectScreenshot(AppUrl.docs(DocsUrl.HowToSecureSecretPhrase))
-
     val random = remember {
-        val shuffled = mutableListOf<Pair<Int, String>>()
-        for (i in 0..words.size / wordsPerGroup) {
-            val part = words.mapIndexed { index, word -> Pair(index, word) }.subList(
-                fromIndex = i * wordsPerGroup,
-                toIndex = min(i * wordsPerGroup + wordsPerGroup, words.size)
-            ).shuffled()
-            shuffled.addAll(part)
-        }
-        shuffled.toList()
+        val byWord = words.withIndex().groupBy({ it.value }, { it.index }).mapValues { it.value.toMutableList() }
+        verificationWords.map { word -> Pair(byWord.getValue(word).removeAt(0), word) }
     }
     val render = remember {
         val state = mutableStateListOf<String>()
@@ -109,8 +98,9 @@ internal fun CheckPhrase(
             CenteredDescriptionText(stringResource(R.string.secret_phrase_confirm_quick_test_title))
             Spacer16()
             PhraseLayout(
-                words = render,
+                rows = remember(render.toList()) { phraseRows(render) },
                 modifier = Modifier.widthIn(max = SceneSizing.contentMaxWidth),
+                highlightIndex = result.size.takeIf { it < words.size },
             )
             AnimatedVisibility(visible = !isDone || !isSmallScreen) {
                 FlowRow(

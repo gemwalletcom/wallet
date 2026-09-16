@@ -37,7 +37,7 @@ fun AssetsResultsScreen(
     viewModel: AssetsResultsViewModel = hiltViewModel(),
 ) {
     val pinned by viewModel.pinned.collectAsStateWithLifecycle()
-    val cappedAssets by viewModel.cappedAssets.collectAsStateWithLifecycle()
+    val unpinned by viewModel.unpinned.collectAsStateWithLifecycle()
     val previewPerpetuals by viewModel.previewPerpetuals.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.refreshing.collectAsStateWithLifecycle()
@@ -77,17 +77,17 @@ fun AssetsResultsScreen(
                         items = pinned,
                         onSelect = onAssetClick,
                         support = { assetPriceSupport(it.price) },
-                        titleBadge = ::getAssetBadge,
+                        titleBadge = { item -> getAssetBadge(item, viewModel.flow.row.showsSymbol) },
                         itemTrailing = { getBalanceInfo(it)() },
                         longPressedAsset = longPressedAsset,
                         contextActions = contextActions,
                     )
                 }
                 assetRows(
-                    items = cappedAssets,
+                    items = unpinned,
                     onSelect = onAssetClick,
                     support = { assetPriceSupport(it.price) },
-                    titleBadge = ::getAssetBadge,
+                    titleBadge = { item -> getAssetBadge(item, viewModel.flow.row.showsSymbol) },
                     itemTrailing = { getBalanceInfo(it)() },
                     longPressedAsset = longPressedAsset,
                     contextActions = contextActions,

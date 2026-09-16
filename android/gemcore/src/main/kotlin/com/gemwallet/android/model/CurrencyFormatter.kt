@@ -7,24 +7,32 @@ import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.util.Locale
+import uniffi.gemstone.GemCurrencyStyle
+import uniffi.gemstone.GemPrecision
 
 class CurrencyFormatter(
     private val type: Type = Type.Currency,
-    private val currency: Currency,
+    private val currencyCode: String,
     private val locale: Locale = Locale.getDefault(),
 ) {
+    constructor(
+        type: Type = Type.Currency,
+        currency: Currency,
+        locale: Locale = Locale.getDefault(),
+    ) : this(type, currency.string, locale)
+
     enum class Type { Currency, Fiat, Abbreviated }
 
     private val currencyFormatter: DecimalFormat by lazy {
         (NumberFormat.getCurrencyInstance(locale) as DecimalFormat).apply {
-            currency = java.util.Currency.getInstance(this@CurrencyFormatter.currency.string)
+            currency = java.util.Currency.getInstance(currencyCode)
             roundingMode = RoundingMode.HALF_EVEN
         }
     }
 
     private val abbreviatedFormatter: CompactDecimalFormat by lazy {
         CompactDecimalFormat.getInstance(locale, CompactDecimalFormat.CompactStyle.SHORT).apply {
-            currency = android.icu.util.Currency.getInstance(this@CurrencyFormatter.currency.string)
+            currency = android.icu.util.Currency.getInstance(currencyCode)
             setSignificantDigitsUsed(false)
             minimumFractionDigits = 0
             maximumFractionDigits = 2
@@ -35,15 +43,18 @@ class CurrencyFormatter(
     fun string(value: Double): String = string(BigDecimal.valueOf(value))
 
     fun string(value: BigDecimal): String =
-        if (type == Type.Abbreviated && value.abs() >= ABBREVIATION_THRESHOLD) {
+        if (style.abbreviates(value.abs().toDouble())) {
             abbreviatedFormatter.format(value)
         } else {
             currencyFormatter.format(value, precision(value.abs()))
         }
 
-    private fun precision(magnitude: BigDecimal): Precision =
-        when {
-            type == Type.Fiat -> Precision.twoPlaces
-            else -> adaptivePrecision(magnitude)
+    private val style: GemCurrencyStyle
+        get() = when (type) {
+            Type.Currency -> GemCurrencyStyle.CURRENCY
+            Type.Fiat -> GemCurrencyStyle.FIAT
+            Type.Abbreviated -> GemCurrencyStyle.ABBREVIATED
         }
+
+    private fun precision(magnitude: BigDecimal): GemPrecision = style.precision(magnitude.toDouble())
 }

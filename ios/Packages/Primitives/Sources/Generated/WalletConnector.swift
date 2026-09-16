@@ -70,28 +70,3 @@ public struct WalletConnection: Codable, Equatable, Hashable, Sendable {
 		self.wallet = wallet
 	}
 }
-
-public enum WalletConnectionMethods: String, Codable, CaseIterable, Sendable {
-	case ethChainId = "eth_chainId"
-	case personalSign = "personal_sign"
-	case ethSignTypedData = "eth_signTypedData"
-	case ethSignTypedDataV4 = "eth_signTypedData_v4"
-	case ethSignTransaction = "eth_signTransaction"
-	case ethSendTransaction = "eth_sendTransaction"
-	case ethSendRawTransaction = "eth_sendRawTransaction"
-	case walletSwitchEthereumChain = "wallet_switchEthereumChain"
-	case walletAddEthereumChain = "wallet_addEthereumChain"
-	case solanaSignMessage = "solana_signMessage"
-	case solanaSignTransaction = "solana_signTransaction"
-	case solanaSignAndSendTransaction = "solana_signAndSendTransaction"
-	case solanaSignAllTransactions = "solana_signAllTransactions"
-	case suiGetAccounts = "sui_getAccounts"
-	case suiSignPersonalMessage = "sui_signPersonalMessage"
-	case suiSignTransaction = "sui_signTransaction"
-	case suiSignAndExecuteTransaction = "sui_signAndExecuteTransaction"
-	case tonSendMessage = "ton_sendMessage"
-	case tonSignData = "ton_signData"
-	case tronSignMessage = "tron_signMessage"
-	case tronSignTransaction = "tron_signTransaction"
-	case tronSendTransaction = "tron_sendTransaction"
-}

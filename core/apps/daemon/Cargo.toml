@@ -45,5 +45,6 @@ swapper = { path = "../../crates/swapper", features = ["reqwest_provider"] }
 security_provider = { path = "../../crates/security_provider" }
 
 [dev-dependencies]
+gem_solana = { path = "../../crates/gem_solana", features = ["rpc"] }
 primitives = { path = "../../crates/primitives", features = ["testkit"] }
 storage = { path = "../../crates/storage", features = ["testkit"] }

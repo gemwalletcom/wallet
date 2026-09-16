@@ -1,14 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import PrimitivesComponents
 import Style
 import SwiftUI
 
 struct SupportDateSeparator: View {
-    let date: Date
+    let title: String
 
     var body: some View {
-        Text(TransactionDateFormatter(date: date).section)
+        Text(title)
             .font(.caption)
             .foregroundStyle(Colors.secondaryText)
             .frame(maxWidth: .infinity)

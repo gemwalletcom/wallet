@@ -1,6 +1,8 @@
 use primitives::StakeChain;
 
-#[derive(uniffi::Record, Debug, Clone, PartialEq)]
+pub const EARN_OFFERED: bool = false;
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct StakeChainConfig {
     pub time_lock: u64,
     pub min_amount: u64,

@@ -12,6 +12,7 @@ import com.gemwallet.android.ui.navigation.routeArguments
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.TransactionId
 import kotlinx.serialization.Serializable
+import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
 
 @Serializable
 data object PerpetualRoute : NavKey
@@ -26,6 +27,7 @@ fun EntryProviderScope<NavKey>.perpetualScreen(
     amountAction: AmountTransactionAction,
     confirmAction: ConfirmTransactionAction,
     onTransaction: (TransactionId) -> Unit,
+    onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit,
 ) {
     entry<PerpetualRoute> {
         PerpetualMarketNavScreen(
@@ -44,6 +46,7 @@ fun EntryProviderScope<NavKey>.perpetualScreen(
             confirmAction = confirmAction,
             onClose = onCancel,
             onTransaction = onTransaction,
+            onAcquireAsset = onAcquireAsset,
         )
     }
 }

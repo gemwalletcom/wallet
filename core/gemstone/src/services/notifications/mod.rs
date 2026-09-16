@@ -20,17 +20,17 @@ impl GemNotificationsService {
     }
 
     pub fn is_enabled(&self) -> bool {
-        self.preferences.is_push_notifications_enabled()
+        self.permissions.is_available() && self.preferences.is_push_notifications_enabled()
     }
 
     pub async fn set_enabled(&self, enabled: bool) -> Result<bool, GemServiceError> {
-        if !enabled {
+        if !enabled || !self.permissions.is_available() {
             self.device.set_push_enabled(false).await?;
             return Ok(false);
         }
         let granted = self.permissions.request_permissions_or_open_settings().await?;
         if granted {
-            self.device.synchronize_if_needed().await?;
+            self.device.set_push_enabled(true).await?;
         }
         Ok(granted)
     }

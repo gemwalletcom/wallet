@@ -9,6 +9,7 @@ common_secret_phrase = Tajná fráze
 common_copy = Kopírovat
 common_share = Sdílet
 common_continue = Pokračovat
+common_sign_in_with = Přihlásit se pomocí %@
 common_provider = Poskytovatel
 common_loading = Načítání
 common_address = Adresa
@@ -54,9 +55,9 @@ common_get_started = Začít
 common_earn = Vydělat
 common_method = Metoda
 common_token = Token
+common_expiration = Vypršení platnosti
 common_suspicious_address = Podezřelá adresa
 common_refresh = Obnovit
-common_no_thanks = Ne, děkuji
 common_grant_permission = Udělte povolení
 common_required_field = Je vyžadováno %@
 
@@ -163,7 +164,6 @@ transfer_freeze_title = Zmrazit
 transfer_unfreeze_title = Uvolnit
 transfer_review_request = Žádost o kontrolu
 transfer_amount = Množství
-transfer_amount_title = Množství
 
 # Settings
 
@@ -207,7 +207,6 @@ support_message_placeholder = Zpráva
 
 # Errors
 
-errors_transfer = Chyba přenosu: %@
 errors_validation = Chyba ověření: %@
 errors_create_wallet = Chyba vytvoření peněženky: %@
 errors_invalid_address_name = Neplatná adresa nebo jméno
@@ -226,7 +225,6 @@ errors_cancelled = Zrušeno
 errors_connections_user_cancelled = Uživatel zrušen
 errors_not_supported = Není podporováno
 errors_permissions_not_granted = Oprávnění nebyla udělena
-errors_decoding = Chyba dekódování
 errors_unknown = Neznámý
 errors_not_supported_qr = Toto zařízení nepodporuje skenování QR kódu. Můžete vybrat pouze obrázek QR kódu z knihovny.
 errors_camera_permissions_not_granted = Nebylo uděleno povolení k fotoaparátu. Chcete-li naskenovat QR kód, povolte v nastavení přístup k fotoaparátu.
@@ -237,11 +235,8 @@ errors_invalid_asset_address = Neplatná adresa %@
 errors_dust_threshold = Transakce se nezdařila, protože částka je příliš malá na to, aby splnila minimální požadavek sítě %@ (prahová hodnota prachu). Tento limit zajišťuje, že hodnota transakce pokryje poplatky a náklady na zpracování.
 errors_swap_no_quote_available = Není dostupná žádná nabídka.
 errors_swap_not_supported_asset = Nepodporované aktivum.
-errors_connections_invalid_send_parameters = Zadané neplatné parametry pro odeslání transakce.
-errors_connections_invalid_sign_parameters = Zadané neplatné parametry pro podepisování.
 errors_connections_no_supported_wallets = Nejsou k dispozici žádné podporované peněženky.
 errors_connections_unsupported_chain = Zadaný řetězec není podporován.
-errors_connections_unsupported_method = Požadovaná metoda není podporována.
 errors_swap_amount_too_small = Příliš malé množství
 errors_required = %@ je vyžadováno
 errors_scan_transaction_malicious_description = Tuto transakci nelze dokončit – cílová adresa peněženky je spojena s podezřelou nebo škodlivou aktivitou.
@@ -253,7 +248,6 @@ errors_dust_threshold_short = Síť toto množství považuje za prach – popla
 errors_swap_minimum_amount = Minimální částka obchodu je %@. Zadejte prosím vyšší částku.
 errors_perpetual_trigger_price_lower = Spouštěcí cena musí být nižší než tržní cena
 errors_perpetual_trigger_price_higher = Spouštěcí cena musí být vyšší než tržní cena
-errors_token_unable_fetch_token_information = Nelze načíst informace o tokenu: %@
 errors_unknown_try_again = Došlo k neznámé chybě. Zkuste to prosím znovu.
 errors_network_error = Chyba sítě: %@
 errors_network_offline = Zdá se, že je internetové připojení offline.
@@ -277,7 +271,6 @@ update_app_action = Aktualizovat
 update_app_permission_title = Povolit instalaci
 update_app_permission_description = Přejděte do nastavení a povolte instalaci z externích zdrojů
 update_app_permission_open_settings = Přejít do nastavení
-update_app_downloading = Stahování...
 
 # Transaction
 
@@ -365,6 +358,7 @@ wallet_connect_state_empty_description = Naskenujte nebo vložte kód pro připo
 wallet_connect_permissions_title = Oprávnění
 wallet_connect_permissions_view_balance = Zobrazení zůstatku a aktivity
 wallet_connect_permissions_approval_requests = Odeslat žádosti o schválení
+wallet_connect_request_expired = Platnost žádosti vypršela
 
 # Swap
 
@@ -480,8 +474,6 @@ banner_account_activation_title = Poplatek za aktivaci účtu
 banner_account_activation_description = Síť %@ vyžaduje jednorázový poplatek %@.
 banner_stake_title = Začněte sázet %@
 banner_stake_description = Získejte %@ odměn na svůj vklad, když budete spát.
-banner_enable_notifications_title = Povolit oznámení
-banner_enable_notifications_description = Mějte přehled o své peněžence.
 banner_activate_asset_description = Chcete-li použít aktivum %@, musíte jej nejprve povolit v síti %@ splněním specifických požadavků sítě.
 banner_asset_status_title = Podezřelé aktivum
 banner_asset_status_description = Token může být nebezpečný nebo zavádějící. Pokračujte, pouze pokud tomu plně důvěřujete.
@@ -605,6 +597,7 @@ nft_report_reason_spam = Spam
 nft_report_reason_malicious = Zlomyslný
 nft_report_reason_inappropriate = Nevhodný obsah
 nft_report_reason_copyright = Autorská práva
+nft_report_reason_other = Ostatní
 nft_report_report_button_title = Nahlásit
 
 # Permissions
@@ -629,7 +622,6 @@ networks_state_empty_search_title = Nenalezeny žádné sítě
 # Onboarding
 
 onboarding_security_create_wallet_intro_title = Dostanete tajnou frázi – je to jediný způsob, jak se dostat ke své peněžence.
-onboarding_security_create_wallet_confirm_title = Rozumím a chci pokračovat
 onboarding_security_create_wallet_do_not_share_title = S nikým to nesdílejte
 onboarding_security_create_wallet_do_not_share_subtitle = Každý, kdo získá vaši tajnou frázi, může převzít plnou kontrolu nad vaší peněženkou.
 onboarding_security_create_wallet_keep_safe_subtitle = Tajná fráze je jediný způsob, jak se dostat do vaší peněženky.
@@ -687,8 +679,9 @@ perpetual_margin_isolated = Izolovaný
 # Perpetuals
 
 perpetuals_title = Věčné
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = Obchodovat věčné
 perpetuals_markets = Trhy
-perpetuals_empty_state_no_markets = Žádné trhy
 perpetuals_empty_state_no_markets_found = Nenalezeny žádné trhy
 
 # Rewards
@@ -760,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = Pro skenování QR kódu je vyžadováno oprávnění k fotoaparátu.\nUdělte prosím oprávnění.
 
 # Notifications Permission
 
-notifications_permission_request_notification = Chcete-li dostávat oznámení o nových transakcích, je vyžadováno oprávnění k odesílání oznámení.\nUdělte prosím oprávnění.
 
 # Confirm
 
-confirm_fee_error = Chyba výpočtu poplatku
 
 # Rootcheck
 

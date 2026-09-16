@@ -35,7 +35,7 @@ internal fun OpenPositionItem(
         titleSubtitleSpacing = space0,
         leading = { AssetIcon(asset) },
         title = { ListItemTitleText(asset.symbol) },
-        subtitle = { ListItemSupportText(direction.text(leverage), color = direction.color()) },
+        subtitle = { ListItemSupportText(direction.text("${leverage}x"), color = direction.color()) },
         trailing = {
             ListItemTitleText(text = sizeText, color = MaterialTheme.colorScheme.onSurface)
         },

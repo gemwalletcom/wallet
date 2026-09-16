@@ -1,5 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemAssetMenuAction
+import struct Gemstone.GemAssetMenuInput
+import func Gemstone.assetMenuActions
 import Localization
 import Primitives
 import Style
@@ -12,24 +15,32 @@ public enum AssetContextMenu {
         onHide: VoidAction = nil,
         onAddToWallet: VoidAction = nil,
     ) -> [ContextMenuItemType] {
-        [
-            .pin(
+        let actions = assetMenuActions(
+            input: GemAssetMenuInput(
                 isPinned: assetData.metadata.isPinned,
-                onPin: onPin,
+                isBalanceEnabled: assetData.metadata.isBalanceEnabled,
+                address: assetData.account.address,
+                offersHide: onHide != nil,
+                offersAddToWallet: onAddToWallet != nil,
             ),
-            onHide.map { ContextMenuItemType.hide($0) },
-            onAddToWallet.map { action in
-                !assetData.metadata.isBalanceEnabled ? .custom(
-                    title: Localized.Asset.addToWallet,
-                    systemImage: SystemImage.plusCircle,
-                    action: action,
-                ) : nil
-            } ?? nil,
-            .copy(
-                title: Localized.Wallet.copyAddress,
-                value: assetData.account.address,
-                onCopy: onCopy,
-            ),
-        ].compactMap(\.self)
+        )
+        return actions.compactMap { action in
+            switch action {
+            case let .pin(isPinned):
+                .pin(isPinned: isPinned, onPin: onPin)
+            case .hide:
+                onHide.map { ContextMenuItemType.hide($0) }
+            case .addToWallet:
+                onAddToWallet.map {
+                    ContextMenuItemType.custom(
+                        title: action.title ?? "",
+                        systemImage: SystemImage.plusCircle,
+                        action: $0,
+                    )
+                }
+            case let .copyAddress(address):
+                .copy(title: action.title, value: address, onCopy: onCopy)
+            }
+        }
     }
 }

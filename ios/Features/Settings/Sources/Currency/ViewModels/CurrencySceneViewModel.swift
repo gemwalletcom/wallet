@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import GemstonePrimitives
+import struct Gemstone.GemCurrencies
 import protocol Gemstone.GemCurrencyServiceProtocol
 import Components
 import GemstoneServices
@@ -27,23 +28,14 @@ public final class CurrencySceneViewModel {
         self.service = service
     }
 
-    public var selectedCurrencyValue: String {
-        let model = CurrencyViewModel(currency: currency)
-        if let flag = model.flag {
-            return "\(flag) \(currency.rawValue)"
-        }
-        return currency.rawValue
-    }
-
     var title: String {
         Localized.Settings.currency
     }
 
     var list: [ListItemValueSection<CurrencyViewModel>] {
-        let recommendedVMs = recommendedCurrencies.map { CurrencyViewModel(currency: $0) }
-        let recommendedValues = recommendedVMs.map { ListItemValue(title: $0.title, value: $0) }
-        let allVMs = allCurrencies.map { CurrencyViewModel(currency: $0) }
-        let allValues = allVMs.map { ListItemValue(title: $0.title, value: $0) }
+        let currencies = currencies
+        let recommendedValues = currencies.recommended.map(CurrencyViewModel.init).map { ListItemValue(title: $0.title, value: $0) }
+        let allValues = currencies.other.map(CurrencyViewModel.init).map { ListItemValue(title: $0.title, value: $0) }
 
         return [
             ListItemValueSection(
@@ -58,7 +50,7 @@ public final class CurrencySceneViewModel {
     }
 
     func setCurrency(_ currency: Currency) async throws {
-        try await service.setCurrency(currency: currency.rawValue)
+        try await service.setCurrency(currency: currency.toGem())
         self.currency = currency
     }
 }
@@ -70,11 +62,7 @@ extension CurrencySceneViewModel {
         Locale.current.currency.flatMap { Currency(rawValue: $0.identifier) }
     }
 
-    private var recommendedCurrencies: [Currency] {
-        service.recommendedCurrencies(locale: localeCurrency?.rawValue).compactMap { Currency(rawValue: $0) }
-    }
-
-    private var allCurrencies: [Currency] {
-        service.otherCurrencies(locale: localeCurrency?.rawValue).compactMap { Currency(rawValue: $0) }
+    private var currencies: GemCurrencies {
+        service.currencies(locale: localeCurrency?.toGem())
     }
 }

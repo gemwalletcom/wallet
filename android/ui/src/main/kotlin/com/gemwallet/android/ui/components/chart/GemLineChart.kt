@@ -37,6 +37,12 @@ import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
+import com.gemwallet.android.ui.theme.space1
+import com.gemwallet.android.ui.theme.space0
+import com.gemwallet.android.ui.theme.space24
+import com.gemwallet.android.ui.theme.space4
+import com.gemwallet.android.ui.theme.space6
+import com.gemwallet.android.ui.theme.space8
 
 data class ChartPoint(
     val x: Float,
@@ -45,16 +51,16 @@ data class ChartPoint(
 
 private object Metrics {
     val lineWidth = 2.5.dp
-    val selectionDotRadius = 6.dp
-    val dashLength = 4.dp
+    val selectionDotRadius = space6
+    val dashLength = space4
     val labelWidth = 88.dp
-    val verticalPadding = 24.dp
-    val horizontalPadding = 0.dp
-    val labelEdgePadding = 8.dp
-    val boundLabelOffsetBelow = 6.dp
+    val verticalPadding = space24
+    val horizontalPadding = space0
+    val labelEdgePadding = space8
+    val boundLabelOffsetBelow = space6
     val boundLabelOffsetAbove = 18.dp
-    val selectionGlowExtra = 6.dp
-    val pulsingDotSize = 8.dp
+    val selectionGlowExtra = space6
+    val pulsingDotSize = space8
     const val MAX_RENDER_POINTS = 120
     const val X_RIGHT_PADDING_FRACTION = 0.02f
     const val FLAT_LINE_PADDING = 0.01f
@@ -140,7 +146,6 @@ fun GemLineChart(
                 modifier = Modifier
                     .fillMaxSize()
                     .chartSelection(
-                        selection = selection,
                         points,
                         indexAt = { touchX -> findClosestIndex(points, touchX, curveLeft, curveWidth) },
                         onSelectionChanged = onSelectionChanged,
@@ -202,7 +207,7 @@ private fun DrawScope.drawSelectionIndicator(
         color.copy(Alpha.SELECTION_LINE * alpha),
         Offset(point.x, 0f),
         Offset(point.x, canvasHeight),
-        1.dp.toPx(),
+        space1.toPx(),
         pathEffect = PathEffect.dashPathEffect(floatArrayOf(dashLength, dashLength)),
     )
     val glowRadius = dotRadius + glowExtra

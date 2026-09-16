@@ -2,6 +2,8 @@
 
 import BigInt
 import Formatters
+import GemstonePrimitives
+import enum Gemstone.GemAmountSign
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesTestKit
@@ -11,7 +13,7 @@ public extension NumericViewModel {
         asset: Asset = Asset.mock(),
         price: Price? = Price.mock(price: 1.0),
         value: BigInt = BigInt(100_000_000),
-        sign: AmountDisplaySign = .none,
+        sign: GemAmountSign = .none,
         formatter: ValueFormatter = .full,
         currencyCode: String = "USD",
     ) -> NumericViewModel {

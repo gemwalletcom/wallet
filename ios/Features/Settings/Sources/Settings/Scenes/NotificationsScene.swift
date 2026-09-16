@@ -36,9 +36,14 @@ public struct NotificationsScene: View {
         .listSectionSpacing(.compact)
         .onChange(of: model.isEnabled) { _, newValue in
             Task {
-                try await model.enable(isEnabled: newValue)
+                do {
+                    try await model.enable(isEnabled: newValue)
+                } catch {
+                    model.isPresentingAlertMessage = AlertMessage(error: error)
+                }
             }
         }
+        .alertSheet($model.isPresentingAlertMessage)
         .navigationTitle(model.title)
     }
 }

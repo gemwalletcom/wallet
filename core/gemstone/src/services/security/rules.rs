@@ -41,7 +41,8 @@ impl GemAuthPromptOutcome {
     }
 }
 
-fn lock_periods() -> Vec<GemLockPeriod> {
+#[uniffi::export]
+pub fn lock_periods() -> Vec<GemLockPeriod> {
     vec![
         GemLockPeriod::Immediate,
         GemLockPeriod::OneMinute,
@@ -52,16 +53,15 @@ fn lock_periods() -> Vec<GemLockPeriod> {
     ]
 }
 
-fn default_lock_period() -> GemLockPeriod {
-    GemLockPeriod::OneMinute
-}
-
-fn lock_period_from_minutes(minutes: u32) -> GemLockPeriod {
-    lock_periods().into_iter().find(|period| period.minutes() == minutes).unwrap_or_else(default_lock_period)
+#[uniffi::export]
+pub fn lock_period_from_minutes(minutes: Option<u32>) -> GemLockPeriod {
+    minutes
+        .and_then(|minutes| lock_periods().into_iter().find(|period| period.minutes() == minutes))
+        .unwrap_or(GemLockPeriod::OneMinute)
 }
 
 pub(super) fn should_relock(elapsed_milliseconds: i64, lock_interval_minutes: u32, auth_required: bool, has_pending_request: bool) -> bool {
-    let period = lock_period_from_minutes(lock_interval_minutes);
+    let period = lock_period_from_minutes(Some(lock_interval_minutes));
     auth_required && !has_pending_request && elapsed_milliseconds > i64::from(period.milliseconds())
 }
 
@@ -95,8 +95,13 @@ mod tests {
         let minutes: Vec<u32> = lock_periods().into_iter().map(GemLockPeriod::minutes).collect();
         assert_eq!(minutes, vec![0, 1, 5, 15, 60, 360]);
         assert_eq!(GemLockPeriod::SixHours.milliseconds(), 21_600_000);
-        assert_eq!(lock_period_from_minutes(15), GemLockPeriod::FifteenMinutes);
-        assert_eq!(lock_period_from_minutes(7), default_lock_period(), "an unknown stored value falls back to the default");
+        assert_eq!(lock_period_from_minutes(Some(15)), GemLockPeriod::FifteenMinutes);
+        assert_eq!(
+            lock_period_from_minutes(Some(7)),
+            GemLockPeriod::OneMinute,
+            "an unknown stored value falls back to the default"
+        );
+        assert_eq!(lock_period_from_minutes(None), GemLockPeriod::OneMinute, "a missing stored value is the default");
     }
 
     #[test]

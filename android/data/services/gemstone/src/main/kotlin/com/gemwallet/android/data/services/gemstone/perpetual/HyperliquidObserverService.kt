@@ -6,7 +6,6 @@ import android.util.Log
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketConnectable
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketEvent
-import com.gemwallet.android.domains.perpetual.toGem
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.wallet.core.primitives.ChartCandleUpdate
 import com.wallet.core.primitives.PerpetualAccountMode
@@ -25,13 +24,15 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemMarketsRefreshTrigger
 import uniffi.gemstone.GemPerpetualService
+import uniffi.gemstone.GemPerpetualServiceInterface
 import uniffi.gemstone.GemPerpetualStreamService
+import uniffi.gemstone.GemPerpetualStreamServiceInterface
 import uniffi.gemstone.GemPerpetualSubscription
 
 class HyperliquidObserverService(
     private val observePerpetualWallet: ObservePerpetualWallet,
-    private val perpetualService: GemPerpetualService,
-    private val streamService: GemPerpetualStreamService,
+    private val perpetualService: GemPerpetualServiceInterface,
+    private val streamService: GemPerpetualStreamServiceInterface,
     private val connection: WebSocketConnectable,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : PerpetualObserver {

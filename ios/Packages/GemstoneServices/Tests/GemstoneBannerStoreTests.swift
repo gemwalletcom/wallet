@@ -13,47 +13,42 @@ import Testing
 struct GemstoneBannerStoreTests {
     @Test
     func writesAndReadsBackTheStateCoreAsksFor() async throws {
-        let db = DB.mockWithChains([.xrp, .cosmos])
-        let store = BannerStore.mock(db: db)
-        let adapter = GemstoneBannerStore(store: store)
         let wallet = Wallet.mock(id: .multicoin(address: "0xtest"), accounts: [.mock(chain: .xrp)])
-        try WalletStore.mock(db: db).addWallet(wallet)
+        let store = try BannerStore.mock(db: .mockWithWallets([wallet]))
+        let adapter = GemstoneBannerStore(store: store)
         let walletId = wallet.id
-        let key = GemBannerKey(walletId: walletId.id, assetId: AssetId(chain: .xrp).identifier, event: Primitives.BannerEvent.accountActivation.map())
+        let key = GemBannerKey(walletId: walletId.id, assetId: AssetId(chain: .xrp).identifier, event: Primitives.BannerEvent.accountActivation.toGem())
 
-        try await adapter.addBanners(keys: [key], state: Primitives.BannerState.active.map())
+        try await adapter.addBanners(keys: [key], state: Primitives.BannerState.active.toGem())
 
         let row = try #require(try store.getBanner(id: key.identifier()))
         #expect(row.state == .active)
         #expect(row.walletId == walletId.id)
         #expect(row.assetId == AssetId(chain: .xrp))
         #expect(row.event == .accountActivation)
-        #expect(try await adapter.getState(key: key) == Primitives.BannerState.active.map())
+        #expect(try await adapter.getState(key: key) == Primitives.BannerState.active.toGem())
     }
 
     @Test
     func setStateCreatesTheRowWhenCoreHasNotSeededIt() async throws {
-        let (store, adapter) = makeStore()
-        let key = GemBannerKey(walletId: nil, assetId: AssetId(chain: .cosmos).identifier, event: Primitives.BannerEvent.stake.map())
+        let store = BannerStore.mock(db: .mockWithChains([.cosmos]))
+        let adapter = GemstoneBannerStore(store: store)
+        let key = GemBannerKey(walletId: nil, assetId: AssetId(chain: .cosmos).identifier, event: Primitives.BannerEvent.stake.toGem())
 
-        try await adapter.setState(key: key, state: Primitives.BannerState.cancelled.map())
+        try await adapter.setState(key: key, state: Primitives.BannerState.cancelled.toGem())
 
         #expect(try store.getBanner(id: key.identifier())?.state == .cancelled)
     }
 
     @Test
     func addBannersLeavesAnExistingStateAlone() async throws {
-        let (store, adapter) = makeStore()
-        let key = GemBannerKey(walletId: nil, assetId: AssetId(chain: .cosmos).identifier, event: Primitives.BannerEvent.stake.map())
-        try await adapter.setState(key: key, state: Primitives.BannerState.cancelled.map())
+        let store = BannerStore.mock(db: .mockWithChains([.cosmos]))
+        let adapter = GemstoneBannerStore(store: store)
+        let key = GemBannerKey(walletId: nil, assetId: AssetId(chain: .cosmos).identifier, event: Primitives.BannerEvent.stake.toGem())
+        try await adapter.setState(key: key, state: Primitives.BannerState.cancelled.toGem())
 
-        try await adapter.addBanners(keys: [key], state: Primitives.BannerState.active.map())
+        try await adapter.addBanners(keys: [key], state: Primitives.BannerState.active.toGem())
 
         #expect(try store.getBanner(id: key.identifier())?.state == .cancelled)
-    }
-
-    private func makeStore() -> (BannerStore, GemstoneBannerStore) {
-        let store = BannerStore.mock(db: .mockWithChains([.xrp, .cosmos]))
-        return (store, GemstoneBannerStore(store: store))
     }
 }

@@ -21,8 +21,7 @@ internal fun AssetHeadItem(
         icon = uiState.asset,
     ) {
         AssetHeadActions(
-            isViewOnly = uiState.detailsState.isViewOnly,
-            buttons = uiState.detailsState.headerButtons,
+            actions = uiState.detailsState.headerActions,
             onTransfer = { onTransfer(uiState.asset.id) },
             onReceive = { onReceive(uiState.asset.id) },
             onBuy = { onBuy(uiState.asset.id) },

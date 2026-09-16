@@ -20,3 +20,11 @@ pub enum StakeAction {
     Reward(#[serde(serialize_with = "serialize_option_bigint", deserialize_with = "deserialize_option_bigint_from_str")] Option<BigInt>),
     Wait,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[typeshare(swift = "Equatable, Sendable")]
+#[serde(tag = "type", content = "data", rename_all = "camelCase")]
+pub enum StakeOwner {
+    Wallet,
+    Validator(DelegationValidator),
+}

@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemWalletRow
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -9,7 +10,8 @@ import Style
 import SwiftUI
 
 struct WalletListItemView: View {
-    let model: WalletViewModel
+    let wallet: Wallet
+    let row: GemWalletRow
     let currentWalletId: WalletId?
 
     let onSelect: (Wallet) -> Void
@@ -19,14 +21,16 @@ struct WalletListItemView: View {
 
     init(
         wallet: Wallet,
+        row: GemWalletRow,
         currentWalletId: WalletId?,
         onSelect: @escaping (Wallet) -> Void,
         onEdit: @escaping (Wallet) -> Void,
         onPin: @escaping (Wallet) -> Void,
         onDelete: @escaping (Wallet) -> Void,
     ) {
+        self.wallet = wallet
+        self.row = row
         self.currentWalletId = currentWalletId
-        model = WalletViewModel(wallet: wallet)
         self.onSelect = onSelect
         self.onEdit = onEdit
         self.onPin = onPin
@@ -39,25 +43,25 @@ struct WalletListItemView: View {
         ZStack {
             NavigationCustomLink(
                 with: EmptyView(),
-                action: { onSelect(model.wallet) },
+                action: { onSelect(wallet) },
             )
             .opacity(0)
 
             HStack {
                 ListItemView(
-                    title: model.name,
-                    titleExtra: model.subType,
-                    imageStyle: .asset(assetImage: model.avatarImage),
+                    title: row.name,
+                    titleExtra: row.subtitle.text,
+                    imageStyle: .asset(assetImage: row.avatarImage),
                 )
 
                 Spacer()
 
-                if currentWalletId == model.wallet.id {
+                if currentWalletId == wallet.id {
                     SelectionImageView()
                 }
 
                 Button(
-                    action: { onEdit(model.wallet) },
+                    action: { onEdit(wallet) },
                     label: {
                         Images.System.settings
                             .padding(.vertical, .small)
@@ -72,18 +76,18 @@ struct WalletListItemView: View {
                 .custom(
                     title: Localized.Settings.title,
                     systemImage: SystemImage.settings,
-                    action: { onEdit(model.wallet) },
+                    action: { onEdit(wallet) },
                 ),
                 .pin(
-                    isPinned: model.wallet.isPinned,
-                    onPin: { onPin(model.wallet) },
+                    isPinned: row.isPinned,
+                    onPin: { onPin(wallet) },
                 ),
-                .delete { onDelete(model.wallet) },
+                .delete { onDelete(wallet) },
             ],
         )
         .swipeActions {
             Button(
-                action: { onEdit(model.wallet) },
+                action: { onEdit(wallet) },
                 label: {
                     Label("", systemImage: SystemImage.settings)
                 },
@@ -91,7 +95,7 @@ struct WalletListItemView: View {
             .tint(Colors.gray)
             Button(
                 Localized.Common.delete,
-                action: { onDelete(model.wallet) },
+                action: { onDelete(wallet) },
             )
             .tint(Colors.red)
         }

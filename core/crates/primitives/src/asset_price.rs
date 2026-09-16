@@ -30,6 +30,10 @@ impl AssetPrice {
     pub fn empty(asset_id: AssetId) -> Self {
         Self::new(asset_id, 0.0, 0.0, Utc::now())
     }
+
+    pub fn has_price(&self) -> bool {
+        self.price > 0.0
+    }
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -96,7 +100,6 @@ pub struct AssetPricesRequest {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct Charts {
     pub price: Option<Price>,

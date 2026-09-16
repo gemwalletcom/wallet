@@ -1,21 +1,19 @@
-use crate::proxy::CachedResponse;
 use std::time::{Duration, Instant};
 
-#[derive(Debug, Clone)]
+use crate::proxy::ProxyResponse;
+
+#[derive(Debug)]
 pub struct CacheEntry {
-    pub response: CachedResponse,
+    pub response: ProxyResponse,
     pub expires_at: Option<Instant>,
     pub created_at: Instant,
 }
 
 impl CacheEntry {
-    pub fn new(response: CachedResponse, ttl: Duration) -> Self {
-        let expires_at = if ttl.is_zero() { None } else { Some(Instant::now() + ttl) };
-        Self {
-            response,
-            expires_at,
-            created_at: Instant::now(),
-        }
+    pub fn new(response: ProxyResponse, ttl: Duration) -> Self {
+        let created_at = Instant::now();
+        let expires_at = if ttl.is_zero() { None } else { Some(created_at + ttl) };
+        Self { response, expires_at, created_at }
     }
 
     pub fn is_expired(&self) -> bool {
@@ -23,20 +21,28 @@ impl CacheEntry {
     }
 
     pub fn size(&self) -> usize {
-        self.response.body.len() + self.response.content_type.len() + 64
+        self.response.body.len()
+            + self
+                .response
+                .headers
+                .iter()
+                .map(|(name, value)| name.as_str().len() + value.as_bytes().len())
+                .sum::<usize>()
+            + 64
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::proxy::constants::JSON_CONTENT_TYPE;
     use primitives::MINUTE;
     use reqwest::StatusCode;
 
+    use super::*;
+    use crate::proxy::constants::JSON_CONTENT_TYPE;
+
     #[test]
     fn test_cache_entry_with_ttl() {
-        let response = CachedResponse::new(b"test".to_vec(), StatusCode::OK.as_u16(), JSON_CONTENT_TYPE.to_string());
+        let response = ProxyResponse::with_content_type(StatusCode::OK.as_u16(), b"test".to_vec(), JSON_CONTENT_TYPE);
         let entry = CacheEntry::new(response, MINUTE);
 
         assert!(entry.expires_at.is_some());
@@ -45,7 +51,7 @@ mod tests {
 
     #[test]
     fn test_cache_entry_without_ttl() {
-        let response = CachedResponse::new(b"test".to_vec(), StatusCode::OK.as_u16(), JSON_CONTENT_TYPE.to_string());
+        let response = ProxyResponse::with_content_type(StatusCode::OK.as_u16(), b"test".to_vec(), JSON_CONTENT_TYPE);
         let entry = CacheEntry::new(response, Duration::ZERO);
 
         assert!(entry.expires_at.is_none());
@@ -56,9 +62,9 @@ mod tests {
     fn test_cache_entry_size() {
         let body = b"hello world".to_vec();
         let content_type = "application/json".to_string();
-        let response = CachedResponse::new(body.clone(), StatusCode::OK.as_u16(), content_type.clone());
+        let response = ProxyResponse::with_content_type(StatusCode::OK.as_u16(), body.clone(), &content_type);
         let entry = CacheEntry::new(response, MINUTE);
 
-        assert_eq!(entry.size(), body.len() + content_type.len() + 64);
+        assert_eq!(entry.size(), body.len() + "content-type".len() + content_type.len() + 64);
     }
 }

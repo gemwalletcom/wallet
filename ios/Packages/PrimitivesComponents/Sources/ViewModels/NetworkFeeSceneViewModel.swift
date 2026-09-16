@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import enum Gemstone.GemConfirmFeeSelection
+import struct Gemstone.GemFeeOptionItem
 import BigInt
 import Components
 import struct Gemstone.GemFeeRateRow
@@ -18,6 +19,7 @@ public struct NetworkFeeSceneViewModel {
     private let feeRates: GemFeeRateRows?
     private let feeAssetPrice: Price?
     private let feeAmount: BigInt?
+    private let additionalFees: [GemFeeOptionItem]
     private let feeAssets: [FeeAssetItem]
     private let onSelect: (@MainActor (GemConfirmFeeSelection) -> Void)?
     private let onSelectFeeAsset: (@MainActor (AssetId) -> Void)?
@@ -29,6 +31,7 @@ public struct NetworkFeeSceneViewModel {
         feeRates: GemFeeRateRows? = nil,
         feeAssetPrice: Price? = nil,
         feeAmount: BigInt? = nil,
+        additionalFees: [GemFeeOptionItem] = [],
         feeAssets: [FeeAssetItem] = [],
         onSelect: (@MainActor (GemConfirmFeeSelection) -> Void)? = nil,
         onSelectFeeAsset: (@MainActor (AssetId) -> Void)? = nil,
@@ -39,6 +42,7 @@ public struct NetworkFeeSceneViewModel {
         self.feeRates = feeRates
         self.feeAssetPrice = feeAssetPrice
         self.feeAmount = feeAmount
+        self.additionalFees = additionalFees
         self.feeAssets = feeAssets
         self.onSelect = onSelect
         self.onSelectFeeAsset = onSelectFeeAsset
@@ -53,6 +57,13 @@ public struct NetworkFeeSceneViewModel {
     public var showFeeRates: Bool { rows.count > 1 }
     public var showFeeDetails: Bool { showFeeAssets || feeRates != nil }
     public var feeAssetSymbol: String? { showFeeAssets && fiatValue != nil ? feeAsset.symbol : nil }
+
+    var feeItems: [ListItemModel] {
+        additionalFees.map { item in
+            let amount = display(for: item.value)
+            return ListItemModel(title: item.option.title, subtitle: amount.amount.text, subtitleExtra: amount.fiat?.text)
+        }
+    }
 
     var showFeeAssets: Bool {
         onSelectFeeAsset != nil && feeAssets.contains { $0.asset.id != feeAsset.id }
@@ -72,27 +83,20 @@ public struct NetworkFeeSceneViewModel {
     // MARK: - Fee Rates
 
     public var feeRatesViewModels: [FeeRateViewModel] {
-        rows.map { feeRateViewModel(priority: $0.priority.map(), unitValue: $0.unitValue, fee: $0.fee) }
+        rows.map { feeRateViewModel(priority: $0.priority.toPrimitives(), displayValue: $0.displayValue, fee: $0.fee) }
     }
 
     public var selectedFeeRateViewModel: FeeRateViewModel? {
-        guard let priority = selection.selectedPriority()?.map() else { return nil }
+        guard let priority = selection.selectedPriority()?.toPrimitives() else { return nil }
         return feeRatesViewModels.first(where: { $0.priority == priority })
     }
 
     public func isSelected(_ rate: FeeRateViewModel) -> Bool {
-        selection.selectedPriority()?.map() == rate.priority
+        selection.selectedPriority()?.toPrimitives() == rate.priority
     }
 
     public func rowItem(for rate: FeeRateViewModel) -> ListItemModel {
         rowItem(title: rate.title, rate: rate)
-    }
-
-    public func valueForRate(_ rate: FeeRateViewModel) -> String {
-        switch rate.unitType {
-        case .native: rate.fee.map { display(for: $0).amount.text } ?? rate.valueText
-        case .gwei, .satVb: rate.valueText
-        }
     }
 
     public func fiatValueForRate(_ rate: FeeRateViewModel) -> String? {
@@ -110,8 +114,6 @@ public struct NetworkFeeSceneViewModel {
         NetworkFeeCustomViewModel(
             chain: feeAsset.chain,
             feeAsset: feeAsset,
-            feeAssetPrice: feeAssetPrice,
-            currency: currency,
             unitType: unitType,
             decimals: unitDecimals,
             baseFee: feeAmount,
@@ -119,6 +121,7 @@ public struct NetworkFeeSceneViewModel {
             normalTotal: feeRates?.normalTotal ?? feeRates?.selectedTotal,
             initialRate: selection.customGasPrice(),
             onSelect: { onSelect?(.custom(gasPrice: $0)) },
+            display: display(for:),
         )
     }
 
@@ -137,13 +140,13 @@ public struct NetworkFeeSceneViewModel {
 
 private extension NetworkFeeSceneViewModel {
     var rows: [GemFeeRateRow] { feeRates?.rows ?? [] }
-    var unitType: FeeUnitType { feeRates?.unitType.map() ?? .native }
+    var unitType: FeeUnitType { feeRates?.unitType.toPrimitives() ?? .native }
     var unitDecimals: Int { feeRates.map { Int($0.unitDecimals) } ?? feeAsset.decimals.asInt }
 
-    func feeRateViewModel(priority: FeePriority, unitValue: BigInt, fee: BigInt?) -> FeeRateViewModel {
+    func feeRateViewModel(priority: FeePriority, displayValue: BigInt, fee: BigInt?) -> FeeRateViewModel {
         FeeRateViewModel(
             priority: priority,
-            unitValue: unitValue,
+            displayValue: displayValue,
             fee: fee,
             unitType: unitType,
             decimals: unitDecimals,
@@ -152,13 +155,13 @@ private extension NetworkFeeSceneViewModel {
     }
 
     var customFeeRateViewModel: FeeRateViewModel? {
-        selection.customGasPrice().map { feeRateViewModel(priority: .normal, unitValue: $0, fee: feeAmount) }
+        selection.customGasPrice().map { feeRateViewModel(priority: .normal, displayValue: $0, fee: feeAmount) }
     }
 
     func rowItem(title: String, rate: FeeRateViewModel?) -> ListItemModel {
         ListItemModel(
             title: title,
-            subtitle: rate.map { valueForRate($0) },
+            subtitle: rate.map(\.valueText),
             subtitleStyle: .init(font: .callout, color: Colors.black, fontWeight: .medium),
             subtitleExtra: rate.flatMap { fiatValueForRate($0) },
             subtitleStyleExtra: .init(font: .footnote, color: Colors.gray),

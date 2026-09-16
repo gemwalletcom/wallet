@@ -3,9 +3,13 @@
 import protocol Gemstone.GemPerpetualDetailsServiceProtocol
 import enum Gemstone.GemPerpetualPositionAction
 import enum Gemstone.GemPerpetualPositionKind
-import BigInt
-import Formatters
+import enum Gemstone.GemPerpetualButton
+import enum Gemstone.GemPerpetualInfoRow
+import enum Gemstone.GemPerpetualPositionDetailRow
+import enum Gemstone.GemPerpetualSection
+import Components
 import Foundation
+import func Gemstone.transactionsListLimit
 import GemstonePrimitives
 import InfoSheet
 import Localization
@@ -30,8 +34,7 @@ public final class PerpetualSceneViewModel {
 
     public let positionsQuery: ObservableQuery<PerpetualPositionsRequest>
     public let perpetualQuery: ObservableQuery<PerpetualRequest>
-    public let perpetualFiatValuesQuery: ObservableQuery<AssetFiatValuesRequest>
-    public let transactionsQuery: ObservableQuery<TransactionsRequest>
+    public let transactionsQuery: ObservableQuery<MappedRequest<TransactionsRequest, [ListSection<TransactionViewModel>]>>
 
     public var positions: [PerpetualPositionData] {
         positionsQuery.value
@@ -41,11 +44,7 @@ public final class PerpetualSceneViewModel {
         perpetualQuery.value
     }
 
-    public var perpetualTotalValue: TotalFiatValue {
-        service.totalFiatValue(balances: perpetualFiatValuesQuery.value.map { $0.map() }).map()
-    }
-
-    public var transactions: [TransactionExtended] {
+    public var transactionSections: [ListSection<TransactionViewModel>] {
         transactionsQuery.value
     }
 
@@ -54,6 +53,7 @@ public final class PerpetualSceneViewModel {
     public var isPresentingInfoSheet: InfoSheetType?
     public var isPresentingModifyAlert: Bool?
     public var isPresentingAutoclose: PerpetualPositionData?
+    public var isPresentingAlertMessage: AlertMessage?
 
     public init(
         wallet: Wallet,
@@ -73,18 +73,10 @@ public final class PerpetualSceneViewModel {
 
         positionsQuery = ObservableQuery(PerpetualPositionsRequest(walletId: wallet.id, filter: .assetId(asset.id)), initialValue: [])
         perpetualQuery = ObservableQuery(PerpetualRequest(assetId: asset.id), initialValue: .empty)
-        perpetualFiatValuesQuery = ObservableQuery(
-            AssetFiatValuesRequest(
-                walletId: wallet.id,
-                type: .perpetual,
-                perpetualAssetId: Chain.hyperCore.defaultAsset(type: .perpetual).id,
-            ),
-            initialValue: [],
-        )
         transactionsQuery = ObservableQuery(
-            TransactionsRequest.perpetualScene(
-                walletId: wallet.id,
-                assetId: asset.id,
+            MappedRequest(
+                TransactionsRequest.perpetualScene(walletId: wallet.id, assetId: asset.id, limit: Int(transactionsListLimit())),
+                transform: TransactionViewModel.sections,
             ),
             initialValue: [],
         )
@@ -95,48 +87,60 @@ public final class PerpetualSceneViewModel {
         return name.isEmpty ? asset.symbol : name
     }
 
-    public var currency: String {
-        service.getCurrency()
+    public var currency: Currency {
+        service.getCurrency().toPrimitives()
     }
 
     public var hasOpenPosition: Bool {
         !positionViewModels.isEmpty
     }
 
-    public var positionSectionTitle: String {
-        Localized.Perpetual.position
+    public var sections: [GemPerpetualSection] {
+        service.sections(hasPosition: hasOpenPosition)
     }
 
-    public var infoSectionTitle: String {
-        Localized.Common.info
+    public var buttons: [GemPerpetualButton] {
+        service.buttons(hasPosition: hasOpenPosition)
     }
 
-    public var transactionsSectionTitle: String {
-        Localized.Activity.title
+    public var modifyButtons: [GemPerpetualButton] {
+        service.modifyButtons()
     }
 
-    public var closePositionTitle: String {
-        Localized.Perpetual.closePosition
+    public var infoRows: [GemPerpetualInfoRow] {
+        service.infoRows()
     }
 
-    public var modifyPositionTitle: String {
-        Localized.Perpetual.modify
+    public func positionRows(_ position: PerpetualPositionViewModel) -> [GemPerpetualPositionDetailRow] {
+        service.positionDetailRows(position: position.data.position.toGem())
     }
 
-    public var increasePositionTitle: String {
-        Localized.Perpetual.increasePosition
+    public func infoAction(for row: GemPerpetualInfoRow) -> InfoSheetAction? {
+        switch row {
+        case .dailyVolume: nil
+        case .openInterest: onSelectOpenInterestInfo
+        case .fundingRate: onSelectFundingRateInfo
+        }
     }
 
-    public var reducePositionTitle: String {
-        Localized.Perpetual.reducePosition
+    public func infoAction(for row: GemPerpetualPositionDetailRow) -> InfoSheetAction? {
+        switch row {
+        case .autoclose: onSelectAutocloseInfo
+        case .liquidationPrice: onSelectLiquidationPriceInfo
+        case .fundingPayments: onSelectFundingPaymentsInfo
+        case .pnl, .size, .entryPrice, .margin: nil
+        }
     }
 
-    public var longButtonTitle: String {
-        Localized.Perpetual.long
-    }
-
-    public var shortButtonTitle: String {
-        Localized.Perpetual.short
+    public func onSelectButton(_ button: GemPerpetualButton) {
+        switch button {
+        case .long: onOpenLongPosition()
+        case .short: onOpenShortPosition()
+        case .modify: onModifyPosition()
+        case .close: onClosePosition()
+        case .increase: onIncreasePosition()
+        case .reduce: onReducePosition()
+        }
     }
 
     public var perpetual: Perpetual {
@@ -149,25 +153,6 @@ public final class PerpetualSceneViewModel {
 
     public var positionViewModels: [PerpetualPositionViewModel] {
         positions.map { PerpetualPositionViewModel($0) }
-    }
-
-    var chartLineModels: [ChartLineViewModel] {
-        guard let positionData = positions.first else { return [] }
-        let position = positionData.position
-        let prices: [(ChartLineType, Double?)] = [
-            (.entry, position.entryPrice),
-            (.takeProfit, position.takeProfit?.price),
-            (.stopLoss, position.stopLoss?.price),
-            (.liquidation, position.liquidationPrice),
-        ]
-        return prices.compactMap { type, price in
-            price.map {
-                ChartLineViewModel(
-                    line: ChartLine(type: type, price: $0),
-                    formatter: NumericFormatter(),
-                )
-            }
-        }
     }
 }
 
@@ -239,18 +224,18 @@ public extension PerpetualSceneViewModel {
 
     func onClosePosition() {
         do {
-            onTransferData?(try service.closeTransfer(perpetual: perpetual.map(), asset: asset.map(), position: positions.first?.position.map()))
+            onTransferData?(try service.closeTransfer(perpetual: perpetual.toGem(), asset: asset.toGem(), position: positions.first?.position.toGem()))
         } catch {
-            debugLog("perpetual scene: close position error \(error)")
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
 
     func onOpenLongPosition() {
-        onPositionAction(.open(direction: PerpetualDirection.long.map()))
+        onPositionAction(.open(direction: PerpetualDirection.long.toGem()))
     }
 
     func onOpenShortPosition() {
-        onPositionAction(.open(direction: PerpetualDirection.short.map()))
+        onPositionAction(.open(direction: PerpetualDirection.short.toGem()))
     }
 
     func onIncreasePosition() {
@@ -273,7 +258,7 @@ public extension PerpetualSceneViewModel {
 private extension PerpetualSceneViewModel {
     func subscribeMarket() async {
         do {
-            try await observerService.subscribe(service.marketSubscription(perpetual: perpetual.map()))
+            try await observerService.subscribe(service.marketSubscription(perpetual: perpetual.toGem()))
         } catch {
             debugLog("Market data subscription failed: \(error)")
         }
@@ -281,7 +266,7 @@ private extension PerpetualSceneViewModel {
 
     func unsubscribeMarket() async {
         do {
-            try await observerService.unsubscribe(service.marketSubscription(perpetual: perpetual.map()))
+            try await observerService.unsubscribe(service.marketSubscription(perpetual: perpetual.toGem()))
         } catch {
             debugLog("Market data unsubscribe failed: \(error)")
         }
@@ -289,10 +274,10 @@ private extension PerpetualSceneViewModel {
 
     func onPositionAction(_ kind: GemPerpetualPositionKind) {
         do {
-            let positionAction = try service.positionAction(perpetual: perpetual.map(), asset: asset.map(), position: positions.first?.position.map(), kind: kind)
+            let positionAction = try service.positionAction(perpetual: perpetual.toGem(), asset: asset.toGem(), position: positions.first?.position.toGem(), kind: kind)
             onPerpetualPosition?(positionAction)
         } catch {
-            debugLog("perpetual scene: position action error \(error)")
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
 

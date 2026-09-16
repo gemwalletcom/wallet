@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.buy.views
 
+import com.gemwallet.android.features.buy.localization.actionRes
+import com.gemwallet.android.ui.components.image.iconModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -8,13 +10,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
-import com.gemwallet.android.domains.asset.getFiatProviderIcon
-import com.gemwallet.android.ext.toCurrency
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
@@ -31,8 +33,12 @@ import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.FiatQuoteType
 import com.wallet.core.primitives.FiatTransactionAssetData
-import com.wallet.core.primitives.FiatTransactionStatus
+import com.gemwallet.android.ui.localization.string
+import uniffi.gemstone.GemFiatTransactionBadge
+import uniffi.gemstone.fiatProviderName
+import uniffi.gemstone.fiatTransactionStatus
 import java.math.BigInteger
+import uniffi.gemstone.GemValueStyle
 
 @Composable
 fun FiatTransactionItem(
@@ -40,44 +46,38 @@ fun FiatTransactionItem(
     listPosition: ListPosition,
     onClick: () -> Unit,
 ) {
-    val transaction = info.transaction
     val asset = info.asset
 
-    val typeTitle = when (transaction.transactionType) {
-        FiatQuoteType.Buy -> stringResource(R.string.wallet_buy)
-        FiatQuoteType.Sell -> stringResource(R.string.wallet_sell)
-    }
+    val typeTitle = stringResource(info.transactionType.actionRes())
 
-    val cryptoAmount = ValueFormatter(style = ValueFormatter.Style.Short)
-        .string(BigInteger(transaction.value), asset)
+    val cryptoAmount = ValueFormatter(style = GemValueStyle.SHORT)
+        .string(BigInteger(info.value), asset)
 
-    val fiatCurrency = transaction.fiatCurrency.toCurrency()
-    val fiatFormatted = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = fiatCurrency).string(transaction.fiatAmount)
+    val fiatFormatted = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currencyCode = info.fiatCurrency).string(info.fiatAmount)
 
-    val isDimmed = transaction.status == FiatTransactionStatus.Failed ||
-            transaction.status == FiatTransactionStatus.Unknown
+    val status = remember(info.status) { fiatTransactionStatus(info.status.toGem()) }
 
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         leading = {
             AsyncImage(
-                model = transaction.provider.getFiatProviderIcon(),
+                model = info.provider.iconModel(),
                 size = listItemIconSize,
             )
         },
         title = {
             ListItemTitleText(
                 text = typeTitle,
-                titleBadge = { FiatTransactionStatusBadge(transaction.status) }
+                titleBadge = { status.badge?.let { FiatTransactionStatusBadge(it) } }
             )
         },
-        subtitle = { ListItemSupportText("${asset.name} (${transaction.provider.name})") },
+        subtitle = { ListItemSupportText("${asset.name} (${fiatProviderName(info.provider.toGem())})") },
         listPosition = listPosition,
         trailing = {
             Column(horizontalAlignment = Alignment.End) {
                 ListItemTitleText(
                     text = cryptoAmount,
-                    color = if (isDimmed) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface,
+                    color = if (status.isDimmed) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer2()
                 ListItemSupportText(fiatFormatted)
@@ -87,20 +87,11 @@ fun FiatTransactionItem(
 }
 
 @Composable
-private fun FiatTransactionStatusBadge(status: FiatTransactionStatus) {
-    val text: String
-    val color: Color
-    when (status) {
-        FiatTransactionStatus.Complete,
-        FiatTransactionStatus.Unknown -> return
-        FiatTransactionStatus.Pending -> {
-            text = stringResource(R.string.transaction_status_pending)
-            color = pendingColor
-        }
-        FiatTransactionStatus.Failed -> {
-            text = stringResource(R.string.transaction_status_failed)
-            color = MaterialTheme.colorScheme.error
-        }
+private fun FiatTransactionStatusBadge(badge: GemFiatTransactionBadge) {
+    val text = badge.string()
+    val color = when (badge) {
+        GemFiatTransactionBadge.PENDING -> pendingColor
+        GemFiatTransactionBadge.FAILED -> MaterialTheme.colorScheme.error
     }
 
     Text(

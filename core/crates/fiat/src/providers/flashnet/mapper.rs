@@ -135,7 +135,7 @@ fn map_status(status: &str) -> FiatTransactionStatus {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::providers::flashnet::model::{FlashnetOrder, FlashnetRoute, FlashnetRouteAsset};
+    use crate::providers::flashnet::model::{FlashnetOrder, FlashnetRoute};
     use primitives::FiatTransactionStatus;
 
     #[test]
@@ -176,33 +176,9 @@ mod tests {
     #[test]
     fn map_assets_deduplicates_duplicate_destination_routes() {
         let routes = vec![
-            FlashnetRoute {
-                source_chain: "lightning".to_string(),
-                source_asset: "BTC".to_string(),
-                destination: FlashnetRouteAsset {
-                    chain: "solana".to_string(),
-                    asset: "USDC".to_string(),
-                    contract_address: Some("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v".to_string()),
-                },
-            },
-            FlashnetRoute {
-                source_chain: "lightning".to_string(),
-                source_asset: "BTC".to_string(),
-                destination: FlashnetRouteAsset {
-                    chain: "solana".to_string(),
-                    asset: "USDC".to_string(),
-                    contract_address: Some("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v".to_string()),
-                },
-            },
-            FlashnetRoute {
-                source_chain: "lightning".to_string(),
-                source_asset: "BTC".to_string(),
-                destination: FlashnetRouteAsset {
-                    chain: "base".to_string(),
-                    asset: "USDC".to_string(),
-                    contract_address: Some("0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913".to_string()),
-                },
-            },
+            FlashnetRoute::mock("solana", "USDC", Some("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")),
+            FlashnetRoute::mock("solana", "USDC", Some("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")),
+            FlashnetRoute::mock("base", "USDC", Some("0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913")),
         ];
 
         let assets = map_assets(routes);
@@ -215,33 +191,9 @@ mod tests {
     #[test]
     fn map_assets_ignores_non_native_null_contract_assets() {
         let routes = vec![
-            FlashnetRoute {
-                source_chain: "lightning".to_string(),
-                source_asset: "BTC".to_string(),
-                destination: FlashnetRouteAsset {
-                    chain: "solana".to_string(),
-                    asset: "SOL".to_string(),
-                    contract_address: None,
-                },
-            },
-            FlashnetRoute {
-                source_chain: "lightning".to_string(),
-                source_asset: "BTC".to_string(),
-                destination: FlashnetRouteAsset {
-                    chain: "solana".to_string(),
-                    asset: "HSUSD".to_string(),
-                    contract_address: None,
-                },
-            },
-            FlashnetRoute {
-                source_chain: "lightning".to_string(),
-                source_asset: "BTC".to_string(),
-                destination: FlashnetRouteAsset {
-                    chain: "solana".to_string(),
-                    asset: "USDC".to_string(),
-                    contract_address: Some("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v".to_string()),
-                },
-            },
+            FlashnetRoute::mock("solana", "SOL", None),
+            FlashnetRoute::mock("solana", "HSUSD", None),
+            FlashnetRoute::mock("solana", "USDC", Some("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v")),
         ];
 
         let assets = map_assets(routes);
@@ -260,24 +212,8 @@ mod tests {
     #[test]
     fn map_assets_ignores_unsupported_usdc_chains() {
         let routes = vec![
-            FlashnetRoute {
-                source_chain: "lightning".to_string(),
-                source_asset: "BTC".to_string(),
-                destination: FlashnetRouteAsset {
-                    chain: "base".to_string(),
-                    asset: "USDC".to_string(),
-                    contract_address: Some("0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913".to_string()),
-                },
-            },
-            FlashnetRoute {
-                source_chain: "lightning".to_string(),
-                source_asset: "BTC".to_string(),
-                destination: FlashnetRouteAsset {
-                    chain: "tempo".to_string(),
-                    asset: "USDC".to_string(),
-                    contract_address: Some("0x20c000000000000000000000b9537d11c60e8b50".to_string()),
-                },
-            },
+            FlashnetRoute::mock("base", "USDC", Some("0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913")),
+            FlashnetRoute::mock("tempo", "USDC", Some("0x20c000000000000000000000b9537d11c60e8b50")),
         ];
 
         let assets = map_assets(routes);

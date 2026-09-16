@@ -10,6 +10,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.data.service.store.database.GemDatabase
 import com.gemwallet.android.data.service.store.database.di.Migration_71_72
+import com.gemwallet.android.data.service.store.database.di.gemDatabaseMigrations
 import com.gemwallet.android.domains.asset.defaultBasic
 import com.gemwallet.android.ext.asset
 import com.wallet.core.primitives.Chain
@@ -118,7 +119,7 @@ class Migration_71_72Test {
         migratedDb.close()
 
         val roomDb = Room.databaseBuilder(context, GemDatabase::class.java, testDb)
-            .addMigrations(Migration_71_72)
+            .addMigrations(*gemDatabaseMigrations(context))
             .allowMainThreadQueries()
             .build()
 
@@ -129,7 +130,7 @@ class Migration_71_72Test {
         assertEquals(listOf("ethereum", "ethereum_0xtoken"), assets.map { it.id }.sorted())
         assertEquals(assets.map { it.id }.toSet().size, assets.size)
         assertEquals(listOf("ethereum_0xother"), allWalletAssets.map { it.id })
-        assertEquals(listOf(null), allWalletAssets.map { it.walletId })
+        assertEquals(listOf(null), allWalletAssets.map { it.visible })
         assertEquals(listOf(Chain.Ethereum), accountsAfterMigration.map { it.chain })
 
         roomDb.assetsDao().setBalanceConfig("wallet-1", "ethereum", isPinned = true, isVisible = true, listPosition = 0)

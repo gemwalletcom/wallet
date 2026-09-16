@@ -1,7 +1,6 @@
 use gem_encoding::encode_base64;
-use gem_solana::{VersionedTransactionExt, decode_transaction};
+use gem_solana::{Pubkey, SignatureBytes, VersionedTransactionExt, decode_transaction};
 use primitives::{PaymentAmount, PaymentRequest, TransactionType};
-use solana_primitives::{Pubkey, SignatureBytes};
 
 pub(super) struct PreparedTransaction {
     pub transaction: String,
@@ -37,7 +36,7 @@ pub(super) fn prepare(transaction: &str, signer: &str) -> Result<PreparedTransac
     let memo = transaction.memo();
     let request = transaction.simple_transfer(&signer).map(|transfer| PaymentRequest {
         address: transfer.recipient,
-        amount: Some(PaymentAmount::AtomicValue(transfer.value)),
+        amount: Some(PaymentAmount::AtomicValue { value: transfer.value }),
         memo: memo.clone(),
         label: None,
         references: None,
@@ -63,7 +62,7 @@ mod tests {
     use super::*;
     use gem_encoding::decode_base64;
     use gem_solana::MEMO_PROGRAM_ID;
-    use solana_primitives::{CompiledInstruction, VersionedTransaction};
+    use gem_solana::{CompiledInstruction, VersionedTransaction};
 
     #[test]
     fn test_prepare() {
@@ -73,28 +72,15 @@ mod tests {
         let mut requested = VersionedTransaction::deserialize_with_version(&decode_base64(TRANSACTION).unwrap()).unwrap();
         *requested.recent_blockhash_mut() = [7; 32];
         let memo = "ck:262:operator:m:1787598390";
-        match &mut requested {
-            VersionedTransaction::Legacy { message, .. } => {
-                let program_id_index = message.account_keys.len() as u8;
-                message.account_keys.push(Pubkey::from_base58(MEMO_PROGRAM_ID).unwrap());
-                message.header.num_readonly_unsigned_accounts += 1;
-                message.instructions.push(CompiledInstruction {
-                    program_id_index,
-                    accounts: vec![],
-                    data: memo.as_bytes().to_vec(),
-                });
-            }
-            VersionedTransaction::V0 { message, .. } => {
-                let program_id_index = message.account_keys.len() as u8;
-                message.account_keys.push(Pubkey::from_base58(MEMO_PROGRAM_ID).unwrap());
-                message.header.num_readonly_unsigned_accounts += 1;
-                message.instructions.push(CompiledInstruction {
-                    program_id_index,
-                    accounts: vec![],
-                    data: memo.as_bytes().to_vec(),
-                });
-            }
-        }
+        let message = requested.message_mut();
+        let program_id_index = message.account_keys.len() as u8;
+        message.account_keys.push(Pubkey::from_base58(MEMO_PROGRAM_ID).unwrap());
+        message.header.num_readonly_unsigned_accounts += 1;
+        message.instructions.push(CompiledInstruction {
+            program_id_index,
+            accounts: vec![],
+            data: memo.as_bytes().to_vec(),
+        });
         let requested = encode_base64(&requested.serialize().unwrap());
 
         let prepared = prepare(&requested, ACCOUNT).unwrap();
@@ -109,20 +95,12 @@ mod tests {
         assert_eq!(prepared.transaction_type, TransactionType::Transfer);
         assert_eq!(prepared.memo.as_deref(), Some(memo));
         let request = prepared.request.expect("expected a decoded transfer request");
-        assert_eq!(request.amount, Some(PaymentAmount::AtomicValue(0u32.into())));
+        assert_eq!(request.amount, Some(PaymentAmount::AtomicValue { value: 0u32.into() }));
         assert_eq!(request.memo.as_deref(), Some(memo));
 
         let mut ambiguous = VersionedTransaction::deserialize_with_version(&decode_base64(TRANSACTION).unwrap()).unwrap();
-        match &mut ambiguous {
-            VersionedTransaction::Legacy { message, .. } => {
-                let instruction = message.instructions[0].clone();
-                message.instructions.push(instruction);
-            }
-            VersionedTransaction::V0 { message, .. } => {
-                let instruction = message.instructions[0].clone();
-                message.instructions.push(instruction);
-            }
-        }
+        let instruction = ambiguous.instructions()[0].clone();
+        ambiguous.message_mut().instructions.push(instruction);
         let prepared = prepare(&encode_base64(&ambiguous.serialize().unwrap()), ACCOUNT).unwrap();
 
         assert_eq!(prepared.transaction_type, TransactionType::SmartContractCall);

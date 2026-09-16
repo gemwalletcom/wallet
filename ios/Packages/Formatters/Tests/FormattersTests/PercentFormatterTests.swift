@@ -5,9 +5,9 @@ import Foundation
 import Testing
 
 struct PercentFormatterTests {
-    let signedUS = PercentFormatter(locale: .US, sign: .signed)
-    let signedUK = PercentFormatter(locale: .UK, sign: .signed)
-    let unsignedUS = PercentFormatter(locale: .US, sign: .unsigned)
+    let signedUS = PercentFormatter(locale: .US, showsSign: true)
+    let signedUK = PercentFormatter(locale: .UK, showsSign: true)
+    let unsignedUS = PercentFormatter(locale: .US, showsSign: false)
 
     @Test
     func signed() {

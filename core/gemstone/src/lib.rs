@@ -7,9 +7,12 @@ pub mod auth;
 pub mod block_explorer;
 pub mod config;
 pub mod crypto_fiat_converter;
+pub mod day_section;
 pub mod deeplink;
 pub mod device;
+pub mod duration_formatter;
 pub mod fee;
+pub mod formatted_number;
 pub mod gateway;
 pub mod gem_swapper;
 pub mod keystore;
@@ -18,7 +21,9 @@ pub mod mnemonic;
 pub mod models;
 pub mod network;
 pub mod payment;
+pub mod percentage;
 pub mod perpetual;
+pub mod precision;
 pub mod price;
 pub mod price_alert_formatter;
 pub mod service_status;
@@ -36,11 +41,6 @@ pub mod wallet_connect;
 use alien::AlienError;
 
 uniffi::setup_scaffolding!("gemstone");
-const LIB_VERSION: &str = env!("CARGO_PKG_VERSION");
-
-pub fn lib_version() -> String {
-    String::from(LIB_VERSION)
-}
 
 /// GemstoneError
 #[derive(Debug, PartialEq, Eq, uniffi::Error)]

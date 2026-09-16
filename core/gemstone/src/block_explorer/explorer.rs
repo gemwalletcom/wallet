@@ -24,12 +24,6 @@ impl ExplorerURL {
 }
 
 impl Explorer {
-    pub fn new(chain: &str) -> Self {
-        Self {
-            chain: Chain::from_str(chain).unwrap(),
-        }
-    }
-
     pub fn get_transaction_url(&self, explorer_name: &str, transaction_id: &str) -> String {
         get_block_explorer(self.chain, explorer_name).get_tx_url(transaction_id)
     }
@@ -72,7 +66,7 @@ mod tests {
         assert_eq!(explorers[0].name(), "Blockchair");
         assert_eq!(explorers[1].name(), "Mempool");
 
-        let explorer = Explorer::new(chain.as_ref());
+        let explorer = Explorer { chain };
         let transaction_url = explorer.get_transaction_url(&explorers[0].name(), "813d80363c09b1c4d3f0c6ce3382a048b320edefb573a8aedbc7ddd4c65cf7e4");
 
         assert_eq!(
@@ -94,7 +88,7 @@ mod tests {
         assert_eq!(explorers[0].name(), "Etherscan");
         assert_eq!(explorers[1].name(), "Blockchair");
 
-        let explorer = Explorer::new(chain.as_ref());
+        let explorer = Explorer { chain };
         let account_url = explorer.get_address_url(&explorers[0].name(), "0x1f9090aae28b8a3dceadf281b0f12828e676c326");
         let transaction_url = explorer.get_transaction_url(&explorers[0].name(), "0xfd96a9ee20a7440bf65a5b8ecf7f884289ed78e28f82d45343a70f459e7a42a0");
         let token_url = explorer.get_token_url(&explorers[0].name(), "0xdac17f958d2ee523a2206206994597c13d831ec7");
@@ -119,7 +113,7 @@ mod tests {
         assert_eq!(explorers[1].name(), "Tonscan");
         assert_eq!(explorers[2].name(), "Blockchair");
 
-        let explorer = Explorer::new(chain.as_ref());
+        let explorer = Explorer { chain };
         let account_url = explorer.get_address_url(&explorers[0].name(), TON_USDT_TOKEN_ID);
         let token_url = explorer.get_token_url(&explorers[0].name(), TON_USDT_TOKEN_ID).unwrap();
 
@@ -143,7 +137,7 @@ mod tests {
         assert_eq!(explorers[1].name(), "SolanaFM");
         assert_eq!(explorers[0].name(), "Solscan");
 
-        let explorer = Explorer::new(chain.as_ref());
+        let explorer = Explorer { chain };
 
         assert_eq!(
             explorer.get_address_url(&explorers[1].name(), "5x38Kp4hvdomTCnCrAny4UtMUt5rQBdB6px2K1Ui45Wq",),
@@ -177,7 +171,7 @@ mod tests {
         assert_eq!(explorers.len(), 1);
         assert_eq!(explorers[0].name(), "Mintscan");
 
-        let explorer = Explorer::new(chain.as_ref());
+        let explorer = Explorer { chain };
         let account_url = explorer.get_address_url(&explorers[0].name(), "cosmos1fxygpgus4nd5jmfl5j7fh5y8hyy53z8u95dzx7");
         let transaction_url = explorer.get_transaction_url(&explorers[0].name(), "CFB4B38D75DB9D9055A7D4A2A76C67B8A27C37124C4E5663BEE104589E726763");
         let asset_url = explorer
@@ -203,7 +197,7 @@ mod tests {
         assert_eq!(explorers.len(), 1);
         assert_eq!(explorers[0].name(), "Mintscan");
 
-        let explorer = Explorer::new(chain.as_ref());
+        let explorer = Explorer { chain };
         let account_url = explorer.get_address_url(&explorers[0].name(), "noble17w8y9eujrz4m08nn0h349s5h2rs8uz5hqe02z4");
         let transaction_url = explorer.get_transaction_url(&explorers[0].name(), "22F0B4F48A85925A668D64134B7377476DC5BAE3CF7CC38AFC0E17E5F7D90001");
 
@@ -223,7 +217,7 @@ mod tests {
         assert_eq!(explorers[0].name(), "SuiScan");
         assert_eq!(explorers[1].name(), "SuiVision");
 
-        let explorer = Explorer::new(chain.as_ref());
+        let explorer = Explorer { chain };
 
         assert_eq!(
             explorer.get_address_url(&explorers[0].name(), "0x6f02af629f66a13c5b8cb857cddf43804422d205b0bb9bda9db98b2635fe59bb",),
@@ -258,7 +252,7 @@ mod tests {
         assert_eq!(explorers.len(), 2);
         assert_eq!(explorers[0].name(), "TRONSCAN");
 
-        let explorer = Explorer::new(chain.as_ref());
+        let explorer = Explorer { chain };
         let account_url = explorer.get_address_url(&explorers[0].name(), "TJApZYJwPKuQR7tL6FmvD6jDjbYpHESZGH");
         let transaction_url = explorer.get_transaction_url(&explorers[0].name(), "4e55fe0a528240152ab566dc11ce593a30c1d2cfd0fc91f0c555887639eab2db");
 
@@ -276,7 +270,7 @@ mod tests {
         assert_eq!(explorers.len(), 2);
         assert_eq!(explorers[0].name(), "RuneScan");
 
-        let explorer = Explorer::new(Chain::Thorchain.as_ref());
+        let explorer = Explorer { chain: Chain::Thorchain };
         let account_url: String = explorer.get_address_url(&explorers[0].name(), "thor166n4w5039meulfa3p6ydg60ve6ueac7tlt0jws");
         let transaction_url = explorer.get_transaction_url(&explorers[0].name(), "FF82C517ECFDCA71A6CD3501063D76995C67509B2AFC012D2BCE61C130C05E98");
 
@@ -286,7 +280,7 @@ mod tests {
 
     #[test]
     fn test_transaction_swap_url() {
-        let explorer = Explorer::new(Chain::Thorchain.as_ref());
+        let explorer = Explorer { chain: Chain::Thorchain };
         let transaction_url = explorer
             .get_transaction_swap_url(
                 "runescan",
@@ -300,7 +294,7 @@ mod tests {
             "https://runescan.io/tx/0299923c9a0a40e3a296058ac2c5c3a7b41f91803ea36ad9645492ccca0f8631"
         );
 
-        let explorer = Explorer::new(Chain::Solana.as_ref());
+        let explorer = Explorer { chain: Chain::Solana };
         let transaction_url = explorer
             .get_transaction_swap_url(
                 "solscan",
@@ -317,7 +311,7 @@ mod tests {
 
     #[test]
     fn test_near_intents_swap_url() {
-        let explorer = Explorer::new(Chain::Near.as_ref());
+        let explorer = Explorer { chain: Chain::Near };
         let recipient = "aec8de30ed03c5e6f9d0dc90ae39d865f1b4f6f77c990f2ad16c93e873ea67de";
 
         let url = explorer
@@ -350,7 +344,7 @@ mod tests {
 
     #[test]
     fn test_across_swap_url_uses_across_explorer() {
-        let explorer = Explorer::new(Chain::Tron.as_ref());
+        let explorer = Explorer { chain: Chain::Tron };
         let transaction_hash = "0xec0e05178bb2e7a13131c86ef5e4891e116cfe8757d63d7337998f848c63d9af";
 
         let url = explorer

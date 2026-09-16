@@ -1,35 +1,44 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemAddressService
 import enum Gemstone.Resource
 import Components
 import Formatters
 import Foundation
-import class Gemstone.GemTransactionRow
+import struct Gemstone.GemTransactionRow
+import func Gemstone.transactionRow
+import func Gemstone.transactionRows
 import GemstonePrimitives
 import Localization
 import Primitives
 import Style
 import SwiftUI
 
-public struct TransactionViewModel: Sendable {
+public struct TransactionViewModel: Sendable, Identifiable, Equatable {
     public let transaction: TransactionExtended
     private let row: GemTransactionRow
-    private let currency: String
-    private let formatter: ValueFormatter = .short
 
-    public init(
-        transaction: TransactionExtended,
-        currency: String,
-    ) {
-        row = GemTransactionRow(transaction: transaction.json())
+    public init(transaction: TransactionExtended) {
+        self.init(transaction: transaction, row: transactionRow(transaction: transaction.toGem()))
+    }
+
+    public init(transaction: TransactionExtended, row: GemTransactionRow) {
         self.transaction = transaction
-        self.currency = currency
+        self.row = row
+    }
+
+    public var id: String {
+        transaction.id
+    }
+
+    public static func sections(_ transactions: [TransactionExtended]) -> [ListSection<TransactionViewModel>] {
+        let models = zip(transactions, transactionRows(transactions: transactions.map { $0.toGem() }))
+            .map { TransactionViewModel(transaction: $0, row: $1) }
+        return DateSectionBuilder(items: models, dateKeyPath: \.transaction.transaction.createdAt).build()
     }
 
     public var assetImage: AssetImage {
         let asset = AssetIdViewModel(assetId: assetId).assetImage
-        if let nftImageUrl = row.nftImageUrl() {
+        if let nftImageUrl = row.nftImageUrl {
             return AssetImage(
                 type: .text(""),
                 imageURL: URL(string: nftImageUrl),
@@ -72,21 +81,18 @@ public struct TransactionViewModel: Sendable {
 
     public var titleTextValue: TextValue {
         TextValue(
-            text: row.title().title,
+            text: row.title.title,
             style: TextStyle(font: Font.system(.body, weight: .medium), color: .primary),
         )
     }
 
     public var titleTagType: TitleTagType {
-        TransactionStateViewModel(state: transaction.transaction.state).showsProgress ? .progressView() : .none
+        row.status.showsProgress ? .progressView() : .none
     }
 
     public var titleTagTextValue: TextValue? {
-        let model = TransactionStateViewModel(state: transaction.transaction.state)
-        let title: String? = switch transaction.transaction.state {
-        case .confirmed: .none
-        case .pending, .inTransit, .failed, .reverted, .refunded: model.title
-        }
+        let model = TransactionStateViewModel(state: transaction.transaction.state, tone: row.status.tone)
+        let title: String? = row.status.showsBadge ? model.title : .none
         return title.map {
             TextValue(
                 text: $0,
@@ -100,13 +106,12 @@ public struct TransactionViewModel: Sendable {
     }
 
     public var titleExtraTextValue: TextValue? {
-        let title: String? = switch row.subtitle() {
-        case let .toAddress(address, name): participantTitle(prefix: Localized.Transfer.to, address: address, name: name)
-        case let .fromAddress(address, name): participantTitle(prefix: Localized.Transfer.from, address: address, name: name)
-        case let .toResource(resource): resourceTitle(prefix: Localized.Transfer.to, resource: resource)
-        case let .fromResource(resource): resourceTitle(prefix: Localized.Transfer.from, resource: resource)
+        let prefix = row.subtitle.prefix ?? ""
+        let title: String? = switch row.subtitle {
+        case let .toAddress(participant), let .fromAddress(participant): participantTitle(prefix: prefix, participant: participant)
+        case let .toResource(resource), let .fromResource(resource): resourceTitle(prefix: prefix, resource: resource)
         case let .price(value):
-            String(format: "%@: %@", Localized.Asset.price, AmountDisplay.currency(value: value, currencyCode: Currency.usd.rawValue, showSign: false).text)
+            String(format: "%@: %@", prefix, AmountDisplay.currency(value: value, currencyCode: Currency.usd.rawValue, showSign: false).text)
         case .none: .none
         }
 
@@ -118,25 +123,24 @@ public struct TransactionViewModel: Sendable {
         }
     }
 
-    public var subtitleTextValue: TextValue? {
-        row.value().textValue(currency: currency, formatter: formatter)
+    public func subtitleTextValue(currency: Currency) -> TextValue? {
+        row.value.textValue(currency: currency, formatter: .short)
     }
 
-    public var subtitleExtraTextValue: TextValue? {
-        row.equivalentValue().textValue(currency: currency, formatter: formatter, textStyle: .footnote)
+    public func subtitleExtraTextValue(currency: Currency) -> TextValue? {
+        row.equivalentValue.textValue(currency: currency, formatter: .short, textStyle: .footnote)
     }
 
     private var assetId: AssetId {
         transaction.transaction.assetId
     }
 
-    private func participantTitle(prefix: String, address: String, name: String?) -> String? {
-        guard address.isNotEmpty else { return nil }
-        let value = name ?? GemAddressService.shared.format(address: address, chain: assetId.chain)
-        return String(format: "%@ %@", prefix, value)
+    private func participantTitle(prefix: String, participant: String) -> String? {
+        guard participant.isNotEmpty else { return nil }
+        return String(format: "%@ %@", prefix, participant)
     }
 
     private func resourceTitle(prefix: String, resource: Gemstone.Resource) -> String {
-        String(format: "%@ %@", prefix, ResourceViewModel(resource: resource.map()).title)
+        String(format: "%@ %@", prefix, resource.toPrimitives().title)
     }
 }

@@ -45,9 +45,7 @@ android {
 
 dependencies {
     implementation(project(":data:services:gemstone"))
-    implementation(project(":gemcore"))
     implementation(project(":data:services:store"))
-    api(project(":data:services:native-provider"))
 
     compileOnly(libs.compose.runtime.annotation)
 
@@ -55,12 +53,9 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     implementation(libs.ktx.core)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk.android)
     testImplementation(testFixtures(project(":gemcore")))
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    testImplementation(testFixtures(project(":data:services:store")))
 }

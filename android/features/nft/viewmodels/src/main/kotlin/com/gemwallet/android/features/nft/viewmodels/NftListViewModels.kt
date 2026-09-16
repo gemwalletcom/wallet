@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.nft.viewmodels
 
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toGem
+import uniffi.gemstone.GemNftList
 import uniffi.gemstone.GemNftServiceInterface
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -10,7 +10,6 @@ import com.gemwallet.android.application.nft.cases.GetNftCollections
 import android.util.Log
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.ui.models.NftItemUIModel
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,6 +24,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.gemwallet.android.ui.models.toUIModels
 
 @HiltViewModel
 class NftListViewModels @Inject constructor(
@@ -34,7 +34,7 @@ class NftListViewModels @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    val mode: NftListMode = savedStateHandle.nftListMode()
+    val list: GemNftList = savedStateHandle.nftList()
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing
@@ -47,25 +47,11 @@ class NftListViewModels @Inject constructor(
 
     private var lastSyncedWalletId: WalletId? = null
 
-    private val nftData: StateFlow<List<NFTData>> = getNftCollections(mode.collectionId)
+    private val nftData: StateFlow<List<NFTData>> = getNftCollections(savedStateHandle.nftCollectionId())
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val collections = nftData
-        .map { data ->
-            val filtered = when (mode) {
-                is NftListMode.Collection -> data.filter { it.assets.isNotEmpty() }
-                NftListMode.Unverified -> nftService.unverifiedCollections(data.map { it.toGem() }).map { it.toPrimitives() }
-                NftListMode.Collections -> nftService.verifiedCollections(data.map { it.toGem() }).map { it.toPrimitives() }
-            }
-            nftService.sortedCollections(filtered.map { it.toGem() }).map { it.toPrimitives() }.flatMap { nftData ->
-                val isSingleAsset = nftData.assets.size == 1
-                if (mode is NftListMode.Collection || isSingleAsset) {
-                    nftData.assets.map { NftItemUIModel(nftData.collection, it) }
-                } else {
-                    listOf(NftItemUIModel(nftData.collection, null, nftData.assets.size))
-                }
-            }
-        }
+        .map { data -> nftService.listItems(data.map { it.toGem() }, list).toUIModels() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val unverifiedCount = nftData
@@ -74,7 +60,7 @@ class NftListViewModels @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     fun syncIfNeeded() {
-        if (mode is NftListMode.Collection) return
+        if (list == GemNftList.COLLECTION) return
         val current = walletId.value ?: return
         if (current == lastSyncedWalletId) return
         lastSyncedWalletId = current

@@ -1,17 +1,16 @@
 package com.gemwallet.android.ui.models.swap
 
-import com.gemwallet.android.domains.asset.getSwapProviderIcon
-import com.gemwallet.android.domains.percentage.PercentageFormatterStyle
+import uniffi.gemstone.GemPercentageStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.swap.AssetRateFormatter
-import com.gemwallet.android.domains.swap.buildAssetRatePair
 import com.gemwallet.android.model.AssetPriceValue
-import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
-import com.wallet.core.primitives.swap.SwapPriceImpact
+import uniffi.gemstone.SwapPriceImpact
 import java.math.BigInteger
+import uniffi.gemstone.GemSwapQuoteSummary
 import uniffi.gemstone.SwapProvider
 import uniffi.gemstone.SwapperProviderType
+import uniffi.gemstone.GemValueStyle
 
 object SwapProviderUIModelFactory {
     fun create(
@@ -38,8 +37,8 @@ object SwapProviderUIModelFactory {
         return SwapProviderUIModel(
             id = providerId,
             title = title,
-            icon = providerId.getSwapProviderIcon(),
-            amount = ValueFormatter(style = ValueFormatter.Style.Auto)
+            icon = providerId,
+            amount = ValueFormatter(style = GemValueStyle.AUTO)
                 .string(toValue, receiveAsset.asset),
             fiat = receiveAsset.formatFiat(fiatValue),
         )
@@ -49,55 +48,46 @@ object SwapProviderUIModelFactory {
 data class SwapDetailsUIModelInput(
     val payAsset: AssetPriceValue,
     val receiveAsset: AssetPriceValue,
-    val fromValue: BigInteger,
-    val toValue: BigInteger,
+    val summary: GemSwapQuoteSummary,
     val provider: SwapProviderUIModel,
     val providers: List<SwapProviderUIModel> = emptyList(),
     val slippageBps: UInt,
     val selectedSlippage: UInt?,
-    val etaInSeconds: UInt?,
     val isProviderSelectable: Boolean,
     val priceImpact: SwapPriceImpact? = null,
-    val minReceiveValue: BigInteger = BigInteger.ZERO,
-    val etaMinutes: UInt? = null,
 )
 
 object SwapDetailsUIModelFactory {
     private val rateFormatter = AssetRateFormatter()
 
     fun create(input: SwapDetailsUIModelInput): SwapDetailsUIModel? {
-        val rate = buildAssetRatePair(
-            fromAsset = input.payAsset.asset,
-            toAsset = input.receiveAsset.asset,
-            fromValue = input.fromValue,
-            toValue = input.toValue,
-            formatter = rateFormatter,
-        ) ?: return null
+        val rate = input.summary.rate?.let(rateFormatter::format) ?: return null
 
-        val slippagePercent = input.slippageBps.toDouble() / 100.0
+        val slippagePercent = input.summary.slippagePercent()
         val priceImpact = input.priceImpact?.let {
             SwapPriceImpactUIModel(
                 type = it.impactType,
                 displayText = it.percentage.formatAsPercentage(),
-                warningText = it.percentage.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess),
+                warningText = it.percentage.formatAsPercentage(style = GemPercentageStyle.UNSIGNED),
                 isHigh = it.isHigh,
+                showsInSummary = it.showsInSummary,
             )
         }
 
-        val toAmount = Crypto(input.toValue)
-        val minReceiveAtomic = input.minReceiveValue
+        val minReceiveAtomic = input.summary.minReceiveValue
 
         return SwapDetailsUIModel(
+            rows = input.summary.rows(priceImpact != null),
             provider = input.provider,
             providers = input.providers,
             rate = rate,
             priceImpact = priceImpact,
-            minimumReceive = ValueFormatter(style = ValueFormatter.Style.Auto)
+            minimumReceive = ValueFormatter(style = GemValueStyle.AUTO)
                 .string(minReceiveAtomic, input.receiveAsset.asset),
-            slippageText = slippagePercent.formatAsPercentage(style = PercentageFormatterStyle.PercentSignLess),
+            slippageText = slippagePercent.formatAsPercentage(style = GemPercentageStyle.UNSIGNED),
             slippageBps = input.slippageBps,
             selectedSlippage = input.selectedSlippage,
-            estimatedTime = input.etaMinutes?.let { "≈ $it min" },
+            etaInSeconds = input.summary.quote.etaInSeconds,
             isProviderSelectable = input.isProviderSelectable,
         )
     }

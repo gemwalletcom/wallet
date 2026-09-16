@@ -1,5 +1,11 @@
 package com.gemwallet.android.features.import_wallet.viewmodels
 
+import androidx.annotation.StringRes
+import com.gemwallet.android.features.import_wallet.viewmodels.localization.fieldStringRes
+import com.gemwallet.android.features.import_wallet.viewmodels.localization.tabStringRes
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ext.toPrimitives
 import uniffi.gemstone.GemWalletDefaultName
 import androidx.lifecycle.ViewModel
@@ -15,10 +21,9 @@ import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.WalletSource
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.model.ImportType
-import com.gemwallet.android.model.toWalletType
-import com.gemwallet.android.ui.models.name.NameRecordState
+import uniffi.gemstone.GemNameRecordState
 import com.gemwallet.android.ui.models.name.NameRecordController
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemWalletImportKind
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,6 +41,7 @@ class ImportViewModel @Inject constructor(
     private val service: GemWalletServiceInterface,
     nameService: GemNameServiceInterface,
     private val mnemonic: GemMnemonicInterface,
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     fun invalidPhraseWords(text: String): Set<String> = mnemonic.findInvalidWords(text.words()).toSet()
@@ -47,13 +53,13 @@ class ImportViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, ImportUIState())
 
     private val nameRecordController = NameRecordController(nameService, viewModelScope)
-    val nameResolveState: StateFlow<NameRecordState> = nameRecordController.state
+    val nameResolveState: StateFlow<GemNameRecordState> = nameRecordController.state
 
-    fun chainType(walletType: WalletType) {
+    fun importKind(type: ImportType) {
         nameRecordController.reset()
         state.update {
             it.copy(
-                importType = it.importType.copy(walletType = walletType),
+                importType = type,
                 dataError = null
             )
         }
@@ -61,9 +67,10 @@ class ImportViewModel @Inject constructor(
 
     fun onInput(value: String) {
         val importType = state.value.importType
-        when (importType.walletType) {
-            WalletType.View -> nameRecordController.getNameRecord(value, importType.chain)
-            else -> nameRecordController.reset()
+        if (importType.kind.resolvesNames()) {
+            nameRecordController.getNameRecord(value, importType.chain)
+        } else {
+            nameRecordController.reset()
         }
     }
 
@@ -71,12 +78,12 @@ class ImportViewModel @Inject constructor(
         val defaultName = withContext(Dispatchers.IO) {
             service.defaultWalletName(importType.chain?.string)
         }
-        val chainName = if (importType.walletType == WalletType.Multicoin) "" else importType.chain?.networkName().orEmpty()
-        val tabs = service.importKinds(importType.chain?.string).map { it.toWalletType(importType.chain) }
+        val chainName = importType.chain?.networkName().orEmpty()
+        val tabs = service.importKinds(importType.chain?.string)
         state.update {
             it.copy(
                 importType = importType,
-                defaultWalletName = defaultName.name,
+                defaultWalletName = defaultName.text.string(context),
                 chainName = chainName,
                 tabs = tabs,
             )
@@ -91,14 +98,14 @@ class ImportViewModel @Inject constructor(
         if (state.value.loading) {
             return
         }
-        val nameRecord = nameRecordController.state.value.nameRecord
+        val nameRecord = nameRecordController.state.value.record()
         state.update { it.copy(loading = true) }
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val importType = state.value.importType
-                val import = service.importRequest(importType.kind, importType.chain?.string, data, nameRecord?.toGem())
-                val walletName = service.importName(nameRecord?.toGem(), generatedName)
+                val import = service.importRequest(importType.kind, importType.chain?.string, data, nameRecord)
+                val walletName = service.importName(nameRecord, generatedName)
                 val result = when (val imported = service.importWallet(walletName, import, WalletSource.Import.toGem())) {
                     is GemWalletImportResult.Existing -> WalletImportResult.Existing(imported.wallet.toPrimitives())
                     is GemWalletImportResult.New -> WalletImportResult.New(imported.wallet.toPrimitives())
@@ -127,10 +134,10 @@ class ImportViewModel @Inject constructor(
 data class ImportViewModelState(
     val loading: Boolean = false,
     val error: String = "",
-    val importType: ImportType = ImportType(WalletType.Multicoin),
-    val defaultWalletName: String = "",
+    val importType: ImportType = ImportType(GemWalletImportKind.PHRASE),
+    val defaultWalletName: String? = null,
     val chainName: String = "",
-    val tabs: List<WalletType> = emptyList(),
+    val tabs: List<GemWalletImportKind> = emptyList(),
     val data: String = "",
     val dataError: Throwable? = null,
     val existingWalletResult: WalletImportResult.Existing? = null,
@@ -141,7 +148,8 @@ data class ImportViewModelState(
             error = error,
             defaultWalletName = defaultWalletName,
             chainName = chainName,
-            tabs = tabs,
+            tabs = tabs.map { kind -> ImportTabUIModel(type = importType.copy(kind = kind), title = kind.tabStringRes(), isSelected = kind == importType.kind) },
+            input = importType.kind.inputUiModel(),
             importType = importType,
             dataError = dataError,
             existingWalletResult = existingWalletResult,
@@ -152,11 +160,37 @@ data class ImportViewModelState(
 data class ImportUIState(
     val loading: Boolean = false,
     val error: String = "",
-    val importType: ImportType = ImportType(WalletType.Multicoin),
-    val defaultWalletName: String = "",
+    val importType: ImportType = ImportType(GemWalletImportKind.PHRASE),
+    val defaultWalletName: String? = null,
     val chainName: String = "",
-    val tabs: List<WalletType> = emptyList(),
+    val tabs: List<ImportTabUIModel> = emptyList(),
+    val input: ImportInputUIModel = GemWalletImportKind.PHRASE.inputUiModel(),
     val dataError: Throwable? = null,
     val existingWalletResult: WalletImportResult.Existing? = null,
+)
+
+data class ImportTabUIModel(
+    val type: ImportType,
+    @StringRes val title: Int,
+    val isSelected: Boolean,
+)
+
+data class ImportInputUIModel(
+    @StringRes val placeholder: Int,
+    val isPhrase: Boolean,
+    val protectsInput: Boolean,
+    val supportsPhraseSuggestions: Boolean,
+    val showsViewOnlyWarning: Boolean,
+)
+
+internal fun GemWalletImportKind.inputUiModel() = ImportInputUIModel(
+    placeholder = fieldStringRes(),
+    isPhrase = when (this) {
+        GemWalletImportKind.PHRASE -> true
+        GemWalletImportKind.ADDRESS, GemWalletImportKind.PRIVATE_KEY -> false
+    },
+    protectsInput = protectsInput(),
+    supportsPhraseSuggestions = supportsPhraseSuggestions(),
+    showsViewOnlyWarning = showsViewOnlyWarning(),
 )
 

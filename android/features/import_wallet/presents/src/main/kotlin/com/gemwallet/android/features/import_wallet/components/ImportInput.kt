@@ -31,8 +31,7 @@ import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.PlatformImeOptions
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.TransformedText
-import androidx.compose.ui.unit.dp
-import com.gemwallet.android.model.ImportType
+import com.gemwallet.android.features.import_wallet.viewmodels.ImportInputUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.FieldBottomAction
 import com.gemwallet.android.ui.components.clipboard.clear
@@ -41,16 +40,16 @@ import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.components.fields.NameResolveIndicator
-import com.gemwallet.android.ui.models.name.NameRecordState
+import uniffi.gemstone.GemNameRecordState
 import com.gemwallet.android.ui.theme.Spacer16
-import com.wallet.core.primitives.WalletType
+import com.gemwallet.android.ui.theme.space8
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 @Composable
 internal fun ImportInput(
     inputState: TextFieldValue,
-    importType: ImportType,
-    uiState: NameRecordState,
+    input: ImportInputUIModel,
+    uiState: GemNameRecordState,
     onValueChange: (TextFieldValue) -> Unit,
     invalidWords: (String) -> Set<String>,
 ) {
@@ -72,22 +71,16 @@ internal fun ImportInput(
                 minLines = 2,
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 visualTransformation = {
-                    if (importType.walletType == WalletType.View  || importType.walletType == WalletType.PrivateKey) {
-                        return@BasicTextField TransformedText(it, OffsetMapping.Identity)
+                    if (input.isPhrase) {
+                        TransformedText(highlightInvalidPhraseWords(it.text, errorColor, invalidWords(it.text)), OffsetMapping.Identity)
+                    } else {
+                        TransformedText(it, OffsetMapping.Identity)
                     }
-                    TransformedText(
-                        highlightInvalidPhraseWords(it.text, errorColor, invalidWords(it.text)),
-                        OffsetMapping.Identity
-                    )
                 },
                 decorationBox = { innerTextField ->
                     if (inputState.text.isEmpty()) {
                         Text(
-                            text = when (importType.walletType) {
-                                WalletType.View -> stringResource(R.string.wallet_import_address_field)
-                                WalletType.PrivateKey -> stringResource(R.string.common_private_key)
-                                else -> stringResource(R.string.common_secret_phrase)
-                            },
+                            text = stringResource(input.placeholder),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.secondary,
                         )
@@ -106,8 +99,8 @@ internal fun ImportInput(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 NameResolveIndicator(uiState)
-                if (uiState != NameRecordState.None) {
-                    Spacer(modifier = Modifier.size(8.dp))
+                if (uiState != GemNameRecordState.None) {
+                    Spacer(modifier = Modifier.size(space8))
                 }
             }
         }
@@ -123,18 +116,14 @@ internal fun ImportInput(
                 text = stringResource(id = R.string.common_paste),
             ) {
                 val newValue = clipboardManager.getPlainText() ?: ""
-                val pastedText = if (importType.walletType == WalletType.View || importType.walletType == WalletType.PrivateKey) {
-                    newValue.trim()
-                } else {
-                    "$newValue "
-                }
+                val pastedText = if (input.isPhrase) "$newValue " else newValue.trim()
                 onValueChange(
                     TextFieldValue(
                         text = pastedText,
                         selection = TextRange(pastedText.length),
                     )
                 )
-                if (importType.kind.protectsInput()) {
+                if (input.protectsInput) {
                     clipboardManager.clear()
                 }
             }

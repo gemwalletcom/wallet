@@ -5,6 +5,9 @@ import GemstoneServices
 import Components
 import Foundation
 import Localization
+import struct Gemstone.GemAssetRow
+import struct Gemstone.GemNetworkAssetCounts
+import struct Gemstone.GemNetworkAssetSections
 import Primitives
 import PrimitivesComponents
 import Store
@@ -54,8 +57,8 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
         onManageAssetsAction()
     }
 
-    var currencyCode: String {
-        service.getCurrency()
+    var currency: Currency {
+        service.getCurrency().toPrimitives()
     }
 
     var active: [AssetData] {
@@ -63,11 +66,15 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
     }
 
     var pinned: [AssetData] {
-        active.filter { $0.metadata.isPinned }
+        activeSections.pinned
     }
 
     var unpinned: [AssetData] {
-        active.filter { !$0.metadata.isPinned }
+        activeSections.assets
+    }
+
+    private var activeSections: AssetsSections {
+        AssetsSections.from(active)
     }
 
     var hidden: [AssetData] {
@@ -75,15 +82,15 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
     }
 
     var showPinned: Bool {
-        pinned.isNotEmpty
+        sections.showsPinned
     }
 
     var showUnpinned: Bool {
-        unpinned.isNotEmpty
+        sections.showsUnpinned
     }
 
     var showHidden: Bool {
-        hidden.isNotEmpty
+        sections.showsHidden
     }
 
     var hiddenTitle: String {
@@ -91,7 +98,15 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
     }
 
     var showEmpty: Bool {
-        active.isEmpty && hidden.isEmpty
+        sections.showsEmpty
+    }
+
+    private var sections: GemNetworkAssetSections {
+        GemNetworkAssetCounts(
+            pinned: UInt32(pinned.count),
+            unpinned: UInt32(unpinned.count),
+            hidden: UInt32(hidden.count),
+        ).sections()
     }
 
     var emptyModel: EmptyContentTypeViewModel {
@@ -123,4 +138,8 @@ extension NetworkAssetsSceneViewModel {
     func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
         try await service.setAssetsEnabled(assetIds: assetIds, enabled: enabled)
     }
+    var assetRow: GemAssetRow {
+        service.assetRow()
+    }
+
 }

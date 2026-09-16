@@ -1,9 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import PrimitivesComponents
 import SwiftUI
 
 public struct ServiceStatusScene: View {
+    @Environment(\.isStreamConnected) private var isStreamConnected
+
     @State private var model: ServiceStatusViewModel
 
     public init(model: ServiceStatusViewModel) {
@@ -22,6 +25,11 @@ public struct ServiceStatusScene: View {
                         titleExtra: item.subtitle,
                     )
                 }
+
+                ListItemView(
+                    title: streamModel.title,
+                    subtitle: streamModel.status,
+                )
             }
         }
         .listRowInsets(.assetListRowInsets)
@@ -35,5 +43,9 @@ public struct ServiceStatusScene: View {
         }
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private var streamModel: StreamStatusItemViewModel {
+        StreamStatusItemViewModel(isConnected: isStreamConnected)
     }
 }

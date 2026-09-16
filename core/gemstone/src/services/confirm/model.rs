@@ -1,14 +1,19 @@
 use super::error::GemConfirmError;
+use super::rules::approval_value_from;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
-use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
+use crate::models::transaction::{GemFeeOptionItem, GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::services::balance::GemAssetBalance;
+use crate::services::simulation::GemSimulationWarningRow;
+use crate::services::transactions::GemAmountSign;
 use crate::services::transfer::GemTransferData;
+use crate::services::transfer::model::GemConfirmDestination;
+use crate::services::wallet::model::GemWalletRow;
 use crate::transfer_amount::GemTransferAmount;
 use primitives::AssetPrice;
+use primitives::BlockExplorerLink;
 use primitives::{
-    Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationPayloadField, SimulationPayloadFieldType, SimulationResult, SimulationWarning,
-    Transaction, Wallet,
+    Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationPayloadField, SimulationPayloadFieldType, SimulationResult, Transaction, Wallet,
 };
 
 pub type GemAccount = Account;
@@ -52,6 +57,7 @@ pub struct GemConfirmLoadOptions {
 pub struct GemConfirmData {
     pub input: GemConfirmInput,
     pub fee: GemTransactionLoadFee,
+    pub additional_fees: Vec<GemFeeOptionItem>,
     pub selected_priority: FeePriority,
     pub fee_rates: Vec<GemFeeRate>,
     pub metadata: GemTransactionLoadMetadata,
@@ -111,6 +117,7 @@ pub struct GemFeeRateRow {
     pub priority: FeePriority,
     pub unit_value: GemBigInt,
     pub fee: Option<GemBigInt>,
+    pub display_value: GemBigInt,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -156,7 +163,7 @@ pub struct GemConfirmLoad {
 pub struct GemConfirmSimulationState {
     pub chain: Chain,
     pub result: Option<SimulationResult>,
-    pub warnings: Vec<SimulationWarning>,
+    pub warnings: Vec<GemSimulationWarningRow>,
     pub simulation: Option<GemConfirmSimulation>,
     pub address_names: Vec<AddressName>,
 }
@@ -180,22 +187,34 @@ pub struct GemConfirmPreload {
     pub amount: GemTransferAmountResult,
 }
 
-#[derive(Debug, Clone, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemApprovalValue {
     Exact { value: GemBigUint },
     Unlimited,
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemSimulationValue {
     pub asset: Asset,
     pub value: GemApprovalValue,
+}
+
+impl GemSimulationValue {
+    pub(crate) fn from_simulation(simulation: &SimulationResult, assets: &[Asset]) -> Option<Self> {
+        let header = simulation.valid_header()?;
+        let asset = assets.iter().find(|asset| asset.id == header.asset_id)?.clone();
+        Some(Self {
+            asset,
+            value: approval_value_from(header.value.as_ref(), header.is_unlimited),
+        })
+    }
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemSimulationBalanceChange {
     pub asset: Asset,
     pub value: GemBigInt,
+    pub sign: GemAmountSign,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -215,11 +234,29 @@ pub enum GemConfirmPhase {
     Failed,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemConfirmStage {
+    Load,
+    Execute,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemConfirmFailure {
+    pub stage: GemConfirmStage,
+    pub error: GemConfirmError,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmScreen {
     pub phase: GemConfirmPhase,
-    pub amount_failed: bool,
     pub has_critical_warning: bool,
+    pub failure: Option<GemConfirmFailure>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemConfirmAction {
+    Load,
+    Execute,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
@@ -248,37 +285,20 @@ pub enum GemConfirmFeeRow {
     Unavailable,
 }
 
-#[uniffi::export]
-impl GemConfirmScreen {
-    pub fn button(&self) -> GemConfirmButton {
-        super::rules::confirm_button(self)
-    }
-
-    pub fn fee_row(&self) -> GemConfirmFeeRow {
-        super::rules::confirm_fee_row(self)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_metadata_pairs_each_balance_with_its_own_price() {
-        let balance = |chain: primitives::Chain| GemAssetBalance {
-            asset_id: AssetId::from_chain(chain),
-            ..GemAssetBalance::mock()
-        };
-        let price = |chain: primitives::Chain, value: f64| AssetPrice {
-            asset_id: AssetId::from_chain(chain),
-            price: value,
-            price_change_percentage_24h: 0.0,
-            updated_at: chrono::Utc::now(),
-        };
+        let now = chrono::Utc::now();
         let metadata = GemConfirmMetadata {
-            asset_balance: balance(primitives::Chain::Solana),
-            fee_asset_balance: balance(primitives::Chain::Bitcoin),
-            prices: vec![price(primitives::Chain::Bitcoin, 2.0), price(primitives::Chain::Solana, 1.0)],
+            asset_balance: GemAssetBalance::zero(AssetId::from_chain(primitives::Chain::Solana)),
+            fee_asset_balance: GemAssetBalance::zero(AssetId::from_chain(primitives::Chain::Bitcoin)),
+            prices: vec![
+                AssetPrice::new(AssetId::from_chain(primitives::Chain::Bitcoin), 2.0, 0.0, now),
+                AssetPrice::new(AssetId::from_chain(primitives::Chain::Solana), 1.0, 0.0, now),
+            ],
         };
 
         assert_eq!(metadata.asset_price().map(|price| price.price), Some(1.0));
@@ -296,4 +316,30 @@ mod tests {
         assert_eq!(custom.selected_priority(), None);
         assert_eq!(custom.custom_gas_price(), Some(7.into()));
     }
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemConfirmRowContent {
+    App {
+        name: String,
+        icon_url: Option<String>,
+    },
+    Sender {
+        wallet: GemWalletRow,
+    },
+    Recipient {
+        destination: GemConfirmDestination,
+        address_name: Option<AddressName>,
+        memo: Option<String>,
+        chain: Chain,
+        link: BlockExplorerLink,
+    },
+    Network {
+        chain: Chain,
+        name: String,
+    },
+    Memo {
+        memo: Option<String>,
+    },
+    Details,
 }

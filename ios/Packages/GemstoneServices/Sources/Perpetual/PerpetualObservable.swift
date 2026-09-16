@@ -4,7 +4,7 @@ import enum Gemstone.GemPerpetualSubscription
 import Primitives
 
 public protocol PerpetualObservable: Actor {
-    var chartService: any ChartStreamable { get }
+    var chartService: ChartObserverService { get }
     func setup(for wallet: Wallet) async
     func disconnect() async
     func subscribe(_ subscription: GemPerpetualSubscription) async throws

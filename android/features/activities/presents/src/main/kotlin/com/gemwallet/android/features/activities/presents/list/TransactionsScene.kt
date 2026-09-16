@@ -17,27 +17,30 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.filters.TransactionsFilter
+import com.gemwallet.android.ui.components.list_item.rememberDateSections
 import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.models.TransactionTypeFilter
+import uniffi.gemstone.GemTransactionFilter
 import com.wallet.core.primitives.Chain
+import com.gemwallet.android.ui.theme.space0
+import uniffi.gemstone.GemTransactionsEmptyState
+import uniffi.gemstone.transactionsEmptyState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun TransactionsScene(
     isRefreshing: Boolean,
-    transactions: List<TransactionDataAggregate>,
+    transactions: List<TransactionDataAggregate>?,
     availableChains: List<Chain>,
     chainsFilter: List<Chain>,
-    typeFilter: List<TransactionTypeFilter>,
+    typeFilter: List<GemTransactionFilter>,
     listState: LazyListState = rememberLazyListState(),
     showBuyAction: Boolean,
     showReceiveAction: Boolean,
@@ -47,7 +50,7 @@ internal fun TransactionsScene(
 
     Scene(
         title = stringResource(id = R.string.activity_title),
-        mainActionPadding = PaddingValues(0.dp),
+        mainActionPadding = PaddingValues(space0),
         actions = {
             IconButton(onClick = { showFilters = !showFilters }) {
                 Icon(
@@ -61,16 +64,18 @@ internal fun TransactionsScene(
             }
         },
     ) {
+        val transactionSections = rememberDateSections(transactions.orEmpty()) { it.createdAt }
         PullToRefreshBox(
             isRefreshing = isRefreshing,
             onRefresh = { onAction(TransactionsListAction.Refresh) },
         ) {
-            if (transactions.isEmpty()) {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
+            when {
+                transactions == null -> Unit
+                transactions.isEmpty() -> LazyColumn(modifier = Modifier.fillMaxSize()) {
                     item {
                         EmptyContentView(
                             type = transactionsEmptyContentType(
-                                hasFilters = chainsFilter.isNotEmpty() || typeFilter.isNotEmpty(),
+                                hasFilters = transactionsEmptyState(chainsFilter.map { it.string }, typeFilter) == GemTransactionsEmptyState.NO_RESULTS,
                                 showBuyAction = showBuyAction,
                                 showReceiveAction = showReceiveAction,
                                 onAction = onAction,
@@ -79,31 +84,29 @@ internal fun TransactionsScene(
                         )
                     }
                 }
-            } else {
-                LazyColumn(
+                else -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     state = listState,
                 ) {
                     transactionsList(
-                        items = transactions,
+                        sections = transactionSections,
                         onTransactionClick = { onAction(TransactionsListAction.OpenTransaction(it)) },
                     )
                 }
             }
         }
     }
-    if (showFilters) {
-        TransactionsFilter(
-            availableChains = availableChains,
-            chainsFilter = chainsFilter,
-            typesFilter = typeFilter,
-            onDismissRequest = { showFilters = false },
-            onApplyChainsFilter = { onAction(TransactionsListAction.ApplyChainsFilter(it)) },
-            onApplyTypesFilter = { onAction(TransactionsListAction.ApplyTypesFilter(it)) },
-            onClearChainsFilter = { onAction(TransactionsListAction.ClearChainsFilter) },
-            onClearTypesFilter = { onAction(TransactionsListAction.ClearTypesFilter) },
-        )
-    }
+    TransactionsFilter(
+        isVisible = showFilters,
+        availableChains = availableChains,
+        chainsFilter = chainsFilter,
+        typesFilter = typeFilter,
+        onDismissRequest = { showFilters = false },
+        onSelectChainsFilter = { onAction(TransactionsListAction.SelectChainsFilter(it)) },
+        onSelectTypesFilter = { onAction(TransactionsListAction.SelectTypesFilter(it)) },
+        onClearChainsFilter = { onAction(TransactionsListAction.ClearChainsFilter) },
+        onClearTypesFilter = { onAction(TransactionsListAction.ClearTypesFilter) },
+    )
 }
 
 private fun transactionsEmptyContentType(

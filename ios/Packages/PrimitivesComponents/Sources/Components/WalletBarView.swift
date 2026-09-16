@@ -46,19 +46,7 @@ public struct WalletBarView: View {
 #Preview {
     WalletBarView(
         model: WalletBarViewViewModel(
-            name: WalletViewModel(
-                wallet: .init(
-                    id: .multicoin(address: ""),
-                    externalId: nil,
-                    name: "Wallet #1",
-                    index: 1,
-                    type: .multicoin,
-                    accounts: [.init(chain: .algorand, address: "", derivationPath: "", extendedPublicKey: "")],
-                    isPinned: true,
-                    imageUrl: nil,
-                    source: .create,
-                ),
-            ).name,
+            name: "Wallet #1",
             image: AssetImage(imageURL: .none, placeholder: .none, chainPlaceholder: .none),
         ),
     )

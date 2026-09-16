@@ -1,11 +1,12 @@
 use serde::{Deserialize, Serialize};
-use typeshare::typeshare;
 
+use crate::known_entries::deserialize_known_entries;
 use crate::{AssetPrice, FiatRate};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[typeshare(swift = "Sendable")]
 pub struct WebSocketPricePayload {
+    #[serde(deserialize_with = "deserialize_known_entries")]
     pub prices: Vec<AssetPrice>,
+    #[serde(deserialize_with = "deserialize_known_entries")]
     pub rates: Vec<FiatRate>,
 }

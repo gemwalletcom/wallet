@@ -10,6 +10,7 @@ import struct Gemstone.Wallet
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
+import struct Gemstone.GemAddAssetSession
 
 public final class GemAddAssetServiceMock: GemAddAssetServiceProtocol, @unchecked Sendable {
     private let chains: [Primitives.Chain]
@@ -20,10 +21,14 @@ public final class GemAddAssetServiceMock: GemAddAssetServiceProtocol, @unchecke
         self.asset = asset
     }
 
+    public func newSession(chain: Gemstone.Chain?) -> GemAddAssetSession {
+        GemAddAssetSession(chain: chain, address: "", asset: nil, isLoading: false, failed: false)
+    }
+
     public func chains(wallet _: Wallet) -> [Chain] { chains.map(\.rawValue) }
     public func defaultChain(chains: [Chain]) -> Chain? { chains.first }
     public func matchingChains(chains: [Chain], query: String) -> [Chain] { chains }
     public func tokenUrl(chain: Chain, tokenId: String) -> Gemstone.BlockExplorerLink? { nil }
-    public func token(chain: Chain, address: String) async throws -> Asset { asset.map() }
+    public func token(chain: Chain, address: String) async throws -> Asset { asset.toGem() }
     public func add(wallet: Wallet, assetId: AssetId) async throws {}
 }

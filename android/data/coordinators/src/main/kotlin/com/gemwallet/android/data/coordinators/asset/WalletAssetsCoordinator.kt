@@ -12,9 +12,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WalletAssetsCoordinator(
@@ -23,11 +24,11 @@ class WalletAssetsCoordinator(
     scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetWalletAssets {
 
-    private val walletAssets: Flow<List<AssetInfo>> = getCurrentWalletId()
+    private val walletAssets: StateFlow<List<AssetInfo>> = getCurrentWalletId()
         .flatMapLatest { walletId -> assetStore.observeAssetsInfo(walletId.id) }
-        .shareIn(scope, SharingStarted.Eagerly, replay = 1)
+        .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
-    override fun invoke(): Flow<List<AssetInfo>> = walletAssets
+    override fun invoke(): StateFlow<List<AssetInfo>> = walletAssets
 
     override fun invoke(walletId: WalletId): Flow<List<AssetInfo>> = assetStore.observeAssetsInfo(walletId.id).flowOn(Dispatchers.IO)
 

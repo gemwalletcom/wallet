@@ -5,5 +5,5 @@ import com.wallet.core.primitives.Banner
 import kotlinx.coroutines.flow.Flow
 
 interface GetActiveBanners {
-    operator fun invoke(asset: Asset?, isGlobal: Boolean): Flow<List<Banner>>
+    operator fun invoke(asset: Asset): Flow<List<Banner>>
 }

@@ -5,15 +5,11 @@ import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.util.Locale
-
-enum class PercentageFormatterStyle {
-    Percent,
-    PercentSignLess,
-    PercentSignLessCompact,
-}
+import uniffi.gemstone.GemPercentageStyle
+import uniffi.gemstone.GemPrecision
 
 fun Double?.formatAsPercentage(
-    style: PercentageFormatterStyle = PercentageFormatterStyle.Percent,
+    style: GemPercentageStyle = GemPercentageStyle.SIGNED,
     locale: Locale = Locale.getDefault(),
 ): String = this.toPercentageDecimal()?.let { formatPercentage(it, style, locale) }.orEmpty()
 
@@ -22,18 +18,18 @@ private fun Double?.toPercentageDecimal(): BigDecimal? =
 
 private fun formatPercentage(
     value: BigDecimal,
-    style: PercentageFormatterStyle,
+    style: GemPercentageStyle,
     locale: Locale,
 ): String {
-    val minimumFractionDigits = if (style == PercentageFormatterStyle.PercentSignLessCompact) 0 else 2
-    val isSignVisible = style == PercentageFormatterStyle.Percent
+    val format = style.format()
+    val fraction = format.precision as GemPrecision.Fraction
 
     val formatter = (NumberFormat.getPercentInstance(locale) as DecimalFormat).apply {
-        setMinimumFractionDigits(minimumFractionDigits)
-        setMaximumFractionDigits(2)
-        setRoundingMode(RoundingMode.HALF_EVEN)
+        minimumFractionDigits = fraction.min.toInt()
+        maximumFractionDigits = fraction.max.toInt()
+        roundingMode = RoundingMode.HALF_EVEN
 
-        if (isSignVisible) {
+        if (format.showsSign) {
             positivePrefix = "+"
         } else {
             positivePrefix = ""
@@ -41,6 +37,5 @@ private fun formatPercentage(
         }
     }
 
-    val displayValue = if (isSignVisible) value else value.abs()
-    return formatter.format(displayValue)
+    return formatter.format(if (format.showsSign) value else value.abs())
 }

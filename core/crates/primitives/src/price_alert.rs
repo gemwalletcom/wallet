@@ -101,15 +101,6 @@ impl PriceAlert {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[typeshare(swift = "Equatable, Hashable, Sendable")]
-#[serde(rename_all = "camelCase")]
-pub struct PriceAlertData {
-    pub asset: Asset,
-    pub price: Option<Price>,
-    pub price_alert: PriceAlert,
-}
-
 #[derive(Clone, Debug, Serialize, Deserialize, AsRefStr, EnumString, PartialEq)]
 #[typeshare(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "lowercase")]
@@ -146,6 +137,15 @@ pub type PriceAlerts = Vec<PriceAlert>;
 #[serde(rename_all = "camelCase")]
 pub struct DevicePriceAlert {
     pub device: Device,
+    pub price_alert: PriceAlert,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[typeshare(swift = "Equatable, Hashable, Sendable")]
+#[serde(rename_all = "camelCase")]
+pub struct PriceAlertData {
+    pub asset: Asset,
+    pub price: Option<Price>,
     pub price_alert: PriceAlert,
 }
 

@@ -9,6 +9,7 @@
   <string name="common_copy">复制</string>
   <string name="common_share">分享</string>
   <string name="common_continue">继续</string>
+  <string name="common_sign_in_with">使用%1$s登录</string>
   <string name="common_provider">服务商</string>
   <string name="common_loading">加载中</string>
   <string name="common_address">地址</string>
@@ -54,9 +55,9 @@
   <string name="common_earn">赚取</string>
   <string name="common_method">方法</string>
   <string name="common_token">代币</string>
+  <string name="common_expiration">有效期</string>
   <string name="common_suspicious_address">可疑地址</string>
   <string name="common_refresh">刷新</string>
-  <string name="common_no_thanks">不用了, 谢谢</string>
   <string name="common_grant_permission">授予权限</string>
   <string name="common_required_field">%1$s为必填项</string>
   <string name="welcome_title">欢迎成为Gem家人</string>
@@ -103,7 +104,7 @@
   <string name="wallets_title">钱包</string>
   <string name="wallets_watch">观察</string>
   <string name="receive_title">接收%1$s</string>
-  <string name="receive_warning">这是您的地址——请仅发送 %1$s，且仅在 %2$s 网络上。</string>
+  <string name="receive_warning">请仅向此地址发送 %2$s 网络上的 %1$s。</string>
   <string name="buy_title">购买%1$s</string>
   <string name="buy_providers_title">服务商</string>
   <string name="buy_rate">汇率</string>
@@ -111,8 +112,8 @@
   <string name="transfer_network_fee">网络费用</string>
   <string name="transfer_memo">备注</string>
   <string name="transfer_confirm">确认</string>
-  <string name="transfer_from">从</string>
-  <string name="transfer_to">发往</string>
+  <string name="transfer_from">来自</string>
+  <string name="transfer_to">至</string>
   <string name="transfer_max">最大值</string>
   <string name="transfer_network">网络</string>
   <string name="transfer_recipient_title">接收地址</string>
@@ -142,7 +143,6 @@
   <string name="transfer_unfreeze_title">解冻</string>
   <string name="transfer_review_request">审查请求</string>
   <string name="transfer_amount">金额</string>
-  <string name="transfer_amount_title">数额</string>
   <string name="settings_terms_of_services">服务条款</string>
   <string name="settings_privacy_policy">隐私政策</string>
   <string name="settings_title">设置</string>
@@ -177,7 +177,6 @@
   <string name="support_state_empty_title">需要什么帮助？</string>
   <string name="support_state_empty_description">有任何问题都可以问我们。我们随时提供帮助。</string>
   <string name="support_message_placeholder">消息</string>
-  <string name="errors_transfer">转账错误： %1$s</string>
   <string name="errors_validation">验证错误： %1$s</string>
   <string name="errors_create_wallet">创建钱包错误： %1$s</string>
   <string name="errors_invalid_address_name">地址或名称无效</string>
@@ -196,7 +195,6 @@
   <string name="errors_connections_user_cancelled">用户已取消</string>
   <string name="errors_not_supported">不支持</string>
   <string name="errors_permissions_not_granted">未授予权限</string>
-  <string name="errors_decoding">解码错误</string>
   <string name="errors_unknown">未知</string>
   <string name="errors_not_supported_qr">此设备不支持扫码，只能选图库的二维码图片。</string>
   <string name="errors_camera_permissions_not_granted">未获取相机权限。请在设置中开启以扫描二维码。</string>
@@ -207,11 +205,8 @@
   <string name="errors_dust_threshold">交易失败，因为金额太小，无法满足%1$s网络的最低要求（粉尘阈值）。此限制可确保交易金额足以覆盖手续费和处理成本。</string>
   <string name="errors_swap_no_quote_available">暂无报价</string>
   <string name="errors_swap_not_supported_asset">暂不支持该资产。</string>
-  <string name="errors_connections_invalid_send_parameters">发送交易时提供的参数无效。</string>
-  <string name="errors_connections_invalid_sign_parameters">提供的签名参数无效。</string>
   <string name="errors_connections_no_supported_wallets">暂无可用钱包</string>
   <string name="errors_connections_unsupported_chain">暂不支持该区块链网络</string>
-  <string name="errors_connections_unsupported_method">暂不支持请求的方法。</string>
   <string name="errors_swap_amount_too_small">金额太小，请输入更大的数额试试</string>
   <string name="errors_required">%1$s为必填项</string>
   <string name="errors_scan_transaction_malicious_description">无法完成此交易：目标钱包地址与可疑或恶意行为有关。</string>
@@ -223,7 +218,6 @@
   <string name="errors_swap_minimum_amount">最低交易金额为 %1$s。请输入更高的金额。</string>
   <string name="errors_perpetual_trigger_price_lower">触发价格应低于市场价格</string>
   <string name="errors_perpetual_trigger_price_higher">触发价格应高于市场价格</string>
-  <string name="errors_token_unable_fetch_token_information">无法获取代币信息： %1$s</string>
   <string name="errors_unknown_try_again">发生未知错误，请重试</string>
   <string name="errors_network_error">网络错误： %1$s</string>
   <string name="errors_network_offline">网络连接似乎已断开。</string>
@@ -241,7 +235,6 @@
   <string name="update_app_permission_title">允许安装</string>
   <string name="update_app_permission_description">转到设置并允许从外部来源安装</string>
   <string name="update_app_permission_open_settings">前往设置</string>
-  <string name="update_app_downloading">下载中...</string>
   <string name="transaction_recipient">接收地址</string>
   <string name="transaction_sender">发送地址</string>
   <string name="transaction_date">日期</string>
@@ -252,8 +245,8 @@
   <string name="transaction_status_pending">待确认</string>
   <string name="transaction_status_failed">失败</string>
   <string name="transaction_status_reverted">已回滚</string>
-  <string name="transaction_title_received">已收到</string>
-  <string name="transaction_title_sent">已发送</string>
+  <string name="transaction_title_received">转入</string>
+  <string name="transaction_title_sent">转出</string>
   <string name="transaction_swap_again">再次兑换</string>
   <string name="transaction_status_completed">已完成</string>
   <string name="transaction_status_inprogress">进行中</string>
@@ -314,8 +307,9 @@
   <string name="wallet_connect_permissions_title">权限</string>
   <string name="wallet_connect_permissions_view_balance">查看余额和交易记录</string>
   <string name="wallet_connect_permissions_approval_requests">发送审批请求</string>
-  <string name="swap_you_pay">将支付</string>
-  <string name="swap_you_receive">将收到</string>
+  <string name="wallet_connect_request_expired">请求已过期</string>
+  <string name="swap_you_pay">支付</string>
+  <string name="swap_you_receive">预计收到</string>
   <string name="swap_price_impact">价格影响</string>
   <string name="swap_slippage">滑点</string>
   <string name="swap_slippage_warning">滑点过高。兑换可能以比预期更差的价格成交。</string>
@@ -324,7 +318,7 @@
   <string name="swap_price_impact_warning_description">本次交易将损失 %1$s 的 %2$s。确定要继续吗？</string>
   <string name="swap_price_impact_warning_title">价格影响</string>
   <string name="swap_estimated_time_title">预计时间</string>
-  <string name="swap_min_receive">最少接收</string>
+  <string name="swap_min_receive">最少收到</string>
   <string name="swap_use_minimum_amount">使用最低金额</string>
   <string name="stake_active">已激活</string>
   <string name="stake_pending">待确认</string>
@@ -396,8 +390,6 @@
   <string name="banner_account_activation_description">%1$s 网络需要一次性费用 %2$s。</string>
   <string name="banner_stake_title">开始质押 %1$s</string>
   <string name="banner_stake_description">质押 %1$s 赚取奖励，躺着也赚</string>
-  <string name="banner_enable_notifications_title">启用通知</string>
-  <string name="banner_enable_notifications_description">实时掌握钱包动态</string>
   <string name="banner_activate_asset_description">要使用 %1$s 资产，必须先在 %2$s 网络上启用它，并满足该网络的特定要求。</string>
   <string name="banner_asset_status_title">可疑资产</string>
   <string name="banner_asset_status_description">代币可能不安全或具有误导性。请仅在完全信任的情况下继续操作。</string>
@@ -494,6 +486,7 @@
   <string name="nft_report_reason_malicious">恶意</string>
   <string name="nft_report_reason_inappropriate">不当内容</string>
   <string name="nft_report_reason_copyright">版权</string>
+  <string name="nft_report_reason_other">其他</string>
   <string name="nft_report_report_button_title">举报</string>
   <string name="permissions_access_denied">拒绝访问</string>
   <string name="permissions_image_photo_access_denied_description">此应用无权访问照片库。请在设备设置中启用访问权限。</string>
@@ -502,14 +495,13 @@
   <string name="markets_daily_volume">24小时交易量</string>
   <string name="search_state_empty_description">检查拼写或尝试新的搜索。</string>
   <string name="networks_state_empty_search_title">未找到任何网络</string>
-  <string name="onboarding_security_create_wallet_intro_title">将获得一组助记词——这是访问钱包的唯一方法。</string>
-  <string name="onboarding_security_create_wallet_confirm_title">我理解并希望继续</string>
-  <string name="onboarding_security_create_wallet_do_not_share_title">不要与任何人分享</string>
-  <string name="onboarding_security_create_wallet_do_not_share_subtitle">任何获得助记词的人都可以完全控制您的钱包。</string>
-  <string name="onboarding_security_create_wallet_keep_safe_subtitle">助记词是访问钱包的唯一方法。</string>
-  <string name="onboarding_security_create_wallet_no_recovery_subtitle">助记词一旦丢失，将无法访问钱包。</string>
-  <string name="onboarding_security_create_wallet_keep_safe_title">将其存放在安全的地方</string>
-  <string name="onboarding_security_create_wallet_no_recovery_title">我们无法找回助记词。</string>
+  <string name="onboarding_security_create_wallet_intro_title">您将获得一组助记词，请务必妥善备份。</string>
+  <string name="onboarding_security_create_wallet_do_not_share_title">切勿泄露助记词</string>
+  <string name="onboarding_security_create_wallet_do_not_share_subtitle">任何人拿到助记词，都能控制钱包并转走资产。</string>
+  <string name="onboarding_security_create_wallet_keep_safe_subtitle">请抄写助记词，并保存在只有您能取用的安全位置。</string>
+  <string name="onboarding_security_create_wallet_no_recovery_subtitle">请保管好备份，以免设备丢失或损坏后无法恢复钱包。</string>
+  <string name="onboarding_security_create_wallet_keep_safe_title">妥善备份助记词</string>
+  <string name="onboarding_security_create_wallet_no_recovery_title">我们无法找回助记词</string>
   <string name="onboarding_accept_terms_title">接受条款</string>
   <string name="onboarding_accept_terms_message">请阅读并同意以下条款后继续。</string>
   <string name="onboarding_accept_terms_item1_message">我明白钱包的安全备份由我自行负责，Gem 不承担任何责任。</string>
@@ -552,8 +544,8 @@
   <string name="perpetual_margin_cross">全仓</string>
   <string name="perpetual_margin_isolated">逐仓</string>
   <string name="perpetuals_title">永续合约</string>
+  <string name="perpetuals_trade">交易永续合约</string>
   <string name="perpetuals_markets">市场</string>
-  <string name="perpetuals_empty_state_no_markets">没有市场</string>
   <string name="perpetuals_empty_state_no_markets_found">未找到任何市场</string>
   <string name="rewards_title">积分</string>
   <string name="rewards_share_text">通过我的邀请链接加入 Gem Wallet，即可获得积分：%1$s</string>
@@ -569,7 +561,7 @@
   <string name="rewards_activate_referral_code_description">有朋友的邀请码吗？</string>
   <string name="rewards_activate_referral_code_title">兑换邀请码</string>
   <string name="rewards_create_referral_code_title">创建用户名</string>
-  <string name="rewards_create_referral_code_info">这将是当前钱包的个人昵称。</string>
+  <string name="rewards_create_referral_code_info">为当前钱包设置一个用户名。</string>
   <string name="rewards_username">用户名</string>
   <string name="rewards_ways_spend_title">积分兑换</string>
   <string name="rewards_ways_spend_asset_title">兑换 %1$s</string>
@@ -601,9 +593,6 @@
   <string name="simulation_warning_nft_collection_approval_title">请求访问整个 NFT 系列</string>
   <string name="simulation_warning_unlimited_token_approval_title">无限额度代币授权</string>
   <string name="application_name">Gem</string>
-  <string name="camera_permission_request_camera">需要相机权限以扫描二维码。\n请授予权限。</string>
-  <string name="notifications_permission_request_notification">需要 Push 通知权限才能获取新交易的通知。\n请授予权限。</string>
-  <string name="confirm_fee_error">费用计算错误</string>
   <string name="rootcheck_security_alert">安全警告</string>
   <string name="rootcheck_body">检测到设备已获取 root 权限，可能显著增加安全风险。在已 root 的设备上使用此应用可能导致资产遭到未经授权的访问并造成损失。为保障资金安全，强烈建议使用非 root 设备。</string>
   <string name="rootcheck_ignore">忽略</string>

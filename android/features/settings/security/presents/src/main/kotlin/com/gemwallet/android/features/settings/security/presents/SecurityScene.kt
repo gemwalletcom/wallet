@@ -26,12 +26,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.settings.security.viewmodels.SecurityViewModel
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.features.settings.security.presents.localization.stringRes
+import uniffi.gemstone.GemLockPeriod
+import uniffi.gemstone.lockPeriodFromMinutes
+import uniffi.gemstone.lockPeriods
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
+import uniffi.gemstone.GemSecurityRow
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.compactIconSize
@@ -44,20 +49,28 @@ fun SecurityScene(
     var authRequired by remember { mutableStateOf(viewModel.authRequired()) }
     val hideBalances by viewModel.isHideBalances.collectAsStateWithLifecycle()
     val lockInterval by viewModel.lockInterval.collectAsStateWithLifecycle()
+    val lockPeriods = remember { lockPeriods() }
+    val sections = remember(authRequired) { viewModel.sections(authRequired) }
+    val currentLockPeriod = remember(lockInterval) { lockPeriodFromMinutes(lockInterval.toUInt()) }
 
     Scene(
         title = stringResource(id = (R.string.settings_security)),
         onClose = onCancel,
     ) {
         LazyColumn {
-            enablePasscode(authRequired) {
-                viewModel.setAuthRequired(it)
-                authRequired = it
+            sections.forEach { section ->
+                section.rows.forEach { row ->
+                    when (row) {
+                        GemSecurityRow.AUTHENTICATION -> enablePasscode(authRequired) {
+                            viewModel.setAuthRequired(it)
+                            authRequired = it
+                        }
+                        GemSecurityRow.LOCK_PERIOD -> requiredAuthDelay(lockPeriods, lockInterval, currentLockPeriod, viewModel::setLockInterval)
+                        GemSecurityRow.PRIVACY_LOCK -> Unit
+                        GemSecurityRow.HIDE_BALANCE -> hideBalanceItem(hideBalances, viewModel::setHideBalances)
+                    }
+                }
             }
-            if (authRequired) {
-                requiredAuthDelay(lockInterval, viewModel::setLockInterval)
-            }
-            hideBalanceItem(hideBalances, viewModel::setHideBalances)
         }
     }
 }
@@ -86,30 +99,25 @@ private fun LazyListScope.enablePasscode(
 }
 
 private fun LazyListScope.requiredAuthDelay(
+    locks: List<GemLockPeriod>,
     currentInterval: Int,
+    currentPeriod: GemLockPeriod,
     onSelect: (Int) -> Unit,
 ) {
-    val locks = mapOf(
-        0 to R.string.lock_immediately,
-        1 to R.string.lock_one_minute,
-        5 to R.string.lock_five_minutes,
-        15 to R.string.lock_fifteen_minutes,
-        60 to R.string.lock_one_hour,
-        6 * 60 to R.string.lock_six_hours,
-    )
     item {
         var isShowLockDelays by remember { mutableStateOf(false) }
         PropertyItem(
             modifier = Modifier.clickable(onClick = { isShowLockDelays = true }),
             title = { PropertyTitleText(R.string.lock_require_authentication) },
             data = {
-                PropertyDataText(text = stringResource(locks[currentInterval]!!))
+                PropertyDataText(text = stringResource(currentPeriod.stringRes()))
                 DropdownMenu(
                     expanded = isShowLockDelays,
                     onDismissRequest = { isShowLockDelays = false },
                     containerColor = MaterialTheme.colorScheme.background,
                 ) {
-                    for (interval in locks.keys) {
+                    for (period in locks) {
+                        val interval = period.minutes().toInt()
                         DropdownMenuItem(
                             text = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -117,7 +125,7 @@ private fun LazyListScope.requiredAuthDelay(
                                         Icon(AppIcons.Check, null, modifier = Modifier.size(compactIconSize))
                                     } ?: Spacer(modifier = Modifier.size(compactIconSize))
                                     Spacer4()
-                                    Text(stringResource(locks[interval]!!))
+                                    Text(stringResource(period.stringRes()))
                                 }
                             },
                             {

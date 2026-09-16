@@ -3,6 +3,7 @@
 import BigInt
 import Gemstone
 import GemstonePrimitives
+import GemstonePrimitivesTestKit
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesTestKit
@@ -15,16 +16,9 @@ struct PaymentTransferTests {
     func transactionUsesDecodedTransfer() throws {
         let asset = Asset.mockSolanaUSDC()
         let recipient = "2kT9W3q7oXg6aPvFTN6DdK3FDZEqUigw6fmNc16YwL5n"
-        let transaction = try Self.paymentTransaction(
+        let transaction = GemPaymentTransaction.mock(
             memo: "payment-memo",
-            request: Primitives.PaymentRequest(
-                address: recipient,
-                amount: .atomicValue("19000000"),
-                memo: "payment-memo",
-                label: nil,
-                references: nil,
-                assetId: asset.id,
-            ),
+            request: .mock(address: recipient, amount: .atomicValue(value: "19000000"), memo: "payment-memo", assetId: asset.id),
         )
 
         let destination = PaymentDestinationBuilder.build(transaction: transaction, asset: asset, paymentService: paymentService)
@@ -44,17 +38,7 @@ struct PaymentTransferTests {
     func transactionWithoutMemoConfirms() throws {
         let asset = Asset.mockSolanaUSDC()
         let recipient = "2kT9W3q7oXg6aPvFTN6DdK3FDZEqUigw6fmNc16YwL5n"
-        let transaction = try Self.paymentTransaction(
-            memo: nil,
-            request: Primitives.PaymentRequest(
-                address: recipient,
-                amount: .atomicValue("19000000"),
-                memo: nil,
-                label: nil,
-                references: nil,
-                assetId: asset.id,
-            ),
-        )
+        let transaction = GemPaymentTransaction.mock(request: .mock(address: recipient, amount: .atomicValue(value: "19000000"), assetId: asset.id))
 
         let destination = PaymentDestinationBuilder.build(transaction: transaction, asset: asset, paymentService: paymentService)
         guard case let .confirm(data) = destination else {
@@ -71,16 +55,9 @@ struct PaymentTransferTests {
     @Test
     func transactionWithMismatchedAssetFallsBack() throws {
         let asset = Asset.mockSolanaUSDC()
-        let transaction = try Self.paymentTransaction(
+        let transaction = GemPaymentTransaction.mock(
             memo: "payment-memo",
-            request: Primitives.PaymentRequest(
-                address: "2kT9W3q7oXg6aPvFTN6DdK3FDZEqUigw6fmNc16YwL5n",
-                amount: .atomicValue("19000000"),
-                memo: "payment-memo",
-                label: nil,
-                references: nil,
-                assetId: Primitives.Chain.solana.assetId,
-            ),
+            request: .mock(address: "2kT9W3q7oXg6aPvFTN6DdK3FDZEqUigw6fmNc16YwL5n", amount: .atomicValue(value: "19000000"), memo: "payment-memo", assetId: Primitives.Chain.solana.assetId),
         )
 
         let destination = PaymentDestinationBuilder.build(transaction: transaction, asset: asset, paymentService: paymentService)
@@ -98,7 +75,7 @@ struct PaymentTransferTests {
     @Test
     func destinationWithExactAmountConfirms() throws {
         let asset = Asset.mockEthereum()
-        let payment = PaymentRequest.mock(address: " \n0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a\r ", amount: .exactValue("1.234"))
+        let payment = PaymentRequest.mock(address: " \n0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a\r ", amount: .exactValue(value: "1.234"))
 
         guard case let .confirm(data) = try PaymentDestinationBuilder.transfer(payment: payment, asset: asset, paymentService: paymentService) else {
             Issue.record("Expected confirmation")
@@ -111,7 +88,7 @@ struct PaymentTransferTests {
     @Test
     func destinationWithoutMemoRequiresRecipient() throws {
         let xrp = Asset.mock(id: .mock(Chain.xrp), name: "XRP", symbol: "XRP", decimals: 6)
-        let payment = PaymentRequest.mock(address: Self.xrpAddress, amount: .exactValue("10"), references: ["reference"], assetId: xrp.id)
+        let payment = PaymentRequest.mock(address: Self.xrpAddress, amount: .exactValue(value: "10"), references: ["reference"], assetId: xrp.id)
 
         guard case let .recipient(data) = try PaymentDestinationBuilder.transfer(payment: payment, asset: xrp, paymentService: paymentService) else {
             Issue.record("Expected recipient review for XRP payment without a destination tag")
@@ -124,23 +101,6 @@ struct PaymentTransferTests {
     }
 
     private static let xrpAddress = "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
-
-    private static func paymentTransaction(memo: String?, request: Primitives.PaymentRequest?) throws -> GemPaymentTransaction {
-        try GemPaymentTransaction(
-            merchant: Primitives.ApplicationMetadata(
-                name: "Merchant",
-                description: "Payment",
-                url: "https://example.com",
-                icon: "https://example.com/icon.png",
-                source: .payment,
-            ).map(),
-            account: Primitives.ChainAddress(chain: .solana, address: "account").map(),
-            transaction: "encoded-transaction",
-            transactionType: Primitives.TransactionType.transfer.map(),
-            memo: memo,
-            request: request.map { $0.json() },
-        )
-    }
 }
 
 private extension GemTransferData {

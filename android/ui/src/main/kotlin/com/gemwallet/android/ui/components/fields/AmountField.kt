@@ -15,7 +15,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,10 +37,10 @@ import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.models.AmountInputType
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.Currency
+import uniffi.gemstone.GemAmountInputType
 
 @Composable
 fun ColumnScope.AmountField(
@@ -48,36 +51,41 @@ fun ColumnScope.AmountField(
     onValueChange: (String) -> Unit,
     onNext: () -> Unit,
     modifier: Modifier = Modifier,
-    inputType: AmountInputType = AmountInputType.Crypto,
+    inputType: GemAmountInputType = GemAmountInputType.ASSET,
     onInputTypeClick: (() -> Unit)? = null,
     readOnly: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Decimal,
+    maximumFractionDigits: UInt? = null,
     error: String,
     textStyle: TextStyle = MaterialTheme.typography.displaySmall,
     transformation: AmountTransformation = CryptoAmountTransformation(
         when (inputType) {
-            AmountInputType.Crypto -> assetSymbol
-            AmountInputType.Fiat -> android.icu.util.Currency.getInstance(currency.string).symbol
+            GemAmountInputType.ASSET -> assetSymbol
+            GemAmountInputType.FIAT -> android.icu.util.Currency.getInstance(currency.string).symbol
         },
         inputType,
         MaterialTheme.colorScheme.secondary
     ),
 ) {
     val interactionSource = remember { MutableInteractionSource() }
+    var fieldValue by remember { mutableStateOf(TextFieldValue(amount, TextRange(amount.length))) }
+    val displayed = if (fieldValue.text == amount) fieldValue else TextFieldValue(amount, TextRange(amount.length))
 
     BasicTextField(
         modifier = modifier,
-        value = TextFieldValue( // TODO: Change to textfieldstate
-            text = amount,
-            selection = TextRange(if (amount.isNotEmpty()) amount.length else 0)
-        ),
-        onValueChange = { onValueChange(it.text) },
+        value = displayed,
+        onValueChange = { newValue ->
+            val sanitized = sanitizeAmount(newValue.text, maximumFractionDigits)
+            fieldValue = if (sanitized == newValue.text) newValue else TextFieldValue(sanitized, TextRange(amountCursor(newValue.selection.end, newValue.text, sanitized)))
+            if (sanitized != amount) onValueChange(sanitized)
+        },
         visualTransformation = transformation,
         maxLines = 1,
         textStyle = textStyle.copy(
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurface
         ),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Next),
         keyboardActions = KeyboardActions(
             onNext = { onNext() }
         ),
@@ -118,13 +126,13 @@ fun ColumnScope.AmountField(
     }
 }
 
-class CryptoAmountTransformation(symbol: String, inputType: AmountInputType, color: Color) : AmountTransformation(inputType, symbol, color) {
+class CryptoAmountTransformation(symbol: String, inputType: GemAmountInputType, color: Color) : AmountTransformation(inputType, symbol, color) {
 
     override fun transformText(text: AnnotatedString): AnnotatedString {
         val zeroValue = if (text.isEmpty()) "0" else ""
         val info = buildAnnotatedString {
             when (inputType) {
-                AmountInputType.Crypto -> {
+                GemAmountInputType.ASSET -> {
                     append(zeroValue)
                     append(" ")
                     append(symbol)
@@ -135,7 +143,7 @@ class CryptoAmountTransformation(symbol: String, inputType: AmountInputType, col
                         end = zeroValue.length,
                     )
                 }
-                AmountInputType.Fiat -> {
+                GemAmountInputType.FIAT -> {
                     append(symbol)
                     append(" ")
                     append(zeroValue)
@@ -149,19 +157,19 @@ class CryptoAmountTransformation(symbol: String, inputType: AmountInputType, col
             }
         }
         return when (inputType) {
-            AmountInputType.Crypto -> text + info
-            AmountInputType.Fiat -> info + text
+            GemAmountInputType.ASSET -> text + info
+            GemAmountInputType.FIAT -> info + text
         }
     }
 
     override fun convertToOriginal(text: AnnotatedString, offset: Int): Int = when (inputType) {
-        AmountInputType.Crypto -> if (offset > text.text.length) text.text.length else offset
-        AmountInputType.Fiat -> if (offset > text.text.length) 0 else text.text.length
+        GemAmountInputType.ASSET -> if (offset > text.text.length) text.text.length else offset
+        GemAmountInputType.FIAT -> if (offset > text.text.length) 0 else text.text.length
     }
 }
 
 abstract class AmountTransformation(
-    val inputType: AmountInputType,
+    val inputType: GemAmountInputType,
     val symbol: String,
     val color: Color,
 ) : VisualTransformation {
@@ -171,8 +179,8 @@ abstract class AmountTransformation(
         val offsetMapping = object : OffsetMapping {
             override fun originalToTransformed(offset: Int): Int {
                 return offset + when (inputType) {
-                    AmountInputType.Crypto -> 0
-                    AmountInputType.Fiat -> symbol.length + 1 + if (text.isEmpty()) 1 else 0
+                    GemAmountInputType.ASSET -> 0
+                    GemAmountInputType.FIAT -> symbol.length + 1 + if (text.isEmpty()) 1 else 0
                 }
             }
 

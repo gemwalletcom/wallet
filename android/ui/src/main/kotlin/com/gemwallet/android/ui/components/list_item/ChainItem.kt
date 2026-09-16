@@ -8,8 +8,8 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import com.gemwallet.android.domains.asset.getIconUrl
 import com.gemwallet.android.ui.components.image.IconWithBadge
+import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Chain
 
@@ -32,7 +32,7 @@ fun ChainItem(
         listPosition = listPosition,
         leading = @Composable {
             IconWithBadge(
-                icon = (icon as? Chain)?.getIconUrl() ?: icon,
+                icon = (icon as? Chain)?.iconModel() ?: icon,
             )
         },
         title = @Composable {

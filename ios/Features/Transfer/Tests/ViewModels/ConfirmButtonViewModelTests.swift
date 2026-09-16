@@ -5,7 +5,6 @@ import Localization
 @testable import Primitives
 import Testing
 @testable import Transfer
-import TransferTestKit
 
 struct ConfirmButtonViewModelTests {
     @Test

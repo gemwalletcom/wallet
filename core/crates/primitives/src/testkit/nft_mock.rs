@@ -1,7 +1,7 @@
 use crate::{
     Chain, NFTType, VerificationStatus,
     asset_constants::ETHEREUM_USDT_TOKEN_ID,
-    nft::{NFTAsset, NFTAssetId, NFTCollection, NFTCollectionId, NFTData, NFTImages, NFTResource},
+    nft::{NFTAsset, NFTAssetData, NFTAssetId, NFTCollection, NFTCollectionId, NFTData, NFTImages, NFTResource},
 };
 
 const TON_NFT_COLLECTION_ADDRESS: &str = "EQCA14o1-VWhS2efqoh_9M1b_A9DtKTuoqfmkn83AbJzwnPi";
@@ -34,6 +34,25 @@ impl NFTAsset {
             name: "Test NFT".to_string(),
             description: None,
             chain: Chain::Ethereum,
+            resource: NFTResource::new(String::new(), String::new()),
+            images: NFTImages {
+                preview: NFTResource::new(String::new(), String::new()),
+            },
+            attributes: vec![],
+        }
+    }
+
+    pub fn mock_solana(token_id: &str, collection: &str) -> Self {
+        let id = NFTAssetId::new(Chain::Solana, collection, token_id);
+        NFTAsset {
+            id: id.clone(),
+            collection_id: id.get_collection_id(),
+            contract_address: Some(token_id.to_string()),
+            token_id: token_id.to_string(),
+            token_type: NFTType::SPL,
+            name: "Solana NFT".to_string(),
+            description: None,
+            chain: Chain::Solana,
             resource: NFTResource::new(String::new(), String::new()),
             images: NFTImages {
                 preview: NFTResource::new(String::new(), String::new()),
@@ -78,9 +97,17 @@ impl NFTCollection {
             images: NFTImages {
                 preview: NFTResource::new(String::new(), String::new()),
             },
-            is_verified: status == VerificationStatus::Verified,
             status,
             links: vec![],
+        }
+    }
+}
+
+impl NFTAssetData {
+    pub fn mock() -> Self {
+        NFTAssetData {
+            collection: NFTCollection::mock(),
+            asset: NFTAsset::mock(),
         }
     }
 }

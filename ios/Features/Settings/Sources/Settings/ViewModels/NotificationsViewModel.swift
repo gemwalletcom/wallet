@@ -13,6 +13,7 @@ public final class NotificationsViewModel {
     private let service: any GemNotificationsServiceProtocol
 
     var isEnabled: Bool
+    var isPresentingAlertMessage: AlertMessage?
 
     public init(service: any GemNotificationsServiceProtocol) {
         self.service = service

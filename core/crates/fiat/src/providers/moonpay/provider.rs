@@ -84,7 +84,7 @@ impl FiatProvider for MoonPayClient {
             &data.wallet_address,
             &data.quote.id,
             &data.ip_address,
-        );
+        )?;
 
         Ok(FiatQuoteUrl {
             redirect_url,

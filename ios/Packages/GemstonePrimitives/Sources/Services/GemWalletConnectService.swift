@@ -14,7 +14,7 @@ public struct WalletConnectSessionApproval: Sendable {
 
 public extension GemWalletConnectServiceProtocol {
     func metadata(name: String, description: String, url: String, icons: [String]) -> Primitives.ApplicationMetadata {
-        applicationMetadata(name: name, description: description, url: url, icons: icons).map()
+        applicationMetadata(name: name, description: description, url: url, icons: icons).toPrimitives()
     }
 
     func prepareSessionProposal(
@@ -27,32 +27,32 @@ public extension GemWalletConnectServiceProtocol {
         let result = try await prepareSessionProposal(
             requiredChainIds: requiredChainIds,
             optionalChainIds: optionalChainIds,
-            metadata: metadata.map(),
+            metadata: metadata.toGem(),
             origin: origin,
             validation: validation,
         )
-        return (result.proposal.map(), result.verificationStatus)
+        return (result.proposal.toPrimitives(), result.verificationStatus)
     }
 
     func sessionApproval(wallet: Wallet) throws -> WalletConnectSessionApproval {
-        let approval = sessionApproval(wallet: wallet.map())
+        let approval = sessionApproval(wallet: wallet.toGem())
         return WalletConnectSessionApproval(
             chains: approval.chains.map { Primitives.Chain(core: $0) },
-            accounts: approval.accounts.map { $0.map() },
+            accounts: approval.accounts.map { $0.toPrimitives() },
             methods: approval.methods,
             events: approval.events,
         )
     }
 
     func session(topic: String, accounts: [String], expireAt: Date, metadata: Primitives.ApplicationMetadata) throws -> WalletConnectionSession {
-        try session(topic: topic, accounts: accounts, expireAt: Int64(expireAt.timeIntervalSince1970), metadata: metadata.map()).map()
+        try session(topic: topic, accounts: accounts, expireAt: Int64(expireAt.timeIntervalSince1970), metadata: metadata.toGem()).toPrimitives()
     }
 
     func addConnection(_ connection: WalletConnection) async throws {
-        try await addConnection(connection: connection.map())
+        try await addConnection(connection: connection.toGem())
     }
 
     func updateSessions(_ sessions: [WalletConnectionSession]) async throws {
-        try await updateSessions(sessions: sessions.map { $0.map() })
+        try await updateSessions(sessions: sessions.map { $0.toGem() })
     }
 }

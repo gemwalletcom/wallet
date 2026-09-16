@@ -19,6 +19,7 @@ strum = { workspace = true }
 
 [dev-dependencies]
 alloy-primitives = { workspace = true }
+gem_evm = { path = "../gem_evm", features = ["testkit"] }
 primitives = { path = "../primitives", features = ["testkit"] }
 gem_client = { path = "../gem_client", features = ["testkit"] }
 gem_jsonrpc = { path = "../gem_jsonrpc", features = ["testkit"] }

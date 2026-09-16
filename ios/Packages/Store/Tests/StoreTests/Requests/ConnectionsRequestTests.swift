@@ -9,12 +9,9 @@ import Testing
 struct ConnectionsRequestTests {
     @Test
     func returnsConnectionsWithWalletAccounts() throws {
-        let db = DB.mockWithChains([.ethereum])
-        let walletStore = WalletStore(db: db)
-        let connectionsStore = ConnectionStore(db: db)
-
         let wallet = Wallet.mock(id: .multicoin(address: "0xa"), accounts: [.mock(chain: .ethereum)])
-        try walletStore.addWallet(wallet)
+        let db = try DB.mockWithWallets([wallet])
+        let connectionsStore = ConnectionStore(db: db)
         try connectionsStore.addConnection(.mock(session: .mock(sessionId: "session-a"), wallet: wallet))
 
         try db.dbQueue.read { db in

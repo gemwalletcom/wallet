@@ -4,14 +4,14 @@ import protocol Gemstone.GemPreferencesServiceProtocol
 import Foundation
 import UIKit
 
-public struct PushNotificationEnablerService: PushNotificationEnabler {
+public struct PushNotificationEnablerService: Sendable {
     private let preferencesService: any GemPreferencesServiceProtocol
 
     public init(preferencesService: any GemPreferencesServiceProtocol) {
         self.preferencesService = preferencesService
     }
 
-    public func requestPermissions() async throws -> Bool {
+    private func requestPermissions() async throws -> Bool {
         if !preferencesService.isPushNotificationsEnabled() {
             let enabled = try await requestAuthorizationPermissions()
             try preferencesService.setPushNotificationsEnabled(enabled: enabled)
@@ -23,26 +23,23 @@ public struct PushNotificationEnablerService: PushNotificationEnabler {
 
     public func requestPermissionsOrOpenSettings() async throws -> Bool {
         let status = try await getNotificationSettingsStatus()
-        switch status {
-        case .authorized, .ephemeral, .provisional:
+        switch preferencesService.notificationPrompt(isGranted: status.isGranted) {
+        case .enable:
             try preferencesService.setPushNotificationsEnabled(enabled: true)
             await registerForRemoteNotifications()
             return true
-        case .notDetermined:
+        case .request:
             return try await requestPermissions()
-        case .denied:
+        case .openSettings:
             try await openSetting()
-            return false
-        @unknown default:
             return false
         }
     }
 
     public func requestPermissionsIfNotDetermined() async throws -> Bool {
-        switch try await getNotificationSettingsStatus() {
-        case .notDetermined: try await requestPermissions()
-        case .authorized, .ephemeral, .provisional, .denied: false
-        @unknown default: false
+        switch preferencesService.notificationPrompt(isGranted: try await getNotificationSettingsStatus().isGranted) {
+        case .request: try await requestPermissions()
+        case .enable, .openSettings: false
         }
     }
 
@@ -68,5 +65,15 @@ public struct PushNotificationEnablerService: PushNotificationEnabler {
     @MainActor
     private func registerForRemoteNotifications() {
         UIApplication.shared.registerForRemoteNotifications()
+    }
+}
+
+private extension UNAuthorizationStatus {
+    var isGranted: Bool {
+        switch self {
+        case .authorized, .ephemeral, .provisional: true
+        case .denied, .notDetermined: false
+        @unknown default: false
+        }
     }
 }

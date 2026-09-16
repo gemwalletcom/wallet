@@ -1,15 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
-import Components
-import Formatters
-import class Gemstone.GemSwapQuoteSummary
 import GemstonePrimitives
 import struct Gemstone.SwapperQuote
-import struct Gemstone.SwapQuote
 import Primitives
 import PrimitivesTestKit
 @testable import Swap
+import SwapTestKit
 import GemstoneServicesTestKit
 import Testing
 
@@ -18,10 +14,11 @@ struct SwapDetailsViewModelTests {
     @Test
     func swapEstimationField() throws {
         #expect(
-            try SwapDetailsViewModel
+            SwapDetailsViewModel
                 .mock(selectedQuote: SwapperQuote.mock(etaInSeconds: nil).swapQuote).swapEstimationField == nil,
         )
-        #expect(SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(etaInSeconds: 30).swapQuote).swapEstimationField == nil)
+        #expect(SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(etaInSeconds: 30).swapQuote).swapEstimationField?.value.text == "≈ 30 sec")
+        #expect(SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(etaInSeconds: 90).swapQuote).swapEstimationField?.value.text == "≈ 1 min, 30 sec")
         #expect(SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(etaInSeconds: 180).swapQuote).swapEstimationField?.value.text == "≈ 3 min")
     }
 
@@ -40,22 +37,5 @@ struct SwapDetailsViewModelTests {
         let model = SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(toValue: 250_000_000_000).swapQuote)
 
         #expect(model.minReceiveField.value.text == "248,750 USDT")
-    }
-}
-
-extension SwapDetailsViewModel {
-    static func mock(selectedQuote: Gemstone.SwapQuote = SwapperQuote.mock().swapQuote) -> SwapDetailsViewModel {
-        let summary = GemSwapQuoteSummary(quote: selectedQuote)
-        return SwapDetailsViewModel(
-            fromAssetPrice: AssetPriceValue(asset: .mockEthereum(), price: .mock()),
-            toAssetPrice: AssetPriceValue(asset: .mockEthereumUSDT(), price: .mock()),
-            selectedQuote: selectedQuote,
-            slippage: .auto,
-            currency: Currency.usd.rawValue,
-            swapPriceImpact: nil,
-            minReceiveValue: BigInt(summary.minReceiveValue()),
-            etaMinutes: summary.etaMinutes(),
-            swapProviderSelectAction: nil,
-        )
     }
 }

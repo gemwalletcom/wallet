@@ -1,7 +1,6 @@
 package com.gemwallet.android.data.coordinators.session
 
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.ext.toCurrency
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetCurrentWallet
@@ -30,21 +29,24 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemCurrencyService
+import uniffi.gemstone.GemCurrencyServiceInterface
 import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemPreferencesServiceInterface
 import uniffi.gemstone.GemWalletSessionService
+import uniffi.gemstone.GemWalletSessionServiceInterface
 import java.util.Locale
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SessionCoordinator(
     private val sessionStore: GemstoneWalletSessionStore,
     private val walletStore: GemstoneWalletStore,
-    private val walletSessionService: GemWalletSessionService,
-    private val preferencesService: GemPreferencesService,
-    private val currencyService: GemCurrencyService,
+    private val walletSessionService: GemWalletSessionServiceInterface,
+    private val preferencesService: GemPreferencesServiceInterface,
+    private val currencyService: GemCurrencyServiceInterface,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetSession, GetCurrentWallet, GetCurrentCurrency, SetCurrentCurrency, SetCurrentWallet {
 
-    private val currencyState = MutableStateFlow(preferencesService.getCurrency().toCurrency())
+    private val currencyState = MutableStateFlow(preferencesService.getCurrency().toPrimitives())
 
     private val currentWallet: Flow<Wallet?> = sessionStore.observeWalletId()
         .flatMapLatest { walletId ->
@@ -58,7 +60,7 @@ class SessionCoordinator(
 
     init {
         scope.launch {
-            setCurrency(preferencesService.setupCurrency(localeCurrencyCode()).toCurrency())
+            setCurrency(preferencesService.setupCurrency(localeCurrencyCode()).toPrimitives())
         }
     }
 

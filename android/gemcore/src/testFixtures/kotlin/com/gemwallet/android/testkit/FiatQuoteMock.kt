@@ -1,34 +1,51 @@
 package com.gemwallet.android.testkit
 
-import com.wallet.core.primitives.FiatProvider
-import com.wallet.core.primitives.FiatQuote
+import com.gemwallet.android.ext.toGem
+import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.FiatQuoteType
+import java.math.BigInteger
+import uniffi.gemstone.FiatProvider
+import uniffi.gemstone.FiatQuote
+import uniffi.gemstone.GemAssetRate
+import uniffi.gemstone.GemFiatQuoteRow
+import uniffi.gemstone.formattedCurrency
+import uniffi.gemstone.formattedAmount
+import uniffi.gemstone.GemValueStyle
+import uniffi.gemstone.GemCurrencyStyle
 
-fun mockFiatProvider(
-    id: String = "mercuryo",
-    name: String = "Mercuryo",
-    imageUrl: String? = null,
-) = FiatProvider(
-    id = id,
-    name = name,
-    imageUrl = imageUrl,
+fun mockFiatQuote() = FiatQuote(
+    id = "quote-1",
+    asset = mockAsset().toGem(),
+    provider = FiatProvider(
+        id = FiatProviderName.Mercuryo.toGem(),
+        name = "Mercuryo",
+        imageUrl = null,
+        priority = null,
+        thresholdBps = null,
+        enabled = true,
+        buyEnabled = true,
+        sellEnabled = true,
+        paymentMethods = emptyList(),
+    ),
+    quoteType = FiatQuoteType.Buy.toGem(),
+    fiatAmount = 100.0,
+    fiatCurrency = "USD",
+    cryptoAmount = 0.17,
+    value = BigInteger.ZERO,
+    latency = 0uL,
     paymentMethods = emptyList(),
 )
 
-fun mockFiatQuote(
-    id: String = "quote-1",
-    provider: FiatProvider = mockFiatProvider(),
-    type: FiatQuoteType = FiatQuoteType.Buy,
-    fiatAmount: Double = 100.0,
-    fiatCurrency: String = "USD",
+fun mockFiatQuoteRow(
     cryptoAmount: Double = 0.17,
-) = FiatQuote(
-    id = id,
-    asset = mockAsset(),
-    provider = provider,
-    type = type,
-    fiatAmount = fiatAmount,
-    fiatCurrency = fiatCurrency,
-    cryptoAmount = cryptoAmount,
-    paymentMethods = emptyList(),
+    fiatAmount: Double = 100.0,
+    rate: GemAssetRate? = null,
+) = GemFiatQuoteRow(
+    quoteId = "quote-1",
+    provider = FiatProviderName.Mercuryo.toGem(),
+    providerName = "Mercuryo",
+    providerImageUrl = null,
+    cryptoAmount = formattedAmount(cryptoAmount, "BTC", GemValueStyle.AUTO),
+    fiatAmount = formattedCurrency(fiatAmount, "USD", GemCurrencyStyle.FIAT),
+    rate = rate,
 )

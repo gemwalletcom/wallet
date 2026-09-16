@@ -1,19 +1,42 @@
+use std::collections::HashSet;
 use std::str::FromStr;
 
+use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::{
-    Asset, AssetBasic, AssetId, AssetMetaData, AssetPrice, AssetProperties, AssetScore, BannerEvent, Chain, ConfigVersions, StakeChain, VerificationStatus, Wallet, WalletType,
+    Asset, AssetBasic, AssetId, AssetMetaData, AssetPrice, AssetProperties, AssetScore, BannerEvent, Chain, ChainAsset, ConfigVersions, PerpetualProvider, PriceAlert, StakeChain,
+    VerificationStatus, Wallet, WalletType,
 };
 
 use super::model::{
-    AssetList, GemAssetAction, GemAssetDetailsState, GemAssetEmptyAction, GemAssetNetworkDestination, GemHeaderButton, GemHeaderButtonKind, GemSelectAssetFlow, GemSelectAssetType,
-    GemSelectRowAction, GemWalletSearchLimits,
+    AssetList, GemAssetAction, GemAssetDetailsState, GemAssetEmptyAction, GemAssetFilter, GemAssetMenuAction, GemAssetMenuInput, GemAssetNetworkDestination, GemAssetRow,
+    GemAssetRowSubtitle, GemAssetRowTitle, GemAssetRowTrailing, GemAssetSectionIds, GemAssetText, GemHeaderActions, GemHeaderButton, GemHeaderButtonKind, GemSelectAssetFlow,
+    GemSelectAssetScope, GemSelectAssetSection, GemSelectAssetTitle, GemSelectAssetType, GemSelectRowAction, GemWalletSearchCounts, GemWalletSearchLimits, GemWalletSearchPhase,
 };
 use crate::config::search_config::{ASSETS_INITIAL_LIMIT, ASSETS_SEARCH_LIMIT, NFTS_PREVIEW_LIMIT, PERPETUALS_PREVIEW_LIMIT, RESULTS_LIMIT};
+use crate::config::stake::EARN_OFFERED;
 use crate::models::custom_types::GemBigUint;
+use crate::perpetual::GemPerpetual;
 use crate::services::balance::GemAssetBalance;
+use crate::services::nft::rules::nft_chains;
+use crate::services::price::rules::has_price;
+use crate::services::price_alert::rules::{displayed_price_alert_ids, price_alert_toggle};
+use swapper::AssetList as SwapAssetList;
 
 use crate::models::asset::{wallet_asset_is_enabled, wallet_default_assets};
-use crate::services::collections::{missing, missing_by, unique};
+use crate::services::collections::{missing, missing_by, unique, unique_by};
+use primitives::AssetType;
+
+pub fn menu_actions(input: &GemAssetMenuInput) -> Vec<GemAssetMenuAction> {
+    [
+        Some(GemAssetMenuAction::Pin { is_pinned: input.is_pinned }),
+        input.offers_hide.then_some(GemAssetMenuAction::Hide),
+        (input.offers_add_to_wallet && !input.is_balance_enabled).then_some(GemAssetMenuAction::AddToWallet),
+        (!input.address.is_empty()).then(|| GemAssetMenuAction::CopyAddress { address: input.address.clone() }),
+    ]
+    .into_iter()
+    .flatten()
+    .collect()
+}
 
 pub fn asset_list_versions(versions: &ConfigVersions) -> [(AssetList, i32); 3] {
     [
@@ -55,9 +78,17 @@ pub fn asset_prices(assets: &[AssetBasic]) -> Vec<AssetPrice> {
         .collect()
 }
 
+pub fn default_asset(chain: Chain, asset_type: AssetType) -> Option<Asset> {
+    wallet_default_assets(chain).into_iter().find(|asset| asset.asset_type == asset_type)
+}
+
 pub fn default_asset_basic(asset: Asset) -> AssetBasic {
     let asset_id = asset.id.clone();
     AssetBasic::new(asset, AssetProperties::default(asset_id.clone()), AssetScore::new(asset_id.default_rank()))
+}
+
+pub fn merge_assets(assets: Vec<AssetBasic>, tokens: Vec<AssetBasic>) -> Vec<AssetBasic> {
+    unique_by(assets.into_iter().chain(tokens), |asset| asset.asset.id.clone())
 }
 
 pub fn default_assets() -> Vec<AssetBasic> {
@@ -101,7 +132,7 @@ pub fn default_balances(wallet: &Wallet) -> (Vec<AssetId>, Vec<AssetId>) {
         native.into_iter().chain(wallet_default_assets(chain).into_iter().map(|asset| asset.id))
     }))
     .into_iter()
-    .partition(|asset_id| wallet_asset_is_enabled(asset_id.clone(), wallet.wallet_type.clone()))
+    .partition(|asset_id| wallet_asset_is_enabled(asset_id.clone(), wallet.wallet_type))
 }
 
 pub fn network_destination(asset_id: &AssetId) -> Option<GemAssetNetworkDestination> {
@@ -122,10 +153,86 @@ pub fn verification_status(asset: &Asset, rank: i32) -> Option<VerificationStatu
     }
 }
 
-pub fn select_asset_flow(select_type: GemSelectAssetType) -> GemSelectAssetFlow {
+fn with_filter(mut flow: GemSelectAssetFlow, filter: Option<GemAssetFilter>) -> GemSelectAssetFlow {
+    flow.filters.extend(filter);
+    flow
+}
+
+pub fn asset_text(asset: &Asset) -> GemAssetText {
+    let network_name = ChainAsset::from_chain(asset.chain()).network_name;
+    GemAssetText {
+        title: match asset.name == asset.symbol {
+            true => asset.name.clone(),
+            false => format!("{} ({})", asset.name, asset.symbol),
+        },
+        subtitle_symbol: (asset.name != asset.symbol).then(|| asset.symbol.clone()),
+        network_full_name: match asset.id.is_native() {
+            true => network_name.clone(),
+            false => format!("{} ({})", network_name, asset.asset_type.as_ref()),
+        },
+        network_name,
+    }
+}
+
+pub fn wallet_row() -> GemAssetRow {
+    GemAssetRow {
+        title: GemAssetRowTitle::CanonicalAsset,
+        shows_symbol: false,
+        subtitle: GemAssetRowSubtitle::Price,
+        trailing: GemAssetRowTrailing::Balance,
+    }
+}
+
+fn select_asset_title(select_type: &GemSelectAssetType) -> GemSelectAssetTitle {
+    match select_type {
+        GemSelectAssetType::Send => GemSelectAssetTitle::Send,
+        GemSelectAssetType::Receive => GemSelectAssetTitle::Receive,
+        GemSelectAssetType::ReceiveCollection => GemSelectAssetTitle::ReceiveCollection,
+        GemSelectAssetType::Buy => GemSelectAssetTitle::Buy,
+        GemSelectAssetType::SwapPay => GemSelectAssetTitle::SwapPay,
+        GemSelectAssetType::SwapReceive { .. } => GemSelectAssetTitle::SwapReceive,
+        GemSelectAssetType::Manage => GemSelectAssetTitle::ManageTokenList,
+        GemSelectAssetType::PriceAlert => GemSelectAssetTitle::SelectAsset,
+        GemSelectAssetType::Deposit => GemSelectAssetTitle::Deposit,
+        GemSelectAssetType::Withdraw => GemSelectAssetTitle::Withdraw,
+        GemSelectAssetType::WalletSearch | GemSelectAssetType::WalletSearchResults => GemSelectAssetTitle::Search,
+    }
+}
+
+fn select_asset_section(select_type: &GemSelectAssetType) -> GemSelectAssetSection {
+    match select_type {
+        GemSelectAssetType::ReceiveCollection => GemSelectAssetSection::Networks,
+        GemSelectAssetType::Send
+        | GemSelectAssetType::Receive
+        | GemSelectAssetType::Buy
+        | GemSelectAssetType::SwapPay
+        | GemSelectAssetType::SwapReceive { .. }
+        | GemSelectAssetType::Manage
+        | GemSelectAssetType::PriceAlert
+        | GemSelectAssetType::Deposit
+        | GemSelectAssetType::Withdraw
+        | GemSelectAssetType::WalletSearch
+        | GemSelectAssetType::WalletSearchResults => GemSelectAssetSection::Assets,
+    }
+}
+
+pub fn select_asset_flow(select_type: GemSelectAssetType, swap_receive_assets: Option<SwapAssetList>) -> GemSelectAssetFlow {
+    let row = |shows_symbol: bool, subtitle: GemAssetRowSubtitle, trailing: GemAssetRowTrailing| GemAssetRow {
+        title: GemAssetRowTitle::CanonicalAsset,
+        shows_symbol,
+        subtitle,
+        trailing,
+    };
+    let title = select_asset_title(&select_type);
+    let assets_section = select_asset_section(&select_type);
     let flow = |row_action: GemSelectRowAction, action: Option<GemAssetAction>| GemSelectAssetFlow {
+        title,
+        assets_section,
+        row: row(false, GemAssetRowSubtitle::Network, GemAssetRowTrailing::Balance),
         row_action,
         action,
+        scope: GemSelectAssetScope::Wallet,
+        filters: action.map(|action| action.filters()).unwrap_or_default(),
         enables_price_alert: false,
         network_search: false,
         chain_filter: false,
@@ -142,16 +249,24 @@ pub fn select_asset_flow(select_type: GemSelectAssetType) -> GemSelectAssetFlow 
             ..flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Send))
         },
         GemSelectAssetType::Receive => GemSelectAssetFlow {
+            row: row(true, GemAssetRowSubtitle::Network, GemAssetRowTrailing::Copy),
             network_search: true,
             chain_filter: true,
             recents: true,
             ..flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Receive))
         },
-        GemSelectAssetType::ReceiveCollection => GemSelectAssetFlow {
-            network_search: true,
-            recents: true,
-            ..flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Receive))
-        },
+        GemSelectAssetType::ReceiveCollection => with_filter(
+            GemSelectAssetFlow {
+                row: GemAssetRow {
+                    title: GemAssetRowTitle::Network,
+                    ..row(false, GemAssetRowSubtitle::Network, GemAssetRowTrailing::Copy)
+                },
+                network_search: true,
+                recents: true,
+                ..flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Receive))
+            },
+            Some(GemAssetFilter::asset_ids(nft_chains().into_iter().map(AssetId::from_chain).collect())),
+        ),
         GemSelectAssetType::Buy => GemSelectAssetFlow {
             network_search: true,
             chain_filter: true,
@@ -164,37 +279,90 @@ pub fn select_asset_flow(select_type: GemSelectAssetType) -> GemSelectAssetFlow 
             recents: true,
             ..flow(GemSelectRowAction::Select, Some(GemAssetAction::SwapPay))
         },
-        GemSelectAssetType::SwapReceive => GemSelectAssetFlow {
-            network_search: true,
-            chain_filter: true,
-            recents: true,
-            ..flow(GemSelectRowAction::Select, Some(GemAssetAction::SwapReceive))
-        },
-        GemSelectAssetType::Manage => GemSelectAssetFlow {
-            network_search: true,
-            chain_filter: true,
-            balance_filter: true,
-            add_custom_token: true,
-            ..flow(GemSelectRowAction::Toggle, None)
-        },
-        GemSelectAssetType::PriceAlert => GemSelectAssetFlow {
-            enables_price_alert: true,
-            network_search: true,
-            chain_filter: true,
-            popular_section: true,
-            ..flow(GemSelectRowAction::Select, None)
-        },
-        GemSelectAssetType::Deposit => flow(GemSelectRowAction::Navigate, None),
-        GemSelectAssetType::Withdraw => GemSelectAssetFlow {
-            deposit_asset_display: true,
-            ..flow(GemSelectRowAction::Navigate, None)
-        },
+        GemSelectAssetType::SwapReceive { .. } => with_filter(
+            GemSelectAssetFlow {
+                network_search: true,
+                chain_filter: true,
+                recents: true,
+                ..flow(GemSelectRowAction::Select, Some(GemAssetAction::SwapReceive))
+            },
+            swap_receive_assets.map(GemAssetFilter::from),
+        ),
+        GemSelectAssetType::Manage => with_filter(
+            GemSelectAssetFlow {
+                row: row(true, GemAssetRowSubtitle::Network, GemAssetRowTrailing::Toggle),
+                network_search: true,
+                chain_filter: true,
+                balance_filter: true,
+                add_custom_token: true,
+                ..flow(GemSelectRowAction::Toggle, None)
+            },
+            Some(GemAssetFilter::Enabled),
+        ),
+        GemSelectAssetType::PriceAlert => with_filter(
+            GemSelectAssetFlow {
+                row: row(true, GemAssetRowSubtitle::Price, GemAssetRowTrailing::None),
+                enables_price_alert: true,
+                network_search: true,
+                chain_filter: true,
+                popular_section: true,
+                scope: GemSelectAssetScope::AllAssets,
+                ..flow(GemSelectRowAction::Select, None)
+            },
+            Some(GemAssetFilter::Enabled),
+        ),
+        GemSelectAssetType::Deposit => with_filter(
+            flow(GemSelectRowAction::Navigate, None),
+            Some(GemAssetFilter::asset_ids(vec![GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset().id])),
+        ),
+        GemSelectAssetType::Withdraw => with_filter(
+            GemSelectAssetFlow {
+                deposit_asset_display: true,
+                ..flow(GemSelectRowAction::Navigate, None)
+            },
+            Some(GemAssetFilter::asset_ids(vec![HYPERCORE_PERPETUAL_USDC.id.clone()])),
+        ),
         GemSelectAssetType::WalletSearch => GemSelectAssetFlow {
+            row: GemAssetRow {
+                title: GemAssetRowTitle::Asset,
+                ..row(false, GemAssetRowSubtitle::Price, GemAssetRowTrailing::Balance)
+            },
             network_search: true,
             recents: true,
             ..flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Open))
         },
-        GemSelectAssetType::WalletSearchResults => flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Open)),
+        GemSelectAssetType::WalletSearchResults => GemSelectAssetFlow {
+            row: GemAssetRow {
+                title: GemAssetRowTitle::Asset,
+                ..row(false, GemAssetRowSubtitle::Price, GemAssetRowTrailing::Balance)
+            },
+            ..flow(GemSelectRowAction::Navigate, Some(GemAssetAction::Open))
+        },
+    }
+}
+
+pub fn asset_sections(ids: Vec<AssetId>, pinned_ids: Vec<AssetId>, shows_popular: bool, popular_ids: Vec<AssetId>) -> GemAssetSectionIds {
+    let pinned_ids: HashSet<AssetId> = pinned_ids.into_iter().collect();
+    let popular_ids: HashSet<AssetId> = match shows_popular {
+        true => popular_ids.into_iter().collect(),
+        false => HashSet::new(),
+    };
+    ids.into_iter().fold(GemAssetSectionIds::default(), |mut sections, id| {
+        match (pinned_ids.contains(&id), popular_ids.contains(&id)) {
+            (true, _) => sections.pinned.push(id),
+            (false, true) => sections.popular.push(id),
+            (false, false) => sections.assets.push(id),
+        }
+        sections
+    })
+}
+
+pub fn wallet_search_phase(counts: &GemWalletSearchCounts, is_loading: bool) -> GemWalletSearchPhase {
+    let shown = counts.recents + counts.pinned + counts.assets + counts.perpetuals + counts.lists + counts.nfts;
+    match (shown > 0, is_loading) {
+        (true, _) => GemWalletSearchPhase::Results,
+        (false, true) => GemWalletSearchPhase::Loading,
+        (false, false) => GemWalletSearchPhase::Empty,
     }
 }
 
@@ -212,41 +380,57 @@ pub fn wallet_search_limits(query: &str) -> GemWalletSearchLimits {
     }
 }
 
+pub fn asset_title(asset: &Asset) -> String {
+    match asset.id.is_native() {
+        true => Asset::from_chain(asset.chain()).name,
+        false => asset.name.clone(),
+    }
+}
+
 pub fn details_state(
     wallet_type: WalletType,
     chain: Chain,
     metadata: &AssetMetaData,
     balance: &GemAssetBalance,
     banner_events: &[BannerEvent],
-    has_price: bool,
-    price_alerts_count: u32,
+    price: Option<f64>,
+    price_alerts: Vec<PriceAlert>,
 ) -> GemAssetDetailsState {
     let is_view_only = wallet_type == WalletType::View;
     let buttons_enabled = !banner_events
         .iter()
         .any(|event| matches!(event, BannerEvent::ActivateAsset | BannerEvent::AccountBlockedMultiSignature));
+    let displayed_alerts = displayed_price_alert_ids(price_alerts.clone()).len() as u32;
     let button = |kind: GemHeaderButtonKind, shows: bool| {
-        (shows && !is_view_only).then_some(GemHeaderButton {
+        shows.then_some(GemHeaderButton {
             kind,
             is_enabled: buttons_enabled,
         })
     };
     GemAssetDetailsState {
         is_view_only,
-        header_buttons: [
-            button(GemHeaderButtonKind::Send, true),
-            button(GemHeaderButtonKind::Receive, true),
-            button(GemHeaderButtonKind::Buy, metadata.is_buy_enabled),
-            button(GemHeaderButtonKind::Swap, metadata.is_swap_enabled),
-        ]
-        .into_iter()
-        .flatten()
-        .collect(),
+        header_actions: if is_view_only {
+            GemHeaderActions::WatchOnly
+        } else {
+            GemHeaderActions::Buttons {
+                buttons: [
+                    button(GemHeaderButtonKind::Send, true),
+                    button(GemHeaderButtonKind::Receive, true),
+                    button(GemHeaderButtonKind::Buy, metadata.is_buy_enabled),
+                    button(GemHeaderButtonKind::Swap, metadata.is_swap_enabled),
+                ]
+                .into_iter()
+                .flatten()
+                .collect(),
+            }
+        },
         shows_banners: !banner_events.is_empty(),
         shows_manage: !metadata.is_balance_enabled,
         shows_resources: StakeChain::from_str(chain.as_ref()).is_ok_and(|stake_chain| stake_chain.get_uses_freeze()),
-        shows_price_alerts: price_alerts_count > 0 && has_price,
-        shows_earn: metadata.is_earn_enabled && !is_view_only && balance.earn == GemBigUint::ZERO,
+        shows_price_alerts: has_price(price) && displayed_alerts > 0,
+        price_alerts_count: displayed_alerts,
+        price_alert: price_alert_toggle(&price_alerts),
+        shows_earn: EARN_OFFERED && metadata.is_earn_enabled && !is_view_only && balance.earn == GemBigUint::ZERO,
         empty_transactions_action: if metadata.is_buy_enabled {
             Some(GemAssetEmptyAction::Buy)
         } else if metadata.is_swap_enabled {
@@ -259,7 +443,71 @@ pub fn details_state(
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn test_asset_text_names_the_asset_and_its_network_once() {
+        let ethereum = asset_text(&Asset::from_chain(Chain::Ethereum));
+        assert_eq!(ethereum.title, "Ethereum (ETH)");
+        assert_eq!(ethereum.subtitle_symbol.as_deref(), Some("ETH"));
+        assert_eq!(ethereum.network_full_name, "Ethereum", "a coin's network needs no type");
+
+        let token = Asset::new(
+            AssetId::from_token(Chain::Ethereum, "0xusdc"),
+            "USDC".into(),
+            "USDC".into(),
+            6,
+            primitives::AssetType::ERC20,
+        );
+        let usdc = asset_text(&token);
+        assert_eq!(usdc.title, "USDC", "a name that already is the symbol is not repeated");
+        assert_eq!(usdc.subtitle_symbol, None);
+        assert_eq!(usdc.network_full_name, "Ethereum (ERC20)");
+    }
+
+    #[test]
+    fn test_asset_menu_offers_pin_always_and_the_rest_only_when_they_apply() {
+        let input = GemAssetMenuInput {
+            is_pinned: false,
+            is_balance_enabled: false,
+            address: "0xabc".to_string(),
+            offers_hide: true,
+            offers_add_to_wallet: true,
+        };
+
+        assert_eq!(
+            menu_actions(&input),
+            vec![
+                GemAssetMenuAction::Pin { is_pinned: false },
+                GemAssetMenuAction::Hide,
+                GemAssetMenuAction::AddToWallet,
+                GemAssetMenuAction::CopyAddress { address: "0xabc".to_string() },
+            ]
+        );
+        assert_eq!(
+            menu_actions(&GemAssetMenuInput {
+                is_balance_enabled: true,
+                ..input.clone()
+            }),
+            vec![
+                GemAssetMenuAction::Pin { is_pinned: false },
+                GemAssetMenuAction::Hide,
+                GemAssetMenuAction::CopyAddress { address: "0xabc".to_string() },
+            ],
+            "an asset already in the wallet cannot be added again"
+        );
+        assert_eq!(
+            menu_actions(&GemAssetMenuInput {
+                address: String::new(),
+                offers_hide: false,
+                offers_add_to_wallet: false,
+                ..input
+            }),
+            vec![GemAssetMenuAction::Pin { is_pinned: false }],
+            "there is nothing to copy without an address"
+        );
+    }
     use super::*;
+    use crate::services::price_alert::rules::GemPriceAlertToggle;
 
     #[test]
     fn test_each_select_flow_decides_its_row_action_and_recent_activity() {
@@ -269,13 +517,62 @@ mod tests {
         assert_eq!(row(GemSelectAssetType::ReceiveCollection), (GemSelectRowAction::Navigate, Some(GemAssetAction::Receive)));
         assert_eq!(row(GemSelectAssetType::Buy), (GemSelectRowAction::Navigate, Some(GemAssetAction::Buy)));
         assert_eq!(row(GemSelectAssetType::SwapPay), (GemSelectRowAction::Select, Some(GemAssetAction::SwapPay)));
-        assert_eq!(row(GemSelectAssetType::SwapReceive), (GemSelectRowAction::Select, Some(GemAssetAction::SwapReceive)));
+        assert_eq!(
+            row(GemSelectAssetType::SwapReceive { pay_asset_id: None }),
+            (GemSelectRowAction::Select, Some(GemAssetAction::SwapReceive))
+        );
         assert_eq!(row(GemSelectAssetType::Manage), (GemSelectRowAction::Toggle, None));
         assert_eq!(row(GemSelectAssetType::PriceAlert), (GemSelectRowAction::Select, None));
         assert_eq!(row(GemSelectAssetType::Deposit), (GemSelectRowAction::Navigate, None));
         assert_eq!(row(GemSelectAssetType::Withdraw), (GemSelectRowAction::Navigate, None));
         assert_eq!(row(GemSelectAssetType::WalletSearch), (GemSelectRowAction::Navigate, Some(GemAssetAction::Open)));
         assert_eq!(row(GemSelectAssetType::WalletSearchResults), (GemSelectRowAction::Navigate, Some(GemAssetAction::Open)));
+    }
+
+    #[test]
+    fn test_the_wallet_list_row_names_a_native_asset_by_its_chain_and_hides_the_symbol() {
+        let row = wallet_row();
+        assert_eq!(row.title, GemAssetRowTitle::CanonicalAsset);
+        assert!(!row.shows_symbol, "the wallet list repeats no symbol beside the name");
+        assert_eq!((row.subtitle, row.trailing), (GemAssetRowSubtitle::Price, GemAssetRowTrailing::Balance));
+    }
+
+    #[test]
+    fn test_each_select_flow_shows_the_row_both_apps_draw() {
+        let row = |select_type: GemSelectAssetType| {
+            let row = select_type.flow().row;
+            (row.title, row.shows_symbol, row.subtitle, row.trailing)
+        };
+        let balance = (GemAssetRowTitle::CanonicalAsset, false, GemAssetRowSubtitle::Network, GemAssetRowTrailing::Balance);
+        for select_type in [
+            GemSelectAssetType::Send,
+            GemSelectAssetType::Buy,
+            GemSelectAssetType::SwapPay,
+            GemSelectAssetType::SwapReceive { pay_asset_id: None },
+            GemSelectAssetType::Deposit,
+            GemSelectAssetType::Withdraw,
+        ] {
+            assert_eq!(row(select_type), balance);
+        }
+        assert_eq!(
+            row(GemSelectAssetType::Receive),
+            (GemAssetRowTitle::CanonicalAsset, true, GemAssetRowSubtitle::Network, GemAssetRowTrailing::Copy)
+        );
+        assert_eq!(
+            row(GemSelectAssetType::ReceiveCollection),
+            (GemAssetRowTitle::Network, false, GemAssetRowSubtitle::Network, GemAssetRowTrailing::Copy)
+        );
+        assert_eq!(
+            row(GemSelectAssetType::Manage),
+            (GemAssetRowTitle::CanonicalAsset, true, GemAssetRowSubtitle::Network, GemAssetRowTrailing::Toggle)
+        );
+        assert_eq!(
+            row(GemSelectAssetType::PriceAlert),
+            (GemAssetRowTitle::CanonicalAsset, true, GemAssetRowSubtitle::Price, GemAssetRowTrailing::None)
+        );
+        let search = (GemAssetRowTitle::Asset, false, GemAssetRowSubtitle::Price, GemAssetRowTrailing::Balance);
+        assert_eq!(row(GemSelectAssetType::WalletSearch), search);
+        assert_eq!(row(GemSelectAssetType::WalletSearchResults), search);
     }
 
     #[test]
@@ -301,7 +598,10 @@ mod tests {
         assert_eq!(enabled(GemSelectAssetType::ReceiveCollection), ["network_search", "recents"]);
         assert_eq!(enabled(GemSelectAssetType::Buy), ["network_search", "chain_filter", "recents", "popular_section"]);
         assert_eq!(enabled(GemSelectAssetType::SwapPay), ["chain_filter", "recents"]);
-        assert_eq!(enabled(GemSelectAssetType::SwapReceive), ["network_search", "chain_filter", "recents"]);
+        assert_eq!(
+            enabled(GemSelectAssetType::SwapReceive { pay_asset_id: None }),
+            ["network_search", "chain_filter", "recents"]
+        );
         assert_eq!(
             enabled(GemSelectAssetType::Manage),
             ["network_search", "chain_filter", "balance_filter", "add_custom_token"]
@@ -314,6 +614,139 @@ mod tests {
         assert_eq!(enabled(GemSelectAssetType::Withdraw), ["deposit_asset_display"]);
         assert_eq!(enabled(GemSelectAssetType::WalletSearch), ["network_search", "recents"]);
         assert!(enabled(GemSelectAssetType::WalletSearchResults).is_empty());
+    }
+
+    #[test]
+    fn test_each_select_flow_lists_the_rows_its_action_can_offer() {
+        let rows = |select_type: GemSelectAssetType| (select_type.flow().scope, select_type.flow().filters);
+        assert_eq!(
+            rows(GemSelectAssetType::Send),
+            (GemSelectAssetScope::Wallet, vec![GemAssetFilter::Enabled, GemAssetFilter::HasBalance])
+        );
+        assert_eq!(rows(GemSelectAssetType::Receive), (GemSelectAssetScope::Wallet, vec![GemAssetFilter::Enabled]));
+        let (_, collection_filters) = rows(GemSelectAssetType::ReceiveCollection);
+        assert_eq!(collection_filters[0], GemAssetFilter::Enabled);
+        let GemAssetFilter::ChainsOrAssetIds {
+            chains: collection_chains,
+            asset_ids: collection_assets,
+        } = &collection_filters[1]
+        else {
+            panic!("receive collection lists the NFT chains' native assets");
+        };
+        assert!(collection_chains.is_empty());
+        assert!(collection_assets.contains(&AssetId::from_chain(Chain::Ethereum)));
+        assert!(!collection_assets.contains(&AssetId::from_chain(Chain::Bitcoin)));
+        assert!(collection_assets.iter().all(AssetId::is_native));
+        assert_eq!(
+            rows(GemSelectAssetType::Buy),
+            (GemSelectAssetScope::Wallet, vec![GemAssetFilter::Enabled, GemAssetFilter::Buyable])
+        );
+        assert_eq!(
+            rows(GemSelectAssetType::SwapPay),
+            (
+                GemSelectAssetScope::Wallet,
+                vec![GemAssetFilter::Enabled, GemAssetFilter::Swappable, GemAssetFilter::HasAvailableBalance]
+            )
+        );
+        assert_eq!(
+            rows(GemSelectAssetType::SwapReceive { pay_asset_id: None }),
+            (GemSelectAssetScope::Wallet, vec![GemAssetFilter::Enabled, GemAssetFilter::Swappable])
+        );
+        assert_eq!(rows(GemSelectAssetType::Manage), (GemSelectAssetScope::Wallet, vec![GemAssetFilter::Enabled]));
+        assert_eq!(rows(GemSelectAssetType::PriceAlert), (GemSelectAssetScope::AllAssets, vec![GemAssetFilter::Enabled]));
+        assert_eq!(
+            rows(GemSelectAssetType::Deposit),
+            (
+                GemSelectAssetScope::Wallet,
+                vec![GemAssetFilter::ChainsOrAssetIds {
+                    chains: Vec::new(),
+                    asset_ids: vec![AssetId::from_token(Chain::Arbitrum, "0xaf88d065e77c8cC2239327C5EDb3A432268e5831")]
+                }]
+            )
+        );
+        assert_eq!(
+            rows(GemSelectAssetType::Withdraw),
+            (
+                GemSelectAssetScope::Wallet,
+                vec![GemAssetFilter::ChainsOrAssetIds {
+                    chains: Vec::new(),
+                    asset_ids: vec![HYPERCORE_PERPETUAL_USDC.id.clone()]
+                }]
+            )
+        );
+        assert_eq!(rows(GemSelectAssetType::WalletSearch), (GemSelectAssetScope::Wallet, Vec::new()));
+        assert_eq!(rows(GemSelectAssetType::WalletSearchResults), (GemSelectAssetScope::Wallet, Vec::new()));
+    }
+
+    #[test]
+    fn test_swap_receive_lists_the_pay_assets_swap_universe() {
+        let pay_asset_id = AssetId::from_chain(Chain::Ethereum);
+        let universe = SwapAssetList {
+            chains: vec![Chain::Solana],
+            asset_ids: vec![AssetId::from_token(Chain::SmartChain, "0x123")],
+        };
+
+        let flow = select_asset_flow(GemSelectAssetType::SwapReceive { pay_asset_id: Some(pay_asset_id) }, Some(universe.clone()));
+
+        assert_eq!(
+            flow.filters,
+            vec![
+                GemAssetFilter::Enabled,
+                GemAssetFilter::Swappable,
+                GemAssetFilter::ChainsOrAssetIds {
+                    chains: universe.chains,
+                    asset_ids: universe.asset_ids,
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn test_network_assets_are_empty_only_when_every_section_is() {
+        use super::super::model::GemNetworkAssetCounts;
+        let counts = |pinned, unpinned, hidden| GemNetworkAssetCounts { pinned, unpinned, hidden }.sections();
+
+        assert!(counts(0, 0, 0).shows_empty);
+        assert!(!counts(0, 0, 1).shows_empty);
+        assert!(counts(0, 0, 1).shows_hidden);
+        assert!(counts(2, 0, 0).shows_pinned);
+        assert!(!counts(2, 0, 0).shows_unpinned);
+    }
+
+    #[test]
+    fn test_a_popular_asset_leaves_the_plain_bucket_and_a_pinned_one_wins_over_both() {
+        let ids = vec![Chain::Bitcoin.as_asset_id(), Chain::Ethereum.as_asset_id(), Chain::Solana.as_asset_id()];
+        let popular = vec![Chain::Ethereum.as_asset_id()];
+
+        let shown = asset_sections(ids.clone(), vec![Chain::Bitcoin.as_asset_id()], true, popular.clone());
+        assert_eq!(shown.pinned, vec![Chain::Bitcoin.as_asset_id()]);
+        assert_eq!(shown.popular, vec![Chain::Ethereum.as_asset_id()]);
+        assert_eq!(shown.assets, vec![Chain::Solana.as_asset_id()]);
+
+        let hidden = asset_sections(ids, vec![], false, popular);
+        assert!(hidden.popular.is_empty());
+        assert_eq!(hidden.assets.len(), 3);
+    }
+
+    #[test]
+    fn test_the_search_screen_shows_results_whenever_any_section_has_something() {
+        let empty = GemWalletSearchCounts {
+            recents: 0,
+            pinned: 0,
+            assets: 0,
+            perpetuals: 0,
+            lists: 0,
+            nfts: 0,
+        };
+
+        assert_eq!(wallet_search_phase(&empty, false), GemWalletSearchPhase::Empty);
+        assert_eq!(wallet_search_phase(&empty, true), GemWalletSearchPhase::Loading);
+        assert_eq!(
+            wallet_search_phase(&GemWalletSearchCounts { nfts: 1, ..empty }, true),
+            GemWalletSearchPhase::Results,
+            "a section with results is not a loading screen"
+        );
+        assert_eq!(wallet_search_phase(&GemWalletSearchCounts { recents: 2, ..empty }, false), GemWalletSearchPhase::Results);
     }
 
     #[test]
@@ -365,9 +798,9 @@ mod tests {
 
     #[test]
     fn test_token_chains_keeps_token_networks_by_rank() {
-        let multicoin = wallet(WalletType::Multicoin, &[Chain::Bitcoin, Chain::Doge, Chain::Near, Chain::Xrp, Chain::Ethereum, Chain::Near]);
+        let multicoin = Wallet::mock_with_chains(&[Chain::Bitcoin, Chain::Doge, Chain::Near, Chain::Xrp, Chain::Ethereum, Chain::Near]);
         assert_eq!(token_chains(&multicoin), vec![Chain::Ethereum, Chain::Xrp, Chain::Near]);
-        assert!(token_chains(&wallet(WalletType::Single, &[Chain::Bitcoin])).is_empty());
+        assert!(token_chains(&Wallet::mock_with_type(WalletType::Single, &[Chain::Bitcoin])).is_empty());
     }
 
     #[test]
@@ -382,7 +815,7 @@ mod tests {
 
     #[test]
     fn test_can_open_requires_account_and_native_asset() {
-        let wallet = wallet(WalletType::Multicoin, &[Chain::Ethereum, Chain::Tempo]);
+        let wallet = Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Tempo]);
         assert!(can_open(&wallet, &AssetId::from_chain(Chain::Ethereum)));
         assert!(can_open(
             &wallet,
@@ -410,25 +843,13 @@ mod tests {
         assert!(stakeable_asset_ids().contains(&AssetId::from_chain(Chain::Cosmos)));
         assert!(!stakeable_asset_ids().contains(&bitcoin));
     }
-    use primitives::{Account, Chain, WalletType};
-
-    fn wallet(wallet_type: WalletType, chains: &[Chain]) -> Wallet {
-        Wallet {
-            wallet_type,
-            ..Wallet::mock_with_accounts(Account::mock_chains(chains, "address"))
-        }
-    }
+    use chrono::Utc;
+    use primitives::{Chain, PriceAlertDirection, WalletType, currency::Currency};
 
     #[test]
     fn test_default_asset_basic_uses_default_rank_and_properties() {
         let native = default_asset_basic(Asset::from_chain(Chain::Ethereum));
-        let token = default_asset_basic(Asset::new(
-            AssetId::from(Chain::Ethereum, Some("0x0000000000000000000000000000000000000001".to_string())),
-            String::new(),
-            String::new(),
-            18,
-            primitives::AssetType::ERC20,
-        ));
+        let token = default_asset_basic(Asset::mock_erc20());
 
         assert_eq!(native.score.rank, Chain::Ethereum.rank());
         assert!(native.score.rank > token.score.rank);
@@ -437,17 +858,42 @@ mod tests {
     }
 
     #[test]
+    fn test_merge_assets_keeps_the_backend_copy_of_a_token() {
+        let merged = merge_assets(
+            vec![
+                default_asset_basic(Asset::from_chain(Chain::Ethereum)),
+                AssetBasic {
+                    score: AssetScore::new(34),
+                    ..default_asset_basic(Asset::mock_erc20())
+                },
+            ],
+            vec![
+                AssetBasic {
+                    score: AssetScore::new(15),
+                    ..default_asset_basic(Asset::mock_erc20())
+                },
+                default_asset_basic(Asset::from_chain(Chain::Solana)),
+            ],
+        );
+
+        assert_eq!(
+            merged.iter().map(|asset| asset.score.rank).collect::<Vec<_>>(),
+            vec![Chain::Ethereum.rank(), 34, Chain::Solana.rank()]
+        );
+    }
+
+    #[test]
     fn test_default_balances_by_wallet_type() {
-        let (enabled, disabled) = default_balances(&wallet(WalletType::Multicoin, &[Chain::Cosmos, Chain::Ethereum, Chain::Tron]));
+        let (enabled, disabled) = default_balances(&Wallet::mock_with_chains(&[Chain::Cosmos, Chain::Ethereum, Chain::Tron]));
         assert!(disabled.contains(&AssetId::from_chain(Chain::Cosmos)));
         assert!(enabled.contains(&AssetId::from_chain(Chain::Ethereum)));
         assert!(wallet_default_assets(Chain::Tron).iter().all(|asset| enabled.contains(&asset.id)));
 
-        let (enabled, disabled) = default_balances(&wallet(WalletType::Single, &[Chain::Cosmos]));
+        let (enabled, disabled) = default_balances(&Wallet::mock_with_type(WalletType::Single, &[Chain::Cosmos]));
         assert_eq!(enabled, vec![AssetId::from_chain(Chain::Cosmos)]);
         assert!(disabled.is_empty());
 
-        let (enabled, _) = default_balances(&wallet(WalletType::Single, &[Chain::Tempo]));
+        let (enabled, _) = default_balances(&Wallet::mock_with_type(WalletType::Single, &[Chain::Tempo]));
         assert!(!enabled.contains(&AssetId::from_chain(Chain::Tempo)));
         assert!(wallet_default_assets(Chain::Tempo).iter().all(|asset| enabled.contains(&asset.id)));
     }
@@ -490,60 +936,66 @@ mod tests {
         assert_eq!(token_search_chains(&[]), Chain::all());
     }
 
-    fn metadata(is_balance_enabled: bool, is_buy_enabled: bool, is_swap_enabled: bool, is_earn_enabled: bool) -> AssetMetaData {
-        AssetMetaData {
-            is_enabled: true,
-            is_balance_enabled,
-            is_buy_enabled,
-            is_sell_enabled: false,
-            is_swap_enabled,
-            is_stake_enabled: false,
-            is_earn_enabled,
-            is_pinned: false,
-            is_active: true,
-            staking_apr: None,
-            earn_apr: None,
-            rank_score: 0,
+    fn state(wallet_type: WalletType, chain: Chain, metadata: &AssetMetaData, banner_events: &[BannerEvent]) -> GemAssetDetailsState {
+        details_state(wallet_type, chain, metadata, &GemAssetBalance::mock(), banner_events, Some(1.0), vec![])
+    }
+
+    fn buttons(state: &GemAssetDetailsState) -> Vec<GemHeaderButton> {
+        match &state.header_actions {
+            GemHeaderActions::Buttons { buttons } => buttons.clone(),
+            GemHeaderActions::WatchOnly => panic!("the header offers no buttons"),
         }
     }
 
-    fn state(wallet_type: WalletType, chain: Chain, metadata: &AssetMetaData, banner_events: &[BannerEvent]) -> GemAssetDetailsState {
-        details_state(wallet_type, chain, metadata, &GemAssetBalance::mock(), banner_events, true, 0)
-    }
-
     fn kinds(state: &GemAssetDetailsState) -> Vec<GemHeaderButtonKind> {
-        state.header_buttons.iter().map(|button| button.kind).collect()
+        buttons(state).into_iter().map(|button| button.kind).collect()
     }
 
     #[test]
     fn test_details_state_shows_the_header_buttons_the_metadata_allows() {
-        let all = state(WalletType::Multicoin, Chain::Ethereum, &metadata(true, true, true, false), &[]);
+        let tradable = AssetMetaData {
+            is_buy_enabled: true,
+            is_swap_enabled: true,
+            ..AssetMetaData::mock()
+        };
+        let all = state(WalletType::Multicoin, Chain::Ethereum, &tradable, &[]);
         assert_eq!(
             kinds(&all),
             vec![GemHeaderButtonKind::Send, GemHeaderButtonKind::Receive, GemHeaderButtonKind::Buy, GemHeaderButtonKind::Swap]
         );
-        assert!(all.header_buttons.iter().all(|button| button.is_enabled));
+        assert!(buttons(&all).iter().all(|button| button.is_enabled));
 
-        let transfer_only = state(WalletType::Multicoin, Chain::Ethereum, &metadata(true, false, false, false), &[]);
+        let transfer_only = state(WalletType::Multicoin, Chain::Ethereum, &AssetMetaData::mock(), &[]);
         assert_eq!(kinds(&transfer_only), vec![GemHeaderButtonKind::Send, GemHeaderButtonKind::Receive]);
     }
 
     #[test]
     fn test_details_state_disables_the_buttons_behind_an_activation_or_multi_signature_banner() {
+        let tradable = AssetMetaData {
+            is_buy_enabled: true,
+            is_swap_enabled: true,
+            ..AssetMetaData::mock()
+        };
         for event in [BannerEvent::ActivateAsset, BannerEvent::AccountBlockedMultiSignature] {
-            let state = state(WalletType::Multicoin, Chain::Ethereum, &metadata(true, true, true, false), &[BannerEvent::Stake, event]);
-            assert!(state.header_buttons.iter().all(|button| !button.is_enabled), "{event:?}");
+            let state = state(WalletType::Multicoin, Chain::Ethereum, &tradable, &[BannerEvent::Stake, event]);
+            assert!(buttons(&state).iter().all(|button| !button.is_enabled), "{event:?}");
         }
-        let stake_only = state(WalletType::Multicoin, Chain::Ethereum, &metadata(true, true, true, false), &[BannerEvent::Stake]);
-        assert!(stake_only.header_buttons.iter().all(|button| button.is_enabled));
+        let stake_only = state(WalletType::Multicoin, Chain::Ethereum, &tradable, &[BannerEvent::Stake]);
+        assert!(buttons(&stake_only).iter().all(|button| button.is_enabled));
     }
 
     #[test]
     fn test_details_state_hides_buttons_banners_and_earn_from_a_view_only_wallet() {
-        let state = state(WalletType::View, Chain::Ethereum, &metadata(true, true, true, true), &[]);
+        let metadata = AssetMetaData {
+            is_buy_enabled: true,
+            is_swap_enabled: true,
+            is_earn_enabled: true,
+            ..AssetMetaData::mock()
+        };
+        let state = state(WalletType::View, Chain::Ethereum, &metadata, &[]);
 
         assert!(state.is_view_only);
-        assert!(state.header_buttons.is_empty());
+        assert_eq!(state.header_actions, GemHeaderActions::WatchOnly);
         assert!(!state.shows_banners);
         assert!(!state.shows_earn);
         assert_eq!(state.empty_transactions_action, Some(GemAssetEmptyAction::Buy));
@@ -551,63 +1003,148 @@ mod tests {
 
     #[test]
     fn test_details_state_shows_banners_for_every_wallet_type() {
+        let metadata = AssetMetaData {
+            is_buy_enabled: true,
+            is_swap_enabled: true,
+            is_earn_enabled: true,
+            ..AssetMetaData::mock()
+        };
         for wallet_type in [WalletType::Multicoin, WalletType::Single, WalletType::PrivateKey, WalletType::View] {
             for event in [BannerEvent::AccountBlockedMultiSignature, BannerEvent::SuspiciousAsset] {
-                let state = state(wallet_type.clone(), Chain::Tron, &metadata(true, true, true, true), &[event]);
+                let state = state(wallet_type, Chain::Tron, &metadata, &[event]);
                 assert!(state.shows_banners, "{wallet_type:?} {event:?}");
             }
-            assert!(!state(wallet_type, Chain::Tron, &metadata(true, true, true, true), &[]).shows_banners);
+            assert!(!state(wallet_type, Chain::Tron, &metadata, &[]).shows_banners);
         }
     }
 
     #[test]
     fn test_details_state_offers_manage_until_the_balance_is_enabled() {
-        assert!(state(WalletType::Multicoin, Chain::Ethereum, &metadata(false, false, false, false), &[]).shows_manage);
-        assert!(!state(WalletType::Multicoin, Chain::Ethereum, &metadata(true, false, false, false), &[]).shows_manage);
-
-        let disabled_asset = AssetMetaData {
-            is_enabled: false,
-            ..metadata(false, false, false, false)
+        let unmanaged = AssetMetaData {
+            is_balance_enabled: false,
+            ..AssetMetaData::mock()
         };
+        assert!(state(WalletType::Multicoin, Chain::Ethereum, &unmanaged, &[]).shows_manage);
+        assert!(!state(WalletType::Multicoin, Chain::Ethereum, &AssetMetaData::mock(), &[]).shows_manage);
+
+        let disabled_asset = AssetMetaData { is_enabled: false, ..unmanaged };
         assert!(state(WalletType::Multicoin, Chain::Ethereum, &disabled_asset, &[]).shows_manage);
     }
 
     #[test]
     fn test_details_state_shows_resources_only_where_staking_freezes() {
-        assert!(state(WalletType::Multicoin, Chain::Tron, &metadata(true, false, false, false), &[]).shows_resources);
-        assert!(!state(WalletType::Multicoin, Chain::Cosmos, &metadata(true, false, false, false), &[]).shows_resources);
-        assert!(!state(WalletType::Multicoin, Chain::Bitcoin, &metadata(true, false, false, false), &[]).shows_resources);
+        assert!(state(WalletType::Multicoin, Chain::Tron, &AssetMetaData::mock(), &[]).shows_resources);
+        assert!(!state(WalletType::Multicoin, Chain::Cosmos, &AssetMetaData::mock(), &[]).shows_resources);
+        assert!(!state(WalletType::Multicoin, Chain::Bitcoin, &AssetMetaData::mock(), &[]).shows_resources);
+    }
+
+    #[test]
+    fn test_a_native_asset_is_titled_by_its_chain() {
+        let mut stale = Asset::from_chain(Chain::Ethereum);
+        stale.name = "Ether (old)".to_string();
+        assert_eq!(asset_title(&stale), "Ethereum", "a native row reads the chain's own name, not the stored one");
+
+        let token = Asset::mock_ethereum_usdc();
+        assert_eq!(asset_title(&token), token.name, "a token keeps the name it was stored with");
     }
 
     #[test]
     fn test_details_state_shows_price_alerts_only_with_alerts_and_a_price() {
-        let plain = metadata(true, false, false, false);
+        let plain = AssetMetaData::mock();
         let balance = GemAssetBalance::mock();
 
-        assert!(details_state(WalletType::Multicoin, Chain::Ethereum, &plain, &balance, &[], true, 2).shows_price_alerts);
-        assert!(!details_state(WalletType::Multicoin, Chain::Ethereum, &plain, &balance, &[], false, 2).shows_price_alerts);
-        assert!(!details_state(WalletType::Multicoin, Chain::Ethereum, &plain, &balance, &[], true, 0).shows_price_alerts);
+        let auto = PriceAlert::new_auto(AssetId::from_chain(Chain::Ethereum), Currency::USD);
+        let mut notified = PriceAlert::new_price(AssetId::from_chain(Chain::Ethereum), Currency::USD, 120.0, PriceAlertDirection::Up);
+        notified.last_notified_at = Some(Utc::now());
+        let shows = |price: Option<f64>, alerts: Vec<PriceAlert>| details_state(WalletType::Multicoin, Chain::Ethereum, &plain, &balance, &[], price, alerts).shows_price_alerts;
+
+        assert!(shows(Some(1.0), vec![auto.clone(), notified.clone()]));
+        assert!(!shows(Some(1.0), vec![notified]));
+        assert!(!shows(Some(0.0), vec![auto.clone()]));
+        assert!(!shows(None, vec![auto]));
+        assert!(!shows(Some(1.0), vec![]));
+    }
+
+    #[test]
+    fn test_details_state_counts_displayed_alerts_and_reports_the_auto_alert() {
+        let plain = AssetMetaData::mock();
+        let balance = GemAssetBalance::mock();
+        let auto = PriceAlert::new_auto(AssetId::from_chain(Chain::Ethereum), Currency::USD);
+        let manual = PriceAlert::new_price(AssetId::from_chain(Chain::Ethereum), Currency::USD, 120.0, PriceAlertDirection::Up);
+        let mut notified = PriceAlert::new_price(AssetId::from_chain(Chain::Ethereum), Currency::USD, 140.0, PriceAlertDirection::Up);
+        notified.last_notified_at = Some(Utc::now());
+        let state = |alerts: Vec<PriceAlert>| details_state(WalletType::Multicoin, Chain::Ethereum, &plain, &balance, &[], Some(1.0), alerts);
+
+        assert_eq!(state(vec![auto.clone(), manual.clone(), notified]).price_alerts_count, 2);
+        assert_eq!(state(vec![auto, manual.clone()]).price_alert, GemPriceAlertToggle::Enabled);
+        assert_eq!(state(vec![manual]).price_alert, GemPriceAlertToggle::Disabled);
+        assert_eq!(state(vec![]).price_alerts_count, 0);
+    }
+
+    #[test]
+    fn test_every_select_flow_names_its_own_screen() {
+        assert_eq!(select_asset_flow(GemSelectAssetType::Manage, None).title, GemSelectAssetTitle::ManageTokenList);
+        assert_eq!(select_asset_flow(GemSelectAssetType::SwapPay, None).title, GemSelectAssetTitle::SwapPay);
+        assert_eq!(
+            select_asset_flow(GemSelectAssetType::SwapReceive { pay_asset_id: None }, None).title,
+            GemSelectAssetTitle::SwapReceive
+        );
+        assert_eq!(select_asset_flow(GemSelectAssetType::PriceAlert, None).title, GemSelectAssetTitle::SelectAsset);
+        assert_eq!(
+            select_asset_flow(GemSelectAssetType::ReceiveCollection, None).assets_section,
+            GemSelectAssetSection::Networks,
+            "a collection is received on a network, not on an asset"
+        );
+        assert_eq!(select_asset_flow(GemSelectAssetType::Receive, None).assets_section, GemSelectAssetSection::Assets);
+    }
+
+    #[test]
+    fn test_recents_show_only_outside_a_search_and_when_there_are_some() {
+        let flow = select_asset_flow(GemSelectAssetType::Send, None);
+
+        assert!(flow.shows_recents(false, true));
+        assert!(!flow.shows_recents(true, true));
+        assert!(!flow.shows_recents(false, false));
+    }
+
+    #[test]
+    fn test_add_token_and_the_chain_filter_need_chains_to_act_on() {
+        let flow = select_asset_flow(GemSelectAssetType::Send, None);
+        let manage = select_asset_flow(GemSelectAssetType::Manage, None);
+
+        assert!(manage.add_custom_token && manage.shows_add_token(true, true));
+        assert!(!manage.shows_add_token(false, true), "a wallet that holds no tokens cannot add one");
+        assert!(!manage.shows_add_token(true, false), "there is nothing to add a token to without a chain");
+        assert!(!flow.shows_chain_filter(true, true) || flow.chain_filter);
+        assert!(!manage.shows_chain_filter(false, true), "a single chain wallet has nothing to filter");
+        assert!(!manage.shows_chain_filter(true, false));
     }
 
     #[test]
     fn test_details_state_offers_earn_until_there_is_an_earn_balance() {
-        let earn_enabled = metadata(true, false, false, true);
+        let earn_enabled = AssetMetaData {
+            is_earn_enabled: true,
+            ..AssetMetaData::mock()
+        };
 
-        assert!(details_state(WalletType::Multicoin, Chain::Ethereum, &earn_enabled, &GemAssetBalance::mock(), &[], true, 0).shows_earn);
+        assert_eq!(
+            details_state(WalletType::Multicoin, Chain::Ethereum, &earn_enabled, &GemAssetBalance::mock(), &[], Some(1.0), vec![]).shows_earn,
+            EARN_OFFERED
+        );
         let earning = GemAssetBalance {
             earn: GemBigUint::from(100u32),
             ..GemAssetBalance::mock()
         };
-        assert!(!details_state(WalletType::Multicoin, Chain::Ethereum, &earn_enabled, &earning, &[], true, 0).shows_earn);
+        assert!(!details_state(WalletType::Multicoin, Chain::Ethereum, &earn_enabled, &earning, &[], Some(1.0), vec![]).shows_earn);
         assert!(
             !details_state(
                 WalletType::Multicoin,
                 Chain::Ethereum,
-                &metadata(true, false, false, false),
+                &AssetMetaData::mock(),
                 &GemAssetBalance::mock(),
                 &[],
-                true,
-                0
+                Some(1.0),
+                vec![]
             )
             .shows_earn
         );
@@ -615,17 +1152,22 @@ mod tests {
 
     #[test]
     fn test_details_state_empty_transactions_prefer_buy_then_swap() {
+        let swappable = AssetMetaData {
+            is_swap_enabled: true,
+            ..AssetMetaData::mock()
+        };
+        let tradable = AssetMetaData {
+            is_buy_enabled: true,
+            ..swappable.clone()
+        };
         assert_eq!(
-            state(WalletType::Multicoin, Chain::Ethereum, &metadata(true, true, true, false), &[]).empty_transactions_action,
+            state(WalletType::Multicoin, Chain::Ethereum, &tradable, &[]).empty_transactions_action,
             Some(GemAssetEmptyAction::Buy)
         );
         assert_eq!(
-            state(WalletType::Multicoin, Chain::Ethereum, &metadata(true, false, true, false), &[]).empty_transactions_action,
+            state(WalletType::Multicoin, Chain::Ethereum, &swappable, &[]).empty_transactions_action,
             Some(GemAssetEmptyAction::Swap)
         );
-        assert_eq!(
-            state(WalletType::Multicoin, Chain::Ethereum, &metadata(true, false, false, false), &[]).empty_transactions_action,
-            None
-        );
+        assert_eq!(state(WalletType::Multicoin, Chain::Ethereum, &AssetMetaData::mock(), &[]).empty_transactions_action, None);
     }
 }

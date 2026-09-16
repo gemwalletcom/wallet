@@ -51,7 +51,7 @@ impl<C: Client + Clone> EvmStakingClient for MonadStakingClient<C> {
     }
 
     async fn get_staking_delegations(&self, address: &str) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
-        let positions = self.call_delegations(address).await.and_then(|bytes| decode_delegations(&bytes)).unwrap_or_default();
+        let positions = decode_delegations(&self.call_delegations(address).await?)?;
 
         Ok(positions
             .into_iter()
@@ -91,6 +91,9 @@ impl<C: Client + Clone> EvmFeeCalculator for MonadStakingClient<C> {}
 
 #[cfg(test)]
 mod tests {
+    use alloy_primitives::hex::encode_prefixed;
+    use alloy_sol_types::SolCall;
+    use gem_client::ClientError;
     use gem_evm::method;
     use gem_evm::rpc::{EthereumClient, EvmStakingClient};
     use gem_jsonrpc::testkit::mock_jsonrpc_client;
@@ -98,6 +101,7 @@ mod tests {
     use serde_json::json;
 
     use super::*;
+    use crate::contracts::IMonadStakingLens;
     use crate::testkit::TEST_ADDRESS;
 
     #[tokio::test]
@@ -119,6 +123,19 @@ mod tests {
         let client = MonadStakingClient::new(EthereumClient::new(rpc_client, EVMChain::Monad));
 
         assert_eq!(client.call_delegations(TEST_ADDRESS).await.unwrap(), Vec::<u8>::new());
+    }
+
+    #[tokio::test]
+    async fn test_get_staking_delegations() {
+        let failing_client = mock_jsonrpc_client(|_request_method, _params| Err(ClientError::Network("connection reset".to_string())));
+        let client = MonadStakingClient::new(EthereumClient::new(failing_client, EVMChain::Monad));
+
+        assert!(client.get_staking_delegations(TEST_ADDRESS).await.is_err());
+
+        let empty_client = mock_jsonrpc_client(|_request_method, _params| Ok(json!(encode_prefixed(IMonadStakingLens::getDelegationsCall::abi_encode_returns(&vec![])))));
+        let client = MonadStakingClient::new(EthereumClient::new(empty_client, EVMChain::Monad));
+
+        assert_eq!(client.get_staking_delegations(TEST_ADDRESS).await.unwrap(), Vec::<DelegationBase>::new());
     }
 
     #[tokio::test]

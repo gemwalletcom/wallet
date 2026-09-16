@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemWalletRow
 import Primitives
 import PrimitivesComponents
 import Style
@@ -30,8 +31,8 @@ struct SelectWalletScene: View {
 // MARK: - Actions
 
 extension SelectWalletScene {
-    private func onSelect(wallets: [Wallet]) {
-        model.selectedItems = wallets.asSet()
+    private func onSelect(rows: [GemWalletRow]) {
+        model.selectedItems = rows.asSet()
         dismiss()
     }
 }

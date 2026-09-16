@@ -1,9 +1,11 @@
 package com.gemwallet.android.domains.pricealerts.aggregates
 
-import com.gemwallet.android.domains.price.ValueDirection
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PriceAlert
+import uniffi.gemstone.GemPriceAlertKind
+import uniffi.gemstone.GemPriceAlertText
+import uniffi.gemstone.PriceAlertDirection
 
 interface PriceAlertDataAggregate {
     val id: String
@@ -12,17 +14,8 @@ interface PriceAlertDataAggregate {
     val assetId: AssetId
     val title: String
     val titleBadge: String
-    val priceState: ValueDirection
-    val price: String
-    val percentage: String
-    val type: PriceAlertType
-    val hasTarget: Boolean
-}
-
-enum class PriceAlertType {
-    Auto,
-    Over,
-    Under,
-    Increase,
-    Decrease,
+    val priceDirection: PriceAlertDirection?
+    val prefix: GemPriceAlertText
+    val suffix: GemPriceAlertText
+    val kind: GemPriceAlertKind
 }

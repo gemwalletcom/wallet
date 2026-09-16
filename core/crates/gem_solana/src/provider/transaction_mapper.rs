@@ -347,7 +347,7 @@ mod tests {
     use super::*;
     use crate::provider::testkit::TEST_TRANSACTION_ID;
     use crate::{
-        PYUSD_TOKEN_MINT, USDT_TOKEN_MINT,
+        PYUSD_TOKEN_MINT, RELAY_DEPOSITORY_PROGRAM_ID, USDT_TOKEN_MINT,
         models::{SingleTransaction, SolanaTransaction},
     };
     use gem_jsonrpc::types::JsonRpcErrorResponse;
@@ -365,6 +365,28 @@ mod tests {
             transaction: result.result.transaction,
         };
         map_transaction(&block_transaction, result.result.block_time).unwrap()
+    }
+
+    #[test]
+    fn test_transaction_relay_token_deposit_lookup_table() {
+        let transaction = map_single_transaction(include_str!("../../testdata/relay_deposit_token_lookup_table.json"));
+        let expected = Transaction::new(
+            "4JYHmWNmuCXuTMfNFWVYLWsoJSfbaukdzYLDQ12Cxj6A8DsChLwRuUHWKe33JqNtKGM7wPHckz3EvGvvaLE8ormn".to_string(),
+            SOLANA_USDC_ASSET_ID.clone(),
+            "B1nzrk99FEDAYB2M82yepdvEv1YBRJKcx5Y5R6MSDW1Q".to_string(),
+            RELAY_DEPOSITORY_PROGRAM_ID.to_string(),
+            Some(RELAY_DEPOSITORY_PROGRAM_ID.to_string()),
+            TransactionType::Swap,
+            TransactionState::Confirmed,
+            BigUint::from(5000u64),
+            Chain::Solana.as_asset_id(),
+            BigUint::from(5_000_000u64),
+            None,
+            None,
+            DateTime::from_timestamp(1789191680, 0).unwrap(),
+        );
+
+        assert_eq!(transaction, expected);
     }
 
     #[test]

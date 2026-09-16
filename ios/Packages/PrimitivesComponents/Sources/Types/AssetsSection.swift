@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import class Gemstone.GemAssetConfigService
+import GemstonePrimitives
 import Primitives
 
 public struct AssetsSections: Hashable, Sendable {
@@ -10,12 +12,17 @@ public struct AssetsSections: Hashable, Sendable {
 }
 
 public extension AssetsSections {
-    static func from(_ assets: [AssetData], popularIds: Set<AssetId> = []) -> AssetsSections {
-        let popular = assets.filter { popularIds.contains($0.asset.id) }
+    static func from(_ assets: [AssetData], showsPopular: Bool = false) -> AssetsSections {
+        let sections = GemAssetConfigService.shared.assetSections(
+            ids: assets.map(\.asset.id.identifier),
+            pinnedIds: assets.filter(\.metadata.isPinned).map(\.asset.id.identifier),
+            showsPopular: showsPopular,
+        )
+        let byId = Dictionary(assets.map { ($0.asset.id.identifier, $0) }, uniquingKeysWith: { first, _ in first })
         return AssetsSections(
-            pinned: assets.filter(\.metadata.isPinned),
-            assets: assets.filter { !$0.metadata.isPinned && !popularIds.contains($0.asset.id) },
-            popular: popular,
+            pinned: sections.pinned.compactMap { byId[$0] },
+            assets: sections.assets.compactMap { byId[$0] },
+            popular: sections.popular.compactMap { byId[$0] },
         )
     }
 }

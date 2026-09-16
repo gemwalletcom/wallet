@@ -1,51 +1,37 @@
 package com.gemwallet.android.features.buy.viewmodels.models
 
 import androidx.compose.runtime.Stable
-import com.gemwallet.android.model.CurrencyFormatter
-import com.gemwallet.android.model.ValueFormatter
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.models.CryptoFormattedUIModel
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.FiatProvider
-import com.wallet.core.primitives.FiatQuote
-import com.wallet.core.primitives.FiatQuoteType
-import java.math.BigDecimal
+import com.wallet.core.primitives.FiatProviderName
+import uniffi.gemstone.GemFiatQuoteRow
 
 @Stable
 data class BuyFiatProviderUIModel(
-    val provider: FiatProvider,
+    val row: GemFiatQuoteRow,
     override val asset: Asset,
-    override val cryptoAmount: Double,
-    val fiatFormatted: String,
-    val rate: String,
 ) : CryptoFormattedUIModel {
 
-    override val cryptoFormatted: String
-        get() = "≈ $cryptoText"
+    val provider: FiatProviderName by lazy { row.provider.toPrimitives() }
 
-    val cryptoText: String
-        get() = ValueFormatter(style = ValueFormatter.Style.Auto)
-            .string(BigDecimal.valueOf(cryptoAmount), asset.symbol)
+    val providerName: String get() = row.providerName
+
+    val providerImageUrl: String? get() = row.providerImageUrl
+
+    override val cryptoAmount: Double get() = row.cryptoAmount.value
+
+    override val cryptoFormatted: String by lazy { "≈ $cryptoText" }
+
+    val cryptoText: String by lazy { row.cryptoAmount.text() }
+
+    val fiatFormatted: String by lazy { row.fiatAmount.text() }
+
+    val rate: String by lazy {
+        row.rate?.let { it.text(it.value.text()) }.orEmpty()
+    }
 }
 
-fun FiatQuote.toProviderUIModel(
-    asset: Asset,
-    currency: Currency,
-    assetPrice: Double? = null,
-): BuyFiatProviderUIModel {
-    val formatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)
-    return BuyFiatProviderUIModel(
-        provider = provider,
-        asset = asset,
-        cryptoAmount = cryptoAmount,
-        fiatFormatted = formatter.string(displayFiatAmount(assetPrice)),
-        rate = "1 ${asset.symbol} ≈ ${formatter.string(fiatAmount / cryptoAmount)}",
-    )
-}
-
-private fun FiatQuote.displayFiatAmount(assetPrice: Double?): Double = when (type) {
-    FiatQuoteType.Buy -> assetPrice?.takeIf { it > 0.0 }?.let { it * cryptoAmount } ?: fiatAmount
-    FiatQuoteType.Sell -> fiatAmount
-}
-
-
+fun GemFiatQuoteRow.toProviderUIModel(asset: Asset): BuyFiatProviderUIModel =
+    BuyFiatProviderUIModel(row = this, asset = asset)

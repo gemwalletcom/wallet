@@ -2,7 +2,7 @@
 
 import Assets
 import enum Gemstone.GemPerpetualPositionAction
-import GemstoneServices
+import enum Gemstone.GemTransactionHeaderAction
 import Components
 import InfoSheet
 import Localization
@@ -13,7 +13,6 @@ import PriceAlerts
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
-import QRScanner
 import Store
 import SwiftUI
 import Transactions
@@ -112,16 +111,12 @@ struct WalletNavigationView: View {
         }
         .navigationDestination(for: Scenes.Collection.self) { scene in
             CollectionsScene(
-                model: CollectionViewModel(
-                    wallet: model.wallet,
-                    collectionId: scene.id,
-                    collectionName: scene.name,
-                ),
+                model: viewModelFactory.collectionScene(wallet: model.wallet, collectionId: scene.id),
             )
         }
         .navigationDestination(for: Scenes.UnverifiedCollections.self) { _ in
             CollectionsScene(
-                model: UnverifiedCollectionsViewModel(wallet: model.wallet),
+                model: viewModelFactory.unverifiedCollectionsScene(wallet: model.wallet),
             )
         }
         .navigationDestination(for: Scenes.Price.self) {
@@ -223,7 +218,7 @@ extension WalletNavigationView {
         Task { await navigationHandler.handle(code: code) }
     }
 
-    private func onSelectTransactionHeaderAction(_ action: TransactionHeaderAction) {
+    private func onSelectTransactionHeaderAction(_ action: GemTransactionHeaderAction) {
         Task {
             do {
                 try await presenter.handleTransactionHeaderAction(

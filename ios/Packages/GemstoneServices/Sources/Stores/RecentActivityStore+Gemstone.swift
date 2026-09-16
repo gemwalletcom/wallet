@@ -21,6 +21,6 @@ public final class GemstoneRecentActivityStore: GemRecentActivityStore, @uncheck
     }
 
     public func clear(walletId: Gemstone.WalletId, types: [Gemstone.RecentActivityType]) async throws {
-        try store.clear(walletId: Primitives.WalletId.from(id: walletId), types: types.map { $0.map() })
+        try store.clear(walletId: Primitives.WalletId.from(id: walletId), types: types.map { $0.toPrimitives() })
     }
 }

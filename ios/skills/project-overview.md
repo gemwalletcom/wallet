@@ -10,9 +10,9 @@ The app is organized into four main areas:
 1. `Features/` — Independent UI feature modules
 2. `Packages/` — Shared primitives, components, store, localization, and utilities
 3. `Gem/` and `GemPriceWidget/` — App targets and platform integration
-4. `core/` — Shared Rust blockchain engine exposed through FFI
+4. `../core/` — Shared Rust source at the monorepo root, exposed through FFI
 
-Each feature package typically follows this structure:
+Feature packages use the directories they need; this layout is not a scaffolding checklist:
 
 ```text
 Features/[FeatureName]/
@@ -31,8 +31,8 @@ Features/[FeatureName]/
 ## Architecture
 
 - Use MVVM with SwiftUI and `@Observable` view models
-- Inject dependencies through the app resolver and environment values
-- Keep services protocol-based for testability
+- Construct screen dependencies in the factory and follow [Architecture § 8](../../docs/ARCHITECTURE.md#8-services-are-injected-never-constructed-at-a-call-site) for environment scope
+- Use generated Core service protocols; do not add forwarding app services or protocols solely for testability
 - Treat each feature or package as an independent Swift Package Manager module when possible
 
 ## Layer Responsibilities
@@ -40,7 +40,7 @@ Features/[FeatureName]/
 - `Features/` holds feature-specific UI, view models, services, tests, and test kits
 - `Packages/` holds shared primitives, components, formatting, localization, storage, and service layers
 - `Gem/` and widget targets handle app composition, navigation wiring, and platform integration
-- `core/` remains the shared blockchain and cryptography engine consumed through generated bindings
+- `../core/` owns shared product rules and blockchain behavior; apps consume its generated bindings
 
 ## Navigation
 

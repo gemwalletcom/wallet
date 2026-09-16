@@ -1,13 +1,18 @@
+use super::model::GemConfirmRowContent;
+use crate::application::GemApplicationMetadataService;
+use crate::services::assets::rules::asset_text;
+use crate::services::transfer::model::{GemConfirmRow, GemTransferData};
+use crate::services::wallet::model::wallet_row;
+use primitives::{AddressName, BlockExplorerLink};
 use primitives::{
-    ApplicationMetadataSource, Asset, AssetId, Chain, ChainType, FeePriority, FeeUnitType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationResult,
-    Transaction, TransactionPreloadInput, Wallet,
+    ApplicationMetadataSource, Asset, AssetId, Chain, ChainType, FeePriority, FeeUnitType, GasPriceType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload,
+    SimulationResult, SimulationWarningType, Transaction, TransactionPreloadInput, Wallet,
 };
 
 use super::error::GemConfirmError;
 use super::model::{
-    GemAcquireAssetFlow, GemApprovalValue, GemConfirmButton, GemConfirmButtonKind, GemConfirmButtonState, GemConfirmData, GemConfirmFeeLoad, GemConfirmFeeRow,
-    GemConfirmFeeSelection, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata, GemConfirmPhase, GemConfirmPreload, GemConfirmScreen, GemConfirmSimulationState, GemFeeAsset,
-    GemFeeRateRow, GemFeeRateRows, GemTransferAmountResult, SendInput,
+    GemAcquireAssetFlow, GemApprovalValue, GemConfirmData, GemConfirmFeeLoad, GemConfirmFeeSelection, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata, GemConfirmPreload,
+    GemConfirmSimulationState, GemFeeAsset, GemFeeRateRow, GemFeeRateRows, GemTransferAmountResult, SendInput,
 };
 use crate::config::chain::custom_fee_enabled;
 use crate::models::custom_types::GemBigUint;
@@ -15,10 +20,12 @@ use crate::models::gateway::{GemBroadcastOptions, GemFeeRate, GemTransactionPrel
 use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionLoadFee, GemTransactionLoadInput};
 use crate::services::balance::GemAssetBalance;
 use crate::services::balance::GemBalanceRequirement;
+use crate::services::collections::unique;
+use crate::services::transactions::GemAmountSign;
 use crate::services::transfer::GemPendingTransactionInput;
 use crate::services::transfer::rules::TransferInput;
 use crate::transfer_amount::{GemTransferAmountError, GemTransferAmountInput};
-use num_bigint::BigInt;
+use num_bigint::{BigInt, Sign};
 use primitives::AssetPrice;
 use primitives::TransactionInputType;
 
@@ -60,26 +67,31 @@ fn signing_address(wallet: &Wallet, chain: Chain, from: &str) -> Result<String, 
 }
 
 pub fn metadata_asset_ids(asset_id: &AssetId, fee_asset_id: &AssetId, extra_asset_ids: Vec<AssetId>) -> Vec<AssetId> {
-    let mut asset_ids: Vec<AssetId> = Vec::new();
-    for asset_id in [asset_id.clone(), fee_asset_id.clone()].into_iter().chain(extra_asset_ids) {
-        if !asset_ids.contains(&asset_id) {
-            asset_ids.push(asset_id);
-        }
-    }
-    asset_ids
+    unique([asset_id.clone(), fee_asset_id.clone()].into_iter().chain(extra_asset_ids))
 }
 
 pub(super) trait ConfirmInput {
+    fn requires_scan(&self) -> bool;
     fn approval_value(&self) -> Option<(AssetId, GemApprovalValue)>;
     fn validate_approvals(&self, transactions: &[GemSignedTransaction]) -> Result<(), GemConfirmError>;
     fn simulation_payload(&self) -> Option<String>;
+    fn validate_simulation(&self, simulation: &SimulationResult) -> Result<(), GemConfirmError>;
     fn broadcast_options(&self) -> GemBroadcastOptions;
 }
 
 impl ConfirmInput for TransactionInputType {
+    fn requires_scan(&self) -> bool {
+        match self {
+            Self::Transfer { .. } | Self::Swap { .. } | Self::TokenApprove { .. } | Self::Generic { .. } => true,
+            Self::Deposit { .. } | Self::Withdrawal { .. } | Self::Stake { .. } | Self::TransferNft { .. } | Self::Account { .. } | Self::Perpetual { .. } | Self::Earn { .. } => {
+                false
+            }
+        }
+    }
+
     fn approval_value(&self) -> Option<(AssetId, GemApprovalValue)> {
         match self {
-            Self::TokenApprove { asset, approval_data } => Some((asset.id.clone(), gem_approval_value(&approval_data.value, approval_data.is_unlimited))),
+            Self::TokenApprove { asset, approval_data } => Some((asset.id.clone(), approval_value_from(Some(&approval_data.value), approval_data.is_unlimited))),
             Self::Transfer { .. }
             | Self::Deposit { .. }
             | Self::Swap { .. }
@@ -111,26 +123,41 @@ impl ConfirmInput for TransactionInputType {
         }
     }
 
-    fn broadcast_options(&self) -> GemBroadcastOptions {
-        match (self.get_asset().chain(), self) {
-            (Chain::Solana, Self::Swap { .. } | Self::Generic { .. }) => GemBroadcastOptions { skip_preflight: true },
-            _ => GemBroadcastOptions { skip_preflight: false },
+    fn validate_simulation(&self, simulation: &SimulationResult) -> Result<(), GemConfirmError> {
+        let Self::Generic { metadata, .. } = self else {
+            return Ok(());
+        };
+
+        match metadata.source {
+            ApplicationMetadataSource::Payment => {}
+            ApplicationMetadataSource::WalletConnect => return Ok(()),
         }
+
+        if let Some(warning) = simulation.warnings.iter().find(|warning| warning.warning == SimulationWarningType::ValidationError) {
+            return Err(GemConfirmError::Load {
+                msg: warning.message.clone().unwrap_or_else(|| "Payment simulation failed".to_string()),
+            });
+        }
+        Ok(())
+    }
+
+    fn broadcast_options(&self) -> GemBroadcastOptions {
+        let skip_preflight = match (self.get_asset().chain(), self) {
+            (Chain::Solana, Self::Generic { metadata, .. }) => match metadata.source {
+                ApplicationMetadataSource::Payment => false,
+                ApplicationMetadataSource::WalletConnect => true,
+            },
+            (Chain::Solana, Self::Swap { .. }) => true,
+            _ => false,
+        };
+        GemBroadcastOptions { skip_preflight }
     }
 }
 
-pub fn approval_value_from(value: &Option<GemBigUint>, is_unlimited: bool) -> GemApprovalValue {
+pub fn approval_value_from(value: Option<&GemBigUint>, is_unlimited: bool) -> GemApprovalValue {
     match value {
         Some(value) if !is_unlimited => GemApprovalValue::Exact { value: value.clone() },
         _ => GemApprovalValue::Unlimited,
-    }
-}
-
-fn gem_approval_value(value: &GemBigUint, is_unlimited: bool) -> GemApprovalValue {
-    if is_unlimited {
-        GemApprovalValue::Unlimited
-    } else {
-        GemApprovalValue::Exact { value: value.clone() }
     }
 }
 
@@ -180,7 +207,12 @@ fn amount_error(error: GemTransferAmountError, asset: &Asset, fee_asset: &Asset)
             asset: error_asset(&asset_id),
             requirement: GemBalanceRequirement::new(required, available),
         },
-        GemTransferAmountError::BelowSwapMinimum { asset_id, provider, minimum, value } => GemConfirmError::BelowSwapMinimum {
+        GemTransferAmountError::BelowSwapMinimum {
+            asset_id,
+            provider,
+            minimum,
+            value,
+        } => GemConfirmError::BelowSwapMinimum {
             asset: error_asset(&asset_id),
             provider,
             provider_name: provider.name().to_string(),
@@ -208,22 +240,11 @@ impl GemConfirmLoad {
     }
 }
 
-pub fn confirm_button(screen: &GemConfirmScreen) -> GemConfirmButton {
-    let button = |kind, state| GemConfirmButton { kind, state };
-    match screen.phase {
-        GemConfirmPhase::Loading | GemConfirmPhase::Confirming => button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Loading),
-        GemConfirmPhase::Failed => button(GemConfirmButtonKind::Retry, GemConfirmButtonState::Enabled),
-        GemConfirmPhase::Ready if screen.amount_failed => button(GemConfirmButtonKind::Retry, GemConfirmButtonState::Enabled),
-        GemConfirmPhase::Ready if screen.has_critical_warning => button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Disabled),
-        GemConfirmPhase::Ready => button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Enabled),
-    }
-}
-
-pub fn confirm_fee_row(screen: &GemConfirmScreen) -> GemConfirmFeeRow {
-    match screen.phase {
-        GemConfirmPhase::Loading => GemConfirmFeeRow::Loading,
-        GemConfirmPhase::Failed => GemConfirmFeeRow::Unavailable,
-        GemConfirmPhase::Ready | GemConfirmPhase::Confirming => GemConfirmFeeRow::Ready,
+pub fn balance_change_sign(value: &BigInt) -> GemAmountSign {
+    match value.sign() {
+        Sign::Plus => GemAmountSign::Incoming,
+        Sign::Minus => GemAmountSign::Outgoing,
+        Sign::NoSign => GemAmountSign::None,
     }
 }
 
@@ -262,11 +283,8 @@ pub fn acquire_asset_flow(chain: Chain) -> GemAcquireAssetFlow {
     }
 }
 
-pub fn is_insufficient_network_fee(fee_asset_id: AssetId, fee_available: &str) -> bool {
-    if matches!(fee_asset_id.chain, Chain::HyperCore | Chain::Tron) || !fee_asset_id.is_native() {
-        return false;
-    }
-    fee_available.trim().is_empty() || fee_available.trim().chars().all(|character| character == '0')
+pub fn is_insufficient_network_fee(fee_asset_id: &AssetId, fee_available: &GemBigUint) -> bool {
+    !matches!(fee_asset_id.chain, Chain::HyperCore | Chain::Tron) && fee_asset_id.is_native() && *fee_available == GemBigUint::ZERO
 }
 
 impl SendInput {
@@ -336,23 +354,38 @@ pub(super) fn validate_scan(scan: Option<&ScanTransaction>, memo: Option<&str>, 
     Ok(())
 }
 
-pub(super) fn scan_payload(input: GemTransactionPreloadInput) -> ScanTransactionPayload {
+pub(super) fn scan_payload(input: GemTransactionPreloadInput) -> Option<ScanTransactionPayload> {
+    if !input.input_type.requires_scan() {
+        return None;
+    }
     let input: TransactionPreloadInput = input.into();
-    ScanTransactionPayload {
+    Some(ScanTransactionPayload {
         origin: ScanAddressTarget {
             asset_id: input.input_type.get_asset().id.clone(),
             address: input.sender_address.clone(),
         },
-        target: ScanAddressTarget {
-            asset_id: input.input_type.get_recipient_asset().id.clone(),
-            address: input.destination_address.clone(),
-        },
+        target: scan_target(&input),
         website: input.get_website(),
         transaction_type: input.input_type.transaction_type(),
+    })
+}
+
+fn scan_target(input: &TransactionPreloadInput) -> ScanAddressTarget {
+    if let TransactionInputType::Swap { from_asset, swap_data, .. } = &input.input_type
+        && !swap_data.data.to.is_empty()
+    {
+        return ScanAddressTarget {
+            asset_id: from_asset.id.clone(),
+            address: swap_data.data.to.clone(),
+        };
+    }
+    ScanAddressTarget {
+        asset_id: input.input_type.get_recipient_asset().id.clone(),
+        address: input.destination_address.clone(),
     }
 }
 
-pub fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[GemFeeRate], selection: &GemConfirmFeeSelection, loaded_fee: &GemTransactionLoadFee) -> GemFeeRateRows {
+fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[GemFeeRate], selection: &GemConfirmFeeSelection, loaded_fee: &GemTransactionLoadFee) -> GemFeeRateRows {
     let unit_value = |rate: &GemFeeRate| rate.gas_price_type.clone().total_fee();
     let rate_total = |priority: FeePriority| rates.iter().find(|rate| rate.priority == priority).map(unit_value);
     let selected_total = match selection {
@@ -368,10 +401,16 @@ pub fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[GemFeeRate], sele
             .iter()
             .map(|rate| {
                 let unit_value = unit_value(rate);
+                let fee = base.as_ref().map(|base| &rate_fee * &unit_value / base + &fixed_fee);
+                let display_value = match unit_type {
+                    FeeUnitType::Native => fee.clone().unwrap_or_else(|| unit_value.clone()),
+                    FeeUnitType::SatVb | FeeUnitType::Gwei => unit_value.clone(),
+                };
                 GemFeeRateRow {
                     priority: rate.priority,
-                    fee: base.as_ref().map(|base| &rate_fee * &unit_value / base + &fixed_fee),
+                    fee,
                     unit_value,
+                    display_value,
                 }
             })
             .collect(),
@@ -386,8 +425,19 @@ pub fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[GemFeeRate], sele
     }
 }
 
-pub(super) fn displayed_fee_rates(rates: Vec<GemFeeRate>) -> Vec<GemFeeRate> {
+pub(super) fn confirmation_fee_rates(chain: Chain, is_max_amount: bool, rates: Vec<GemFeeRate>) -> Vec<GemFeeRate> {
+    let multiplier = if is_max_amount {
+        1
+    } else {
+        chain.config().evm.as_ref().map_or(1, |config| config.chain_stack.base_fee_multiplier())
+    };
     let mut rates = rates;
+    for rate in &mut rates {
+        match &mut rate.gas_price_type {
+            GasPriceType::Eip1559 { gas_price, .. } => *gas_price *= multiplier,
+            GasPriceType::Regular { .. } | GasPriceType::Solana { .. } => {}
+        }
+    }
     rates.sort_by_key(|rate| match rate.priority {
         FeePriority::Normal => 0,
         FeePriority::Fast => 1,
@@ -419,77 +469,75 @@ impl GemConfirmFeeSelection {
     }
 }
 
+pub fn confirm_row_contents(
+    transfer: &GemTransferData,
+    wallet: Wallet,
+    address_name: Option<AddressName>,
+    address_url: impl Fn(Chain, String) -> BlockExplorerLink,
+) -> Vec<GemConfirmRowContent> {
+    let asset = transfer.input_asset();
+    let chain = asset.chain();
+    transfer
+        .confirm_rows()
+        .into_iter()
+        .filter_map(|row| match row {
+            GemConfirmRow::App => transfer.application_short_name().map(|name| GemConfirmRowContent::App {
+                name,
+                icon_url: match &transfer.input_type {
+                    TransactionInputType::Generic { metadata, .. } => GemApplicationMetadataService::new().icon_url(metadata.clone()),
+                    _ => None,
+                },
+            }),
+            GemConfirmRow::Sender => Some(GemConfirmRowContent::Sender {
+                wallet: wallet_row(wallet.clone()),
+            }),
+            GemConfirmRow::Recipient => transfer.destination().map(|destination| GemConfirmRowContent::Recipient {
+                destination: destination.with_address_name(address_name.clone()),
+                address_name: address_name.clone(),
+                memo: transfer.recipient.memo.clone(),
+                chain,
+                link: address_url(chain, transfer.recipient.address.clone()),
+            }),
+            GemConfirmRow::Network => {
+                let text = asset_text(&asset);
+                Some(GemConfirmRowContent::Network {
+                    chain,
+                    name: match transfer.input_type {
+                        TransactionInputType::Transfer { .. } | TransactionInputType::Deposit { .. } | TransactionInputType::Withdrawal { .. } => text.network_full_name,
+                        _ => text.network_name,
+                    },
+                })
+            }
+            GemConfirmRow::Memo => Some(GemConfirmRowContent::Memo {
+                memo: transfer.recipient.memo.clone(),
+            }),
+            GemConfirmRow::Details => Some(GemConfirmRowContent::Details),
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
-    use super::super::model::GemConfirmData;
     use super::*;
     use crate::models::custom_types::GemBigInt;
     use crate::models::custom_types::GemBigUint;
-    use crate::models::transaction::{GemFeeOptions, GemTransactionLoadMetadata};
-    use crate::services::transfer::{GemRecipient, GemTransferData};
+    use crate::models::transaction::GemFeeOptions;
+    use crate::services::transfer::GemTransferData;
     use crate::transfer_amount::GemTransferAmount;
     use num_bigint::BigInt;
     use num_bigint::BigUint;
     use primitives::FeeOption;
-    use primitives::GasPriceType;
     use primitives::{
         Account, ApplicationMetadata, Asset, PerpetualConfirmData, PerpetualDirection, PerpetualType, SimulationWarning, StakeType, SwapProvider, TransactionType,
-        TransferDataExtra, TransferDataOutputAction, Wallet, WalletId,
-        swap::{ApprovalData, SwapData},
+        TransferDataExtra, TransferDataOutputAction,
+        swap::{ApprovalData, SwapData, SwapQuoteData},
     };
-    use primitives::{AddressName, AddressType, VerificationStatus};
+    use primitives::{AccountDataType, AddressName, AddressType, ContractCallData, Delegation, DelegationValidator, EarnType, NFTAsset, VerificationStatus};
     use std::collections::HashMap;
-
-    fn wallet(chain: Chain) -> Wallet {
-        Wallet {
-            id: WalletId::Multicoin("wallet".to_string()),
-            ..Wallet::mock_with_accounts(vec![Account::mock(chain, "sender")])
-        }
-    }
-
-    fn send_input(chain: Chain, input_type: TransactionInputType) -> SendInput {
-        send_input_from(chain, input_type, "sender")
-    }
-
-    fn send_input_from(chain: Chain, input_type: TransactionInputType, from: &str) -> SendInput {
-        SendInput {
-            wallet: wallet(chain),
-            confirm: GemConfirmData {
-                input: GemConfirmInput {
-                    from: Account::mock(chain, from),
-                    transfer: GemTransferData {
-                        input_type,
-                        recipient: GemRecipient {
-                            address: "recipient".to_string(),
-                            name: None,
-                            memo: Some("memo".to_string()),
-                            references: vec![],
-                        },
-                        value: BigInt::from(10),
-                        use_max_amount: true,
-                    },
-                },
-                fee: GemTransactionLoadFee {
-                    fee: BigInt::ZERO,
-                    gas_price_type: GasPriceType::Regular { gas_price: BigInt::from(5) },
-                    gas_limit: BigInt::from(21_000),
-                    options: Default::default(),
-                    fee_asset: AssetId::from_chain(Chain::Solana),
-                },
-                selected_priority: FeePriority::Normal,
-                fee_rates: vec![],
-                metadata: GemTransactionLoadMetadata::None,
-                simulation: None,
-            },
-            value: BigInt::from(9),
-            network_fee: BigInt::from(1),
-            simulation: None,
-        }
-    }
 
     #[test]
     fn test_signer_input_uses_wallet_account_and_network_fee() {
-        let input = send_input(Chain::Solana, TransactionInputType::Transfer { asset: Asset::mock_sol() });
+        let input = SendInput::mock(Chain::Solana, TransactionInputType::Transfer { asset: Asset::mock_sol() });
 
         let signer_input = input.signer_input().unwrap();
 
@@ -504,10 +552,11 @@ mod tests {
 
     #[test]
     fn test_signer_input_refuses_to_sign_for_an_address_the_transaction_was_not_priced_for() {
-        let matching = send_input_from(Chain::Solana, TransactionInputType::Transfer { asset: Asset::mock_sol() }, "sender");
+        let matching = SendInput::mock(Chain::Solana, TransactionInputType::Transfer { asset: Asset::mock_sol() });
         assert!(matching.signer_input().is_ok());
 
-        let switched = send_input_from(Chain::Solana, TransactionInputType::Transfer { asset: Asset::mock_sol() }, "other");
+        let mut switched = matching.clone();
+        switched.confirm.input.from = Account::mock(Chain::Solana, "other");
 
         assert!(matches!(
             switched.signer_input().unwrap_err(),
@@ -517,7 +566,7 @@ mod tests {
 
     #[test]
     fn test_signer_input_requires_account_for_chain() {
-        let input = send_input(Chain::Ethereum, TransactionInputType::Transfer { asset: Asset::mock_sol() });
+        let input = SendInput::mock(Chain::Ethereum, TransactionInputType::Transfer { asset: Asset::mock_sol() });
 
         match input.signer_input() {
             Err(GemConfirmError::AccountMissing { chain: Chain::Solana }) => {}
@@ -531,18 +580,11 @@ mod tests {
             asset: Asset::mock_sol(),
             approval_data: ApprovalData::mock(),
         };
-        let signed = |transaction_type: TransactionType| {
-            vec![GemSignedTransaction {
-                data: "signed".to_string(),
-                transaction_type,
-            }]
-        };
-
-        assert!(approval.validate_approvals(&signed(TransactionType::TokenApproval)).is_ok());
+        assert!(approval.validate_approvals(&[GemSignedTransaction::mock(TransactionType::TokenApproval)]).is_ok());
 
         let transfer = TransactionInputType::Transfer { asset: Asset::mock_sol() };
-        assert!(transfer.validate_approvals(&signed(TransactionType::Transfer)).is_ok());
-        match transfer.validate_approvals(&signed(TransactionType::TokenApproval)) {
+        assert!(transfer.validate_approvals(&[GemSignedTransaction::mock(TransactionType::Transfer)]).is_ok());
+        match transfer.validate_approvals(&[GemSignedTransaction::mock(TransactionType::TokenApproval)]) {
             Err(GemConfirmError::ApprovalInvalid { .. }) => {}
             result => panic!("expected an invalid approval error, got {result:?}"),
         }
@@ -556,8 +598,7 @@ mod tests {
             extra: TransferDataExtra {
                 output_action: TransferDataOutputAction::Sign,
                 ..TransferDataExtra::mock()
-            }
-            .into(),
+            },
         };
 
         assert_eq!(generic.output().output_action, TransferDataOutputAction::Sign);
@@ -566,32 +607,13 @@ mod tests {
             TransferDataOutputAction::Send
         );
     }
-    fn rate(priority: FeePriority, gas_price: &str) -> GemFeeRate {
-        GemFeeRate {
-            priority,
-            gas_price_type: GasPriceType::Regular {
-                gas_price: gas_price.parse().unwrap(),
-            },
-        }
-    }
-
-    fn loaded_fee(fee: u64, options: HashMap<FeeOption, BigInt>) -> GemTransactionLoadFee {
-        GemTransactionLoadFee {
-            fee: BigInt::from(fee),
-            gas_price_type: GasPriceType::Regular { gas_price: BigInt::from(1) },
-            gas_limit: BigInt::from(1),
-            options: GemFeeOptions { options },
-            fee_asset: AssetId::from_chain(Chain::Ethereum),
-        }
-    }
-
     #[test]
     fn test_fee_rate_rows_scale_the_loaded_fee_by_each_rate() {
-        let rates = vec![rate(FeePriority::Normal, "10"), rate(FeePriority::Fast, "25")];
+        let rates = vec![GemFeeRate::mock(FeePriority::Normal, 10), GemFeeRate::mock(FeePriority::Fast, 25)];
         let ethereum = Asset::from_chain(Chain::Ethereum);
         let normal = GemConfirmFeeSelection::Priority { priority: FeePriority::Normal };
 
-        let rows = fee_rate_rows(Chain::Ethereum, &ethereum, &rates, &normal, &loaded_fee(1_000, HashMap::new()));
+        let rows = fee_rate_rows(Chain::Ethereum, &ethereum, &rates, &normal, &GemTransactionLoadFee::mock(1_000));
         assert_eq!(rows.rows[0].fee, Some(BigInt::from(1_000)), "the selected rate shows the fee that was loaded");
         assert_eq!(rows.rows[1].fee, Some(BigInt::from(2_500)), "another rate scales the loaded fee by its unit value");
         assert_eq!((rows.unit_type, rows.unit_decimals), (FeeUnitType::Gwei, 9));
@@ -604,7 +626,7 @@ mod tests {
             &ethereum,
             &rates,
             &GemConfirmFeeSelection::Custom { gas_price: BigInt::from(50) },
-            &loaded_fee(5_000, HashMap::new()),
+            &GemTransactionLoadFee::mock(5_000),
         );
         assert_eq!(custom.rows[0].fee, Some(BigInt::from(1_000)), "a custom rate is the base the loaded fee was computed for");
         assert_eq!(custom.selected_total, Some(BigInt::from(50)));
@@ -614,28 +636,54 @@ mod tests {
             &ethereum,
             &rates,
             &GemConfirmFeeSelection::Custom { gas_price: BigInt::ZERO },
-            &loaded_fee(5_000, HashMap::new()),
+            &GemTransactionLoadFee::mock(5_000),
         );
         assert!(zero.rows.iter().all(|row| row.fee.is_none()), "nothing scales against a zero base");
 
         let bitcoin = Asset::from_chain(Chain::Bitcoin);
-        assert!(fee_rate_rows(Chain::Bitcoin, &bitcoin, &rates, &normal, &loaded_fee(5_000, HashMap::new())).supports_custom_fee);
+        assert!(fee_rate_rows(Chain::Bitcoin, &bitcoin, &rates, &normal, &GemTransactionLoadFee::mock(5_000)).supports_custom_fee);
         assert!(
-            !fee_rate_rows(Chain::Bitcoin, &bitcoin, &rates[..1], &normal, &loaded_fee(5_000, HashMap::new())).supports_custom_fee,
+            !fee_rate_rows(Chain::Bitcoin, &bitcoin, &rates[..1], &normal, &GemTransactionLoadFee::mock(5_000)).supports_custom_fee,
             "one rate is nothing to pick a custom value against"
         );
 
         let solana = Asset::from_chain(Chain::Solana);
-        let native = fee_rate_rows(Chain::Solana, &solana, &rates[..1], &normal, &loaded_fee(5_000, HashMap::new()));
+        let native = fee_rate_rows(Chain::Solana, &solana, &rates[..1], &normal, &GemTransactionLoadFee::mock(5_000));
         assert_eq!((native.unit_type, native.unit_decimals), (FeeUnitType::Native, solana.decimals as u32));
     }
 
     #[test]
+    fn test_a_row_displays_the_fee_on_a_native_unit_chain_and_the_rate_elsewhere() {
+        let rates = vec![GemFeeRate::mock(FeePriority::Normal, 10), GemFeeRate::mock(FeePriority::Fast, 25)];
+        let normal = GemConfirmFeeSelection::Priority { priority: FeePriority::Normal };
+
+        let gwei = fee_rate_rows(Chain::Ethereum, &Asset::from_chain(Chain::Ethereum), &rates, &normal, &GemTransactionLoadFee::mock(1_000));
+        assert_eq!(gwei.rows[1].display_value, BigInt::from(25), "a gwei row shows the rate the user picks");
+
+        let native = fee_rate_rows(Chain::Solana, &Asset::from_chain(Chain::Solana), &rates, &normal, &GemTransactionLoadFee::mock(1_000));
+        assert_eq!(native.rows[1].display_value, BigInt::from(2_500), "a native-unit row shows what the transfer costs");
+
+        let unscaled = fee_rate_rows(
+            Chain::Solana,
+            &Asset::from_chain(Chain::Solana),
+            &rates,
+            &GemConfirmFeeSelection::Custom { gas_price: BigInt::ZERO },
+            &GemTransactionLoadFee::mock(1_000),
+        );
+        assert_eq!(unscaled.rows[1].display_value, BigInt::from(25), "with no fee to scale, the rate stands in");
+    }
+
+    #[test]
     fn test_fee_rate_rows_keep_fixed_options_out_of_the_scaling() {
-        let rates = vec![rate(FeePriority::Normal, "10000"), rate(FeePriority::Fast, "20000")];
+        let rates = vec![GemFeeRate::mock(FeePriority::Normal, 10000), GemFeeRate::mock(FeePriority::Fast, 20000)];
         let solana = Asset::from_chain(Chain::Solana);
         let rent = BigInt::from(2_039_280u64);
-        let loaded = loaded_fee(2_049_280, HashMap::from([(FeeOption::TokenAccountCreation, rent.clone())]));
+        let loaded = GemTransactionLoadFee {
+            options: GemFeeOptions {
+                options: HashMap::from([(FeeOption::TokenAccountCreation, rent.clone())]),
+            },
+            ..GemTransactionLoadFee::mock(2_049_280)
+        };
 
         let rows = fee_rate_rows(Chain::Solana, &solana, &rates, &GemConfirmFeeSelection::Priority { priority: FeePriority::Normal }, &loaded);
         assert_eq!(rows.rows[0].fee, Some(loaded.fee.clone()), "the selected rate shows the fee that was loaded");
@@ -646,26 +694,70 @@ mod tests {
             &solana,
             &rates,
             &GemConfirmFeeSelection::Priority { priority: FeePriority::Fast },
-            &loaded_fee(2_059_280, HashMap::from([(FeeOption::TokenAccountCreation, rent.clone())])),
+            &GemTransactionLoadFee {
+                options: GemFeeOptions {
+                    options: HashMap::from([(FeeOption::TokenAccountCreation, rent.clone())]),
+                },
+                ..GemTransactionLoadFee::mock(2_059_280)
+            },
         );
         assert_eq!(fast.rows[0].fee, Some(BigInt::from(10_000) + &rent), "the rent does not shrink with the priority either");
     }
 
     #[test]
-    fn test_displayed_fee_rates_list_normal_before_fast() {
-        let rates = displayed_fee_rates(vec![rate(FeePriority::Fast, "20"), rate(FeePriority::Normal, "10")]);
+    fn test_confirmation_fee_rates_list_normal_before_fast() {
+        let rates = confirmation_fee_rates(
+            Chain::Ethereum,
+            false,
+            vec![GemFeeRate::mock(FeePriority::Fast, 20), GemFeeRate::mock(FeePriority::Normal, 10)],
+        );
         assert_eq!(rates.iter().map(|rate| rate.priority).collect::<Vec<_>>(), vec![FeePriority::Normal, FeePriority::Fast]);
     }
 
     #[test]
+    fn test_confirmation_fee_rates_arbitrum_stack() {
+        for (chain, is_max_amount, base_fee) in [
+            (Chain::Arbitrum, false, 40),
+            (Chain::Robinhood, false, 40),
+            (Chain::Arbitrum, true, 20),
+            (Chain::Robinhood, true, 20),
+            (Chain::Ethereum, false, 20),
+            (Chain::Optimism, false, 20),
+            (Chain::ZkSync, false, 20),
+        ] {
+            let rates = confirmation_fee_rates(
+                chain,
+                is_max_amount,
+                vec![
+                    GemFeeRate {
+                        priority: FeePriority::Normal,
+                        gas_price_type: GasPriceType::eip1559(20, 5),
+                    },
+                    GemFeeRate {
+                        priority: FeePriority::Fast,
+                        gas_price_type: GasPriceType::eip1559(20, 10),
+                    },
+                ],
+            );
+            assert_eq!(
+                rates.iter().map(|rate| rate.gas_price_type.clone()).collect::<Vec<_>>(),
+                vec![GasPriceType::eip1559(base_fee, 5), GasPriceType::eip1559(base_fee, 10)],
+                "{chain:?} max={is_max_amount}"
+            );
+            let custom = GemConfirmFeeSelection::Custom { gas_price: BigInt::from(30) }.select_fee_rate(&rates).unwrap();
+            assert_eq!(custom.gas_price_type, GasPriceType::eip1559(25, 5));
+        }
+    }
+
+    #[test]
     fn test_select_fee_rate() {
-        let rates = vec![rate(FeePriority::Normal, "10"), rate(FeePriority::Fast, "20")];
+        let rates = vec![GemFeeRate::mock(FeePriority::Normal, 10), GemFeeRate::mock(FeePriority::Fast, 20)];
 
         let fast = (GemConfirmFeeSelection::Priority { priority: FeePriority::Fast }).select_fee_rate(&rates).unwrap();
         assert_eq!(fast.priority, FeePriority::Fast);
 
         let fallback = (GemConfirmFeeSelection::Priority { priority: FeePriority::Normal })
-            .select_fee_rate(&[rate(FeePriority::Fast, "20")])
+            .select_fee_rate(&[GemFeeRate::mock(FeePriority::Fast, 20)])
             .unwrap();
         assert_eq!(fallback.priority, FeePriority::Fast);
 
@@ -691,7 +783,7 @@ mod tests {
                 priority_fee: BigInt::from(5),
             },
         };
-        let rates = vec![rate(FeePriority::Fast, "1"), eip1559];
+        let rates = vec![GemFeeRate::mock(FeePriority::Fast, 1), eip1559];
 
         let raised = (GemConfirmFeeSelection::Custom { gas_price: BigInt::from(30) }).select_fee_rate(&rates).unwrap();
         assert_eq!(raised.priority, FeePriority::Normal);
@@ -707,7 +799,7 @@ mod tests {
         }
 
         let without_normal = (GemConfirmFeeSelection::Custom { gas_price: BigInt::from(4) })
-            .select_fee_rate(&[rate(FeePriority::Fast, "9")])
+            .select_fee_rate(&[GemFeeRate::mock(FeePriority::Fast, 9)])
             .unwrap();
         assert_eq!(without_normal.priority, FeePriority::Fast);
         match without_normal.gas_price_type {
@@ -723,11 +815,51 @@ mod tests {
 
     #[test]
     fn test_a_custom_gas_price_carries_a_big_integer_so_a_malformed_one_cannot_read_as_zero() {
-        let rates = vec![rate(FeePriority::Normal, "10")];
+        let rates = vec![GemFeeRate::mock(FeePriority::Normal, 10)];
         let selection = GemConfirmFeeSelection::Custom { gas_price: GemBigInt::from(33) };
         match selection.select_fee_rate(&rates).unwrap().gas_price_type {
             GasPriceType::Regular { gas_price } => assert_eq!(gas_price, BigInt::from(33)),
             gas_price_type => panic!("expected a regular custom gas price, got {gas_price_type:?}"),
+        }
+    }
+
+    #[test]
+    fn test_validate_simulation() {
+        for chain in [Chain::Solana, Chain::Ethereum, Chain::Sui] {
+            let payment = TransactionInputType::Generic {
+                asset: Asset::from_chain(chain),
+                metadata: ApplicationMetadata {
+                    source: ApplicationMetadataSource::Payment,
+                    ..ApplicationMetadata::mock()
+                },
+                extra: TransferDataExtra::mock(),
+            };
+            let wallet_connect = TransactionInputType::Generic {
+                asset: Asset::from_chain(chain),
+                metadata: ApplicationMetadata::mock(),
+                extra: TransferDataExtra::mock(),
+            };
+            for warning in [
+                SimulationWarning::execution_error("InstructionError"),
+                SimulationWarning::validation_error("Invalid transaction"),
+            ] {
+                let message = warning.message.clone().unwrap();
+                let simulation = SimulationResult::new(vec![warning], vec![]);
+                assert_eq!(payment.validate_simulation(&simulation).map_err(|error| error.to_string()), Err(message));
+                assert!(wallet_connect.validate_simulation(&simulation).is_ok());
+            }
+            assert!(payment.validate_simulation(&SimulationResult::default()).is_ok());
+            assert!(
+                payment
+                    .validate_simulation(&SimulationResult::new(vec![SimulationWarning::mock(SimulationWarningType::SuspiciousSpender)], vec![]))
+                    .is_ok()
+            );
+            assert_eq!(
+                payment
+                    .validate_simulation(&SimulationResult::new(vec![SimulationWarning::mock(SimulationWarningType::ValidationError)], vec![]))
+                    .map_err(|error| error.to_string()),
+                Err("Payment simulation failed".to_string())
+            );
         }
     }
 
@@ -739,16 +871,24 @@ mod tests {
             to_asset: Asset::mock_spl_token(),
             swap_data: SwapData::mock(),
         };
-        let payment = TransactionInputType::Generic {
-            asset: Asset::mock_sol(),
-            metadata: ApplicationMetadata::mock(),
-            extra: TransferDataExtra::mock().into(),
-        };
-        let ethereum_payment = TransactionInputType::Generic {
-            asset: Asset::mock(),
-            metadata: ApplicationMetadata::mock(),
-            extra: TransferDataExtra::mock().into(),
-        };
+        for (chain, source, skip_preflight) in [
+            (Chain::Solana, ApplicationMetadataSource::Payment, false),
+            (Chain::Solana, ApplicationMetadataSource::WalletConnect, true),
+            (Chain::Ethereum, ApplicationMetadataSource::Payment, false),
+            (Chain::Ethereum, ApplicationMetadataSource::WalletConnect, false),
+            (Chain::Sui, ApplicationMetadataSource::Payment, false),
+            (Chain::Sui, ApplicationMetadataSource::WalletConnect, false),
+        ] {
+            let input = TransactionInputType::Generic {
+                asset: Asset::from_chain(chain),
+                metadata: ApplicationMetadata {
+                    source,
+                    ..ApplicationMetadata::mock()
+                },
+                extra: TransferDataExtra::mock(),
+            };
+            assert_eq!(input.broadcast_options().skip_preflight, skip_preflight, "{chain}: {source:?}");
+        }
 
         let approve = TransactionInputType::TokenApprove {
             asset: Asset::mock_sol(),
@@ -760,7 +900,9 @@ mod tests {
         };
         let perpetual = TransactionInputType::Perpetual {
             asset: Asset::mock_sol(),
-            perpetual_type: PerpetualType::Open(PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None)),
+            perpetual_type: PerpetualType::Open {
+                data: PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None),
+            },
         };
         let ethereum_swap = TransactionInputType::Swap {
             from_asset: Asset::mock(),
@@ -769,12 +911,10 @@ mod tests {
         };
 
         assert!(swap.broadcast_options().skip_preflight);
-        assert!(payment.broadcast_options().skip_preflight);
         assert!(!transfer.broadcast_options().skip_preflight);
         assert!(!approve.broadcast_options().skip_preflight);
         assert!(!stake.broadcast_options().skip_preflight);
         assert!(!perpetual.broadcast_options().skip_preflight);
-        assert!(!ethereum_payment.broadcast_options().skip_preflight);
         assert!(!ethereum_swap.broadcast_options().skip_preflight);
 
         assert_eq!(broadcast_delay_milliseconds(Chain::Ethereum), 0);
@@ -782,6 +922,49 @@ mod tests {
         assert_eq!(broadcast_delay_milliseconds(Chain::Solana), 500);
         assert_eq!(broadcast_delay_milliseconds(Chain::Bitcoin), 500);
         assert_eq!(broadcast_delay_milliseconds(Chain::Polygon), 0);
+    }
+
+    #[test]
+    fn test_a_swap_scans_the_contract_that_receives_the_funds() {
+        let swap = GemTransactionPreloadInput {
+            input_type: TransactionInputType::Swap {
+                from_asset: Asset::mock_eth(),
+                to_asset: Asset::mock_spl_token(),
+                swap_data: SwapData {
+                    data: SwapQuoteData {
+                        to: "0xrouter".to_string(),
+                        ..SwapQuoteData::mock()
+                    },
+                    ..SwapData::mock()
+                },
+            },
+            sender_address: "sender".to_string(),
+            destination_address: "own-solana-address".to_string(),
+            references: vec![],
+        };
+
+        let target = scan_payload(swap.clone()).unwrap().target;
+        assert_eq!(target.address, "0xrouter", "the scan asks about the contract, not the address the user already owns");
+        assert_eq!(target.asset_id, Asset::mock_eth().id, "the contract is on the chain the funds leave");
+
+        let without_contract = scan_payload(GemTransactionPreloadInput {
+            input_type: TransactionInputType::Swap {
+                from_asset: Asset::mock_eth(),
+                to_asset: Asset::mock_spl_token(),
+                swap_data: SwapData {
+                    data: SwapQuoteData {
+                        to: String::new(),
+                        ..SwapQuoteData::mock()
+                    },
+                    ..SwapData::mock()
+                },
+            },
+            destination_address: "recipient".to_string(),
+            ..swap
+        })
+        .unwrap()
+        .target;
+        assert_eq!(without_contract.address, "recipient", "a swap with no contract falls back to the recipient");
     }
 
     #[test]
@@ -796,53 +979,163 @@ mod tests {
             destination_address: "router".to_string(),
             references: vec![],
         };
-        let payload = scan_payload(swap);
+        let payload = scan_payload(swap).unwrap();
         assert_eq!(payload.transaction_type, TransactionType::Swap);
         assert_eq!(payload.origin.asset_id, Asset::mock_sol().id);
-        assert_eq!(payload.target.asset_id, Asset::mock_spl_token().id);
-        assert_eq!(payload.target.address, "router");
         assert_eq!(payload.website, None);
 
         let generic = GemTransactionPreloadInput {
             input_type: TransactionInputType::Generic {
                 asset: Asset::mock_sol(),
                 metadata: ApplicationMetadata::mock(),
-                extra: TransferDataExtra::mock().into(),
+                extra: TransferDataExtra::mock(),
             },
             sender_address: "sender".to_string(),
             destination_address: "contract".to_string(),
             references: vec![],
         };
-        let payload = scan_payload(generic);
+        let payload = scan_payload(generic).unwrap();
         assert_eq!(payload.transaction_type, TransferDataExtra::mock().transaction_type);
         assert_eq!(payload.website, Some(ApplicationMetadata::mock().url));
     }
 
     #[test]
+    fn test_requires_scan() {
+        for (input_type, should_scan) in [
+            (TransactionInputType::Deposit { asset: Asset::mock_erc20() }, false),
+            (
+                TransactionInputType::Earn {
+                    asset: Asset::mock_erc20(),
+                    earn_type: EarnType::Deposit(DelegationValidator::mock()),
+                    data: ContractCallData::mock(),
+                },
+                false,
+            ),
+            (TransactionInputType::Transfer { asset: Asset::mock_erc20() }, true),
+            (TransactionInputType::Withdrawal { asset: Asset::mock_erc20() }, false),
+            (
+                TransactionInputType::Earn {
+                    asset: Asset::mock_erc20(),
+                    earn_type: EarnType::Withdraw(Delegation::mock()),
+                    data: ContractCallData::mock(),
+                },
+                false,
+            ),
+            (
+                TransactionInputType::Account {
+                    asset: Asset::mock_erc20(),
+                    account_type: AccountDataType::Activate,
+                },
+                false,
+            ),
+            (
+                TransactionInputType::Stake {
+                    asset: Asset::mock_sol(),
+                    stake_type: StakeType::Rewards(vec![]),
+                },
+                false,
+            ),
+            (
+                TransactionInputType::TransferNft {
+                    asset: Asset::mock_eth(),
+                    nft_asset: NFTAsset::mock(),
+                },
+                false,
+            ),
+            (
+                TransactionInputType::Perpetual {
+                    asset: Asset::mock_erc20(),
+                    perpetual_type: PerpetualType::Open {
+                        data: PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None),
+                    },
+                },
+                false,
+            ),
+            (
+                TransactionInputType::Swap {
+                    from_asset: Asset::mock_eth(),
+                    to_asset: Asset::mock_erc20(),
+                    swap_data: SwapData::mock(),
+                },
+                true,
+            ),
+            (
+                TransactionInputType::TokenApprove {
+                    asset: Asset::mock_erc20(),
+                    approval_data: ApprovalData::mock(),
+                },
+                true,
+            ),
+            (
+                TransactionInputType::Generic {
+                    asset: Asset::mock_erc20(),
+                    metadata: ApplicationMetadata::mock(),
+                    extra: TransferDataExtra {
+                        transaction_type: TransactionType::EarnDeposit,
+                        ..TransferDataExtra::mock()
+                    },
+                },
+                true,
+            ),
+        ] {
+            assert_eq!(input_type.requires_scan(), should_scan);
+        }
+    }
+
+    #[test]
     fn test_simulation_payload_only_for_utf8_payment_calls() {
-        let mut extra = TransferDataExtra::mock();
-        extra.data = Some(b"0xdeadbeef".to_vec());
-        let mut metadata = ApplicationMetadata::mock();
-        metadata.source = ApplicationMetadataSource::Payment;
-        let generic = |metadata: ApplicationMetadata, extra: TransferDataExtra| TransactionInputType::Generic {
-            asset: Asset::mock_sol(),
-            metadata,
-            extra: extra.into(),
+        let asset = Asset::mock_sol();
+        let metadata = ApplicationMetadata {
+            source: ApplicationMetadataSource::Payment,
+            ..ApplicationMetadata::mock()
+        };
+        let extra = TransferDataExtra {
+            data: Some(b"0xdeadbeef".to_vec()),
+            ..TransferDataExtra::mock()
         };
 
-        assert_eq!(generic(metadata.clone(), extra.clone()).simulation_payload(), Some("0xdeadbeef".to_string()));
-
-        let mut wallet_connect = metadata.clone();
-        wallet_connect.source = ApplicationMetadataSource::WalletConnect;
-        assert_eq!(generic(wallet_connect, extra.clone()).simulation_payload(), None);
-
-        let mut binary = extra.clone();
-        binary.data = Some(vec![0xff, 0xfe]);
-        assert_eq!(generic(metadata.clone(), binary).simulation_payload(), None);
-
-        let mut empty = extra;
-        empty.data = None;
-        assert_eq!(generic(metadata, empty).simulation_payload(), None);
+        assert_eq!(
+            TransactionInputType::Generic {
+                asset: asset.clone(),
+                metadata: metadata.clone(),
+                extra: extra.clone(),
+            }
+            .simulation_payload(),
+            Some("0xdeadbeef".to_string())
+        );
+        assert_eq!(
+            TransactionInputType::Generic {
+                asset: asset.clone(),
+                metadata: ApplicationMetadata {
+                    source: ApplicationMetadataSource::WalletConnect,
+                    ..metadata.clone()
+                },
+                extra: extra.clone(),
+            }
+            .simulation_payload(),
+            None
+        );
+        assert_eq!(
+            TransactionInputType::Generic {
+                asset: asset.clone(),
+                metadata: metadata.clone(),
+                extra: TransferDataExtra {
+                    data: Some(vec![0xff, 0xfe]),
+                    ..extra.clone()
+                },
+            }
+            .simulation_payload(),
+            None
+        );
+        assert_eq!(
+            TransactionInputType::Generic {
+                asset,
+                metadata,
+                extra: TransferDataExtra { data: None, ..extra },
+            }
+            .simulation_payload(),
+            None
+        );
 
         let swap = TransactionInputType::Swap {
             from_asset: Asset::mock_sol(),
@@ -854,53 +1147,9 @@ mod tests {
 
     #[test]
     fn test_pending_transactions_follow_broadcast_hashes() {
-        let wallet = primitives::Wallet {
-            id: primitives::WalletId::Multicoin("wallet".to_string()),
-            external_id: None,
-            name: "wallet".to_string(),
-            index: 0,
-            wallet_type: primitives::WalletType::Multicoin,
-            accounts: vec![Account {
-                chain: Chain::Solana,
-                address: "sender".to_string(),
-                derivation_path: String::new(),
-                extended_public_key: None,
-            }],
-            is_pinned: false,
-            image_url: None,
-            source: primitives::WalletSource::Import,
-        };
-        let input = SendInput {
-            wallet: wallet.clone(),
-            confirm: GemConfirmData {
-                input: GemConfirmInput {
-                    from: Account::mock(Chain::Solana, "sender"),
-                    transfer: GemTransferData {
-                        input_type: TransactionInputType::Transfer { asset: Asset::mock_sol() },
-                        recipient: crate::services::transfer::GemRecipient {
-                            address: "recipient".to_string(),
-                            name: None,
-                            memo: None,
-                            references: vec![],
-                        },
-                        value: BigInt::from(10),
-                        use_max_amount: false,
-                    },
-                },
-                fee: primitives::TransactionFee::new_from_fee(BigInt::from(1), AssetId::from_chain(Chain::Solana)).into(),
-                selected_priority: FeePriority::Normal,
-                fee_rates: vec![],
-                metadata: GemTransactionLoadMetadata::None,
-                simulation: None,
-            },
-            value: BigInt::from(10),
-            network_fee: BigInt::from(1),
-            simulation: None,
-        };
-        let signed = vec![GemSignedTransaction {
-            data: "signed".to_string(),
-            transaction_type: primitives::TransactionType::Transfer,
-        }];
+        let mut input = SendInput::mock(Chain::Solana, TransactionInputType::Transfer { asset: Asset::mock_sol() });
+        input.value = BigInt::from(10);
+        let signed = vec![GemSignedTransaction::mock(primitives::TransactionType::Transfer)];
         let transactions = input.pending_transactions(&["hash".to_string()], &signed).unwrap();
         assert_eq!(transactions.len(), 1);
         assert_eq!(transactions[0].id.hash, "hash");
@@ -945,14 +1194,15 @@ mod tests {
 
     #[test]
     fn test_insufficient_network_fee_only_for_empty_native_balances() {
-        assert!(is_insufficient_network_fee(AssetId::from_chain(Chain::Ethereum), "0"));
-        assert!(is_insufficient_network_fee(AssetId::from_chain(Chain::Ethereum), ""));
-        assert!(!is_insufficient_network_fee(AssetId::from_chain(Chain::Ethereum), "10"));
-        assert!(!is_insufficient_network_fee(AssetId::from_chain(Chain::Tron), "0"));
-        assert!(!is_insufficient_network_fee(AssetId::from_chain(Chain::HyperCore), "0"));
+        let empty = GemBigUint::ZERO;
+        let funded = GemBigUint::from(10u32);
+        assert!(is_insufficient_network_fee(&AssetId::from_chain(Chain::Ethereum), &empty));
+        assert!(!is_insufficient_network_fee(&AssetId::from_chain(Chain::Ethereum), &funded));
+        assert!(!is_insufficient_network_fee(&AssetId::from_chain(Chain::Tron), &empty));
+        assert!(!is_insufficient_network_fee(&AssetId::from_chain(Chain::HyperCore), &empty));
         assert!(!is_insufficient_network_fee(
-            AssetId::from(Chain::Ethereum, Some("0xdac17f958d2ee523a2206206994597c13d831ec7".into())),
-            "0"
+            &AssetId::from(Chain::Ethereum, Some("0xdac17f958d2ee523a2206206994597c13d831ec7".into())),
+            &empty
         ));
     }
 
@@ -968,19 +1218,11 @@ mod tests {
         };
         let malicious = ScanTransaction {
             is_malicious: Some(true),
-            is_memo_required: Some(false),
-            is_scan_complete: false,
-            malicious_addresses: None,
-            malicious_assets: None,
-            malicious_website: None,
+            ..safe.clone()
         };
         let memo_required = ScanTransaction {
-            is_malicious: Some(false),
             is_memo_required: Some(true),
-            is_scan_complete: false,
-            malicious_addresses: None,
-            malicious_assets: None,
-            malicious_website: None,
+            ..safe.clone()
         };
 
         assert!(validate_scan(None, None, "USDT").is_ok());
@@ -1002,7 +1244,16 @@ mod tests {
         let funded = Asset::from_chain(Chain::Tempo);
         let empty = Asset::from_chain(Chain::Ethereum);
         let assets = vec![funded.clone(), empty.clone()];
-        let balances = vec![balance(&funded.id, 1), balance(&empty.id, 0)];
+        let balances = vec![
+            GemAssetBalance {
+                asset_id: funded.id.clone(),
+                ..GemAssetBalance::mock_with_available(1)
+            },
+            GemAssetBalance {
+                asset_id: empty.id.clone(),
+                ..GemAssetBalance::mock_with_available(0)
+            },
+        ];
 
         let selectable = selectable_fee_assets(assets, balances, vec![]);
 
@@ -1020,20 +1271,22 @@ mod tests {
             to_asset: Asset::from_chain(Chain::Bitcoin),
             swap_data,
         };
-        let mut data = send_input_from(chain, input_type, "sender").confirm;
+        let mut data = SendInput::mock(chain, input_type).confirm;
         data.input.transfer.use_max_amount = true;
         data.input.transfer.value = BigInt::from(50_200);
         data.fee.fee = BigInt::from(537);
 
-        let metadata = GemConfirmMetadata {
-            asset_balance: balance(&asset.id, 50_200),
-            fee_asset_balance: balance(&asset.id, 50_200),
-            prices: vec![],
-        };
+        let metadata = GemConfirmMetadata::mock(&asset.id, 50_200);
 
         match data.preload_amount(&metadata, &asset).unwrap() {
             GemTransferAmountResult::Error {
-                error: GemConfirmError::BelowSwapMinimum { asset: error_asset, provider, provider_name, requirement },
+                error:
+                    GemConfirmError::BelowSwapMinimum {
+                        asset: error_asset,
+                        provider,
+                        provider_name,
+                        requirement,
+                    },
             } => {
                 assert_eq!(error_asset, asset);
                 assert_eq!(provider, SwapProvider::NearIntents, "the sheet shows the icon of the provider that set the minimum");
@@ -1050,21 +1303,13 @@ mod tests {
     fn test_preload_reports_the_amount_error_instead_of_failing_the_whole_preload() {
         let chain = Chain::Solana;
         let asset = Asset::from_chain(chain);
-        let mut data = send_input_from(chain, TransactionInputType::Transfer { asset: asset.clone() }, "sender").confirm;
+        let mut data = SendInput::mock(chain, TransactionInputType::Transfer { asset: asset.clone() }).confirm;
         data.input.transfer.use_max_amount = false;
         data.input.transfer.value = BigInt::from(1_000);
         data.fee.fee = BigInt::from(1);
 
-        let short = GemConfirmMetadata {
-            asset_balance: balance(&asset.id, 10),
-            fee_asset_balance: balance(&asset.id, 10),
-            prices: vec![],
-        };
-        let funded = GemConfirmMetadata {
-            asset_balance: balance(&asset.id, 2_000_000),
-            fee_asset_balance: balance(&asset.id, 2_000_000),
-            prices: vec![],
-        };
+        let short = GemConfirmMetadata::mock(&asset.id, 10);
+        let funded = GemConfirmMetadata::mock(&asset.id, 2_000_000);
 
         match data.preload_amount(&short, &asset).unwrap() {
             GemTransferAmountResult::Error {
@@ -1095,25 +1340,8 @@ mod tests {
 
         assert!(matches!(approval.approval_value(), Some((id, GemApprovalValue::Unlimited)) if id == asset.id));
         assert!((TransactionInputType::Transfer { asset }).approval_value().is_none());
-        assert!(matches!(gem_approval_value(&GemBigUint::from(42u32), false), GemApprovalValue::Exact { value } if value == GemBigUint::from(42u32)));
-        assert!(matches!(gem_approval_value(&GemBigUint::from(42u32), true), GemApprovalValue::Unlimited));
-    }
-
-    fn balance(asset_id: &AssetId, available: u32) -> GemAssetBalance {
-        GemAssetBalance {
-            asset_id: asset_id.clone(),
-            available: GemBigUint::from(available),
-            frozen: GemBigUint::ZERO,
-            locked: GemBigUint::ZERO,
-            staked: GemBigUint::ZERO,
-            pending: GemBigUint::ZERO,
-            pending_unconfirmed: GemBigUint::ZERO,
-            rewards: GemBigUint::ZERO,
-            reserved: GemBigUint::ZERO,
-            withdrawable: GemBigUint::ZERO,
-            earn: GemBigUint::ZERO,
-            metadata: None,
-        }
+        assert!(matches!(approval_value_from(Some(&GemBigUint::from(42u32)), false), GemApprovalValue::Exact { value } if value == GemBigUint::from(42u32)));
+        assert!(matches!(approval_value_from(Some(&GemBigUint::from(42u32)), true), GemApprovalValue::Unlimited));
     }
 
     #[test]
@@ -1128,10 +1356,26 @@ mod tests {
     }
 
     #[test]
+    fn test_balance_change_sign_follows_the_value() {
+        assert_eq!(balance_change_sign(&BigInt::from(750_000)), GemAmountSign::Incoming);
+        assert_eq!(balance_change_sign(&BigInt::from(-100_005_000)), GemAmountSign::Outgoing);
+        assert_eq!(balance_change_sign(&BigInt::ZERO), GemAmountSign::None);
+    }
+
+    #[test]
     fn test_build_metadata_reads_each_balance_from_its_own_asset() {
         let asset_id = AssetId::from_chain(Chain::Bitcoin);
         let fee_asset_id = AssetId::from_chain(Chain::Ethereum);
-        let balances = vec![balance(&fee_asset_id, 7), balance(&asset_id, 3)];
+        let balances = vec![
+            GemAssetBalance {
+                asset_id: fee_asset_id.clone(),
+                ..GemAssetBalance::mock_with_available(7)
+            },
+            GemAssetBalance {
+                asset_id: asset_id.clone(),
+                ..GemAssetBalance::mock_with_available(3)
+            },
+        ];
 
         let metadata = build_metadata(asset_id.clone(), fee_asset_id.clone(), balances, vec![]).unwrap();
 
@@ -1144,11 +1388,27 @@ mod tests {
         let asset_id = AssetId::from_chain(Chain::Bitcoin);
         let fee_asset_id = AssetId::from_chain(Chain::Ethereum);
 
-        match build_metadata(asset_id.clone(), fee_asset_id.clone(), vec![balance(&fee_asset_id, 7)], vec![]) {
+        match build_metadata(
+            asset_id.clone(),
+            fee_asset_id.clone(),
+            vec![GemAssetBalance {
+                asset_id: fee_asset_id.clone(),
+                ..GemAssetBalance::mock_with_available(7)
+            }],
+            vec![],
+        ) {
             Err(GemConfirmError::BalanceMissing { asset_id: missing }) => assert_eq!(missing, asset_id),
             result => panic!("expected the asset balance to be required, got {result:?}"),
         }
-        match build_metadata(asset_id.clone(), fee_asset_id.clone(), vec![balance(&asset_id, 3)], vec![]) {
+        match build_metadata(
+            asset_id.clone(),
+            fee_asset_id.clone(),
+            vec![GemAssetBalance {
+                asset_id: asset_id.clone(),
+                ..GemAssetBalance::mock_with_available(3)
+            }],
+            vec![],
+        ) {
             Err(GemConfirmError::BalanceMissing { asset_id: missing }) => assert_eq!(missing, fee_asset_id),
             result => panic!("expected the fee balance to be required, got {result:?}"),
         }
@@ -1156,14 +1416,11 @@ mod tests {
 
     #[test]
     fn test_preload_simulation_is_only_needed_when_the_request_has_none() {
-        let simulation = |message: &str| SimulationResult {
-            warnings: vec![SimulationWarning::validation_error(message)],
-            balance_changes: vec![],
-            payload: vec![],
-            header: None,
-        };
-        let mut confirm_data = send_input(Chain::Ethereum, TransactionInputType::Transfer { asset: Asset::mock_sol() }).confirm;
-        confirm_data.simulation = Some(simulation("preload"));
+        let mut confirm_data = SendInput::mock(Chain::Ethereum, TransactionInputType::Transfer { asset: Asset::mock_sol() }).confirm;
+        confirm_data.simulation = Some(SimulationResult {
+            warnings: vec![SimulationWarning::validation_error("preload")],
+            ..SimulationResult::default()
+        });
         let preload = GemConfirmPreload {
             confirm_data,
             amount: GemTransferAmountResult::Amount {
@@ -1176,7 +1433,14 @@ mod tests {
         };
 
         assert!(
-            preload_simulation(Some(&simulation("request")), &preload).is_none(),
+            preload_simulation(
+                Some(&SimulationResult {
+                    warnings: vec![SimulationWarning::validation_error("request")],
+                    ..SimulationResult::default()
+                }),
+                &preload
+            )
+            .is_none(),
             "the request simulation is already on the screen"
         );
         assert_eq!(preload_simulation(None, &preload).unwrap().warnings[0].message.as_deref(), Some("preload"));
@@ -1189,36 +1453,24 @@ mod tests {
     fn test_with_fee_takes_the_preload_and_keeps_the_rest_of_the_screen() {
         let eth = Asset::mock_eth();
         let btc = Asset::mock_btc();
-        let metadata = |available: u32| GemConfirmMetadata {
-            asset_balance: balance(&eth.id, available),
-            fee_asset_balance: balance(&eth.id, available),
-            prices: vec![],
-        };
-        let simulation_state = |warnings: Vec<SimulationWarning>| GemConfirmSimulationState {
-            chain: Chain::Ethereum,
-            result: None,
-            warnings,
-            simulation: None,
-            address_names: vec![],
-        };
         let screen = GemConfirmLoad {
-            sender: Account::mock(Chain::Ethereum, "sender"),
-            fee_asset: eth.clone(),
-            metadata: metadata(1),
+            metadata: GemConfirmMetadata::mock(&eth.id, 1),
             fee_assets: vec![GemFeeAsset {
                 asset: eth.clone(),
-                balance: balance(&eth.id, 1),
+                balance: GemAssetBalance {
+                    asset_id: eth.id.clone(),
+                    ..GemAssetBalance::mock_with_available(1)
+                },
                 price: None,
             }],
-            simulation: simulation_state(vec![]),
             address_name: Some(AddressName::mock("0xrecipient", "recipient.eth", AddressType::Address, VerificationStatus::Verified)),
-            preload: None,
+            ..GemConfirmLoad::mock()
         };
         let fee = GemConfirmFeeLoad {
             fee_asset: btc.clone(),
-            metadata: metadata(2),
+            metadata: GemConfirmMetadata::mock(&eth.id, 2),
             preload: GemConfirmPreload {
-                confirm_data: send_input(Chain::Ethereum, TransactionInputType::Transfer { asset: eth.clone() }).confirm,
+                confirm_data: SendInput::mock(Chain::Ethereum, TransactionInputType::Transfer { asset: eth.clone() }).confirm,
                 amount: GemTransferAmountResult::Amount {
                     amount: GemTransferAmount {
                         value: GemBigInt::from(1),
@@ -1237,56 +1489,56 @@ mod tests {
         assert_eq!(loaded.address_name, screen.address_name, "the recipient's name comes from the first answer");
         assert!(loaded.simulation.warnings.is_empty(), "without a preload simulation the request simulation state stays");
 
-        let resimulated = screen.with_fee(fee, Some(simulation_state(vec![SimulationWarning::validation_error("preload")])));
+        let resimulated = screen.with_fee(
+            fee,
+            Some(GemConfirmSimulationState {
+                warnings: crate::services::simulation::warning_rows(&[SimulationWarning::validation_error("preload")]),
+                ..GemConfirmSimulationState::mock()
+            }),
+        );
         assert_eq!(resimulated.simulation.warnings.len(), 1);
     }
 
     #[test]
-    fn test_confirm_button_follows_the_phase_and_the_ready_checks() {
-        let screen = |phase, amount_failed, has_critical_warning| GemConfirmScreen {
-            phase,
-            amount_failed,
-            has_critical_warning,
+    fn the_confirm_rows_carry_their_finished_content() {
+        let link = |chain: Chain, address: String| BlockExplorerLink {
+            name: chain.to_string(),
+            link: address,
         };
-        let button = |kind, state| GemConfirmButton { kind, state };
+        let contents = confirm_row_contents(
+            &GemTransferData::mock(TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Ethereum),
+            }),
+            Wallet::mock(),
+            None,
+            link,
+        );
+        assert!(matches!(&contents[0], GemConfirmRowContent::Sender { .. }));
+        assert!(matches!(&contents[1], GemConfirmRowContent::Recipient { link, chain: Chain::Ethereum, .. } if link.link == "recipient"));
+        assert!(matches!(&contents[2], GemConfirmRowContent::Network { chain: Chain::Ethereum, name } if name == "Ethereum"));
 
-        assert_eq!(
-            confirm_button(&screen(GemConfirmPhase::Loading, false, false)),
-            button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Loading)
+        let token = confirm_row_contents(
+            &GemTransferData::mock(TransactionInputType::Transfer {
+                asset: Asset::mock_ethereum_usdc(),
+            }),
+            Wallet::mock(),
+            None,
+            link,
         );
-        assert_eq!(
-            confirm_button(&screen(GemConfirmPhase::Confirming, false, false)),
-            button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Loading)
-        );
-        assert_eq!(
-            confirm_button(&screen(GemConfirmPhase::Failed, false, true)),
-            button(GemConfirmButtonKind::Retry, GemConfirmButtonState::Enabled)
-        );
-        assert_eq!(
-            confirm_button(&screen(GemConfirmPhase::Ready, true, true)),
-            button(GemConfirmButtonKind::Retry, GemConfirmButtonState::Enabled)
-        );
-        assert_eq!(
-            confirm_button(&screen(GemConfirmPhase::Ready, false, true)),
-            button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Disabled)
-        );
-        assert_eq!(
-            confirm_button(&screen(GemConfirmPhase::Ready, false, false)),
-            button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Enabled)
-        );
-    }
+        assert!(matches!(&token[2], GemConfirmRowContent::Network { name, .. } if name == "Ethereum (ERC20)"));
 
-    #[test]
-    fn test_confirm_fee_row_waits_for_the_preload_and_gives_up_on_failure() {
-        let screen = |phase| GemConfirmScreen {
-            phase,
-            amount_failed: true,
-            has_critical_warning: true,
-        };
-
-        assert_eq!(confirm_fee_row(&screen(GemConfirmPhase::Loading)), GemConfirmFeeRow::Loading);
-        assert_eq!(confirm_fee_row(&screen(GemConfirmPhase::Ready)), GemConfirmFeeRow::Ready);
-        assert_eq!(confirm_fee_row(&screen(GemConfirmPhase::Confirming)), GemConfirmFeeRow::Ready);
-        assert_eq!(confirm_fee_row(&screen(GemConfirmPhase::Failed)), GemConfirmFeeRow::Unavailable);
+        let solana = confirm_row_contents(
+            &GemTransferData::mock(TransactionInputType::Transfer {
+                asset: Asset::from_chain(Chain::Solana),
+            }),
+            Wallet::mock(),
+            None,
+            link,
+        );
+        assert!(
+            solana
+                .iter()
+                .any(|content| matches!(content, GemConfirmRowContent::Memo { memo: Some(memo) } if memo == "memo"))
+        );
     }
 }

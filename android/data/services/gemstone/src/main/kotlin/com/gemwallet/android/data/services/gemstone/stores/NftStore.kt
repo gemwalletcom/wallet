@@ -71,8 +71,6 @@ private fun NFTCollection.toDb() = DbNFTCollection(
     chain = chain,
     contractAddress = contractAddress,
     imageUrl = images.preview.url,
-    previewImageUrl = images.preview.url,
-    originalSourceUrl = images.preview.url,
     status = status,
     links = links,
 )
@@ -87,7 +85,5 @@ private fun NFTAsset.toDb() = DbNFTAsset(
     chain = chain,
     description = description,
     imageUrl = images.preview.url,
-    previewImageUrl = images.preview.url,
-    originalSourceUrl = images.preview.url,
     attributes = attributes,
 )

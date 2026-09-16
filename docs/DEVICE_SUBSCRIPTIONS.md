@@ -23,7 +23,7 @@ Request signing for all of them: [Device Authentication](./DEVICE_AUTHENTICATION
 ```mermaid
 flowchart LR
     Start["App start"] --> Sync["One device sync<br/>concurrent callers join it"]
-    Triggers["Wallet import · wallet delete<br/>currency · push token · wallet observer"] --> Check{"Local state<br/>changed?"]
+    Triggers["Wallet import · wallet delete<br/>currency · push token · wallet observer"] --> Check{"Local state<br/>changed?"}
     Check -- no --> Skip["No requests"]
     Check -- yes --> Sync
     Sync --> Subs["Reconcile subscriptions"]

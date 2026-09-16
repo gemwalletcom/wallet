@@ -27,55 +27,6 @@ public final class BigNumberFormatter: Sendable {
         self.groupingSeparator = groupingSeparator ?? (locale.groupingSeparator ?? ",")
     }
 
-    public func number(from string: String, decimals: Int) throws -> BigInt {
-        try number(from: string, decimals: decimals, truncating: true)
-    }
-
-    public func exactNumber(from string: String, decimals: Int) throws -> BigInt {
-        try number(from: string, decimals: decimals, truncating: false)
-    }
-
-    private func number(from string: String, decimals: Int, truncating: Bool) throws -> BigInt {
-        guard let decimalIndex = string.firstIndex(where: { String($0) == decimalSeparator }) else {
-            if let value = BigInt(string).flatMap({ $0 * BigInt(10).power(decimals) }) {
-                return value
-            }
-            throw AnyError("unable to get number for \(string)")
-        }
-
-        let fractionalDigits = string.distance(from: string.index(after: decimalIndex), to: string.endIndex)
-
-        var fullString = string
-        if fractionalDigits > decimals {
-            let integerPartString = string[..<string.index(after: decimalIndex)]
-            let fractionPartString = string[string.index(after: decimalIndex)...]
-
-            let endIndex = fractionPartString.index(fractionPartString.startIndex, offsetBy: decimals)
-            let trimmedFractionString = fractionPartString[..<endIndex]
-
-            guard truncating || fractionPartString[endIndex...].allSatisfy({ $0 == "0" }) else {
-                throw AnyError("\(string) carries more than \(decimals) decimals")
-            }
-            fullString = String(integerPartString + trimmedFractionString)
-        }
-
-        fullString.remove(at: decimalIndex)
-
-        guard let number = BigInt(fullString) else {
-            throw AnyError("unable to get number for \(fullString)")
-        }
-
-        if fractionalDigits < decimals {
-            return number * BigInt(10).power(decimals - fractionalDigits)
-        } else {
-            return number
-        }
-    }
-
-    public func number(from value: Int, decimals: Int) -> BigInt {
-        BigInt(value) * BigInt(10).power(decimals)
-    }
-
     func string(from number: BigInt, decimals: Int) -> String {
         let dividend = BigInt(10).power(decimals)
         let (integerPart, remainder) = number.quotientAndRemainder(dividingBy: dividend)
@@ -87,7 +38,7 @@ public final class BigNumberFormatter: Sendable {
         return "\(integerString)\(decimalSeparator)\(fractionalString)"
     }
 
-    func decimal(from number: BigInt, decimals: Int) -> Decimal? {
+    public func decimal(from number: BigInt, decimals: Int) -> Decimal? {
         let dividend = BigInt(10).power(decimals)
         let (integerPart, remainder) = number.quotientAndRemainder(dividingBy: dividend)
         let integerString = integerPart.description
@@ -98,7 +49,7 @@ public final class BigNumberFormatter: Sendable {
         return Decimal(string: "\(integerString)\(decimalSeparator)\(fractionalString)", locale: locale)
     }
 
-    func double(from number: BigInt, decimals: Int) -> Double? {
+    public func double(from number: BigInt, decimals: Int) -> Double? {
         guard let decimal = decimal(from: number, decimals: decimals) else {
             return .none
         }

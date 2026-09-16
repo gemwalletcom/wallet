@@ -19,8 +19,6 @@ internal fun TransactionsDao.addSwapMetadata(transactions: List<Transaction>) {
             transactionId = transaction.id.identifier,
             fromAssetId = swapMetadata.fromAsset.toIdentifier(),
             toAssetId = swapMetadata.toAsset.toIdentifier(),
-            fromAmount = swapMetadata.fromValue,
-            toAmount = swapMetadata.toValue,
         )
     }
     addSwapMetadata(swapMetadataRecords)

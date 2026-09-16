@@ -34,6 +34,7 @@ public struct WalletSearchScene: View {
         .autocorrectionDisabled(true)
         .debounce(
             value: $model.searchModel.searchableQuery.wrappedValue,
+            interval: model.searchDebounce,
             action: model.onSearch(query:),
         )
         .onChange(of: model.searchModel.searchableQuery, model.onChangeSearchQuery)
@@ -129,8 +130,9 @@ public struct WalletSearchScene: View {
 
     private func assetItems(for items: [AssetData]) -> some View {
         AssetItemsView(
-            items: items,
-            currencyCode: model.currencyCode,
+            items: items,            currency: model.currency,
+
+            row: model.assetRow,
             contextMenuItems: model.contextMenuItems,
             onSelect: model.onSelectAsset,
         )

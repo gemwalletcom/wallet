@@ -11,6 +11,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import uniffi.gemstone.Asset
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.GemWalletConnectMessageRequest
@@ -45,6 +46,7 @@ sealed class WalletConnectPendingRequest(
         private val request: GemWalletConnectMessageRequest,
     ) : WalletConnectPendingRequest(request.sessionId, request.chain, request.wallet.toPrimitives(), request.session, request.simulation) {
         val message: GemSignMessage get() = request.message
+        val assets: List<Asset> get() = request.assets
     }
 
     class Transaction(

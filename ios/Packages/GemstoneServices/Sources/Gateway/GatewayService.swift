@@ -2,7 +2,6 @@
 
 import Foundation
 import Gemstone
-import GemstonePrimitives
 import NativeProviderService
 import Primitives
 
@@ -59,11 +58,9 @@ public actor GatewayService: Sendable {
         assetStore: any GemAssetStore,
         store: any GemBalanceStore,
         assets: GemAssetsService,
-        price: GemPriceService,
         stream: GemStreamSubscriptionService,
-        preferences: GemPreferencesService,
     ) -> GemBalanceService {
-        GemBalanceService(gateway: gateway, walletStore: walletStore, assetStore: assetStore, store: store, assets: assets, price: price, stream: stream, preferences: preferences)
+        GemBalanceService(gateway: gateway, walletStore: walletStore, assetStore: assetStore, store: store, assets: assets, stream: stream)
     }
 
     public nonisolated func assetsService(
@@ -84,6 +81,7 @@ public actor GatewayService: Sendable {
         balance: GemBalanceService,
         walletPreferences: GemWalletPreferencesService,
         session: GemWalletSessionService,
+        recentActivity: GemRecentActivityService,
     ) -> GemPerpetualService {
         GemPerpetualService(
             gateway: gateway,
@@ -94,6 +92,7 @@ public actor GatewayService: Sendable {
             balance: balance,
             walletPreferences: walletPreferences,
             session: session,
+            recentActivity: recentActivity,
         )
     }
 

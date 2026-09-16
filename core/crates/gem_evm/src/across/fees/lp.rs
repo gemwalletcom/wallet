@@ -18,7 +18,7 @@ pub fn convert_apy_to_weekly_fee(apy: BigInt) -> BigInt {
     let fixed_point_adjustment = 10u64.pow(18) as f64;
 
     // Perform decimal calculations using floating-point for fractional exponents
-    let apy_decimal = apy.to_f64().unwrap() / fixed_point_adjustment;
+    let apy_decimal = apy.to_f64().unwrap_or(f64::INFINITY) / fixed_point_adjustment;
     let weekly_fee_pct = ((1.0 + apy_decimal).powf(1.0 / 52.0) - 1.0) * fixed_point_adjustment;
 
     BigInt::from(weekly_fee_pct.ceil() as u64)

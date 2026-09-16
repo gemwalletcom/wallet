@@ -1,8 +1,9 @@
-use crate::signer::{instructions::reference_accounts, transaction};
 use primitives::{SignerError, SignerInput};
-use solana_primitives::{
+
+use crate::{
     Instruction, Pubkey,
     instructions::{memo::memo, system::transfer},
+    signer::{instructions::reference_accounts, transaction},
 };
 
 pub(in crate::signer) fn native_transfer(input: &SignerInput, sender: Pubkey) -> Result<Vec<Instruction>, SignerError> {
@@ -21,21 +22,23 @@ pub(in crate::signer) fn native_transfer(input: &SignerInput, sender: Pubkey) ->
 
 #[cfg(test)]
 mod tests {
+    use hex_lit::hex;
+
     use crate::signer::{SolanaChainSigner, testkit::*};
-    use num_bigint::BigUint;
-    use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
-    use primitives::{Asset, AssetId, Chain, ChainSigner, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput};
-    use solana_primitives::{
+    use crate::{
         Pubkey,
-        instructions::program_ids::{COMPUTE_BUDGET_PROGRAM_ID, MEMO_PROGRAM_ID, SYSTEM_PROGRAM_ID},
+        instructions::program_ids::{SOLANA_COMPUTE_BUDGET_PROGRAM_ID, SOLANA_MEMO_PROGRAM_ID, SOLANA_SYSTEM_PROGRAM_ID},
     };
+    use num_bigint::BigUint;
+    use primitives::testkit::signer_mock::{TEST_PRIVATE_KEY, TEST_PRIVATE_KEY_SOLANA_ADDRESS};
+    use primitives::{Asset, AssetId, Chain, ChainSigner, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata};
 
     // https://github.com/trustwallet/wallet-core/blob/master/rust/tw_tests/tests/chains/solana/solana_sign.rs
     const REFERENCE_TRANSFER_PRIVATE_KEY: &str = "A7psj2GW7ZMdY4E5hJq14KMeYg7HFjULSsWSrTXZLvYr";
     const REFERENCE_TRANSFER_TX: &str = "3p2kzZ1DvquqC6LApPuxpTg5CCDVPqJFokGSnGhnBHrta4uq7S2EyehV1XNUVXp51D69GxGzQZUjikfDzbWBG2aFtG3gHT1QfLzyFKHM4HQtMQMNXqay1NAeiiYZjNhx9UvMX4uAQZ4Q6rx6m2AYfQ7aoMUrejq298q1wBFdtS9XVB5QTiStnzC7zs97FUEK2T4XapjF1519EyFBViTfHpGpnf5bfizDzsW9kYUtRDW1UC2LgHr7npgq5W9TBmHf9hSmRgM9XXucjXLqubNWE7HUMhbKjuBqkirRM";
 
     fn transfer_data(lamports: u64) -> Vec<u8> {
-        let mut data = vec![2, 0, 0, 0];
+        let mut data = hex!("02000000").to_vec();
         data.extend_from_slice(&lamports.to_le_bytes());
         data
     }
@@ -45,13 +48,13 @@ mod tests {
         let signer = SolanaChainSigner;
         let input = TransactionLoadInput {
             input_type: TransactionInputType::Transfer { asset: Asset::mock_sol() },
-            sender_address: sender_address(),
+            sender_address: TEST_PRIVATE_KEY_SOLANA_ADDRESS.to_string(),
             destination_address: TEST_RECIPIENT.to_string(),
             value: BigUint::from(42u64),
             gas_price: GasPriceType::solana(5_000u64, 0u64, 2u64),
             memo: Some("HelloSolanaMemo".to_string()),
             is_max_value: false,
-            metadata: solana_metadata(None, None, None),
+            metadata: TransactionLoadMetadata::mock_solana_transfer(None, None, None, &[]),
         };
         let fee = TransactionFee::new_gas_price_type(
             GasPriceType::solana(5_000u64, 0u64, 2u64),
@@ -69,7 +72,12 @@ mod tests {
         assert_ne!(transaction.signatures()[0].as_bytes(), &[0u8; 64]);
         assert_eq!(
             (0..transaction.instructions().len()).map(|index| program_id(&transaction, index)).collect::<Vec<_>>(),
-            vec![COMPUTE_BUDGET_PROGRAM_ID, COMPUTE_BUDGET_PROGRAM_ID, MEMO_PROGRAM_ID, SYSTEM_PROGRAM_ID]
+            vec![
+                SOLANA_COMPUTE_BUDGET_PROGRAM_ID,
+                SOLANA_COMPUTE_BUDGET_PROGRAM_ID,
+                SOLANA_MEMO_PROGRAM_ID,
+                SOLANA_SYSTEM_PROGRAM_ID
+            ]
         );
         assert_eq!(transaction.instructions()[0].data, {
             let mut data = vec![3];
@@ -90,17 +98,13 @@ mod tests {
     fn test_sign_known_transfer() {
         let signer = SolanaChainSigner;
         let private_key = private_key_base58(REFERENCE_TRANSFER_PRIVATE_KEY);
-        let transfer = TransactionLoadInput {
-            input_type: TransactionInputType::Transfer { asset: Asset::mock_sol() },
-            sender_address: sender_address_for_key(&private_key),
-            destination_address: TEST_RECIPIENT.to_string(),
-            value: BigUint::from(42u64),
-            gas_price: GasPriceType::regular(0),
-            memo: None,
-            is_max_value: false,
-            metadata: solana_metadata(None, None, None),
-        };
-        let transfer = SignerInput::new(transfer, TransactionFee::mock());
+        let transfer = SignerInput::mock_with_input_type(
+            TransactionInputType::Transfer { asset: Asset::mock_sol() },
+            &sender_address_for_key(&private_key),
+            TEST_RECIPIENT,
+            "42",
+            TransactionLoadMetadata::mock_solana_transfer(None, None, None, &[]),
+        );
 
         let result = signer.sign_transfer(&transfer, &private_key).unwrap();
 
@@ -110,20 +114,15 @@ mod tests {
     #[test]
     fn test_sign_payment_references() {
         let references = ["82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny", "7GUcQZQwHHa9GBPhVq7v2LArSsp5VmGXV5zXnQ8Q7N3a"];
-        let input = TransactionLoadInput {
-            input_type: TransactionInputType::Transfer { asset: Asset::mock_sol() },
-            sender_address: sender_address(),
-            destination_address: TEST_RECIPIENT.to_string(),
-            value: BigUint::from(42u64),
-            gas_price: GasPriceType::regular(0),
-            memo: None,
-            is_max_value: false,
-            metadata: solana_metadata_with_references(None, None, None, &references),
-        };
+        let input = SignerInput::mock_with_input_type(
+            TransactionInputType::Transfer { asset: Asset::mock_sol() },
+            TEST_PRIVATE_KEY_SOLANA_ADDRESS,
+            TEST_RECIPIENT,
+            "42",
+            TransactionLoadMetadata::mock_solana_transfer(None, None, None, &references),
+        );
 
-        let result = SolanaChainSigner
-            .sign_transfer(&SignerInput::new(input, TransactionFee::mock()), &TEST_PRIVATE_KEY)
-            .unwrap();
+        let result = SolanaChainSigner.sign_transfer(&input, &TEST_PRIVATE_KEY).unwrap();
         let transaction = crate::decode_transaction(&result).unwrap();
 
         assert_eq!(account_key(&transaction, 0, 2), Pubkey::from_base58(references[0]).unwrap());

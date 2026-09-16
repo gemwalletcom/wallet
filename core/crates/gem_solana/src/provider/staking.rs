@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use chain_traits::ChainStaking;
+use chrono::Utc;
 use std::error::Error;
 
 use gem_client::Client;
@@ -33,7 +34,7 @@ impl<C: Client + Clone> ChainStaking for SolanaProvider<C> {
 
     async fn get_staking_delegations(&self, address: String) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
         let (epoch, accounts) = futures::try_join!(self.get_epoch_info(), self.get_staking_balance(&address))?;
-        Ok(map_staking_delegations(accounts, epoch, self.get_chain().as_asset_id()))
+        Ok(map_staking_delegations(accounts, epoch, self.get_chain().as_asset_id(), Utc::now()))
     }
 }
 

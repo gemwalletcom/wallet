@@ -13,28 +13,33 @@ use gem_tron::rpc::{TronProvider, client::TronClient};
 use gem_wallet_connect::{
     SignDigestType as WcSignDigestType, WCEthereumTransactionData as WcEthereumTransactionData, WalletConnectTransactionType as WcWalletConnectTransactionType,
 };
-use primitives::{AssetId, Chain, EVMChain, SimulationHeader, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationResult};
+use primitives::{
+    AssetId, Chain, EVMChain, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningType,
+};
 
 use crate::models::custom_types::GemBigInt;
 use crate::{
     GemstoneError,
-    alien::{AlienClient, AlienProvider, AlienProviderWrapper, coalescing_provider, new_alien_client},
+    alien::{AlienClient, AlienProvider, AlienProviderWrapper, NodeEndpoints, PreferencesNodeEndpoints, coalescing_provider, new_alien_client},
     message::sign_type::SignDigestType,
     network::JsonRpcClient,
+    services::preferences::GemPreferencesStore,
     wallet_connect::{WalletConnectTransactionType, simulation},
 };
 
 #[derive(uniffi::Object)]
 pub struct GemSimulationService {
     provider: Arc<dyn AlienProvider>,
+    endpoints: Arc<dyn NodeEndpoints>,
 }
 
 #[uniffi::export]
 impl GemSimulationService {
     #[uniffi::constructor]
-    pub fn new(provider: Arc<dyn AlienProvider>) -> Self {
+    pub fn new(provider: Arc<dyn AlienProvider>, preferences: Arc<dyn GemPreferencesStore>) -> Self {
         Self {
             provider: coalescing_provider(provider),
+            endpoints: Arc::new(PreferencesNodeEndpoints::new(preferences)),
         }
     }
 }
@@ -154,13 +159,13 @@ impl GemSimulationService {
 
     fn ethereum_provider(&self, chain: Chain) -> Result<EthereumProvider<AlienClient>, GemstoneError> {
         let chain = EVMChain::from_chain(chain).ok_or_else(|| format!("{chain} is not an EVM chain"))?;
-        let url = self.provider.get_endpoint(chain.to_chain())?;
+        let url = self.endpoints.node_url(chain.to_chain())?;
         let client = new_alien_client(url, self.provider.clone());
         Ok(EthereumProvider::new_rpc_only(EthereumClient::new(JsonRpcClient::new(client), chain)))
     }
 
     fn chain_simulation(&self, chain: Chain) -> Result<Box<dyn ChainSimulation>, GemstoneError> {
-        let url = self.provider.get_endpoint(chain)?;
+        let url = self.endpoints.node_url(chain)?;
         let new_client = || new_alien_client(url.clone(), self.provider.clone());
         match chain {
             Chain::Solana => Ok(Box::new(SolanaProvider::new_rpc_only(SolanaClient::new(JsonRpcClient::new(new_client()))))),
@@ -198,10 +203,6 @@ impl GemSimulationFormatter {
     pub fn new() -> Self {
         Self {}
     }
-
-    pub fn header(&self, simulation: Option<SimulationResult>) -> Option<SimulationHeader> {
-        simulation.and_then(|simulation| simulation.valid_header().cloned())
-    }
 }
 
 impl GemSimulationFormatter {
@@ -209,7 +210,10 @@ impl GemSimulationFormatter {
         if !shows_header {
             return payload;
         }
-        payload.into_iter().filter(|field| field.kind != SimulationPayloadFieldKind::Value).collect()
+        payload
+            .into_iter()
+            .filter(|field| field.kind != SimulationPayloadFieldKind::Value && field.kind != SimulationPayloadFieldKind::Token)
+            .collect()
     }
 
     pub fn shows_header(&self, simulation: Option<SimulationResult>, is_approval: bool) -> bool {
@@ -233,6 +237,50 @@ impl GemSimulationFormatter {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemSimulationWarningKind {
+    UnlimitedApproval,
+    NftCollectionApproval,
+    ExternallyOwnedSpender,
+    SuspiciousSpender,
+    ValidationError,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemSimulationWarningRow {
+    pub kind: GemSimulationWarningKind,
+    pub severity: SimulationSeverity,
+    pub message: Option<String>,
+}
+
+#[uniffi::export]
+pub fn simulation_warning_rows(warnings: Vec<SimulationWarning>) -> Vec<GemSimulationWarningRow> {
+    warning_rows(&warnings)
+}
+
+pub fn warning_rows(warnings: &[SimulationWarning]) -> Vec<GemSimulationWarningRow> {
+    warnings
+        .iter()
+        .filter_map(|warning| {
+            let kind = match &warning.warning {
+                SimulationWarningType::TokenApproval(approval) | SimulationWarningType::PermitApproval(approval) => {
+                    approval.value.is_none().then_some(GemSimulationWarningKind::UnlimitedApproval)
+                }
+                SimulationWarningType::PermitBatchApproval(value) => value.is_none().then_some(GemSimulationWarningKind::UnlimitedApproval),
+                SimulationWarningType::NftCollectionApproval(_) => Some(GemSimulationWarningKind::NftCollectionApproval),
+                SimulationWarningType::ExternallyOwnedSpender => Some(GemSimulationWarningKind::ExternallyOwnedSpender),
+                SimulationWarningType::SuspiciousSpender => Some(GemSimulationWarningKind::SuspiciousSpender),
+                SimulationWarningType::ValidationError => Some(GemSimulationWarningKind::ValidationError),
+            }?;
+            Some(GemSimulationWarningRow {
+                kind,
+                severity: warning.severity,
+                message: warning.message.clone(),
+            })
+        })
+        .collect()
+}
+
 #[derive(Clone, Debug, PartialEq, uniffi::Record)]
 pub struct GemSimulationChange {
     pub asset_id: AssetId,
@@ -242,32 +290,51 @@ pub struct GemSimulationChange {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::alien::{AlienError, AlienResponse, AlienTarget};
-    use async_trait::async_trait;
-    use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER};
+    use crate::testkit::{EmptyPreferences, TestAlienProvider, mock_wc_ethereum_transaction_data};
+    use num_bigint::BigInt;
+    use primitives::{SimulationBalanceChange, SimulationPayloadFieldDisplay, SimulationPayloadFieldType, SimulationWarningApproval};
 
-    fn balance_change(asset_id: &str, value: i64) -> primitives::SimulationBalanceChange {
-        primitives::SimulationBalanceChange {
-            asset_id: AssetId::new(asset_id).unwrap(),
-            value: GemBigInt::from(value),
-            decimals: 18,
-            name: None,
-            symbol: None,
-        }
+    #[test]
+    fn test_warning_rows_hide_bounded_approvals_and_keep_every_other_warning() {
+        let rows = warning_rows(&[
+            SimulationWarning::mock(SimulationWarningType::TokenApproval(SimulationWarningApproval::mock(Some(BigInt::from(1))))),
+            SimulationWarning::mock(SimulationWarningType::PermitApproval(SimulationWarningApproval::mock(Some(BigInt::from(1))))),
+            SimulationWarning::mock(SimulationWarningType::PermitBatchApproval(Some(BigInt::from(1)))),
+            SimulationWarning::mock(SimulationWarningType::TokenApproval(SimulationWarningApproval::mock(None))),
+            SimulationWarning::mock(SimulationWarningType::PermitApproval(SimulationWarningApproval::mock(None))),
+            SimulationWarning::mock(SimulationWarningType::PermitBatchApproval(None)),
+            SimulationWarning::mock(SimulationWarningType::NftCollectionApproval(AssetId::from_chain(Chain::Ethereum))),
+            SimulationWarning::mock(SimulationWarningType::ExternallyOwnedSpender),
+            SimulationWarning::mock(SimulationWarningType::SuspiciousSpender),
+            SimulationWarning::validation_error("Chain ID mismatch"),
+        ]);
+        let kinds: Vec<GemSimulationWarningKind> = rows.iter().map(|row| row.kind).collect();
+        assert_eq!(
+            kinds,
+            vec![
+                GemSimulationWarningKind::UnlimitedApproval,
+                GemSimulationWarningKind::UnlimitedApproval,
+                GemSimulationWarningKind::UnlimitedApproval,
+                GemSimulationWarningKind::NftCollectionApproval,
+                GemSimulationWarningKind::ExternallyOwnedSpender,
+                GemSimulationWarningKind::SuspiciousSpender,
+                GemSimulationWarningKind::ValidationError,
+            ]
+        );
+        let error = rows.last().unwrap();
+        assert_eq!((error.severity, error.message.as_deref()), (SimulationSeverity::Critical, Some("Chain ID mismatch")));
     }
 
     #[test]
     fn test_balance_changes_drop_zero_and_unknown_assets() {
         let simulation = SimulationResult {
-            warnings: vec![],
             balance_changes: vec![
-                balance_change("ethereum", -1000),
-                balance_change("ethereum_0xdac17f958d2ee523a2206206994597c13d831ec7", 2000),
-                balance_change("solana", 0),
-                balance_change("doge", 500),
+                SimulationBalanceChange::mock(AssetId::new("ethereum").unwrap(), BigInt::from(-1000), 18),
+                SimulationBalanceChange::mock(AssetId::new("ethereum_0xdac17f958d2ee523a2206206994597c13d831ec7").unwrap(), BigInt::from(2000), 18),
+                SimulationBalanceChange::mock(AssetId::new("solana").unwrap(), BigInt::from(0), 18),
+                SimulationBalanceChange::mock(AssetId::new("doge").unwrap(), BigInt::from(500), 18),
             ],
-            payload: vec![],
-            header: None,
+            ..SimulationResult::default()
         };
         let known = ["ethereum", "ethereum_0xdac17f958d2ee523a2206206994597c13d831ec7", "solana"]
             .into_iter()
@@ -285,39 +352,9 @@ mod tests {
         assert!(formatter.balance_changes(None, vec![]).is_empty());
     }
 
-    #[derive(Debug)]
-    struct TestProvider;
-
-    #[async_trait]
-    impl AlienProvider for TestProvider {
-        async fn request(&self, _target: AlienTarget) -> Result<Arc<AlienResponse>, AlienError> {
-            unreachable!()
-        }
-
-        fn get_endpoint(&self, _chain: Chain) -> Result<String, AlienError> {
-            Ok("https://example.invalid".to_string())
-        }
-    }
-
-    fn mock_wc_transaction() -> WcEthereumTransactionData {
-        WcEthereumTransactionData {
-            chain_id: None,
-            from: TEST_EVM_SENDER.to_string(),
-            to: TEST_EVM_RECIPIENT.to_string(),
-            value: Some("0x2386f26fc10000".to_string()),
-            gas: None,
-            gas_limit: None,
-            gas_price: None,
-            max_fee_per_gas: None,
-            max_priority_fee_per_gas: None,
-            nonce: None,
-            data: None,
-        }
-    }
-
     #[test]
     fn test_map_transaction_object_normalizes_empty_calldata_to_0x() {
-        let transaction_object = map_transaction_object(&mock_wc_transaction());
+        let transaction_object = map_transaction_object(&mock_wc_ethereum_transaction_data());
 
         assert_eq!(serde_json::to_value(transaction_object).unwrap()["data"], "0x");
     }
@@ -329,7 +366,7 @@ mod tests {
             gas_price: Some("0x9502f900".to_string()),
             max_fee_per_gas: Some("0x59682f10".to_string()),
             max_priority_fee_per_gas: Some("0x3b9aca00".to_string()),
-            ..mock_wc_transaction()
+            ..mock_wc_ethereum_transaction_data()
         };
 
         let transaction_object = map_transaction_object(&transaction);
@@ -340,32 +377,42 @@ mod tests {
         assert_eq!(transaction_object.max_priority_fee_per_gas, None);
     }
 
-    fn field(kind: SimulationPayloadFieldKind) -> SimulationPayloadField {
-        SimulationPayloadField {
-            kind,
-            label: None,
-            value: String::new(),
-            field_type: primitives::SimulationPayloadFieldType::Text,
-            display: primitives::SimulationPayloadFieldDisplay::Primary,
-        }
-    }
-
     #[test]
-    fn test_the_value_field_gives_way_to_the_header() {
-        let payload = vec![field(SimulationPayloadFieldKind::Value), field(SimulationPayloadFieldKind::Contract)];
+    fn test_the_value_and_token_fields_give_way_to_the_header() {
+        let payload = vec![
+            SimulationPayloadField::standard(
+                SimulationPayloadFieldKind::Value,
+                "",
+                SimulationPayloadFieldType::Text,
+                SimulationPayloadFieldDisplay::Primary,
+            ),
+            SimulationPayloadField::standard(
+                SimulationPayloadFieldKind::Token,
+                "",
+                SimulationPayloadFieldType::Text,
+                SimulationPayloadFieldDisplay::Primary,
+            ),
+            SimulationPayloadField::standard(
+                SimulationPayloadFieldKind::Spender,
+                "",
+                SimulationPayloadFieldType::Text,
+                SimulationPayloadFieldDisplay::Primary,
+            ),
+        ];
         let formatter = GemSimulationFormatter::new();
 
-        assert_eq!(formatter.payload_fields(payload.clone(), false).len(), 2);
+        assert_eq!(formatter.payload_fields(payload.clone(), false).len(), 3);
         assert_eq!(
             formatter.payload_fields(payload, true).into_iter().map(|field| field.kind).collect::<Vec<_>>(),
-            vec![SimulationPayloadFieldKind::Contract]
+            vec![SimulationPayloadFieldKind::Spender]
         );
     }
 
     #[test]
     fn test_wallet_connect_send_transaction_ignores_simulation_error() {
         futures::executor::block_on(async {
-            let service = GemSimulationService::new(Arc::new(TestProvider));
+            let provider = Arc::new(TestAlienProvider::with_status(200));
+            let service = GemSimulationService::new(provider.clone(), Arc::new(EmptyPreferences));
 
             let result = service
                 .simulate_send_transaction(
@@ -378,6 +425,7 @@ mod tests {
                 .await;
 
             assert!(result.is_ok());
+            assert!(provider.requested_paths().is_empty());
         });
     }
 }

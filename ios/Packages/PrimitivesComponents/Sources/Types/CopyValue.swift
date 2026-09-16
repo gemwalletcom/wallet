@@ -1,7 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemAddressService
-import GemstonePrimitives
 import Primitives
 
 public enum CopyValue: Sendable, Equatable, Hashable {
@@ -12,14 +10,6 @@ public enum CopyValue: Sendable, Equatable, Hashable {
         switch self {
         case let .plain(value): value
         case let .address(value, _): value
-        }
-    }
-
-    public var displayValue: String {
-        switch self {
-        case let .plain(value): value
-        case let .address(value, chain):
-            GemAddressService.shared.format(address: value, chain: chain)
         }
     }
 }

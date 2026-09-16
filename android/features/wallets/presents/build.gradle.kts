@@ -56,15 +56,11 @@ dependencies {
     implementation(project(":features:wallets:viewmodels"))
     implementation(project(":features:wallet-details:presents"))
 
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
     implementation(libs.hilt.lifecycle.viewmodel.compose)
-
 
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.ui.tooling.preview)
 
+    testImplementation(testFixtures(project(":gemcore")))
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
 }

@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.di
 
-import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.gemstone.connection.ConnectionComponentHealth
 import com.gemwallet.android.data.services.gemstone.stream.StreamObserverService
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketConnection
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketRequest
@@ -9,7 +9,6 @@ import com.gemwallet.android.data.service.store.database.AssetsDao
 import com.gemwallet.android.data.service.store.database.BalancesDao
 import com.gemwallet.android.data.service.store.database.StoreTransactionRunner
 import com.gemwallet.android.math.fromHex
-import uniffi.gemstone.GemDeviceRequestSigner
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePortfolioStore
 import uniffi.gemstone.GemApiClient
@@ -47,6 +46,7 @@ import uniffi.gemstone.GemNftService
 import uniffi.gemstone.GemTransactionsService
 import uniffi.gemstone.GemPriceAlertService
 import uniffi.gemstone.GemStreamService
+import uniffi.gemstone.GemStreamServiceInterface
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -82,18 +82,14 @@ object AssetsModule {
         assetStore: GemAssetStore,
         balanceStore: GemBalanceStore,
         assetsService: GemAssetsService,
-        priceService: GemPriceService,
         streamSubscriptionService: GemStreamSubscriptionService,
-        preferencesService: GemPreferencesService,
     ): GemBalanceService = GemBalanceService(
         gateway,
         walletStore,
         assetStore,
         balanceStore,
         assetsService,
-        priceService,
         streamSubscriptionService,
-        preferencesService,
     )
 
     @Provides
@@ -108,7 +104,10 @@ object AssetsModule {
         fiatService: GemFiatService,
         notificationStore: GemNotificationStore,
         supportStore: GemSupportStore,
-        walletStore: GemstoneWalletStore,
+        subscriptions: GemStreamSubscriptionService,
+        preferences: GemPreferencesService,
+        session: GemWalletSessionService,
+        device: GemDeviceService,
     ): GemStreamService = GemStreamService(
         priceService,
         priceAlertService,
@@ -119,8 +118,15 @@ object AssetsModule {
         fiatService,
         notificationStore,
         supportStore,
-        walletStore,
+        subscriptions,
+        preferences,
+        session,
+        device,
     )
+
+    @Provides
+    @Singleton
+    fun provideGemStreamServiceInterface(service: GemStreamService): GemStreamServiceInterface = service
 
     @Provides
     @Singleton
@@ -129,14 +135,11 @@ object AssetsModule {
         okHttpClient: OkHttpClient,
         connectionService: GemConnectionService,
     ): WebSocketConnectable {
-        val deviceRequestSigner by lazy {
-            GemDeviceRequestSigner(deviceKeyService.keyPair().privateKey)
-        }
         return WebSocketConnection(
             client = okHttpClient,
             requestProvider = {
                 withContext(Dispatchers.IO) {
-                    val stream = deviceRequestSigner.deviceStreamRequest()
+                    val stream = deviceKeyService.deviceStreamRequest()
                     WebSocketRequest(url = stream.url, headers = mapOf("Authorization" to stream.authorization))
                 }
             },
@@ -160,18 +163,14 @@ object AssetsModule {
     @Singleton
     fun provideStreamObserverService(
         getSession: GetSession,
-        getCurrentCurrency: GetCurrentCurrency,
-        streamSubscriptionService: GemStreamSubscriptionService,
-        streamService: GemStreamService,
+        streamService: GemStreamServiceInterface,
         connection: WebSocketConnectable,
-        deviceService: GemDeviceService,
+        streamHealth: ConnectionComponentHealth,
     ): StreamObserverService = StreamObserverService(
         getSession = getSession,
-        getCurrentCurrency = getCurrentCurrency,
-        subscriptionService = streamSubscriptionService,
-        streamService = streamService,
+        service = streamService,
         connection = connection,
-        deviceService = deviceService,
+        health = streamHealth,
     )
 
     @Provides
@@ -244,7 +243,7 @@ object AssetsModule {
 
     @Provides
     @Singleton
-    fun provideGemPriceService(apiClient: GemApiClient, priceStore: GemstonePriceStore): GemPriceService = GemPriceService(apiClient, priceStore)
+    fun provideGemPriceService(priceStore: GemstonePriceStore): GemPriceService = GemPriceService(priceStore)
 
     @Provides
     fun provideGemAssetDetailsServiceInterface(service: GemAssetDetailsService): GemAssetDetailsServiceInterface = service

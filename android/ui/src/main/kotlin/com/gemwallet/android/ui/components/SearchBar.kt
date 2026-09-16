@@ -30,6 +30,13 @@ import androidx.compose.ui.unit.sp
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.theme.paddingLarge
+import com.gemwallet.android.ui.theme.space10
+import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
+
+private val searchBarHeight = 42.dp
+private val inputStartPadding = 42.dp
+private val inputEndPadding = 40.dp
 
 @Composable
 fun SearchBar(
@@ -41,19 +48,17 @@ fun SearchBar(
 
     if (autoFocus) {
         LaunchedEffect(Unit) {
-            try {
-                focusRequester.requestFocus()
-            } catch (_: Throwable) {}
+            focusRequester.requestFocusIfAttached()
         }
     }
 
-    Row(modifier = modifier.fillMaxWidth().height(42.dp)) {
+    Row(modifier = modifier.fillMaxWidth().height(searchBarHeight)) {
         Box(modifier = Modifier.fillMaxWidth()) {
             BasicTextField(
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(focusRequester)
-                    .padding(start = 42.dp, top = 10.dp, end = 40.dp, bottom = 10.dp)
+                    .padding(start = inputStartPadding, top = space10, end = inputEndPadding, bottom = space10)
                 ,
                 textStyle = TextStyle.Default.copy(
                     fontSize = 18.sp,
@@ -68,7 +73,7 @@ fun SearchBar(
                 Text(
                     modifier = Modifier
                         .align(Alignment.CenterStart)
-                        .padding(start = 42.dp, end = 32.dp),
+                        .padding(start = inputStartPadding, end = paddingLarge),
                     maxLines = 1,
                     text = stringResource(id = android.R.string.search_go),
                     color = MaterialTheme.colorScheme.secondary,

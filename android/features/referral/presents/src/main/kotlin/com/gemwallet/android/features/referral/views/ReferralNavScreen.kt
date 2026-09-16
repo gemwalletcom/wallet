@@ -29,6 +29,8 @@ import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import kotlinx.coroutines.launch
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.ui.localization.text
 
 @Composable
 fun ReferralNavScreen(
@@ -44,8 +46,8 @@ fun ReferralNavScreen(
     var showErrorDialog by remember { mutableStateOf<Throwable?>(null) }
 
     val availableWallets by viewModel.availableWallets.collectAsStateWithLifecycle()
+    val availableWalletRows by viewModel.availableWalletRows.collectAsStateWithLifecycle()
     val currentWallet by viewModel.currentWallet.collectAsStateWithLifecycle()
-    val rewards by viewModel.rewards.collectAsStateWithLifecycle()
     val referralLink by viewModel.referralLink.collectAsStateWithLifecycle()
     val inSync by viewModel.inSync.collectAsStateWithLifecycle()
     val referralCode by viewModel.referralCode.collectAsStateWithLifecycle()
@@ -55,11 +57,9 @@ fun ReferralNavScreen(
         inSync = inSync,
         isAvailableWalletSelect = availableWallets.size > 1,
         referralCode = referralCode,
-        rewards = rewards,
         referralLink = referralLink,
         uiState = uiState,
         currentWallet = currentWallet,
-        joinPointsCost = 100,
         onUsername = viewModel::createReferral,
         onCode = viewModel::useCode,
         onCancelCode = viewModel::cancelCode,
@@ -85,13 +85,13 @@ fun ReferralNavScreen(
         title = stringResource(R.string.wallets_title),
     ) {
         LazyColumn {
-            itemsIndexed(availableWallets) { index, item ->
+            itemsIndexed(availableWalletRows) { index, item ->
                 WalletItem(
-                    wallet = item,
-                    isCurrent = item.id == currentWallet?.id,
-                    listPosition = ListPosition.getPosition(index, availableWallets.size),
+                    row = item,
+                    isCurrent = item.id == currentWallet?.id?.id,
+                    listPosition = ListPosition.getPosition(index, availableWalletRows.size),
                     modifier = Modifier.clickable {
-                        viewModel.setWallet(wallet = item)
+                        viewModel.setWallet(walletId = item.id)
                         isShowSelectWallets = false
                     }
                 )
@@ -102,7 +102,7 @@ fun ReferralNavScreen(
     if (showErrorDialog != null) {
         val message = when (showErrorDialog) {
             is ReferralError.InsufficientPoints -> stringResource(R.string.rewards_insufficient_points)
-            else -> showErrorDialog?.message ?: stringResource(R.string.transaction_status_failed)
+            else -> showErrorDialog?.errorText()?.text() ?: stringResource(R.string.transaction_status_failed)
         }
         AlertDialog(
             containerColor = MaterialTheme.colorScheme.background,

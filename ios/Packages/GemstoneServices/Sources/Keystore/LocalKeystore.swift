@@ -1,6 +1,5 @@
 public import Gemstone
 import Foundation
-import GemstonePrimitives
 import Primitives
 
 public final class LocalKeystore: Keystore, @unchecked Sendable {
@@ -14,8 +13,6 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         keystorePassword: KeystorePassword = LocalKeystorePassword(),
     ) {
         do {
-            // migrate keystore from documents directory to application support directory
-            // TODO: delete in 2026
             let fileMigrator = FileMigrator()
             let keystoreURL = try fileMigrator.migrate(
                 name: directory,
@@ -79,16 +76,6 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         }
     }
 
-    public func signMessage(signer: MessageSigner, wallet: Primitives.Wallet) async throws -> String {
-        let password = try await getPassword()
-        let keystoreId = gemKeystore.keystoreId(walletId: wallet.id.id)
-        return try await queue.asyncTask { [gemKeystore] in
-            try withV4Password(keystore: gemKeystore, password) { passwordBytes in
-                try signer.signWithKeystore(keystore: gemKeystore, keystoreId: keystoreId, password: passwordBytes)
-            }
-        }
-    }
-
     public func getPasswordAuthentication() throws -> KeystoreAuthentication {
         try keystorePassword.getAuthentication()
     }
@@ -100,9 +87,10 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         try FileManager.default.removeItem(at: keystoreURL)
     }
 
-    @MainActor
-    func getPassword() throws -> String {
-        try keystorePassword.getPassword()
+    func getPassword() async throws -> String {
+        try await queue.asyncTask { [keystorePassword] in
+            try keystorePassword.getPassword()
+        }
     }
 
     private func pendingV3Migrations(for wallets: [Primitives.Wallet]) -> [(wallet: Primitives.Wallet, v3URL: URL)] {

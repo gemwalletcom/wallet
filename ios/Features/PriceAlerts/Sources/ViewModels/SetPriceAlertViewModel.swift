@@ -4,6 +4,9 @@ import Components
 import Formatters
 import Foundation
 import Gemstone
+import GemstonePrimitives
+import struct Gemstone.GemPriceAlertSession
+import struct Gemstone.GemPriceAlertViewState
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import GemstoneServices
 import Localization
@@ -18,11 +21,12 @@ public final class SetPriceAlertViewModel {
     private let asset: Primitives.Asset
     private let service: any GemPriceAlertServiceProtocol
     private let onComplete: StringAction
+    private let currency: Primitives.Currency
     private let currencyFormatter: CurrencyFormatter
-    private let numericFormatter = NumericFormatter()
-    private let suggestionOffsetPercent: Double = 5
 
     var state: SetPriceAlertViewModelState
+    var isPresentingAlertMessage: AlertMessage?
+    private var isSaving = false
 
     public let assetQuery: ObservableQuery<AssetRequest>
     var assetData: AssetData {
@@ -37,26 +41,20 @@ public final class SetPriceAlertViewModel {
     ) {
         self.asset = asset
         self.service = service
-        currencyFormatter = CurrencyFormatter(currencyCode: service.getCurrency())
+        currency = service.getCurrency().toPrimitives()
+        currencyFormatter = CurrencyFormatter(currencyCode: currency.rawValue)
         self.onComplete = onComplete
         state = SetPriceAlertViewModelState()
         assetQuery = ObservableQuery(AssetRequest(walletId: walletId, assetId: asset.id), initialValue: .with(asset: asset))
     }
 
     func percentageSuggestions(for price: Primitives.Price?) -> [PercentageSuggestion] {
-        guard let currentPrice = price?.price else { return [] }
-        return PriceAlertFormatter.shared.percentageSuggestions(price: currentPrice).map {
-            PercentageSuggestion(value: $0.asInt)
-        }
+        viewState(price: price).percentageSuggestions.map { PercentageSuggestion(value: $0.asInt) }
     }
 
     func priceSuggestions(for price: Primitives.Price?) -> [PriceSuggestion] {
-        guard let currentPrice = price?.price else { return [] }
-        return PriceAlertFormatter.shared.roundedValues(price: currentPrice, byPercent: suggestionOffsetPercent).map {
-            PriceSuggestion(
-                title: currencyFormatter.string($0),
-                value: $0,
-            )
+        viewState(price: price).priceSuggestions.map {
+            PriceSuggestion(title: currencyFormatter.string($0), value: $0)
         }
     }
 
@@ -64,38 +62,36 @@ public final class SetPriceAlertViewModel {
         state.amount = suggestion.inputValue
     }
 
+    private var session: GemPriceAlertSession {
+        service.newAlertSession(assetId: asset.id.identifier)
+            .onType(notificationType: state.type.notificationType.toGem())
+            .onDirection(selectedDirection: state.selectedDirection.toGem())
+            .onInput(input: amountValue)
+            .onPrice(currentPrice: assetData.price?.price)
+            .onSaving(isSaving: isSaving)
+    }
+
+    private func viewState(price: Primitives.Price?) -> GemPriceAlertViewState {
+        session.onPrice(currentPrice: price?.price).viewState()
+    }
+
     var alertDirection: Primitives.PriceAlertDirection? {
-        PriceAlertFormatter.shared.alertDirection(
-            notificationType: state.type.notificationType.map(),
-            inputValue: amountValue,
-            currentPrice: assetData.price?.price,
-            selectedDirection: state.selectedDirection.map(),
-        )?
-        .map()
+        session.viewState().direction.map { $0.toPrimitives() }
     }
 
     var alertDirectionTitle: String {
-        switch state.type {
-        case .price:
-            switch alertDirection {
-            case .up: Localized.PriceAlerts.SetAlert.priceOver
-            case .down: Localized.PriceAlerts.SetAlert.priceUnder
-            case .none: Localized.PriceAlerts.SetAlert.setTargetPrice
-            }
-        case .percentage:
-            switch state.selectedDirection {
-            case .up: Localized.PriceAlerts.SetAlert.priceIncreasesBy
-            case .down: Localized.PriceAlerts.SetAlert.priceDecreasesBy
-            }
-        }
+        session.viewState().prompt.title
     }
 
     var isEnabledConfirmButton: Bool {
-        alertDirection != nil
+        session.viewState().canConfirm
     }
 
     var confirmButtonState: ButtonState {
-        isEnabledConfirmButton ? .normal : .disabled
+        if isSaving {
+            return .loading(showProgress: true)
+        }
+        return isEnabledConfirmButton ? .normal : .disabled
     }
 
     func currencyInputConfig(for assetData: AssetData) -> any CurrencyInputConfigurable {
@@ -114,9 +110,9 @@ public final class SetPriceAlertViewModel {
             assetDataModel: AssetDataViewModel(
                 assetData: assetData,
                 formatter: .short,
-                currencyCode: currencyFormatter.currencyCode,
+                currency: currency,
             ),
-            type: .price,
+            row: GemSelectAssetType.priceAlert.flow().row,
         )
     }
 
@@ -127,7 +123,7 @@ public final class SetPriceAlertViewModel {
     // MARK: - Private
 
     private var amountValue: Double? {
-        numericFormatter.double(from: state.amount)
+        NumberInput.double(state.amount)
     }
 
     private var completeMessage: String {
@@ -140,19 +136,8 @@ public final class SetPriceAlertViewModel {
         return Localized.PriceAlerts.addedFor(message)
     }
 
-    private func priceAlert() -> Primitives.PriceAlert {
-        let (price, pricePercentChange): (Double?, Double?) = switch state.type {
-        case .price: (amountValue, nil)
-        case .percentage: (nil, amountValue)
-        }
-        return Primitives.PriceAlert(
-            assetId: asset.id,
-            currency: Currency(core: service.getCurrency()),
-            price: price,
-            pricePercentChange: pricePercentChange,
-            priceDirection: alertDirection,
-            lastNotifiedAt: .none,
-        )
+    private func priceAlert() -> Primitives.PriceAlert? {
+        session.alert().map { $0.toPrimitives() }
     }
 
     private func toggleAlertDirection() {
@@ -167,12 +152,14 @@ public final class SetPriceAlertViewModel {
 
 extension SetPriceAlertViewModel {
     func setPriceAlert() async {
-        let priceAlert = priceAlert()
-        onComplete?(completeMessage)
+        guard let alert = priceAlert() else { return }
+        isSaving = true
         do {
-            try await service.enable(priceAlert: priceAlert)
+            try await service.enable(priceAlert: alert)
+            onComplete?(completeMessage)
         } catch {
-            debugLog("Set price alert error: \(error.localizedDescription)")
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
+        isSaving = false
     }
 }

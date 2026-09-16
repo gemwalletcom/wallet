@@ -17,7 +17,7 @@ class WalletSecretDataViewModel @Inject constructor(
     private val service: GemWalletServiceInterface,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    val walletType = savedStateHandle.requireWalletType()
+    val secretKind = savedStateHandle.requireSecretKind()
 
     val secret = MutableStateFlow<Result<GemWalletSecret>?>(null)
 

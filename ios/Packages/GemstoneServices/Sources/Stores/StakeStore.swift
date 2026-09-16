@@ -19,18 +19,18 @@ public final class GemstoneStakeStore: GemStakeStore, @unchecked Sendable {
 
     public func getApr(assetId: Gemstone.AssetId, providerType: Gemstone.StakeProviderType) async throws -> Double? {
         let assetId = try Primitives.AssetId(id: assetId)
-        switch providerType.map() {
+        switch providerType.toPrimitives() {
         case .stake: return try store.getStakeApr(assetId: assetId)
         case .earn: return try store.getEarnApr(assetId: assetId)
         }
     }
 
     public func getValidators(assetId: Gemstone.AssetId, providerType: Gemstone.StakeProviderType) async throws -> [Gemstone.DelegationValidator] {
-        try store.getValidators(assetId: Primitives.AssetId(id: assetId), providerType: providerType.map()).map { $0.map() }
+        try store.getValidators(assetId: Primitives.AssetId(id: assetId), providerType: providerType.toPrimitives()).map { $0.toGem() }
     }
 
     public func saveValidators(validators: [Gemstone.DelegationValidator]) async throws {
-        try store.updateValidators(validators.map { $0.map() })
+        try store.updateValidators(validators.map { $0.toPrimitives() })
     }
 
     public func deactivateValidators(assetId: Gemstone.AssetId, validatorIds: [String]) async throws {
@@ -38,7 +38,7 @@ public final class GemstoneStakeStore: GemStakeStore, @unchecked Sendable {
     }
 
     public func getDelegationIds(walletId: String, assetId: Gemstone.AssetId, providerType: Gemstone.StakeProviderType) async throws -> [String] {
-        try store.getDelegations(walletId: WalletId.from(id: walletId), assetId: Primitives.AssetId(id: assetId), providerType: providerType.map()).map(\.id)
+        try store.getDelegations(walletId: WalletId.from(id: walletId), assetId: Primitives.AssetId(id: assetId), providerType: providerType.toPrimitives()).map(\.id)
     }
 
     public func updateDelegations(walletId: String, delegations: [Gemstone.DelegationBase], deleteIds: [String]) async throws {

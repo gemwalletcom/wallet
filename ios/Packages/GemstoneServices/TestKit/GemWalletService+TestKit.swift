@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import protocol Gemstone.GemLocalizer
-import enum Gemstone.GemLocalizedText
+import class Gemstone.GemAvatarService
 import Foundation
 import class Gemstone.GemExplorerService
 import class Gemstone.GemNameService
@@ -12,9 +11,10 @@ import class Gemstone.GemSignMessageService
 import class Gemstone.GemWalletPreferencesService
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
+import GemstonePrimitives
 import GemstonePrimitivesTestKit
-import GemstoneServices
 import NativeProviderService
+import GemstoneServices
 import Primitives
 import Store
 import StoreTestKit
@@ -37,7 +37,7 @@ public extension GemWalletService {
             preferences: GemWalletPreferencesService.mock(),
             explorer: GemExplorerService(preferences: appPreferences),
             addresses: GemstoneAddressStore(store: AddressStore(db: db)),
-            localizer: TestLocalizer(),
+            avatar: GemAvatarService(wallets: gemWalletStore, files: GemstoneFileStore(), provider: NativeProvider()),
         )
     }
 }
@@ -57,9 +57,9 @@ public extension GemWalletSessionService {
     }
 
     static func mock(wallet: Wallet) throws -> GemWalletSessionService {
-        let store = WalletStore.mock(db: .mock())
-        try store.addWallet(wallet)
-        return GemWalletSessionService(store: GemstoneWalletSessionStore.mock(), wallets: GemstoneWalletStore(store: store))
+        let service = try GemWalletSessionService.mock(store: .mock(db: .mockWithWallets([wallet])))
+        try service.setCurrent(walletId: wallet.id)
+        return service
     }
 }
 
@@ -71,14 +71,5 @@ public extension GemSignMessageService {
             keystore: keystore.gemKeystore,
             password: GemstoneKeystorePassword(keystore: keystore),
         )
-    }
-}
-
-final class TestLocalizer: GemLocalizer, Sendable {
-    func text(text: GemLocalizedText) -> String {
-        switch text {
-        case let .walletDefaultName(index): "Wallet #\(index)"
-        case let .walletDefaultNameChain(chain, index): "\(chain) Wallet #\(index)"
-        }
     }
 }

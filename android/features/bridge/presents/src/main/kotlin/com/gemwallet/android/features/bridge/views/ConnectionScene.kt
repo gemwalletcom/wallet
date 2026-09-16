@@ -3,6 +3,7 @@ package com.gemwallet.android.features.bridge.views
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -17,7 +18,9 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.features.bridge.localization.stringRes
 import com.gemwallet.android.features.bridge.viewmodels.ConnectionViewModel
+import uniffi.gemstone.GemConnectionDetailRow
 import java.text.DateFormat
 import java.util.Date
 
@@ -26,7 +29,7 @@ fun ConnectionScene(
     onCancel: () -> Unit,
     viewModel: ConnectionViewModel = hiltViewModel(),
 ) {
-    val connection by viewModel.connection.collectAsStateWithLifecycle()
+    val details by viewModel.details.collectAsStateWithLifecycle()
 
     Scene(
         title = stringResource(id = R.string.wallet_connect_title),
@@ -42,14 +45,16 @@ fun ConnectionScene(
         onClose = onCancel,
     ) {
         LazyColumn {
-            connection?.let {
-                item { ConnectionItem(it, ListPosition.Single) }
-                item { PropertyItem(R.string.common_wallet, it.wallet.name, listPosition = ListPosition.First) }
-                item {
+            details?.let { details ->
+                item { ConnectionItem(details.connection, ListPosition.Single) }
+                itemsIndexed(details.rows) { index, row ->
                     PropertyItem(
-                        title = R.string.transaction_date,
-                        data = DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(it.session.expireAt)),
-                        listPosition = ListPosition.Last,
+                        title = row.stringRes(),
+                        data = when (row) {
+                            GemConnectionDetailRow.WALLET -> details.wallet
+                            GemConnectionDetailRow.DATE -> DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(details.date))
+                        },
+                        listPosition = ListPosition.getPosition(index, details.rows.size),
                     )
                 }
             }

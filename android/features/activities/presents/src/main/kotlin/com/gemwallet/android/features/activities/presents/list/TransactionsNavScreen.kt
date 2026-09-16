@@ -8,6 +8,8 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.activities.viewmodels.TransactionsViewModel
+import com.gemwallet.android.ui.components.RefreshOnTimer
+import uniffi.gemstone.GemRefreshKind
 import com.wallet.core.primitives.TransactionId
 
 @Composable
@@ -29,6 +31,8 @@ fun TransactionsNavScreen(
         viewModel.syncIfNeeded()
     }
 
+    RefreshOnTimer(GemRefreshKind.WALLET, viewModel::refresh)
+
     TransactionsScene(
         isRefreshing = isRefreshing,
         transactions = transactions,
@@ -42,8 +46,8 @@ fun TransactionsNavScreen(
             when (action) {
                 TransactionsListAction.Refresh -> viewModel.refresh()
                 is TransactionsListAction.OpenTransaction -> onTransaction(action.transactionId)
-                is TransactionsListAction.ApplyChainsFilter -> viewModel.applyChainsFilter(action.chains)
-                is TransactionsListAction.ApplyTypesFilter -> viewModel.applyTypesFilter(action.types)
+                is TransactionsListAction.SelectChainsFilter -> viewModel.setChainsFilter(action.chains)
+                is TransactionsListAction.SelectTypesFilter -> viewModel.setTypesFilter(action.types)
                 TransactionsListAction.ClearChainsFilter -> viewModel.clearChainsFilter()
                 TransactionsListAction.ClearTypesFilter -> viewModel.clearTypeFilter()
                 TransactionsListAction.Buy -> onBuy?.invoke()

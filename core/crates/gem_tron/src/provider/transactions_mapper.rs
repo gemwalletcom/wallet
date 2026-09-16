@@ -497,7 +497,7 @@ mod tests {
         let failed = map_transaction(
             Chain::Tron,
             TronTransaction::mock_token_approval("OUT_OF_ENERGY"),
-            TransactionReceiptData::mock_transaction_receipt_with_result("OUT_OF_ENERGY"),
+            TransactionReceiptData::mock_with_result("OUT_OF_ENERGY"),
         )
         .unwrap();
 
@@ -512,7 +512,7 @@ mod tests {
         let confirmed = map_transaction(
             Chain::Tron,
             TronTransaction::mock_token_approval("SUCCESS"),
-            TransactionReceiptData::mock_transaction_receipt_with_result("SUCCESS"),
+            TransactionReceiptData::mock_with_result("SUCCESS"),
         )
         .unwrap();
 
@@ -574,7 +574,11 @@ mod tests {
             None,
             false,
         );
-        let receipt = TransactionReceiptData::mock_transaction_receipt_with_logs(vec![usdt_transfer_out], vec![trx_unwrap_in]);
+        let receipt = TransactionReceiptData {
+            log: Some(vec![usdt_transfer_out]),
+            internal_transactions: Some(vec![trx_unwrap_in]),
+            ..TransactionReceiptData::mock_with_result("SUCCESS")
+        };
 
         let transaction = map_transaction(Chain::Tron, transaction, receipt).unwrap();
         assert_eq!(transaction.transaction_type, TransactionType::Swap);

@@ -25,7 +25,7 @@ extension ConfirmErrorViewModel: ItemModelProvidable {
         return .error(
             title: Localized.Errors.errorOccurred,
             error: error.displayError,
-            onInfoAction: { onSelectListError(error) },
+            onInfoAction: error.hasInfoSheet ? { onSelectListError(error) } : nil,
         )
     }
 }

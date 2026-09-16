@@ -1,14 +1,14 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
 import com.gemwallet.android.domains.asset.assetConfig
-import com.gemwallet.android.domains.asset.recentFilters
+import com.gemwallet.android.domains.asset.toQueryFilters
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import android.util.Log
-import com.gemwallet.android.application.asset_select.cases.GetRecentAssets
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.NO_QUERY_LIMIT
 import com.gemwallet.android.model.RecentAssetsRequest
@@ -21,7 +21,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.RecentActivityType
 import uniffi.gemstone.GemAssetAction
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.domains.asset.aggregates.AssetRowNaming
+import uniffi.gemstone.GemAssetRowTitle
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.domains.price.values.RowFormatters
 import com.gemwallet.android.ui.models.AssetToast
@@ -38,6 +38,9 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.requireChain
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemSelectAssetType
+import uniffi.gemstone.GemAssetSearchStep
+import uniffi.gemstone.GemSelectAssetState
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -57,17 +60,18 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.wallet.core.primitives.WalletType
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 open class BaseAssetSelectViewModel(
     getSession: GetSession,
-    private val getRecentAssets: GetRecentAssets,
+    private val recentAssetsService: RecentAssetsService,
     protected val service: GemAssetSelectionServiceInterface,
     val search: SelectSearch,
     selectType: GemSelectAssetType,
 ) : ViewModel(), AssetToastEmitter by AssetToastEmitterImpl() {
 
-    val flow = selectType.flow()
+    val flow = service.flow(selectType)
     val queryState = TextFieldState()
     val chainFilter = MutableStateFlow<List<Chain>>(emptyList())
     val balanceFilter = MutableStateFlow(false)
@@ -90,7 +94,7 @@ open class BaseAssetSelectViewModel(
     protected val currentQuery = snapshotFlow { queryState.text.toString() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
-    private val searchRequests = currentQuery.debounce(SEARCH_DEBOUNCE_MS).distinctUntilChanged()
+    private val searchRequests = currentQuery.debounce(service.searchDebounceMilliseconds().toLong()).distinctUntilChanged()
 
     private val filters = combine(
         session,
@@ -98,57 +102,79 @@ open class BaseAssetSelectViewModel(
         chainFilter,
         balanceFilter,
     ) { session, query, chainFilter, hasBalance ->
-        SelectAssetFilters(session = session, query = query, chainFilter = chainFilter, hasBalance = hasBalance, limit = assetsSearchLimit(query))
+        SelectAssetFilters(
+            session = session,
+            query = query,
+            chainFilter = chainFilter,
+            hasBalance = hasBalance,
+            limit = assetsSearchLimit(query),
+            scope = flow.scope,
+            filters = flow.filters,
+        )
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val assetsContent = combine(
         filters,
         search.items(filters),
-    ) { filters, items ->
-        val chainFilter = filters?.chainFilter.orEmpty()
-        val balanceFilter = filters?.hasBalance == true
+    ) { _, items ->
         val wallet = session.value?.wallet
         val formatters = RowFormatters()
         items
-            .filter { (chainFilter.isEmpty() || it.id().chain in chainFilter) && (!balanceFilter || it.balance.totalAmount > 0.0) }
             .map { item ->
                 val owner = item.owner ?: wallet?.getAccount(item.asset.id.chain)
                 val assetInfo = if (item.owner == owner) item else item.copy(owner = owner)
-                assetInfo.toAssetInfoDataAggregate(AssetRowNaming.CanonicalNative, formatters = formatters)
+                assetInfo.toAssetInfoDataAggregate(GemAssetRowTitle.CANONICAL_ASSET, formatters = formatters)
             }
     }
     .flowOn(Dispatchers.IO)
     .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
 
+    private data class AssetSections(
+        val popular: ImmutableList<AssetInfoDataAggregate> = emptyList<AssetInfoDataAggregate>().toImmutableList(),
+        val pinned: ImmutableList<AssetInfoDataAggregate> = emptyList<AssetInfoDataAggregate>().toImmutableList(),
+        val unpinned: ImmutableList<AssetInfoDataAggregate> = emptyList<AssetInfoDataAggregate>().toImmutableList(),
+    )
+
+    private fun assetSections(items: List<AssetInfoDataAggregate>): AssetSections {
+        val sections = assetConfig.assetSections(
+            ids = items.map { it.asset.id.toIdentifier() },
+            pinnedIds = items.filter { it.pinned }.map { it.asset.id.toIdentifier() },
+            showsPopular = flow.popularSection,
+        )
+        val byId = items.associateBy { it.asset.id.toIdentifier() }
+        return AssetSections(
+            popular = sections.popular.mapNotNull(byId::get).toImmutableList(),
+            pinned = sections.pinned.mapNotNull(byId::get).toImmutableList(),
+            unpinned = sections.assets.mapNotNull(byId::get).toImmutableList(),
+        )
+    }
+
     private val assets = assetsContent
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>())
 
-    val popular = assets.map { items ->
-        val popularIds = if (flow.popularSection) assetConfig.popularIds().mapNotNull { it.toAssetId() } else emptyList()
-        items.filter { it.asset.id in popularIds }.toImmutableList()
-    }
-    .flowOn(Dispatchers.IO)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>().toImmutableList())
+    private val sections = assets
+        .map(::assetSections)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, assetSections(assets.value))
 
-    val pinned = assets.map { items ->
-        items.filter { it.pinned }.toImmutableList()
-    }
-    .flowOn(Dispatchers.IO)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>().toImmutableList())
+    val popular = sections
+        .map { it.popular }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, sections.value.popular)
 
-    val unpinned = assets.map { items ->
-        items.filter { !it.pinned }.toImmutableList()
-    }
-    .flowOn(Dispatchers.IO)
-    .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<AssetInfoDataAggregate>().toImmutableList())
+    val pinned = sections
+        .map { it.pinned }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, sections.value.pinned)
+
+    val unpinned = sections
+        .map { it.unpinned }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, sections.value.unpinned)
 
     val recent = currentQuery
         .flatMapLatest { query ->
             if (query.isNotEmpty() || !flow.recents) {
                 flow { emit(emptyList()) }
             } else {
-                getRecentAssets(RecentAssetsRequest(types = recentTypes, filters = assetFilters()))
+                recentAssetsService.getRecentAssets(RecentAssetsRequest(types = recentTypes, filters = assetFilters()))
             }
         }
     .map { items -> items.map { it.asset }.toImmutableList() }
@@ -156,15 +182,22 @@ open class BaseAssetSelectViewModel(
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<Asset>().toImmutableList())
 
     val uiState = combine(assetsContent, isSearching) { assets, isSearching ->
-        when {
-            assets.isNotEmpty() -> UIState.Idle
-            isSearching -> UIState.Loading
-            else -> UIState.Empty
+        when (flow.state(assets.isNotEmpty(), isSearching)) {
+            GemSelectAssetState.IDLE -> UIState.Idle
+            GemSelectAssetState.LOADING -> UIState.Loading
+            GemSelectAssetState.EMPTY -> UIState.Empty
         }
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, UIState.Idle)
 
-    val isAddAssetAvailable = getSession().map { flow.addCustomToken && service.supportsTokens(it?.wallet?.toGem()) }
+    val isChainFilterAvailable = combine(getSession(), availableChains) { session, chains ->
+        flow.showsChainFilter(session?.wallet?.type == WalletType.Multicoin, chains.isNotEmpty())
+    }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val isAddAssetAvailable = combine(getSession(), availableChains) { session, chains ->
+        flow.showsAddToken(service.supportsTokens(session?.wallet?.toGem()), chains.isNotEmpty())
+    }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     fun onSelected(asset: Asset) {
@@ -226,11 +259,12 @@ open class BaseAssetSelectViewModel(
     init {
         if (flow.networkSearch) {
             viewModelScope.launch(Dispatchers.IO) {
-                searchRequests.collectLatest { query ->
-                    if (query.isEmpty()) return@collectLatest
+                searchRequests.collectLatest { input ->
+                    val step = flow.searchStep(input)
+                    if (step !is GemAssetSearchStep.Search) return@collectLatest
                     isSearching.value = true
                     try {
-                        runCatchingCancellable { searchRemote(query) }
+                        runCatchingCancellable { searchRemote(step.query) }
                             .onFailure { Log.e(TAG, "search failed", it) }
                     } finally {
                         isSearching.value = false
@@ -259,12 +293,11 @@ open class BaseAssetSelectViewModel(
     val recentTypes: List<RecentActivityType>
         get() = flow.action?.recentActivityTypes()?.map { it.toPrimitives() } ?: RecentActivityType.entries
 
-    open fun assetFilters(): Set<AssetFilter> = flow.action?.recentFilters().orEmpty()
+    fun assetFilters(): Set<AssetFilter> = flow.filters.toQueryFilters()
 
     open fun assetsSearchLimit(query: String): Int = NO_QUERY_LIMIT
 
     private companion object {
         private const val TAG = "AssetSelect"
-        private const val SEARCH_DEBOUNCE_MS = 250L
     }
 }

@@ -11,13 +11,14 @@ public extension PriceUpdate {
         price: Double = 1,
         priceChangePercentage24h: Double = 0,
         rate: Double = 1,
+        updatedAt: Date = .now,
     ) -> PriceUpdate {
         PriceUpdate(
             assetId: assetId,
             price: price * rate,
             priceUsd: price,
             priceChangePercentage24h: priceChangePercentage24h,
-            updatedAt: .now,
+            updatedAt: updatedAt,
         )
     }
 }

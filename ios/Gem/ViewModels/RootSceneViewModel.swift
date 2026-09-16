@@ -11,7 +11,7 @@ import protocol Gemstone.GemWalletSessionServiceProtocol
 import Foundation
 import protocol Gemstone.GemDeviceServiceProtocol
 import Localization
-import LockManager
+import AppLock
 import Onboarding
 import Primitives
 import PrimitivesComponents
@@ -35,10 +35,10 @@ final class RootSceneViewModel {
     private let viewModelFactory: ViewModelFactory
     private let walletSessionService: any GemWalletSessionServiceProtocol
     let walletConnectorPresenter: WalletConnectorPresenter
-    let lockManager: any LockWindowManageable
+    let lockWindow: any LockWindowPresentable
 
     var currentWallet: Wallet? {
-        walletSessionService.currentWalletId.flatMap { try? viewModelFactory.storeManager.walletStore.getWallet(id: $0) }
+        walletSessionService.currentWalletId.flatMap { try? viewModelFactory.stores.walletStore.getWallet(id: $0) }
     }
     var currentWalletId: WalletId? { walletSessionService.currentWalletId }
     var colorScheme: ColorScheme? { observablePreferences.appearance.colorScheme }
@@ -79,7 +79,7 @@ final class RootSceneViewModel {
         pushNotificationEnablerService: PushNotificationEnablerService,
         appLifecycleService: AppLifecycleService,
         navigationHandler: NavigationHandler,
-        lockWindowManager: any LockWindowManageable,
+        lockWindowManager: any LockWindowPresentable,
         viewModelFactory: ViewModelFactory,
         walletSessionService: any GemWalletSessionServiceProtocol,
         appUpdateService: any GemAppUpdateServiceProtocol,
@@ -94,7 +94,7 @@ final class RootSceneViewModel {
         self.pushNotificationEnablerService = pushNotificationEnablerService
         self.appLifecycleService = appLifecycleService
         self.navigationHandler = navigationHandler
-        lockManager = lockWindowManager
+        lockWindow = lockWindowManager
         self.viewModelFactory = viewModelFactory
         self.walletSessionService = walletSessionService
         self.appUpdateService = appUpdateService
@@ -167,7 +167,7 @@ extension RootSceneViewModel {
 extension RootSceneViewModel {
     private func setup(wallet: Wallet) {
         Task {
-            for failure in await appStartService.setupWallet(wallet: wallet.map()) {
+            for failure in await appStartService.setupWallet(wallet: wallet.toGem()) {
                 debugLog("wallet start \(failure.step) failed: \(failure.message)")
             }
             await appLifecycleService.updateWalletConnections()
@@ -175,7 +175,7 @@ extension RootSceneViewModel {
     }
 
     private func setupWallets() async {
-        await lockManager.lockModel.waitUntilUnlocked()
+        await lockWindow.lockModel.waitUntilUnlocked()
         await onstartService.setupWallets()
     }
 
@@ -209,13 +209,17 @@ extension RootSceneViewModel {
                 }
             },
         )
-        let actions = release.upgradeRequired ? [updateAction] : [skipAction, updateAction]
+        let actions = Self.updateAlertActions(for: release, skip: skipAction, update: updateAction)
 
         return AlertMessage(
             title: Localized.UpdateApp.title,
             message: Localized.UpdateApp.description(release.version),
             actions: actions,
         )
+    }
+
+    static func updateAlertActions(for release: Release, skip: AlertAction, update: AlertAction) -> [AlertAction] {
+        release.upgradeRequired ? [update] : [skip, update]
     }
 
     private func requestPushPermissions() {

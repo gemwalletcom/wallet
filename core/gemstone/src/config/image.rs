@@ -30,7 +30,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_image_urls_share_the_assets_host() {
+    fn test_image_urls_use_their_hosts() {
         assert_eq!(
             GemImage::Asset {
                 asset_id: AssetId::from(Chain::Ethereum, Some("0xdac".to_string()))

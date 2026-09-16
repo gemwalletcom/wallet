@@ -14,10 +14,10 @@ struct ReportSelectReasonScene: View {
     var body: some View {
         List {
             Section {
-                ForEach(model.reasons) { reasonViewModel in
+                ForEach(model.reasons, id: \.self) { reason in
                     NavigationCustomLink(
-                        with: ListItemView(title: reasonViewModel.title),
-                        action: { model.submitReport(reason: reasonViewModel.reason.rawValue) },
+                        with: ListItemView(title: reason.title),
+                        action: { model.submitReport(reason: reason.rawValue) },
                     )
                 }
             }

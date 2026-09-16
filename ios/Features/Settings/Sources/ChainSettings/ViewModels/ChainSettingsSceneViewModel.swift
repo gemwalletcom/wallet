@@ -1,8 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Formatters
+import Components
 import Foundation
 import protocol Gemstone.GemChainSettingsServiceProtocol
+import enum Gemstone.GemChainSettingsSection
+import struct Gemstone.GemExplorerRow
+import struct Gemstone.GemNodeListSession
 import struct Gemstone.GemNodeSelection
 import enum Gemstone.GemNodeStatusState
 import GemstonePrimitives
@@ -15,44 +18,31 @@ public final class ChainSettingsSceneViewModel {
     private let service: any GemChainSettingsServiceProtocol
     let chain: Chain
 
-    var selectedExplorer: String?
     var nodeDelete: GemNodeSelection?
-    var explorers: [String]
+    var explorers: [GemExplorerRow]
     var isPresentingImportNode: Bool = false
+    var isPresentingAlertMessage: AlertMessage?
 
-    private let formatter = ValueFormatter.full_US
-
-    private var nodes: [GemNodeSelection] = []
-    private var statusStateByNodeUrl: [String: GemNodeStatusState] = [:]
+    private var session: GemNodeListSession
 
     public init(chain: Chain, service: any GemChainSettingsServiceProtocol) {
         self.chain = chain
         self.service = service
-        explorers = service.explorers(chain: chain.rawValue)
-        selectedExplorer = service.explorerName(chain: chain.rawValue)
+        explorers = service.explorerRows(chain: chain.rawValue)
+        session = service.newNodeListSession(chain: chain.rawValue)
     }
 
     var title: String {
         chain.networkName
     }
 
-    var nodesTitle: String {
-        Localized.Settings.Networks.source
+    var sections: [GemChainSettingsSection] {
+        service.sections()
     }
 
     var nodesModels: [ChainNodeViewModel] {
-        nodes.map { node in
-            ChainNodeViewModel(
-                node: node,
-                gemNodeFlag: service.nodeFlag(url: node.url),
-                statusState: statusStateByNodeUrl[node.url] ?? .loading,
-                formatter: formatter,
-            )
-        }
-    }
-
-    var explorerTitle: String {
-        Localized.Settings.Networks.explorer
+        service.nodeRows(chain: chain.rawValue, nodes: session.nodes, statuses: session.statuses)
+            .map { ChainNodeViewModel(row: $0) }
     }
 
     var deleteButtonTitle: String {
@@ -61,10 +51,6 @@ public final class ChainSettingsSceneViewModel {
 
     func deleteConfirmationTitle(for nodeName: String) -> String {
         Localized.Common.deleteConfirmation(nodeName)
-    }
-
-    func canDelete(url: String) -> Bool {
-        service.canDeleteNode(chain: chain.rawValue, url: url)
     }
 
     func addNodeModel() -> AddNodeSceneViewModel {
@@ -77,21 +63,19 @@ public final class ChainSettingsSceneViewModel {
 extension ChainSettingsSceneViewModel {
     func load() async {
         do {
-            clear()
             try await loadNodes()
             await loadNodesStates()
         } catch {
-            // TODO: - handle error
-            debugLog("chain settings scene: load error \(error)")
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
 
     func onSelectExplorer(name: String) {
-        selectedExplorer = name
         do {
             try service.setExplorerName(chain: chain.rawValue, name: name)
+            explorers = service.explorerRows(chain: chain.rawValue)
         } catch {
-            debugLog("chain settings scene: on explorer select error \(error)")
+            isPresentingAlertMessage = AlertMessage(error: error)
         }
     }
 
@@ -101,8 +85,7 @@ extension ChainSettingsSceneViewModel {
                 try await service.selectNode(chain: chain.rawValue, url: url)
                 try await loadNodes()
             } catch {
-                // TODO: - handle error
-                debugLog("chain settings scene: on chain select error \(error)")
+                isPresentingAlertMessage = AlertMessage(error: error)
             }
         }
     }
@@ -127,8 +110,7 @@ extension ChainSettingsSceneViewModel {
             do {
                 try await delete()
             } catch {
-                // TODO: - handle error
-                debugLog("chain settings scene: on delete error \(error)")
+                isPresentingAlertMessage = AlertMessage(error: error)
             }
         }
     }
@@ -138,23 +120,20 @@ extension ChainSettingsSceneViewModel {
 
 extension ChainSettingsSceneViewModel {
     private func loadNodes() async throws {
-        nodes = try await service.nodes(chain: chain.rawValue)
-    }
-
-    private func clear() {
-        statusStateByNodeUrl = [:]
+        session = session.onNodes(nodes: try await service.nodes(chain: chain.rawValue))
     }
 
     private func loadNodesStates() async {
+        session = session.onChecking()
         await withTaskGroup(of: (String, GemNodeStatusState).self) { group in
-            for url in nodes.map(\.url) {
+            for url in session.nodeUrls() {
                 group.addTask {
                     await (url, self.service.nodeStatus(chain: self.chain.rawValue, url: url))
                 }
             }
 
             for await (url, state) in group {
-                statusStateByNodeUrl[url] = state
+                session = session.onStatus(url: url, state: state)
             }
         }
     }

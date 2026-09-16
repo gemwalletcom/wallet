@@ -51,7 +51,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DisplayText
 import com.gemwallet.android.ui.components.HideToggle
@@ -61,7 +61,7 @@ import com.gemwallet.android.ui.components.isHidden
 import com.gemwallet.android.ui.components.mask
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.image.IconWithBadge
-import com.gemwallet.android.ui.components.list_item.color
+import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer8
@@ -79,7 +79,10 @@ import com.gemwallet.android.ui.theme.space10
 import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.tinyIconSize
 import com.wallet.core.primitives.Asset
+import uniffi.gemstone.GemHeaderActions
 import uniffi.gemstone.GemHeaderButton
+import com.gemwallet.android.ui.localization.stringRes
+import com.gemwallet.android.ui.style.icon
 import uniffi.gemstone.GemHeaderButtonKind
 import kotlin.math.floor
 
@@ -91,9 +94,10 @@ fun AmountListHead(
     hideToggle: HideToggle? = null,
     equivalent: String? = null,
     icon: Any? = null,
+    iconPlaceholder: String? = null,
     changedValue: String? = null,
     changedPercentages: String? = null,
-    changeState: ValueDirection = ValueDirection.None,
+    changeState: GemValueTone = GemValueTone.NEUTRAL,
     onClick: (() -> Unit)? = null,
     onSubtitleClick: (() -> Unit)? = null,
     actions: (@Composable () -> Unit)? = null,
@@ -115,6 +119,7 @@ fun AmountListHead(
                 HeaderIcon(it)
             } ?: IconWithBadge(
                 icon = icon,
+                placeholder = iconPlaceholder,
                 size = headerIconSize,
                 badgeBackgroundColor = MaterialTheme.colorScheme.surface,
             )
@@ -222,32 +227,47 @@ private data class AssetHeadActionItem(
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun AssetHeadActions(
-    isViewOnly: Boolean,
-    buttons: List<GemHeaderButton>,
+    actions: GemHeaderActions,
     onTransfer: (() -> Unit)?,
     onReceive: (() -> Unit)?,
     onBuy: (() -> Unit)?,
     onSwap: (() -> Unit)?,
+    onDeposit: (() -> Unit)? = null,
+    onWithdraw: (() -> Unit)? = null,
+    onMore: (() -> Unit)? = null,
 ) {
     var actionFontSize by remember { mutableStateOf(16.sp) }
-    if (isViewOnly) {
-        AssetWatchOnly()
-        return
-    }
-    val actions = buttons.map { button ->
-        when (button.kind) {
-            GemHeaderButtonKind.SEND -> AssetHeadActionItem(R.string.wallet_send, AppIcons.Send, button.isEnabled, onTransfer)
-            GemHeaderButtonKind.RECEIVE -> AssetHeadActionItem(R.string.wallet_receive, AppIcons.Receive, button.isEnabled, onReceive)
-            GemHeaderButtonKind.BUY -> AssetHeadActionItem(R.string.wallet_buy, AppIcons.Buy, button.isEnabled, onBuy, testTag = "assetBuy")
-            GemHeaderButtonKind.SWAP -> AssetHeadActionItem(R.string.wallet_swap, AppIcons.SwapVert, button.isEnabled, onSwap)
+    val buttons = when (actions) {
+        GemHeaderActions.WatchOnly -> {
+            AssetWatchOnly()
+            return
         }
+        is GemHeaderActions.Buttons -> actions.buttons
+    }
+    val items = buttons.map { button ->
+        val action = when (button.kind) {
+            GemHeaderButtonKind.SEND -> onTransfer
+            GemHeaderButtonKind.RECEIVE -> onReceive
+            GemHeaderButtonKind.BUY -> onBuy
+            GemHeaderButtonKind.SWAP -> onSwap
+            GemHeaderButtonKind.DEPOSIT -> onDeposit
+            GemHeaderButtonKind.WITHDRAW -> onWithdraw
+            GemHeaderButtonKind.MORE -> onMore
+        }
+        AssetHeadActionItem(
+            title = button.kind.stringRes(),
+            imageVector = button.kind.icon(),
+            enabled = button.isEnabled,
+            onClick = action,
+            testTag = if (button.kind == GemHeaderButtonKind.BUY) "assetBuy" else null,
+        )
     }
     Row(
         modifier = Modifier.width(IntrinsicSize.Min),
         horizontalArrangement = Arrangement.spacedBy(paddingDefault),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        actions.forEach { action ->
+        items.forEach { action ->
             val onClick = action.onClick ?: return@forEach
             AmountHeadAction(
                 modifier = Modifier
@@ -277,7 +297,7 @@ private fun AssetWatchOnly() {
             .testTag("watchWalletBanner"),
         onClick = openWatchWalletInfo,
         enabled = true,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(paddingDefault),
         colors = ButtonDefaults
             .buttonColors(
                 contentColor = MaterialTheme.colorScheme.onSurface,
@@ -486,8 +506,7 @@ private class ActionTextAutoSize(
 fun PreviewAssetHeadActions() {
     WalletTheme {
         AssetHeadActions(
-            isViewOnly = false,
-            buttons = listOf(GemHeaderButtonKind.SEND, GemHeaderButtonKind.RECEIVE, GemHeaderButtonKind.BUY, GemHeaderButtonKind.SWAP).map { GemHeaderButton(it, isEnabled = true) },
+            actions = GemHeaderActions.Buttons(listOf(GemHeaderButtonKind.SEND, GemHeaderButtonKind.RECEIVE, GemHeaderButtonKind.BUY, GemHeaderButtonKind.SWAP).map { GemHeaderButton(it, isEnabled = true) }),
             onTransfer = { },
             onReceive = { },
             onBuy = {},

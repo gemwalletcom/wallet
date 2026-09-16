@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.buy.views
 
+import com.gemwallet.android.ui.components.image.iconModel
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,6 +13,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -19,9 +21,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.domains.asset.getFiatProviderIcon
 import com.gemwallet.android.features.buy.viewmodels.models.BuyFiatProviderUIModel
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.features.buy.viewmodels.models.FiatUiState
@@ -47,12 +49,15 @@ import com.gemwallet.android.ui.theme.iconSize
 import com.gemwallet.android.ui.theme.isCompactDimension
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallIconSize
+import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.space1
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.FiatProvider
+import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.FiatQuoteType
-import uniffi.gemstone.GemFiatButtonAction
-import uniffi.gemstone.GemFiatQuotePhase
+
+private val loadingIndicatorSize = 30.dp
+private val errorTextPadding = 20.dp
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -66,10 +71,11 @@ fun BuyScene(
     fiatAmount: String,
     suggestedAmounts: List<FiatSuggestion>,
     cancelAction: CancelAction,
+    snackbar: SnackbarHostState,
     titleContent: @Composable () -> Unit,
     onLotSelect: (FiatSuggestion) -> Unit,
     onAmount: (String) -> Unit,
-    onProviderSelect: (FiatProvider) -> Unit,
+    onProviderSelect: (FiatProviderName) -> Unit,
     onRetry: () -> Unit,
     onFiatTransactions: () -> Unit,
     onBuy: () -> Unit
@@ -83,6 +89,7 @@ fun BuyScene(
     Scene(
         titleContent = titleContent,
         onClose = { cancelAction() },
+        snackbar = snackbar,
         actions = {
             IconButton(onClick = onFiatTransactions) {
                 Icon(
@@ -92,18 +99,11 @@ fun BuyScene(
             }
         },
         mainAction = {
-            when (uiState.buttonAction) {
-                GemFiatButtonAction.CONTINUE -> MainActionButton(
-                    title = stringResource(R.string.common_continue),
-                    state = uiState.buttonState,
-                    onClick = onBuy,
-                )
-                GemFiatButtonAction.RETRY_QUOTE -> MainActionButton(
-                    title = stringResource(R.string.common_try_again),
-                    state = uiState.buttonState,
-                    onClick = onRetry,
-                )
-            }
+            MainActionButton(
+                title = stringResource(uiState.actionTitle),
+                state = uiState.buttonState,
+                onClick = if (uiState.retries) onRetry else onBuy,
+            )
         }
     ) {
         Spacer16()
@@ -114,6 +114,8 @@ fun BuyScene(
             equivalent = selectedProvider?.cryptoFormatted ?: " ",
             error = "",
             onValueChange = onAmount,
+            keyboardType = KeyboardType.Number,
+            maximumFractionDigits = 0u,
             textStyle = MaterialTheme.typography.displayMedium,
             onNext = { },
         )
@@ -132,19 +134,19 @@ fun BuyScene(
             },
         )
 
-        val errorText = uiState.errorText(type, asset)
+        val errorText = uiState.errorText
         when {
-            uiState.phase is GemFiatQuotePhase.Loading -> {
+            uiState.isLoading -> {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(paddingDefault)
                 ) {
                     CircularProgressIndicator(
                         modifier = Modifier
-                            .size(30.dp)
+                            .size(loadingIndicatorSize)
                             .align(Alignment.Center),
-                        strokeWidth = 1.dp,
+                        strokeWidth = space1,
                     )
                 }
             }
@@ -153,7 +155,7 @@ fun BuyScene(
                 Text(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(20.dp),
+                        .padding(errorTextPadding),
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.error,
                     text = errorText,
@@ -167,11 +169,11 @@ fun BuyScene(
                     title = { PropertyTitleText(R.string.common_provider) },
                     data = {
                         PropertyDataText(
-                            selectedProvider.provider.name,
+                            selectedProvider.providerName,
                             badge = {
                                 DataBadgeChevron(isShowChevron = uiState.canSelectProvider) {
                                     AsyncImage(
-                                        model = selectedProvider.provider.getFiatProviderIcon(),
+                                        model = selectedProvider.provider.iconModel(),
                                         size = smallIconSize,
                                     )
                                 }
