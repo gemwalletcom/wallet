@@ -6,20 +6,14 @@ import WebKit
 public struct WebView: UIViewRepresentable {
     private let url: URL
     private let messageHandler: WebViewMessageHandler?
-    private let allowedHost: String
 
-    public init(
-        url: URL,
-        allowedHost: String,
-        messageHandler: WebViewMessageHandler? = .none,
-    ) {
+    public init(url: URL, messageHandler: WebViewMessageHandler? = .none) {
         self.url = url
-        self.allowedHost = allowedHost
         self.messageHandler = messageHandler
     }
 
     public func makeCoordinator() -> Coordinator {
-        Coordinator(allowedHost: allowedHost, messageHandler: messageHandler)
+        Coordinator(allowedHost: url.host() ?? "", messageHandler: messageHandler)
     }
 
     public func makeUIView(context: Context) -> WKWebView {

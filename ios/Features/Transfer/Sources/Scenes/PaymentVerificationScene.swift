@@ -14,11 +14,7 @@ public struct PaymentVerificationScene: View {
 
     public var body: some View {
         NavigationStack {
-            WebView(
-                url: model.url,
-                allowedHost: model.allowedHost,
-                messageHandler: model.messageHandler,
-            )
+            WebView(url: model.url, messageHandler: model.messageHandler)
             .navigationTitle(model.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbarDismissItem(type: .close, placement: .topBarLeading)

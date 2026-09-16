@@ -27,10 +27,6 @@ public final class PaymentVerificationSceneViewModel {
         Localized.Info.paymentVerificationTitle
     }
 
-    var allowedHost: String {
-        url.host() ?? ""
-    }
-
     var messageHandler: WebViewMessageHandler {
         WebViewMessageHandler(name: Self.messageHandlerName) { [weak self] in self?.onMessage($0) }
     }
