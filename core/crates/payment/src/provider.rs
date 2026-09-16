@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use primitives::{AssetId, Chain, ChainAddress};
 
-use crate::{PaymentError, PaymentLoad};
+use crate::{PaymentError, PaymentLoad, PaymentUpdate};
 
 #[async_trait]
 pub(crate) trait PaymentProvider: Send + Sync {
@@ -16,4 +16,10 @@ pub(crate) trait PaymentProvider: Send + Sync {
     }
 
     async fn confirm(&self, quote_id: &str, action_results: Vec<String>) -> Result<(), PaymentError>;
+
+    async fn status(&self) -> Result<PaymentUpdate, PaymentError> {
+        Err(PaymentError::InvalidRequest {
+            reason: "Payment reports no status".to_string(),
+        })
+    }
 }

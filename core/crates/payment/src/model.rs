@@ -1,5 +1,11 @@
 use primitives::swap::ApprovalData;
-use primitives::{AssetId, ChainAddress, PaymentInvoice, PaymentRequest, TransactionType, TransferDataOutputType};
+use primitives::{AssetId, ChainAddress, PaymentInvoice, PaymentRequest, PaymentStatus, TransactionType, TransferDataOutputType};
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PaymentUpdate {
+    pub status: PaymentStatus,
+    pub transaction_id: Option<String>,
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct PaymentTransaction {

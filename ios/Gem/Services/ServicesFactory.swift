@@ -136,6 +136,7 @@ struct ServicesFactory {
             balance: balanceService,
             stake: stakeService,
             nft: nftService,
+            payments: paymentService,
         )
         let transactionsService = Gemstone.GemTransactionsService(
             api: deviceApiClient,

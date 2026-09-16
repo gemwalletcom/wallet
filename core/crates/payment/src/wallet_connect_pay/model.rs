@@ -187,6 +187,15 @@ pub(super) struct ConfirmPaymentRequest {
 #[serde(rename_all = "camelCase")]
 pub(super) struct PaymentStatusResponse {
     pub status: PaymentStatus,
+    #[serde(default)]
+    pub info: Option<PaymentStatusInfo>,
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub(super) struct PaymentStatusInfo {
+    #[serde(default)]
+    pub tx_id: Option<String>,
 }
 
 impl TryFrom<WalletConnectPayAction> for WalletRpcAction {

@@ -68,6 +68,13 @@ impl<C: Client> WalletConnectPayClient<C> {
         self.post(target, &request).await
     }
 
+    pub(super) async fn get_status(&self, payment_id: &str) -> Result<PaymentStatusResponse, PaymentError> {
+        let target = WalletConnectPayTarget::Status {
+            payment_id: payment_id.to_string(),
+        };
+        self.client.get(target).headers(self.headers.clone()).await.map_err(PaymentError::from)
+    }
+
     async fn post<T: DeserializeOwned + Send, R: Serialize + Send + Sync>(&self, target: WalletConnectPayTarget, request: &R) -> Result<T, PaymentError> {
         self.client.post(target, request).headers(self.headers.clone()).await.map_err(PaymentError::from)
     }

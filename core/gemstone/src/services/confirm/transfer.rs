@@ -8,6 +8,7 @@ use crate::config::fiat_config::get_fiat_config;
 use crate::models::custom_types::GemBigInt;
 use crate::services::assets::config::GemAssetConfigService;
 use crate::services::confirm::rules::{broadcast_transactions, is_insufficient_network_fee};
+use crate::models::transaction::GemSignedTransaction;
 use crate::services::confirm::{
     GemAcquireAssetFlow, GemConfirmData, GemConfirmError, GemConfirmFeeLoad, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmService, GemConfirmSimulationState,
     GemConfirmation, GemExecuteResult, GemFeeAsset, GemTransactionSigner, SendInput,
@@ -119,19 +120,35 @@ impl GemConfirmTransferService {
         };
         let signed = self.confirm.sign(&input, self.signer.clone()).await?;
         let (transactions, signatures) = broadcast_transactions(&input_type, signed);
-        let signatures: Vec<String> = signatures.into_iter().map(|transaction| transaction.data).collect();
+        let data: Vec<String> = signatures.iter().map(|transaction| transaction.data.clone()).collect();
         if transactions.is_empty() {
-            let warning = self.report(&input_type, signatures.clone()).await;
-            return Ok(GemExecuteResult::Signed { data: signatures, warning });
+            let warning = self.report(&input_type, data.clone()).await;
+            self.record_payment(&input, &signatures, warning.is_none()).await;
+            return Ok(GemExecuteResult::Signed { data, warning });
         }
-        let sent = self.confirm.send(input, transactions).await?;
+        let sent = self.confirm.send(input.clone(), transactions).await?;
         let _ = self.recent_activity.add(input_type.clone(), wallet_id).await;
-        let warning = self.report(&input_type, [sent.hashes.clone(), signatures].concat()).await;
+        let warning = self.report(&input_type, [sent.hashes.clone(), data].concat()).await;
+        self.record_payment(&input, &signatures, warning.is_none()).await;
         Ok(GemExecuteResult::Sent {
             hashes: sent.hashes,
             transactions: sent.transactions,
             warning,
         })
+    }
+
+    async fn record_payment(&self, input: &SendInput, signatures: &[GemSignedTransaction], reported: bool) {
+        let Some(hash) = reported.then(|| self.payment.record_hash(&input.confirm.input.transfer.input_type)).flatten() else {
+            return;
+        };
+        if signatures.is_empty() {
+            return;
+        }
+        let record = SendInput {
+            network_fee: GemBigInt::from(0),
+            ..input.clone()
+        };
+        self.confirm.store_pending(&record, &[hash], signatures).await;
     }
 
     pub(super) fn payment(&self) -> &GemPaymentService {

@@ -4,7 +4,7 @@ use gem_jsonrpc::alien::{RpcClient, RpcProvider};
 use primitives::{AssetId, Chain, ChainAddress, EVMChain, PaymentStatus, WalletConnectCAIP2};
 use std::sync::{Arc, LazyLock};
 
-use crate::PaymentLoad;
+use crate::{PaymentLoad, PaymentUpdate};
 use crate::error::PaymentError;
 use crate::provider::PaymentProvider;
 use crate::wallet_connect_pay::action_mapper::map_actions;
@@ -99,11 +99,65 @@ impl<C: Client> PaymentProvider for WalletConnectPayProvider<C> {
         }
     }
 
+    async fn status(&self) -> Result<PaymentUpdate, PaymentError> {
+        let response = self.client.get_status(&self.payment_id).await?;
+        Ok(PaymentUpdate {
+            status: response.status,
+            transaction_id: response.info.and_then(|info| info.tx_id),
+        })
+    }
+
     async fn load(&self, addresses: &[ChainAddress]) -> Result<PaymentLoad, PaymentError> {
         self.load_quote(addresses, None).await
     }
 
     async fn select_asset(&self, addresses: &[ChainAddress], asset_id: AssetId) -> Result<PaymentLoad, PaymentError> {
         self.load_quote(addresses, Some(asset_id)).await
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use gem_client::testkit::MockClient;
+
+    fn provider(status: &'static str) -> WalletConnectPayProvider<MockClient> {
+        let client = MockClient::new().with_get(move |path| match path {
+            "/v1/gateway/payment/pay_1/status?maxPollMs=0" => Ok(status.as_bytes().to_vec()),
+            path => panic!("unexpected call {path}"),
+        });
+        WalletConnectPayProvider {
+            client: WalletConnectPayClient::new(
+                client,
+                WalletConnectPayAuth {
+                    app_id: "app".to_string(),
+                    client_id: "client".to_string(),
+                },
+            ),
+            payment_id: "pay_1".to_string(),
+        }
+    }
+
+    #[tokio::test]
+    async fn test_status_reports_the_relayed_transaction() {
+        let succeeded = r#"{"status":"succeeded","isFinal":true,"info":{"txId":"0xrelayed","optionAmount":{"value":"1000","unit":"caip19/eip155:137/slip44:966"}}}"#;
+        let processing = r#"{"status":"processing","isFinal":false,"pollInMs":2000}"#;
+        let bare = r#"{"status":"succeeded","info":null}"#;
+
+        assert_eq!(
+            provider(succeeded).status().await,
+            Ok(PaymentUpdate {
+                status: PaymentStatus::Succeeded,
+                transaction_id: Some("0xrelayed".to_string()),
+            })
+        );
+        assert_eq!(
+            provider(processing).status().await,
+            Ok(PaymentUpdate {
+                status: PaymentStatus::Processing,
+                transaction_id: None,
+            })
+        );
+        assert_eq!(provider(bare).status().await.unwrap().transaction_id, None);
     }
 }

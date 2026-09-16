@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use primitives::{AssetId, Chain, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionType, swap_transaction_timeout};
+use primitives::{AssetId, Chain, PaymentLink, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionType, swap_transaction_timeout};
 
 use super::model::{GemTransactionStateUpdate, TransactionPostProcessing};
 use crate::services::collections::unique;
@@ -77,7 +77,12 @@ fn metadata_json(metadata: &TransactionMetadata) -> Result<String, serde_json::E
     match metadata {
         TransactionMetadata::Swap(swap) => serde_json::to_string(swap),
         TransactionMetadata::Perpetual(perpetual) => serde_json::to_string(perpetual),
+        TransactionMetadata::Payment(payment) => serde_json::to_string(payment),
     }
+}
+
+pub fn payment_link(transaction: &Transaction) -> Option<PaymentLink> {
+    transaction.payment_metadata().map(|metadata| metadata.link)
 }
 
 pub fn assets_to_enable(transactions: &[Transaction]) -> Vec<AssetId> {
@@ -87,6 +92,29 @@ pub fn assets_to_enable(transactions: &[Transaction]) -> Vec<AssetId> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::{PaymentMerchant, TransactionPaymentMetadata};
+
+    #[test]
+    fn test_payment_link_only_for_payment_records() {
+        let mut transaction = Transaction::mock();
+        assert_eq!(payment_link(&transaction), None);
+
+        transaction.metadata = Some(serde_json::json!({"fromAsset": "ethereum", "fromValue": "1", "toAsset": "bitcoin", "toValue": "1", "provider": null}));
+        assert_eq!(payment_link(&transaction), None);
+
+        let link = PaymentLink::WalletConnectPay { payment_id: "pay_1".to_string() };
+        transaction.metadata = Some(
+            serde_json::to_value(TransactionPaymentMetadata {
+                link: link.clone(),
+                merchant: PaymentMerchant {
+                    name: "Gem Coffee".to_string(),
+                    icon: String::new(),
+                },
+            })
+            .unwrap(),
+        );
+        assert_eq!(payment_link(&transaction), Some(link));
+    }
 
     #[test]
     fn test_post_processing_stake_chains_are_unique() {

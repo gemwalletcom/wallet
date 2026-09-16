@@ -88,6 +88,7 @@ impl ConfirmTestkit {
             session.clone(),
         ));
         let nft = Arc::new(GemNftService::new(device_api.clone(), Arc::new(MemoryNftStore::default()), session.clone()));
+        let payment = Arc::new(crate::payment::GemPaymentService::new(provider.clone(), assets.clone()));
         let transactions = Arc::new(GemTransactionStateService::new(
             gateway.clone(),
             Arc::new(MemoryTransactionStateStore::default()),
@@ -95,8 +96,8 @@ impl ConfirmTestkit {
             balance.clone(),
             stake,
             nft,
+            payment.clone(),
         ));
-        let payment = Arc::new(crate::payment::GemPaymentService::new(provider.clone(), assets.clone()));
         let confirm = Arc::new(GemConfirmService::new(
             gateway,
             Arc::new(GemSimulationService::new(provider, Arc::new(EmptyPreferences))),

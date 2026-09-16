@@ -3,7 +3,7 @@ use std::sync::Arc;
 use gem_jsonrpc::alien::RpcProvider;
 use primitives::{AssetId, Chain, ChainAddress, PaymentLink};
 
-use crate::PaymentLoad;
+use crate::{PaymentLoad, PaymentUpdate};
 use crate::error::PaymentError;
 use crate::provider::PaymentProvider;
 use crate::provider_factory::PaymentProviderFactory;
@@ -32,6 +32,10 @@ impl PaymentService {
 
     pub async fn confirm(&self, link: &PaymentLink, quote_id: &str, action_results: Vec<String>) -> Result<(), PaymentError> {
         self.providers.get_provider(link).confirm(quote_id, action_results).await
+    }
+
+    pub async fn status(&self, link: &PaymentLink) -> Result<PaymentUpdate, PaymentError> {
+        self.providers.get_provider(link).status().await
     }
 
     fn validate(provider: &dyn PaymentProvider, load: PaymentLoad, addresses: &[ChainAddress]) -> Result<PaymentLoad, PaymentError> {

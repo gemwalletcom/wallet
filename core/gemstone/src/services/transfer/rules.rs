@@ -1,6 +1,6 @@
 use chrono::Utc;
 use num_bigint::BigInt;
-use primitives::{PaymentVerification, SwapProvider};
+use primitives::{PaymentVerification, SwapProvider, TransactionPaymentMetadata};
 use primitives::swap::ApprovalData;
 use primitives::{
     AccountDataType, AddressName, Asset, AssetId, AssetType, Chain, ContractCallData, DelegationValidator, EarnType, FeePriority, PerpetualType,
@@ -331,6 +331,10 @@ impl TransferInput for TransactionInputType {
             Self::Generic { extra, .. } => Some(serde_json::to_value(TransactionWalletConnectMetadata {
                 output_action: extra.output_action.clone(),
             })?),
+            Self::Payment { invoice, extra, .. } if extra.output_type == TransferDataOutputType::Signature => Some(serde_json::to_value(TransactionPaymentMetadata {
+                link: invoice.link.clone(),
+                merchant: invoice.merchant.clone(),
+            })?),
             Self::Payment { .. } | Self::Transfer { .. } | Self::Deposit { .. } | Self::Withdrawal { .. } | Self::TokenApprove { .. } | Self::Account { .. } | Self::Earn { .. } => None,
         };
         Ok(value)
@@ -548,7 +552,7 @@ impl GemPendingTransactionInput {
             TransactionDirection::Outgoing
         };
         let metadata = match transfer.input_type {
-            TransactionInputType::Swap { .. } | TransactionInputType::Earn { .. } if approval.is_some() => None,
+            TransactionInputType::Swap { .. } | TransactionInputType::Earn { .. } | TransactionInputType::Payment { .. } if approval.is_some() => None,
             _ => transfer.input_type.metadata().map_err(|error| error.to_string())?,
         };
         let mut transaction = Transaction::new(
@@ -1208,6 +1212,39 @@ mod tests {
         assert_eq!(transaction.asset_id, AssetId::from(Chain::Solana, Some("usdc".into())));
         assert_eq!(transaction.value, BigUint::from(19_000_000u64));
         assert_eq!(transaction.to, "recipient");
+
+        let token_payment = |approval| TransactionInputType::Payment {
+            asset: token(Chain::SmartChain, "0xusdc"),
+            invoice: primitives::PaymentInvoice::mock(),
+            extra: TransferDataExtra {
+                to: "0xrouter".into(),
+                gas_limit: None,
+                gas_price: None,
+                data: Some(b"typed data".to_vec()),
+                output_type: TransferDataOutputType::Signature,
+                output_action: TransferDataOutputAction::Sign,
+                transaction_type: TransactionType::Transfer,
+                approval,
+            },
+        };
+        let payment_approval = ApprovalData {
+            token: "0xusdc".into(),
+            spender: "0xpermit2".into(),
+            value: BigUint::from(100u64),
+            is_unlimited: true,
+        };
+        let approve_leg = pending_input(token_payment(Some(payment_approval.clone())), TransactionType::TokenApproval, "0xapprove", 0, 2)
+            .pending_transaction()
+            .unwrap()
+            .unwrap();
+        assert_eq!(approve_leg.to, "0xpermit2");
+        assert!(approve_leg.metadata.is_none(), "the approve leg must not look like the payment to the tracker");
+        let payment_leg = pending_input(token_payment(Some(payment_approval)), TransactionType::Transfer, "pay_1", 0, 1)
+            .pending_transaction()
+            .unwrap()
+            .unwrap();
+        assert_eq!(payment_leg.to, "recipient");
+        assert!(payment_leg.payment_metadata().is_some());
 
         let hypercore_swap = swap_input(asset(Chain::Ethereum), asset(Chain::HyperCore), SwapProvider::Hyperliquid, None);
         assert!(
