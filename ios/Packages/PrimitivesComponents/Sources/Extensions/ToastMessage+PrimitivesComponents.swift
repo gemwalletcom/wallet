@@ -10,10 +10,10 @@ import Style
 
 public extension ToastMessage {
     static func transfer(_ result: GemExecuteResult, for type: TransactionInputType) -> ToastMessage? {
-        if case let .sent(_, _, warning?) = result {
-            return .error(warning)
+        switch result {
+        case let .sent(_, _, warning?), let .signed(_, warning?): .error(warning)
+        case .sent, .signed: transfer(for: type)
         }
-        return transfer(for: type)
     }
 
     static func transfer(for type: TransactionInputType) -> ToastMessage? {

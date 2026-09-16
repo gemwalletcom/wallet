@@ -22,6 +22,7 @@ use crate::transfer_amount::{GemTransferAmountError, GemTransferAmountInput};
 use num_bigint::{BigInt, Sign};
 use primitives::AssetPrice;
 use primitives::TransactionInputType;
+use primitives::TransferDataOutputType;
 
 impl SendInput {
     pub(super) fn signer_input(&self) -> Result<GemSignerInput, GemConfirmError> {
@@ -112,6 +113,9 @@ impl ConfirmInput for TransactionInputType {
         let Self::Payment { extra, .. } = self else {
             return None;
         };
+        if extra.output_type == TransferDataOutputType::Signature {
+            return None;
+        }
         extra.data.as_ref().filter(|data| !data.is_empty()).and_then(|data| String::from_utf8(data.clone()).ok())
     }
 
@@ -1067,9 +1071,13 @@ mod tests {
         missing.data = None;
         assert_eq!(payment(missing).simulation_payload(), None);
 
-        let mut coin_transfer = extra;
+        let mut coin_transfer = extra.clone();
         coin_transfer.data = Some(Vec::new());
         assert_eq!(payment(coin_transfer).simulation_payload(), None, "a coin transfer carries no calldata to simulate");
+
+        let mut signature = extra;
+        signature.output_type = TransferDataOutputType::Signature;
+        assert_eq!(payment(signature).simulation_payload(), None, "typed data is not a transaction to simulate");
 
         let swap = TransactionInputType::Swap {
             from_asset: Asset::mock_sol(),

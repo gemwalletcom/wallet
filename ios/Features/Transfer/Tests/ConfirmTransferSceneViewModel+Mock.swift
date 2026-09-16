@@ -23,7 +23,7 @@ extension ConfirmTransferSceneViewModel {
         simulation: SimulationResult? = nil,
         gemConfirmService: GemConfirmServiceMock = GemConfirmServiceMock(),
         load: Result<GemConfirmLoad, any Error>? = nil,
-        execute: Result<GemExecuteResult, any Error> = .success(.signed(data: [])),
+        execute: Result<GemExecuteResult, any Error> = .success(.signed(data: [], warning: nil)),
         confirmation: GemConfirmationMock? = nil,
         onComplete: ((GemExecuteResult) -> Void)? = nil,
     ) -> ConfirmTransferSceneViewModel {

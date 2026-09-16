@@ -1,7 +1,7 @@
 use crate::constants::{DEFAULT_SWAP_GAS_LIMIT, TOKEN_TRANSFER_GAS_LIMIT, TRANSFER_GAS_LIMIT};
 use crate::fee_calculator::{get_fee_history_blocks, get_reward_percentiles};
 use crate::provider::preload_mapper::{
-    bigint_to_hex_string, bytes_to_hex_string, calculate_gas_limit_with_increase, get_extra_fee_gas_limit, get_transaction_params, map_transaction_fee_rates,
+    bigint_to_hex_string, bytes_to_hex_string, calculate_gas_limit_with_increase, get_extra_fee_gas_limit, get_transaction_params, is_signature_only, map_transaction_fee_rates,
     map_transaction_preload,
 };
 use crate::rpc::EthereumProvider;
@@ -54,6 +54,10 @@ impl<C: Client + Clone> ChainTransactionLoad for EthereumProvider<C> {
 #[cfg(feature = "rpc")]
 impl<C: Client + Clone> EthereumProvider<C> {
     pub async fn map_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
+        if is_signature_only(&input.input_type) {
+            let fee = calculate_fee(&input, &BigInt::from(0))?;
+            return Ok(TransactionLoadData { fee, metadata: input.metadata });
+        }
         let params = match &input.input_type {
             TransactionInputType::Stake { stake_type, .. } => self.provider.encode_stake(stake_type, &input.value_as_bigint())?,
             _ => get_transaction_params(self.chain, &input)?,

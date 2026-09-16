@@ -97,16 +97,16 @@ impl GemPaymentService {
 }
 
 impl GemPaymentService {
-    pub(crate) async fn confirm(&self, input_type: &TransactionInputType, transaction_hash: String) -> Result<(), GemPaymentError> {
+    pub(crate) async fn confirm(&self, input_type: &TransactionInputType, action_result: String) -> Result<(), GemPaymentError> {
         let (invoice, quote) = payment_quote(input_type).ok_or(GemPaymentError::InvalidRequest {
             reason: "Transfer is not a payment".to_string(),
         })?;
-        self.payments.confirm(&invoice.link, &quote.id, transaction_hash).await
+        self.payments.confirm(&invoice.link, &quote.id, action_result).await
     }
 
-    pub(crate) async fn verification_transfer_data(&self, invoice: GemPaymentInvoice, asset_id: AssetId, url: String) -> Result<GemTransferData, GemPaymentError> {
+    pub(crate) async fn quote_transfer_data(&self, invoice: GemPaymentInvoice, asset_id: AssetId, verification: PaymentVerification) -> Result<GemTransferData, GemPaymentError> {
         let asset = self.assets.ensure_token_asset(asset_id).await?;
-        verification_transfer_data(invoice, asset, url)
+        quote_transfer_data(invoice, asset, verification)
     }
 
     async fn payment_load(&self, load: PaymentLoad) -> Result<GemPaymentLoad, GemPaymentError> {
@@ -122,7 +122,7 @@ impl GemPaymentService {
     }
 }
 
-fn verification_transfer_data(invoice: GemPaymentInvoice, asset: Asset, url: String) -> Result<GemTransferData, GemPaymentError> {
+fn quote_transfer_data(invoice: GemPaymentInvoice, asset: Asset, verification: PaymentVerification) -> Result<GemTransferData, GemPaymentError> {
     let quote = invoice.quotes.iter().find(|quote| quote.asset_id == asset.id).ok_or(GemPaymentError::InvalidRequest {
         reason: "Payment has no quote for the asset".to_string(),
     })?;
@@ -131,7 +131,7 @@ fn verification_transfer_data(invoice: GemPaymentInvoice, asset: Asset, url: Str
         input_type: TransactionInputType::Payment {
             asset,
             invoice: GemPaymentInvoice {
-                verification: Some(PaymentVerification { url }),
+                verification: Some(verification),
                 ..invoice
             },
             extra: TransferDataExtra {
@@ -184,8 +184,11 @@ fn transaction_transfer_data(transaction: PaymentTransaction, asset: Asset) -> G
                 gas_limit: None,
                 gas_price: None,
                 data: Some(transaction_data(&transaction.transaction)),
+                output_action: match transaction.output_type {
+                    TransferDataOutputType::EncodedTransaction => TransferDataOutputAction::Send,
+                    TransferDataOutputType::Signature => TransferDataOutputAction::Sign,
+                },
                 output_type: transaction.output_type,
-                output_action: TransferDataOutputAction::Send,
                 transaction_type: transaction.transaction_type,
                 approval: transaction.approval,
             },
@@ -635,6 +638,15 @@ mod tests {
                 assert_eq!(extra.data.as_deref(), Some(b"encoded".as_slice()));
                 assert_eq!(extra.output_type, TransferDataOutputType::EncodedTransaction);
             }
+            input_type => panic!("expected a payment input type, got {input_type:?}"),
+        }
+
+        let signature = PaymentTransaction {
+            output_type: TransferDataOutputType::Signature,
+            ..transaction(None)
+        };
+        match &transaction_transfer_data(signature, asset.clone()).input_type {
+            TransactionInputType::Payment { extra, .. } => assert_eq!(extra.output_action, TransferDataOutputAction::Sign),
             input_type => panic!("expected a payment input type, got {input_type:?}"),
         }
 

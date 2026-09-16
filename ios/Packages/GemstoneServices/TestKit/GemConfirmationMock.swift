@@ -30,7 +30,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     public init(
         state: GemConfirmLoad = .mock(),
         load: Result<GemConfirmLoad, any Error> = .success(.mock()),
-        execute: Result<GemExecuteResult, any Error> = .success(.signed(data: [])),
+        execute: Result<GemExecuteResult, any Error> = .success(.signed(data: [], warning: nil)),
         authentication: GemKeystoreAuthentication = .none,
     ) {
         initialState = state

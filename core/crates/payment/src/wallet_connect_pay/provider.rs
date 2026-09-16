@@ -92,8 +92,8 @@ impl<C: Client> PaymentProvider for WalletConnectPayProvider<C> {
         &SUPPORTED_CHAINS
     }
 
-    async fn confirm(&self, quote_id: &str, transaction_hash: String) -> Result<(), PaymentError> {
-        match self.client.confirm(&self.payment_id, quote_id, transaction_hash).await?.status {
+    async fn confirm(&self, quote_id: &str, action_result: String) -> Result<(), PaymentError> {
+        match self.client.confirm(&self.payment_id, quote_id, action_result).await?.status {
             PaymentStatus::Succeeded | PaymentStatus::Processing => Ok(()),
             status => Err(PaymentError::InvalidRequest { reason: status_reason(status) }),
         }

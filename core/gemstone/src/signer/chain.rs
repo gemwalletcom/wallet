@@ -19,7 +19,7 @@ use gem_ton::signer::TonChainSigner;
 use gem_tron::signer::TronChainSigner;
 use gem_xrp::signer::XrpChainSigner;
 use primitives::swap::{SwapData, SwapQuoteDataType};
-use primitives::{Asset, BitcoinChain, Chain, ChainSigner, ChainType, SignerError, SignerInput, TransactionInputType, TransactionType};
+use primitives::{Asset, BitcoinChain, Chain, ChainSigner, ChainType, SignerError, SignerInput, TransactionInputType, TransactionType, TransferDataOutputType};
 use zeroize::Zeroizing;
 
 pub struct ChainTransactionSigner {
@@ -128,7 +128,13 @@ impl ChainTransactionSigner {
             }
             TransactionInputType::TransferNft { .. } => self.one(input, private_key, transaction_type, "nft transfer", |signer, i, key| signer.sign_nft_transfer(i, key)),
             TransactionInputType::TokenApprove { .. } => self.one(input, private_key, transaction_type, "token approval", |signer, i, key| signer.sign_token_approval(i, key)),
-            TransactionInputType::Generic { .. } | TransactionInputType::Payment { .. } => self.one(input, private_key, transaction_type, "data", |signer, i, key| signer.sign_data(i, key)),
+            TransactionInputType::Generic { .. } => self.one(input, private_key, transaction_type, "data", |signer, i, key| signer.sign_data(i, key)),
+            TransactionInputType::Payment { extra, .. } => match extra.output_type {
+                TransferDataOutputType::EncodedTransaction => self.one(input, private_key, transaction_type, "data", |signer, i, key| signer.sign_data(i, key)),
+                TransferDataOutputType::Signature => self
+                    .dispatch_message(&extra.data.clone().unwrap_or_default(), private_key, "typed data", |signer, message, key| signer.sign_message(message, key))
+                    .map(|data| vec![GemSignedTransaction { data, transaction_type }]),
+            },
             TransactionInputType::Account { .. } => self.one(input, private_key, transaction_type, "account action", |signer, i, key| signer.sign_account_action(i, key)),
             TransactionInputType::Stake { .. } => self.many(input, private_key, "stake", |signer, i, key| signer.sign_stake(i, key)),
             TransactionInputType::Perpetual { .. } => self.many(input, private_key, "perpetual", |signer, i, key| signer.sign_perpetual(i, key)),
@@ -300,6 +306,34 @@ mod tests {
         let signed = ChainTransactionSigner::new(Chain::Ton).sign_input(input.into(), Zeroizing::new(private_key)).unwrap();
 
         assert_eq!(signed.len(), 1);
+    }
+
+    #[test]
+    fn test_sign_input_signs_a_payment_signature_as_typed_data() {
+        let signer = ChainTransactionSigner::new(Chain::Ethereum);
+        let key = TEST_PRIVATE_KEY.to_vec();
+        let typed_data = br#"{"types":{"EIP712Domain":[{"name":"name","type":"string"},{"name":"chainId","type":"uint256"}],"Message":[{"name":"content","type":"string"}]},"primaryType":"Message","domain":{"name":"Test","chainId":1},"message":{"content":"Hello"}}"#.to_vec();
+        let payment: GemSignerInput = SignerInput::mock_evm(
+            TransactionInputType::Payment {
+                asset: Asset::mock_erc20(),
+                invoice: primitives::PaymentInvoice::mock(),
+                extra: primitives::TransferDataExtra {
+                    data: Some(typed_data.clone()),
+                    output_type: TransferDataOutputType::Signature,
+                    output_action: primitives::TransferDataOutputAction::Sign,
+                    transaction_type: TransactionType::Transfer,
+                    ..primitives::TransferDataExtra::mock()
+                },
+            },
+            "0",
+            0,
+        )
+        .into();
+
+        assert_eq!(
+            signer.sign_input(payment, Zeroizing::new(key.clone())).unwrap(),
+            signed(vec![signer.sign_message(typed_data, key).unwrap()], TransactionType::Transfer)
+        );
     }
 
     #[test]

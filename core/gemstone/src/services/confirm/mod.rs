@@ -216,6 +216,7 @@ impl GemConfirmService {
         match input.confirm.input.transfer.input_type.output().output_action {
             TransferDataOutputAction::Sign => Ok(GemExecuteResult::Signed {
                 data: transactions.into_iter().map(|transaction| transaction.data).collect(),
+                warning: None,
             }),
             TransferDataOutputAction::Send => {
                 let result = self.send(input, transactions).await?;

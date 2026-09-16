@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use futures::lock::Mutex;
 use primitives::currency::Currency;
-use primitives::{AssetId, BlockExplorerLink, Chain, ChainAddress, PerpetualModifyConfirmData, SimulationResult, TransactionInputType, Wallet};
+use primitives::{AssetId, BlockExplorerLink, Chain, ChainAddress, PaymentVerification, PerpetualModifyConfirmData, SimulationResult, TransactionInputType, Wallet};
 
 use super::rules::preload_simulation;
 use super::{GemAcquireAssetFlow, GemConfirmError, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmScreen, GemConfirmTransferService, GemExecuteResult, GemTransferAmountResult};
@@ -135,7 +135,12 @@ impl GemConfirmation {
         let addresses = self.wallet.accounts.iter().map(|account| ChainAddress::new(account.chain, account.address.clone())).collect();
         let transfer = match self.service.payment().select_asset(invoice, addresses, asset_id).await? {
             GemPaymentLoad::Sign { transfer } => transfer,
-            GemPaymentLoad::Verify { invoice, asset_id, url } => self.service.payment().verification_transfer_data(invoice, asset_id, url).await?,
+            GemPaymentLoad::Verify { invoice, asset_id, url } => {
+                self.service
+                    .payment()
+                    .quote_transfer_data(invoice, asset_id, PaymentVerification { url })
+                    .await?
+            }
         };
         *self.transfer.lock().await = transfer;
         *self.screen.lock().await = None;

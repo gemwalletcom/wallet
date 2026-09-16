@@ -41,7 +41,7 @@ struct ConfirmSubmissionTests {
         let reported = ReportedValues()
 
         let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
-        try await ConfirmTransferSceneViewModel.mock(request: request, execute: .success(.signed(data: ["signed"]))).submit(request: request)
+        try await ConfirmTransferSceneViewModel.mock(request: request, execute: .success(.signed(data: ["signed"], warning: nil))).submit(request: request)
 
         #expect(reported.values == ["signed"])
     }

@@ -136,14 +136,24 @@ impl GemConfirmTransferService {
     }
 
     async fn report_payment(&self, input_type: &TransactionInputType, result: GemExecuteResult) -> GemExecuteResult {
-        let GemExecuteResult::Sent { hashes, transactions, .. } = result else {
+        let TransactionInputType::Payment { .. } = input_type else {
             return result;
         };
-        let warning = match (input_type, hashes.first()) {
-            (TransactionInputType::Payment { .. }, Some(hash)) => self.payment.confirm(input_type, hash.clone()).await.err().map(|error| error.to_string()),
-            _ => None,
-        };
-        GemExecuteResult::Sent { hashes, transactions, warning }
+        match result {
+            GemExecuteResult::Sent { hashes, transactions, .. } => {
+                let warning = self.report(input_type, hashes.first()).await;
+                GemExecuteResult::Sent { hashes, transactions, warning }
+            }
+            GemExecuteResult::Signed { data, .. } => {
+                let warning = self.report(input_type, data.first()).await;
+                GemExecuteResult::Signed { data, warning }
+            }
+        }
+    }
+
+    async fn report(&self, input_type: &TransactionInputType, action_result: Option<&String>) -> Option<String> {
+        let action_result = action_result?;
+        self.payment.confirm(input_type, action_result.clone()).await.err().map(|error| error.to_string())
     }
 
     pub(super) fn confirm_input(&self, wallet: Wallet, transfer: GemTransferData) -> Result<GemConfirmInput, GemConfirmError> {
@@ -226,6 +236,7 @@ mod tests {
         };
         let signed = GemExecuteResult::Signed {
             data: vec!["0xsigned".to_string()],
+            warning: None,
         };
 
         assert!(is_broadcast(&sent));

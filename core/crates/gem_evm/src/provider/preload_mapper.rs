@@ -4,7 +4,10 @@ use alloy_primitives::hex;
 use num_bigint::BigInt;
 use num_traits::Num;
 use primitives::swap::SwapQuoteDataType;
-use primitives::{AssetSubtype, EVMChain, FeeRate, NFTType, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, decode_hex, fee::FeePriority, fee::GasPriceType};
+use primitives::{
+    AssetSubtype, EVMChain, FeeRate, NFTType, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataOutputType, decode_hex, fee::FeePriority,
+    fee::GasPriceType,
+};
 
 use crate::constants::TRANSFER_GAS_LIMIT;
 use crate::encode::{encode_erc20_approve_max_value, encode_erc20_transfer, encode_erc721_transfer, encode_erc1155_transfer};
@@ -152,9 +155,36 @@ pub fn get_extra_fee_gas_limit(input: &TransactionLoadInput) -> Result<BigInt, B
     }
 }
 
+pub fn is_signature_only(input_type: &TransactionInputType) -> bool {
+    let TransactionInputType::Payment { extra, .. } = input_type else {
+        return false;
+    };
+    extra.output_type == TransferDataOutputType::Signature && extra.approval.is_none()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::swap::ApprovalData;
+    use primitives::{Asset, PaymentInvoice, TransferDataExtra};
+
+    #[test]
+    fn test_is_signature_only() {
+        let payment = |output_type, approval| TransactionInputType::Payment {
+            asset: Asset::mock_erc20(),
+            invoice: PaymentInvoice::mock(),
+            extra: TransferDataExtra {
+                output_type,
+                approval,
+                ..TransferDataExtra::mock()
+            },
+        };
+
+        assert!(is_signature_only(&payment(TransferDataOutputType::Signature, None)));
+        assert!(!is_signature_only(&payment(TransferDataOutputType::Signature, Some(ApprovalData::mock()))));
+        assert!(!is_signature_only(&payment(TransferDataOutputType::EncodedTransaction, None)));
+        assert!(!is_signature_only(&TransactionInputType::Transfer { asset: Asset::mock_erc20() }));
+    }
 
     #[test]
     fn test_map_transaction_preload_with_hex_prefix() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

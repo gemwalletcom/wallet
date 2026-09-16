@@ -23,7 +23,7 @@ impl<C: Client> SolanaPayProvider<C> {
 
 #[async_trait]
 impl<C: Client> PaymentProvider for SolanaPayProvider<C> {
-    async fn confirm(&self, _quote_id: &str, _transaction_hash: String) -> Result<(), PaymentError> {
+    async fn confirm(&self, _quote_id: &str, _action_result: String) -> Result<(), PaymentError> {
         Ok(())
     }
 

@@ -144,8 +144,8 @@ pub(super) enum WalletConnectPayActionResult {
 }
 
 impl WalletConnectPayActionResult {
-    pub(super) fn wallet_rpc(result: String) -> Self {
-        Self::WalletRpc(vec![Value::String(result)])
+    pub(super) fn wallet_rpc(action_result: String) -> Self {
+        Self::WalletRpc(vec![Value::String(action_result)])
     }
 }
 

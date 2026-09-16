@@ -437,7 +437,7 @@ extension ConfirmTransferSceneViewModel {
             throw GemConfirmError.Broadcast(hashes: hashes, msg: msg)
         }
         switch result {
-        case let .signed(data):
+        case let .signed(data, _):
             data.forEach { request.delegate?(.success($0)) }
         case let .sent(hashes, _, _):
             hashes.forEach { request.delegate?(.success($0)) }
