@@ -38,9 +38,7 @@ mod tests {
 
         assert_eq!(
             client.get_info().await.unwrap_err(),
-            PaymentError::InvalidRequest {
-                reason: "Payment link expired".to_string(),
-            }
+            PaymentError::invalid_request("Payment link expired")
         );
     }
 

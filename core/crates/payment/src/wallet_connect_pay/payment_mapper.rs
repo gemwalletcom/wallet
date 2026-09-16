@@ -16,9 +16,7 @@ const CAIP19_PREFIX: &str = "caip19";
 const ISO4217_PREFIX: &str = "iso4217/";
 
 pub(super) fn map_options(response: PaymentOptionsResponse, accounts: &[String]) -> Result<Options, PaymentError> {
-    let payment = response.info.ok_or(PaymentError::InvalidRequest {
-        reason: "Payment not found".to_string(),
-    })?;
+    let payment = response.info.ok_or(PaymentError::invalid_request("Payment not found"))?;
     if payment.status != PaymentStatus::RequiresAction {
         return Ok(Options::Status { status: payment.status });
     }
@@ -37,9 +35,7 @@ pub(super) fn map_options(response: PaymentOptionsResponse, accounts: &[String])
 }
 
 fn map_price(amount: &PaymentPriceAmount) -> Result<PaymentPrice, PaymentError> {
-    let invalid = || PaymentError::InvalidRequest {
-        reason: format!("Invalid payment amount {}", amount.value),
-    };
+    let invalid = || PaymentError::invalid_request(format!("Invalid payment amount {}", amount.value));
     let value = BigUint::from_str(&amount.value).map_err(|_| invalid())?;
     Ok(PaymentPrice {
         currency: amount.unit.strip_prefix(ISO4217_PREFIX).unwrap_or(&amount.unit).to_string(),

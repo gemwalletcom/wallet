@@ -212,9 +212,7 @@ impl TryFrom<WalletConnectPayAction> for WalletRpcAction {
     fn try_from(action: WalletConnectPayAction) -> Result<Self, Self::Error> {
         match action {
             WalletConnectPayAction::WalletRpc(wallet_rpc) => Ok(wallet_rpc),
-            WalletConnectPayAction::Build(_) => Err(PaymentError::InvalidRequest {
-                reason: "Payment action is not a wallet RPC call".to_string(),
-            }),
+            WalletConnectPayAction::Build(_) => Err(PaymentError::invalid_request("Payment action is not a wallet RPC call")),
         }
     }
 }

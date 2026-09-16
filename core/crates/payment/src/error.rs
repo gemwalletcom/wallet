@@ -24,7 +24,7 @@ pub enum PaymentError {
 }
 
 impl PaymentError {
-    pub(crate) fn invalid_request(reason: impl ToString) -> Self {
+    pub fn invalid_request(reason: impl ToString) -> Self {
         Self::InvalidRequest { reason: reason.to_string() }
     }
 }

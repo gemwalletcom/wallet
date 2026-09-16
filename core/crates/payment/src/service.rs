@@ -47,14 +47,10 @@ impl PaymentService {
 
     fn validate_account(supported_chains: &[Chain], account: &ChainAddress, addresses: &[ChainAddress]) -> Result<(), PaymentError> {
         if !supported_chains.contains(&account.chain) {
-            return Err(PaymentError::InvalidRequest {
-                reason: "Payment account chain is not supported by provider".to_string(),
-            });
+            return Err(PaymentError::invalid_request("Payment account chain is not supported by provider"));
         }
         if !addresses.contains(account) {
-            return Err(PaymentError::InvalidRequest {
-                reason: "Payment account changed".to_string(),
-            });
+            return Err(PaymentError::invalid_request("Payment account changed"));
         }
         Ok(())
     }
@@ -71,15 +67,11 @@ mod tests {
         assert_eq!(PaymentService::validate_account(&[Chain::Solana], &account, std::slice::from_ref(&account)), Ok(()));
         assert_eq!(
             PaymentService::validate_account(&[Chain::Ethereum], &account, std::slice::from_ref(&account)),
-            Err(PaymentError::InvalidRequest {
-                reason: "Payment account chain is not supported by provider".to_string(),
-            })
+            Err(PaymentError::invalid_request("Payment account chain is not supported by provider"))
         );
         assert_eq!(
             PaymentService::validate_account(&[Chain::Solana], &account, &[]),
-            Err(PaymentError::InvalidRequest {
-                reason: "Payment account changed".to_string(),
-            })
+            Err(PaymentError::invalid_request("Payment account changed"))
         );
     }
 }

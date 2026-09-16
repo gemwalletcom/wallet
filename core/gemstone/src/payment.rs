@@ -105,9 +105,7 @@ impl GemPaymentService {
     }
 
     pub(crate) async fn confirm(&self, input_type: &TransactionInputType, action_results: Vec<String>) -> Result<(), GemPaymentError> {
-        let (invoice, quote) = payment_quote(input_type).ok_or(GemPaymentError::InvalidRequest {
-            reason: "Transfer is not a payment".to_string(),
-        })?;
+        let (invoice, quote) = payment_quote(input_type).ok_or(GemPaymentError::invalid_request("Transfer is not a payment"))?;
         self.payments.confirm(&invoice.link, &quote.id, action_results).await
     }
 
@@ -130,9 +128,12 @@ impl GemPaymentService {
 }
 
 fn quote_transfer_data(invoice: GemPaymentInvoice, asset: Asset, verification: PaymentVerification) -> Result<GemTransferData, GemPaymentError> {
-    let value = invoice.quotes.iter().find(|quote| quote.asset_id == asset.id).map(|quote| quote.value.clone()).ok_or(GemPaymentError::InvalidRequest {
-        reason: "Payment has no quote for the asset".to_string(),
-    })?;
+    let value = invoice
+        .quotes
+        .iter()
+        .find(|quote| quote.asset_id == asset.id)
+        .map(|quote| quote.value.clone())
+        .ok_or(GemPaymentError::invalid_request("Payment has no quote for the asset"))?;
     Ok(GemTransferData {
         input_type: TransactionInputType::Payment {
             asset,

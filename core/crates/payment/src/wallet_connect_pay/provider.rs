@@ -44,7 +44,7 @@ impl<C: Client> WalletConnectPayProvider<C> {
 
     async fn load_quote(&self, addresses: &[ChainAddress], asset_id: Option<AssetId>) -> Result<PaymentLoad, PaymentError> {
         let invoice = match self.get_options(addresses).await? {
-            Options::Status { status } => return Err(PaymentError::InvalidRequest { reason: status_reason(status) }),
+            Options::Status { status } => return Err(PaymentError::invalid_request(status_reason(status))),
             Options::Invoice(invoice) => invoice,
         };
         let quote = match &asset_id {
@@ -57,9 +57,11 @@ impl<C: Client> WalletConnectPayProvider<C> {
         let actions = match self.get_actions(quote).await? {
             PaymentActions::Ready(actions) => actions,
             PaymentActions::CollectData => {
-                let url = invoice.collect_data_url.clone().or_else(|| quote.collect_data_url.clone()).ok_or(PaymentError::InvalidRequest {
-                    reason: "Payment requires verification without a form".to_string(),
-                })?;
+                let url = invoice
+                    .collect_data_url
+                    .clone()
+                    .or_else(|| quote.collect_data_url.clone())
+                    .ok_or(PaymentError::invalid_request("Payment requires verification without a form"))?;
                 return Ok(PaymentLoad::Verify {
                     invoice: payment_invoice,
                     asset_id: quote.asset_id.clone(),
@@ -95,7 +97,7 @@ impl<C: Client> PaymentProvider for WalletConnectPayProvider<C> {
     async fn confirm(&self, quote_id: &str, action_results: Vec<String>) -> Result<(), PaymentError> {
         match self.client.confirm(&self.payment_id, quote_id, action_results).await?.status {
             PaymentStatus::Succeeded | PaymentStatus::Processing => Ok(()),
-            status => Err(PaymentError::InvalidRequest { reason: status_reason(status) }),
+            status => Err(PaymentError::invalid_request(status_reason(status))),
         }
     }
 
