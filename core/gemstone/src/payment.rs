@@ -74,10 +74,6 @@ impl GemPaymentService {
         self.payment_load(self.payments.load(&link, &addresses).await?).await
     }
 
-    pub async fn select_asset(&self, invoice: GemPaymentInvoice, addresses: Vec<ChainAddress>, asset_id: AssetId) -> Result<GemPaymentLoad, GemPaymentError> {
-        self.payment_load(self.payments.select_asset(&invoice.link, &addresses, asset_id).await?).await
-    }
-
     pub fn decode_url(&self, string: String) -> Result<GemPayment, GemstoneError> {
         Ok(PaymentURLDecoder::decode(&string)?)
     }
@@ -96,6 +92,15 @@ impl GemPaymentService {
 }
 
 impl GemPaymentService {
+    pub(crate) async fn select_asset(
+        &self,
+        invoice: GemPaymentInvoice,
+        addresses: Vec<ChainAddress>,
+        asset_id: AssetId,
+    ) -> Result<GemPaymentLoad, GemPaymentError> {
+        self.payment_load(self.payments.select_asset(&invoice.link, &addresses, asset_id).await?).await
+    }
+
     pub(crate) async fn transaction_update(&self, hash: &str, link: &PaymentLink) -> Result<TransactionUpdate, GemPaymentError> {
         Ok(payment_transaction_update(hash, self.payments.status(link).await?))
     }
