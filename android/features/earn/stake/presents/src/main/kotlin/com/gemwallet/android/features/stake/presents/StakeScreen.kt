@@ -55,7 +55,7 @@ fun StakeScreen(
                 when (action) {
                     StakeSceneAction.Refresh -> viewModel.onRefresh()
                     StakeSceneAction.ClaimRewards -> viewModel.onRewards(amountAction, onConfirm)
-                    is StakeSceneAction.OpenDelegation -> viewModel.onDelegation(action.delegation, onDelegation, onConfirm)
+                    is StakeSceneAction.OpenDelegation -> viewModel.onDelegation(action.delegation, onDelegation, amountAction, onConfirm)
                     StakeSceneAction.Cancel -> onCancel()
                 }
             },

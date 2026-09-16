@@ -18,10 +18,12 @@ import com.gemwallet.android.domains.asset.stakeChain
 import com.gemwallet.android.AppUrl
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.model.toAmountParams
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.toGem
@@ -165,13 +167,15 @@ class StakeViewModel @Inject constructor(
     fun onDelegation(
         delegation: Delegation,
         onOpenDetail: (String, String) -> Unit,
+        onAmount: AmountTransactionAction,
         onConfirm: ConfirmTransactionAction,
     ) {
         val walletType = walletType.value ?: return
         val assetInfo = assetInfo.value ?: return
         when (val destination = stakeService.delegationDestination(walletType.toGem(), assetInfo.asset.toGem(), delegation.toGem())) {
             GemDelegationDestination.Details -> onOpenDetail(delegation.validator.id, delegation.base.delegationId)
-            is GemDelegationDestination.Withdraw -> onConfirm(destination.transfer)
+            is GemDelegationDestination.Confirm -> onConfirm(destination.transfer)
+            is GemDelegationDestination.Amount -> onAmount(destination.input.toAmountParams(destination.asset.toPrimitives().id))
         }
     }
 
