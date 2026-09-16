@@ -77,6 +77,7 @@ pub static SUPPORTED_CHAINS: LazyLock<Vec<SwapperChainAsset>> = LazyLock::new(||
             Chain::Tempo,
             vec![TEMPO_BRIDGED_USDC_ASSET_ID.clone(), TEMPO_PATHUSD_ASSET_ID.clone(), TEMPO_USDT0_ASSET_ID.clone()],
         ),
+        SwapperChainAsset::Assets(Chain::Arc, vec![]),
         SwapperChainAsset::Assets(Chain::Tron, vec![TRON_USDT_ASSET_ID.clone()]),
         SwapperChainAsset::Assets(
             Chain::Solana,

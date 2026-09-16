@@ -350,7 +350,7 @@ mod swap_integration_tests {
     use num_traits::ToPrimitive;
     use primitives::{
         AssetId, Chain,
-        asset_constants::{ETHEREUM_USDC_ASSET_ID, ROBINHOOD_USDG_TOKEN_ID},
+        asset_constants::{ARC_USDC_TOKEN_ID, ETHEREUM_USDC_ASSET_ID, ROBINHOOD_USDG_TOKEN_ID},
     };
     use std::sync::Arc;
 
@@ -385,6 +385,26 @@ mod swap_integration_tests {
             swap_provider,
         )
         .await
+    }
+
+    #[tokio::test]
+    async fn test_arc_usdc_to_creo_quote() -> Result<(), SwapperError> {
+        let network_provider = Arc::new(NativeProvider::default());
+        let swap_provider = uniswap::default::boxed_uniswap_v3(network_provider);
+        let request = QuoteRequest {
+            from_asset: AssetId::from(Chain::Arc, Some(ARC_USDC_TOKEN_ID.to_string())).into(),
+            to_asset: AssetId::from(Chain::Arc, Some("0x1c98d896328c35a751ce18323f47139a44188001".to_string())).into(),
+            wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
+            destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".into(),
+            value: BigUint::from(1_000_000u64),
+            options: Options {
+                slippage: 100.into(),
+                use_max_amount: false,
+            },
+        };
+        let quote = swap_provider.get_quote(&request).await?;
+        assert!(quote.to_value > BigUint::ZERO);
+        Ok(())
     }
 
     async fn assert_native_to_token_quote(chain: Chain, to_asset: AssetId, network_provider: Arc<NativeProvider>, swap_provider: Box<dyn Swapper>) -> Result<(), SwapperError> {

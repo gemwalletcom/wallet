@@ -211,4 +211,4 @@ chains:
   # Arc
   - chain: arc
     urls:
-      - url: https://rpc.arc.io
+      - url: https://rpc.mainnet.arc.io

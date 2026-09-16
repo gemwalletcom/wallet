@@ -185,7 +185,7 @@ fn wallet_node_check_request(chain: Chain) -> NodeCheckRequest {
         Chain::Robinhood => (DEFAULT_EVM_ADDRESS, Some("0xdd81e20bb08437587dc6f6e2a7f0d43bd96101ca51f051c42806a307636f10db")),
         Chain::Stable => (DEFAULT_EVM_ADDRESS, Some("0x312b2a62ab4927fc7805789184f7e87c8e2e1e87c6eaa01706e58a979a54d4df")),
         Chain::Tempo => (DEFAULT_EVM_ADDRESS, Some("0x99649df228014eca4fe3058455b9bb30fbf700461daebb65e63251c180cccd85")),
-        Chain::Arc => (DEFAULT_EVM_ADDRESS, None),
+        Chain::Arc => (DEFAULT_EVM_ADDRESS, Some("0xf5dfe1d860669f60fb911570d78c9928c8a8e71766a9470e697aa931a3de6d17")),
     };
 
     NodeCheckRequest::Wallet {
@@ -269,7 +269,7 @@ mod tests {
             if chain.chain_type() == ChainType::Ethereum {
                 assert_eq!(address, DEFAULT_EVM_ADDRESS, "unexpected EVM wallet address for {chain}");
             }
-            if matches!(chain.chain_type(), ChainType::Bitcoin | ChainType::Ethereum) && chain != Chain::Arc {
+            if matches!(chain.chain_type(), ChainType::Bitcoin | ChainType::Ethereum) {
                 assert!(transaction_id.is_some(), "wallet transaction missing for {chain}");
             }
         }

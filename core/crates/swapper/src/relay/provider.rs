@@ -625,6 +625,30 @@ mod swap_integration_tests {
     }
 
     #[tokio::test]
+    async fn test_relay_arc_usdc_to_base() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let provider = Arc::new(NativeProvider::default());
+        let relay = Relay::new(provider);
+
+        let request = QuoteRequest {
+            from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Arc)),
+            to_asset: SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
+            wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
+            destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
+            value: BigUint::from(1_000_000_000_000_000_000u64),
+            options: Options::new_with_slippage(100.into()),
+        };
+
+        let quote = relay.get_quote(&request).await?;
+        let quote_data = relay.get_quote_data(&quote, FetchQuoteData::None).await?;
+
+        assert!(quote.to_value > BigUint::ZERO);
+        assert_eq!(quote_data.value, request.value);
+        assert!(!quote_data.to.is_empty());
+
+        Ok(())
+    }
+
+    #[tokio::test]
     async fn test_relay_tempo_usdc() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let provider = Arc::new(NativeProvider::default());
         let relay = Relay::new(provider);
