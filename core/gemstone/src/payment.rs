@@ -765,9 +765,11 @@ mod tests {
         );
         assert_eq!(
             decode_url("https://pay.walletconnect.com/?pid=pay_123").unwrap(),
-            GemPayment::Link { link: GemPaymentLink::WalletConnectPay {
-                payment_id: "pay_123".to_string(),
-            } }
+            GemPayment::Link {
+                link: GemPaymentLink::WalletConnectPay {
+                    payment_id: "pay_123".to_string(),
+                },
+            }
         );
     }
 }

@@ -148,9 +148,11 @@ mod tests {
 
     #[test]
     fn test_decode_link_before_request() {
-        let link = Payment::Link { link: PaymentLink::WalletConnectPay {
-            payment_id: "pay_123".to_string(),
-        } };
+        let link = Payment::Link {
+            link: PaymentLink::WalletConnectPay {
+                payment_id: "pay_123".to_string(),
+            },
+        };
 
         assert_eq!(PaymentURLDecoder::decode("https://pay.walletconnect.com/?pid=pay_123").unwrap(), link);
         assert_eq!(PaymentURLDecoder::decode("https://pay.walletconnect.com/pay_123").unwrap(), link);

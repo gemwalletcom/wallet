@@ -98,9 +98,7 @@ mod tests {
     use crate::{SignatureBytes, VersionedTransaction};
     use gem_encoding::decode_base64;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
-    use primitives::{
-        Chain, ChainSigner, PaymentInvoice, SignerInput, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataOutputType,
-    };
+    use primitives::{Chain, ChainSigner, SignerInput, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataOutputType};
 
     #[test]
     fn test_deserialize_single_signature_transaction() {
@@ -148,11 +146,7 @@ mod tests {
         let TransactionInputType::Generic { asset, extra, .. } = input.input_type.clone() else {
             panic!("expected generic transaction input");
         };
-        input.input_type = TransactionInputType::Payment {
-            asset,
-            invoice: PaymentInvoice::mock(),
-            extra,
-        };
+        input.input_type = TransactionInputType::mock_payment(asset, extra);
         input.metadata = TransactionLoadMetadata::mock_solana(&blockhash);
         let fee = input.default_fee();
         let input = SignerInput::new(input, fee);

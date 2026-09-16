@@ -331,11 +331,19 @@ impl TransferInput for TransactionInputType {
             Self::Generic { extra, .. } => Some(serde_json::to_value(TransactionWalletConnectMetadata {
                 output_action: extra.output_action.clone(),
             })?),
-            Self::Payment { invoice, extra, .. } if extra.output_type == TransferDataOutputType::Signature => Some(serde_json::to_value(TransactionPaymentMetadata {
-                link: invoice.link.clone(),
-                merchant: invoice.merchant.clone(),
-            })?),
-            Self::Payment { .. } | Self::Transfer { .. } | Self::Deposit { .. } | Self::Withdrawal { .. } | Self::TokenApprove { .. } | Self::Account { .. } | Self::Earn { .. } => None,
+            Self::Payment { invoice, extra, .. } if extra.output_type == TransferDataOutputType::Signature => {
+                Some(serde_json::to_value(TransactionPaymentMetadata {
+                    link: invoice.link.clone(),
+                    merchant: invoice.merchant.clone(),
+                })?)
+            }
+            Self::Payment { .. }
+            | Self::Transfer { .. }
+            | Self::Deposit { .. }
+            | Self::Withdrawal { .. }
+            | Self::TokenApprove { .. }
+            | Self::Account { .. }
+            | Self::Earn { .. } => None,
         };
         Ok(value)
     }
@@ -786,11 +794,7 @@ mod tests {
     #[test]
     fn test_title_by_input_type() {
         assert_eq!(TransactionInputType::Transfer { asset: asset(Chain::Ethereum) }.title(), GemConfirmTitle::Send);
-        assert_eq!(
-            TransactionInputType::mock_payment(asset(Chain::Ethereum), TransferDataExtra::mock())
-            .title(),
-            GemConfirmTitle::Payment
-        );
+        assert_eq!(TransactionInputType::mock_payment(asset(Chain::Ethereum), TransferDataExtra::mock()).title(), GemConfirmTitle::Payment);
         assert_eq!(
             TransactionInputType::Generic {
                 asset: asset(Chain::Ethereum),
