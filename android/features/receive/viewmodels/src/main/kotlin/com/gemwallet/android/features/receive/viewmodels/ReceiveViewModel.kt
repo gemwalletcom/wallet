@@ -64,8 +64,8 @@ class ReceiveViewModel @AssistedInject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            val associations = networkAssetIds.first { it.size > 1 }.filter { it != sourceAssetId }
-            runCatchingCancellable { service.syncMissingAssets(associations.map { it.toIdentifier() }) }
+            val wallet = session.filterNotNull().first().wallet
+            runCatchingCancellable { service.syncNetworkAssetIds(sourceAssetId.toIdentifier(), wallet.toGem()) }
         }
     }
 

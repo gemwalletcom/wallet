@@ -35,8 +35,9 @@ impl GemReceiveService {
         self.balances.set_assets_enabled(wallet_id, vec![asset_id], true).await
     }
 
-    pub async fn sync_missing_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
-        self.assets.sync_missing_assets(asset_ids).await
+    pub async fn sync_network_asset_ids(&self, asset_id: AssetId, wallet: Wallet) -> Result<Vec<AssetId>, GemServiceError> {
+        let associations = self.assets.sync_asset_associations(asset_id.clone()).await?;
+        Ok(rules::network_asset_ids(asset_id, associations, &wallet))
     }
 
     pub async fn asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {

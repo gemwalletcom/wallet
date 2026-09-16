@@ -74,16 +74,32 @@ struct ReceiveViewModelTests {
     }
 
     @Test
-    func openingTheSceneEnablesTheAssetAndPrefetchesTheOthers() async {
+    func openingTheSceneEnablesTheAssetAndSyncsItsNetworks() async {
+        let service = GemReceiveServiceMock()
+        service.syncedNetworkAssetIdsResult = .success([bitcoin.id.identifier, ethereum.id.identifier])
+        let model = model(service: service)
+        #expect(model.showNetworkSelector == false)
+
+        model.onTaskOnce()
+        await settle(until: { model.showNetworkSelector })
+
+        #expect(service.enabledAssetIds == [bitcoin.id.identifier])
+        #expect(service.syncedAssetIds == [bitcoin.id.identifier])
+        #expect(model.networkAssetIds == [bitcoin.id, ethereum.id])
+    }
+
+    @Test
+    func aFailedNetworkSyncKeepsTheStoredNetworks() async {
         let service = GemReceiveServiceMock()
         service.networkAssetIdsValue = [bitcoin.id.identifier, ethereum.id.identifier]
+        service.syncedNetworkAssetIdsResult = .failure(AnyError("offline"))
         let model = model(service: service)
 
         model.onTaskOnce()
-        await settle(until: { !service.enabledAssetIds.isEmpty && !service.syncedAssetIds.isEmpty })
+        await settle(until: { !service.syncedAssetIds.isEmpty })
 
-        #expect(service.enabledAssetIds == [bitcoin.id.identifier])
-        #expect(service.syncedAssetIds == [[ethereum.id.identifier]])
+        #expect(model.networkAssetIds == [bitcoin.id, ethereum.id])
+        #expect(model.isPresentingAlertMessage == nil)
     }
 
     @Test
