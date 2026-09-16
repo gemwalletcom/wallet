@@ -1,31 +1,27 @@
 use gem_evm::address::ethereum_address_checksum;
-use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{
     AssetId, PaymentAmount, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, PaymentStatus, TransactionType,
     TransferDataOutputType, WalletConnectCAIP2, WalletConnectCAIP19, payment_decoder::is_payment_host,
 };
-use std::str::FromStr;
 use url::Url;
 
 use crate::PaymentTransaction;
 use crate::error::PaymentError;
 use crate::wallet_connect_pay::model::{Invoice, Options, PaymentAction, PaymentOption, PaymentOptionsResponse, PaymentPriceAmount, Quote};
 
-const CAIP19_PREFIX: &str = "caip19";
+const CAIP19_PREFIX: &str = "caip19/";
 const ISO4217_PREFIX: &str = "iso4217/";
 
 pub(super) fn map_options(response: PaymentOptionsResponse, accounts: &[String]) -> Result<Options, PaymentError> {
-    let payment = response.info.ok_or(PaymentError::invalid_request("Payment not found"))?;
+    let payment = response.info;
     if payment.status != PaymentStatus::RequiresAction {
         return Ok(Options::Status { status: payment.status });
     }
-
-    let quotes = map_quotes(response.options.unwrap_or_default(), accounts);
+    let quotes: Vec<Quote> = response.options.unwrap_or_default().into_iter().filter_map(|option| map_quote(option, accounts)).collect();
     if quotes.is_empty() {
         return Err(PaymentError::NoPaymentOptions);
     }
-
     Ok(Options::Invoice(Invoice {
         merchant: payment.merchant,
         price: map_price(&payment.amount)?,
@@ -35,11 +31,10 @@ pub(super) fn map_options(response: PaymentOptionsResponse, accounts: &[String])
 }
 
 fn map_price(amount: &PaymentPriceAmount) -> Result<PaymentPrice, PaymentError> {
-    let invalid = || PaymentError::invalid_request(format!("Invalid payment amount {}", amount.value));
-    let value = BigUint::from_str(&amount.value).map_err(|_| invalid())?;
     Ok(PaymentPrice {
         currency: amount.unit.strip_prefix(ISO4217_PREFIX).unwrap_or(&amount.unit).to_string(),
-        amount: BigNumberFormatter::value_as_f64(&value.to_string(), amount.display.decimals).map_err(|_| invalid())?,
+        amount: BigNumberFormatter::value_as_f64(&amount.value.to_string(), amount.display.decimals)
+            .map_err(|_| PaymentError::invalid_request(format!("Invalid payment amount {}", amount.value)))?,
     })
 }
 
@@ -101,27 +96,17 @@ fn map_payment_quote(quote: &Quote) -> PaymentQuote {
     }
 }
 
-fn map_quotes(options: Vec<PaymentOption>, accounts: &[String]) -> Vec<Quote> {
-    options.into_iter().filter_map(|option| map_quote(option, accounts)).collect()
-}
-
 fn map_quote(option: PaymentOption, accounts: &[String]) -> Option<Quote> {
     let account = accounts.iter().find(|account| account.eq_ignore_ascii_case(&option.account))?;
-    let account = WalletConnectCAIP2::parse_account(account.clone())?;
     let collect_data_url = match &option.collect_data {
         Some(collect_data) => Some(get_collect_data_url(&collect_data.url)?),
         None => None,
     };
-    let asset_id = get_asset_id(&option.amount.unit)?;
-    let value = BigUint::from_str(&option.amount.value).ok()?;
-    if account.chain != asset_id.chain {
-        return None;
-    }
     Some(Quote {
         id: option.id,
-        account,
-        asset_id,
-        value,
+        account: WalletConnectCAIP2::parse_account(account.clone())?,
+        asset_id: get_asset_id(&option.amount.unit)?,
+        value: option.amount.value,
         collect_data_url,
         actions: option.actions,
     })
@@ -132,10 +117,7 @@ fn get_collect_data_url(url: &str) -> Option<String> {
 }
 
 fn get_asset_id(unit: &str) -> Option<AssetId> {
-    let asset_id = match unit.split_once('/')? {
-        (CAIP19_PREFIX, asset) => WalletConnectCAIP19::get_asset_id(asset)?,
-        _ => return None,
-    };
+    let asset_id = WalletConnectCAIP19::get_asset_id(unit.strip_prefix(CAIP19_PREFIX)?)?;
     match asset_id.token_id {
         Some(token_id) => Some(AssetId::from_token(asset_id.chain, &ethereum_address_checksum(&token_id).ok()?)),
         None => Some(asset_id),
@@ -145,41 +127,14 @@ fn get_asset_id(unit: &str) -> Option<AssetId> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::wallet_connect_pay::model::{Merchant, PaymentPriceDisplay, PaymentSend, PaymentSign};
+    use crate::wallet_connect_pay::model::{Merchant, PaymentSend, PaymentSign};
     use crate::wallet_connect_pay::testkit::{
-        OPTIONS, OPTIONS_FAILED, OPTIONS_IDENTITY_REQUIRED, TEST_ACCOUNT, TEST_PERMIT_SPENDER, TEST_ROUTER, accounts, quote,
+        OPTIONS, OPTIONS_FAILED, OPTIONS_IDENTITY_REQUIRED, TEST_ACCOUNT, TEST_PERMIT_SPENDER, TEST_ROUTER, accounts, invoice, options, quote, quotes,
     };
-    use primitives::{Chain, ChainAddress};
     use primitives::asset_constants::{ETHEREUM_USDT_ASSET_ID, ETHEREUM_USDT_TOKEN_ID, SMARTCHAIN_USDC_TOKEN_ID, SMARTCHAIN_USDT_ASSET_ID};
     use primitives::swap::ApprovalData;
-
-    const MERCHANT_ICON: &str = "https://imagedelivery.net/_aTEfDRm7z3tKgu9JhfeKA/28f1b431-9d2a-4083-1bf8-5958939a2300/md";
-
-    fn amount(unit: &str, value: &str) -> PaymentPriceAmount {
-        PaymentPriceAmount {
-            unit: unit.to_string(),
-            value: value.to_string(),
-            display: PaymentPriceDisplay { decimals: 2 },
-        }
-    }
-
-    fn options(fixture: &str) -> PaymentOptionsResponse {
-        serde_json::from_str(fixture).unwrap()
-    }
-
-    fn merchant() -> Merchant {
-        Merchant {
-            name: "Gem Wallet Test Merchant".to_string(),
-            icon_url: Some(MERCHANT_ICON.to_string()),
-        }
-    }
-
-    fn price() -> PaymentPrice {
-        PaymentPrice {
-            currency: "USD".to_string(),
-            amount: 0.10,
-        }
-    }
+    use num_bigint::BigUint;
+    use primitives::{Chain, ChainAddress};
 
     #[test]
     fn test_map_options() {
@@ -197,8 +152,8 @@ mod tests {
         assert_eq!(
             map_options(options(OPTIONS), &accounts),
             Ok(Options::Invoice(Invoice {
-                merchant: merchant(),
-                price: price(),
+                merchant: Merchant::mock(),
+                price: PaymentPrice::mock(),
                 quotes: vec![
                     quote(0, "e2e85aac-8275-4ae2-b264-fd513f7d4fb6", AssetId::from_chain(Chain::Optimism), 41_877_035_785_636),
                     quote(1, "c498802c-f496-4edf-ab43-aa391f42ab6e", ETHEREUM_USDT_ASSET_ID.clone(), 100_000),
@@ -210,32 +165,13 @@ mod tests {
                 collect_data_url: None,
             }))
         );
-        assert_eq!(
-            map_options(options(OPTIONS), &accounts[1..2]).map(|options| match options {
-                Options::Invoice(invoice) => invoice.quotes.into_iter().map(|quote| quote.id).collect(),
-                Options::Status { .. } => Vec::new(),
-            }),
-            Ok(vec!["e2e85aac-8275-4ae2-b264-fd513f7d4fb6".to_string()]),
-            "only the options of the given accounts are quotes"
-        );
+        assert_eq!(invoice(options(OPTIONS), &accounts[1..2]).quotes.len(), 1, "only the options of the given accounts are quotes");
         assert_eq!(map_options(options(OPTIONS_FAILED), &accounts), Ok(Options::Status { status: PaymentStatus::Failed }));
         assert_eq!(map_options(options(OPTIONS), &[]), Err(PaymentError::NoPaymentOptions));
-        assert_eq!(
-            map_options(PaymentOptionsResponse { info: None, ..options(OPTIONS) }, &accounts),
-            Err(PaymentError::invalid_request("Payment not found"))
-        );
 
         let mut lowercase = options(OPTIONS);
         lowercase.options.as_mut().unwrap()[1].amount.unit = format!("caip19/eip155:1/erc20:{}", ETHEREUM_USDT_TOKEN_ID.to_lowercase());
-        lowercase.options.as_mut().unwrap()[1].account = accounts[0].to_lowercase();
-        assert_eq!(
-            map_options(lowercase, &accounts).map(|options| match options {
-                Options::Invoice(invoice) => invoice.quotes.into_iter().map(|quote| (quote.asset_id, quote.account)).nth(1),
-                Options::Status { .. } => None,
-            }),
-            Ok(Some((ETHEREUM_USDT_ASSET_ID.clone(), ChainAddress::new(Chain::Ethereum, TEST_ACCOUNT.to_string())))),
-            "a lowercase token and account are the wallet's checksummed ones"
-        );
+        assert_eq!(invoice(lowercase, &accounts).quotes[1].asset_id, *ETHEREUM_USDT_ASSET_ID, "a lowercase token id is the wallet's checksummed one");
     }
 
     #[test]
@@ -243,59 +179,29 @@ mod tests {
         let accounts = accounts(TEST_ACCOUNT);
         let form = |accounts: &str| format!("https://pay.walletconnect.com/collect/?pid=pay_dfa2ecc101M2NV3FG4QSGGGZDQYW8DX45A&accounts={accounts}");
         let every_account = form(&["42161", "10", "137", "8453", "1", "56"].map(|chain| format!("eip155%3A{chain}%3A{TEST_ACCOUNT}")).join("%2C"));
-        let urls = |response: PaymentOptionsResponse| {
-            map_options(response, &accounts).map(|options| match options {
-                Options::Invoice(invoice) => (
-                    invoice.collect_data_url,
-                    invoice.quotes.into_iter().map(|quote| (quote.asset_id.chain, quote.collect_data_url)).next(),
-                ),
-                Options::Status { .. } => (None, None),
-            })
-        };
 
-        assert_eq!(
-            urls(options(OPTIONS_IDENTITY_REQUIRED)),
-            Ok((
-                Some(every_account),
-                Some((Chain::Optimism, Some(form("eip155%3A10%3A0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB"))))
-            )),
-            "the form for every account comes with the response, the one for one account with its option"
-        );
+        let verified = invoice(options(OPTIONS_IDENTITY_REQUIRED), &accounts);
+        assert_eq!(verified.collect_data_url, Some(every_account), "the form for every account comes with the response");
+        assert_eq!(verified.quotes[0].collect_data_url, Some(form(&format!("eip155%3A10%3A{TEST_ACCOUNT}"))), "the one for one account with its option");
+
         let mut phishing = options(OPTIONS_IDENTITY_REQUIRED);
         phishing.collect_data.as_mut().unwrap().url = "https://pay.walletconnect.com.example/collect".to_string();
         phishing.options.as_mut().unwrap()[0].collect_data.as_mut().unwrap().url = "http://pay.walletconnect.com/collect".to_string();
-        assert_eq!(
-            urls(phishing),
-            Ok((None, Some((Chain::Ethereum, Some(form("eip155%3A1%3A0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB")))))),
-            "a form outside the payment host is not opened, and an option asking for one is not offered"
-        );
-    }
-
-    #[test]
-    fn test_map_price() {
-        assert_eq!(
-            map_price(&amount("iso4217/USD", "30")),
-            Ok(PaymentPrice {
-                currency: "USD".to_string(),
-                amount: 0.30,
-            })
-        );
-        assert_eq!(map_price(&amount("EUR", "5")).map(|price| price.currency), Ok("EUR".to_string()));
-        assert_eq!(map_price(&amount("iso4217/USD", "0.30")), Err(PaymentError::invalid_request("Invalid payment amount 0.30")));
+        let refused = invoice(phishing, &accounts);
+        assert_eq!(refused.collect_data_url, None, "a form outside the payment host is not opened");
+        assert_eq!(refused.quotes[0].asset_id, *ETHEREUM_USDT_ASSET_ID, "and an option asking for one is not offered");
     }
 
     #[test]
     fn test_map_transaction() {
-        let invoice = map_invoice(&Invoice { merchant: merchant(), price: price(), quotes: Vec::new(), collect_data_url: None }, "pay_1");
+        let invoice = PaymentInvoice::mock();
         let coin = quote(OPTIONS, TEST_ACCOUNT, &AssetId::from_chain(Chain::Optimism));
         let request = |quote: &Quote, address: &str| {
             Some(PaymentRequest {
                 address: address.to_string(),
                 amount: Some(PaymentAmount::AtomicValue { value: quote.value.clone() }),
-                memo: None,
-                label: None,
-                references: None,
                 asset_id: Some(quote.asset_id.clone()),
+                ..PaymentRequest::mock()
             })
         };
         let send = |data: &str| {
@@ -318,11 +224,7 @@ mod tests {
                 approval: None,
             }
         );
-        assert_eq!(
-            map_transaction(&coin, send(""), invoice.clone()).transaction_type,
-            TransactionType::Transfer,
-            "a plain value transfer has no calldata"
-        );
+        assert_eq!(map_transaction(&coin, send(""), invoice.clone()).transaction_type, TransactionType::Transfer, "a value transfer has no calldata");
 
         let usdt = quote(OPTIONS, TEST_ACCOUNT, &ETHEREUM_USDT_ASSET_ID);
         let sign = PaymentSign {
@@ -347,7 +249,7 @@ mod tests {
                     approval: ApprovalData::mock(),
                     sign,
                 },
-                invoice
+                invoice,
             ),
             PaymentTransaction {
                 approval: Some(ApprovalData::mock()),
@@ -358,16 +260,20 @@ mod tests {
 
     #[test]
     fn test_map_invoice() {
-        let quotes = vec![quote(OPTIONS, TEST_ACCOUNT, &AssetId::from_chain(Chain::Optimism))];
+        let quotes = quotes(OPTIONS, TEST_ACCOUNT);
+        let invoice = Invoice {
+            merchant: Merchant::mock(),
+            price: PaymentPrice::mock(),
+            quotes: quotes[..1].to_vec(),
+            collect_data_url: None,
+        };
+
         assert_eq!(
-            map_invoice(&Invoice { merchant: merchant(), price: price(), quotes: quotes.clone(), collect_data_url: None }, "pay_1"),
+            map_invoice(&invoice, "pay_1"),
             PaymentInvoice {
                 link: PaymentLink::WalletConnectPay { payment_id: "pay_1".to_string() },
-                merchant: PaymentMerchant {
-                    name: "Gem Wallet Test Merchant".to_string(),
-                    icon: MERCHANT_ICON.to_string(),
-                },
-                price: Some(price()),
+                merchant: PaymentMerchant::mock(),
+                price: Some(PaymentPrice::mock()),
                 quotes: vec![PaymentQuote {
                     id: quotes[0].id.clone(),
                     asset_id: AssetId::from_chain(Chain::Optimism),

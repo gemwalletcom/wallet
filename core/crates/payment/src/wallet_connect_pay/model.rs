@@ -3,6 +3,7 @@ use primitives::swap::ApprovalData;
 use primitives::{AssetId, ChainAddress, PaymentPrice, PaymentStatus, WalletConnectionMethods};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use serde_serializers::deserialize_biguint_from_str;
 
 use crate::error::PaymentError;
 
@@ -75,7 +76,8 @@ pub(super) struct Merchant {
 #[serde(rename_all = "camelCase")]
 pub(super) struct PaymentOptionAmount {
     pub unit: String,
-    pub value: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub value: BigUint,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
@@ -90,7 +92,8 @@ pub(super) struct PaymentInfo {
 #[serde(rename_all = "camelCase")]
 pub(super) struct PaymentPriceAmount {
     pub unit: String,
-    pub value: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub value: BigUint,
     pub display: PaymentPriceDisplay,
 }
 
@@ -170,8 +173,7 @@ pub(super) struct PaymentOptionsRequest<'a> {
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(super) struct PaymentOptionsResponse {
-    #[serde(default)]
-    pub info: Option<PaymentInfo>,
+    pub info: PaymentInfo,
     #[serde(default)]
     pub options: Option<Vec<PaymentOption>>,
     #[serde(default)]
