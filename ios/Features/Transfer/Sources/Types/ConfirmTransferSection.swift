@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import GemstonePrimitives
 import Foundation
 import Primitives
 import PrimitivesComponents
@@ -49,7 +48,7 @@ public enum ConfirmTransferItemModel {
     case header(TransactionHeaderItemModel)
     case recipient(AddressListItemViewModel)
     case network(ListItemModel)
-    case paymentAsset(ListItemModel, selection: SelectAssetType, selectable: Bool)
+    case paymentAsset(ListItemModel, selectable: Bool)
     case memo(ListItemModel)
     case swapDetails(SwapDetailsViewModel)
     case networkFee(ListItemModel, selectable: Bool)

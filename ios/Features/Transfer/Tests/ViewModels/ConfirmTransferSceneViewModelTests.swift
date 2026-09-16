@@ -58,7 +58,13 @@ struct ConfirmTransferSceneViewModelTests {
         let bnb = GemTransferData.mockPayment(asset: .mockBNB(), invoice: invoice)
         let confirmation = GemConfirmationMock(state: .mock(preload: nil), load: .success(.mock(transfer: bnb)))
         let model = ConfirmTransferSceneViewModel.mock(data: .mockPayment(asset: .mockEthereum(), invoice: invoice), confirmation: confirmation)
-        model.onSelectPaymentAsset(.payment([Asset.mockBNB().id]))
+        model.state.screen = .mock(phase: .ready)
+        model.onSelectPaymentAsset()
+        guard case let .paymentAsset(selection)? = model.isPresentingSheet else {
+            Issue.record("Expected the asset picker")
+            return
+        }
+        #expect(selection == .payment([Asset.mockEthereum().id, Asset.mockBNB().id]))
 
         model.selectPaymentAsset(.mockBNB())
         await model.load()
@@ -112,12 +118,11 @@ struct ConfirmTransferSceneViewModelTests {
         let invoice = PaymentInvoice.mock(quotes: [.mock(asset: .mockBNB())])
         let model = ConfirmTransferSceneViewModel.mock(data: .mockPayment(asset: .mockBNB(), invoice: invoice))
         await model.load()
-        model.onSelectPaymentAsset(.payment([Asset.mockBNB().id]))
+        model.onSelectPaymentAsset()
 
         model.selectPaymentAsset(.mockBNB())
 
         #expect(model.assetSelection == nil)
-
         #expect(model.isPresentingSheet == nil)
         #expect(model.state.preload != nil)
     }

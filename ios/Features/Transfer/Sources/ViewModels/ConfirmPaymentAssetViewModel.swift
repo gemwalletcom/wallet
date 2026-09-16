@@ -17,10 +17,6 @@ struct ConfirmPaymentAssetViewModel: ItemModelProvidable {
         guard let invoice = transfer.invoice else {
             return .empty
         }
-        return .paymentAsset(
-            ListItemModel(title: Localized.Transfer.payWith, subtitle: transfer.asset.symbol),
-            selection: .payment(invoice.quotes.map { AssetId(core: $0.assetId) }),
-            selectable: invoice.quotes.count > 1,
-        )
+        return .paymentAsset(ListItemModel(title: Localized.Transfer.payWith, subtitle: transfer.asset.symbol), selectable: invoice.quotes.count > 1)
     }
 }

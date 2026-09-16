@@ -61,11 +61,11 @@ extension ConfirmTransferScene {
             AddressListItemView(model: model)
         case let .network(model):
             ListItemImageView(model: model)
-        case let .paymentAsset(model, selection, selectable):
+        case let .paymentAsset(model, selectable):
             NavigationCustomLink(
                 with: ListItemView(model: model),
                 isEnabled: selectable,
-                action: { self.model.onSelectPaymentAsset(selection) },
+                action: self.model.onSelectPaymentAsset,
             )
         case let .memo(model):
             ListItemView(model: model)

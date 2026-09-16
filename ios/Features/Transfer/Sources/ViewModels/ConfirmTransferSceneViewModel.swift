@@ -281,9 +281,9 @@ extension ConfirmTransferSceneViewModel {
         }
     }
 
-    func onSelectPaymentAsset(_ selection: SelectAssetType) {
-        guard state.screen.phase != .loading else { return }
-        isPresentingSheet = .paymentAsset(selection)
+    func onSelectPaymentAsset() {
+        guard state.screen.phase != .loading, let invoice = transfer.invoice else { return }
+        isPresentingSheet = .paymentAsset(.payment(invoice.quotes.map { AssetId(core: $0.assetId) }))
     }
 
     public func selectPaymentAsset(_ asset: Asset) {
