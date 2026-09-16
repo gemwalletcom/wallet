@@ -42,14 +42,8 @@ impl From<GemServiceError> for GemPaymentError {
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, uniffi::Enum)]
 pub enum GemPaymentLoad {
-    Sign {
-        transfer: GemTransferData,
-    },
-    Verify {
-        invoice: GemPaymentInvoice,
-        asset_id: AssetId,
-        url: String,
-    },
+    Sign { transfer: GemTransferData },
+    Verify { invoice: GemPaymentInvoice, asset_id: AssetId, url: String },
 }
 
 #[derive(uniffi::Object)]
@@ -111,12 +105,7 @@ impl GemPaymentService {
         self.payments.confirm(&invoice.link, &quote.id, action_results).await
     }
 
-    pub(crate) async fn quote_transfer_data(
-        &self,
-        invoice: GemPaymentInvoice,
-        asset_id: AssetId,
-        verification: PaymentVerification,
-    ) -> Result<GemTransferData, GemPaymentError> {
+    pub(crate) async fn quote_transfer_data(&self, invoice: GemPaymentInvoice, asset_id: AssetId, verification: PaymentVerification) -> Result<GemTransferData, GemPaymentError> {
         let asset = self.assets.ensure_token_asset(asset_id).await?;
         quote_transfer_data(invoice, asset, verification)
     }
@@ -433,8 +422,19 @@ mod tests {
         assert_eq!(update(PaymentStatus::Failed, None), TransactionUpdate::new_state(TransactionState::Failed));
         assert_eq!(update(PaymentStatus::Expired, None), TransactionUpdate::new_state(TransactionState::Failed));
         assert_eq!(update(PaymentStatus::Cancelled, None), TransactionUpdate::new_state(TransactionState::Failed));
-        assert_eq!(payment_record_hash(&PaymentLink::WalletConnectPay { payment_id: "pay_1".to_string() }).as_deref(), Some("pay_1"));
-        assert_eq!(payment_record_hash(&PaymentLink::SolanaPay { url: "solana:pay".to_string() }), None, "only a relayed payment is recorded by its id");
+    }
+
+    #[test]
+    fn test_payment_record_hash() {
+        assert_eq!(
+            payment_record_hash(&PaymentLink::WalletConnectPay { payment_id: "pay_1".to_string() }).as_deref(),
+            Some("pay_1")
+        );
+        assert_eq!(
+            payment_record_hash(&PaymentLink::SolanaPay { url: "solana:pay".to_string() }),
+            None,
+            "only a relayed payment is recorded by its id"
+        );
     }
 
     const BITCOIN_ADDRESS: &str = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4";

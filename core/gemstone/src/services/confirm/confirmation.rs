@@ -139,15 +139,15 @@ impl GemConfirmation {
                 msg: "Transfer is not a payment".to_string(),
             });
         };
-        let addresses = self.wallet.accounts.iter().map(|account| ChainAddress::new(account.chain, account.address.clone())).collect();
+        let addresses = self
+            .wallet
+            .accounts
+            .iter()
+            .map(|account| ChainAddress::new(account.chain, account.address.clone()))
+            .collect();
         let transfer = match self.service.payment().select_asset(&invoice.link, addresses, asset_id).await? {
             GemPaymentLoad::Sign { transfer } => transfer,
-            GemPaymentLoad::Verify { invoice, asset_id, url } => {
-                self.service
-                    .payment()
-                    .quote_transfer_data(invoice, asset_id, PaymentVerification { url })
-                    .await?
-            }
+            GemPaymentLoad::Verify { invoice, asset_id, url } => self.service.payment().quote_transfer_data(invoice, asset_id, PaymentVerification { url }).await?,
         };
         *self.transfer.lock().unwrap_or_else(|poisoned| poisoned.into_inner()) = transfer;
         *self.screen.lock().await = None;

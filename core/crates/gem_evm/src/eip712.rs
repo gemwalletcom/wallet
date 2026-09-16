@@ -67,11 +67,7 @@ pub struct EIP712Message {
 pub fn find_field_string(fields: &[EIP712Field], name: &str) -> Option<String> {
     fields.iter().find(|field| field.name == name).and_then(|field| match &field.value {
         EIP712TypedValue::Address { value } | EIP712TypedValue::Uint256 { value } | EIP712TypedValue::String { value } => Some(value.clone()),
-        EIP712TypedValue::Struct { .. }
-        | EIP712TypedValue::Int256 { .. }
-        | EIP712TypedValue::Bool { .. }
-        | EIP712TypedValue::Bytes { .. }
-        | EIP712TypedValue::Array { .. } => None,
+        EIP712TypedValue::Struct { .. } | EIP712TypedValue::Int256 { .. } | EIP712TypedValue::Bool { .. } | EIP712TypedValue::Bytes { .. } | EIP712TypedValue::Array { .. } => None,
     })
 }
 
@@ -344,7 +340,13 @@ mod tests {
             Some(BigUint::parse_bytes(b"1461501637330902918203684832716283019655932542975", 10).unwrap())
         );
         assert_eq!(
-            find_field_biguint(&[EIP712Field { name: "amount".to_string(), value: EIP712TypedValue::Uint256 { value: "0x186a0".to_string() } }], "amount"),
+            find_field_biguint(
+                &[EIP712Field {
+                    name: "amount".to_string(),
+                    value: EIP712TypedValue::Uint256 { value: "0x186a0".to_string() }
+                }],
+                "amount"
+            ),
             Some(BigUint::from(100_000u32))
         );
         assert_eq!(find_field_biguint(details, "nonce"), Some(BigUint::ZERO));

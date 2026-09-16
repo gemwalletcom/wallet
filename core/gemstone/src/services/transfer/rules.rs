@@ -305,12 +305,10 @@ impl TransferInput for TransactionInputType {
             Self::Generic { extra, .. } => Some(serde_json::to_value(TransactionWalletConnectMetadata {
                 output_action: extra.output_action.clone(),
             })?),
-            Self::Payment { invoice, extra, .. } if extra.output_type == TransferDataOutputType::Signature => {
-                Some(serde_json::to_value(TransactionPaymentMetadata {
-                    link: invoice.link.clone(),
-                    merchant: invoice.merchant.clone(),
-                })?)
-            }
+            Self::Payment { invoice, extra, .. } if extra.output_type == TransferDataOutputType::Signature => Some(serde_json::to_value(TransactionPaymentMetadata {
+                link: invoice.link.clone(),
+                merchant: invoice.merchant.clone(),
+            })?),
             Self::Payment { .. }
             | Self::Transfer { .. }
             | Self::Deposit { .. }

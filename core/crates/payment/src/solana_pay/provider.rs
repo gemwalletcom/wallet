@@ -24,10 +24,6 @@ impl<C: Client> SolanaPayProvider<C> {
 
 #[async_trait]
 impl<C: Client> PaymentProvider for SolanaPayProvider<C> {
-    async fn confirm(&self, _quote_id: &str, _action_results: Vec<String>) -> Result<(), PaymentError> {
-        Ok(())
-    }
-
     fn supported_chains(&self) -> &'static [Chain] {
         &[Chain::Solana]
     }
@@ -39,7 +35,7 @@ impl<C: Client> PaymentProvider for SolanaPayProvider<C> {
             .cloned()
             .ok_or(PaymentError::NoPaymentOptions)?;
         let (info, response) = futures::try_join!(self.client.get_info(), self.client.get_transaction(&account.address))?;
-        let prepared = prepare(&response.transaction, &account.address).map_err(|reason| PaymentError::InvalidRequest { reason })?;
+        let prepared = prepare(&response.transaction, &account.address).map_err(PaymentError::invalid_request)?;
 
         Ok(PaymentLoad::Sign {
             transaction: PaymentTransaction {
@@ -62,6 +58,10 @@ impl<C: Client> PaymentProvider for SolanaPayProvider<C> {
                 approval: None,
             },
         })
+    }
+
+    async fn confirm(&self, _quote_id: &str, _action_results: Vec<String>) -> Result<(), PaymentError> {
+        Ok(())
     }
 }
 

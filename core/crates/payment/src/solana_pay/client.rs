@@ -36,10 +36,7 @@ mod tests {
             })
         }));
 
-        assert_eq!(
-            client.get_info().await.unwrap_err(),
-            PaymentError::invalid_request("Payment link expired")
-        );
+        assert_eq!(client.get_info().await.unwrap_err(), PaymentError::invalid_request("Payment link expired"));
     }
 
     #[tokio::test]

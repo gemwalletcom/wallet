@@ -2,8 +2,8 @@
 
 import struct Gemstone.Chain
 import struct Gemstone.Contact
-import class Gemstone.GemAddressService
 import enum Gemstone.GemAddressFormatStyle
+import class Gemstone.GemAddressService
 import struct Gemstone.GemContactInput
 import struct Gemstone.GemContactScannedAddress
 import class Gemstone.GemManageContactService

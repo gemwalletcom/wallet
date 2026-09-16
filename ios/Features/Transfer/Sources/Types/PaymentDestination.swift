@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemPaymentLoad
-import enum Gemstone.PaymentLink
 import Foundation
+import enum Gemstone.GemPaymentLoad
 import struct Gemstone.GemTransferData
+import enum Gemstone.PaymentLink
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
