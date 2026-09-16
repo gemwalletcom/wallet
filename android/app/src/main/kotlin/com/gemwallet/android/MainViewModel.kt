@@ -7,7 +7,7 @@ import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEna
 import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.pricealerts.MigratePriceAlertsPreference
-import com.gemwallet.android.ext.userMessage
+import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.model.AuthState
 import android.util.Log
 import com.gemwallet.android.services.MigrateV3KeystoreService
@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAppStartFailure
 import uniffi.gemstone.GemAppStartServiceInterface
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemPaymentException
 import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
@@ -94,7 +95,7 @@ class MainViewModel @Inject constructor(
                         pendingNavigationCoordinator.clear()
                         if (isLoadingPayment) {
                             _uiState.update { state ->
-                                error.userMessage?.let { state.copy(navigationError = it) }
+                                error.errorText?.let { state.copy(navigationError = it) }
                                     ?: state.copy(isScanErrorVisible = true)
                             }
                         }
@@ -239,7 +240,7 @@ class MainViewModel @Inject constructor(
         val hasUnlockedApp: Boolean = false,
         val isWalletConnectPairingToastVisible: Boolean = false,
         val walletConnectError: String? = null,
-        val navigationError: String? = null,
+        val navigationError: GemErrorText? = null,
         val isWalletConnectUnsupportedVisible: Boolean = false,
         val isScanErrorVisible: Boolean = false,
     )

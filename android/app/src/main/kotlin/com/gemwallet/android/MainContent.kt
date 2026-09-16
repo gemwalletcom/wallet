@@ -14,6 +14,7 @@ import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectReque
 import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
 import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.WalletApp
 import uniffi.gemstone.GemDeeplinkService
 import com.gemwallet.android.ui.components.screen.LoadingScene
@@ -100,7 +101,7 @@ internal fun MainContent(
             onShown = onScanErrorShown,
         )
         ErrorDialog(
-            error = state.navigationError ?: state.walletConnectError ?: unsupportedWalletConnectError,
+            error = state.navigationError?.text() ?: state.walletConnectError ?: unsupportedWalletConnectError,
             onDismiss = onErrorDismiss,
         )
     }
