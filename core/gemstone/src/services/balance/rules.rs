@@ -2,9 +2,22 @@ use std::collections::HashMap;
 
 use crate::services::collections::{missing, unique};
 
-use primitives::{Account, Asset, AssetBalance, AssetFiatValue, AssetId, BalanceCalculator, Chain, TotalFiatValue};
+use primitives::{Account, Asset, AssetBalance, AssetFiatValue, AssetId, BalanceCalculator, BalanceMetadata, Chain, TotalFiatValue};
 
-use super::model::{GemAssetBalance, GemBalanceRecord, GemBalanceUpdate, GemBalanceUpdateType};
+use super::model::{GemAssetBalance, GemBalanceRecord, GemBalanceResource, GemBalanceResourceRow, GemBalanceUpdate, GemBalanceUpdateType};
+
+#[uniffi::export]
+pub fn balance_resource_rows(metadata: Option<BalanceMetadata>) -> Vec<GemBalanceResourceRow> {
+    let Some(metadata) = metadata else { return Vec::new() };
+    let row = |resource, available: u32, total: u32| GemBalanceResourceRow {
+        resource,
+        text: format!("{available} / {total}"),
+    };
+    vec![
+        row(GemBalanceResource::Energy, metadata.energy_available, metadata.energy_total),
+        row(GemBalanceResource::Bandwidth, metadata.bandwidth_available, metadata.bandwidth_total),
+    ]
+}
 
 pub fn total_fiat_value(balances: &[AssetFiatValue]) -> TotalFiatValue {
     BalanceCalculator::total_fiat_value(balances)
@@ -146,6 +159,31 @@ pub fn unique_asset_ids(asset_ids: Vec<AssetId>) -> Vec<AssetId> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_a_tron_resource_reads_available_over_total() {
+        assert!(balance_resource_rows(None).is_empty(), "a chain with no resources has no rows");
+        let rows = balance_resource_rows(Some(BalanceMetadata {
+            votes: 0,
+            energy_available: 100,
+            energy_total: 250,
+            bandwidth_available: 5,
+            bandwidth_total: 600,
+        }));
+        assert_eq!(
+            rows,
+            vec![
+                GemBalanceResourceRow {
+                    resource: GemBalanceResource::Energy,
+                    text: "100 / 250".to_string()
+                },
+                GemBalanceResourceRow {
+                    resource: GemBalanceResource::Bandwidth,
+                    text: "5 / 600".to_string()
+                },
+            ]
+        );
+    }
+
     use super::*;
     use num_bigint::BigUint;
 

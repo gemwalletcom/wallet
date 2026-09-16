@@ -364,9 +364,10 @@ public final class GemReceiveServiceMock: GemReceiveServiceProtocol, @unchecked 
     public var warningsValue: [GemReceiveWarning] = []
     public var assetResult: Result<Gemstone.Asset, Error> = .success(Primitives.Asset.mock().toGem())
     public var enableAssetError: Error?
+    public var syncedNetworkAssetIdsResult: Result<[Gemstone.AssetId], Error> = .success([])
 
     public private(set) var enabledAssetIds: [Gemstone.AssetId] = []
-    public private(set) var syncedAssetIds: [[Gemstone.AssetId]] = []
+    public private(set) var syncedAssetIds: [Gemstone.AssetId] = []
     public private(set) var requestedAssetIds: [Gemstone.AssetId] = []
 
     public init() {}
@@ -385,9 +386,9 @@ public final class GemReceiveServiceMock: GemReceiveServiceProtocol, @unchecked 
         networkAssetIdsValue.isEmpty ? [assetId] : networkAssetIdsValue
     }
 
-    public func syncMissingAssets(assetIds: [Gemstone.AssetId]) async throws -> [Gemstone.AssetId] {
-        syncedAssetIds.append(assetIds)
-        return assetIds
+    public func syncNetworkAssetIds(assetId: Gemstone.AssetId, wallet _: Gemstone.Wallet) async throws -> [Gemstone.AssetId] {
+        syncedAssetIds.append(assetId)
+        return try syncedNetworkAssetIdsResult.get()
     }
 
     public func warnings(chain _: Gemstone.Chain) -> [GemReceiveWarning] { warningsValue }

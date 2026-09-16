@@ -25,7 +25,7 @@ public final class ReceiveViewModel: Sendable {
     private let wallet: Wallet
     private let service: any GemReceiveServiceProtocol
     private let generator = QRCodeGenerator()
-    let networkAssetIds: [AssetId]
+    private(set) var networkAssetIds: [AssetId]
 
     private init(
         asset: Asset,
@@ -139,11 +139,14 @@ public final class ReceiveViewModel: Sendable {
         }
     }
 
-    private func prefetchAssociations() async {
+    private func syncNetworkAssetIds() async {
         do {
-            _ = try await service.syncMissingAssets(assetIds: networkAssetIds.filter { $0 != assetModel.asset.id }.ids)
+            networkAssetIds = try await service.syncNetworkAssetIds(
+                assetId: assetModel.asset.id.identifier,
+                wallet: wallet.toGem(),
+            ).map { AssetId(core: $0) }
         } catch {
-            debugLog("ReceiveViewModel prefetchAssociations error: \(error)")
+            debugLog("ReceiveViewModel syncNetworkAssetIds error: \(error)")
         }
     }
 
@@ -165,8 +168,8 @@ extension ReceiveViewModel {
     func onTaskOnce() {
         Task {
             async let enabled: Void = enableAsset()
-            async let prefetched: Void = prefetchAssociations()
-            _ = await (enabled, prefetched)
+            async let synced: Void = syncNetworkAssetIds()
+            _ = await (enabled, synced)
         }
     }
 
@@ -184,7 +187,6 @@ extension ReceiveViewModel {
                 let account = try wallet.account(for: asset.chain)
                 assetModel = AssetViewModel(asset: asset)
                 address = account.address
-                renderedImage = await generateQRCode()
                 await enableAsset()
             } catch {
                 isPresentingAlertMessage = AlertMessage(error: error)
@@ -201,6 +203,7 @@ extension ReceiveViewModel {
     }
 
     func onLoadImage() async {
+        renderedImage = nil
         renderedImage = await generateQRCode()
     }
 }

@@ -41,6 +41,10 @@ impl GemSupportService {
         self.files.save_named_file(image, file_name)
     }
 
+    pub fn sync_from_timestamp(&self, messages: Vec<SupportMessage>) -> u64 {
+        rules::sync_from_timestamp(messages)
+    }
+
     pub async fn sync_messages(&self, from_timestamp: u64) -> Result<(), GemServiceError> {
         let messages = self.api.client.get_support_messages(from_timestamp).await.map_err(GemApiError::from)?;
         self.store.save_messages(messages).await

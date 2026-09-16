@@ -323,3 +323,15 @@ mod tests {
         assert_eq!(record.available.amount, 0.0);
     }
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemBalanceResource {
+    Energy,
+    Bandwidth,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct GemBalanceResourceRow {
+    pub resource: GemBalanceResource,
+    pub text: String,
+}

@@ -35,26 +35,21 @@ import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 import kotlin.math.min
 
 private const val wordsPerGroup = 4
+
 private const val verifyGroupCount = 3
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun CheckPhrase(
     words: List<String>,
+    verificationWords: List<String>,
     loading: Boolean,
     onDone: () -> Unit,
     onCancel: () -> Unit,
 ) {
     val random = remember {
-        val shuffled = mutableListOf<Pair<Int, String>>()
-        for (i in 0..words.size / wordsPerGroup) {
-            val part = words.mapIndexed { index, word -> Pair(index, word) }.subList(
-                fromIndex = i * wordsPerGroup,
-                toIndex = min(i * wordsPerGroup + wordsPerGroup, words.size)
-            ).shuffled()
-            shuffled.addAll(part)
-        }
-        shuffled.toList()
+        val byWord = words.withIndex().groupBy({ it.value }, { it.index }).mapValues { it.value.toMutableList() }
+        verificationWords.map { word -> Pair(byWord.getValue(word).removeAt(0), word) }
     }
     val render = remember {
         val state = mutableStateListOf<String>()

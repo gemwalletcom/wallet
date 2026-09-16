@@ -198,6 +198,11 @@ public final class GemSupportServiceMock: GemSupportServiceProtocol, @unchecked 
         if let sendError { throw sendError }
     }
 
+    public func syncFromTimestamp(messages: [Gemstone.SupportMessage]) -> UInt64 {
+        messages.last { if case .agent = $0.sender { return true } else { return false } }
+            .map { UInt64(max($0.createdAt.timeIntervalSince1970, 0)) } ?? 0
+    }
+
     public func syncMessages(fromTimestamp: UInt64) async throws {
         syncedTimestamps.append(fromTimestamp)
         if let syncError { throw syncError }

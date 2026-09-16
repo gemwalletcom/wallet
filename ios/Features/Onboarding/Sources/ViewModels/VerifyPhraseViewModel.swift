@@ -24,10 +24,11 @@ final class VerifyPhraseViewModel {
 
     init(
         words: [String],
+        shuffledWords: [String],
         onComplete: @escaping ([String]) async throws -> Void,
     ) {
         self.words = words
-        shuffledWords = words.shuffleInGroups(groupSize: 4)
+        self.shuffledWords = shuffledWords
         wordsVerified = Array(repeating: "", count: words.count)
         self.onComplete = onComplete
     }

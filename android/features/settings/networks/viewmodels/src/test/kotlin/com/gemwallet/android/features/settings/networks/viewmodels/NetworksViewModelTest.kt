@@ -4,7 +4,9 @@ import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -30,12 +32,17 @@ import uniffi.gemstone.LatencyType
 class NetworksViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
+    private val models = mutableListOf<NetworksViewModel>()
 
     @Before
     fun setUp() = Dispatchers.setMain(dispatcher)
 
     @After
-    fun tearDown() = Dispatchers.resetMain()
+    fun tearDown() {
+        models.forEach { it.viewModelScope.cancel() }
+        models.clear()
+        Dispatchers.resetMain()
+    }
 
     private fun node(url: String) = GemNodeSelection(url = url, host = url, isSelected = false, gemNodeFlag = null)
 
@@ -74,7 +81,7 @@ class NetworksViewModelTest {
             nodesByCall = listOf(listOf(node("a"), node("b"))),
             statuses = mapOf("a" to reachable(10UL), "b" to reachable(11UL)),
         )
-        val viewModel = NetworksViewModel(service)
+        val viewModel = NetworksViewModel(service).also { models.add(it) }
 
         viewModel.onSelectedChain(Chain.Ethereum)
         advanceUntilIdle()
@@ -89,7 +96,7 @@ class NetworksViewModelTest {
             nodesByCall = listOf(listOf(node("a"), node("b")), listOf(node("a"))),
             statuses = mapOf("a" to reachable(10UL), "b" to reachable(11UL)),
         )
-        val viewModel = NetworksViewModel(service)
+        val viewModel = NetworksViewModel(service).also { models.add(it) }
         viewModel.onSelectedChain(Chain.Ethereum)
         advanceUntilIdle()
 

@@ -37,6 +37,21 @@ impl GemWalletImportType {
     }
 }
 
+pub const PHRASE_VERIFICATION_GROUP: usize = 4;
+
+pub fn phrase_verification_words(words: Vec<String>) -> Vec<String> {
+    use rand::seq::SliceRandom;
+    let mut rng = rand::rng();
+    words
+        .chunks(PHRASE_VERIFICATION_GROUP)
+        .flat_map(|group| {
+            let mut group = group.to_vec();
+            group.shuffle(&mut rng);
+            group
+        })
+        .collect()
+}
+
 pub fn import_kinds(chain: Option<Chain>) -> Vec<GemWalletImportKind> {
     match chain {
         None => vec![GemWalletImportKind::Phrase],
@@ -249,6 +264,30 @@ pub fn existing_wallet(wallets: &[Wallet], wallet_id: &WalletId, wallet_type: Wa
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_phrase_verification_shuffles_inside_a_group_and_never_across_one() {
+        let words: Vec<String> = (1..=12).map(|n| n.to_string()).collect();
+        for _ in 0..50 {
+            let shuffled = phrase_verification_words(words.clone());
+            assert_eq!(shuffled.len(), words.len());
+            for (group, original) in shuffled.chunks(PHRASE_VERIFICATION_GROUP).zip(words.chunks(PHRASE_VERIFICATION_GROUP)) {
+                let mut seen = group.to_vec();
+                let mut expected = original.to_vec();
+                seen.sort();
+                expected.sort();
+                assert_eq!(seen, expected, "a word never leaves its group of {PHRASE_VERIFICATION_GROUP}");
+            }
+        }
+    }
+
+    #[test]
+    fn test_phrase_verification_keeps_a_short_last_group() {
+        let words: Vec<String> = (1..=6).map(|n| n.to_string()).collect();
+        let shuffled = phrase_verification_words(words.clone());
+        assert_eq!(shuffled.len(), 6);
+        assert_eq!(shuffled[4..].iter().collect::<std::collections::HashSet<_>>(), words[4..].iter().collect());
+    }
+
     use super::*;
     use primitives::NameProvider;
 
