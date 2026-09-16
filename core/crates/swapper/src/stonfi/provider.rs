@@ -956,7 +956,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_stonfi_quote_and_quote_data_ton_to_usdt() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::default());
-        let provider = Stonfi::new(rpc_provider);
+        let provider = Stonfi::new(rpc_provider).unwrap();
         let request = mock_ton(TEST_TON_SENDER.to_string());
 
         let quote = provider.get_quote(&request).await?;
@@ -978,7 +978,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_stonfi_quote_and_quote_data_not_to_usdt() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::default());
-        let provider = Stonfi::new(rpc_provider);
+        let provider = Stonfi::new(rpc_provider).unwrap();
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_token(Chain::Ton, NOT_TOKEN_ID)),
             to_asset: SwapperQuoteAsset::from(TON_USDT_ASSET_ID.clone()),
