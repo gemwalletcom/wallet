@@ -122,6 +122,7 @@ impl<C: Client> PaymentProvider for WalletConnectPayProvider<C> {
 mod tests {
     use super::*;
     use crate::wallet_connect_pay::testkit::{OPTIONS_IDENTITY_REQUIRED, STATUS_PROCESSING, STATUS_SUCCEEDED, STATUS_SUCCEEDED_WITHOUT_INFO};
+    use gem_client::ClientError;
     use gem_client::testkit::MockClient;
     use primitives::testkit::signer_mock::TEST_EVM_SENDER;
 
@@ -146,7 +147,7 @@ mod tests {
     async fn test_a_refused_option_verifies_every_account_with_one_form() {
         let client = MockClient::new().with_post(move |path, _| match path {
             "/v1/gateway/payment/pay_1/options?includePaymentInfo=true" => Ok(OPTIONS_IDENTITY_REQUIRED.as_bytes().to_vec()),
-            "/v1/gateway/payment/pay_1/fetch" => Err(gem_client::ClientError::Http {
+            "/v1/gateway/payment/pay_1/fetch" => Err(ClientError::Http {
                 status: 400,
                 body: br#"{"code":"params_validation","message":"IC data required but not found"}"#.to_vec(),
             }),

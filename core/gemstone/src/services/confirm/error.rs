@@ -1,6 +1,7 @@
 use crate::GemstoneError;
 use crate::gateway::GatewayError;
 use crate::models::custom_types::GemBigInt;
+use crate::payment::GemPaymentError;
 use crate::services::balance::GemBalanceRequirement;
 use crate::services::error::GemServiceError;
 use crate::signer::GemSignerError;
@@ -218,8 +219,8 @@ pub(super) fn sign_error(chain: Chain, error: GemstoneError) -> GemConfirmError 
     }
 }
 
-impl From<crate::payment::GemPaymentError> for GemConfirmError {
-    fn from(error: crate::payment::GemPaymentError) -> Self {
+impl From<GemPaymentError> for GemConfirmError {
+    fn from(error: GemPaymentError) -> Self {
         Self::Load { msg: error.to_string() }
     }
 }
