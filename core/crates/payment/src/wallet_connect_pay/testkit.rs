@@ -46,7 +46,7 @@ impl WalletRpcAction {
     }
 
     pub fn mock_approve(quote: &Quote) -> Self {
-        let token = quote.asset_id.token_id.clone().unwrap_or_default().to_lowercase();
+        let token = quote.token().to_lowercase();
         let data = encode_with_0x(&encode_erc20_approve_max_value(UNISWAP_PERMIT2_CONTRACT).unwrap());
         Self::mock(
             WalletConnectionMethods::EthSendTransaction,

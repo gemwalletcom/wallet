@@ -44,6 +44,12 @@ pub(super) struct Quote {
     pub actions: Vec<WalletConnectPayAction>,
 }
 
+impl Quote {
+    pub fn token(&self) -> &str {
+        self.asset_id.token_id.as_deref().unwrap_or_default()
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub(super) struct Invoice {
     pub merchant: Merchant,

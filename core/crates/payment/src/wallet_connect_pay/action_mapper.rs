@@ -37,7 +37,7 @@ fn map_send(quote: &Quote, action: &WalletRpcAction) -> Result<PaymentSend, Paym
 }
 
 fn map_sign(quote: &Quote, action: &WalletRpcAction) -> Result<PaymentSign, PaymentError> {
-    let token = quote.asset_id.token_id.as_deref().unwrap_or_default();
+    let token = quote.token();
     validate_chain(quote, action)?;
     let signer = action.params.at(0).and_then(Value::string).map_err(PaymentError::invalid_request)?;
     if !signer.eq_ignore_ascii_case(&quote.account.address) {
@@ -60,7 +60,7 @@ fn map_sign(quote: &Quote, action: &WalletRpcAction) -> Result<PaymentSign, Paym
 }
 
 fn map_approval(quote: &Quote, action: &WalletRpcAction) -> Result<ApprovalData, PaymentError> {
-    let token = quote.asset_id.token_id.as_deref().unwrap_or_default();
+    let token = quote.token();
     let transaction = get_transaction(quote, action)?;
     if get_value(&transaction)? != BigUint::ZERO {
         return Err(PaymentError::invalid_request("Payment approval sends value"));
