@@ -1,3 +1,4 @@
+use gem_evm::address::ethereum_address_checksum;
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{
@@ -124,7 +125,7 @@ fn map_quote(option: PaymentOption, accounts: &[String]) -> Option<Quote> {
         Some(collect_data) => Some(get_collect_data_url(&collect_data.url)?),
         None => None,
     };
-    let asset_id = get_coin_asset_id(&option.amount.unit)?;
+    let asset_id = get_asset_id(&option.amount.unit)?;
     let value = BigUint::from_str(&option.amount.value).ok()?;
     if account.chain != asset_id.chain {
         return None;
@@ -152,18 +153,21 @@ fn get_collect_data_url(url: &str) -> Option<String> {
     }
 }
 
-fn get_coin_asset_id(unit: &str) -> Option<AssetId> {
+fn get_asset_id(unit: &str) -> Option<AssetId> {
     let asset_id = match unit.split_once('/')? {
         (CAIP19_PREFIX, asset) => WalletConnectCAIP19::get_asset_id(asset)?,
         _ => return None,
     };
-    asset_id.token_id.is_none().then_some(asset_id)
+    match asset_id.token_id {
+        Some(token_id) => Some(AssetId::from_token(asset_id.chain, &ethereum_address_checksum(&token_id).ok()?)),
+        None => Some(asset_id),
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::wallet_connect_pay::model::{Merchant, PaymentPriceDisplay, PaymentSend, PaymentSign};
+    use crate::wallet_connect_pay::model::{Merchant, PaymentAmount as PaymentOptionAmount, PaymentInfo, PaymentPriceDisplay, PaymentSend, PaymentSign};
     use primitives::swap::ApprovalData;
     use primitives::{Chain, ChainAddress};
 
@@ -237,6 +241,50 @@ mod tests {
         );
         assert_eq!(approved.output_type, TransferDataOutputType::Signature);
         assert_eq!(approved.approval, Some(approval));
+    }
+
+    #[test]
+    fn test_map_options() {
+        let account = "eip155:56:0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB".to_string();
+        let option = |id: &str, account: &str, unit: &str| PaymentOption {
+            id: id.to_string(),
+            account: account.to_string(),
+            amount: PaymentOptionAmount {
+                unit: unit.to_string(),
+                value: "1000".to_string(),
+            },
+            actions: Vec::new(),
+            collect_data: None,
+        };
+        let response = PaymentOptionsResponse {
+            info: Some(PaymentInfo {
+                status: PaymentStatus::RequiresAction,
+                merchant: Merchant {
+                    name: "Gem Coffee".to_string(),
+                    icon_url: None,
+                },
+                amount: amount("iso4217/USD", "1999"),
+            }),
+            options: Some(vec![
+                option("opt_bnb", &account, "caip19/eip155:56/slip44:60"),
+                option("opt_cake", &account.to_lowercase(), "caip19/eip155:56/erc20:0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82"),
+                option("opt_eth", "eip155:1:0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB", "caip19/eip155:1/slip44:60"),
+                option("opt_bad_token", &account, "caip19/eip155:56/erc20:0xnot-an-address"),
+                option("opt_fiat", &account, "iso4217/USD"),
+            ]),
+        };
+
+        let Options::Invoice(invoice) = map_options(response, &[account]).unwrap() else {
+            panic!("expected an invoice");
+        };
+        assert_eq!(
+            invoice.quotes.iter().map(|quote| (quote.id.as_str(), quote.asset_id.clone())).collect::<Vec<_>>(),
+            vec![
+                ("opt_bnb", AssetId::from_chain(Chain::SmartChain)),
+                ("opt_cake", AssetId::from_token(Chain::SmartChain, "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82")),
+            ]
+        );
+        assert_eq!(invoice.price.amount, 19.99);
     }
 
     #[test]
