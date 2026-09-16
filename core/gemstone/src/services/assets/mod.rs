@@ -142,6 +142,15 @@ impl GemAssetsService {
         Ok(asset)
     }
 
+    pub async fn sync_asset_associations(&self, asset_id: AssetId) -> Result<Vec<AssetId>, GemServiceError> {
+        let asset = self.sync_asset(asset_id).await?;
+        let associations: Vec<AssetId> = asset.associations.into_iter().map(|association| association.asset_id).collect();
+        if !associations.is_empty() {
+            self.sync_missing_assets(associations.clone()).await?;
+        }
+        Ok(associations)
+    }
+
     pub(crate) async fn ensure_simulation_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, GemServiceError> {
         let existing = self.store.get_asset_ids(asset_ids.clone()).await?;
         let missing = rules::missing_asset_ids(asset_ids.clone(), existing);

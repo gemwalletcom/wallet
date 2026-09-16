@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import class Gemstone.PriceAlertFormatter
 import Components
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import GemstoneServices
@@ -64,7 +65,7 @@ public final class AssetPriceAlertsViewModel: Sendable {
 
     var alerts: [PriceAlertData] {
         priceAlerts
-            .filter { $0.priceAlert.type != .auto }
+            .filter { PriceAlertFormatter.shared.alertKind(alert: $0.priceAlert.toGem()).groupsByAsset() }
             .displayedAlerts
     }
 

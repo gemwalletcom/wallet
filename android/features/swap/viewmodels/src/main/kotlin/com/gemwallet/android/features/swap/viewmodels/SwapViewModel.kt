@@ -30,7 +30,6 @@ import com.gemwallet.android.features.swap.viewmodels.models.QuoteState
 import com.gemwallet.android.features.swap.viewmodels.models.createSwapUiState
 import com.gemwallet.android.features.swap.viewmodels.models.formattedToAmount
 import com.gemwallet.android.features.swap.viewmodels.models.receiveEquivalent
-import com.gemwallet.android.math.multiplyByPercent
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.toAssetPriceValue
 import uniffi.gemstone.GemTransferData
@@ -295,7 +294,7 @@ class SwapViewModel @Inject constructor(
 
     fun onSelectPercent(percent: Int) {
         val asset = payAsset.value ?: return
-        val value = asset.balance.balance.available.multiplyByPercent(percent)
+        val value = swapQuoteService.amountForPercent(asset.balance.balance.available, percent.toUInt())
         payValue.clearText()
         payValue.setTextAndPlaceCursorAtEnd(
             Crypto(value).value(asset.asset.decimals).stripTrailingZeros().toPlainString()

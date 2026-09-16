@@ -62,7 +62,7 @@ pub struct GemTransferData {
     pub use_max_amount: bool,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GemTransferOutput {
     pub output_type: TransferDataOutputType,
     pub output_action: TransferDataOutputAction,

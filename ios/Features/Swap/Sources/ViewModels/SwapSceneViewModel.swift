@@ -360,8 +360,8 @@ extension SwapSceneViewModel {
             side: side,
             assetId: asset.id.identifier,
         )
-        pairSelectorModel.fromAssetId = selection.payAssetId.flatMap { try? AssetId(id: $0) }
-        pairSelectorModel.toAssetId = selection.receiveAssetId.flatMap { try? AssetId(id: $0) }
+        pairSelectorModel.fromAssetId = selection.payAssetId.map { AssetId(core: $0) }
+        pairSelectorModel.toAssetId = selection.receiveAssetId.map { AssetId(core: $0) }
         isPresentingInfoSheet = nil
     }
 }
@@ -407,7 +407,7 @@ extension SwapSceneViewModel {
 
     private func setFromValue(percent: Int, assetData: AssetData) {
         amountInputModel.text = formatter.format(
-            value: assetData.balance.available.multiply(byPercent: percent),
+            value: service.amountForPercent(available: assetData.balance.available, percent: UInt32(percent)),
             decimals: assetData.asset.decimals.asInt,
         )
     }

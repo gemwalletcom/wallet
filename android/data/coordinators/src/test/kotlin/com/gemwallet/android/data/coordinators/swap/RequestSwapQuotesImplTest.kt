@@ -338,6 +338,9 @@ class RequestSwapQuotesImplTest {
 
         override fun newSlippageSession(selection: GemSlippageSelection): GemSlippageSession = throw UnsupportedOperationException()
 
+        override fun amountForPercent(available: java.math.BigInteger, percent: UInt): java.math.BigInteger =
+            available * percent.toInt().toBigInteger() / java.math.BigInteger.valueOf(100)
+
         override fun slippageBpsFromPercent(percent: Double): UInt? = throw UnsupportedOperationException()
 
         override fun selectPairAsset(selection: GemSwapPairSelection, side: GemSwapSide, assetId: String): GemSwapPairSelection =

@@ -1,6 +1,7 @@
 package com.gemwallet.android.ui.models.chart
 
 import com.gemwallet.android.domains.price.ValueDirection
+import com.gemwallet.android.domains.price.toValueDirection
 import com.gemwallet.android.model.text
 import com.wallet.core.primitives.ChartCandleStick
 import uniffi.gemstone.GemPerpetualChartLayout
@@ -63,11 +64,7 @@ data class CandlestickChartUIModel(
             high = candle.high,
             low = candle.low,
             close = candle.close,
-            direction = when {
-                candle.close > candle.open -> ValueDirection.Up
-                candle.close < candle.open -> ValueDirection.Down
-                else -> ValueDirection.None
-            },
+            direction = (candle.close - candle.open).toValueDirection(),
         )
     }
 }

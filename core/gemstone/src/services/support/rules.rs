@@ -2,6 +2,15 @@ use super::model::GemSupportChatGroup;
 use chrono::{DateTime, Utc};
 use primitives::{SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus};
 
+pub fn sync_from_timestamp(messages: Vec<SupportMessage>) -> u64 {
+    messages
+        .iter()
+        .rev()
+        .find(|message| !message.sender.is_user())
+        .map(|message| message.created_at.timestamp().max(0) as u64)
+        .unwrap_or_default()
+}
+
 pub fn pending_message(id: String, content: String, images: Vec<SupportMessageImage>, now: DateTime<Utc>) -> SupportMessage {
     SupportMessage {
         id,
@@ -58,6 +67,24 @@ pub fn image_file_name(url: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn test_the_sync_cursor_is_the_last_agent_message() {
+        let at = |seconds: i64, agent: bool| SupportMessage {
+            id: seconds.to_string(),
+            content: String::new(),
+            sender: match agent {
+                true => SupportMessageSender::Agent(primitives::SupportAgent { name: "Agent".to_string() }),
+                false => SupportMessageSender::User,
+            },
+            status: SupportMessageStatus::Sent,
+            created_at: DateTime::from_timestamp(seconds, 0).unwrap(),
+            images: vec![],
+        };
+        assert_eq!(sync_from_timestamp(vec![]), 0, "nothing to sync from yet");
+        assert_eq!(sync_from_timestamp(vec![at(10, false), at(20, false)]), 0, "only the user has written");
+        assert_eq!(sync_from_timestamp(vec![at(10, true), at(20, false), at(30, true), at(40, false)]), 30);
+    }
+
     use super::*;
 
     #[test]

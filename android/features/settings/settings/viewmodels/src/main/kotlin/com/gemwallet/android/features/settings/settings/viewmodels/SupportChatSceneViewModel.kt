@@ -60,10 +60,8 @@ class SupportChatSceneViewModel @Inject constructor(
     fun fetch() = viewModelScope.launch(Dispatchers.IO) {
         runCatchingCancellable {
             failPendingSupportMessages()
-            val fromTimestamp = messages.first()
-                .lastOrNull { it.sender is SupportMessageSender.Agent }
-                ?.let { it.createdAt.millisToSeconds() } ?: 0L
-            supportService.syncMessages(fromTimestamp.toULong())
+            val fromTimestamp = supportService.syncFromTimestamp(messages.first().map { it.toGem() })
+            supportService.syncMessages(fromTimestamp)
         }.onFailure { Log.e(TAG, "fetch error", it) }
     }
 

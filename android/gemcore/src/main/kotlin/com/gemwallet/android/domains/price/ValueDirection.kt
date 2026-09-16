@@ -1,6 +1,8 @@
 package com.gemwallet.android.domains.price
 
+import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.PriceAlertDirection
+import uniffi.gemstone.valueTone
 
 enum class ValueDirection {
     None,
@@ -8,11 +10,10 @@ enum class ValueDirection {
     Down,
 }
 
-fun Double?.toValueDirection(): ValueDirection = when {
-    this == null || !isFinite() -> ValueDirection.None
-    this > 0.0 -> ValueDirection.Up
-    this < 0.0 -> ValueDirection.Down
-    else -> ValueDirection.None
+fun Double?.toValueDirection(): ValueDirection = when (this?.takeIf { it.isFinite() }?.let(::valueTone)) {
+    GemValueTone.POSITIVE -> ValueDirection.Up
+    GemValueTone.NEGATIVE -> ValueDirection.Down
+    GemValueTone.NEUTRAL, GemValueTone.PLAIN, null -> ValueDirection.None
 }
 
 fun PriceAlertDirection?.toValueDirection(): ValueDirection = when (this) {

@@ -100,6 +100,10 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         }
     }
 
+    public func amountForPercent(available: BigInt, percent: UInt32) -> BigInt {
+        available * BigInt(percent) / BigInt(100)
+    }
+
     public func slippageBpsFromPercent(percent: Double) -> UInt32? {
         percent > 0 ? UInt32((percent * 100).rounded()) : .none
     }

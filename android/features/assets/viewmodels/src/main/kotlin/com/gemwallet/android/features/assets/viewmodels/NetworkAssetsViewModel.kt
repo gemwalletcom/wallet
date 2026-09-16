@@ -16,7 +16,7 @@ import uniffi.gemstone.GemAssetRow
 import uniffi.gemstone.GemNetworkAssetCounts
 import uniffi.gemstone.GemNetworkAssetSections
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
-import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ui.models.navigation.requireChain
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
@@ -46,7 +46,7 @@ class NetworkAssetsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val chain: Chain = Chain.entries.first { it.string == savedStateHandle.get<String>(RouteArgument.Chain.key) }
+    private val chain: Chain = savedStateHandle.requireChain()
 
     val title: String = context.getString(R.string.assets_title)
 

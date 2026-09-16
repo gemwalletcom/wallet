@@ -49,6 +49,10 @@ pub fn slippage_bps_from_percent(percent: f64) -> Option<u32> {
     }
 }
 
+pub fn amount_for_percent(available: &BigInt, percent: u32) -> BigInt {
+    available * BigInt::from(percent) / BigInt::from(100u32)
+}
+
 pub fn slippage_percent(bps: u32) -> f64 {
     f64::from(bps) / BPS_PER_PERCENT
 }
@@ -203,7 +207,6 @@ pub fn assets_in_wallet(supported: AssetList, wallet: &Wallet) -> AssetList {
     }
 }
 
-#[uniffi::export]
 impl GemSwapButtonInput {
     pub fn action(&self) -> GemSwapButtonAction {
         if let Some(minimum) = minimum_amount(self.quote_error.as_ref()) {
@@ -338,6 +341,20 @@ mod tests {
         assert_eq!(min_receive_value(&value, 100), BigUint::from(990_000u32));
         assert_eq!(min_receive_value(&value, BASIS_POINTS), BigUint::from(0u32));
         assert_eq!(min_receive_value(&value, BASIS_POINTS + 1), BigUint::from(0u32));
+    }
+
+    #[test]
+    fn test_a_percent_button_takes_that_share_of_the_balance() {
+        let available = BigInt::from(1_000_000_000u64);
+        assert_eq!(amount_for_percent(&available, 100), available);
+        assert_eq!(amount_for_percent(&available, 50), BigInt::from(500_000_000u64));
+        assert_eq!(amount_for_percent(&available, 25), BigInt::from(250_000_000u64));
+        assert_eq!(amount_for_percent(&available, 0), BigInt::from(0u32));
+        assert_eq!(
+            amount_for_percent(&BigInt::from(3u32), 50),
+            BigInt::from(1u32),
+            "a share that does not divide evenly rounds down, never up past the balance"
+        );
     }
 
     #[test]

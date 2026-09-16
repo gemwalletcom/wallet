@@ -50,6 +50,14 @@ public struct DelegationSceneViewModel {
         service.delegationRows(delegation: model.delegation.toGem())
     }
 
+    public var detailRows: [GemDelegationRow] {
+        rows.filter { $0 != .rewards }
+    }
+
+    public var rewardsRow: GemDelegationRow? {
+        rows.first { $0 == .rewards }
+    }
+
     public func title(for row: GemDelegationRow) -> String {
         delegationRowTitle(row, providerType: providerType, completion: model.status.completion)
     }

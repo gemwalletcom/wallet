@@ -82,6 +82,7 @@ class ReceiveViewModelTest {
         val model = receiveModel(service)
 
         assertEquals(listOf(bitcoin.id, ethereum.id), model.networkAssetIds.first { it.size == 2 })
+        coVerify { service.syncNetworkAssetIds(bitcoin.id.toIdentifier(), wallet.toGem()) }
         assertEquals(listOf(GemReceiveWarning.NO_MEMO_REQUIRED), model.warnings(Chain.Bitcoin))
         assertEquals(emptyList<GemReceiveWarning>(), model.warnings(Chain.Ethereum))
     }

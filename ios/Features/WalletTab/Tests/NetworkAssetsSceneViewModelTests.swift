@@ -11,8 +11,11 @@ import Testing
 
 @MainActor
 struct NetworkAssetsSceneViewModelTests {
-    private func token(pinned: Bool = false) -> AssetData {
-        AssetData.mock(asset: .mock(id: .mock(.ethereum), type: .erc20), metadata: .mock(isPinned: pinned))
+    private func token(_ contract: String = "0xtoken", pinned: Bool = false) -> AssetData {
+        AssetData.mock(
+            asset: .mock(id: AssetId(chain: .ethereum, tokenId: contract), type: .erc20),
+            metadata: .mock(isPinned: pinned),
+        )
     }
 
     private func model(
@@ -45,7 +48,7 @@ struct NetworkAssetsSceneViewModelTests {
     @Test
     func pinnedAndUnpinnedSplitOnTheirMetadata() {
         let model = model()
-        model.activeQuery.value = [token(pinned: true), token(), token()]
+        model.activeQuery.value = [token("0xa", pinned: true), token("0xb"), token("0xc")]
 
         #expect(model.pinned.count == 1)
         #expect(model.unpinned.count == 2)
