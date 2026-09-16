@@ -159,8 +159,10 @@ fn get_asset_id(unit: &str) -> Option<AssetId> {
 mod tests {
     use super::*;
     use crate::wallet_connect_pay::model::{Merchant, PaymentAmount as PaymentOptionAmount, PaymentCollectData, PaymentInfo, PaymentPriceDisplay, PaymentSend, PaymentSign};
+    use primitives::Chain;
+    use primitives::asset_constants::{POLYGON_USDT_TOKEN_ID, SMARTCHAIN_CAKE_TOKEN_ID};
     use primitives::swap::ApprovalData;
-    use primitives::{Chain, ChainAddress};
+    use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER};
 
     fn amount(unit: &str, value: &str) -> PaymentPriceAmount {
         PaymentPriceAmount {
@@ -185,24 +187,17 @@ mod tests {
 
     #[test]
     fn test_map_transaction() {
-        let quote = |asset_id: AssetId| Quote {
-            id: "opt_1".to_string(),
-            account: ChainAddress::new(Chain::Polygon, "0x1085c5f70F7F7591D97da281A64688385455c2bD".to_string()),
-            asset_id,
-            value: BigUint::from(1_000_000u32),
-            collect_data_url: None,
-            actions: Vec::new(),
-        };
-        let usdt = AssetId::from_token(Chain::Polygon, "0xc2132d05d31c914a87c6611c10748aeb04b58e8f");
+        let quote = |asset_id: AssetId| Quote::mock(asset_id, 1_000_000);
+        let usdt = AssetId::from_token(Chain::Polygon, POLYGON_USDT_TOKEN_ID);
         let sign = || PaymentSign {
-            recipient: "0x0000000000a84d1a9b0063a910315c7ffa9cd248".to_string(),
+            recipient: TEST_EVM_RECIPIENT.to_string(),
             typed_data: "{\"primaryType\":\"PermitTransferFrom\"}".to_string(),
         };
 
         let coin = map_transaction(
             &quote(AssetId::from_chain(Chain::Polygon)),
             PaymentAction::Send(PaymentSend {
-                recipient: "0x0000000000a84d1a9b0063a910315c7ffa9cd248".to_string(),
+                recipient: TEST_EVM_RECIPIENT.to_string(),
                 value: BigUint::from(1_000_000u32),
                 data: String::new(),
             }),
@@ -236,7 +231,7 @@ mod tests {
 
     #[test]
     fn test_map_options() {
-        let account = "eip155:56:0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB".to_string();
+        let account = format!("eip155:56:{TEST_EVM_SENDER}");
         let option = |id: &str, account: &str, unit: &str| PaymentOption {
             id: id.to_string(),
             account: account.to_string(),
@@ -263,8 +258,8 @@ mod tests {
             }),
             options: Some(vec![
                 option("opt_bnb", &account, "caip19/eip155:56/slip44:60"),
-                option("opt_cake", &account.to_lowercase(), "caip19/eip155:56/erc20:0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82"),
-                option("opt_eth", "eip155:1:0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB", "caip19/eip155:1/slip44:60"),
+                option("opt_cake", &account.to_lowercase(), &format!("caip19/eip155:56/erc20:{}", SMARTCHAIN_CAKE_TOKEN_ID.to_lowercase())),
+                option("opt_eth", &format!("eip155:1:{TEST_EVM_SENDER}"), "caip19/eip155:1/slip44:60"),
                 option("opt_bad_token", &account, "caip19/eip155:56/erc20:0xnot-an-address"),
                 option("opt_fiat", &account, "iso4217/USD"),
                 option("opt_phishing", &account, "caip19/eip155:56/slip44:60"),
@@ -278,7 +273,7 @@ mod tests {
             invoice.quotes.iter().map(|quote| (quote.id.as_str(), quote.asset_id.clone())).collect::<Vec<_>>(),
             vec![
                 ("opt_bnb", AssetId::from_chain(Chain::SmartChain)),
-                ("opt_cake", AssetId::from_token(Chain::SmartChain, "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82")),
+                ("opt_cake", AssetId::from_token(Chain::SmartChain, SMARTCHAIN_CAKE_TOKEN_ID)),
             ],
             "another account, a bad token address, a fiat unit and a form outside pay.walletconnect.com are all left out"
         );

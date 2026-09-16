@@ -120,6 +120,7 @@ impl<C: Client> PaymentProvider for WalletConnectPayProvider<C> {
 mod tests {
     use super::*;
     use gem_client::testkit::MockClient;
+    use primitives::testkit::signer_mock::TEST_EVM_SENDER;
 
     fn provider(status: &'static str) -> WalletConnectPayProvider<MockClient> {
         let client = MockClient::new().with_get(move |path| match path {
@@ -140,12 +141,14 @@ mod tests {
 
     #[tokio::test]
     async fn test_a_refused_option_verifies_every_account_with_one_form() {
-        let options = r#"{"info":{"status":"requires_action","merchant":{"name":"Gem Coffee"},"amount":{"unit":"iso4217/USD","value":"10","display":{"decimals":2}}},
-            "collectData":{"url":"https://pay.walletconnect.com/collect/?pid=pay_1&accounts=eip155:10:0xa,eip155:56:0xa"},
-            "options":[{"id":"opt_op","account":"eip155:10:0x1085c5f70F7F7591D97da281A64688385455c2bD","amount":{"unit":"caip19/eip155:10/slip44:60","value":"1000"},
-                        "collectData":{"url":"https://pay.walletconnect.com/collect/?pid=pay_1&accounts=eip155:10:0xa"}}]}"#;
+        let options = format!(
+            r#"{{"info":{{"status":"requires_action","merchant":{{"name":"Gem Coffee"}},"amount":{{"unit":"iso4217/USD","value":"10","display":{{"decimals":2}}}}}},
+            "collectData":{{"url":"https://pay.walletconnect.com/collect/?pid=pay_1&accounts=eip155:10:0xa,eip155:56:0xa"}},
+            "options":[{{"id":"opt_op","account":"eip155:10:{TEST_EVM_SENDER}","amount":{{"unit":"caip19/eip155:10/slip44:60","value":"1000"}},
+                        "collectData":{{"url":"https://pay.walletconnect.com/collect/?pid=pay_1&accounts=eip155:10:0xa"}}}}]}}"#
+        );
         let client = MockClient::new().with_post(move |path, _| match path {
-            "/v1/gateway/payment/pay_1/options?includePaymentInfo=true" => Ok(options.as_bytes().to_vec()),
+            "/v1/gateway/payment/pay_1/options?includePaymentInfo=true" => Ok(options.clone().into_bytes()),
             "/v1/gateway/payment/pay_1/fetch" => Err(gem_client::ClientError::Http {
                 status: 400,
                 body: br#"{"code":"params_validation","message":"IC data required but not found"}"#.to_vec(),
@@ -164,7 +167,7 @@ mod tests {
         };
 
         let PaymentLoad::Verify { url, asset_id, .. } = provider
-            .load(&[ChainAddress::new(Chain::Optimism, "0x1085c5f70F7F7591D97da281A64688385455c2bD".to_string())])
+            .load(&[ChainAddress::new(Chain::Optimism, TEST_EVM_SENDER.to_string())])
             .await
             .unwrap()
         else {

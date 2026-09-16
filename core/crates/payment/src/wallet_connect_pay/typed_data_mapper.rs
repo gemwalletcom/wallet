@@ -123,28 +123,19 @@ fn get_field<'a>(fields: &'a [EIP712Field], name: &str) -> Result<&'a EIP712Type
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    const PERMIT2: &str = "0x000000000022d473030f116ddee9f6b43ac78ba3";
-    const USDC_BASE: &str = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
-    const USDT_POLYGON: &str = "0xc2132d05d31c914a87c6611c10748aeb04b58e8f";
-    const PAYER: &str = "0x1085c5f70F7F7591D97da281A64688385455c2bD";
-    const SPENDER: &str = "0x0000000000a84d1a9b0063a910315c7ffa9cd248";
+    use crate::wallet_connect_pay::model::Quote;
+    use crate::wallet_connect_pay::testkit::mock_permit_transfer_from;
+    use primitives::asset_constants::{BASE_USDC_TOKEN_ID, POLYGON_USDT_TOKEN_ID};
+    use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER};
+    use primitives::AssetId;
 
     fn permit_transfer_from() -> Value {
-        serde_json::json!({
-            "domain": {"name": "Permit2", "chainId": "0x89", "verifyingContract": PERMIT2},
-            "types": {
-                "PermitTransferFrom": [{"name": "permitted", "type": "TokenPermissions"}, {"name": "spender", "type": "address"}, {"name": "nonce", "type": "uint256"}, {"name": "deadline", "type": "uint256"}],
-                "TokenPermissions": [{"name": "token", "type": "address"}, {"name": "amount", "type": "uint256"}]
-            },
-            "primaryType": "PermitTransferFrom",
-            "message": {"permitted": {"token": USDT_POLYGON, "amount": "1000000"}, "spender": SPENDER, "nonce": "0x08", "deadline": "1785175272"}
-        })
+        mock_permit_transfer_from(&Quote::mock(AssetId::from_token(Chain::Polygon, POLYGON_USDT_TOKEN_ID), 1_000_000), "1000000")
     }
 
     fn transfer_with_authorization() -> Value {
         serde_json::json!({
-            "domain": {"name": "USD Coin", "version": "2", "chainId": 8453, "verifyingContract": USDC_BASE},
+            "domain": {"name": "USD Coin", "version": "2", "chainId": 8453, "verifyingContract": BASE_USDC_TOKEN_ID},
             "types": {
                 "TransferWithAuthorization": [
                     {"name": "from", "type": "address"}, {"name": "to", "type": "address"}, {"name": "value", "type": "uint256"},
@@ -152,7 +143,7 @@ mod tests {
                 ]
             },
             "primaryType": "TransferWithAuthorization",
-            "message": {"from": PAYER, "to": SPENDER, "value": 250000, "validAfter": 0, "validBefore": 1, "nonce": "0x0000000000000000000000000000000000000000000000000000000000000001"}
+            "message": {"from": TEST_EVM_SENDER, "to": TEST_EVM_RECIPIENT, "value": 250000, "validAfter": 0, "validBefore": 1, "nonce": "0x0000000000000000000000000000000000000000000000000000000000000001"}
         })
     }
 
@@ -160,10 +151,10 @@ mod tests {
     fn test_map_typed_data_reads_a_permit2_transfer_and_declares_the_domain() {
         let transfer = map_typed_data(Chain::Polygon, &Value::String(permit_transfer_from().to_string())).unwrap();
 
-        assert!(transfer.token.eq_ignore_ascii_case(USDT_POLYGON));
+        assert!(transfer.token.eq_ignore_ascii_case(POLYGON_USDT_TOKEN_ID));
         assert_eq!(transfer.amount, BigUint::from(1_000_000u32));
         assert_eq!(transfer.from, None);
-        assert!(transfer.recipient.eq_ignore_ascii_case(SPENDER));
+        assert!(transfer.recipient.eq_ignore_ascii_case(TEST_EVM_RECIPIENT));
 
         let signed: Value = serde_json::from_str(&transfer.typed_data).unwrap();
         assert_eq!(
@@ -180,10 +171,10 @@ mod tests {
     fn test_map_typed_data_reads_a_transfer_with_authorization() {
         let transfer = map_typed_data(Chain::Base, &transfer_with_authorization()).unwrap();
 
-        assert!(transfer.token.eq_ignore_ascii_case(USDC_BASE));
+        assert!(transfer.token.eq_ignore_ascii_case(BASE_USDC_TOKEN_ID));
         assert_eq!(transfer.amount, BigUint::from(250_000u32));
-        assert!(transfer.from.as_deref().is_some_and(|from| from.eq_ignore_ascii_case(PAYER)));
-        assert!(transfer.recipient.eq_ignore_ascii_case(SPENDER));
+        assert!(transfer.from.as_deref().is_some_and(|from| from.eq_ignore_ascii_case(TEST_EVM_SENDER)));
+        assert!(transfer.recipient.eq_ignore_ascii_case(TEST_EVM_RECIPIENT));
     }
 
     #[test]
@@ -192,7 +183,7 @@ mod tests {
 
         let mut unknown = permit_transfer_from();
         unknown["primaryType"] = Value::String("TokenPermissions".to_string());
-        unknown["message"] = serde_json::json!({"token": USDT_POLYGON, "amount": "1000000"});
+        unknown["message"] = serde_json::json!({"token": POLYGON_USDT_TOKEN_ID, "amount": "1000000"});
         assert_eq!(
             map_typed_data(Chain::Polygon, &unknown),
             Err(PaymentError::invalid_request("Unsupported payment signature: TokenPermissions"))

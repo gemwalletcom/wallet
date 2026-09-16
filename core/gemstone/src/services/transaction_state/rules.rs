@@ -106,10 +106,7 @@ mod tests {
         transaction.metadata = Some(
             serde_json::to_value(TransactionPaymentMetadata {
                 link: link.clone(),
-                merchant: PaymentMerchant {
-                    name: "Gem Coffee".to_string(),
-                    icon: String::new(),
-                },
+                merchant: PaymentMerchant::mock(),
             })
             .unwrap(),
         );

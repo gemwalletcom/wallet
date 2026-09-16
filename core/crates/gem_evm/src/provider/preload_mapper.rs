@@ -170,6 +170,7 @@ pub fn is_signature_only(input_type: &TransactionInputType) -> bool {
 mod tests {
     use super::*;
     use primitives::swap::ApprovalData;
+    use primitives::testkit::signer_mock::TEST_EVM_RECIPIENT;
     use primitives::{Asset, PaymentInvoice, TransferDataExtra};
 
     #[test]
@@ -197,7 +198,7 @@ mod tests {
             asset: Asset::mock_erc20(),
             invoice: PaymentInvoice::mock(),
             extra: TransferDataExtra {
-                to: "0x0000000000a84d1a9b0063a910315c7ffa9cd248".to_string(),
+                to: TEST_EVM_RECIPIENT.to_string(),
                 approval,
                 ..TransferDataExtra::mock()
             },
@@ -209,7 +210,7 @@ mod tests {
         assert_eq!(approve.value, BigInt::from(0));
 
         let send = get_transaction_params(EVMChain::Ethereum, &TransactionLoadInput::mock_evm(payment(None), "1000"))?;
-        assert_eq!(send.to, "0x0000000000a84d1a9b0063a910315c7ffa9cd248");
+        assert_eq!(send.to, TEST_EVM_RECIPIENT);
         assert_eq!(send.value, BigInt::from(1000));
         Ok(())
     }
