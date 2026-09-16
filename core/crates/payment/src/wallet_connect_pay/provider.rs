@@ -121,80 +121,197 @@ impl<C: Client> PaymentProvider for WalletConnectPayProvider<C> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::wallet_connect_pay::testkit::{OPTIONS_IDENTITY_REQUIRED, STATUS_PROCESSING, STATUS_SUCCEEDED, STATUS_SUCCEEDED_WITHOUT_INFO};
+    use crate::PaymentTransaction;
+    use crate::wallet_connect_pay::payment_mapper::map_invoice;
+    use crate::wallet_connect_pay::testkit;
+    use crate::wallet_connect_pay::testkit::{
+        FETCH_IDENTITY_REQUIRED, FETCH_SEND, OPTIONS, OPTIONS_FAILED, OPTIONS_IDENTITY_REQUIRED, STATUS_EXPIRED, STATUS_FAILED, STATUS_PROCESSING,
+        STATUS_REQUIRES_ACTION, STATUS_SUCCEEDED, STATUS_SUCCEEDED_COIN, TEST_ACCOUNT, TEST_PAYMENT_ID, TEST_PERMIT_SPENDER, TEST_ROUTER, addresses,
+        fetch_actions, quote, quote_actions, quotes,
+    };
     use gem_client::ClientError;
     use gem_client::testkit::MockClient;
-    use primitives::testkit::signer_mock::TEST_EVM_SENDER;
+    use primitives::asset_constants::SMARTCHAIN_USDC_TOKEN_ID;
+    use primitives::{PaymentAmount, PaymentInvoice, PaymentRequest, TransactionType, TransferDataOutputType};
+    use serde_json::Value;
 
-    fn provider(status: &'static str) -> WalletConnectPayProvider<MockClient> {
-        let client = MockClient::new().with_get(move |path| match path {
-            "/v1/gateway/payment/pay_1/status?maxPollMs=0" => Ok(status.as_bytes().to_vec()),
-            path => panic!("unexpected call {path}"),
-        });
+    const OPTIONS_PATH: &str = "/v1/gateway/payment/pay_6fa2ecc101M2NV05JCTQGE0FXR387X4TJB/options?includePaymentInfo=true";
+    const FETCH_PATH: &str = "/v1/gateway/payment/pay_6fa2ecc101M2NV05JCTQGE0FXR387X4TJB/fetch";
+    const CONFIRM_PATH: &str = "/v1/gateway/payment/pay_6fa2ecc101M2NV05JCTQGE0FXR387X4TJB/confirm";
+    const STATUS_PATH: &str = "/v1/gateway/payment/pay_6fa2ecc101M2NV05JCTQGE0FXR387X4TJB/status?maxPollMs=0";
+
+    fn provider(client: MockClient) -> WalletConnectPayProvider<MockClient> {
+        let auth = WalletConnectPayAuth {
+            app_id: "app".to_string(),
+            client_id: "client".to_string(),
+        };
         WalletConnectPayProvider {
-            client: WalletConnectPayClient::new(
-                client,
-                WalletConnectPayAuth {
-                    app_id: "app".to_string(),
-                    client_id: "client".to_string(),
-                },
-            ),
-            payment_id: "pay_1".to_string(),
+            client: WalletConnectPayClient::new(client, auth),
+            payment_id: TEST_PAYMENT_ID.to_string(),
         }
     }
 
-    #[tokio::test]
-    async fn test_a_refused_option_verifies_every_account_with_one_form() {
-        let client = MockClient::new().with_post(move |path, _| match path {
-            "/v1/gateway/payment/pay_1/options?includePaymentInfo=true" => Ok(OPTIONS_IDENTITY_REQUIRED.as_bytes().to_vec()),
-            "/v1/gateway/payment/pay_1/fetch" => Err(ClientError::Http {
-                status: 400,
-                body: br#"{"code":"params_validation","message":"IC data required but not found"}"#.to_vec(),
-            }),
+    fn gateway(options: &'static str, fetch: Result<&'static str, ClientError>) -> MockClient {
+        MockClient::new().with_post(move |path, _| match path {
+            OPTIONS_PATH => Ok(options.as_bytes().to_vec()),
+            FETCH_PATH => fetch.clone().map(|fetch| fetch.as_bytes().to_vec()),
             path => panic!("unexpected call {path}"),
-        });
-        let provider = WalletConnectPayProvider {
-            client: WalletConnectPayClient::new(
-                client,
-                WalletConnectPayAuth {
-                    app_id: "app".to_string(),
-                    client_id: "client".to_string(),
-                },
-            ),
-            payment_id: "pay_1".to_string(),
-        };
+        })
+    }
 
-        let PaymentLoad::Verify { url, asset_id, .. } = provider
-            .load(&[ChainAddress::new(Chain::Optimism, TEST_EVM_SENDER.to_string())])
-            .await
-            .unwrap()
-        else {
-            panic!("expected a verification");
-        };
-        assert_eq!(
-            url,
-            format!("https://pay.walletconnect.com/collect/?pid=pay_1&accounts=eip155:10:{TEST_EVM_SENDER},eip155:56:{TEST_EVM_SENDER}"),
-            "the form for every account, not the one of the refused option"
-        );
-        assert_eq!(asset_id, AssetId::from_chain(Chain::Optimism));
+    fn identity_required() -> ClientError {
+        ClientError::Http {
+            status: 400,
+            body: FETCH_IDENTITY_REQUIRED.as_bytes().to_vec(),
+        }
+    }
+
+    fn invoice(options: &str) -> PaymentInvoice {
+        map_invoice(&testkit::invoice(options, TEST_ACCOUNT), TEST_PAYMENT_ID)
+    }
+
+    fn request(quote: &Quote, address: &str) -> Option<PaymentRequest> {
+        Some(PaymentRequest {
+            address: address.to_string(),
+            amount: Some(PaymentAmount::AtomicValue { value: quote.value.clone() }),
+            memo: None,
+            label: None,
+            references: None,
+            asset_id: Some(quote.asset_id.clone()),
+        })
     }
 
     #[tokio::test]
-    async fn test_status_reports_the_relayed_transaction() {
+    async fn test_load() {
+        let coin = quote(OPTIONS, TEST_ACCOUNT, &AssetId::from_chain(Chain::Optimism));
+        let send = fetch_actions(FETCH_SEND);
         assert_eq!(
-            provider(STATUS_SUCCEEDED).status().await,
-            Ok(PaymentUpdate {
-                status: PaymentStatus::Succeeded,
-                transaction_id: Some("0xrelayed".to_string()),
-            })
+            provider(gateway(OPTIONS, Ok(FETCH_SEND))).load(&addresses(TEST_ACCOUNT)).await,
+            Ok(PaymentLoad::Sign {
+                transaction: PaymentTransaction {
+                    invoice: invoice(OPTIONS),
+                    account: coin.account.clone(),
+                    transaction: send[0].params[0]["data"].as_str().unwrap().to_string(),
+                    transaction_type: TransactionType::SmartContractCall,
+                    memo: None,
+                    request: request(&coin, TEST_ROUTER),
+                    output_type: TransferDataOutputType::EncodedTransaction,
+                    approval: None,
+                }
+            }),
+            "the first quote, a coin, is built by the gateway"
         );
         assert_eq!(
-            provider(STATUS_PROCESSING).status().await,
-            Ok(PaymentUpdate {
-                status: PaymentStatus::Processing,
-                transaction_id: None,
-            })
+            provider(gateway(OPTIONS_IDENTITY_REQUIRED, Err(identity_required()))).load(&addresses(TEST_ACCOUNT)).await,
+            Ok(PaymentLoad::Verify {
+                invoice: invoice(OPTIONS_IDENTITY_REQUIRED),
+                asset_id: AssetId::from_chain(Chain::Optimism),
+                url: quotes(OPTIONS_IDENTITY_REQUIRED, TEST_ACCOUNT)[0].collect_data_url.clone().unwrap().replace(
+                    &format!("accounts=eip155%3A10%3A{TEST_ACCOUNT}"),
+                    &format!("accounts={}", ["42161", "10", "137", "8453", "1", "56"].map(|chain| format!("eip155%3A{chain}%3A{TEST_ACCOUNT}")).join("%2C")),
+                ),
+            }),
+            "a refused quote verifies every account with the form of the response, not the one of the option"
         );
-        assert_eq!(provider(STATUS_SUCCEEDED_WITHOUT_INFO).status().await.unwrap().transaction_id, None);
+        assert_eq!(
+            provider(gateway(OPTIONS_FAILED, Ok(FETCH_SEND))).load(&addresses(TEST_ACCOUNT)).await,
+            Err(PaymentError::Status { status: PaymentStatus::Failed })
+        );
+        assert_eq!(
+            provider(gateway(OPTIONS, Ok(FETCH_SEND))).load(&[ChainAddress::new(Chain::Solana, TEST_ACCOUNT.to_string())]).await,
+            Err(PaymentError::NoPaymentOptions),
+            "no supported account asks the gateway nothing"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_select_asset() {
+        let usdc = AssetId::from_token(Chain::SmartChain, SMARTCHAIN_USDC_TOKEN_ID);
+        let token = quote(OPTIONS, TEST_ACCOUNT, &usdc);
+        let permit = quote_actions(&token);
+        assert_eq!(
+            provider(gateway(OPTIONS, Err(identity_required()))).select_asset(&addresses(TEST_ACCOUNT), usdc.clone()).await,
+            Ok(PaymentLoad::Sign {
+                transaction: PaymentTransaction {
+                    invoice: invoice(OPTIONS),
+                    account: token.account.clone(),
+                    transaction: serde_json::from_str::<Value>(permit[0].params[1].as_str().unwrap()).unwrap().to_string(),
+                    transaction_type: TransactionType::Transfer,
+                    memo: None,
+                    request: request(&token, TEST_PERMIT_SPENDER),
+                    output_type: TransferDataOutputType::Signature,
+                    approval: None,
+                }
+            }),
+            "a token quote carries its actions, the gateway is not asked to build them"
+        );
+        assert_eq!(
+            provider(gateway(OPTIONS, Ok(FETCH_SEND))).select_asset(&addresses(TEST_ACCOUNT), AssetId::from_chain(Chain::Polygon)).await,
+            Err(PaymentError::NoPaymentOptions)
+        );
+    }
+
+    #[tokio::test]
+    async fn test_confirm() {
+        let gateway = |status: &'static str| {
+            MockClient::new().with_post(move |path, body| match path {
+                CONFIRM_PATH => {
+                    assert_eq!(
+                        serde_json::from_slice::<Value>(body).unwrap(),
+                        serde_json::json!({
+                            "optionId": "opt_1",
+                            "results": [{"type": "walletRpc", "data": ["0xapprove"]}, {"type": "walletRpc", "data": ["0xsignature"]}]
+                        }),
+                        "one result per action, in the order of the actions"
+                    );
+                    Ok(status.as_bytes().to_vec())
+                }
+                path => panic!("unexpected call {path}"),
+            })
+        };
+        let results = || vec!["0xapprove".to_string(), "0xsignature".to_string()];
+
+        assert_eq!(provider(gateway(STATUS_PROCESSING)).confirm("opt_1", results()).await, Ok(()));
+        assert_eq!(provider(gateway(STATUS_SUCCEEDED)).confirm("opt_1", results()).await, Ok(()));
+        assert_eq!(
+            provider(gateway(STATUS_FAILED)).confirm("opt_1", results()).await,
+            Err(PaymentError::Status { status: PaymentStatus::Failed })
+        );
+        assert_eq!(
+            provider(gateway(STATUS_REQUIRES_ACTION)).confirm("opt_1", results()).await,
+            Err(PaymentError::Status { status: PaymentStatus::RequiresAction }),
+            "results the gateway did not take leave the payment unpaid"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_status() {
+        let gateway = |status: &'static str| {
+            MockClient::new().with_get(move |path| match path {
+                STATUS_PATH => Ok(status.as_bytes().to_vec()),
+                path => panic!("unexpected call {path}"),
+            })
+        };
+        let update = |status: PaymentStatus, transaction_id: Option<&str>| {
+            Ok(PaymentUpdate {
+                status,
+                transaction_id: transaction_id.map(str::to_string),
+            })
+        };
+
+        assert_eq!(
+            provider(gateway(STATUS_SUCCEEDED)).status().await,
+            update(PaymentStatus::Succeeded, Some("0x46fc18618d378feb6cbdff6ba42231ccfb73eea417f666e43e8ecc7a88df8024")),
+            "a relayed token payment reports the relayer's transaction"
+        );
+        assert_eq!(
+            provider(gateway(STATUS_SUCCEEDED_COIN)).status().await,
+            update(PaymentStatus::Succeeded, Some("0x068608e32ed1555d2955d791d8824a03b10b05db3bc7fd66784cde2196ba14b0")),
+            "a coin payment reports the wallet's own transaction"
+        );
+        assert_eq!(provider(gateway(STATUS_REQUIRES_ACTION)).status().await, update(PaymentStatus::RequiresAction, None));
+        assert_eq!(provider(gateway(STATUS_PROCESSING)).status().await, update(PaymentStatus::Processing, None));
+        assert_eq!(provider(gateway(STATUS_FAILED)).status().await, update(PaymentStatus::Failed, None));
+        assert_eq!(provider(gateway(STATUS_EXPIRED)).status().await, update(PaymentStatus::Expired, None));
     }
 }

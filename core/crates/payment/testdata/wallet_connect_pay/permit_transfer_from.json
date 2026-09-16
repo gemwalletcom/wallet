@@ -1,22 +1,61 @@
 {
-  "domain": { "name": "Permit2", "chainId": "0x89", "verifyingContract": "0x000000000022D473030F116dDEE9F6B43aC78BA3" },
+  "domain": {
+    "name": "Permit2",
+    "chainId": "0x1",
+    "verifyingContract": "0x000000000022d473030f116ddee9f6b43ac78ba3"
+  },
   "types": {
+    "EIP712Domain": [
+      {
+        "type": "string",
+        "name": "name"
+      },
+      {
+        "type": "uint256",
+        "name": "chainId"
+      },
+      {
+        "type": "address",
+        "name": "verifyingContract"
+      }
+    ],
     "PermitTransferFrom": [
-      { "name": "permitted", "type": "TokenPermissions" },
-      { "name": "spender", "type": "address" },
-      { "name": "nonce", "type": "uint256" },
-      { "name": "deadline", "type": "uint256" }
+      {
+        "type": "TokenPermissions",
+        "name": "permitted"
+      },
+      {
+        "type": "address",
+        "name": "spender"
+      },
+      {
+        "type": "uint256",
+        "name": "nonce"
+      },
+      {
+        "type": "uint256",
+        "name": "deadline"
+      }
     ],
     "TokenPermissions": [
-      { "name": "token", "type": "address" },
-      { "name": "amount", "type": "uint256" }
+      {
+        "type": "address",
+        "name": "token"
+      },
+      {
+        "type": "uint256",
+        "name": "amount"
+      }
     ]
   },
   "primaryType": "PermitTransferFrom",
   "message": {
-    "permitted": { "token": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F", "amount": "1000000" },
-    "spender": "0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF",
-    "nonce": "0x08",
-    "deadline": "1785175272"
+    "deadline": "0x6aaaf247",
+    "nonce": "0x5717fa33a19997e05825b98954232d6bfb6943ee690601b65ac2102e3715f31e",
+    "permitted": {
+      "amount": "0x186a0",
+      "token": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+    },
+    "spender": "0x5fae5310f257437fbfed0da3c417da410078058e"
   }
 }

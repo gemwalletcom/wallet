@@ -107,104 +107,170 @@ fn get_value(transaction: &WCEthereumTransaction) -> Result<BigUint, PaymentErro
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::asset_constants::POLYGON_USDT_TOKEN_ID;
+    use crate::wallet_connect_pay::testkit::{
+        FETCH_RECEIVE_WITH_AUTHORIZATION, FETCH_SEND, OPTIONS, OPTIONS_WITHOUT_ALLOWANCE, PYUSD_TOKEN_ID, TEST_ACCOUNT, TEST_ACCOUNT_WITHOUT_ALLOWANCE,
+        TEST_AUTHORIZATION_RECIPIENT, TEST_PERMIT_SPENDER, TEST_ROUTER, fetch_actions, quote, quote_actions,
+    };
+    use primitives::asset_constants::{ETHEREUM_USDT_ASSET_ID, ETHEREUM_USDT_TOKEN_ID};
     use primitives::contract_constants::UNISWAP_PERMIT2_CONTRACT;
-    use primitives::testkit::signer_mock::TEST_EVM_RECIPIENT;
     use primitives::{AssetId, Chain, WalletConnectionMethods, serde_name};
 
-    fn polygon_quote(value: u64) -> Quote {
-        Quote::mock(AssetId::from_chain(Chain::Polygon), value)
+    fn typed_data(action: &WalletRpcAction) -> String {
+        serde_json::from_str::<Value>(action.params[1].as_str().unwrap()).unwrap().to_string()
     }
 
-    fn usdt_quote(value: u64) -> Quote {
-        Quote::mock(AssetId::from_token(Chain::Polygon, POLYGON_USDT_TOKEN_ID), value)
+    fn with_chain_id(action: &WalletRpcAction, chain_id: &str) -> WalletRpcAction {
+        WalletRpcAction {
+            chain_id: chain_id.to_string(),
+            ..action.clone()
+        }
+    }
+
+    fn with_transaction(action: &WalletRpcAction, field: &str, value: Value) -> WalletRpcAction {
+        let mut action = action.clone();
+        action.params[0][field] = value;
+        action
     }
 
     #[test]
-    fn test_coin_payment_is_a_send() {
-        let quote = polygon_quote(1_000);
-        let send = WalletRpcAction::mock_send(&quote, TEST_EVM_RECIPIENT, "0x3e8", "0xabcd");
-
+    fn test_map_actions() {
+        let coin = quote(OPTIONS, TEST_ACCOUNT, &AssetId::from_chain(Chain::Optimism));
+        let send = fetch_actions(FETCH_SEND);
         assert_eq!(
-            map_actions(&quote, std::slice::from_ref(&send)).unwrap(),
-            PaymentAction::Send(PaymentSend {
-                recipient: TEST_EVM_RECIPIENT.to_string(),
-                data: "0xabcd".to_string(),
+            map_actions(&coin, &send),
+            Ok(PaymentAction::Send(PaymentSend {
+                recipient: TEST_ROUTER.to_string(),
+                data: send[0].params[0]["data"].as_str().unwrap().to_string(),
+            }))
+        );
+
+        let usdt = quote(OPTIONS, TEST_ACCOUNT, &ETHEREUM_USDT_ASSET_ID);
+        let permit = quote_actions(&usdt);
+        assert_eq!(
+            map_actions(&usdt, &permit),
+            Ok(PaymentAction::Sign(PaymentSign {
+                recipient: TEST_PERMIT_SPENDER.to_string(),
+                typed_data: typed_data(&permit[0]),
+            }))
+        );
+
+        let unapproved = quote(OPTIONS_WITHOUT_ALLOWANCE, TEST_ACCOUNT_WITHOUT_ALLOWANCE, &ETHEREUM_USDT_ASSET_ID);
+        let approve_and_permit = quote_actions(&unapproved);
+        assert_eq!(
+            map_actions(&unapproved, &approve_and_permit),
+            Ok(PaymentAction::ApproveAndSign {
+                approval: ApprovalData {
+                    token: ETHEREUM_USDT_TOKEN_ID.to_string(),
+                    spender: UNISWAP_PERMIT2_CONTRACT.to_string(),
+                    value: BigUint::from_bytes_be(&[0xff; 32]),
+                    is_unlimited: true,
+                },
+                sign: PaymentSign {
+                    recipient: TEST_PERMIT_SPENDER.to_string(),
+                    typed_data: typed_data(&approve_and_permit[1]),
+                },
             })
         );
-        assert!(map_actions(&polygon_quote(1_001), std::slice::from_ref(&send)).is_err(), "the value must match the quote");
-        assert!(map_actions(&quote, &[WalletRpcAction { chain_id: "eip155".to_string(), ..send.clone() }]).is_err());
-        let ethereum = Quote::mock(AssetId::from_chain(Chain::Ethereum), 1_000);
-        assert!(
-            map_actions(&quote, &[WalletRpcAction::mock_send(&ethereum, TEST_EVM_RECIPIENT, "0x3e8", "0xabcd")]).is_err(),
-            "another chain"
+
+        let pyusd = quote(OPTIONS_WITHOUT_ALLOWANCE, TEST_ACCOUNT_WITHOUT_ALLOWANCE, &AssetId::from_token(Chain::Ethereum, PYUSD_TOKEN_ID));
+        let authorization = fetch_actions(FETCH_RECEIVE_WITH_AUTHORIZATION);
+        assert_eq!(
+            map_actions(&pyusd, &authorization),
+            Ok(PaymentAction::Sign(PaymentSign {
+                recipient: TEST_AUTHORIZATION_RECIPIENT.to_string(),
+                typed_data: typed_data(&authorization[0]),
+            }))
         );
-        let mut other_chain = send.clone();
-        other_chain.params[0]["chainId"] = serde_json::json!(1);
-        assert!(map_actions(&quote, &[other_chain]).is_err(), "the transaction's own chain id must match");
-        let mut other_account = send;
-        other_account.params[0]["from"] = serde_json::json!(TEST_EVM_RECIPIENT);
-        assert!(map_actions(&quote, &[other_account]).is_err(), "the transaction must be signed by the quote's account");
-    }
 
-    #[test]
-    fn test_token_payment_with_allowance_is_a_signature() {
-        let quote = usdt_quote(1_000_000);
-        let permit = WalletRpcAction::mock_permit(&quote, "1000000");
-
-        let PaymentAction::Sign(sign) = map_actions(&quote, std::slice::from_ref(&permit)).unwrap() else {
-            panic!("expected a signature");
-        };
-        assert_eq!(sign.recipient, TEST_EVM_RECIPIENT);
-        assert!(sign.typed_data.contains("EIP712Domain"));
-
-        assert!(map_actions(&usdt_quote(1_000_001), std::slice::from_ref(&permit)).is_err(), "the amount must match the quote");
-        assert!(map_actions(&polygon_quote(1_000_000), std::slice::from_ref(&permit)).is_err(), "a coin quote is not paid by a token permit");
-        assert!(
-            map_actions(
-                &quote,
-                &[WalletRpcAction {
-                    chain_id: "eip155:1".to_string(),
-                    ..permit
-                }]
-            )
-            .is_err(),
-            "another chain"
-        );
-    }
-
-    #[test]
-    fn test_first_token_payment_approves_permit2_then_signs() {
-        let quote = usdt_quote(1_000_000);
-        let approve = WalletRpcAction::mock_approve(&quote);
-        let permit = WalletRpcAction::mock_permit(&quote, "1000000");
-
-        let PaymentAction::ApproveAndSign { approval, sign } = map_actions(&quote, &[approve.clone(), permit.clone()]).unwrap() else {
-            panic!("expected an approval and a signature");
-        };
-        assert_eq!(approval.token, POLYGON_USDT_TOKEN_ID, "the record's asset id must be the wallet's checksummed token id");
-        assert_eq!(approval.spender, UNISWAP_PERMIT2_CONTRACT);
-        assert!(approval.is_unlimited);
-        assert_eq!(sign.recipient, TEST_EVM_RECIPIENT);
-
-        assert!(map_actions(&quote, &[permit.clone(), approve.clone()]).is_err(), "the approval comes first");
-        assert!(
-            map_actions(&quote, &[WalletRpcAction::mock_send(&quote, TEST_EVM_RECIPIENT, "0x0", "0xabcd"), permit.clone()]).is_err(),
-            "only a token approval precedes the permit"
+        assert_eq!(
+            map_actions(&unapproved, &[approve_and_permit[1].clone(), approve_and_permit[0].clone()]),
+            Err(PaymentError::invalid_request("Payment asks for 2 actions"))
         );
         assert_eq!(
-            map_actions(&quote, &[approve.clone(), permit.clone(), permit.clone()]),
+            map_actions(&unapproved, &[approve_and_permit[0].clone(), approve_and_permit[1].clone(), approve_and_permit[1].clone()]),
             Err(PaymentError::invalid_request("Payment asks for 3 actions"))
         );
         assert_eq!(
             map_actions(
-                &quote,
+                &usdt,
                 &[WalletRpcAction {
                     method: serde_name(&WalletConnectionMethods::PersonalSign).unwrap(),
-                    ..permit
+                    ..permit[0].clone()
                 }]
             ),
             Err(PaymentError::invalid_request("Payment asks for personal_sign"))
+        );
+    }
+
+    #[test]
+    fn test_map_send() {
+        let coin = quote(OPTIONS, TEST_ACCOUNT, &AssetId::from_chain(Chain::Optimism));
+        let send = &fetch_actions(FETCH_SEND)[0];
+
+        assert_eq!(
+            map_send(&Quote { value: BigUint::from(1u32), ..coin.clone() }, send),
+            Err(PaymentError::invalid_request("Payment asks to send 41877035785636 for a quote of 1"))
+        );
+        assert_eq!(
+            map_send(&coin, &with_chain_id(send, "eip155:1")),
+            Err(PaymentError::invalid_request("Payment asks to sign on ethereum for an account on optimism"))
+        );
+        assert_eq!(
+            map_send(&coin, &with_chain_id(send, "eip155")),
+            Err(PaymentError::invalid_request("Invalid chain ID format"))
+        );
+        assert_eq!(
+            map_send(&coin, &with_transaction(send, "chainId", Value::from(1))),
+            Err(PaymentError::invalid_request("Payment transaction is for chain Some(1)"))
+        );
+        assert_eq!(
+            map_send(&coin, &with_transaction(send, "from", Value::from(TEST_ACCOUNT_WITHOUT_ALLOWANCE))),
+            Err(PaymentError::invalid_request("Payment asks to sign from another account"))
+        );
+        assert_eq!(
+            map_send(&coin, &with_transaction(send, "value", Value::from("0xzz"))),
+            Err(PaymentError::invalid_request("Invalid payment value: Invalid hex string: 0xzz"))
+        );
+    }
+
+    #[test]
+    fn test_map_sign() {
+        let usdt = quote(OPTIONS, TEST_ACCOUNT, &ETHEREUM_USDT_ASSET_ID);
+        let permit = &quote_actions(&usdt)[0];
+        let mut other_signer = permit.clone();
+        other_signer.params[0] = Value::from(TEST_ACCOUNT_WITHOUT_ALLOWANCE);
+
+        assert_eq!(
+            map_sign(&Quote { value: BigUint::from(1u32), ..usdt.clone() }, permit),
+            Err(PaymentError::invalid_request("Payment asks to sign 100000 for a quote of 1"))
+        );
+        assert_eq!(
+            map_sign(&quote(OPTIONS, TEST_ACCOUNT, &AssetId::from_chain(Chain::Ethereum)), permit),
+            Err(PaymentError::invalid_request(format!("Payment asks to sign for token {ETHEREUM_USDT_TOKEN_ID} on a quote of ")))
+        );
+        assert_eq!(
+            map_sign(&usdt, &with_chain_id(permit, "eip155:56")),
+            Err(PaymentError::invalid_request("Payment asks to sign on smartchain for an account on ethereum"))
+        );
+        assert_eq!(map_sign(&usdt, &other_signer), Err(PaymentError::invalid_request("Payment asks to sign from another account")));
+    }
+
+    #[test]
+    fn test_map_approval() {
+        let unapproved = quote(OPTIONS_WITHOUT_ALLOWANCE, TEST_ACCOUNT_WITHOUT_ALLOWANCE, &ETHEREUM_USDT_ASSET_ID);
+        let approve = &quote_actions(&unapproved)[0];
+
+        assert_eq!(
+            map_approval(&unapproved, &with_transaction(approve, "value", Value::from("0x1"))),
+            Err(PaymentError::invalid_request("Payment approval sends value"))
+        );
+        assert_eq!(
+            map_approval(&unapproved, &with_transaction(approve, "to", Value::from(TEST_ROUTER))),
+            Err(PaymentError::invalid_request(format!("Payment asks to approve {TEST_ROUTER} on a quote of {ETHEREUM_USDT_TOKEN_ID}")))
+        );
+        assert_eq!(
+            map_approval(&unapproved, &with_transaction(approve, "data", Value::from("0x"))),
+            Err(PaymentError::invalid_request("Payment approval is not a token approval"))
         );
     }
 }

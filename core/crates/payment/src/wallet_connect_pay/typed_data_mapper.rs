@@ -123,84 +123,101 @@ fn get_field<'a>(fields: &'a [EIP712Field], name: &str) -> Result<&'a EIP712Type
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::wallet_connect_pay::testkit::{TRANSFER_WITH_AUTHORIZATION, mock_permit_transfer_from};
-    use primitives::asset_constants::{BASE_USDC_TOKEN_ID, POLYGON_USDT_TOKEN_ID};
-    use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER};
+    use crate::wallet_connect_pay::testkit::{
+        PERMIT_TRANSFER_FROM, PYUSD_TOKEN_ID, RECEIVE_WITH_AUTHORIZATION, TEST_ACCOUNT_WITHOUT_ALLOWANCE, TEST_AUTHORIZATION_RECIPIENT, TEST_PERMIT_SPENDER,
+    };
+    use primitives::asset_constants::ETHEREUM_USDT_TOKEN_ID;
 
     fn permit_transfer_from() -> Value {
-        mock_permit_transfer_from("1000000")
+        serde_json::from_str(PERMIT_TRANSFER_FROM).unwrap()
     }
 
-    fn transfer_with_authorization() -> Value {
-        serde_json::from_str(TRANSFER_WITH_AUTHORIZATION).unwrap()
+    fn receive_with_authorization() -> Value {
+        serde_json::from_str(RECEIVE_WITH_AUTHORIZATION).unwrap()
+    }
+
+    fn without_declared_domain(mut typed_data: Value) -> Value {
+        typed_data["types"].as_object_mut().unwrap().remove(TYPE_EIP712_DOMAIN);
+        typed_data
     }
 
     #[test]
-    fn test_map_typed_data_reads_a_permit2_transfer_and_declares_the_domain() {
-        let transfer = map_typed_data(Chain::Polygon, &Value::String(permit_transfer_from().to_string())).unwrap();
-
-        assert!(transfer.token.eq_ignore_ascii_case(POLYGON_USDT_TOKEN_ID));
-        assert_eq!(transfer.amount, BigUint::from(1_000_000u32));
-        assert_eq!(transfer.from, None);
-        assert!(transfer.recipient.eq_ignore_ascii_case(TEST_EVM_RECIPIENT));
-
-        let signed: Value = serde_json::from_str(&transfer.typed_data).unwrap();
+    fn test_map_typed_data() {
+        let permit = permit_transfer_from();
         assert_eq!(
-            signed["types"][TYPE_EIP712_DOMAIN],
-            serde_json::json!([
-                {"name": "name", "type": "string"},
-                {"name": "chainId", "type": "uint256"},
-                {"name": "verifyingContract", "type": "address"},
-            ])
+            map_typed_data(Chain::Ethereum, &Value::String(permit.to_string())),
+            Ok(TypedDataTransfer {
+                token: ETHEREUM_USDT_TOKEN_ID.to_string(),
+                amount: BigUint::from(100_000u32),
+                from: None,
+                recipient: TEST_PERMIT_SPENDER.to_string(),
+                typed_data: permit.to_string(),
+            })
         );
-    }
 
-    #[test]
-    fn test_map_typed_data_reads_a_transfer_with_authorization() {
-        let transfer = map_typed_data(Chain::Base, &transfer_with_authorization()).unwrap();
-
-        assert!(transfer.token.eq_ignore_ascii_case(BASE_USDC_TOKEN_ID));
-        assert_eq!(transfer.amount, BigUint::from(250_000u32));
-        assert!(transfer.from.as_deref().is_some_and(|from| from.eq_ignore_ascii_case(TEST_EVM_SENDER)));
-        assert!(transfer.recipient.eq_ignore_ascii_case(TEST_EVM_RECIPIENT));
-    }
-
-    #[test]
-    fn test_map_typed_data_refuses_what_it_cannot_vouch_for() {
-        assert!(map_typed_data(Chain::Ethereum, &permit_transfer_from()).is_err(), "domain chain differs from the quote chain");
-
-        let mut unknown = permit_transfer_from();
-        unknown["primaryType"] = Value::String("TokenPermissions".to_string());
-        unknown["message"] = serde_json::json!({"token": POLYGON_USDT_TOKEN_ID, "amount": "1000000"});
+        let authorization = receive_with_authorization();
         assert_eq!(
-            map_typed_data(Chain::Polygon, &unknown),
+            map_typed_data(Chain::Ethereum, &authorization),
+            Ok(TypedDataTransfer {
+                token: PYUSD_TOKEN_ID.to_string(),
+                amount: BigUint::from(100_000u32),
+                from: Some(TEST_ACCOUNT_WITHOUT_ALLOWANCE.to_string()),
+                recipient: TEST_AUTHORIZATION_RECIPIENT.to_string(),
+                typed_data: authorization.to_string(),
+            })
+        );
+
+        let mut transfer = authorization.clone();
+        transfer["primaryType"] = Value::from(PRIMARY_TYPE_TRANSFER_WITH_AUTHORIZATION);
+        transfer["types"][PRIMARY_TYPE_TRANSFER_WITH_AUTHORIZATION] = transfer["types"][PRIMARY_TYPE_RECEIVE_WITH_AUTHORIZATION].take();
+        transfer["types"].as_object_mut().unwrap().remove(PRIMARY_TYPE_RECEIVE_WITH_AUTHORIZATION);
+        assert_eq!(
+            map_typed_data(Chain::Ethereum, &transfer).map(|transfer| transfer.recipient),
+            Ok(TEST_AUTHORIZATION_RECIPIENT.to_string())
+        );
+
+        let undeclared = without_declared_domain(permit.clone());
+        let signed: Value = serde_json::from_str(&map_typed_data(Chain::Ethereum, &undeclared).unwrap().typed_data).unwrap();
+        assert_eq!(signed["types"][TYPE_EIP712_DOMAIN], permit["types"][TYPE_EIP712_DOMAIN], "a domain left undeclared is declared from its fields");
+
+        assert_eq!(
+            map_typed_data(Chain::Polygon, &permit),
+            Err(PaymentError::invalid_request("Chain ID mismatch: expected 137, got 1")),
+            "the domain chain must be the quote chain"
+        );
+        let mut unknown = permit.clone();
+        unknown["primaryType"] = Value::from("TokenPermissions");
+        unknown["message"] = permit["message"]["permitted"].clone();
+        assert_eq!(
+            map_typed_data(Chain::Ethereum, &unknown),
             Err(PaymentError::invalid_request("Unsupported payment signature: TokenPermissions"))
         );
-
-        let mut salted = permit_transfer_from();
-        salted["domain"]["extra"] = Value::String("1".to_string());
-        assert!(map_typed_data(Chain::Polygon, &salted).is_err(), "a domain field the schema cannot declare is not signed");
-
-        let mut unbound = permit_transfer_from();
-        unbound["domain"].as_object_mut().unwrap().remove("chainId");
+        let mut salted = without_declared_domain(permit.clone());
+        salted["domain"]["extra"] = Value::from("1");
         assert_eq!(
-            map_typed_data(Chain::Polygon, &unbound),
-            Err(PaymentError::invalid_request("Payment signature has no chain id")),
-            "a signature without a chain replays on every chain"
+            map_typed_data(Chain::Ethereum, &salted),
+            Err(PaymentError::invalid_request("Unsupported EIP712 domain field: extra")),
+            "a domain field the schema cannot declare is not signed"
         );
-
-        let mut unsigned_value = transfer_with_authorization();
-        unsigned_value["types"]["TransferWithAuthorization"] = serde_json::json!([{"name": "from", "type": "address"}, {"name": "to", "type": "address"}]);
+        let mut unsigned_value = authorization.clone();
+        unsigned_value["types"][PRIMARY_TYPE_RECEIVE_WITH_AUTHORIZATION] = authorization["types"][PRIMARY_TYPE_RECEIVE_WITH_AUTHORIZATION]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|field| field["name"] != "value")
+            .cloned()
+            .collect();
         assert_eq!(
-            map_typed_data(Chain::Base, &unsigned_value),
+            map_typed_data(Chain::Ethereum, &unsigned_value),
             Err(PaymentError::invalid_request("Payment signature has no value")),
             "a value the schema does not declare is not part of the signature"
         );
-
-        let mut declared = permit_transfer_from();
-        declared["types"][TYPE_EIP712_DOMAIN] = serde_json::json!([{"name": "name", "type": "string"}, {"name": "chainId", "type": "uint256"}, {"name": "verifyingContract", "type": "address"}]);
-        let transfer = map_typed_data(Chain::Polygon, &declared).unwrap();
-        let signed: Value = serde_json::from_str(&transfer.typed_data).unwrap();
-        assert_eq!(signed["types"][TYPE_EIP712_DOMAIN].as_array().unwrap().len(), 3);
+        let mut unbound = without_declared_domain(permit);
+        unbound["domain"].as_object_mut().unwrap().remove("chainId");
+        assert_eq!(
+            map_typed_data(Chain::Ethereum, &unbound),
+            Err(PaymentError::invalid_request("Payment signature has no chain id")),
+            "a signature without a chain replays on every chain"
+        );
     }
 }
