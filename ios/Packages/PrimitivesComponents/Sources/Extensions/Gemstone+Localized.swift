@@ -18,6 +18,7 @@ import enum Gemstone.GemFiatTransactionBadge
 import enum Gemstone.LinkType
 import enum Gemstone.GemHeaderButtonKind
 import enum Gemstone.GemLocalizedText
+import enum Gemstone.PaymentStatus
 import enum Gemstone.GemPriceAlertLabel
 import struct Gemstone.GemPriceAlertRow
 import enum Gemstone.GemPriceAlertText
@@ -458,7 +459,20 @@ extension GemErrorText {
         case .unsupportedChain: Localized.Errors.Connections.unsupportedChain
         case .maliciousOrigin: Localized.Errors.Connections.maliciousOrigin
         case .noSupportedWallets: Localized.Errors.Connections.noSupportedWallets
+        case let .payment(status): status.errorText
         case let .message(text): text
+        }
+    }
+}
+
+extension PaymentStatus {
+    public var errorText: String {
+        switch self {
+        case .requiresAction, .failed: Localized.Errors.paymentFailed
+        case .processing: Localized.Errors.paymentInProgress
+        case .succeeded: Localized.Errors.paymentPaid
+        case .expired: Localized.Errors.paymentExpired
+        case .cancelled: Localized.Errors.paymentCancelled
         }
     }
 }

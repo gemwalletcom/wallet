@@ -11,6 +11,7 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
 import uniffi.gemstone.GemContactAddressField
+import uniffi.gemstone.PaymentStatus
 import uniffi.gemstone.GemRecipientSection
 import uniffi.gemstone.GemHeaderButtonKind
 import com.wallet.core.primitives.Asset
@@ -349,7 +350,16 @@ fun GemErrorText.text(context: Context): String = when (this) {
     GemErrorText.UnsupportedChain -> context.getString(R.string.errors_connections_unsupported_chain)
     GemErrorText.MaliciousOrigin -> context.getString(R.string.errors_connections_malicious_origin)
     GemErrorText.NoSupportedWallets -> context.getString(R.string.errors_connections_no_supported_wallets)
+    is GemErrorText.Payment -> status.errorText(context)
     is GemErrorText.Message -> text
+}
+
+fun PaymentStatus.errorText(context: Context): String = when (this) {
+    PaymentStatus.REQUIRES_ACTION, PaymentStatus.FAILED -> context.getString(R.string.errors_payment_failed)
+    PaymentStatus.PROCESSING -> context.getString(R.string.errors_payment_in_progress)
+    PaymentStatus.SUCCEEDED -> context.getString(R.string.errors_payment_paid)
+    PaymentStatus.EXPIRED -> context.getString(R.string.errors_payment_expired)
+    PaymentStatus.CANCELLED -> context.getString(R.string.errors_payment_cancelled)
 }
 
 @Composable

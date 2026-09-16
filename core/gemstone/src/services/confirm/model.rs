@@ -4,6 +4,7 @@ use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
 use crate::models::transaction::{GemFeeOptionItem, GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::services::balance::GemAssetBalance;
+use crate::services::error_text::GemErrorText;
 use crate::services::simulation::GemSimulationWarningRow;
 use crate::services::transactions::GemAmountSign;
 use crate::services::transfer::GemTransferData;
@@ -64,8 +65,8 @@ pub struct GemConfirmData {
 
 #[derive(Debug, Clone, uniffi::Enum)]
 pub enum GemExecuteResult {
-    Signed { data: Vec<String>, warning: Option<String> },
-    Sent { hashes: Vec<String>, transactions: Vec<Transaction>, warning: Option<String> },
+    Signed { data: Vec<String>, warning: Option<GemErrorText> },
+    Sent { hashes: Vec<String>, transactions: Vec<Transaction>, warning: Option<GemErrorText> },
 }
 
 pub(super) struct GemSendResult {

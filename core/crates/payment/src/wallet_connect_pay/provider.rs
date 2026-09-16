@@ -11,7 +11,7 @@ use crate::wallet_connect_pay::action_mapper::map_actions;
 use crate::wallet_connect_pay::client::{WALLET_CONNECT_PAY_API_URL, WalletConnectPayClient};
 use crate::wallet_connect_pay::config::WalletConnectPayAuth;
 use crate::wallet_connect_pay::model::{Options, PaymentAction, PaymentActions, Quote, WalletConnectPayAction, WalletRpcAction};
-use crate::wallet_connect_pay::payment_mapper::{map_invoice, map_options, map_transaction, status_reason};
+use crate::wallet_connect_pay::payment_mapper::{map_invoice, map_options, map_transaction};
 
 static SUPPORTED_CHAINS: LazyLock<Vec<Chain>> = LazyLock::new(|| EVMChain::all().into_iter().map(|chain| chain.to_chain()).collect());
 
@@ -44,7 +44,7 @@ impl<C: Client> WalletConnectPayProvider<C> {
 
     async fn load_quote(&self, addresses: &[ChainAddress], asset_id: Option<AssetId>) -> Result<PaymentLoad, PaymentError> {
         let invoice = match self.get_options(addresses).await? {
-            Options::Status { status } => return Err(PaymentError::invalid_request(status_reason(status))),
+            Options::Status { status } => return Err(PaymentError::Status { status }),
             Options::Invoice(invoice) => invoice,
         };
         let quote = match &asset_id {
@@ -97,7 +97,7 @@ impl<C: Client> PaymentProvider for WalletConnectPayProvider<C> {
     async fn confirm(&self, quote_id: &str, action_results: Vec<String>) -> Result<(), PaymentError> {
         match self.client.confirm(&self.payment_id, quote_id, action_results).await?.status {
             PaymentStatus::Succeeded | PaymentStatus::Processing => Ok(()),
-            status => Err(PaymentError::invalid_request(status_reason(status))),
+            status => Err(PaymentError::Status { status }),
         }
     }
 

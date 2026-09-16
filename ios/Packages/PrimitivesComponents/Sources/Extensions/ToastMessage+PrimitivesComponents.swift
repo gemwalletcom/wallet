@@ -11,7 +11,7 @@ import Style
 public extension ToastMessage {
     static func transfer(_ result: GemExecuteResult, for type: TransactionInputType) -> ToastMessage? {
         switch result {
-        case let .sent(_, _, warning?), let .signed(_, warning?): .error(warning)
+        case let .sent(_, _, warning?), let .signed(_, warning?): .error(warning.text)
         case .sent, .signed: transfer(for: type)
         }
     }

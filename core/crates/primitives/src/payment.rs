@@ -89,7 +89,7 @@ pub struct PaymentQuote {
     pub value: BigUint,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PaymentStatus {
     RequiresAction,

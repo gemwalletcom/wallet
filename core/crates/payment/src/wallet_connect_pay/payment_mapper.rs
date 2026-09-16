@@ -58,17 +58,6 @@ pub(super) fn map_invoice(invoice: &Invoice, payment_id: &str) -> PaymentInvoice
     }
 }
 
-pub(super) fn status_reason(status: PaymentStatus) -> String {
-    match status {
-        PaymentStatus::RequiresAction | PaymentStatus::Processing => "Payment is already in progress",
-        PaymentStatus::Succeeded => "Payment is already paid",
-        PaymentStatus::Failed => "Payment has failed",
-        PaymentStatus::Expired => "Payment has expired",
-        PaymentStatus::Cancelled => "Payment was cancelled",
-    }
-    .to_string()
-}
-
 pub(super) fn map_transaction(quote: &Quote, action: PaymentAction, invoice: PaymentInvoice) -> PaymentTransaction {
     let (transaction, transaction_type, recipient, output_type, approval) = match action {
         PaymentAction::Send(send) => {

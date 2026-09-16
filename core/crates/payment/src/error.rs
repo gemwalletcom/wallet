@@ -1,6 +1,7 @@
 use std::fmt;
 
 use gem_client::ClientError;
+use primitives::PaymentStatus;
 use serde::Deserialize;
 
 #[derive(Default, Deserialize)]
@@ -19,6 +20,7 @@ impl ErrorResponse {
 #[derive(Debug, Clone, PartialEq)]
 pub enum PaymentError {
     NoPaymentOptions,
+    Status { status: PaymentStatus },
     InvalidRequest { reason: String },
     Network { reason: String },
 }
@@ -33,6 +35,7 @@ impl fmt::Display for PaymentError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::NoPaymentOptions => write!(f, "No payment options"),
+            Self::Status { status } => write!(f, "Payment is {status:?}"),
             Self::InvalidRequest { reason } | Self::Network { reason } => write!(f, "{reason}"),
         }
     }

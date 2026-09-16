@@ -66,6 +66,7 @@ internal fun ConfirmErrorInfo(
         is GemConfirmErrorDisplay.AccountMissing,
         is GemConfirmErrorDisplay.Unknown,
         is GemConfirmErrorDisplay.InsufficientFunds,
+        is GemConfirmErrorDisplay.Payment,
         is GemConfirmErrorDisplay.Message -> null
     }
     val onSelectAcquireAsset: (Asset, Int?) -> Unit = { asset, amount ->
@@ -175,6 +176,7 @@ private fun GemConfirmErrorDisplay.toInfoSheetEntity(
     is GemConfirmErrorDisplay.AccountMissing,
     is GemConfirmErrorDisplay.Unknown,
     is GemConfirmErrorDisplay.InsufficientFunds,
+    is GemConfirmErrorDisplay.Payment,
     is GemConfirmErrorDisplay.Message -> null
 }
 

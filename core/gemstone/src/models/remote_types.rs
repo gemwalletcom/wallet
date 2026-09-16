@@ -11,10 +11,10 @@ use primitives::{
     FiatAssets, FiatProvider, FiatProviderName, FiatQuote, FiatQuoteRequest, FiatQuoteType, FiatQuoteUrl, FiatRate, FiatTransaction, FiatTransactionData, FiatTransactionStatus,
     GasPriceType, InAppNotification, Latency, LatencyType, LinkType, MarketDominance, Markets, MarketsAssets, NFTAsset, NFTAssetData, NFTAttribute, NFTAttributeType,
     NFTCollection, NFTData, NFTImages, NFTResource, NFTType, NameProvider, NameRecord, Node, NodeState, Payment, PaymentAmount, PaymentInvoice, PaymentLink, PaymentMerchant,
-    PaymentPrice, PaymentQuote, PaymentRequest, PaymentType, PaymentVerification, Perpetual, PerpetualAccountMode, PerpetualAccountSummary, PerpetualBalance, PerpetualBasic,
-    PerpetualConfirmData, PerpetualData, PerpetualDirection, PerpetualMarginType, PerpetualMarketData, PerpetualMetadata, PerpetualModifyConfirmData, PerpetualModifyPositionType,
-    PerpetualOrderType, PerpetualPortfolio, PerpetualPortfolioTimeframeData, PerpetualPosition, PerpetualPositionsSummary, PerpetualProvider, PerpetualReduceData,
-    PerpetualSearchData, PerpetualTriggerOrder, PerpetualType, Platform, PlatformStore, PortfolioAsset, PortfolioChartData, PortfolioChartType, PortfolioData,
+    PaymentPrice, PaymentQuote, PaymentRequest, PaymentStatus, PaymentType, PaymentVerification, Perpetual, PerpetualAccountMode, PerpetualAccountSummary, PerpetualBalance,
+    PerpetualBasic, PerpetualConfirmData, PerpetualData, PerpetualDirection, PerpetualMarginType, PerpetualMarketData, PerpetualMetadata, PerpetualModifyConfirmData,
+    PerpetualModifyPositionType, PerpetualOrderType, PerpetualPortfolio, PerpetualPortfolioTimeframeData, PerpetualPosition, PerpetualPositionsSummary, PerpetualProvider,
+    PerpetualReduceData, PerpetualSearchData, PerpetualTriggerOrder, PerpetualType, Platform, PlatformStore, PortfolioAsset, PortfolioChartData, PortfolioChartType, PortfolioData,
     PortfolioMarginUsage, PortfolioStatistic, PortfolioType, Price, PriceAlert, PriceAlertData, PriceAlertDirection, PriceAlertNotificationType, PriceProvider, RecentActivityType,
     RedelegateData, RedemptionResult, RedemptionStatus, ReferralAllowance, ReferralQuota, Release, ReportNft, Resource, RewardRedemption, RewardRedemptionOption,
     RewardRedemptionType, RewardStatus, Rewards, SearchResponse, SimulationBalanceChange, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldDisplay,
@@ -424,6 +424,16 @@ pub enum PaymentAmount {
 pub enum PaymentLink {
     SolanaPay { url: String },
     WalletConnectPay { payment_id: String },
+}
+
+#[uniffi::remote(Enum)]
+pub enum PaymentStatus {
+    RequiresAction,
+    Processing,
+    Succeeded,
+    Failed,
+    Expired,
+    Cancelled,
 }
 
 #[uniffi::remote(Enum)]

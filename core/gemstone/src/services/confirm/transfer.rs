@@ -10,6 +10,7 @@ use crate::models::transaction::GemSignedTransaction;
 use crate::payment::GemPaymentService;
 use crate::services::assets::config::GemAssetConfigService;
 use crate::services::confirm::rules::{is_broadcast, is_insufficient_network_fee};
+use crate::services::error_text::{GemErrorText, payment_error_text};
 use crate::services::confirm::{
     GemAcquireAssetFlow, GemConfirmData, GemConfirmError, GemConfirmFeeLoad, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmService, GemConfirmSimulationState,
     GemConfirmation, GemExecuteResult, GemFeeAsset, GemTransactionSigner, SendInput,
@@ -136,13 +137,13 @@ impl GemConfirmTransferService {
         })
     }
 
-    async fn report_payment(&self, input: &SendInput, action_results: Vec<String>, signatures: &[GemSignedTransaction]) -> Option<String> {
+    async fn report_payment(&self, input: &SendInput, action_results: Vec<String>, signatures: &[GemSignedTransaction]) -> Option<GemErrorText> {
         let input_type = &input.confirm.input.transfer.input_type;
         let TransactionInputType::Payment { .. } = input_type else {
             return None;
         };
         if let Err(error) = self.payment.confirm(input_type, action_results).await {
-            return Some(error.to_string());
+            return Some(payment_error_text(error));
         }
         if let Some(hash) = self.payment.record_hash(input_type)
             && !signatures.is_empty()

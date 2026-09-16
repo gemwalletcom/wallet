@@ -11,6 +11,7 @@ import com.gemwallet.android.ext.toGemErrorText
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.localization.errorText
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.components.perpetual.title
 import com.wallet.core.primitives.Asset
@@ -110,6 +111,7 @@ internal fun GemConfirmErrorDisplay.text(): String = when (this) {
     }
     is GemConfirmErrorDisplay.DustThreshold -> stringResource(R.string.errors_dust_threshold_short)
     is GemConfirmErrorDisplay.InsufficientFunds -> stringResource(R.string.info_insufficient_balance_title)
+    is GemConfirmErrorDisplay.Payment -> status.errorText(LocalContext.current)
     is GemConfirmErrorDisplay.Message -> msg
 }
 

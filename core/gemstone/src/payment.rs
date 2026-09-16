@@ -24,6 +24,7 @@ pub type GemPaymentError = payment::PaymentError;
 #[uniffi::remote(Enum)]
 pub enum GemPaymentError {
     NoPaymentOptions,
+    Status { status: PaymentStatus },
     InvalidRequest { reason: String },
     Network { reason: String },
 }
