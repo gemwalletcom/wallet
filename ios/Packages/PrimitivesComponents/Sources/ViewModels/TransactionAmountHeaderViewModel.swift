@@ -8,19 +8,10 @@ import SwiftUI
 
 struct TransactionAmountHeaderViewModel: ValueHeaderViewModel {
     let display: AmountDisplay
-    let fiat: String?
+    var price: String? = nil
 
     let isWatchWallet: Bool = false
     let buttons: [HeaderButton] = []
-
-    init(display: AmountDisplay, fiat: String?) {
-        self.display = display
-        self.fiat = fiat
-    }
-
-    init(display: AmountDisplay) {
-        self.init(display: display, fiat: display.fiat?.text)
-    }
 
     var assetImage: AssetImage? {
         display.assetImage
@@ -31,7 +22,7 @@ struct TransactionAmountHeaderViewModel: ValueHeaderViewModel {
     }
 
     var subtitle: String? {
-        fiat
+        price ?? display.fiat?.text
     }
 
     var subtitleColor: Color {

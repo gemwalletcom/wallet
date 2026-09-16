@@ -33,7 +33,7 @@ public struct TransactionHeaderView: View {
             case let .amount(display):
                 amountHeader(TransactionAmountHeaderViewModel(display: display))
             case let .payment(price, amount):
-                amountHeader(TransactionAmountHeaderViewModel(display: amount, fiat: price))
+                amountHeader(TransactionAmountHeaderViewModel(display: amount, price: price))
             case let .swap(from, to):
                 SwapAmountView(from: from, to: to, action: action)
             case let .nft(name, image):
