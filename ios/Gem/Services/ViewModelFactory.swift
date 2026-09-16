@@ -102,6 +102,7 @@ public struct ViewModelFactory: Sendable {
     let toastPresenter: ToastPresenter
     let walletPreferencesService: GemWalletPreferencesService
     let signMessageService: GemSignMessageService
+    let devicePlatform: GemstoneDevicePlatform
     let developerService: GemDeveloperService
     let deviceService: GemDeviceService
     let notificationPermissions: any GemNotificationPermissions

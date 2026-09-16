@@ -66,7 +66,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UIWindowSceneDelegate {
 
         Task {
             do {
-                _ = try SecurePreferences.standard.set(value: token, key: .deviceToken)
+                try AppResolver.main.services.devicePlatform.setPushToken(token)
                 try await AppResolver.main.services.deviceService.synchronizeIfNeeded()
             } catch {
                 debugLog("Push token registration failed")

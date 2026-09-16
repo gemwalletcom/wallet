@@ -26,7 +26,6 @@ import WebSocketClient
 struct ServicesFactory {
     func makeServices(storages: AppResolver.Storages, navigation: NavigationStateManager) -> AppResolver.Services {
         let stores = storages.stores
-        let securePreferences = SecurePreferences()
         let preferencesStore = GemstonePreferencesStore.application()
         let preferencesService = Gemstone.GemPreferencesService(store: preferencesStore)
         let observablePreferences = ObservablePreferences(preferencesService: preferencesService)
@@ -37,7 +36,7 @@ struct ServicesFactory {
 
         let gemstoneWalletStore = GemstoneWalletStore(store: stores.walletStore)
         let walletPreferencesService = Gemstone.GemWalletPreferencesService(store: GemstoneWalletPreferencesStore())
-        let devicePlatform = MainActor.assumeIsolated { GemstoneDevicePlatform(preferencesService: preferencesService, deviceKeyService: deviceKeyService, securePreferences: securePreferences) }
+        let devicePlatform = MainActor.assumeIsolated { GemstoneDevicePlatform(preferencesService: preferencesService, deviceKeyService: deviceKeyService) }
         let deviceService = Gemstone.GemDeviceService(
             api: deviceRegistrationClient,
             subscriptions: Gemstone.GemSubscriptionService(api: deviceRegistrationClient, store: gemstoneWalletStore),
@@ -412,6 +411,7 @@ struct ServicesFactory {
             toastPresenter: toastPresenter,
             walletPreferencesService: walletPreferencesService,
             signMessageService: signMessageService,
+            devicePlatform: devicePlatform,
             developerService: Gemstone.GemDeveloperService(
                 platform: devicePlatform,
                 preferences: preferencesService,
@@ -437,6 +437,7 @@ struct ServicesFactory {
         return AppResolver.Services(
             walletConnector: walletConnector,
             connectionStatusObserver: connectionStatusObserver,
+            devicePlatform: devicePlatform,
             deviceService: deviceService,
             navigationHandler: navigationHandler,
             navigationPresenter: navigationPresenter,
