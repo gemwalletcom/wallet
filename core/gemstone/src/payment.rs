@@ -4,14 +4,14 @@ use crate::GemstoneError;
 use crate::address::{checksum_address, validate_address};
 use crate::alien::{AlienProvider, AlienProviderWrapper};
 use crate::config::wallet_connect::get_wallet_connect_config;
-use crate::models::custom_types::{GemBigInt, GemBigUint};
+use crate::models::custom_types::GemBigUint;
 use crate::models::payment::{GemPayment, GemPaymentAmount, GemPaymentInvoice, GemPaymentLink, GemPaymentRequest};
 use crate::services::assets::GemAssetsService;
 use crate::services::error::GemServiceError;
 use crate::services::transfer::model::{GemRecipient, GemTransferData};
 use num_bigint::{BigInt, BigUint};
 use number_formatter::BigNumberFormatter;
-use payment::{PaymentLoad, PaymentService, PaymentTransaction, WalletConnectPayAuth, PaymentUpdate};
+use payment::{PaymentLoad, PaymentService, PaymentTransaction, PaymentUpdate, WalletConnectPayAuth};
 use primitives::TransactionInputType;
 use primitives::{
     Asset, AssetId, Chain, ChainAddress, ChainType, PaymentInvoice, PaymentLink, PaymentQuote, PaymentStatus, PaymentURLDecoder, PaymentVerification, Transaction,
@@ -93,7 +93,6 @@ impl GemPaymentService {
     pub fn transfer_data(&self, transfer: GemPaymentConfirmTransfer, asset: Asset) -> GemTransferData {
         transfer_data(&transfer, asset)
     }
-
 }
 
 impl GemPaymentService {
@@ -131,10 +130,9 @@ impl GemPaymentService {
 }
 
 fn quote_transfer_data(invoice: GemPaymentInvoice, asset: Asset, verification: PaymentVerification) -> Result<GemTransferData, GemPaymentError> {
-    let quote = invoice.quotes.iter().find(|quote| quote.asset_id == asset.id).ok_or(GemPaymentError::InvalidRequest {
+    let value = invoice.quotes.iter().find(|quote| quote.asset_id == asset.id).map(|quote| quote.value.clone()).ok_or(GemPaymentError::InvalidRequest {
         reason: "Payment has no quote for the asset".to_string(),
     })?;
-    let value = GemBigInt::from(BigInt::from(quote.value.clone()));
     Ok(GemTransferData {
         input_type: TransactionInputType::Payment {
             asset,
@@ -143,23 +141,12 @@ fn quote_transfer_data(invoice: GemPaymentInvoice, asset: Asset, verification: P
                 ..invoice
             },
             extra: TransferDataExtra {
-                to: String::new(),
-                gas_limit: None,
-                gas_price: None,
-                data: None,
-                output_type: TransferDataOutputType::EncodedTransaction,
-                output_action: TransferDataOutputAction::Send,
                 transaction_type: TransactionType::Transfer,
-                approval: None,
+                ..Default::default()
             },
         },
-        recipient: GemRecipient {
-            address: String::new(),
-            name: None,
-            memo: None,
-            references: Vec::new(),
-        },
-        value,
+        recipient: GemRecipient::address(String::new()),
+        value: BigInt::from(value),
         use_max_amount: false,
     })
 }
