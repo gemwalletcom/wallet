@@ -181,6 +181,14 @@ mod tests {
         salted["domain"]["extra"] = Value::String("1".to_string());
         assert!(map_typed_data(Chain::Polygon, &salted).is_err(), "a domain field the schema cannot declare is not signed");
 
+        let mut unbound = permit_transfer_from();
+        unbound["domain"].as_object_mut().unwrap().remove("chainId");
+        assert_eq!(
+            map_typed_data(Chain::Polygon, &unbound),
+            Err(PaymentError::invalid_request("Payment signature has no chain id")),
+            "a signature without a chain replays on every chain"
+        );
+
         let mut unsigned_value = transfer_with_authorization();
         unsigned_value["types"]["TransferWithAuthorization"] = serde_json::json!([{"name": "from", "type": "address"}, {"name": "to", "type": "address"}]);
         assert_eq!(
