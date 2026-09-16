@@ -613,8 +613,8 @@ mod tests {
     use primitives::GasPriceType;
     use primitives::asset_balance::BalanceMetadata;
     use primitives::{
-        Delegation, DelegationBase, DelegationState, DelegationValidator, NFTAsset, PerpetualConfirmData, PerpetualDirection, Resource, StakeProviderType, SwapProvider,
-        TransactionType, TransferDataExtra,
+        ApplicationMetadata, Delegation, DelegationBase, DelegationState, DelegationValidator, NFTAsset, PaymentInvoice, PaymentPrice, PerpetualConfirmData,
+        PerpetualDirection, Resource, StakeProviderType, SwapProvider, TransactionType, TransferDataExtra,
         known_assets::HYPERCORE_PERPETUAL_USDC,
         swap::{SwapData, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType},
     };
@@ -767,18 +767,18 @@ mod tests {
         );
         let payment = |price| TransactionInputType::Payment {
             asset: asset(Chain::Ethereum),
-            invoice: primitives::PaymentInvoice {
+            invoice: PaymentInvoice {
                 price,
-                ..primitives::PaymentInvoice::mock()
+                ..PaymentInvoice::mock()
             },
             extra: TransferDataExtra::mock(),
         };
-        assert_eq!(payment(Some(primitives::PaymentPrice::mock())).header_kind(), GemTransactionHeaderKind::Payment);
+        assert_eq!(payment(Some(PaymentPrice::mock())).header_kind(), GemTransactionHeaderKind::Payment);
         assert_eq!(payment(None).header_kind(), GemTransactionHeaderKind::Amount { shows_fiat: true });
         assert_eq!(
             TransactionInputType::TokenApprove {
                 asset: asset(Chain::Ethereum),
-                approval_data: primitives::swap::ApprovalData::mock(),
+                approval_data: ApprovalData::mock(),
             }
             .header_kind(),
             GemTransactionHeaderKind::AssetImage
@@ -792,7 +792,7 @@ mod tests {
         assert_eq!(
             TransactionInputType::Payment {
                 asset: asset(Chain::Ethereum),
-                invoice: primitives::PaymentInvoice::mock(),
+                invoice: PaymentInvoice::mock(),
                 extra: TransferDataExtra::mock(),
             }
             .title(),
@@ -801,7 +801,7 @@ mod tests {
         assert_eq!(
             TransactionInputType::Generic {
                 asset: asset(Chain::Ethereum),
-                metadata: primitives::ApplicationMetadata::mock(),
+                metadata: ApplicationMetadata::mock(),
                 extra: TransferDataExtra::mock(),
             }
             .title(),
@@ -812,7 +812,7 @@ mod tests {
         assert_eq!(
             TransactionInputType::TokenApprove {
                 asset: asset(Chain::Ethereum),
-                approval_data: primitives::swap::ApprovalData::mock(),
+                approval_data: ApprovalData::mock(),
             }
             .title(),
             GemConfirmTitle::Approve
@@ -880,14 +880,14 @@ mod tests {
         let generic = transfer(
             TransactionInputType::Generic {
                 asset: asset(Chain::Ethereum),
-                metadata: primitives::ApplicationMetadata {
+                metadata: ApplicationMetadata {
                     name: "App".into(),
                     description: String::new(),
                     url: String::new(),
                     icon: String::new(),
                     source: primitives::ApplicationMetadataSource::WalletConnect,
                 },
-                extra: primitives::TransferDataExtra::default(),
+                extra: TransferDataExtra::default(),
             },
             "1",
         );
@@ -964,7 +964,7 @@ mod tests {
         let paid = transfer(
             TransactionInputType::Payment {
                 asset: eth.clone(),
-                invoice: primitives::PaymentInvoice::mock(),
+                invoice: PaymentInvoice::mock(),
                 extra: TransferDataExtra::mock(),
             },
             "1",
@@ -991,7 +991,7 @@ mod tests {
         let signature = transfer(
             TransactionInputType::Generic {
                 asset: eth.clone(),
-                metadata: primitives::ApplicationMetadata::mock(),
+                metadata: ApplicationMetadata::mock(),
                 extra: TransferDataExtra {
                     output_action: TransferDataOutputAction::Sign,
                     ..TransferDataExtra::mock()
@@ -1036,7 +1036,7 @@ mod tests {
             transfer(
                 TransactionInputType::TokenApprove {
                     asset: eth.clone(),
-                    approval_data: primitives::swap::ApprovalData::mock(),
+                    approval_data: ApprovalData::mock(),
                 },
                 "0",
             )
@@ -1049,7 +1049,7 @@ mod tests {
     fn test_output() {
         let signature = TransactionInputType::Generic {
             asset: asset(Chain::Ethereum),
-            metadata: primitives::ApplicationMetadata::mock(),
+            metadata: ApplicationMetadata::mock(),
             extra: TransferDataExtra {
                 output_type: TransferDataOutputType::Signature,
                 output_action: TransferDataOutputAction::Sign,
@@ -1185,7 +1185,7 @@ mod tests {
 
         let generic = TransactionInputType::Payment {
             asset: asset(Chain::Solana),
-            invoice: primitives::PaymentInvoice::mock(),
+            invoice: PaymentInvoice::mock(),
             extra: TransferDataExtra {
                 to: String::new(),
                 gas_limit: None,
@@ -1215,7 +1215,7 @@ mod tests {
 
         let token_payment = |approval| TransactionInputType::Payment {
             asset: token(Chain::SmartChain, "0xusdc"),
-            invoice: primitives::PaymentInvoice::mock(),
+            invoice: PaymentInvoice::mock(),
             extra: TransferDataExtra {
                 to: "0xrouter".into(),
                 gas_limit: None,

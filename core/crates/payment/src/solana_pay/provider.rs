@@ -4,6 +4,7 @@ use primitives::{Chain, ChainAddress, PaymentInvoice, PaymentLink, PaymentMercha
 
 use crate::provider::PaymentProvider;
 use crate::solana_pay::client::SolanaPayClient;
+use crate::solana_pay::transaction::prepare;
 use crate::{PaymentError, PaymentLoad, PaymentTransaction};
 
 #[derive(Debug)]
@@ -38,7 +39,7 @@ impl<C: Client> PaymentProvider for SolanaPayProvider<C> {
             .cloned()
             .ok_or(PaymentError::NoPaymentOptions)?;
         let (info, response) = futures::try_join!(self.client.get_info(), self.client.get_transaction(&account.address))?;
-        let prepared = crate::solana_pay::transaction::prepare(&response.transaction, &account.address).map_err(|reason| PaymentError::InvalidRequest { reason })?;
+        let prepared = prepare(&response.transaction, &account.address).map_err(|reason| PaymentError::InvalidRequest { reason })?;
 
         Ok(PaymentLoad::Sign {
             transaction: PaymentTransaction {
@@ -99,7 +100,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_transaction_request() {
-        let prepared = crate::solana_pay::transaction::prepare(TRANSACTION, ACCOUNT).unwrap();
+        let prepared = prepare(TRANSACTION, ACCOUNT).unwrap();
 
         assert_eq!(
             provider().load(&addresses()).await.unwrap(),

@@ -277,8 +277,8 @@ mod tests {
     use super::*;
     use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_PRIVATE_KEY};
     use primitives::{
-        ApplicationMetadata, DelegationValidator, StakeType, SwapProvider, TransactionFee, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra,
-        TransferDataOutputType, contract_call_data::ContractCallData, nft::NFTAsset,
+        ApplicationMetadata, DelegationValidator, PaymentInvoice, StakeType, SwapProvider, TransactionFee, TransactionLoadInput, TransactionLoadMetadata,
+        TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, contract_call_data::ContractCallData, nft::NFTAsset,
     };
 
     fn signed(data: Vec<String>, transaction_type: TransactionType) -> Vec<GemSignedTransaction> {
@@ -338,13 +338,13 @@ mod tests {
         let payment: GemSignerInput = SignerInput::mock_evm(
             TransactionInputType::Payment {
                 asset: Asset::mock_erc20(),
-                invoice: primitives::PaymentInvoice::mock(),
-                extra: primitives::TransferDataExtra {
+                invoice: PaymentInvoice::mock(),
+                extra: TransferDataExtra {
                     data: Some(typed_data.clone()),
                     output_type: TransferDataOutputType::Signature,
-                    output_action: primitives::TransferDataOutputAction::Sign,
+                    output_action: TransferDataOutputAction::Sign,
                     transaction_type: TransactionType::Transfer,
-                    ..primitives::TransferDataExtra::mock()
+                    ..TransferDataExtra::mock()
                 },
             },
             "0",
@@ -357,18 +357,18 @@ mod tests {
             signed(vec![signer.sign_message(typed_data.clone(), key.clone()).unwrap()], TransactionType::Transfer)
         );
 
-        let approval_data = primitives::swap::ApprovalData::mock();
+        let approval_data = ApprovalData::mock();
         let payment_with_approval: GemSignerInput = SignerInput::mock_evm(
             TransactionInputType::Payment {
                 asset: Asset::mock_erc20(),
-                invoice: primitives::PaymentInvoice::mock(),
-                extra: primitives::TransferDataExtra {
+                invoice: PaymentInvoice::mock(),
+                extra: TransferDataExtra {
                     data: Some(typed_data.clone()),
                     output_type: TransferDataOutputType::Signature,
-                    output_action: primitives::TransferDataOutputAction::Sign,
+                    output_action: TransferDataOutputAction::Sign,
                     transaction_type: TransactionType::Transfer,
                     approval: Some(approval_data.clone()),
-                    ..primitives::TransferDataExtra::mock()
+                    ..TransferDataExtra::mock()
                 },
             },
             "0",
@@ -417,7 +417,7 @@ mod tests {
         let approve: GemSignerInput = SignerInput::mock_evm(
             TransactionInputType::TokenApprove {
                 asset: Asset::mock(),
-                approval_data: primitives::swap::ApprovalData::mock(),
+                approval_data: ApprovalData::mock(),
             },
             "0",
             65000,

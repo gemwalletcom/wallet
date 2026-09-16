@@ -8,6 +8,7 @@ use crate::GemstoneError;
 use crate::api::{GemApiClient, GemDeviceApiClient, GemStaticApiClient};
 use crate::gateway::{EmptyPreferences, GemGateway};
 use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionLoadFee, GemTransactionLoadMetadata};
+use crate::payment::GemPaymentService;
 use crate::services::assets::{GemAssetStore, GemAssetsService, config::GemAssetConfigService};
 use crate::services::balance::{GemAssetBalance, GemBalanceRecord, GemBalanceService, GemBalanceStore};
 use crate::services::device::GemDeviceKeyService;
@@ -88,7 +89,7 @@ impl ConfirmTestkit {
             session.clone(),
         ));
         let nft = Arc::new(GemNftService::new(device_api.clone(), Arc::new(MemoryNftStore::default()), session.clone()));
-        let payment = Arc::new(crate::payment::GemPaymentService::new(provider.clone(), assets.clone()));
+        let payment = Arc::new(GemPaymentService::new(provider.clone(), assets.clone()));
         let transactions = Arc::new(GemTransactionStateService::new(
             gateway.clone(),
             Arc::new(MemoryTransactionStateStore::default()),

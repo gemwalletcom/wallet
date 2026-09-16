@@ -1,6 +1,6 @@
 use primitives::{
-    Asset, AssetId, Chain, ChainType, FeePriority, FeeUnitType, GasPriceType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload,
-    SimulationResult, SimulationWarningType, Transaction, TransactionPreloadInput, Wallet,
+    Asset, AssetId, Chain, ChainType, FeePriority, FeeUnitType, GasPriceType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationResult,
+    SimulationWarningType, Transaction, TransactionPreloadInput, TransactionType, TransferDataOutputAction, TransferDataOutputType, Wallet,
 };
 
 use super::error::GemConfirmError;
@@ -22,8 +22,6 @@ use crate::transfer_amount::{GemTransferAmountError, GemTransferAmountInput};
 use num_bigint::{BigInt, Sign};
 use primitives::AssetPrice;
 use primitives::TransactionInputType;
-use primitives::TransferDataOutputType;
-use primitives::{TransactionType, TransferDataOutputAction};
 
 impl SendInput {
     pub(super) fn signer_input(&self) -> Result<GemSignerInput, GemConfirmError> {

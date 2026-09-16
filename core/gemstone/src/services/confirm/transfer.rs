@@ -6,9 +6,10 @@ use primitives::{Asset, Chain, PerpetualModifyConfirmData, SimulationResult, Wal
 
 use crate::config::fiat_config::get_fiat_config;
 use crate::models::custom_types::GemBigInt;
+use crate::models::transaction::GemSignedTransaction;
+use crate::payment::GemPaymentService;
 use crate::services::assets::config::GemAssetConfigService;
 use crate::services::confirm::rules::{broadcast_transactions, is_insufficient_network_fee};
-use crate::models::transaction::GemSignedTransaction;
 use crate::services::confirm::{
     GemAcquireAssetFlow, GemConfirmData, GemConfirmError, GemConfirmFeeLoad, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmService, GemConfirmSimulationState,
     GemConfirmation, GemExecuteResult, GemFeeAsset, GemTransactionSigner, SendInput,
@@ -21,7 +22,6 @@ use crate::services::preferences::GemPreferencesService;
 use crate::services::transfer::rules::TransferInput;
 use crate::services::transfer::{GemRecentActivityService, GemTransferData};
 use crate::services::wallet::{GemKeystoreAuthentication, GemKeystorePassword};
-use crate::payment::GemPaymentService;
 use primitives::BlockExplorerLink;
 use primitives::TransactionInputType;
 

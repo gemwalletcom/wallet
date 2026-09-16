@@ -152,7 +152,10 @@ impl GemConfirmation {
 mod tests {
     use futures::executor::block_on;
     use num_bigint::BigInt;
-    use primitives::{Account, Asset, AssetId, Chain, FeePriority, SimulationBalanceChange, SimulationResult, SimulationWarning, TransactionInputType, Wallet, WalletId};
+    use primitives::{
+        Account, Asset, AssetId, Chain, FeePriority, PaymentInvoice, SimulationBalanceChange, SimulationResult, SimulationWarning, TransactionInputType, TransferDataExtra,
+        Wallet, WalletId,
+    };
 
     use super::super::testkit::ConfirmTestkit;
     use crate::services::confirm::{GemConfirmError, GemConfirmFeeSelection, GemConfirmLoadOptions};
@@ -251,7 +254,7 @@ mod tests {
         block_on(async {
             let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, "0x0000000000000000000000000000000000000001")]);
             let testkit = ConfirmTestkit::new(wallet.clone(), wallet.clone());
-            let options = |asset_id: Option<primitives::AssetId>| GemConfirmLoadOptions {
+            let options = |asset_id: Option<AssetId>| GemConfirmLoadOptions {
                 fee_selection: GemConfirmFeeSelection::Priority { priority: FeePriority::Normal },
                 fee_asset_id: None,
                 asset_id,
@@ -262,7 +265,7 @@ mod tests {
                 value: 0.into(),
                 use_max_amount: false,
             };
-            let other = primitives::AssetId::from_chain(Chain::SmartChain);
+            let other = AssetId::from_chain(Chain::SmartChain);
 
             let sent = testkit.service.clone().confirmation(
                 wallet.clone(),
@@ -280,12 +283,12 @@ mod tests {
                 wallet,
                 transfer(TransactionInputType::Payment {
                     asset: Asset::from_chain(Chain::Ethereum),
-                    invoice: primitives::PaymentInvoice::mock(),
-                    extra: primitives::TransferDataExtra::mock(),
+                    invoice: PaymentInvoice::mock(),
+                    extra: TransferDataExtra::mock(),
                 }),
                 None,
             );
-            let same = paid.load(options(Some(primitives::AssetId::from_chain(Chain::Ethereum)))).await.unwrap_err();
+            let same = paid.load(options(Some(AssetId::from_chain(Chain::Ethereum)))).await.unwrap_err();
             assert!(!same.to_string().contains("payment"), "the asset already paid with must not be re-selected: {same}");
             assert!(paid.load(options(Some(other))).await.is_err());
         });
