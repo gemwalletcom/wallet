@@ -1,9 +1,9 @@
 use gem_evm::transaction::{EvmTransactionKind, decode_transaction_kind};
 use num_bigint::BigUint;
-use primitives::hex::decode_hex;
 use primitives::swap::ApprovalData;
-use primitives::{WCEthereumTransaction, WalletConnectCAIP2, WalletConnectionMethods};
+use primitives::{ValueAccess, WCEthereumTransaction, WalletConnectCAIP2, WalletConnectionMethods};
 use serde_json::Value;
+use serde_serializers::biguint_from_hex_str;
 
 use crate::error::PaymentError;
 use crate::wallet_connect_pay::model::{PaymentAction, PaymentSend, PaymentSign, Quote, WalletRpcAction};
@@ -29,7 +29,7 @@ fn map_send(quote: &Quote, action: &WalletRpcAction) -> Result<PaymentSend, Paym
         return Err(PaymentError::invalid_request("Payment asks to send a coin for a token quote"));
     }
     let transaction = get_transaction(quote, action)?;
-    let value = get_value(transaction.value.as_deref().unwrap_or_default())?;
+    let value = get_value(&transaction)?;
     if value != quote.value {
         return Err(PaymentError::invalid_request(format!("Payment asks to send {value} for a quote of {}", quote.value)));
     }
@@ -43,13 +43,11 @@ fn map_send(quote: &Quote, action: &WalletRpcAction) -> Result<PaymentSend, Paym
 fn map_sign(quote: &Quote, action: &WalletRpcAction) -> Result<PaymentSign, PaymentError> {
     let token = get_quote_token(quote)?;
     validate_chain(quote, action)?;
-    let [signer, typed_data] = get_parameters(&action.params, 2)? else {
-        return Err(PaymentError::invalid_request("Payment signature has no parameters"));
-    };
-    if !signer.as_str().is_some_and(|signer| signer.eq_ignore_ascii_case(&quote.account.address)) {
+    let signer = action.params.at(0).and_then(Value::string).map_err(PaymentError::invalid_request)?;
+    if !signer.eq_ignore_ascii_case(&quote.account.address) {
         return Err(PaymentError::invalid_request("Payment asks to sign from another account"));
     }
-    let transfer = map_typed_data(quote.account.chain, typed_data)?;
+    let transfer = map_typed_data(quote.account.chain, action.params.at(1).map_err(PaymentError::invalid_request)?)?;
     if !transfer.token.eq_ignore_ascii_case(token) {
         return Err(PaymentError::invalid_request(format!("Payment asks to sign for token {} on a quote of {token}", transfer.token)));
     }
@@ -68,7 +66,7 @@ fn map_sign(quote: &Quote, action: &WalletRpcAction) -> Result<PaymentSign, Paym
 fn map_approval(quote: &Quote, action: &WalletRpcAction) -> Result<ApprovalData, PaymentError> {
     let token = get_quote_token(quote)?;
     let transaction = get_transaction(quote, action)?;
-    if get_value(transaction.value.as_deref().unwrap_or_default())? != BigUint::ZERO {
+    if get_value(&transaction)? != BigUint::ZERO {
         return Err(PaymentError::invalid_request("Payment approval sends value"));
     }
     if !transaction.to.eq_ignore_ascii_case(token) {
@@ -86,9 +84,7 @@ fn get_quote_token(quote: &Quote) -> Result<&str, PaymentError> {
 
 fn get_transaction(quote: &Quote, action: &WalletRpcAction) -> Result<WCEthereumTransaction, PaymentError> {
     validate_chain(quote, action)?;
-    let [parameter] = get_parameters(&action.params, 1)? else {
-        return Err(PaymentError::invalid_request("Payment action has no parameters"));
-    };
+    let parameter = action.params.at(0).map_err(PaymentError::invalid_request)?;
     let transaction: WCEthereumTransaction = serde_json::from_value(parameter.clone()).map_err(|error| PaymentError::invalid_request(error.to_string()))?;
     if !quote.account.address.eq_ignore_ascii_case(&transaction.from) {
         return Err(PaymentError::invalid_request("Payment asks to sign from another account"));
@@ -111,19 +107,8 @@ fn validate_chain(quote: &Quote, action: &WalletRpcAction) -> Result<(), Payment
     Ok(())
 }
 
-fn get_parameters(params: &Value, count: usize) -> Result<&[Value], PaymentError> {
-    match params {
-        Value::Array(parameters) if parameters.len() >= count => Ok(&parameters[..count]),
-        Value::Array(_) => Err(PaymentError::invalid_request("Payment action has no parameters")),
-        parameter if count == 1 => Ok(std::slice::from_ref(parameter)),
-        _ => Err(PaymentError::invalid_request("Payment action has no parameters")),
-    }
-}
-
-fn get_value(value: &str) -> Result<BigUint, PaymentError> {
-    decode_hex(value)
-        .map(|bytes| BigUint::from_bytes_be(&bytes))
-        .map_err(|error| PaymentError::invalid_request(format!("Invalid payment value: {error}")))
+fn get_value(transaction: &WCEthereumTransaction) -> Result<BigUint, PaymentError> {
+    biguint_from_hex_str(transaction.value.as_deref().unwrap_or_default()).map_err(|error| PaymentError::invalid_request(format!("Invalid payment value: {error}")))
 }
 
 #[cfg(test)]

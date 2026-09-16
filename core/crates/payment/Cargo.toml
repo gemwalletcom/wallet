@@ -14,9 +14,9 @@ number_formatter = { path = "../number_formatter" }
 async-trait = { workspace = true }
 futures = { workspace = true }
 num-bigint = { workspace = true }
-num-traits = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 url = { workspace = true }
 
 [dev-dependencies]

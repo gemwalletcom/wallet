@@ -1,8 +1,8 @@
 use gem_evm::eip712::{EIP712Field, EIP712TypedValue, eip712_domain_types, parse_eip712_json, validate_eip712_chain_id};
 use num_bigint::BigUint;
-use num_traits::Num;
 use primitives::Chain;
 use serde_json::Value;
+use serde_serializers::biguint_from_hex_str;
 
 use crate::error::PaymentError;
 use crate::wallet_connect_pay::model::TypedDataTransfer;
@@ -11,7 +11,6 @@ const TYPE_EIP712_DOMAIN: &str = "EIP712Domain";
 const PRIMARY_TYPE_PERMIT_TRANSFER_FROM: &str = "PermitTransferFrom";
 const PRIMARY_TYPE_TRANSFER_WITH_AUTHORIZATION: &str = "TransferWithAuthorization";
 const PRIMARY_TYPE_RECEIVE_WITH_AUTHORIZATION: &str = "ReceiveWithAuthorization";
-const HEX_PREFIX: &str = "0x";
 
 pub(super) fn map_typed_data(chain: Chain, value: &Value) -> Result<TypedDataTransfer, PaymentError> {
     let typed_data = match value {
@@ -106,11 +105,11 @@ fn get_amount(fields: &[EIP712Field], name: &str) -> Result<BigUint, PaymentErro
     let EIP712TypedValue::Uint256 { value } = get_field(fields, name)? else {
         return Err(PaymentError::invalid_request(format!("Payment signature {name} is not an amount")));
     };
-    match value.strip_prefix(HEX_PREFIX) {
-        Some(digits) => BigUint::from_str_radix(digits, 16),
-        None => BigUint::from_str_radix(value, 10),
+    match value.starts_with("0x") {
+        true => biguint_from_hex_str(value).ok(),
+        false => value.parse().ok(),
     }
-    .map_err(|_| PaymentError::invalid_request(format!("Invalid payment signature {name}: {value}")))
+    .ok_or_else(|| PaymentError::invalid_request(format!("Invalid payment signature {name}: {value}")))
 }
 
 fn get_field<'a>(fields: &'a [EIP712Field], name: &str) -> Result<&'a EIP712TypedValue, PaymentError> {

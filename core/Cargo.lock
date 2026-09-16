@@ -5956,11 +5956,11 @@ dependencies = [
  "gem_jsonrpc",
  "gem_solana",
  "num-bigint 0.5.1",
- "num-traits",
  "number_formatter",
  "primitives",
  "serde",
  "serde_json",
+ "serde_serializers",
  "tokio",
  "url",
 ]
