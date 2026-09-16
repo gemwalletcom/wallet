@@ -93,6 +93,70 @@ fun GemAddNodeFailure.stringRes(): Int = when (this) {
     GemAddNodeFailure.UNAVAILABLE -> R.string.errors_error_occurred
 }
 
+@Composable
+fun GemDelegationStatus.stateText(): String = stringResource(
+    when (state) {
+        DelegationState.ACTIVE -> R.string.stake_active
+        DelegationState.PENDING -> R.string.stake_pending
+        DelegationState.INACTIVE -> R.string.stake_inactive
+        DelegationState.ACTIVATING -> R.string.stake_activating
+        DelegationState.DEACTIVATING -> R.string.stake_deactivating
+        DelegationState.AWAITING_WITHDRAWAL -> R.string.stake_awaiting_withdrawal
+    }
+)
+
+@StringRes
+fun GemTransactionFilter.getLabel() = when (this) {
+    GemTransactionFilter.TRANSFERS -> R.string.transfer_title
+    GemTransactionFilter.SWAPS -> R.string.wallet_swap
+    GemTransactionFilter.STAKE -> R.string.wallet_stake
+    GemTransactionFilter.SMART_CONTRACT -> R.string.transfer_smart_contract_title
+    GemTransactionFilter.PERPETUALS -> R.string.perpetuals_title
+    GemTransactionFilter.OTHERS -> R.string.transfer_other_title
+}
+
+@StringRes
+fun GemSimulationWarningRow.titleRes(): Int = when (kind) {
+    GemSimulationWarningKind.VALIDATION_ERROR -> if (severity != SimulationSeverity.CRITICAL) R.string.common_warning else R.string.errors_error_occurred
+    GemSimulationWarningKind.NFT_COLLECTION_APPROVAL -> R.string.simulation_warning_nft_collection_approval_title
+    GemSimulationWarningKind.UNLIMITED_APPROVAL -> R.string.simulation_warning_unlimited_token_approval_title
+    GemSimulationWarningKind.EXTERNALLY_OWNED_SPENDER -> R.string.common_warning
+    GemSimulationWarningKind.SUSPICIOUS_SPENDER -> R.string.errors_error_occurred
+}
+
+@StringRes
+fun GemSimulationWarningRow.descriptionRes(): Int? = when (kind) {
+    GemSimulationWarningKind.UNLIMITED_APPROVAL -> R.string.simulation_warning_unlimited_token_approval_description
+    GemSimulationWarningKind.EXTERNALLY_OWNED_SPENDER -> R.string.simulation_warning_externally_owned_spender_description
+    GemSimulationWarningKind.SUSPICIOUS_SPENDER -> R.string.common_suspicious_address
+    GemSimulationWarningKind.VALIDATION_ERROR -> if (severity == SimulationSeverity.CRITICAL) R.string.errors_error_occurred else null
+    GemSimulationWarningKind.NFT_COLLECTION_APPROVAL -> null
+}
+
+@Composable
+fun GemSimulationWarningRow.descriptionText(): String? = when (kind) {
+    GemSimulationWarningKind.VALIDATION_ERROR -> if (severity != SimulationSeverity.CRITICAL) message.orEmpty() else message ?: stringResource(R.string.errors_error_occurred)
+    GemSimulationWarningKind.UNLIMITED_APPROVAL,
+    GemSimulationWarningKind.NFT_COLLECTION_APPROVAL,
+    GemSimulationWarningKind.EXTERNALLY_OWNED_SPENDER,
+    GemSimulationWarningKind.SUSPICIOUS_SPENDER -> message ?: descriptionRes()?.let { stringResource(it) }
+}
+
+@Composable
+private fun perpetualTitle(direction: uniffi.gemstone.PerpetualDirection?, @StringRes directionTitle: Int, @StringRes fallback: Int): String {
+    val side = when (val side = direction?.toPrimitives()) {
+        null -> return stringResource(fallback)
+        else -> stringResource(side.stringRes())
+    }
+    return stringResource(directionTitle, side)
+}
+
+fun GemLocalizedText.string(context: Context): String = when (this) {
+    is GemLocalizedText.WalletDefaultName -> context.getString(R.string.wallet_default_name, index)
+    is GemLocalizedText.WalletDefaultNameChain ->
+        context.getString(R.string.wallet_default_name_chain, chain.requireChain().asset().name, index)
+}
+
 @StringRes
 fun ChartPeriod.stringRes(): Int = when (this) {
     ChartPeriod.Hour -> R.string.charts_hour
@@ -151,156 +215,6 @@ fun SimulationPayloadFieldKind.stringRes(): Int? = when (this) {
 }
 
 @StringRes
-fun PerpetualDirection.stringRes(): Int = when (this) {
-    PerpetualDirection.Long -> R.string.perpetual_long
-    PerpetualDirection.Short -> R.string.perpetual_short
-}
-
-@StringRes
-fun FeePriority.stringRes(): Int = when (this) {
-    FeePriority.Normal -> R.string.fee_rates_normal
-    FeePriority.Fast -> R.string.fee_rates_fast
-}
-
-@StringRes
-fun GemVerificationLevel.stringRes(): Int = when (this) {
-    GemVerificationLevel.VERIFIED -> R.string.asset_verification_verified
-    GemVerificationLevel.UNVERIFIED -> R.string.asset_verification_unverified
-    GemVerificationLevel.SUSPICIOUS -> R.string.asset_verification_suspicious
-}
-
-@StringRes
-fun GemAssetMenuAction.stringRes(): Int = when (this) {
-    is GemAssetMenuAction.Pin -> if (isPinned) R.string.common_unpin else R.string.common_pin
-    GemAssetMenuAction.Hide -> R.string.common_hide
-    GemAssetMenuAction.AddToWallet -> R.string.asset_add_to_wallet
-    is GemAssetMenuAction.CopyAddress -> R.string.wallet_copy_address
-}
-
-@StringRes
-fun ScanReceiveMode.stringRes(): Int = when (this) {
-    ScanReceiveMode.Scan -> R.string.wallet_scan
-    ScanReceiveMode.Receive -> R.string.wallet_receive
-}
-
-@StringRes
-fun GemWalletSecretKind.stringRes(): Int = when (this) {
-    GemWalletSecretKind.PHRASE -> R.string.common_secret_phrase
-    GemWalletSecretKind.PRIVATE_KEY -> R.string.common_private_key
-}
-
-@StringRes
-fun GemSwapDetailRow.stringRes(): Int = when (this) {
-    GemSwapDetailRow.PROVIDER -> R.string.common_provider
-    GemSwapDetailRow.RATE -> R.string.buy_rate
-    GemSwapDetailRow.ESTIMATED_TIME -> R.string.swap_estimated_time_title
-    GemSwapDetailRow.PRICE_IMPACT -> R.string.swap_price_impact
-    GemSwapDetailRow.MINIMUM_RECEIVE -> R.string.swap_min_receive
-    GemSwapDetailRow.SLIPPAGE -> R.string.swap_slippage
-}
-
-@StringRes
-fun GemHeaderButtonKind.stringRes(): Int = when (this) {
-    GemHeaderButtonKind.SEND -> R.string.wallet_send
-    GemHeaderButtonKind.RECEIVE -> R.string.wallet_receive
-    GemHeaderButtonKind.BUY -> R.string.wallet_buy
-    GemHeaderButtonKind.SWAP -> R.string.wallet_swap
-    GemHeaderButtonKind.DEPOSIT -> R.string.wallet_deposit
-    GemHeaderButtonKind.WITHDRAW -> R.string.wallet_withdraw
-    GemHeaderButtonKind.MORE -> R.string.wallet_more
-}
-
-@StringRes
-fun GemCandleTooltipRow.stringRes(): Int = when (this) {
-    GemCandleTooltipRow.OPEN -> R.string.charts_price_open
-    GemCandleTooltipRow.HIGH -> R.string.charts_price_high
-    GemCandleTooltipRow.LOW -> R.string.charts_price_low
-    GemCandleTooltipRow.CLOSE -> R.string.charts_price_close
-    GemCandleTooltipRow.CHANGE -> R.string.charts_price_change
-    GemCandleTooltipRow.VOLUME -> R.string.perpetual_volume
-}
-
-@StringRes
-fun GemRecipientSection.stringRes(): Int = when (this) {
-    is GemRecipientSection.Pinned -> R.string.common_pinned
-    is GemRecipientSection.Contacts -> R.string.contacts_title
-    is GemRecipientSection.Wallets -> R.string.transfer_recipient_my_wallets
-    is GemRecipientSection.ViewWallets -> R.string.transfer_recipient_view_wallets
-}
-
-@Composable
-fun GemDelegationStatus.stateText(): String = stringResource(
-    when (state) {
-        DelegationState.ACTIVE -> R.string.stake_active
-        DelegationState.PENDING -> R.string.stake_pending
-        DelegationState.INACTIVE -> R.string.stake_inactive
-        DelegationState.ACTIVATING -> R.string.stake_activating
-        DelegationState.DEACTIVATING -> R.string.stake_deactivating
-        DelegationState.AWAITING_WITHDRAWAL -> R.string.stake_awaiting_withdrawal
-    }
-)
-
-@StringRes
-fun GemTransactionFilter.getLabel() = when (this) {
-    GemTransactionFilter.TRANSFERS -> R.string.transfer_title
-    GemTransactionFilter.SWAPS -> R.string.wallet_swap
-    GemTransactionFilter.STAKE -> R.string.wallet_stake
-    GemTransactionFilter.SMART_CONTRACT -> R.string.transfer_smart_contract_title
-    GemTransactionFilter.PERPETUALS -> R.string.perpetuals_title
-    GemTransactionFilter.OTHERS -> R.string.transfer_other_title
-}
-
-@StringRes
-fun GemSimulationWarningRow.titleRes(): Int = when (kind) {
-    GemSimulationWarningKind.VALIDATION_ERROR -> if (severity != SimulationSeverity.CRITICAL) R.string.common_warning else R.string.errors_error_occurred
-    GemSimulationWarningKind.NFT_COLLECTION_APPROVAL -> R.string.simulation_warning_nft_collection_approval_title
-    GemSimulationWarningKind.UNLIMITED_APPROVAL -> R.string.simulation_warning_unlimited_token_approval_title
-    GemSimulationWarningKind.EXTERNALLY_OWNED_SPENDER -> R.string.common_warning
-    GemSimulationWarningKind.SUSPICIOUS_SPENDER -> R.string.errors_error_occurred
-}
-
-@StringRes
-fun WalletConnectionVerificationStatus.titleRes(): Int = verificationLevel(this).stringRes()
-
-fun GemBalanceResource.titleRes(): Int = when (this) {
-    GemBalanceResource.ENERGY -> R.string.stake_resource_energy
-    GemBalanceResource.BANDWIDTH -> R.string.stake_resource_bandwidth
-}
-
-@StringRes
-fun GemSimulationWarningRow.descriptionRes(): Int? = when (kind) {
-    GemSimulationWarningKind.UNLIMITED_APPROVAL -> R.string.simulation_warning_unlimited_token_approval_description
-    GemSimulationWarningKind.EXTERNALLY_OWNED_SPENDER -> R.string.simulation_warning_externally_owned_spender_description
-    GemSimulationWarningKind.SUSPICIOUS_SPENDER -> R.string.common_suspicious_address
-    GemSimulationWarningKind.VALIDATION_ERROR -> if (severity == SimulationSeverity.CRITICAL) R.string.errors_error_occurred else null
-    GemSimulationWarningKind.NFT_COLLECTION_APPROVAL -> null
-}
-
-@Composable
-fun GemSimulationWarningRow.descriptionText(): String? = when (kind) {
-    GemSimulationWarningKind.VALIDATION_ERROR -> if (severity != SimulationSeverity.CRITICAL) message.orEmpty() else message ?: stringResource(R.string.errors_error_occurred)
-    GemSimulationWarningKind.UNLIMITED_APPROVAL,
-    GemSimulationWarningKind.NFT_COLLECTION_APPROVAL,
-    GemSimulationWarningKind.EXTERNALLY_OWNED_SPENDER,
-    GemSimulationWarningKind.SUSPICIOUS_SPENDER -> message ?: descriptionRes()?.let { stringResource(it) }
-}
-
-@Composable
-private fun perpetualTitle(direction: uniffi.gemstone.PerpetualDirection?, @StringRes directionTitle: Int, @StringRes fallback: Int): String {
-    val side = when (val side = direction?.toPrimitives()) {
-        null -> return stringResource(fallback)
-        else -> stringResource(side.stringRes())
-    }
-    return stringResource(directionTitle, side)
-}
-
-fun GemLocalizedText.string(context: Context): String = when (this) {
-    is GemLocalizedText.WalletDefaultName -> context.getString(R.string.wallet_default_name, index)
-    is GemLocalizedText.WalletDefaultNameChain ->
-        context.getString(R.string.wallet_default_name_chain, chain.requireChain().asset().name, index)
-}
-
-@StringRes
 fun TransactionState.statusLabelRes(): Int = when (this) {
     TransactionState.Pending,
     TransactionState.InTransit -> R.string.transaction_status_pending
@@ -318,6 +232,18 @@ fun GemTransactionStateTone.infoDescriptionRes(): Int = when (this) {
     GemTransactionStateTone.REFUNDED -> R.string.info_transaction_error_description
 }
 
+@StringRes
+fun PerpetualDirection.stringRes(): Int = when (this) {
+    PerpetualDirection.Long -> R.string.perpetual_long
+    PerpetualDirection.Short -> R.string.perpetual_short
+}
+
+@StringRes
+fun FeePriority.stringRes(): Int = when (this) {
+    FeePriority.Normal -> R.string.fee_rates_normal
+    FeePriority.Fast -> R.string.fee_rates_fast
+}
+
 @Composable
 fun GemApprovalValue.string(symbol: String, formatter: ValueFormatter, asset: Asset): String = when (this) {
     is GemApprovalValue.Exact -> formatter.string(value, asset)
@@ -325,9 +251,39 @@ fun GemApprovalValue.string(symbol: String, formatter: ValueFormatter, asset: As
 }
 
 @StringRes
+fun GemVerificationLevel.stringRes(): Int = when (this) {
+    GemVerificationLevel.VERIFIED -> R.string.asset_verification_verified
+    GemVerificationLevel.UNVERIFIED -> R.string.asset_verification_unverified
+    GemVerificationLevel.SUSPICIOUS -> R.string.asset_verification_suspicious
+}
+
+@StringRes
+fun WalletConnectionVerificationStatus.titleRes(): Int = verificationLevel(this).stringRes()
+
+@StringRes
+fun GemAssetMenuAction.stringRes(): Int = when (this) {
+    is GemAssetMenuAction.Pin -> if (isPinned) R.string.common_unpin else R.string.common_pin
+    GemAssetMenuAction.Hide -> R.string.common_hide
+    GemAssetMenuAction.AddToWallet -> R.string.asset_add_to_wallet
+    is GemAssetMenuAction.CopyAddress -> R.string.wallet_copy_address
+}
+
+@StringRes
+fun ScanReceiveMode.stringRes(): Int = when (this) {
+    ScanReceiveMode.Scan -> R.string.wallet_scan
+    ScanReceiveMode.Receive -> R.string.wallet_receive
+}
+
+@StringRes
 fun TpslType.autocloseRes(): Int = when (this) {
     TpslType.TakeProfit -> R.string.perpetual_auto_close_take_profit
     TpslType.StopLoss -> R.string.perpetual_auto_close_stop_loss
+}
+
+@StringRes
+fun GemWalletSecretKind.stringRes(): Int = when (this) {
+    GemWalletSecretKind.PHRASE -> R.string.common_secret_phrase
+    GemWalletSecretKind.PRIVATE_KEY -> R.string.common_private_key
 }
 
 @StringRes
@@ -405,3 +361,47 @@ fun PaymentStatus.errorText(context: Context): String = when (this) {
 
 @Composable
 fun GemErrorText.text(): String = text(LocalContext.current)
+
+@StringRes
+fun GemSwapDetailRow.stringRes(): Int = when (this) {
+    GemSwapDetailRow.PROVIDER -> R.string.common_provider
+    GemSwapDetailRow.RATE -> R.string.buy_rate
+    GemSwapDetailRow.ESTIMATED_TIME -> R.string.swap_estimated_time_title
+    GemSwapDetailRow.PRICE_IMPACT -> R.string.swap_price_impact
+    GemSwapDetailRow.MINIMUM_RECEIVE -> R.string.swap_min_receive
+    GemSwapDetailRow.SLIPPAGE -> R.string.swap_slippage
+}
+
+@StringRes
+fun GemHeaderButtonKind.stringRes(): Int = when (this) {
+    GemHeaderButtonKind.SEND -> R.string.wallet_send
+    GemHeaderButtonKind.RECEIVE -> R.string.wallet_receive
+    GemHeaderButtonKind.BUY -> R.string.wallet_buy
+    GemHeaderButtonKind.SWAP -> R.string.wallet_swap
+    GemHeaderButtonKind.DEPOSIT -> R.string.wallet_deposit
+    GemHeaderButtonKind.WITHDRAW -> R.string.wallet_withdraw
+    GemHeaderButtonKind.MORE -> R.string.wallet_more
+}
+
+@StringRes
+fun GemCandleTooltipRow.stringRes(): Int = when (this) {
+    GemCandleTooltipRow.OPEN -> R.string.charts_price_open
+    GemCandleTooltipRow.HIGH -> R.string.charts_price_high
+    GemCandleTooltipRow.LOW -> R.string.charts_price_low
+    GemCandleTooltipRow.CLOSE -> R.string.charts_price_close
+    GemCandleTooltipRow.CHANGE -> R.string.charts_price_change
+    GemCandleTooltipRow.VOLUME -> R.string.perpetual_volume
+}
+
+@StringRes
+fun GemRecipientSection.stringRes(): Int = when (this) {
+    is GemRecipientSection.Pinned -> R.string.common_pinned
+    is GemRecipientSection.Contacts -> R.string.contacts_title
+    is GemRecipientSection.Wallets -> R.string.transfer_recipient_my_wallets
+    is GemRecipientSection.ViewWallets -> R.string.transfer_recipient_view_wallets
+}
+
+fun GemBalanceResource.titleRes(): Int = when (this) {
+    GemBalanceResource.ENERGY -> R.string.stake_resource_energy
+    GemBalanceResource.BANDWIDTH -> R.string.stake_resource_bandwidth
+}

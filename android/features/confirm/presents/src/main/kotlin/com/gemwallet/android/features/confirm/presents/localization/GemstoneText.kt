@@ -12,7 +12,6 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.localization.errorText
-
 import uniffi.gemstone.GemAcquireAssetFlow
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.components.perpetual.title

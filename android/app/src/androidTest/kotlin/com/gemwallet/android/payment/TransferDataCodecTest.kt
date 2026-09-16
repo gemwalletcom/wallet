@@ -71,7 +71,7 @@ class TransferDataCodecTest {
         val original = mockGemTransferData(
             inputType = TransactionInputType.Generic(
                 asset = asset.toGem(),
-                metadata =  mockApplicationMetadata(name = "Merchant", source = ApplicationMetadataSource.WalletConnect).toGem(),
+                metadata = mockApplicationMetadata(name = "Merchant", source = ApplicationMetadataSource.WalletConnect).toGem(),
                 extra = mockTransferDataExtra(
                     to = "merchant",
                     data = "encoded-transaction".toTransactionData(),
