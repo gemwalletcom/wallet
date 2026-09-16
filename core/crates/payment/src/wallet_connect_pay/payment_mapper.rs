@@ -33,6 +33,7 @@ pub(super) fn map_options(response: PaymentOptionsResponse, accounts: &[String])
         merchant: payment.merchant,
         price: map_price(&payment.amount)?,
         quotes,
+        collect_data_url: response.collect_data.and_then(|collect_data| get_collect_data_url(&collect_data.url)),
     }))
 }
 
@@ -167,7 +168,7 @@ fn get_asset_id(unit: &str) -> Option<AssetId> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::wallet_connect_pay::model::{Merchant, PaymentAmount as PaymentOptionAmount, PaymentInfo, PaymentPriceDisplay, PaymentSend, PaymentSign};
+    use crate::wallet_connect_pay::model::{Merchant, PaymentAmount as PaymentOptionAmount, PaymentCollectData, PaymentInfo, PaymentPriceDisplay, PaymentSend, PaymentSign};
     use primitives::swap::ApprovalData;
     use primitives::{Chain, ChainAddress};
 
@@ -257,6 +258,9 @@ mod tests {
             collect_data: None,
         };
         let response = PaymentOptionsResponse {
+            collect_data: Some(PaymentCollectData {
+                url: "https://pay.walletconnect.com/collect/?pid=pay_1&accounts=eip155:56:0x92ab,eip155:1:0x92ab".to_string(),
+            }),
             info: Some(PaymentInfo {
                 status: PaymentStatus::RequiresAction,
                 merchant: Merchant {
@@ -285,6 +289,11 @@ mod tests {
             ]
         );
         assert_eq!(invoice.price.amount, 19.99);
+        assert_eq!(
+            invoice.collect_data_url.as_deref(),
+            Some("https://pay.walletconnect.com/collect/?pid=pay_1&accounts=eip155:56:0x92ab,eip155:1:0x92ab"),
+            "the form for every account comes with the response, not with one option"
+        );
     }
 
     #[test]
@@ -297,6 +306,7 @@ mod tests {
                 },
                 price: map_price(&amount("iso4217/USD", "30")).unwrap(),
                 quotes: vec![],
+                collect_data_url: None,
             },
             "pay_123",
         );

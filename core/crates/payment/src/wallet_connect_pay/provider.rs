@@ -57,7 +57,7 @@ impl<C: Client> WalletConnectPayProvider<C> {
         let actions = match self.get_actions(quote).await? {
             PaymentActions::Ready(actions) => actions,
             PaymentActions::CollectData => {
-                let url = quote.collect_data_url.clone().ok_or(PaymentError::InvalidRequest {
+                let url = invoice.collect_data_url.clone().or_else(|| quote.collect_data_url.clone()).ok_or(PaymentError::InvalidRequest {
                     reason: "Payment requires verification without a form".to_string(),
                 })?;
                 return Ok(PaymentLoad::Verify {
@@ -136,6 +136,42 @@ mod tests {
             ),
             payment_id: "pay_1".to_string(),
         }
+    }
+
+    #[tokio::test]
+    async fn test_a_refused_option_verifies_every_account_with_one_form() {
+        let options = r#"{"info":{"status":"requires_action","merchant":{"name":"Gem Coffee"},"amount":{"unit":"iso4217/USD","value":"10","display":{"decimals":2}}},
+            "collectData":{"url":"https://pay.walletconnect.com/collect/?pid=pay_1&accounts=eip155:10:0xa,eip155:56:0xa"},
+            "options":[{"id":"opt_op","account":"eip155:10:0x1085c5f70F7F7591D97da281A64688385455c2bD","amount":{"unit":"caip19/eip155:10/slip44:60","value":"1000"},
+                        "collectData":{"url":"https://pay.walletconnect.com/collect/?pid=pay_1&accounts=eip155:10:0xa"}}]}"#;
+        let client = MockClient::new().with_post(move |path, _| match path {
+            "/v1/gateway/payment/pay_1/options?includePaymentInfo=true" => Ok(options.as_bytes().to_vec()),
+            "/v1/gateway/payment/pay_1/fetch" => Err(gem_client::ClientError::Http {
+                status: 400,
+                body: br#"{"code":"params_validation","message":"IC data required but not found"}"#.to_vec(),
+            }),
+            path => panic!("unexpected call {path}"),
+        });
+        let provider = WalletConnectPayProvider {
+            client: WalletConnectPayClient::new(
+                client,
+                WalletConnectPayAuth {
+                    app_id: "app".to_string(),
+                    client_id: "client".to_string(),
+                },
+            ),
+            payment_id: "pay_1".to_string(),
+        };
+
+        let PaymentLoad::Verify { url, asset_id, .. } = provider
+            .load(&[ChainAddress::new(Chain::Optimism, "0x1085c5f70F7F7591D97da281A64688385455c2bD".to_string())])
+            .await
+            .unwrap()
+        else {
+            panic!("expected a verification");
+        };
+        assert_eq!(url, "https://pay.walletconnect.com/collect/?pid=pay_1&accounts=eip155:10:0xa,eip155:56:0xa");
+        assert_eq!(asset_id, AssetId::from_chain(Chain::Optimism));
     }
 
     #[tokio::test]

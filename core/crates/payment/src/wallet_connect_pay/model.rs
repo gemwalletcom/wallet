@@ -50,6 +50,7 @@ pub(super) struct Invoice {
     pub merchant: Merchant,
     pub price: PaymentPrice,
     pub quotes: Vec<Quote>,
+    pub collect_data_url: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -162,6 +163,8 @@ pub(super) struct PaymentOptionsResponse {
     pub info: Option<PaymentInfo>,
     #[serde(default)]
     pub options: Option<Vec<PaymentOption>>,
+    #[serde(default)]
+    pub collect_data: Option<PaymentCollectData>,
 }
 
 #[derive(Debug, Clone, Serialize)]
