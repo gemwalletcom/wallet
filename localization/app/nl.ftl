@@ -131,6 +131,8 @@ buy_no_results = Geen offertes beschikbaar
 # Transfer
 
 transfer_network_fee = Netwerkkosten
+transfer_pay_with = Betalen met
+transfer_payment_title = Betaling
 transfer_memo = Memo
 transfer_confirm = Bevestig
 transfer_from = Van
@@ -254,6 +256,11 @@ errors_network_offline = De internetverbinding lijkt offline te zijn.
 errors_no_internet_connection = Geen internetverbinding
 errors_no_service_connection = Geen serviceverbinding
 errors_balances_activity_outdated = Saldi en activiteit zijn mogelijk verouderd.
+errors_payment_in_progress = De betaling is al in behandeling
+errors_payment_paid = De betaling is al voldaan
+errors_payment_failed = De betaling is mislukt
+errors_payment_expired = De betaling is verlopen
+errors_payment_cancelled = De betaling is geannuleerd
 
 # Activity
 
@@ -540,6 +547,8 @@ sell_title = Verkoop %@
 info_network_fee_title = Netwerkkosten
 info_watch_wallet_title = Kijk-portemonnee
 info_watch_wallet_description = Een portemonnee waar u geen toegang toe heeft, maar wel de transacties en bewegingen ervan kunt bekijken.
+info_payment_verification_title = Betalingsverificatie
+info_payment_verification_description = Om aan de wettelijke vereisten te voldoen, moet deze verkoper uw identiteit verifiëren vóór de betaling.
 info_network_fee_description = Voor elke transactie op het %@ netwerk is een vergoeding van %@ vereist, betaald aan mijnwerkers om uw transactie te verwerken, niet aan Gem Wallet. De netwerkkosten variëren afhankelijk van het netwerkgebruik.
 info_transaction_error_description = De transactie kon niet worden voltooid vanwege een fout, zoals onvoldoende saldo, ongeldige invoer of afwijzing door het netwerk. Controleer de details en probeer het opnieuw.
 info_transaction_pending_description = De transactie is verzonden en wacht op bevestiging op het netwerk. Verwerkingstijden kunnen variëren. Kom later terug voor updates.

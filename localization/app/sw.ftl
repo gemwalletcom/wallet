@@ -131,6 +131,8 @@ buy_no_results = Hakuna nukuu zinazopatikana
 # Transfer
 
 transfer_network_fee = Ada ya Mtandao
+transfer_pay_with = Lipa kwa
+transfer_payment_title = Malipo
 transfer_memo = Memo
 transfer_confirm = Thibitisha
 transfer_from = Kutoka
@@ -254,6 +256,11 @@ errors_network_offline = Muunganisho wa intaneti unaonekana kuwa nje ya mtandao.
 errors_no_internet_connection = Hakuna muunganisho wa intaneti
 errors_no_service_connection = Hakuna muunganisho wa huduma
 errors_balances_activity_outdated = Salio na shughuli huenda si za sasa.
+errors_payment_in_progress = Malipo tayari yanaendelea
+errors_payment_paid = Malipo tayari yamefanywa
+errors_payment_failed = Malipo yameshindikana
+errors_payment_expired = Malipo yameisha muda
+errors_payment_cancelled = Malipo yameghairiwa
 
 # Activity
 
@@ -540,6 +547,8 @@ sell_title = Uza %@
 info_network_fee_title = Ada ya Mtandao
 info_watch_wallet_title = Tazama Wallet
 info_watch_wallet_description = Mkoba ambao huna ufikiaji, lakini unaweza kutazama shughuli na harakati zake.
+info_payment_verification_title = Uthibitisho wa Malipo
+info_payment_verification_description = Ili kutimiza masharti ya kisheria, mfanyabiashara huyu anahitaji kuthibitisha utambulisho wako kabla ya malipo.
 info_network_fee_description = Kila muamala kwenye mtandao wa %@ unahitaji ada ya %@ kulipwa kwa wachimbaji ili kushughulikia muamala wako, si Gem Wallet. Ada za mtandao hutofautiana kulingana na matumizi ya mtandao.
 info_transaction_error_description = Muamala haukuweza kukamilika kwa sababu ya hitilafu, kama vile uhaba wa fedha, ingizo batili au kukataliwa na mtandao. Tafadhali kagua maelezo na ujaribu tena.
 info_transaction_pending_description = Muamala umewasilishwa na unasubiri uthibitisho kwenye mtandao. Nyakati za usindikaji zinaweza kutofautiana. Tafadhali angalia tena kwa sasisho.

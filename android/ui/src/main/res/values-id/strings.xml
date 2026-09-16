@@ -110,6 +110,8 @@
   <string name="buy_rate">Nilai Tukar</string>
   <string name="buy_no_results">Tidak ada penawaran tersedia</string>
   <string name="transfer_network_fee">Biaya Jaringan</string>
+  <string name="transfer_pay_with">Bayar dengan</string>
+  <string name="transfer_payment_title">Pembayaran</string>
   <string name="transfer_memo">Memo</string>
   <string name="transfer_confirm">Konfirmasi</string>
   <string name="transfer_from">Dari</string>
@@ -224,6 +226,11 @@
   <string name="errors_no_internet_connection">Tidak ada koneksi internet</string>
   <string name="errors_no_service_connection">Tidak ada koneksi layanan</string>
   <string name="errors_balances_activity_outdated">Saldo dan aktivitas mungkin tidak terbaru.</string>
+  <string name="errors_payment_in_progress">Pembayaran sudah sedang diproses</string>
+  <string name="errors_payment_paid">Pembayaran sudah dilakukan</string>
+  <string name="errors_payment_failed">Pembayaran gagal</string>
+  <string name="errors_payment_expired">Pembayaran telah kedaluwarsa</string>
+  <string name="errors_payment_cancelled">Pembayaran dibatalkan</string>
   <string name="activity_title">Aktivitas</string>
   <string name="activity_state_empty_title">Aktivitas Anda akan muncul di sini</string>
   <string name="activity_state_empty_description">Lakukan transaksi pertama Anda</string>
@@ -435,6 +442,8 @@
   <string name="info_network_fee_title">Biaya Jaringan</string>
   <string name="info_watch_wallet_title">Dompet Pantau</string>
   <string name="info_watch_wallet_description">Dompet yang tidak dapat Anda akses, tetapi Anda dapat memantau transaksi dan pergerakannya.</string>
+  <string name="info_payment_verification_title">Verifikasi Pembayaran</string>
+  <string name="info_payment_verification_description">Untuk memenuhi ketentuan kepatuhan, merchant ini perlu memverifikasi identitas Anda sebelum pembayaran.</string>
   <string name="info_network_fee_description">Setiap transaksi di jaringan %1$s memerlukan biaya sebesar %2$s yang dibayarkan kepada penambang untuk memproses transaksi Anda, bukan Gem Wallet. Biaya jaringan bervariasi berdasarkan penggunaan jaringan.</string>
   <string name="info_transaction_error_description">Transaksi tidak dapat diselesaikan karena kesalahan, seperti dana tidak mencukupi, input tidak valid, atau penolakan oleh jaringan. Harap tinjau detailnya dan coba lagi.</string>
   <string name="info_transaction_pending_description">Transaksi telah dikirimkan dan sedang menunggu konfirmasi di jaringan. Waktu pemrosesan dapat bervariasi. Silakan periksa kembali untuk pembaruan.</string>

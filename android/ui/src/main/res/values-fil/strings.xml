@@ -110,6 +110,8 @@
   <string name="buy_rate">Rate</string>
   <string name="buy_no_results">Walang available na quotes</string>
   <string name="transfer_network_fee">Bayad sa Network</string>
+  <string name="transfer_pay_with">Magbayad gamit ang</string>
+  <string name="transfer_payment_title">Bayad</string>
   <string name="transfer_memo">Memo</string>
   <string name="transfer_confirm">Kumpirmahin</string>
   <string name="transfer_from">Mula sa</string>
@@ -224,6 +226,11 @@
   <string name="errors_no_internet_connection">Walang koneksyon sa internet</string>
   <string name="errors_no_service_connection">Walang koneksyon sa serbisyo</string>
   <string name="errors_balances_activity_outdated">Maaaring luma na ang mga balanse at aktibidad.</string>
+  <string name="errors_payment_in_progress">Isinasagawa na ang bayad</string>
+  <string name="errors_payment_paid">Nabayaran na</string>
+  <string name="errors_payment_failed">Nabigo ang bayad</string>
+  <string name="errors_payment_expired">Nag-expire na ang bayad</string>
+  <string name="errors_payment_cancelled">Nakansela ang bayad</string>
   <string name="activity_title">Aktibidad</string>
   <string name="activity_state_empty_title">Lalabas dito ang iyong aktibidad</string>
   <string name="activity_state_empty_description">Gawin ang iyong unang transaksyon</string>
@@ -435,6 +442,8 @@
   <string name="info_network_fee_title">Bayad sa Network</string>
   <string name="info_watch_wallet_title">Wallet na Binabantayan</string>
   <string name="info_watch_wallet_description">Isang wallet na wala kang access, ngunit maaari mong panoorin ang mga transaksyon at paggalaw nito.</string>
+  <string name="info_payment_verification_title">Beripikasyon ng Bayad</string>
+  <string name="info_payment_verification_description">Para matugunan ang mga kinakailangan sa pagsunod, kailangang beripikahin ng merchant na ito ang iyong pagkakakilanlan bago ang bayad.</string>
   <string name="info_network_fee_description">Ang bawat transaksyon sa %1$s network ay nangangailangan ng bayad sa %2$s na binabayaran sa mga minero upang maproseso ang iyong transaksyon, hindi ang Gem Wallet. Nag-iiba-iba ang mga bayarin sa network batay sa paggamit ng network.</string>
   <string name="info_transaction_error_description">Hindi makumpleto ang transaksyon dahil sa isang error, tulad ng hindi sapat na pondo, hindi wastong input, o pagtanggi ng network. Pakisuri ang mga detalye at subukang muli.</string>
   <string name="info_transaction_pending_description">Naisumite na ang transaksyon at naghihintay ng kumpirmasyon sa network. Maaaring mag-iba ang mga oras ng pagproseso. Mangyaring bumalik para sa mga update.</string>

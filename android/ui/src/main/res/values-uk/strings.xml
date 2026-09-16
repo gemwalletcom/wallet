@@ -110,6 +110,8 @@
   <string name="buy_rate">Курс</string>
   <string name="buy_no_results">Немає доступних котирувань</string>
   <string name="transfer_network_fee">Мережева плата</string>
+  <string name="transfer_pay_with">Оплатити за допомогою</string>
+  <string name="transfer_payment_title">Платіж</string>
   <string name="transfer_memo">Memo</string>
   <string name="transfer_confirm">Підтвердити</string>
   <string name="transfer_from">Від</string>
@@ -224,6 +226,11 @@
   <string name="errors_no_internet_connection">Немає підключення до інтернету</string>
   <string name="errors_no_service_connection">Немає підключення до сервісу</string>
   <string name="errors_balances_activity_outdated">Баланси та активність можуть бути застарілими.</string>
+  <string name="errors_payment_in_progress">Платіж уже виконується</string>
+  <string name="errors_payment_paid">Платіж уже здійснено</string>
+  <string name="errors_payment_failed">Платіж не виконано</string>
+  <string name="errors_payment_expired">Термін платежу минув</string>
+  <string name="errors_payment_cancelled">Платіж скасовано</string>
   <string name="activity_title">Активність</string>
   <string name="activity_state_empty_title">Ваша активність відображатиметься тут</string>
   <string name="activity_state_empty_description">Зробіть свою першу транзакцію</string>
@@ -435,6 +442,8 @@
   <string name="info_network_fee_title">Мережева плата</string>
   <string name="info_watch_wallet_title">Watch Wallet</string>
   <string name="info_watch_wallet_description">Гаманець, до якого у вас немає доступу, але ви можете спостерігати за його транзакціями та рухами.</string>
+  <string name="info_payment_verification_title">Перевірка платежу</string>
+  <string name="info_payment_verification_description">Щоб дотриматися вимог законодавства, цей продавець має підтвердити вашу особу перед платежем.</string>
   <string name="info_network_fee_description">Кожна транзакція в мережі %1$s вимагає комісію в %2$s, яка сплачується майнерам за обробку вашої транзакції, а не Gem Wallet. Розмір мережевої комісії залежить від використання мережі.</string>
   <string name="info_transaction_error_description">Транзакцію не вдалося завершити через помилку, таку як недостатня кількість коштів, недійсні дані або відхилення мережею. Перегляньте деталі та повторіть спробу.</string>
   <string name="info_transaction_pending_description">Транзакцію надіслано та очікує підтвердження в мережі. Час обробки може змінюватися. Будь ласка, слідкуйте за оновленнями.</string>

@@ -131,6 +131,8 @@ buy_no_results = 見積もりなし
 # Transfer
 
 transfer_network_fee = ネットワーク手数料
+transfer_pay_with = 支払い方法
+transfer_payment_title = 支払い
 transfer_memo = メモ
 transfer_confirm = 確認
 transfer_from = 送信元
@@ -254,6 +256,11 @@ errors_network_offline = インターネット接続が切断されているよ�
 errors_no_internet_connection = インターネット接続がありません
 errors_no_service_connection = サービスに接続できません
 errors_balances_activity_outdated = 残高とアクティビティは最新でない場合があります。
+errors_payment_in_progress = この支払いはすでに処理中です
+errors_payment_paid = この支払いはすでに完了しています
+errors_payment_failed = 支払いに失敗しました
+errors_payment_expired = 支払いの有効期限が切れました
+errors_payment_cancelled = 支払いはキャンセルされました
 
 # Activity
 
@@ -540,6 +547,8 @@ sell_title = %@を売る
 info_network_fee_title = ネットワーク手数料
 info_watch_wallet_title = ウォッチウォレット
 info_watch_wallet_description = 資産を操作する権限はありませんが、取引や資金の動きを確認できるウォレットです。
+info_payment_verification_title = 支払いの本人確認
+info_payment_verification_description = 法令遵守のため、この加盟店は支払いの前にお客様の本人確認を行う必要があります。
 info_network_fee_description = %@ ネットワーク上のすべての取引には、取引処理のためにマイナーに支払われる %@ の手数料が必要であり、Gem Wallet には支払われません。ネットワーク手数料はネットワークの使用状況により変動します。
 info_transaction_error_description = 残高不足、無効な入力、ネットワークによる拒否などのエラーにより、取引を完了できませんでした。詳細をご確認の上、再度お試しください。
 info_transaction_pending_description = 取引は送信済みで、ネットワーク上での確認を待っています。処理時間は異なる場合があります。最新情報を再度ご確認ください。

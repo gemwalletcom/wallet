@@ -131,6 +131,8 @@ buy_no_results = No hay cotizaciones disponibles
 # Transfer
 
 transfer_network_fee = Tarifa de red
+transfer_pay_with = Pagar con
+transfer_payment_title = Pago
 transfer_memo = Nota
 transfer_confirm = Confirmar
 transfer_from = De
@@ -254,6 +256,11 @@ errors_network_offline = La conexión a Internet parece estar fuera de línea.
 errors_no_internet_connection = Sin conexión a internet
 errors_no_service_connection = Sin conexión al servicio
 errors_balances_activity_outdated = Los saldos y la actividad pueden estar desactualizados.
+errors_payment_in_progress = El pago ya está en curso
+errors_payment_paid = El pago ya se ha realizado
+errors_payment_failed = El pago ha fallado
+errors_payment_expired = El pago ha caducado
+errors_payment_cancelled = El pago fue cancelado
 
 # Activity
 
@@ -540,6 +547,8 @@ sell_title = Vender %@
 info_network_fee_title = Tarifa de red
 info_watch_wallet_title = Billetera de observación
 info_watch_wallet_description = Una billetera a la que no tienes acceso, pero puedes observar sus transacciones y movimientos.
+info_payment_verification_title = Verificación del pago
+info_payment_verification_description = Para cumplir con la normativa, este comercio necesita verificar tu identidad antes del pago.
 info_network_fee_description = Cada transacción en la red %@ requiere una tarifa en %@ pagada a los mineros para procesar su transacción, no a Gem Wallet. Las tarifas de red varían según el uso de la red.
 info_transaction_error_description = La transacción no se pudo completar debido a un error, como fondos insuficientes, una entrada no válida o un rechazo de la red. Revise los detalles y vuelva a intentarlo.
 info_transaction_pending_description = La transacción se ha enviado y está pendiente de confirmación en la red. El tiempo de procesamiento puede variar. Por favor, vuelva a consultar para obtener actualizaciones.

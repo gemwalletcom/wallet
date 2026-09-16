@@ -110,6 +110,8 @@
   <string name="buy_rate">匯率</string>
   <string name="buy_no_results">暫無報價</string>
   <string name="transfer_network_fee">網路手續費</string>
+  <string name="transfer_pay_with">付款方式</string>
+  <string name="transfer_payment_title">付款</string>
   <string name="transfer_memo">備註</string>
   <string name="transfer_confirm">確認</string>
   <string name="transfer_from">來自</string>
@@ -224,6 +226,11 @@
   <string name="errors_no_internet_connection">無網際網路連線</string>
   <string name="errors_no_service_connection">無法連線至服務</string>
   <string name="errors_balances_activity_outdated">餘額和交易紀錄可能尚未更新。</string>
+  <string name="errors_payment_in_progress">此付款已在處理中</string>
+  <string name="errors_payment_paid">此付款已完成</string>
+  <string name="errors_payment_failed">付款失敗</string>
+  <string name="errors_payment_expired">付款已過期</string>
+  <string name="errors_payment_cancelled">付款已取消</string>
   <string name="activity_title">交易紀錄</string>
   <string name="activity_state_empty_title">交易將顯示在此處</string>
   <string name="activity_state_empty_description">進行第一筆交易</string>
@@ -435,6 +442,8 @@
   <string name="info_network_fee_title">網路手續費</string>
   <string name="info_watch_wallet_title">觀察錢包</string>
   <string name="info_watch_wallet_description">這是一個您無法操作的錢包，但可以查看它的交易和資產變動。</string>
+  <string name="info_payment_verification_title">付款身分驗證</string>
+  <string name="info_payment_verification_description">為符合法規要求，此商家需要在付款前驗證您的身分。</string>
   <string name="info_network_fee_description">在 %1$s 網路上的每筆交易都需要以 %2$s 支付給礦工的手續費，以處理交易，Gem Wallet 不收取此費用。網路手續費會根據網路使用情況而有所不同。</string>
   <string name="info_transaction_error_description">由於錯誤（例如資金不足、輸入無效或網路拒絕）導致交易無法完成。請查看詳細資訊並重試。</string>
   <string name="info_transaction_pending_description">交易已提交並正在等待網路確認。處理時間可能有所不同。請回來查看更新。</string>

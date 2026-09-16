@@ -110,6 +110,8 @@
   <string name="buy_rate">Kiwango</string>
   <string name="buy_no_results">Hakuna nukuu zinazopatikana</string>
   <string name="transfer_network_fee">Ada ya Mtandao</string>
+  <string name="transfer_pay_with">Lipa kwa</string>
+  <string name="transfer_payment_title">Malipo</string>
   <string name="transfer_memo">Memo</string>
   <string name="transfer_confirm">Thibitisha</string>
   <string name="transfer_from">Kutoka</string>
@@ -224,6 +226,11 @@
   <string name="errors_no_internet_connection">Hakuna muunganisho wa intaneti</string>
   <string name="errors_no_service_connection">Hakuna muunganisho wa huduma</string>
   <string name="errors_balances_activity_outdated">Salio na shughuli huenda si za sasa.</string>
+  <string name="errors_payment_in_progress">Malipo tayari yanaendelea</string>
+  <string name="errors_payment_paid">Malipo tayari yamefanywa</string>
+  <string name="errors_payment_failed">Malipo yameshindikana</string>
+  <string name="errors_payment_expired">Malipo yameisha muda</string>
+  <string name="errors_payment_cancelled">Malipo yameghairiwa</string>
   <string name="activity_title">Shughuli</string>
   <string name="activity_state_empty_title">Shughuli yako itaonekana hapa</string>
   <string name="activity_state_empty_description">Fanya muamala wako wa kwanza</string>
@@ -435,6 +442,8 @@
   <string name="info_network_fee_title">Ada ya Mtandao</string>
   <string name="info_watch_wallet_title">Tazama Wallet</string>
   <string name="info_watch_wallet_description">Mkoba ambao huna ufikiaji, lakini unaweza kutazama shughuli na harakati zake.</string>
+  <string name="info_payment_verification_title">Uthibitisho wa Malipo</string>
+  <string name="info_payment_verification_description">Ili kutimiza masharti ya kisheria, mfanyabiashara huyu anahitaji kuthibitisha utambulisho wako kabla ya malipo.</string>
   <string name="info_network_fee_description">Kila muamala kwenye mtandao wa %1$s unahitaji ada ya %2$s kulipwa kwa wachimbaji ili kushughulikia muamala wako, si Gem Wallet. Ada za mtandao hutofautiana kulingana na matumizi ya mtandao.</string>
   <string name="info_transaction_error_description">Muamala haukuweza kukamilika kwa sababu ya hitilafu, kama vile uhaba wa fedha, ingizo batili au kukataliwa na mtandao. Tafadhali kagua maelezo na ujaribu tena.</string>
   <string name="info_transaction_pending_description">Muamala umewasilishwa na unasubiri uthibitisho kwenye mtandao. Nyakati za usindikaji zinaweza kutofautiana. Tafadhali angalia tena kwa sasisho.</string>

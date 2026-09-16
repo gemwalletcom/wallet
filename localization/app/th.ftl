@@ -131,6 +131,8 @@ buy_no_results = ไม่มีใบเสนอราคา
 # Transfer
 
 transfer_network_fee = ค่าธรรมเนียมเครือข่าย
+transfer_pay_with = ชำระด้วย
+transfer_payment_title = การชำระเงิน
 transfer_memo = บันทึก
 transfer_confirm = ยืนยัน
 transfer_from = จาก
@@ -254,6 +256,11 @@ errors_network_offline = ดูเหมือนว่าการเชื่�
 errors_no_internet_connection = ไม่มีการเชื่อมต่ออินเทอร์เน็ต
 errors_no_service_connection = ไม่มีการเชื่อมต่อบริการ
 errors_balances_activity_outdated = ยอดคงเหลือและกิจกรรมอาจไม่เป็นปัจจุบัน
+errors_payment_in_progress = การชำระเงินนี้กำลังดำเนินการอยู่แล้ว
+errors_payment_paid = การชำระเงินนี้ได้ชำระแล้ว
+errors_payment_failed = การชำระเงินล้มเหลว
+errors_payment_expired = การชำระเงินหมดอายุแล้ว
+errors_payment_cancelled = การชำระเงินถูกยกเลิกแล้ว
 
 # Activity
 
@@ -540,6 +547,8 @@ sell_title = ขาย %@
 info_network_fee_title = ค่าธรรมเนียมเครือข่าย
 info_watch_wallet_title = ดูกระเป๋าเงิน
 info_watch_wallet_description = กระเป๋าเงินที่คุณไม่สามารถเข้าถึงได้แต่คุณสามารถดูธุรกรรมและการเคลื่อนไหวได้
+info_payment_verification_title = การยืนยันตัวตนสำหรับการชำระเงิน
+info_payment_verification_description = เพื่อให้เป็นไปตามข้อกำหนด ผู้ขายรายนี้จำเป็นต้องยืนยันตัวตนของคุณก่อนการชำระเงิน
 info_network_fee_description = ทุกธุรกรรมบนเครือข่าย %@ ต้องเสียค่าธรรมเนียมเป็น %@ ที่จ่ายให้กับนักขุดเพื่อดำเนินการธุรกรรมของคุณ ไม่ใช่ Gem Wallet ค่าธรรมเนียมเครือข่ายจะแตกต่างกันไปตามการใช้งานเครือข่าย
 info_transaction_error_description = ไม่สามารถทำธุรกรรมให้เสร็จสมบูรณ์ได้เนื่องจากเกิดข้อผิดพลาด เช่น เงินไม่เพียงพอ ข้อมูลที่ป้อนไม่ถูกต้อง หรือเครือข่ายปฏิเสธ โปรดตรวจสอบรายละเอียดและลองอีกครั้ง
 info_transaction_pending_description = ธุรกรรมได้รับการส่งแล้วและกำลังรอการยืนยันบนเครือข่าย เวลาในการประมวลผลอาจแตกต่างกัน โปรดตรวจสอบอีกครั้งเพื่อดูการอัปเดต

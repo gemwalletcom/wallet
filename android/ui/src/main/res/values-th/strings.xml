@@ -110,6 +110,8 @@
   <string name="buy_rate">อัตรา</string>
   <string name="buy_no_results">ไม่มีใบเสนอราคา</string>
   <string name="transfer_network_fee">ค่าธรรมเนียมเครือข่าย</string>
+  <string name="transfer_pay_with">ชำระด้วย</string>
+  <string name="transfer_payment_title">การชำระเงิน</string>
   <string name="transfer_memo">บันทึก</string>
   <string name="transfer_confirm">ยืนยัน</string>
   <string name="transfer_from">จาก</string>
@@ -224,6 +226,11 @@
   <string name="errors_no_internet_connection">ไม่มีการเชื่อมต่ออินเทอร์เน็ต</string>
   <string name="errors_no_service_connection">ไม่มีการเชื่อมต่อบริการ</string>
   <string name="errors_balances_activity_outdated">ยอดคงเหลือและกิจกรรมอาจไม่เป็นปัจจุบัน</string>
+  <string name="errors_payment_in_progress">การชำระเงินนี้กำลังดำเนินการอยู่แล้ว</string>
+  <string name="errors_payment_paid">การชำระเงินนี้ได้ชำระแล้ว</string>
+  <string name="errors_payment_failed">การชำระเงินล้มเหลว</string>
+  <string name="errors_payment_expired">การชำระเงินหมดอายุแล้ว</string>
+  <string name="errors_payment_cancelled">การชำระเงินถูกยกเลิกแล้ว</string>
   <string name="activity_title">กิจกรรม</string>
   <string name="activity_state_empty_title">กิจกรรมของคุณจะปรากฏที่นี่</string>
   <string name="activity_state_empty_description">ทำธุรกรรมครั้งแรกของคุณ</string>
@@ -435,6 +442,8 @@
   <string name="info_network_fee_title">ค่าธรรมเนียมเครือข่าย</string>
   <string name="info_watch_wallet_title">ดูกระเป๋าเงิน</string>
   <string name="info_watch_wallet_description">กระเป๋าเงินที่คุณไม่สามารถเข้าถึงได้แต่คุณสามารถดูธุรกรรมและการเคลื่อนไหวได้</string>
+  <string name="info_payment_verification_title">การยืนยันตัวตนสำหรับการชำระเงิน</string>
+  <string name="info_payment_verification_description">เพื่อให้เป็นไปตามข้อกำหนด ผู้ขายรายนี้จำเป็นต้องยืนยันตัวตนของคุณก่อนการชำระเงิน</string>
   <string name="info_network_fee_description">ทุกธุรกรรมบนเครือข่าย %1$s ต้องเสียค่าธรรมเนียมเป็น %2$s ที่จ่ายให้กับนักขุดเพื่อดำเนินการธุรกรรมของคุณ ไม่ใช่ Gem Wallet ค่าธรรมเนียมเครือข่ายจะแตกต่างกันไปตามการใช้งานเครือข่าย</string>
   <string name="info_transaction_error_description">ไม่สามารถทำธุรกรรมให้เสร็จสมบูรณ์ได้เนื่องจากเกิดข้อผิดพลาด เช่น เงินไม่เพียงพอ ข้อมูลที่ป้อนไม่ถูกต้อง หรือเครือข่ายปฏิเสธ โปรดตรวจสอบรายละเอียดและลองอีกครั้ง</string>
   <string name="info_transaction_pending_description">ธุรกรรมได้รับการส่งแล้วและกำลังรอการยืนยันบนเครือข่าย เวลาในการประมวลผลอาจแตกต่างกัน โปรดตรวจสอบอีกครั้งเพื่อดูการอัปเดต</string>

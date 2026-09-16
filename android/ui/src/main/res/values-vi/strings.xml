@@ -110,6 +110,8 @@
   <string name="buy_rate">Tỷ lệ</string>
   <string name="buy_no_results">Không có báo giá nào</string>
   <string name="transfer_network_fee">Phí mạng</string>
+  <string name="transfer_pay_with">Thanh toán bằng</string>
+  <string name="transfer_payment_title">Thanh toán</string>
   <string name="transfer_memo">Ghi chú</string>
   <string name="transfer_confirm">Xác nhận</string>
   <string name="transfer_from">Từ</string>
@@ -224,6 +226,11 @@
   <string name="errors_no_internet_connection">Không có kết nối internet</string>
   <string name="errors_no_service_connection">Không có kết nối dịch vụ</string>
   <string name="errors_balances_activity_outdated">Số dư và hoạt động có thể chưa được cập nhật.</string>
+  <string name="errors_payment_in_progress">Thanh toán đã đang được xử lý</string>
+  <string name="errors_payment_paid">Thanh toán đã được thực hiện</string>
+  <string name="errors_payment_failed">Thanh toán thất bại</string>
+  <string name="errors_payment_expired">Thanh toán đã hết hạn</string>
+  <string name="errors_payment_cancelled">Thanh toán đã bị hủy</string>
   <string name="activity_title">Hoạt động</string>
   <string name="activity_state_empty_title">Hoạt động của bạn sẽ xuất hiện ở đây</string>
   <string name="activity_state_empty_description">Thực hiện giao dịch đầu tiên của bạn</string>
@@ -435,6 +442,8 @@
   <string name="info_network_fee_title">Phí mạng</string>
   <string name="info_watch_wallet_title">Ví đồng hồ</string>
   <string name="info_watch_wallet_description">Một ví mà bạn không thể truy cập nhưng bạn có thể theo dõi các giao dịch và biến động của nó.</string>
+  <string name="info_payment_verification_title">Xác minh thanh toán</string>
+  <string name="info_payment_verification_description">Để tuân thủ quy định, người bán này cần xác minh danh tính của bạn trước khi thanh toán.</string>
   <string name="info_network_fee_description">Mọi giao dịch trên mạng %1$s đều yêu cầu một khoản phí bằng %2$s trả cho người khai thác để xử lý giao dịch của bạn, không phải Ví Gem. Phí mạng thay đổi tùy theo mức sử dụng mạng.</string>
   <string name="info_transaction_error_description">Giao dịch không thể hoàn tất do lỗi, chẳng hạn như không đủ tiền, đầu vào không hợp lệ hoặc bị mạng từ chối. Vui lòng xem lại chi tiết và thử lại.</string>
   <string name="info_transaction_pending_description">Giao dịch đã được gửi và đang chờ xác nhận trên mạng. Thời gian xử lý có thể thay đổi. Vui lòng kiểm tra lại để cập nhật.</string>

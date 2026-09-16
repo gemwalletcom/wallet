@@ -110,6 +110,8 @@
   <string name="buy_rate">Tasso</string>
   <string name="buy_no_results">Nessun preventivo disponibile</string>
   <string name="transfer_network_fee">Commissione di rete</string>
+  <string name="transfer_pay_with">Paga con</string>
+  <string name="transfer_payment_title">Pagamento</string>
   <string name="transfer_memo">Promemoria</string>
   <string name="transfer_confirm">Conferma</string>
   <string name="transfer_from">Da</string>
@@ -224,6 +226,11 @@
   <string name="errors_no_internet_connection">Nessuna connessione a internet</string>
   <string name="errors_no_service_connection">Nessuna connessione al servizio</string>
   <string name="errors_balances_activity_outdated">Saldi e attività potrebbero non essere aggiornati.</string>
+  <string name="errors_payment_in_progress">Il pagamento è già in corso</string>
+  <string name="errors_payment_paid">Il pagamento è già stato effettuato</string>
+  <string name="errors_payment_failed">Il pagamento non è riuscito</string>
+  <string name="errors_payment_expired">Il pagamento è scaduto</string>
+  <string name="errors_payment_cancelled">Il pagamento è stato annullato</string>
   <string name="activity_title">Attività</string>
   <string name="activity_state_empty_title">La tua attività apparirà qui</string>
   <string name="activity_state_empty_description">Effettua la tua prima transazione</string>
@@ -435,6 +442,8 @@
   <string name="info_network_fee_title">Commissione di rete</string>
   <string name="info_watch_wallet_title">Guarda Portafoglio</string>
   <string name="info_watch_wallet_description">Un portafoglio a cui non hai accesso, ma di cui puoi monitorare le transazioni e i movimenti.</string>
+  <string name="info_payment_verification_title">Verifica del pagamento</string>
+  <string name="info_payment_verification_description">Per rispettare gli obblighi normativi, questo esercente deve verificare la tua identità prima del pagamento.</string>
   <string name="info_network_fee_description">Ogni transazione sulla rete %1$s richiede una commissione in %2$s pagata ai minatori per elaborare la transazione, non a Gem Wallet. Le tariffe di rete variano in base all\'utilizzo della rete.</string>
   <string name="info_transaction_error_description">La transazione non è stata completata a causa di un errore, ad esempio fondi insufficienti, input non validi o rifiuto da parte della rete. Si prega di controllare i dettagli e riprovare.</string>
   <string name="info_transaction_pending_description">La transazione è stata inoltrata ed è in attesa di conferma sulla rete. I tempi di elaborazione possono variare. Si prega di controllare regolarmente per aggiornamenti.</string>

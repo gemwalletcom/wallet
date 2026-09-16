@@ -110,6 +110,8 @@
   <string name="buy_rate">レート</string>
   <string name="buy_no_results">見積もりなし</string>
   <string name="transfer_network_fee">ネットワーク手数料</string>
+  <string name="transfer_pay_with">支払い方法</string>
+  <string name="transfer_payment_title">支払い</string>
   <string name="transfer_memo">メモ</string>
   <string name="transfer_confirm">確認</string>
   <string name="transfer_from">送信元</string>
@@ -224,6 +226,11 @@
   <string name="errors_no_internet_connection">インターネット接続がありません</string>
   <string name="errors_no_service_connection">サービスに接続できません</string>
   <string name="errors_balances_activity_outdated">残高とアクティビティは最新でない場合があります。</string>
+  <string name="errors_payment_in_progress">この支払いはすでに処理中です</string>
+  <string name="errors_payment_paid">この支払いはすでに完了しています</string>
+  <string name="errors_payment_failed">支払いに失敗しました</string>
+  <string name="errors_payment_expired">支払いの有効期限が切れました</string>
+  <string name="errors_payment_cancelled">支払いはキャンセルされました</string>
   <string name="activity_title">アクティビティ</string>
   <string name="activity_state_empty_title">アクティビティはここに表示されます</string>
   <string name="activity_state_empty_description">最初の取引を行う</string>
@@ -435,6 +442,8 @@
   <string name="info_network_fee_title">ネットワーク手数料</string>
   <string name="info_watch_wallet_title">ウォッチウォレット</string>
   <string name="info_watch_wallet_description">資産を操作する権限はありませんが、取引や資金の動きを確認できるウォレットです。</string>
+  <string name="info_payment_verification_title">支払いの本人確認</string>
+  <string name="info_payment_verification_description">法令遵守のため、この加盟店は支払いの前にお客様の本人確認を行う必要があります。</string>
   <string name="info_network_fee_description">%1$s ネットワーク上のすべての取引には、取引処理のためにマイナーに支払われる %2$s の手数料が必要であり、Gem Wallet には支払われません。ネットワーク手数料はネットワークの使用状況により変動します。</string>
   <string name="info_transaction_error_description">残高不足、無効な入力、ネットワークによる拒否などのエラーにより、取引を完了できませんでした。詳細をご確認の上、再度お試しください。</string>
   <string name="info_transaction_pending_description">取引は送信済みで、ネットワーク上での確認を待っています。処理時間は異なる場合があります。最新情報を再度ご確認ください。</string>

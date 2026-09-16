@@ -131,6 +131,8 @@ buy_no_results = কোনো উদ্ধৃতি উপলব্ধ নেই
 # Transfer
 
 transfer_network_fee = নেটওয়ার্ক ফি
+transfer_pay_with = যা দিয়ে পেমেন্ট করবেন
+transfer_payment_title = পেমেন্ট
 transfer_memo = মেমো
 transfer_confirm = নিশ্চিত করুন
 transfer_from = প্রেরক
@@ -254,6 +256,11 @@ errors_network_offline = ইন্টারনেট সংযোগটি অ�
 errors_no_internet_connection = ইন্টারনেট সংযোগ নেই
 errors_no_service_connection = পরিষেবা সংযোগ নেই
 errors_balances_activity_outdated = ব্যালেন্স এবং কার্যকলাপ পুরনো হতে পারে।
+errors_payment_in_progress = পেমেন্ট ইতিমধ্যে চলছে
+errors_payment_paid = পেমেন্ট ইতিমধ্যে সম্পন্ন হয়েছে
+errors_payment_failed = পেমেন্ট ব্যর্থ হয়েছে
+errors_payment_expired = পেমেন্টের মেয়াদ শেষ হয়ে গেছে
+errors_payment_cancelled = পেমেন্ট বাতিল করা হয়েছে
 
 # Activity
 
@@ -540,6 +547,8 @@ sell_title = %@ বিক্রি করুন
 info_network_fee_title = নেটওয়ার্ক ফি
 info_watch_wallet_title = ওয়ালেট দেখুন
 info_watch_wallet_description = একটি মানিব্যাগ যা আপনার অ্যাক্সেস নেই, তবে আপনি এটির লেনদেন এবং গতিবিধি দেখতে পারেন।
+info_payment_verification_title = পেমেন্ট যাচাইকরণ
+info_payment_verification_description = নিয়ম মেনে চলার জন্য এই মার্চেন্টকে পেমেন্টের আগে আপনার পরিচয় যাচাই করতে হবে।
 info_network_fee_description = %@ নেটওয়ার্কে প্রতিটি লেনদেনের জন্য আপনার লেনদেন প্রক্রিয়া করার জন্য %@-এ ফি দিতে হবে, Gem Wallet নয়। নেটওয়ার্ক ফি নেটওয়ার্ক ব্যবহারের উপর ভিত্তি করে পরিবর্তিত হয়।
 info_transaction_error_description = একটি ত্রুটির কারণে লেনদেন সম্পন্ন করা যায়নি, যেমন অপর্যাপ্ত তহবিল, অবৈধ ইনপুট, বা নেটওয়ার্ক দ্বারা প্রত্যাখ্যান। অনুগ্রহ করে বিস্তারিত পর্যালোচনা করুন এবং আবার চেষ্টা করুন।
 info_transaction_pending_description = লেনদেন জমা দেওয়া হয়েছে এবং নেটওয়ার্কে নিশ্চিতকরণের জন্য অপেক্ষা করছে। প্রক্রিয়াকরণের সময় পরিবর্তিত হতে পারে। আপডেটের জন্য আবার চেক করুন.

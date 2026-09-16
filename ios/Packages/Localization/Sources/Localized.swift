@@ -443,6 +443,16 @@ public enum Localized {
     public static let notSupported = Localized.tr("Localizable", "errors.not_supported", fallback: "Not Supported")
     /// This device does not support QR code scanning. You can only select QR code image from library.
     public static let notSupportedQr = Localized.tr("Localizable", "errors.not_supported_qr", fallback: "This device does not support QR code scanning. You can only select QR code image from library.")
+    /// Payment was cancelled
+    public static let paymentCancelled = Localized.tr("Localizable", "errors.payment_cancelled", fallback: "Payment was cancelled")
+    /// Payment has expired
+    public static let paymentExpired = Localized.tr("Localizable", "errors.payment_expired", fallback: "Payment has expired")
+    /// Payment has failed
+    public static let paymentFailed = Localized.tr("Localizable", "errors.payment_failed", fallback: "Payment has failed")
+    /// Payment is already in progress
+    public static let paymentInProgress = Localized.tr("Localizable", "errors.payment_in_progress", fallback: "Payment is already in progress")
+    /// Payment is already paid
+    public static let paymentPaid = Localized.tr("Localizable", "errors.payment_paid", fallback: "Payment is already paid")
     /// Permissions Not Granted
     public static let permissionsNotGranted = Localized.tr("Localizable", "errors.permissions_not_granted", fallback: "Permissions Not Granted")
     /// %@ is required

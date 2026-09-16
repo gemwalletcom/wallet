@@ -131,6 +131,8 @@ buy_no_results = Không có báo giá nào
 # Transfer
 
 transfer_network_fee = Phí mạng
+transfer_pay_with = Thanh toán bằng
+transfer_payment_title = Thanh toán
 transfer_memo = Ghi chú
 transfer_confirm = Xác nhận
 transfer_from = Từ
@@ -254,6 +256,11 @@ errors_network_offline = Kết nối Internet dường như đang bị ngắt.
 errors_no_internet_connection = Không có kết nối internet
 errors_no_service_connection = Không có kết nối dịch vụ
 errors_balances_activity_outdated = Số dư và hoạt động có thể chưa được cập nhật.
+errors_payment_in_progress = Thanh toán đã đang được xử lý
+errors_payment_paid = Thanh toán đã được thực hiện
+errors_payment_failed = Thanh toán thất bại
+errors_payment_expired = Thanh toán đã hết hạn
+errors_payment_cancelled = Thanh toán đã bị hủy
 
 # Activity
 
@@ -540,6 +547,8 @@ sell_title = Bán %@
 info_network_fee_title = Phí mạng
 info_watch_wallet_title = Ví đồng hồ
 info_watch_wallet_description = Một ví mà bạn không thể truy cập nhưng bạn có thể theo dõi các giao dịch và biến động của nó.
+info_payment_verification_title = Xác minh thanh toán
+info_payment_verification_description = Để tuân thủ quy định, người bán này cần xác minh danh tính của bạn trước khi thanh toán.
 info_network_fee_description = Mọi giao dịch trên mạng %@ đều yêu cầu một khoản phí bằng %@ trả cho người khai thác để xử lý giao dịch của bạn, không phải Ví Gem. Phí mạng thay đổi tùy theo mức sử dụng mạng.
 info_transaction_error_description = Giao dịch không thể hoàn tất do lỗi, chẳng hạn như không đủ tiền, đầu vào không hợp lệ hoặc bị mạng từ chối. Vui lòng xem lại chi tiết và thử lại.
 info_transaction_pending_description = Giao dịch đã được gửi và đang chờ xác nhận trên mạng. Thời gian xử lý có thể thay đổi. Vui lòng kiểm tra lại để cập nhật.

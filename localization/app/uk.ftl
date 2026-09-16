@@ -131,6 +131,8 @@ buy_no_results = Немає доступних котирувань
 # Transfer
 
 transfer_network_fee = Мережева плата
+transfer_pay_with = Оплатити за допомогою
+transfer_payment_title = Платіж
 transfer_memo = Memo
 transfer_confirm = Підтвердити
 transfer_from = Від
@@ -254,6 +256,11 @@ errors_network_offline = Здається, підключення до Інте�
 errors_no_internet_connection = Немає підключення до інтернету
 errors_no_service_connection = Немає підключення до сервісу
 errors_balances_activity_outdated = Баланси та активність можуть бути застарілими.
+errors_payment_in_progress = Платіж уже виконується
+errors_payment_paid = Платіж уже здійснено
+errors_payment_failed = Платіж не виконано
+errors_payment_expired = Термін платежу минув
+errors_payment_cancelled = Платіж скасовано
 
 # Activity
 
@@ -540,6 +547,8 @@ sell_title = Продати %@
 info_network_fee_title = Мережева плата
 info_watch_wallet_title = Watch Wallet
 info_watch_wallet_description = Гаманець, до якого у вас немає доступу, але ви можете спостерігати за його транзакціями та рухами.
+info_payment_verification_title = Перевірка платежу
+info_payment_verification_description = Щоб дотриматися вимог законодавства, цей продавець має підтвердити вашу особу перед платежем.
 info_network_fee_description = Кожна транзакція в мережі %@ вимагає комісію в %@, яка сплачується майнерам за обробку вашої транзакції, а не Gem Wallet. Розмір мережевої комісії залежить від використання мережі.
 info_transaction_error_description = Транзакцію не вдалося завершити через помилку, таку як недостатня кількість коштів, недійсні дані або відхилення мережею. Перегляньте деталі та повторіть спробу.
 info_transaction_pending_description = Транзакцію надіслано та очікує підтвердження в мережі. Час обробки може змінюватися. Будь ласка, слідкуйте за оновленнями.

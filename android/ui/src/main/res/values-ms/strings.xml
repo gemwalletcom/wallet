@@ -110,6 +110,8 @@
   <string name="buy_rate">Kadar</string>
   <string name="buy_no_results">Tiada sebut harga tersedia</string>
   <string name="transfer_network_fee">Yuran Rangkaian</string>
+  <string name="transfer_pay_with">Bayar dengan</string>
+  <string name="transfer_payment_title">Pembayaran</string>
   <string name="transfer_memo">Memo</string>
   <string name="transfer_confirm">Sahkan</string>
   <string name="transfer_from">Daripada</string>
@@ -224,6 +226,11 @@
   <string name="errors_no_internet_connection">Tiada sambungan internet</string>
   <string name="errors_no_service_connection">Tiada sambungan perkhidmatan</string>
   <string name="errors_balances_activity_outdated">Baki dan aktiviti mungkin tidak terkini.</string>
+  <string name="errors_payment_in_progress">Pembayaran sudah sedang dijalankan</string>
+  <string name="errors_payment_paid">Pembayaran sudah dibuat</string>
+  <string name="errors_payment_failed">Pembayaran gagal</string>
+  <string name="errors_payment_expired">Pembayaran telah tamat tempoh</string>
+  <string name="errors_payment_cancelled">Pembayaran telah dibatalkan</string>
   <string name="activity_title">Aktiviti</string>
   <string name="activity_state_empty_title">Aktiviti anda akan dipaparkan di sini</string>
   <string name="activity_state_empty_description">Buat transaksi pertama anda</string>
@@ -435,6 +442,8 @@
   <string name="info_network_fee_title">Yuran Rangkaian</string>
   <string name="info_watch_wallet_title">Tonton Wallet</string>
   <string name="info_watch_wallet_description">Dompet yang anda tidak mempunyai akses, tetapi anda boleh menonton transaksi dan pergerakannya.</string>
+  <string name="info_payment_verification_title">Pengesahan Pembayaran</string>
+  <string name="info_payment_verification_description">Untuk memenuhi keperluan pematuhan, peniaga ini perlu mengesahkan identiti anda sebelum pembayaran.</string>
   <string name="info_network_fee_description">Setiap transaksi pada rangkaian %1$s memerlukan bayaran dalam %2$s dibayar kepada pelombong untuk memproses transaksi anda, bukan Gem Wallet. Yuran rangkaian berbeza-beza berdasarkan penggunaan rangkaian.</string>
   <string name="info_transaction_error_description">Urus niaga tidak dapat diselesaikan kerana ralat, seperti dana tidak mencukupi, input tidak sah atau penolakan oleh rangkaian. Sila semak butiran dan cuba lagi.</string>
   <string name="info_transaction_pending_description">Urus niaga telah diserahkan dan sedang menunggu pengesahan pada rangkaian. Masa pemprosesan mungkin berbeza-beza. Sila semak semula untuk kemas kini.</string>

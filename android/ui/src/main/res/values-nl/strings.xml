@@ -110,6 +110,8 @@
   <string name="buy_rate">Koers</string>
   <string name="buy_no_results">Geen offertes beschikbaar</string>
   <string name="transfer_network_fee">Netwerkkosten</string>
+  <string name="transfer_pay_with">Betalen met</string>
+  <string name="transfer_payment_title">Betaling</string>
   <string name="transfer_memo">Memo</string>
   <string name="transfer_confirm">Bevestig</string>
   <string name="transfer_from">Van</string>
@@ -224,6 +226,11 @@
   <string name="errors_no_internet_connection">Geen internetverbinding</string>
   <string name="errors_no_service_connection">Geen serviceverbinding</string>
   <string name="errors_balances_activity_outdated">Saldi en activiteit zijn mogelijk verouderd.</string>
+  <string name="errors_payment_in_progress">De betaling is al in behandeling</string>
+  <string name="errors_payment_paid">De betaling is al voldaan</string>
+  <string name="errors_payment_failed">De betaling is mislukt</string>
+  <string name="errors_payment_expired">De betaling is verlopen</string>
+  <string name="errors_payment_cancelled">De betaling is geannuleerd</string>
   <string name="activity_title">Activiteit</string>
   <string name="activity_state_empty_title">Uw activiteit zal hier verschijnen</string>
   <string name="activity_state_empty_description">Maak uw eerste transactie</string>
@@ -435,6 +442,8 @@
   <string name="info_network_fee_title">Netwerkkosten</string>
   <string name="info_watch_wallet_title">Kijk-portemonnee</string>
   <string name="info_watch_wallet_description">Een portemonnee waar u geen toegang toe heeft, maar wel de transacties en bewegingen ervan kunt bekijken.</string>
+  <string name="info_payment_verification_title">Betalingsverificatie</string>
+  <string name="info_payment_verification_description">Om aan de wettelijke vereisten te voldoen, moet deze verkoper uw identiteit verifiëren vóór de betaling.</string>
   <string name="info_network_fee_description">Voor elke transactie op het %1$s netwerk is een vergoeding van %2$s vereist, betaald aan mijnwerkers om uw transactie te verwerken, niet aan Gem Wallet. De netwerkkosten variëren afhankelijk van het netwerkgebruik.</string>
   <string name="info_transaction_error_description">De transactie kon niet worden voltooid vanwege een fout, zoals onvoldoende saldo, ongeldige invoer of afwijzing door het netwerk. Controleer de details en probeer het opnieuw.</string>
   <string name="info_transaction_pending_description">De transactie is verzonden en wacht op bevestiging op het netwerk. Verwerkingstijden kunnen variëren. Kom later terug voor updates.</string>

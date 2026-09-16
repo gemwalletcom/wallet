@@ -131,6 +131,8 @@ buy_no_results = Nu există oferte disponibile
 # Transfer
 
 transfer_network_fee = Taxa de retea
+transfer_pay_with = Plătește cu
+transfer_payment_title = Plată
 transfer_memo = Notă
 transfer_confirm = Confirmați
 transfer_from = De la
@@ -254,6 +256,11 @@ errors_network_offline = Conexiunea la internet pare să fie offline.
 errors_no_internet_connection = Nicio conexiune la internet
 errors_no_service_connection = Nicio conexiune la serviciu
 errors_balances_activity_outdated = Soldurile și activitatea pot fi învechite.
+errors_payment_in_progress = Plata este deja în curs
+errors_payment_paid = Plata a fost deja efectuată
+errors_payment_failed = Plata a eșuat
+errors_payment_expired = Plata a expirat
+errors_payment_cancelled = Plata a fost anulată
 
 # Activity
 
@@ -540,6 +547,8 @@ sell_title = Vânzare %@
 info_network_fee_title = Taxa de retea
 info_watch_wallet_title = Portofel de monitorizare
 info_watch_wallet_description = Un portofel la care nu ai acces, dar îi poți urmări tranzacțiile și mișcările.
+info_payment_verification_title = Verificarea plății
+info_payment_verification_description = Pentru a respecta cerințele de conformitate, acest comerciant trebuie să îți verifice identitatea înainte de plată.
 info_network_fee_description = Fiecare tranzacție din rețeaua %@ necesită o taxă în %@ plătită minerilor pentru a vă procesa tranzacția, nu Gem Wallet. Taxele de rețea variază în funcție de utilizarea rețelei.
 info_transaction_error_description = Tranzacția nu a putut fi finalizată din cauza unei erori, cum ar fi fonduri insuficiente, introducere nevalidă sau respingere din partea rețelei. Vă rugăm să examinați detaliile și să încercați din nou.
 info_transaction_pending_description = Tranzacția a fost trimisă și așteaptă confirmarea în rețea. Timpii de procesare pot varia. Vă rugăm să verificați din nou pentru actualizări.

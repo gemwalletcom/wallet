@@ -110,6 +110,8 @@
   <string name="buy_rate">Kur</string>
   <string name="buy_no_results">Teklif bulunamadı</string>
   <string name="transfer_network_fee">Ağ Ücreti</string>
+  <string name="transfer_pay_with">Şununla öde</string>
+  <string name="transfer_payment_title">Ödeme</string>
   <string name="transfer_memo">Memo</string>
   <string name="transfer_confirm">Onayla</string>
   <string name="transfer_from">Kimden</string>
@@ -224,6 +226,11 @@
   <string name="errors_no_internet_connection">İnternet bağlantısı yok</string>
   <string name="errors_no_service_connection">Servis bağlantısı yok</string>
   <string name="errors_balances_activity_outdated">Bakiyeler ve etkinlik güncel olmayabilir.</string>
+  <string name="errors_payment_in_progress">Ödeme zaten işleniyor</string>
+  <string name="errors_payment_paid">Ödeme zaten yapılmış</string>
+  <string name="errors_payment_failed">Ödeme başarısız oldu</string>
+  <string name="errors_payment_expired">Ödemenin süresi doldu</string>
+  <string name="errors_payment_cancelled">Ödeme iptal edildi</string>
   <string name="activity_title">Aktivite</string>
   <string name="activity_state_empty_title">Etkinliğiniz burada görünecek</string>
   <string name="activity_state_empty_description">İlk işleminizi yapın</string>
@@ -435,6 +442,8 @@
   <string name="info_network_fee_title">Ağ Ücreti</string>
   <string name="info_watch_wallet_title">Cüzdanı İzle</string>
   <string name="info_watch_wallet_description">Erişiminizin olmadığı, ancak işlemlerini ve hareketlerini izleyebileceğiniz bir cüzdan.</string>
+  <string name="info_payment_verification_title">Ödeme Doğrulaması</string>
+  <string name="info_payment_verification_description">Yasal gereklilikleri karşılamak için bu satıcının ödemeden önce kimliğinizi doğrulaması gerekiyor.</string>
   <string name="info_network_fee_description">%1$s ağındaki her işlem, işleminizi gerçekleştirmek için madencilere Gem Wallet\'a değil, %2$s tutarında bir ücret ödenmesini gerektirir. Ağ ücretleri ağ kullanımına göre değişir.</string>
   <string name="info_transaction_error_description">İşlem, yetersiz fon, geçersiz giriş veya ağ tarafından reddedilme gibi bir hata nedeniyle tamamlanamadı. Lütfen ayrıntıları inceleyin ve tekrar deneyin.</string>
   <string name="info_transaction_pending_description">İşlem gönderildi ve ağda onay bekleniyor. İşlem süreleri değişiklik gösterebilir. Lütfen güncellemeler için tekrar kontrol edin.</string>
