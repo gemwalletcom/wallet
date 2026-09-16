@@ -15,6 +15,8 @@ public final class LocalKeystorePassword: KeystorePassword {
 
     private let keychain: Keychain = KeychainDefault()
 
+    public private(set) nonisolated(unsafe) var isAuthenticating = false
+
     public init() {}
 
     public func getAvailableAuthentication() -> KeystoreAuthentication {
@@ -72,7 +74,9 @@ public final class LocalKeystorePassword: KeystorePassword {
     }
 
     public func getPassword(context: LAContext) throws -> String {
-        try keychain
+        isAuthenticating = true
+        defer { isAuthenticating = false }
+        return try keychain
             .authenticationContext(context)
             .get(Keys.password) ?? ""
     }

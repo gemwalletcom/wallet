@@ -12,6 +12,8 @@ public protocol KeystorePassword: Sendable {
     func enableAuthentication(_ enable: Bool, context: LAContext) throws
     func remove() throws
 
+    var isAuthenticating: Bool { get }
+
     func getPrivacyLockStatus() throws -> PrivacyLockStatus?
     func setPrivacyLockStatus(_ status: PrivacyLockStatus) throws
 

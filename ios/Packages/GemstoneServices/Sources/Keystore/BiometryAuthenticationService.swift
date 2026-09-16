@@ -62,6 +62,10 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
         keystorePassword.getAvailableAuthentication()
     }
 
+    public var isAuthenticating: Bool {
+        keystorePassword.isAuthenticating
+    }
+
     @MainActor
     public func enableAuthentication(_ enable: Bool, context: LAContext, reason: String) async throws {
         try await authenticate(context: context, reason: reason)

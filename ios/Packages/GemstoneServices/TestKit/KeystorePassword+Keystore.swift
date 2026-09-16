@@ -7,6 +7,7 @@ import LocalAuthentication
 
 public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
     public private(set) var getPasswordCallsCount = 0
+    public var isAuthenticating = false
     public var getAuthenticationError: (any Error)?
     public var getPrivacyLockStatusError: (any Error)?
 

@@ -9,6 +9,7 @@ public protocol BiometryAuthenticatable: Sendable {
     var availableAuthentication: KeystoreAuthentication { get }
     var lockPeriod: LockPeriod { get }
     var isPrivacyLockEnabled: Bool { get }
+    var isAuthenticating: Bool { get }
 
     @MainActor
     func authenticate(context: LAContext, reason: String) async throws
