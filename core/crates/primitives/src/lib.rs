@@ -405,7 +405,7 @@ pub use self::metrics::{ConsumerStatus, ParserStatus, ReportedError};
 pub mod version;
 pub use self::version::{Version, is_version_higher};
 pub mod value_access;
-pub use self::value_access::{JsonDecode, ValueAccess, serde_name};
+pub use self::value_access::{JsonDecode, ValueAccess};
 
 #[cfg(any(test, feature = "testkit"))]
 pub mod testkit;

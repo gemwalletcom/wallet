@@ -133,7 +133,7 @@ mod tests {
     use super::*;
     use crate::wallet_connect_pay::model::{Merchant, PaymentSend, TypedDataTransfer};
     use crate::wallet_connect_pay::testkit::{
-        OPTIONS, OPTIONS_FAILED, OPTIONS_IDENTITY_REQUIRED, TEST_ACCOUNT, TEST_PERMIT_SPENDER, TEST_ROUTER, accounts, invoice, options, quote, quotes,
+        OPTIONS, OPTIONS_FAILED, OPTIONS_IDENTITY_REQUIRED, TEST_ACCOUNT, TEST_PERMIT_SPENDER, TEST_ROUTER, accounts, invoice, options, quote, quotes, request,
     };
     use num_bigint::BigUint;
     use primitives::asset_constants::{ETHEREUM_USDT_ASSET_ID, ETHEREUM_USDT_TOKEN_ID, SMARTCHAIN_USDC_TOKEN_ID, SMARTCHAIN_USDT_ASSET_ID};
@@ -222,14 +222,6 @@ mod tests {
     fn test_map_transaction() {
         let invoice = PaymentInvoice::mock();
         let coin = quote(OPTIONS, TEST_ACCOUNT, &AssetId::from_chain(Chain::Optimism));
-        let request = |quote: &Quote, address: &str| {
-            Some(PaymentRequest {
-                address: address.to_string(),
-                amount: Some(PaymentAmount::AtomicValue { value: quote.value.clone() }),
-                asset_id: Some(quote.asset_id.clone()),
-                ..PaymentRequest::mock()
-            })
-        };
         let send = |data: &str| {
             PaymentAction::Send(PaymentSend {
                 recipient: TEST_ROUTER.to_string(),

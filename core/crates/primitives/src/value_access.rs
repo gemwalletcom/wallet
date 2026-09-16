@@ -1,10 +1,5 @@
-use serde::Serialize;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
-
-pub fn serde_name<T: Serialize>(value: &T) -> Option<String> {
-    serde_json::to_value(value).ok().and_then(|value| value.as_str().map(String::from))
-}
 
 pub trait JsonDecode {
     fn decode<T: DeserializeOwned>(&self) -> Option<T>;

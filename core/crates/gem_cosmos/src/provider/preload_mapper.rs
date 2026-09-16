@@ -91,7 +91,7 @@ fn get_gas_limit(input_type: &TransactionInputType, _chain: CosmosChain) -> Resu
         | TransactionInputType::Account { .. }
         | TransactionInputType::TokenApprove { .. }
         | TransactionInputType::Generic { .. }
-            | TransactionInputType::Payment { .. }
+        | TransactionInputType::Payment { .. }
         | TransactionInputType::Perpetual { .. }
         | TransactionInputType::Earn { .. } => 200_000,
         TransactionInputType::Swap { swap_data, .. } => match swap_data.quote.provider_data.provider {

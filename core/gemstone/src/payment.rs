@@ -94,13 +94,8 @@ impl GemPaymentService {
 }
 
 impl GemPaymentService {
-    pub(crate) async fn select_asset(
-        &self,
-        invoice: GemPaymentInvoice,
-        addresses: Vec<ChainAddress>,
-        asset_id: AssetId,
-    ) -> Result<GemPaymentLoad, GemPaymentError> {
-        self.payment_load(self.payments.select_asset(&invoice.link, &addresses, asset_id).await?).await
+    pub(crate) async fn select_asset(&self, link: &PaymentLink, addresses: Vec<ChainAddress>, asset_id: AssetId) -> Result<GemPaymentLoad, GemPaymentError> {
+        self.payment_load(self.payments.select_asset(link, &addresses, asset_id).await?).await
     }
 
     pub(crate) async fn transaction_update(&self, hash: &str, link: &PaymentLink) -> Result<TransactionUpdate, GemPaymentError> {
@@ -406,6 +401,9 @@ fn transfer_value(request: &GemPaymentRequest, decimals: i32) -> Option<BigUint>
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::models::payment::{GemPaymentAmount, GemPaymentLink, GemPaymentRequest};
+    use crate::testkit::mock_payment_transaction;
+    use primitives::{Asset, AssetId, AssetType, Chain, PaymentInvoice};
 
     #[test]
     fn test_payment_transaction_update() {
@@ -438,9 +436,6 @@ mod tests {
         assert_eq!(payment_record_hash(&PaymentLink::WalletConnectPay { payment_id: "pay_1".to_string() }).as_deref(), Some("pay_1"));
         assert_eq!(payment_record_hash(&PaymentLink::SolanaPay { url: "solana:pay".to_string() }), None, "only a relayed payment is recorded by its id");
     }
-    use crate::models::payment::{GemPaymentAmount, GemPaymentLink, GemPaymentRequest};
-    use crate::testkit::mock_payment_transaction;
-    use primitives::{Asset, AssetId, AssetType, Chain, PaymentInvoice};
 
     const BITCOIN_ADDRESS: &str = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4";
     const ETHEREUM_ADDRESS: &str = "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326";

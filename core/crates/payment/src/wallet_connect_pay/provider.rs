@@ -1,8 +1,9 @@
+use std::sync::{Arc, LazyLock};
+
 use async_trait::async_trait;
 use gem_client::Client;
 use gem_jsonrpc::alien::{RpcClient, RpcProvider};
 use primitives::{AssetId, Chain, ChainAddress, EVMChain, PaymentStatus, WalletConnectCAIP2};
-use std::sync::{Arc, LazyLock};
 
 use crate::error::PaymentError;
 use crate::provider::PaymentProvider;
@@ -123,12 +124,12 @@ mod tests {
     use crate::wallet_connect_pay::testkit::{
         FETCH_IDENTITY_REQUIRED, FETCH_SEND, OPTIONS, OPTIONS_FAILED, OPTIONS_IDENTITY_REQUIRED, STATUS_EXPIRED, STATUS_FAILED, STATUS_PROCESSING, STATUS_REQUIRES_ACTION,
         STATUS_SUCCEEDED, STATUS_SUCCEEDED_COIN, TEST_ACCOUNT, TEST_PAYMENT_ID, TEST_PERMIT_SPENDER, TEST_ROUTER, accounts, addresses, fetch_actions, options, quote,
-        quote_actions, quotes,
+        quote_actions, quotes, request,
     };
     use gem_client::ClientError;
     use gem_client::testkit::MockClient;
     use primitives::asset_constants::SMARTCHAIN_USDC_TOKEN_ID;
-    use primitives::{PaymentAmount, PaymentInvoice, PaymentRequest, TransactionType, TransferDataOutputType};
+    use primitives::{PaymentInvoice, TransactionType, TransferDataOutputType};
     use serde_json::Value;
 
     const OPTIONS_PATH: &str = "/v1/gateway/payment/pay_6fa2ecc101M2NV05JCTQGE0FXR387X4TJB/options?includePaymentInfo=true";
@@ -164,15 +165,6 @@ mod tests {
 
     fn invoice(fixture: &str) -> PaymentInvoice {
         map_invoice(&testkit::invoice(options(fixture), &accounts(TEST_ACCOUNT)), TEST_PAYMENT_ID)
-    }
-
-    fn request(quote: &Quote, address: &str) -> Option<PaymentRequest> {
-        Some(PaymentRequest {
-            address: address.to_string(),
-            amount: Some(PaymentAmount::AtomicValue { value: quote.value.clone() }),
-            asset_id: Some(quote.asset_id.clone()),
-            ..PaymentRequest::mock()
-        })
     }
 
     #[tokio::test]

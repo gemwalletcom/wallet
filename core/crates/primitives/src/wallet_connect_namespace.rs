@@ -156,6 +156,27 @@ mod tests {
     }
 
     #[test]
+    fn test_format_account() {
+        assert_eq!(
+            WalletConnectCAIP2::format_account(Chain::Base, "0x0000000000000000000000000000000000000001"),
+            Some("eip155:8453:0x0000000000000000000000000000000000000001".to_string())
+        );
+        assert_eq!(WalletConnectCAIP2::format_account(Chain::Bitcoin, "bc1q"), None);
+    }
+
+    #[test]
+    fn test_get_asset_id() {
+        assert_eq!(WalletConnectCAIP19::get_asset_id("eip155:10/slip44:614"), Some(AssetId::from_chain(Chain::Optimism)));
+        assert_eq!(WalletConnectCAIP19::get_asset_id("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"), Some(AssetId::from_chain(Chain::Solana)));
+        assert_eq!(
+            WalletConnectCAIP19::get_asset_id("eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7"),
+            Some(AssetId::from_token(Chain::Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7"))
+        );
+        assert_eq!(WalletConnectCAIP19::get_asset_id("eip155:99999/slip44:60"), None);
+        assert_eq!(WalletConnectCAIP19::get_asset_id("eip155:1/erc20"), None);
+    }
+
+    #[test]
     fn test_parse_account() {
         assert_eq!(
             WalletConnectCAIP2::parse_account("eip155:8453:0x0000000000000000000000000000000000000001".to_string()),

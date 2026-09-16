@@ -1223,28 +1223,14 @@ mod tests {
         assert_eq!(transaction.value, BigUint::from(19_000_000u64));
         assert_eq!(transaction.to, "recipient");
 
-        let token_payment = |approval| {
-            TransactionInputType::mock_payment(
-                Asset::mock_with_params(Chain::SmartChain, Some("0xusdc".to_string()), "USDC".to_string(), "USDC".to_string(), 18, AssetType::ERC20),
-                TransferDataExtra {
-                    to: "0xrouter".into(),
-                    ..TransferDataExtra::mock_signature(b"typed data".to_vec(), approval)
-                },
-            )
-        };
-        let payment_approval = ApprovalData {
-            token: "0xusdc".into(),
-            spender: "0xpermit2".into(),
-            value: BigUint::from(100u64),
-            is_unlimited: true,
-        };
-        let approve_leg = GemPendingTransactionInput::mock(token_payment(Some(payment_approval.clone())), TransactionType::TokenApproval, "0xapprove", 0, 2)
+        let token_payment = TransactionInputType::mock_payment(Asset::mock_erc20(), TransferDataExtra::mock_signature(b"typed data".to_vec(), Some(ApprovalData::mock())));
+        let approve_leg = GemPendingTransactionInput::mock(token_payment.clone(), TransactionType::TokenApproval, "0xapprove", 0, 2)
             .pending_transaction()
             .unwrap()
             .unwrap();
-        assert_eq!(approve_leg.to, "0xpermit2");
+        assert_eq!(approve_leg.to, ApprovalData::mock().spender);
         assert!(approve_leg.metadata.is_none(), "the approve leg must not look like the payment to the tracker");
-        let payment_leg = GemPendingTransactionInput::mock(token_payment(Some(payment_approval)), TransactionType::Transfer, "pay_1", 0, 1)
+        let payment_leg = GemPendingTransactionInput::mock(token_payment, TransactionType::Transfer, "pay_1", 0, 1)
             .pending_transaction()
             .unwrap()
             .unwrap();

@@ -1,6 +1,7 @@
+use std::collections::HashMap;
+
 use gem_client::{Client, ClientExt};
 use serde::{Serialize, de::DeserializeOwned};
-use std::collections::HashMap;
 
 use crate::error::PaymentError;
 use crate::wallet_connect_pay::config::WalletConnectPayAuth;

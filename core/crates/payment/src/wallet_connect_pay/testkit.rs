@@ -1,4 +1,4 @@
-use primitives::{AssetId, Chain, ChainAddress, PaymentMerchant, WalletConnectCAIP2};
+use primitives::{AssetId, Chain, ChainAddress, PaymentAmount, PaymentMerchant, PaymentRequest, WalletConnectCAIP2};
 
 use crate::wallet_connect_pay::model::{FetchActionsResponse, Invoice, Merchant, Options, PaymentOptionsResponse, Quote, WalletRpcAction};
 use crate::wallet_connect_pay::payment_mapper::map_options;
@@ -64,6 +64,15 @@ pub fn quotes(fixture: &str, address: &str) -> Vec<Quote> {
 
 pub fn quote(options: &str, address: &str, asset_id: &AssetId) -> Quote {
     quotes(options, address).into_iter().find(|quote| &quote.asset_id == asset_id).unwrap()
+}
+
+pub fn request(quote: &Quote, address: &str) -> Option<PaymentRequest> {
+    Some(PaymentRequest {
+        address: address.to_string(),
+        amount: Some(PaymentAmount::AtomicValue { value: quote.value.clone() }),
+        asset_id: Some(quote.asset_id.clone()),
+        ..PaymentRequest::mock()
+    })
 }
 
 pub fn quote_actions(quote: &Quote) -> Vec<WalletRpcAction> {

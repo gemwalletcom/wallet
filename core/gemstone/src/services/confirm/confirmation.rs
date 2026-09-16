@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use futures::lock::Mutex as AsyncMutex;
 use primitives::currency::Currency;
 use primitives::{
-    AssetId, AddressName, BlockExplorerLink, Chain, ChainAddress, PaymentVerification, PerpetualModifyConfirmData, SimulationResult, TransactionInputType, Wallet,
+    AddressName, AssetId, BlockExplorerLink, Chain, ChainAddress, PaymentVerification, PerpetualModifyConfirmData, SimulationResult, TransactionInputType, Wallet,
 };
 
 use super::rules::preload_simulation;
@@ -142,7 +142,7 @@ impl GemConfirmation {
             });
         };
         let addresses = self.wallet.accounts.iter().map(|account| ChainAddress::new(account.chain, account.address.clone())).collect();
-        let transfer = match self.service.payment().select_asset(invoice, addresses, asset_id).await? {
+        let transfer = match self.service.payment().select_asset(&invoice.link, addresses, asset_id).await? {
             GemPaymentLoad::Sign { transfer } => transfer,
             GemPaymentLoad::Verify { invoice, asset_id, url } => {
                 self.service

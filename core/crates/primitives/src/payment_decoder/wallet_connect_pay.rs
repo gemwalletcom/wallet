@@ -1,6 +1,6 @@
-use super::error::{PaymentDecoderError, Result};
 use url::Url;
 
+use super::error::{PaymentDecoderError, Result};
 use crate::payment::{Payment, PaymentLink};
 use crate::url_query::query_value;
 use crate::{HTTPS_URL_SCHEME, WALLET_CONNECT_URL_SCHEME, WalletConnectLink};
@@ -58,4 +58,29 @@ pub fn is_payment_host(url: &Url) -> bool {
         && url
             .host_str()
             .is_some_and(|host| host == WALLET_CONNECT_PAY_HOST || host.ends_with(WALLET_CONNECT_PAY_HOST_SUFFIX))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_decode() {
+        let link = Payment::Link {
+            link: PaymentLink::WalletConnectPay {
+                payment_id: "pay_123".to_string(),
+            },
+        };
+
+        assert_eq!(decode("https://pay.walletconnect.com/?pid=pay_123").unwrap(), link);
+        assert_eq!(decode("https://pay.walletconnect.com/pay_123").unwrap(), link);
+        assert_eq!(decode("https://app.pay.walletconnect.com/?pid=pay_123").unwrap(), link);
+        assert_eq!(decode("wc:abc@2?pay=https%3A%2F%2Fpay.walletconnect.com%2F%3Fpid%3Dpay_123").unwrap(), link);
+
+        assert!(decode("https://pay.walletconnect.com/?pid=checkout").is_err());
+        assert!(decode("https://pay.walletconnect.com/?pid=pay_1%202").is_err());
+        assert!(decode("http://pay.walletconnect.com/?pid=pay_123").is_err());
+        assert!(decode("https://pay.walletconnect.com.example/?pid=pay_123").is_err());
+        assert!(decode("wc:abc@2?relay-protocol=irn&symKey=deadbeef").is_err());
+    }
 }

@@ -609,15 +609,11 @@ mod tests {
 
     #[test]
     fn test_is_broadcast() {
-        let signed = |transaction_type: TransactionType| GemSignedTransaction {
-            data: format!("{transaction_type:?}"),
-            transaction_type,
-        };
         let payment = TransactionInputType::mock_payment(Asset::mock_erc20(), TransferDataExtra::mock_signature(vec![], None));
 
-        assert!(is_broadcast(&payment, &signed(TransactionType::TokenApproval)), "a payment sends its approval");
-        assert!(!is_broadcast(&payment, &signed(TransactionType::Transfer)), "and hands over its signature");
-        assert!(is_broadcast(&TransactionInputType::Transfer { asset: Asset::mock_sol() }, &signed(TransactionType::Transfer)));
+        assert!(is_broadcast(&payment, &GemSignedTransaction::mock(TransactionType::TokenApproval)), "a payment sends its approval");
+        assert!(!is_broadcast(&payment, &GemSignedTransaction::mock(TransactionType::Transfer)), "and hands over its signature");
+        assert!(is_broadcast(&TransactionInputType::Transfer { asset: Asset::mock_sol() }, &GemSignedTransaction::mock(TransactionType::Transfer)));
     }
 
     #[test]
@@ -1159,6 +1155,13 @@ mod tests {
             None,
             "typed data is not a transaction to simulate"
         );
+
+        let swap = TransactionInputType::Swap {
+            from_asset: Asset::mock_sol(),
+            to_asset: Asset::mock_spl_token(),
+            swap_data: SwapData::mock(),
+        };
+        assert_eq!(swap.simulation_payload(), None);
     }
 
     #[test]

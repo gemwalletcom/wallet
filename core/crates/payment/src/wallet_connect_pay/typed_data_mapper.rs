@@ -1,7 +1,6 @@
-use gem_evm::eip712::{EIP712Field, find_field_string, find_field_struct, parse_eip712_json};
+use gem_evm::eip712::{EIP712Field, find_field_biguint, find_field_string, find_field_struct, parse_eip712_json};
 use num_bigint::BigUint;
 use serde_json::Value;
-use serde_serializers::biguint_from_hex_str;
 
 use crate::error::PaymentError;
 use crate::wallet_connect_pay::model::TypedDataTransfer;
@@ -50,12 +49,7 @@ fn get_field(fields: &[EIP712Field], name: &str) -> Result<String, PaymentError>
 }
 
 fn get_amount(fields: &[EIP712Field], name: &str) -> Result<BigUint, PaymentError> {
-    let value = get_field(fields, name)?;
-    match value.starts_with("0x") {
-        true => biguint_from_hex_str(&value).ok(),
-        false => value.parse().ok(),
-    }
-    .ok_or_else(|| PaymentError::invalid_request(format!("Invalid payment signature {name}: {value}")))
+    find_field_biguint(fields, name).ok_or_else(|| missing(name))
 }
 
 fn missing(name: &str) -> PaymentError {

@@ -104,9 +104,7 @@ pub(super) struct PaymentOption {
     pub id: String,
     pub account: String,
     pub amount: PaymentOptionAmount,
-    #[serde(default)]
     pub actions: Vec<WalletConnectPayAction>,
-    #[serde(default)]
     pub collect_data: Option<PaymentCollectData>,
 }
 
@@ -169,9 +167,7 @@ pub(super) struct PaymentOptionsRequest<'a> {
 #[serde(rename_all = "camelCase")]
 pub(super) struct PaymentOptionsResponse {
     pub info: PaymentInfo,
-    #[serde(default)]
     pub options: Option<Vec<PaymentOption>>,
-    #[serde(default)]
     pub collect_data: Option<PaymentCollectData>,
 }
 
@@ -198,14 +194,12 @@ pub(super) struct ConfirmPaymentRequest {
 #[serde(rename_all = "camelCase")]
 pub(super) struct PaymentStatusResponse {
     pub status: PaymentStatus,
-    #[serde(default)]
     pub info: Option<PaymentStatusInfo>,
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(super) struct PaymentStatusInfo {
-    #[serde(default)]
     pub tx_id: Option<String>,
 }
 

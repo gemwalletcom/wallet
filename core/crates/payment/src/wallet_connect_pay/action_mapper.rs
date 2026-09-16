@@ -46,11 +46,7 @@ fn map_sign(quote: &Quote, action: &WalletRpcAction) -> Result<TypedDataTransfer
     let typed_data = EthereumRequestHandler::parse_typed_data(chain, &action.params).map_err(PaymentError::invalid_request)?;
     let transfer = map_typed_data(&typed_data)?;
     if !transfer.token.eq_ignore_ascii_case(quote.token()) {
-        return Err(PaymentError::invalid_request(format!(
-            "Payment asks to sign for token {} on a quote of {}",
-            transfer.token,
-            quote.token()
-        )));
+        return Err(PaymentError::invalid_request(format!("Payment asks to sign for token {} on a quote of {}", transfer.token, quote.asset_id)));
     }
     if transfer.amount != quote.value {
         return Err(PaymentError::invalid_request(format!(
@@ -70,11 +66,7 @@ fn map_approval(quote: &Quote, action: &WalletRpcAction, spender: &str) -> Resul
         return Err(PaymentError::invalid_request("Payment approval sends value"));
     }
     if !transaction.to.eq_ignore_ascii_case(quote.token()) {
-        return Err(PaymentError::invalid_request(format!(
-            "Payment asks to approve {} on a quote of {}",
-            transaction.to,
-            quote.token()
-        )));
+        return Err(PaymentError::invalid_request(format!("Payment asks to approve {} on a quote of {}", transaction.to, quote.asset_id)));
     }
     match decode_transaction_kind(quote.token(), transaction.data.as_deref()).map_err(PaymentError::invalid_request)? {
         EvmTransactionKind::TokenApproval(approval) if approval.spender.eq_ignore_ascii_case(spender) => Ok(approval),
@@ -123,7 +115,7 @@ mod tests {
     use primitives::asset_constants::{ETHEREUM_USDT_ASSET_ID, ETHEREUM_USDT_TOKEN_ID};
     use primitives::contract_constants::UNISWAP_PERMIT2_CONTRACT;
     use primitives::hex::encode_with_0x;
-    use primitives::{AssetId, serde_name};
+    use primitives::AssetId;
 
     fn permit(action: &WalletRpcAction) -> TypedDataTransfer {
         TypedDataTransfer {
@@ -207,7 +199,7 @@ mod tests {
             map_actions(
                 &usdt,
                 &[WalletRpcAction {
-                    method: serde_name(&WalletConnectionMethods::PersonalSign).unwrap(),
+                    method: "personal_sign".to_string(),
                     ..permit_only[0].clone()
                 }]
             ),
@@ -267,9 +259,7 @@ mod tests {
         );
         assert_eq!(
             map_sign(&quote(OPTIONS, TEST_ACCOUNT, &AssetId::from_chain(Chain::Ethereum)), permit),
-            Err(PaymentError::invalid_request(format!(
-                "Payment asks to sign for token {ETHEREUM_USDT_TOKEN_ID} on a quote of "
-            )))
+            Err(PaymentError::invalid_request(format!("Payment asks to sign for token {ETHEREUM_USDT_TOKEN_ID} on a quote of ethereum")))
         );
         assert_eq!(
             map_sign(&usdt, &with_chain_id(permit, "eip155:56")),
@@ -293,9 +283,7 @@ mod tests {
         );
         assert_eq!(
             map_approval(&unapproved, &with_transaction(approve, "to", Value::from(TEST_ROUTER)), UNISWAP_PERMIT2_CONTRACT),
-            Err(PaymentError::invalid_request(format!(
-                "Payment asks to approve {TEST_ROUTER} on a quote of {ETHEREUM_USDT_TOKEN_ID}"
-            )))
+            Err(PaymentError::invalid_request(format!("Payment asks to approve {TEST_ROUTER} on a quote of {}", *ETHEREUM_USDT_ASSET_ID)))
         );
         assert_eq!(
             map_approval(&unapproved, &with_transaction(approve, "data", Value::from("0x")), UNISWAP_PERMIT2_CONTRACT),
