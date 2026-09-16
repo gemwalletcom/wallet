@@ -20,7 +20,12 @@ pub(super) fn map_typed_data(typed_data: &str) -> Result<TypedDataTransfer, Paym
     let (token, amount, from, recipient) = match message.primary_type.as_str() {
         PRIMARY_TYPE_PERMIT_TRANSFER_FROM => {
             let permitted = find_field_struct(&message.message, "permitted").ok_or_else(|| missing("permitted"))?;
-            (get_field(permitted, "token")?, get_amount(permitted, "amount")?, None, get_field(&message.message, "spender")?)
+            (
+                get_field(permitted, "token")?,
+                get_amount(permitted, "amount")?,
+                None,
+                get_field(&message.message, "spender")?,
+            )
         }
         PRIMARY_TYPE_TRANSFER_WITH_AUTHORIZATION | PRIMARY_TYPE_RECEIVE_WITH_AUTHORIZATION => (
             verifying_contract.clone(),

@@ -1,8 +1,8 @@
 use gem_evm::address::ethereum_address_checksum;
 use number_formatter::BigNumberFormatter;
 use primitives::{
-    AssetId, PaymentAmount, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, PaymentStatus, TransactionType,
-    TransferDataOutputType, WalletConnectCAIP2, WalletConnectCAIP19, payment_decoder::is_payment_host,
+    AssetId, PaymentAmount, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, PaymentStatus, TransactionType, TransferDataOutputType,
+    WalletConnectCAIP2, WalletConnectCAIP19, payment_decoder::is_payment_host,
 };
 use url::Url;
 
@@ -64,9 +64,13 @@ pub(super) fn map_transaction(quote: &Quote, action: PaymentAction, invoice: Pay
             (send.data, transaction_type, send.recipient, TransferDataOutputType::EncodedTransaction, None)
         }
         PaymentAction::Sign(sign) => (sign.typed_data, TransactionType::Transfer, sign.recipient, TransferDataOutputType::Signature, None),
-        PaymentAction::ApproveAndSign { approval, sign } => {
-            (sign.typed_data, TransactionType::Transfer, sign.recipient, TransferDataOutputType::Signature, Some(approval))
-        }
+        PaymentAction::ApproveAndSign { approval, sign } => (
+            sign.typed_data,
+            TransactionType::Transfer,
+            sign.recipient,
+            TransferDataOutputType::Signature,
+            Some(approval),
+        ),
     };
 
     PaymentTransaction {
@@ -131,10 +135,10 @@ mod tests {
     use crate::wallet_connect_pay::testkit::{
         OPTIONS, OPTIONS_FAILED, OPTIONS_IDENTITY_REQUIRED, TEST_ACCOUNT, TEST_PERMIT_SPENDER, TEST_ROUTER, accounts, invoice, options, quote, quotes,
     };
+    use num_bigint::BigUint;
     use primitives::asset_constants::{ETHEREUM_USDT_ASSET_ID, ETHEREUM_USDT_TOKEN_ID, SMARTCHAIN_USDC_TOKEN_ID, SMARTCHAIN_USDT_ASSET_ID};
     use primitives::contract_constants::UNISWAP_PERMIT2_CONTRACT;
     use primitives::swap::ApprovalData;
-    use num_bigint::BigUint;
     use primitives::{Chain, ChainAddress};
 
     #[test]
@@ -161,29 +165,50 @@ mod tests {
                     quote(2, "bb125849-23a2-431d-bf0a-6e38405659de", AssetId::from_chain(Chain::Ethereum), 41_782_394_099_655),
                     quote(3, "99bb2908-daed-4dd4-b40c-3d70343b6a75", AssetId::from_chain(Chain::SmartChain), 140_151_888_385_232),
                     quote(4, "57965ba0-dc0f-4ca9-a553-9b8041ea669c", SMARTCHAIN_USDT_ASSET_ID.clone(), 100_000_000_000_000_000),
-                    quote(5, "2e473787-74fe-4559-a3fc-6b62736497c2", AssetId::from_token(Chain::SmartChain, SMARTCHAIN_USDC_TOKEN_ID), 100_000_000_000_000_000),
+                    quote(
+                        5,
+                        "2e473787-74fe-4559-a3fc-6b62736497c2",
+                        AssetId::from_token(Chain::SmartChain, SMARTCHAIN_USDC_TOKEN_ID),
+                        100_000_000_000_000_000
+                    ),
                 ],
                 collect_data_url: None,
             }))
         );
-        assert_eq!(invoice(options(OPTIONS), &accounts[1..2]).quotes.len(), 1, "only the options of the given accounts are quotes");
+        assert_eq!(
+            invoice(options(OPTIONS), &accounts[1..2]).quotes.len(),
+            1,
+            "only the options of the given accounts are quotes"
+        );
         assert_eq!(map_options(options(OPTIONS_FAILED), &accounts), Ok(Options::Status { status: PaymentStatus::Failed }));
         assert_eq!(map_options(options(OPTIONS), &[]), Err(PaymentError::NoPaymentOptions));
 
         let mut lowercase = options(OPTIONS);
         lowercase.options.as_mut().unwrap()[1].amount.unit = format!("caip19/eip155:1/erc20:{}", ETHEREUM_USDT_TOKEN_ID.to_lowercase());
-        assert_eq!(invoice(lowercase, &accounts).quotes[1].asset_id, *ETHEREUM_USDT_ASSET_ID, "a lowercase token id is the wallet's checksummed one");
+        assert_eq!(
+            invoice(lowercase, &accounts).quotes[1].asset_id,
+            *ETHEREUM_USDT_ASSET_ID,
+            "a lowercase token id is the wallet's checksummed one"
+        );
     }
 
     #[test]
     fn test_map_options_identity_required() {
         let accounts = accounts(TEST_ACCOUNT);
         let form = |accounts: &str| format!("https://pay.walletconnect.com/collect/?pid=pay_dfa2ecc101M2NV3FG4QSGGGZDQYW8DX45A&accounts={accounts}");
-        let every_account = form(&["42161", "10", "137", "8453", "1", "56"].map(|chain| format!("eip155%3A{chain}%3A{TEST_ACCOUNT}")).join("%2C"));
+        let every_account = form(
+            &["42161", "10", "137", "8453", "1", "56"]
+                .map(|chain| format!("eip155%3A{chain}%3A{TEST_ACCOUNT}"))
+                .join("%2C"),
+        );
 
         let verified = invoice(options(OPTIONS_IDENTITY_REQUIRED), &accounts);
         assert_eq!(verified.collect_data_url, Some(every_account), "the form for every account comes with the response");
-        assert_eq!(verified.quotes[0].collect_data_url, Some(form(&format!("eip155%3A10%3A{TEST_ACCOUNT}"))), "the one for one account with its option");
+        assert_eq!(
+            verified.quotes[0].collect_data_url,
+            Some(form(&format!("eip155%3A10%3A{TEST_ACCOUNT}"))),
+            "the one for one account with its option"
+        );
 
         let mut phishing = options(OPTIONS_IDENTITY_REQUIRED);
         phishing.collect_data.as_mut().unwrap().url = "https://pay.walletconnect.com.example/collect".to_string();
@@ -225,7 +250,11 @@ mod tests {
                 approval: None,
             }
         );
-        assert_eq!(map_transaction(&coin, send(""), invoice.clone()).transaction_type, TransactionType::Transfer, "a value transfer has no calldata");
+        assert_eq!(
+            map_transaction(&coin, send(""), invoice.clone()).transaction_type,
+            TransactionType::Transfer,
+            "a value transfer has no calldata"
+        );
 
         let usdt = quote(OPTIONS, TEST_ACCOUNT, &ETHEREUM_USDT_ASSET_ID);
         let sign = TypedDataTransfer {

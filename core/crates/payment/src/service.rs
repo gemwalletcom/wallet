@@ -3,11 +3,11 @@ use std::sync::Arc;
 use gem_jsonrpc::alien::{RpcClient, RpcProvider};
 use primitives::{AssetId, Chain, ChainAddress, PaymentLink};
 
-use crate::{PaymentLoad, PaymentUpdate};
 use crate::error::PaymentError;
 use crate::provider::PaymentProvider;
 use crate::solana_pay::SolanaPayProvider;
 use crate::wallet_connect_pay::{WalletConnectPayAuth, WalletConnectPayProvider};
+use crate::{PaymentLoad, PaymentUpdate};
 
 pub struct PaymentService {
     rpc_provider: Arc<dyn RpcProvider>,
