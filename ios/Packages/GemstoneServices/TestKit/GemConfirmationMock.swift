@@ -9,6 +9,7 @@ public import struct Gemstone.GemAutocloseSummary
 public import struct Gemstone.GemConfirmLoad
 public import struct Gemstone.GemConfirmLoadOptions
 public import struct Gemstone.GemConfirmScreen
+public import struct Gemstone.GemTransferData
 public import protocol Gemstone.GemConfirmationProtocol
 public import enum Gemstone.GemExecuteResult
 public import enum Gemstone.GemKeystoreAuthentication
@@ -40,6 +41,10 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
 
     public func screen() -> GemConfirmScreen {
         GemConfirmScreen(phase: .loading, hasCriticalWarning: false, failure: nil)
+    }
+
+    public func transfer() async -> GemTransferData {
+        (loaded ?? initialState).transfer
     }
 
     public func state() async throws -> GemConfirmLoad {

@@ -93,14 +93,17 @@ struct ConfirmTransferSceneViewModelTests {
     }
 
     @Test
-    func failedPaymentAssetSwitchLandsOnTheErrorRow() async {
+    func failedPaymentAssetSwitchShowsTheErrorOnTheAssetItBelongsTo() async {
         let invoice = PaymentInvoice.mock(quotes: [.mock(asset: .mockBNB()), .mock(asset: .mockEthereum())])
-        let model = ConfirmTransferSceneViewModel.mock(data: .mockPayment(asset: .mockBNB(), invoice: invoice), load: .failure(AnyError("gateway")))
+        let picked = GemTransferData.mockPayment(asset: .mockEthereum(), invoice: invoice)
+        let confirmation = GemConfirmationMock(state: .mock(transfer: picked, preload: nil), load: .failure(AnyError("gateway")))
+        let model = ConfirmTransferSceneViewModel.mock(data: .mockPayment(asset: .mockBNB(), invoice: invoice), confirmation: confirmation)
 
         model.selectPaymentAsset(.mockEthereum())
         await model.load()
 
-        #expect(model.transfer.chain == .smartChain)
+        #expect(model.transfer.chain == .ethereum, "the header follows the asset the load failed for")
+        #expect(model.state.load != nil, "a failed load keeps what the screen already showed")
         #expect(model.state.transactionError != nil)
     }
 

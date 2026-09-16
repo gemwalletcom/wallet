@@ -77,6 +77,10 @@ impl GemConfirmation {
             .await
     }
 
+    pub async fn transfer(&self) -> GemTransferData {
+        self.transfer.lock().await.clone()
+    }
+
     pub async fn state(&self) -> Result<GemConfirmLoad, GemConfirmError> {
         if let Some(screen) = self.screen.lock().await.clone() {
             return Ok(screen);

@@ -334,6 +334,7 @@ extension ConfirmTransferSceneViewModel {
             state = try ConfirmTransferState(load, screen: state.screen.onLoaded(load: load))
         } catch {
             guard !Task.isCancelled else { return }
+            state.transfer = await confirmation.transfer()
             state.screen = state.screen.onLoadFailed(error: error.confirmError)
             debugLog("confirm load error: \(error)")
         }
