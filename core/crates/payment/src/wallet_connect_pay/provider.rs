@@ -10,7 +10,7 @@ use crate::provider::PaymentProvider;
 use crate::wallet_connect_pay::action_mapper::map_actions;
 use crate::wallet_connect_pay::client::{WALLET_CONNECT_PAY_API_URL, WalletConnectPayClient};
 use crate::wallet_connect_pay::config::WalletConnectPayAuth;
-use crate::wallet_connect_pay::model::{Options, PaymentAction, PaymentActions, Quote, WalletConnectPayAction, WalletRpcAction};
+use crate::wallet_connect_pay::model::{Options, PaymentActions, Quote, WalletConnectPayAction, WalletRpcAction};
 use crate::wallet_connect_pay::payment_mapper::{map_invoice, map_options, map_transaction};
 
 static SUPPORTED_CHAINS: LazyLock<Vec<Chain>> = LazyLock::new(|| EVMChain::all().into_iter().map(|chain| chain.to_chain()).collect());
@@ -69,8 +69,9 @@ impl<C: Client> WalletConnectPayProvider<C> {
                 });
             }
         };
+        let actions: Vec<WalletRpcAction> = actions.into_iter().map(WalletRpcAction::try_from).collect::<Result<_, _>>()?;
         Ok(PaymentLoad::Sign {
-            transaction: map_transaction(quote, Self::get_action(quote, actions)?, payment_invoice),
+            transaction: map_transaction(quote, map_actions(quote, &actions)?, payment_invoice),
         })
     }
 
@@ -80,11 +81,6 @@ impl<C: Client> WalletConnectPayProvider<C> {
             Some(WalletConnectPayAction::Build(build)) => self.client.get_actions(&self.payment_id, &quote.id, build.data.clone()).await,
             Some(WalletConnectPayAction::WalletRpc(_)) => Ok(PaymentActions::Ready(quote.actions.clone())),
         }
-    }
-
-    fn get_action(quote: &Quote, actions: Vec<WalletConnectPayAction>) -> Result<PaymentAction, PaymentError> {
-        let actions: Vec<WalletRpcAction> = actions.into_iter().map(WalletRpcAction::try_from).collect::<Result<_, _>>()?;
-        map_actions(quote, &actions)
     }
 }
 

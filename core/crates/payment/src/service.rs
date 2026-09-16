@@ -1,41 +1,54 @@
 use std::sync::Arc;
 
-use gem_jsonrpc::alien::RpcProvider;
+use gem_jsonrpc::alien::{RpcClient, RpcProvider};
 use primitives::{AssetId, Chain, ChainAddress, PaymentLink};
 
 use crate::{PaymentLoad, PaymentUpdate};
 use crate::error::PaymentError;
 use crate::provider::PaymentProvider;
-use crate::provider_factory::PaymentProviderFactory;
-use crate::wallet_connect_pay::WalletConnectPayAuth;
+use crate::solana_pay::SolanaPayProvider;
+use crate::wallet_connect_pay::{WalletConnectPayAuth, WalletConnectPayProvider};
 
 pub struct PaymentService {
-    providers: PaymentProviderFactory,
+    rpc_provider: Arc<dyn RpcProvider>,
+    wallet_connect_pay_auth: WalletConnectPayAuth,
 }
 
 impl PaymentService {
     pub fn new(rpc_provider: Arc<dyn RpcProvider>, wallet_connect_pay_auth: WalletConnectPayAuth) -> Self {
         Self {
-            providers: PaymentProviderFactory::new(rpc_provider, wallet_connect_pay_auth),
+            rpc_provider,
+            wallet_connect_pay_auth,
         }
     }
 
     pub async fn load(&self, link: &PaymentLink, addresses: &[ChainAddress]) -> Result<PaymentLoad, PaymentError> {
-        let provider = self.providers.get_provider(link);
+        let provider = self.provider(link);
         Self::validate(provider.as_ref(), provider.load(addresses).await?, addresses)
     }
 
     pub async fn select_asset(&self, link: &PaymentLink, addresses: &[ChainAddress], asset_id: AssetId) -> Result<PaymentLoad, PaymentError> {
-        let provider = self.providers.get_provider(link);
+        let provider = self.provider(link);
         Self::validate(provider.as_ref(), provider.select_asset(addresses, asset_id).await?, addresses)
     }
 
     pub async fn confirm(&self, link: &PaymentLink, quote_id: &str, action_results: Vec<String>) -> Result<(), PaymentError> {
-        self.providers.get_provider(link).confirm(quote_id, action_results).await
+        self.provider(link).confirm(quote_id, action_results).await
     }
 
     pub async fn status(&self, link: &PaymentLink) -> Result<PaymentUpdate, PaymentError> {
-        self.providers.get_provider(link).status().await
+        self.provider(link).status().await
+    }
+
+    fn provider(&self, link: &PaymentLink) -> Box<dyn PaymentProvider> {
+        match link {
+            PaymentLink::SolanaPay { url } => Box::new(SolanaPayProvider::new(RpcClient::new(url.clone(), self.rpc_provider.clone()), url.clone())),
+            PaymentLink::WalletConnectPay { payment_id } => Box::new(WalletConnectPayProvider::new(
+                self.rpc_provider.clone(),
+                self.wallet_connect_pay_auth.clone(),
+                payment_id.clone(),
+            )),
+        }
     }
 
     fn validate(provider: &dyn PaymentProvider, load: PaymentLoad, addresses: &[ChainAddress]) -> Result<PaymentLoad, PaymentError> {

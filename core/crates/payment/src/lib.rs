@@ -1,7 +1,6 @@
 mod error;
 mod model;
 mod provider;
-mod provider_factory;
 mod service;
 mod solana_pay;
 mod wallet_connect_pay;
