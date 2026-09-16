@@ -33,6 +33,7 @@ import com.gemwallet.android.features.swap.viewmodels.models.receiveEquivalent
 import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.toAssetPriceValue
 import uniffi.gemstone.GemTransferData
+import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -295,10 +296,9 @@ class SwapViewModel @Inject constructor(
     fun onSelectPercent(percent: Int) {
         val asset = payAsset.value ?: return
         val value = swapQuoteService.amountForPercent(asset.balance.balance.available, percent.toUInt())
+        val text = numberFormat().inputText(value.toString(), asset.asset.decimals.toUInt()) ?: return
         payValue.clearText()
-        payValue.setTextAndPlaceCursorAtEnd(
-            Crypto(value).value(asset.asset.decimals).stripTrailingZeros().toPlainString()
-        )
+        payValue.setTextAndPlaceCursorAtEnd(text)
     }
 
     fun refresh() {
@@ -380,8 +380,9 @@ class SwapViewModel @Inject constructor(
 
     private fun setPayValue(amount: BigInteger) {
         val asset = payAsset.value?.asset ?: return
+        val text = numberFormat().inputText(amount.toString(), asset.decimals.toUInt()) ?: return
         payValue.clearText()
-        payValue.setTextAndPlaceCursorAtEnd(Crypto(amount).value(asset.decimals).stripTrailingZeros().toPlainString())
+        payValue.setTextAndPlaceCursorAtEnd(text)
     }
 
     private suspend fun setReceive(amount: String) = withContext(Dispatchers.Main) {

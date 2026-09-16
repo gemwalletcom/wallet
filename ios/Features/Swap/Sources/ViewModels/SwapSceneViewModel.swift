@@ -406,15 +406,14 @@ extension SwapSceneViewModel {
     }
 
     private func setFromValue(percent: Int, assetData: AssetData) {
-        amountInputModel.text = formatter.format(
-            value: service.amountForPercent(available: assetData.balance.available, percent: UInt32(percent)),
-            decimals: assetData.asset.decimals.asInt,
-        )
+        let value = service.amountForPercent(available: assetData.balance.available, percent: UInt32(percent))
+        guard let text = NumberInput.format().inputText(value: value.description, decimals: UInt32(assetData.asset.decimals)) else { return }
+        amountInputModel.text = text
     }
 
     private func setFromValue(minimum value: BigInt) {
-        guard let fromAsset else { return }
-        amountInputModel.text = formatter.format(value: value, decimals: fromAsset.asset.decimals.asInt)
+        guard let fromAsset, let text = NumberInput.format().inputText(value: value.description, decimals: UInt32(fromAsset.asset.decimals)) else { return }
+        amountInputModel.text = text
         setLoadTrigger(isImmediate: true)
     }
 

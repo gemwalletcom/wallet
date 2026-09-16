@@ -69,15 +69,15 @@ fun ColumnScope.AmountField(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     var fieldValue by remember { mutableStateOf(TextFieldValue(amount, TextRange(amount.length))) }
+    val displayed = if (fieldValue.text == amount) fieldValue else TextFieldValue(amount, TextRange(amount.length))
 
     BasicTextField(
         modifier = modifier,
-        value = if (fieldValue.text == amount) fieldValue else TextFieldValue(amount, TextRange(amount.length)),
-        onValueChange = {
-            if (AmountInputTransformation.isValid(it.text, maximumFractionDigits)) {
-                fieldValue = it
-                if (it.text != amount) onValueChange(it.text)
-            }
+        value = displayed,
+        onValueChange = { newValue ->
+            val sanitized = sanitizeAmount(newValue.text, maximumFractionDigits)
+            fieldValue = if (sanitized == newValue.text) newValue else TextFieldValue(sanitized, TextRange(amountCursor(newValue.selection.end, newValue.text, sanitized)))
+            if (sanitized != amount) onValueChange(sanitized)
         },
         visualTransformation = transformation,
         maxLines = 1,

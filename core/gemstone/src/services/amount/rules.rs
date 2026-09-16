@@ -384,7 +384,11 @@ const ARABIC_GROUPING: char = '\u{066C}';
 
 pub fn sanitize_number_input(decimal_separator: &str, text: &str, maximum_fraction_digits: Option<u32>, maximum_integer_digits: Option<u32>) -> String {
     let is_separator = |character: &char| SEPARATORS.contains(character) || decimal_separator.contains(*character);
-    let typed: String = text.chars().filter(|character| character.is_numeric() || is_separator(character)).collect();
+    let allows_fraction = maximum_fraction_digits != Some(0);
+    let typed: String = text
+        .chars()
+        .filter(|character| character.is_numeric() || allows_fraction && is_separator(character))
+        .collect();
     let limit = |value: &str, maximum: Option<u32>| match maximum {
         Some(maximum) => value.chars().take(maximum as usize).collect::<String>(),
         None => value.to_string(),
@@ -409,6 +413,11 @@ pub fn value_from_input(decimal_separator: &str, text: &str, decimals: u32) -> R
     let value = BigNumberFormatter::value_from_amount_truncated(&plain, decimals).map_err(invalid_number)?;
 
     BigInt::from_str(&value).map_err(invalid_number)
+}
+
+pub fn input_text(decimal_separator: &str, value: &str, decimals: u32) -> Option<String> {
+    let plain = BigNumberFormatter::big_decimal_value(value, decimals).ok()?.normalized().to_plain_string();
+    Some(plain.replace('.', decimal_separator))
 }
 
 pub fn plain_number(decimal_separator: &str, text: &str) -> String {
@@ -546,8 +555,20 @@ mod tests {
     use primitives::{AssetId, AssetType, Delegation, DelegationBase, DelegationState, DelegationValidator, StakeProviderType};
 
     #[test]
+    fn test_input_text_is_plain_digits_with_the_callers_separator() {
+        assert_eq!(input_text(",", "9649000000000000", 18), Some("0,009649".to_string()));
+        assert_eq!(input_text(".", "123456789012", 4), Some("12345678.9012".to_string()));
+        assert_eq!(input_text(".", "100000", 3), Some("100".to_string()));
+        assert_eq!(input_text(".", "1", 18), Some("0.000000000000000001".to_string()));
+        assert_eq!(input_text(".", "0", 8), Some("0".to_string()));
+        assert_eq!(input_text(".", "abc", 8), None);
+    }
+
+    #[test]
     fn test_sanitize_number_input_keeps_digits_and_the_first_separator() {
         assert_eq!(sanitize_number_input(".", "abc123.45xyz", None, None), "123.45");
+        assert_eq!(sanitize_number_input(".", "12.", Some(0), None), "12");
+        assert_eq!(sanitize_number_input(".", ".50", Some(0), None), "50");
         assert_eq!(sanitize_number_input(".", "123.45.67", None, None), "123.4567");
         assert_eq!(sanitize_number_input(".", " 1 000 ", None, None), "1000");
         assert_eq!(sanitize_number_input(".", "12", None, None), "12");

@@ -217,6 +217,10 @@ impl GemNumberFormat {
         super::rules::sanitize_number_input(&self.decimal_separator, &input, maximum_fraction_digits, maximum_integer_digits)
     }
 
+    pub fn input_text(&self, value: String, decimals: u32) -> Option<String> {
+        super::rules::input_text(&self.decimal_separator, &value, decimals)
+    }
+
     pub fn plain(&self, input: String) -> String {
         super::rules::plain_number(&self.decimal_separator, &input)
     }
