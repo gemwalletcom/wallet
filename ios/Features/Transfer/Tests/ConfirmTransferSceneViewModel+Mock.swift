@@ -33,10 +33,18 @@ extension ConfirmTransferSceneViewModel {
             wallet: wallet,
             confirmation: confirmation ?? GemConfirmationMock(
                 state: .mock(transfer: data, feeAsset: data.feeAsset().toPrimitives(), simulation: gemConfirmService.simulation, preload: nil),
-                load: (load ?? .success(.mock())).map { GemConfirmLoad(transfer: data, sender: $0.sender, feeAsset: $0.feeAsset, metadata: $0.metadata, feeAssets: $0.feeAssets, simulation: $0.simulation, addressName: $0.addressName, preload: $0.preload) },
+                load: (load ?? .success(.mock())).map { $0.withTransfer(data) },
                 execute: execute,
             ),
             onComplete: onComplete,
         )
+    }
+}
+
+private extension GemConfirmLoad {
+    func withTransfer(_ transfer: GemTransferData) -> GemConfirmLoad {
+        var load = self
+        load.transfer = transfer
+        return load
     }
 }
