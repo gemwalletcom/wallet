@@ -3,7 +3,7 @@ use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{
     AssetId, PaymentAmount, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, PaymentStatus, TransactionType, TransferDataOutputType,
-    WalletConnectCAIP2, WalletConnectCAIP19,
+    WalletConnectCAIP2, WalletConnectCAIP19, payment_decoder::is_payment_host,
 };
 use std::str::FromStr;
 use url::Url;
@@ -14,7 +14,6 @@ use crate::wallet_connect_pay::model::{Invoice, Options, PaymentAction, PaymentO
 
 const CAIP19_PREFIX: &str = "caip19";
 const ISO4217_PREFIX: &str = "iso4217/";
-const COLLECT_DATA_HOST: &str = "walletconnect.com";
 
 pub(super) fn map_options(response: PaymentOptionsResponse, accounts: &[String]) -> Result<Options, PaymentError> {
     let payment = response.info.ok_or(PaymentError::InvalidRequest {
@@ -142,16 +141,7 @@ fn map_quote(option: PaymentOption, accounts: &[String]) -> Option<Quote> {
 }
 
 fn get_collect_data_url(url: &str) -> Option<String> {
-    let parsed = Url::parse(url).ok()?;
-    if parsed.scheme() != "https" {
-        return None;
-    }
-    let host = parsed.host_str()?.to_lowercase();
-    if host == COLLECT_DATA_HOST || host.ends_with(&format!(".{COLLECT_DATA_HOST}")) {
-        Some(url.to_string())
-    } else {
-        None
-    }
+    is_payment_host(&Url::parse(url).ok()?).then(|| url.to_string())
 }
 
 fn get_asset_id(unit: &str) -> Option<AssetId> {
@@ -255,7 +245,9 @@ mod tests {
                 value: "1000".to_string(),
             },
             actions: Vec::new(),
-            collect_data: None,
+            collect_data: Some(PaymentCollectData {
+                url: format!("https://{}/collect/?pid=pay_1&option={id}", if id == "opt_phishing" { "phishing.example" } else { "pay.walletconnect.com" }),
+            }),
         };
         let response = PaymentOptionsResponse {
             collect_data: Some(PaymentCollectData {
@@ -275,6 +267,7 @@ mod tests {
                 option("opt_eth", "eip155:1:0x92abCE21234D71EC443E679f3a1feAFD3Fc830fB", "caip19/eip155:1/slip44:60"),
                 option("opt_bad_token", &account, "caip19/eip155:56/erc20:0xnot-an-address"),
                 option("opt_fiat", &account, "iso4217/USD"),
+                option("opt_phishing", &account, "caip19/eip155:56/slip44:60"),
             ]),
         };
 
@@ -286,9 +279,11 @@ mod tests {
             vec![
                 ("opt_bnb", AssetId::from_chain(Chain::SmartChain)),
                 ("opt_cake", AssetId::from_token(Chain::SmartChain, "0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82")),
-            ]
+            ],
+            "another account, a bad token address, a fiat unit and a form outside pay.walletconnect.com are all left out"
         );
         assert_eq!(invoice.price.amount, 19.99);
+        assert_eq!(invoice.quotes[0].collect_data_url.as_deref(), Some("https://pay.walletconnect.com/collect/?pid=pay_1&option=opt_bnb"));
         assert_eq!(
             invoice.collect_data_url.as_deref(),
             Some("https://pay.walletconnect.com/collect/?pid=pay_1&accounts=eip155:56:0x92ab,eip155:1:0x92ab"),

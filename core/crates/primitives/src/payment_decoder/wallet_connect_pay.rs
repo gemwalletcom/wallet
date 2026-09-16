@@ -53,7 +53,7 @@ fn is_payment_id(payment_id: &str) -> bool {
             .all(|character| character.is_ascii_alphanumeric() || PAYMENT_ID_EXTRA_CHARACTERS.contains(character))
 }
 
-fn is_payment_host(url: &Url) -> bool {
+pub fn is_payment_host(url: &Url) -> bool {
     url.scheme() == HTTPS_URL_SCHEME
         && url
             .host_str()

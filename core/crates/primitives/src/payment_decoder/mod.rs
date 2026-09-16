@@ -12,4 +12,4 @@ mod xrp;
 
 pub use self::decoder::PaymentURLDecoder;
 pub use self::error::{PaymentDecoderError, Result};
-pub use self::wallet_connect_pay::WALLET_CONNECT_PAY_HOST;
+pub use self::wallet_connect_pay::{WALLET_CONNECT_PAY_HOST, is_payment_host};
