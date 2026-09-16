@@ -21,7 +21,7 @@ struct KeystoreBenchmarkTests {
                 _ = try keystore.gemKeystore.delete(keystoreId: keystore.gemKeystore.keystoreId(walletId: wallet.id.id))
             }
             let start = clock.now
-            wallet = try keystore.importWallet(
+            wallet = try await keystore.importWallet(
                 name: "Benchmark",
                 type: .multicoinPhrase(words: LocalKeystore.words, chains: [Primitives.Chain.ethereum].map { $0.toGem() }),
             )

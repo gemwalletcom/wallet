@@ -166,7 +166,7 @@ impl GemWalletService {
             import => {
                 let keystore_id = keystore_id_for_wallet(wallet_id.id());
                 let is_new_secret = !self.keystore.exists(keystore_id.clone());
-                let password = decode_password(&self.password.get_password(!self.keystore.has_stored_wallets()?)?);
+                let password = decode_password(&self.password.get_password(!self.keystore.has_stored_wallets()?).await?);
                 let stored = self.keystore.create_store(keystore_import(import), password)?;
                 let wallet = Wallet {
                     id: wallet_id,
@@ -224,7 +224,7 @@ impl GemWalletService {
             msg: format!("wallet {} not found", wallet_id.id()),
         })?;
         let keystore_id = keystore_id_for_wallet(wallet.id.id());
-        let password = decode_password(&self.password.get_password(false)?);
+        let password = decode_password(&self.password.get_password(false).await?);
         match rules::secret_export(&wallet) {
             rules::SecretExport::Words => Ok(GemWalletSecret::Words {
                 words: self.keystore.export_recovery_phrase(keystore_id, password)?,
@@ -262,7 +262,7 @@ impl GemWalletService {
         if legacy.is_empty() {
             return Ok(0);
         }
-        let shared = self.password.get_password(true)?;
+        let shared = self.password.get_password(true).await?;
         let mut migrated = 0;
         let mut failures = Vec::new();
         for (wallet, password) in legacy {
@@ -335,7 +335,7 @@ impl GemWalletService {
         if candidates.is_empty() {
             return Ok(SetupChainsOutcome::default());
         }
-        let password = decode_password(&self.password.get_password(false)?);
+        let password = decode_password(&self.password.get_password(false).await?);
         let mut outcome = SetupChainsOutcome::default();
         for (mut wallet, missing) in candidates {
             match self.add_chains(&mut wallet, missing, password.clone()).await {
@@ -498,7 +498,7 @@ mod tests {
             let context = WalletTestkit::new();
             let broken = context.import("Broken", PHRASE).await;
             let healthy = context.import("Healthy", OTHER_PHRASE).await;
-            context.lock_out(&broken);
+            context.lock_out(&broken).await;
 
             let outcome = context.service.setup_chains_outcome(vec![Chain::Ethereum, Chain::Solana]).await.unwrap();
 
@@ -517,7 +517,7 @@ mod tests {
         block_on(async {
             let context = WalletTestkit::new();
             let only = context.import("Only", PHRASE).await;
-            context.lock_out(&only);
+            context.lock_out(&only).await;
 
             let error = context.service.setup_chains(vec![Chain::Ethereum, Chain::Solana]).await;
 

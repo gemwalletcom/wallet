@@ -31,7 +31,6 @@ let package = Package(
                 "Localization",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
                 "Gemstone",
-                "Primitives",
             ],
             path: "Sources",
         ),

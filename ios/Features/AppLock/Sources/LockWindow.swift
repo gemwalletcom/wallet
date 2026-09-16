@@ -1,32 +1,25 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemAppLockScreen
 import SwiftUI
 
 @Observable
 @MainActor
 public final class LockWindow: LockWindowPresentable {
-    public var lockModel: LockSceneViewModel
-    public var overlayWindow: UIWindow?
+    public let lockModel: LockSceneViewModel
 
+    private var overlayWindow: UIWindow?
     private var userInterfaceStyle: UIUserInterfaceStyle = .unspecified
 
     public init(lockModel: LockSceneViewModel) {
         self.lockModel = lockModel
     }
 
-    public var showLockScreen: Bool {
-        lockModel.shouldShowLockScreen
+    public var screen: GemAppLockScreen {
+        lockModel.viewState.screen
     }
 
-    public var isPrivacyLockVisible: Bool {
-        lockModel.isPrivacyLockVisible
-    }
-
-    public func setPhase(phase: ScenePhase) {
-        guard lockModel.isAutoLockEnabled else {
-            lockModel.resetLockState()
-            return
-        }
+    public func setPhase(_ phase: ScenePhase) {
         lockModel.handleSceneChange(to: phase)
     }
 
@@ -38,15 +31,15 @@ public final class LockWindow: LockWindowPresentable {
         overlayWindow?.overrideUserInterfaceStyle = userInterfaceStyle
     }
 
-    public func toggleLock(show: Bool) {
-        show ? presentLockWindow() : dismissLockWindow()
-    }
-
-    public func togglePrivacyLock(visible: Bool) {
-        let alpha: CGFloat = visible ? 1 : 0
-
-        if overlayWindow?.alpha != alpha {
-            overlayWindow?.alpha = alpha
+    public func present(_ screen: GemAppLockScreen) {
+        switch screen {
+        case .hidden:
+            overlayWindow?.isHidden = true
+        case .cover, .lock:
+            if overlayWindow == nil, let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                overlayWindow = makeOverlayWindow(in: scene)
+            }
+            overlayWindow?.isHidden = false
         }
     }
 }
@@ -54,34 +47,12 @@ public final class LockWindow: LockWindowPresentable {
 // MARK: - Private
 
 extension LockWindow {
-    private func presentLockWindow() {
-        if overlayWindow == nil,
-           let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene
-        {
-            overlayWindow = makeOverlayWindow(in: scene)
-        }
-
-        if overlayWindow?.alpha != lockModel.privacyLockAlpha {
-            overlayWindow?.alpha = lockModel.privacyLockAlpha
-        }
-        overlayWindow?.isHidden = false
-    }
-
-    private func dismissLockWindow() {
-        guard !lockModel.isPrivacyLockVisible else { return }
-        overlayWindow?.alpha = 0
-        overlayWindow?.isHidden = true
-    }
-
     private func makeOverlayWindow(in scene: UIWindowScene) -> UIWindow {
-        let host = UIHostingController(rootView: LockScreenScene(model: lockModel))
         let window = UIWindow(windowScene: scene)
-        window.rootViewController = host
+        window.rootViewController = UIHostingController(rootView: LockScreenScene(model: lockModel))
         window.windowLevel = .alert + 1
         window.backgroundColor = .clear
         window.overrideUserInterfaceStyle = userInterfaceStyle
-        window.alpha = lockModel.privacyLockAlpha
-        window.makeKeyAndVisible()
         return window
     }
 }

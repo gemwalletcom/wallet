@@ -1,16 +1,19 @@
 public import Gemstone
 import Foundation
+import LocalAuthentication
 import Primitives
 
 public final class LocalKeystore: Keystore, @unchecked Sendable {
     public let gemKeystore: GemKeystore
     private let keystoreURL: URL
     private let keystorePassword: KeystorePassword
+    private let authentication: any BiometryAuthenticatable
     private let queue = DispatchQueue(label: "com.gemwallet.keystore", qos: .userInitiated)
 
     public init(
         directory: String = "keystore",
-        keystorePassword: KeystorePassword = LocalKeystorePassword(),
+        keystorePassword: KeystorePassword,
+        authentication: any BiometryAuthenticatable,
     ) {
         do {
             let fileMigrator = FileMigrator()
@@ -27,10 +30,11 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         }
 
         self.keystorePassword = keystorePassword
+        self.authentication = authentication
     }
 
-    public func keystorePassword(createIfMissing: Bool) throws -> String {
-        let password = try keystorePassword.getPassword()
+    public func keystorePassword(createIfMissing: Bool) async throws -> String {
+        let password = try await getPassword()
         if password.isNotEmpty {
             return password
         }
@@ -87,10 +91,13 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         try FileManager.default.removeItem(at: keystoreURL)
     }
 
+    @MainActor
     func getPassword() async throws -> String {
-        try await queue.asyncTask { [keystorePassword] in
-            try keystorePassword.getPassword()
+        let context = LAContext()
+        if authentication.requiresAuthentication {
+            try await authentication.authenticate(context: context)
         }
+        return try keystorePassword.getPassword(context: context)
     }
 
     private func pendingV3Migrations(for wallets: [Primitives.Wallet]) -> [(wallet: Primitives.Wallet, v3URL: URL)] {

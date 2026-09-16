@@ -112,13 +112,13 @@ impl GemSwapService {
 
     async fn get_quote_data(&self, wallet: &Wallet, quote: &Quote) -> Result<GemSwapQuoteData, SwapperError> {
         let data = match self.swapper.get_permit2_for_quote(quote).await? {
-            Some(approval) => FetchQuoteData::Permit2(self.permit2_data(wallet, quote, &approval)?),
+            Some(approval) => FetchQuoteData::Permit2(self.permit2_data(wallet, quote, &approval).await?),
             None => FetchQuoteData::None,
         };
         self.swapper.get_quote_data(quote, data).await
     }
 
-    fn permit2_data(&self, wallet: &Wallet, quote: &Quote, approval: &swapper::Permit2ApprovalData) -> Result<Permit2Data, SwapperError> {
+    async fn permit2_data(&self, wallet: &Wallet, quote: &Quote, approval: &swapper::Permit2ApprovalData) -> Result<Permit2Data, SwapperError> {
         let chain = AssetId::new(&quote.request.from_asset.id).ok_or(SwapperError::NotSupportedAsset)?.chain;
         let now = unix_seconds().map_err(|error| SwapperError::TransactionError(error.to_string()))?;
         let permit_single = rules::permit_single(approval, now, &get_swap_config());
@@ -131,6 +131,7 @@ impl GemSwapService {
         let password = self
             .password
             .get_password(false)
+            .await
             .map(|password| decode_password(&password))
             .map_err(|error| SwapperError::TransactionError(error.to_string()))?;
         let signature = signer

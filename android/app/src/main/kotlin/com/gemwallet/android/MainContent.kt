@@ -15,6 +15,7 @@ import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
 import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.WalletApp
+import uniffi.gemstone.GemAppLockPhase
 import uniffi.gemstone.GemDeeplinkService
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.theme.WalletTheme
@@ -39,20 +40,21 @@ internal fun MainContent(
 ) {
     val pendingRoutes = (pendingNavigation as? PendingNavigation.Routes)?.routes.orEmpty()
     val canAttemptSystemAuth = !systemAuthEnrollmentMissing
-    val requiresAuthPrompt = state.initialAuth == AuthState.Required || state.authState == AuthState.Required
-    val isWalletUnlocked = state.initialAuth == AuthState.Success
-    val isEnrollmentRequired = state.initialAuth == AuthState.Required && systemAuthEnrollmentMissing
+    val unlockAttempt = (state.lock.phase as? GemAppLockPhase.Unlocking)?.attempt
+    val requiresAuthPrompt = unlockAttempt != null || state.authState == AuthState.Required
+    val isWalletUnlocked = state.lock.phase == GemAppLockPhase.Unlocked
+    val isEnrollmentRequired = !isWalletUnlocked && systemAuthEnrollmentMissing
     val unlockedPendingRoutes = if (isWalletUnlocked) pendingRoutes else emptyList()
     val unsupportedWalletConnectError = if (state.isWalletConnectUnsupportedVisible) {
         "${stringResource(R.string.wallet_connect_title)}: ${stringResource(R.string.errors_not_supported)} (${BuildConfig.FLAVOR})"
     } else {
         null
     }
-    var isWalletContentReady by remember { mutableStateOf(state.hasUnlockedApp) }
+    var isWalletContentReady by remember { mutableStateOf(state.lock.hasUnlocked) }
     val onWalletContentReady: () -> Unit = remember { { isWalletContentReady = true } }
     val shouldShowLockedSplash = !isWalletUnlocked || !isWalletContentReady
 
-    LaunchedEffect(requiresAuthPrompt, canAttemptSystemAuth, state.authPromptRequest) {
+    LaunchedEffect(requiresAuthPrompt, canAttemptSystemAuth, unlockAttempt, state.authPromptRequest) {
         if (requiresAuthPrompt && canAttemptSystemAuth) {
             onSystemAuthRequired()
         }
@@ -60,7 +62,7 @@ internal fun MainContent(
 
     WalletTheme(darkTheme = darkTheme) {
         Box(modifier = Modifier.fillMaxSize()) {
-            if (state.hasUnlockedApp) {
+            if (state.lock.hasUnlocked) {
                 WalletApp(
                     deeplinkService = deeplinkService,
                     pendingRoutes = unlockedPendingRoutes,

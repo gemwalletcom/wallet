@@ -46,7 +46,7 @@ impl GemSignMessageService {
     }
 
     pub async fn sign(&self, wallet_id: WalletId, message: SignMessage) -> Result<String, GemServiceError> {
-        let password = decode_password(&self.password.get_password(false)?);
+        let password = decode_password(&self.password.get_password(false).await?);
         Ok(MessageSigner::new(message).sign_with_keystore(self.keystore.clone(), keystore_id_for_wallet(wallet_id.id()), password)?)
     }
 

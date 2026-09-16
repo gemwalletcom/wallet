@@ -1,28 +1,18 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemSecurityService
 import Primitives
 import LocalAuthentication
 
-public struct BiometryAuthenticationService: BiometryAuthenticatable {
+@MainActor
+public final class BiometryAuthenticationService: BiometryAuthenticatable {
     private let keystorePassword: KeystorePassword
-    private let securityService: GemSecurityService
+    private let reason: String
 
-    public init(
-        keystorePassword: KeystorePassword,
-        securityService: GemSecurityService,
-    ) {
+    public private(set) var isAuthenticating = false
+
+    public nonisolated init(keystorePassword: KeystorePassword, reason: String) {
         self.keystorePassword = keystorePassword
-        self.securityService = securityService
-    }
-
-    public func shouldRelock(elapsedMilliseconds: Int64) -> Bool {
-        securityService.shouldRelock(
-            elapsedMilliseconds: elapsedMilliseconds,
-            lockIntervalMinutes: lockPeriod.gemLockPeriod.minutes(),
-            authRequired: requiresAuthentication,
-            hasPendingRequest: false,
-        )
+        self.reason = reason
     }
 
     public var requiresAuthentication: Bool {
@@ -62,18 +52,14 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
         keystorePassword.getAvailableAuthentication()
     }
 
-    public var isAuthenticating: Bool {
-        keystorePassword.isAuthenticating
-    }
-
-    @MainActor
-    public func enableAuthentication(_ enable: Bool, context: LAContext, reason: String) async throws {
-        try await authenticate(context: context, reason: reason)
+    public func enableAuthentication(_ enable: Bool, context: LAContext) async throws {
+        try await authenticate(context: context)
         try keystorePassword.enableAuthentication(enable, context: context)
     }
 
-    @MainActor
-    public func authenticate(context: LAContext, reason: String) async throws {
+    public func authenticate(context: LAContext) async throws {
+        isAuthenticating = true
+        defer { isAuthenticating = false }
         do {
             try await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason)
         } catch let error as NSError {

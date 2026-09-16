@@ -284,7 +284,7 @@ These are not screen services and must not be added to the table above. Each is 
 | `GemConnectionService` | iOS `ConnectionStatusObserver`, Android `RefreshInterval` |
 | `GemPerpetualStreamService` | `HyperliquidObserverService` on both apps |
 | `GemPushNotificationService` | iOS `NavigationHandler`, Android notification routing |
-| `GemSecurityService` | iOS `LockSceneViewModel` and `BiometryAuthenticationService`, Android `LockTimer` |
+| `GemAppLockSession` | iOS `LockSceneViewModel`, Android `MainViewModel` — the app-lock state machine as a pure session, not a service |
 
 `GemNameService` is not a row in this table: it is the [shared-component dependency](ARCHITECTURE.md#a-service-never-hands-out-another-service) that `AddressInputViewModel` and `NameRecordViewModel` take, and a parent passes it down beside its own service.
 

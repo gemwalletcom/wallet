@@ -1,8 +1,10 @@
 package com.gemwallet.android
 
 import android.content.Intent
+import android.os.SystemClock
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
 import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
@@ -22,13 +24,20 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemAppLockPhase
+import uniffi.gemstone.GemAppLockSession
+import uniffi.gemstone.GemAppLockSettings
 import uniffi.gemstone.GemAppStartFailure
 import uniffi.gemstone.GemAppStartServiceInterface
+import uniffi.gemstone.GemAuthPromptOutcome
 import uniffi.gemstone.GemPaymentException
+import uniffi.gemstone.lockPeriodFromMinutes
+import uniffi.gemstone.newAppLockSession
 import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 
@@ -41,18 +50,11 @@ class MainViewModel @Inject constructor(
     private val migrateV3KeystoreService: MigrateV3KeystoreService,
     private val walletService: GemWalletService,
     private val migratePriceAlertsPreference: MigratePriceAlertsPreference,
-    private val lockTimer: LockTimer,
+    private val activeWalletConnectRequest: ActiveWalletConnectRequest,
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
 ) : ViewModel() {
 
-    private val isInitialAuthRequired = userConfig.authRequired()
-
-    private val _uiState = MutableStateFlow(
-        MainUIState(
-            initialAuth = if (isInitialAuthRequired) AuthState.Required else AuthState.Success,
-            hasUnlockedApp = !isInitialAuthRequired,
-        )
-    )
+    private val _uiState = MutableStateFlow(MainUIState(lock = newAppLockSession(lockSettings(lockPeriodMinutes = null))))
     val uiState: StateFlow<MainUIState> = _uiState.asStateFlow()
 
     internal val pendingNavigation: StateFlow<PendingNavigation?> = pendingNavigationCoordinator.pendingNavigation
@@ -78,7 +80,7 @@ class MainViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             combine(
-                _uiState.map { it.initialAuth == AuthState.Success }.distinctUntilChanged(),
+                _uiState.map { it.lock.phase == GemAppLockPhase.Unlocked }.distinctUntilChanged(),
                 pendingNavigation,
             ) { unlocked, pending -> unlocked && pending is PendingNavigation.Input }
                 .distinctUntilChanged()
@@ -105,6 +107,8 @@ class MainViewModel @Inject constructor(
 
     fun isAuthRequired(): Boolean = userConfig.authRequired()
 
+    fun isUnlocked(): Boolean = uiState.value.lock.phase == GemAppLockPhase.Unlocked
+
     internal fun maintain() {
         viewModelScope.launch(Dispatchers.IO) { appStartService.run().forEach(::logAppStartFailure) }
         viewModelScope.launch(Dispatchers.IO) {
@@ -130,30 +134,14 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun retryInitialAuth() {
-        _uiState.update { current ->
-            if (current.initialAuth == AuthState.Success) {
-                current
-            } else {
-                current.copy(
-                    initialAuth = AuthState.Required,
-                    authPromptRequest = current.authPromptRequest + 1,
-                )
-            }
-        }
+    fun onUnlockRequested() = updateLock { it.onUnlockRequested() }
+
+    fun onUnlocked() = updateLock { lock ->
+        (lock.phase as? GemAppLockPhase.Unlocking)?.let { lock.onUnlocked(it.attempt) } ?: lock
     }
 
-    fun onInitialAuth(authState: AuthState) {
-        _uiState.update { current ->
-            if (current.initialAuth == AuthState.Success) {
-                current
-            } else {
-                current.copy(
-                    initialAuth = authState,
-                    hasUnlockedApp = current.hasUnlockedApp || authState == AuthState.Success,
-                )
-            }
-        }
+    fun onUnlockFailed(outcome: GemAuthPromptOutcome) = updateLock { lock ->
+        (lock.phase as? GemAppLockPhase.Unlocking)?.let { lock.onUnlockFailed(it.attempt, outcome) } ?: lock
     }
 
     fun completeAuthRequest(requestId: Long): Boolean {
@@ -162,26 +150,35 @@ class MainViewModel @Inject constructor(
         return true
     }
 
-    fun onActivityPaused() {
-        lockTimer.onPaused()
-    }
+    fun onActivityPaused() = pause(now = SystemClock.elapsedRealtime())
 
     fun onActivityResumed() {
         viewModelScope.launch(Dispatchers.IO) {
-            if (lockTimer.shouldRelock()) relock()
+            val settings = lockSettings(lockPeriodMinutes = userConfig.getLockInterval().first())
+            resume(settings, hasPendingRequest = activeWalletConnectRequest.current.value != null, now = SystemClock.elapsedRealtime())
         }
     }
 
-    internal fun relock() {
-        activeAuthRequestId.set(NoActiveAuthRequestId)
-        _uiState.update { current ->
-            current.copy(
-                initialAuth = AuthState.Required,
-                authState = null,
-                authPromptRequest = current.authPromptRequest + 1,
-            )
+    internal fun pause(now: Long) = updateLock { it.onBackground(now) }
+
+    internal fun resume(settings: GemAppLockSettings, hasPendingRequest: Boolean, now: Long) {
+        val wasUnlocked = isUnlocked()
+        updateLock { it.onSettingsChanged(settings).onActive(now, hasPendingRequest) }
+        if (wasUnlocked && !isUnlocked()) {
+            activeAuthRequestId.set(NoActiveAuthRequestId)
+            _uiState.update { it.copy(authState = null) }
         }
     }
+
+    private fun updateLock(transition: (GemAppLockSession) -> GemAppLockSession) {
+        _uiState.update { it.copy(lock = transition(it.lock)) }
+    }
+
+    private fun lockSettings(lockPeriodMinutes: Int?) = GemAppLockSettings(
+        authenticationRequired = userConfig.authRequired(),
+        privacyLockEnabled = false,
+        lockPeriod = lockPeriodFromMinutes(lockPeriodMinutes?.toUInt()),
+    )
 
     fun handleIntent(intent: Intent) = pendingNavigationCoordinator.handleIntent(intent)
 
@@ -233,10 +230,9 @@ class MainViewModel @Inject constructor(
     }
 
     data class MainUIState(
-        val initialAuth: AuthState = AuthState.Required,
+        val lock: GemAppLockSession,
         val authState: AuthState? = null,
         val authPromptRequest: Int = 0,
-        val hasUnlockedApp: Boolean = false,
         val isWalletConnectPairingToastVisible: Boolean = false,
         val walletConnectError: String? = null,
         val navigationError: String? = null,

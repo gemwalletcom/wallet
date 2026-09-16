@@ -134,7 +134,7 @@ mod tests {
     fn test_a_wallet_whose_keystore_cannot_be_read_does_not_stop_the_others() {
         block_on(async {
             let testkit = AppStartTestkit::new().await;
-            testkit.wallets.lock_out(&testkit.first);
+            testkit.wallets.lock_out(&testkit.first).await;
 
             let failures = testkit.service.setup_wallets().await;
 

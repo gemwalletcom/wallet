@@ -2,6 +2,7 @@
 
 import GemstoneServicesTestKit
 import GemstonePrimitives
+import LocalAuthentication
 import class Gemstone.GemPreferencesService
 import class Gemstone.GemWalletPreferencesService
 import class Gemstone.GemWalletService
@@ -82,7 +83,7 @@ struct WalletServiceTests {
         let mockPassword = MockKeystorePassword()
         let service = makeService(keystore: LocalKeystore.mock(keystorePassword: mockPassword), db: .mockWithChains([.ethereum]))
 
-        #expect(try mockPassword.getPassword().isEmpty)
+        #expect(try mockPassword.getPassword(context: LAContext()).isEmpty)
 
         _ = try await service.importWallet(
             name: "First Wallet",
@@ -90,7 +91,7 @@ struct WalletServiceTests {
             source: .import,
         )
 
-        #expect(try mockPassword.getPassword().count == 64)
+        #expect(try mockPassword.getPassword(context: LAContext()).count == 64)
     }
 
     @Test

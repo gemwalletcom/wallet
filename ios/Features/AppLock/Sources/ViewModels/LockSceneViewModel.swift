@@ -1,31 +1,31 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
+import struct Gemstone.GemAppLockSession
+import struct Gemstone.GemAppLockViewState
+import func Gemstone.newAppLockSession
 import GemstoneServices
 import LocalAuthentication
 import Localization
 import Observation
 import Style
 import SwiftUI
-import class Gemstone.GemSecurityService
 
 @MainActor
 @Observable
-public class LockSceneViewModel {
-    private static let reason: String = Localized.Settings.Security.authentication
-
+public final class LockSceneViewModel {
     private let service: any BiometryAuthenticatable
+    private let launchedAt = ContinuousClock.now
 
-    var backgroundedAt: ContinuousClock.Instant?
-    var state: LockSceneState
+    private(set) var session: GemAppLockSession
+    private(set) var attempt: UnlockAttempt?
 
-    private var showPlaceholderPreview: Bool = false
-
-    public init(
-        service: any BiometryAuthenticatable,
-    ) {
+    public init(service: any BiometryAuthenticatable) {
         self.service = service
-        state = service.requiresAuthentication ? .locked : .unlocked
+        session = newAppLockSession(settings: service.lockSettings)
+    }
+
+    var viewState: GemAppLockViewState {
+        session.viewState(nowMilliseconds: nowMilliseconds)
     }
 
     var unlockTitle: String {
@@ -39,118 +39,37 @@ public class LockSceneViewModel {
         case .none: .none
         }
     }
-
-    var isAutoLockEnabled: Bool {
-        service.requiresAuthentication
-    }
-
-    var isLocked: Bool {
-        state != .unlocked && isAutoLockEnabled
-    }
-
-    var isUnlocking: Bool {
-        if case .unlocking = state { true } else { false }
-    }
-
-    var isUnlockButtonVisible: Bool {
-        state == .lockedCanceled
-    }
-
-    var shouldLock: Bool {
-        guard let backgroundedAt else { return false }
-        return service.shouldRelock(elapsedMilliseconds: (ContinuousClock.now - backgroundedAt).milliseconds)
-    }
-
-    var shouldShowLockScreen: Bool {
-        isLocked || (isAutoLockEnabled && showPlaceholderPreview)
-    }
-
-    var lockPeriod: LockPeriod {
-        service.lockPeriod
-    }
-
-    var isPrivacyLockEnabled: Bool {
-        service.isPrivacyLockEnabled
-    }
-
-    var privacyLockAlpha: CGFloat {
-        isPrivacyLockVisible ? 1 : 0
-    }
-
-    var isPrivacyLockVisible: Bool {
-        guard isAutoLockEnabled else { return false }
-
-        if isPrivacyLockEnabled {
-            return state != .unlocked || showPlaceholderPreview
-        } else {
-            return state == .locked || state == .lockedCanceled || shouldLock
-        }
-    }
 }
 
 // MARK: - Business Logic
 
 extension LockSceneViewModel {
     func handleSceneChange(to phase: ScenePhase) {
+        session = session.onSettingsChanged(settings: service.lockSettings)
         switch phase {
-        case .background:
-            showPlaceholderPreview = true
-            if case let .unlocking(attempt) = state, !attempt.isInvalidated {
-                state = .unlocking(attempt.invalidated())
-            }
-            if state == .unlocked, !shouldLock {
-                backgroundedAt = ContinuousClock.now
-            }
         case .active:
-            showPlaceholderPreview = false
-            if state == .unlocked, shouldLock {
-                state = .locked
-            }
-            if case let .unlocking(attempt) = state, attempt.isInvalidated {
-                state = .locked
-            }
-            if state == .locked {
-                startUnlock()
-            }
+            session = session.onActive(nowMilliseconds: nowMilliseconds, hasPendingRequest: false)
         case .inactive:
-            showPlaceholderPreview = !service.isAuthenticating
+            session = session.onInactive(ownPromptVisible: service.isAuthenticating)
+        case .background:
+            attempt?.context.invalidate()
+            session = session.onBackground(nowMilliseconds: nowMilliseconds)
         @unknown default:
             break
         }
+        startUnlockAttempt()
     }
 
-    @discardableResult
-    func startUnlock() -> Task<Void, Never>? {
-        switch state {
-        case let .unlocking(attempt):
-            return attempt.task
-        case .unlocked:
-            return nil
-        case .locked, .lockedCanceled:
-            guard isAutoLockEnabled else {
-                resetLockState()
-                return nil
-            }
-            let context = LAContext()
-            let task = Task {
-                await authenticate(context: context)
-            }
-            state = .unlocking(UnlockAttempt(context: context, task: task))
-            return task
-        }
-    }
-
-    func resetLockState() {
-        showPlaceholderPreview = false
-        backgroundedAt = nil
-        state = .unlocked
+    func requestUnlock() {
+        session = session.onUnlockRequested()
+        startUnlockAttempt()
     }
 
     public func waitUntilUnlocked() async {
-        while state != .unlocked {
+        while !viewState.isUnlocked {
             await withCheckedContinuation { continuation in
                 withObservationTracking {
-                    _ = state
+                    _ = session
                 } onChange: {
                     continuation.resume()
                 }
@@ -162,28 +81,28 @@ extension LockSceneViewModel {
 // MARK: - Private
 
 extension LockSceneViewModel {
-    private func authenticate(context: LAContext) async {
-        let newState = await getAuthenticationState(context: context)
-        guard case let .unlocking(attempt) = state, attempt.context === context else { return }
-
-        switch newState {
-        case .unlocked:
-            resetLockState()
-        case .locked where !attempt.isInvalidated:
-            state = .lockedCanceled
-        default:
-            state = newState
-        }
+    private var nowMilliseconds: Int64 {
+        (ContinuousClock.now - launchedAt).milliseconds
     }
 
-    private func getAuthenticationState(context: LAContext) async -> LockSceneState {
+    private func startUnlockAttempt() {
+        guard case let .unlocking(number, _) = session.phase, attempt?.number != number else { return }
+        let context = LAContext()
+        attempt = UnlockAttempt(
+            number: number,
+            context: context,
+            task: Task { await authenticate(attempt: number, context: context) },
+        )
+    }
+
+    private func authenticate(attempt: UInt32, context: LAContext) async {
         do {
-            try await service.authenticate(context: context, reason: Self.reason)
-            return .unlocked
+            try await service.authenticate(context: context)
+            session = session.onUnlocked(attempt: attempt)
         } catch let error as BiometryAuthenticationError {
-            return error == .cancelledBySystem ? .locked : .lockedCanceled
+            session = session.onUnlockFailed(attempt: attempt, outcome: error.promptOutcome)
         } catch {
-            return .lockedCanceled
+            session = session.onUnlockFailed(attempt: attempt, outcome: .failed)
         }
     }
 }
@@ -192,11 +111,6 @@ extension LockSceneViewModel {
 
 extension LockSceneViewModel {
     static var preview: LockSceneViewModel {
-        LockSceneViewModel(
-            service: BiometryAuthenticationService(
-                keystorePassword: LocalKeystorePassword(),
-                securityService: GemSecurityService(),
-            ),
-        )
+        LockSceneViewModel(service: BiometryAuthenticationService(keystorePassword: LocalKeystorePassword(), reason: Localized.Settings.Security.authentication))
     }
 }

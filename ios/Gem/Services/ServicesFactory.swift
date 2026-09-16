@@ -26,6 +26,9 @@ import WebSocketClient
 struct ServicesFactory {
     func makeServices(storages: AppResolver.Storages, navigation: NavigationStateManager) -> AppResolver.Services {
         let stores = storages.stores
+        let keystorePassword = LocalKeystorePassword()
+        let authentication = BiometryAuthenticationService(keystorePassword: keystorePassword, reason: Localized.Settings.Security.authentication)
+        let keystore = LocalKeystore(keystorePassword: keystorePassword, authentication: authentication)
         let securePreferences = SecurePreferences()
         let preferencesStore = GemstonePreferencesStore.application()
         let preferencesService = Gemstone.GemPreferencesService(store: preferencesStore)
@@ -93,8 +96,8 @@ struct ServicesFactory {
         let explorerService = Gemstone.GemExplorerService(preferences: preferencesService)
         let avatarService = Gemstone.GemAvatarService(wallets: gemstoneWalletStore, files: gemstoneFileStore, provider: nativeProvider)
         let walletService = Gemstone.GemWalletService(
-            keystore: storages.keystore.gemKeystore,
-            password: GemstoneKeystorePassword(keystore: storages.keystore),
+            keystore: keystore.gemKeystore,
+            password: GemstoneKeystorePassword(keystore: keystore),
             store: gemstoneWalletStore,
             session: walletSessionService,
             appPreferences: preferencesService,
@@ -207,8 +210,8 @@ struct ServicesFactory {
         let swapper = GemSwapper(rpcProvider: NativeProvider(), preferences: preferencesStore)
         let swapService = Gemstone.GemSwapService(
             swapper: swapper,
-            keystore: storages.keystore.gemKeystore,
-            password: GemstoneKeystorePassword(keystore: storages.keystore),
+            keystore: keystore.gemKeystore,
+            password: GemstoneKeystorePassword(keystore: keystore),
             store: GemstoneSwapStore(
                 assetStore: stores.assetStore,
                 transactionStore: stores.transactionStore,
@@ -222,8 +225,8 @@ struct ServicesFactory {
         let signMessageService = Gemstone.GemSignMessageService(
             names: nameService,
             explorer: explorerService,
-            keystore: storages.keystore.gemKeystore,
-            password: GemstoneKeystorePassword(keystore: storages.keystore),
+            keystore: keystore.gemKeystore,
+            password: GemstoneKeystorePassword(keystore: keystore),
         )
         let walletConnectorPresenter = WalletConnectorPresenter()
         let walletConnectorInteractor = WalletConnectorInteractor(presenter: walletConnectorPresenter)
@@ -272,7 +275,7 @@ struct ServicesFactory {
         let onStartService = OnstartService(
             appStartService: appStartService,
             preferencesService: preferencesService,
-            keystore: storages.keystore,
+            keystore: keystore,
             session: walletSessionService,
         )
 
@@ -293,8 +296,8 @@ struct ServicesFactory {
             api: deviceApiClient,
             auth: Gemstone.GemAuthService(
                 api: deviceApiClient,
-                keystore: storages.keystore.gemKeystore,
-                password: GemstoneKeystorePassword(keystore: storages.keystore),
+                keystore: keystore.gemKeystore,
+                password: GemstoneKeystorePassword(keystore: keystore),
                 deviceKey: deviceKeyService,
             ),
             balance: balanceService,
@@ -401,11 +404,8 @@ struct ServicesFactory {
             serviceStatusService: serviceStatusService,
             appUpdateService: appUpdateService,
             inAppNotificationService: inAppNotificationService,
-            biometryService: BiometryAuthenticationService(
-                keystorePassword: storages.keystorePassword,
-                securityService: Gemstone.GemSecurityService(),
-            ),
-            keystore: storages.keystore,
+            biometryService: authentication,
+            keystore: keystore,
             observablePreferences: observablePreferences,
             recentAssetsService: recentAssetsService,
             amountService: Gemstone.GemAmountService(stake: stakeService, preferences: preferencesService, session: walletSessionService),

@@ -14,10 +14,10 @@ public final class GemstoneKeystorePassword: GemKeystorePassword, @unchecked Sen
         self.keystore = keystore
     }
 
-    public func getPassword(createIfMissing: Bool) throws -> String {
+    public func getPassword(createIfMissing: Bool) async throws -> String {
         do {
-            return try keystore.keystorePassword(createIfMissing: createIfMissing)
-        } catch where error.isAuthenticationCancelled {
+            return try await keystore.keystorePassword(createIfMissing: createIfMissing)
+        } catch let error as BiometryAuthenticationError where error.isAuthenticationCancelled {
             throw GemServiceError.Cancelled
         }
     }

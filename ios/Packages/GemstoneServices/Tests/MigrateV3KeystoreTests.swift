@@ -55,7 +55,7 @@ struct MigrateV3KeystoreTests {
         defer { try? FileManager.default.removeItem(at: baseDir) }
 
         let mockPassword = MockKeystorePassword(memoryPassword: Self.password)
-        let keystore = LocalKeystore(directory: directory, keystorePassword: mockPassword)
+        let keystore = LocalKeystore(directory: directory, keystorePassword: mockPassword, authentication: BiometryAuthenticationService(keystorePassword: mockPassword, reason: ""))
         let migrated = Wallet.mock(
             id: .privateKey(chain: .ethereum, address: Self.ethereumAddress),
             type: .privateKey,
@@ -75,9 +75,11 @@ struct MigrateV3KeystoreTests {
             .appending(path: directory, directoryHint: .isDirectory)
         defer { try? FileManager.default.removeItem(at: baseDir) }
 
+        let mockPassword = MockKeystorePassword(memoryPassword: "")
         let keystore = LocalKeystore(
             directory: directory,
-            keystorePassword: MockKeystorePassword(memoryPassword: ""),
+            keystorePassword: mockPassword,
+            authentication: BiometryAuthenticationService(keystorePassword: mockPassword, reason: ""),
         )
         let legacy = Wallet.mock(
             id: .privateKey(chain: .ethereum, address: Self.ethereumAddress),
@@ -107,6 +109,7 @@ struct MigrateV3KeystoreTests {
         let keystore = LocalKeystore(
             directory: directory,
             keystorePassword: mockPassword,
+            authentication: BiometryAuthenticationService(keystorePassword: mockPassword, reason: ""),
         )
 
         let fixtureURL = try #require(Bundle.module.url(forResource: fixture, withExtension: "json"))

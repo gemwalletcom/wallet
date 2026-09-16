@@ -7,7 +7,6 @@ import LocalAuthentication
 
 public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
     public private(set) var getPasswordCallsCount = 0
-    public var isAuthenticating = false
     public var getAuthenticationError: (any Error)?
     public var getPrivacyLockStatusError: (any Error)?
 
@@ -35,7 +34,7 @@ public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
         memoryPassword = password
     }
 
-    public func getPassword() throws -> String {
+    public func getPassword(context _: LAContext) throws -> String {
         getPasswordCallsCount += 1
         return memoryPassword
     }

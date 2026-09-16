@@ -14,16 +14,13 @@ private struct LockWindowViewModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .onChange(of: scenePhase, initial: true) { _, newPhase in
-                lockWindow.setPhase(phase: newPhase)
+                lockWindow.setPhase(newPhase)
             }
             .onChange(of: colorScheme, initial: true) { _, newColorScheme in
                 lockWindow.setColorScheme(newColorScheme)
             }
-            .onChange(of: lockWindow.isPrivacyLockVisible) { _, visible in
-                lockWindow.togglePrivacyLock(visible: visible)
-            }
-            .onChange(of: lockWindow.showLockScreen, initial: true) { _, showLockScreen in
-                lockWindow.toggleLock(show: showLockScreen)
+            .onChange(of: lockWindow.screen, initial: true) { _, screen in
+                lockWindow.present(screen)
             }
     }
 }

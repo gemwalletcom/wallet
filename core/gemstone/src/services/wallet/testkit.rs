@@ -75,8 +75,9 @@ pub struct MemoryKeystorePassword {
     pub create_requests: Mutex<Vec<bool>>,
 }
 
+#[async_trait::async_trait]
 impl GemKeystorePassword for MemoryKeystorePassword {
-    fn get_password(&self, create_if_missing: bool) -> Result<String, GemServiceError> {
+    async fn get_password(&self, create_if_missing: bool) -> Result<String, GemServiceError> {
         self.create_requests.lock().unwrap().push(create_if_missing);
         Ok(TEST_PASSWORD.to_string())
     }
@@ -185,8 +186,8 @@ impl WalletTestkit {
         self.directory.path().join(format!("{}.json", keystore_id_for_wallet(wallet.id.id())))
     }
 
-    pub fn lock_out(&self, wallet: &Wallet) {
-        let password = decode_password(&self.service.password.get_password(false).unwrap());
+    pub async fn lock_out(&self, wallet: &Wallet) {
+        let password = decode_password(&self.service.password.get_password(false).await.unwrap());
         self.service
             .keystore
             .change_password(keystore_id_for_wallet(wallet.id.id()), password, b"other".to_vec())

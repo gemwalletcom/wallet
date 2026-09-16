@@ -23,26 +23,27 @@ public extension LocalKeystore {
         LocalKeystore(
             directory: UUID().uuidString,
             keystorePassword: keystorePassword,
+            authentication: BiometryAuthenticationService(keystorePassword: keystorePassword, reason: ""),
         )
     }
 }
 
 public extension LocalKeystore {
-    func importWallet(name: String, type: GemWalletImportType) throws -> Primitives.Wallet {
+    func importWallet(name: String, type: GemWalletImportType) async throws -> Primitives.Wallet {
         switch type {
         case let .address(address, chain):
             return viewWallet(name: name, chain: Primitives.Chain(core: chain), address: address)
         case let .multicoinPhrase(words, chains):
-            return try importWallet(name: name, import: .multicoinPhrase(words: words, chains: chains))
+            return try await importWallet(name: name, import: .multicoinPhrase(words: words, chains: chains))
         case let .singlePhrase(words, chain):
-            return try importWallet(name: name, import: .singlePhrase(words: words, chain: chain))
+            return try await importWallet(name: name, import: .singlePhrase(words: words, chain: chain))
         case let .privateKey(value, chain):
-            return try importWallet(name: name, import: .privateKey(value: value, chain: chain))
+            return try await importWallet(name: name, import: .privateKey(value: value, chain: chain))
         }
     }
 
-    private func importWallet(name: String, import: GemImportType) throws -> Primitives.Wallet {
-        let password = try keystorePassword(createIfMissing: true)
+    private func importWallet(name: String, import: GemImportType) async throws -> Primitives.Wallet {
+        let password = try await keystorePassword(createIfMissing: true)
         return try gemKeystore.createStore(import: `import`, password: gemKeystore.decodePassword(password: password)).mapToWallet(name: name, source: .import)
     }
 }

@@ -8,9 +8,10 @@ struct LockScreenScene: View {
     let model: LockSceneViewModel
 
     var body: some View {
-        placeholderView
+        LogoView()
+            .background(Colors.white)
             .overlay(alignment: .bottom) { unlockButton }
-            .animation(.smooth, value: model.isLocked)
+            .animation(.smooth, value: model.viewState.screen)
             .frame(maxWidth: .infinity)
     }
 }
@@ -20,9 +21,9 @@ struct LockScreenScene: View {
 extension LockScreenScene {
     @ViewBuilder
     private var unlockButton: some View {
-        if model.isUnlockButtonVisible {
+        if case .lock(unlockButton: true) = model.viewState.screen {
             Button {
-                model.startUnlock()
+                model.requestUnlock()
             } label: {
                 HStack {
                     if let image = model.unlockImage {
@@ -35,11 +36,6 @@ extension LockScreenScene {
             .frame(maxWidth: .scene.button.maxWidth)
             .padding()
         }
-    }
-
-    private var placeholderView: some View {
-        LogoView()
-            .background(Colors.white)
     }
 }
 

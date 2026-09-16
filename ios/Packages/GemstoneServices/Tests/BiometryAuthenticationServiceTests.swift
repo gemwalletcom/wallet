@@ -1,17 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import class Gemstone.GemSecurityService
 @testable import GemstoneServices
 import GemstoneServicesTestKit
 import Primitives
 import Testing
 
+@MainActor
 struct BiometryAuthenticationServiceTests {
     @Test
     func requiresAuthenticationWhenKeychainUnreadable() {
         let keystorePassword = MockKeystorePassword(availableAuthentication: .none)
-        let service = BiometryAuthenticationService(keystorePassword: keystorePassword, securityService: GemSecurityService())
+        let service = BiometryAuthenticationService(keystorePassword: keystorePassword, reason: "")
 
         #expect(!service.requiresAuthentication)
 
@@ -23,7 +23,7 @@ struct BiometryAuthenticationServiceTests {
     @Test
     func privacyLockStaysOnWhenTheKeychainIsUnreadable() {
         let keystorePassword = MockKeystorePassword(privacyLockStatus: .none)
-        let service = BiometryAuthenticationService(keystorePassword: keystorePassword, securityService: GemSecurityService())
+        let service = BiometryAuthenticationService(keystorePassword: keystorePassword, reason: "")
 
         #expect(!service.isPrivacyLockEnabled)
 
@@ -33,21 +33,9 @@ struct BiometryAuthenticationServiceTests {
     }
 
     @Test
-    func isAuthenticatingComesFromTheKeystorePassword() {
-        let keystorePassword = MockKeystorePassword(availableAuthentication: .biometrics)
-        let service = BiometryAuthenticationService(keystorePassword: keystorePassword, securityService: GemSecurityService())
-
-        #expect(!service.isAuthenticating)
-
-        keystorePassword.isAuthenticating = true
-
-        #expect(service.isAuthenticating)
-    }
-
-    @Test
     func requiresAuthenticationReflectsStoredAuthentication() {
         let keystorePassword = MockKeystorePassword(availableAuthentication: .biometrics)
-        let service = BiometryAuthenticationService(keystorePassword: keystorePassword, securityService: GemSecurityService())
+        let service = BiometryAuthenticationService(keystorePassword: keystorePassword, reason: "")
 
         #expect(service.requiresAuthentication)
     }

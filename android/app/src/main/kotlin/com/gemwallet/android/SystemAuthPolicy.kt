@@ -24,7 +24,7 @@ internal object SystemAuthPolicy {
     fun initialRetryDelay(errorCode: Int): Duration? =
         promptOutcome(errorCode).retryDelayMilliseconds()?.toLong()?.milliseconds
 
-    private fun promptOutcome(errorCode: Int): GemAuthPromptOutcome = when (errorCode) {
+    fun promptOutcome(errorCode: Int): GemAuthPromptOutcome = when (errorCode) {
         BiometricPrompt.ERROR_CANCELED -> GemAuthPromptOutcome.CANCELLED_BY_SYSTEM
         BiometricPrompt.ERROR_NEGATIVE_BUTTON,
         BiometricPrompt.ERROR_TIMEOUT,

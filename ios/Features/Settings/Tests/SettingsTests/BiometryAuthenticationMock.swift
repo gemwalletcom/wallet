@@ -4,11 +4,13 @@ import GemstoneServices
 import LocalAuthentication
 import Primitives
 
-final class BiometryAuthenticationMock: BiometryAuthenticatable, @unchecked Sendable {
+@MainActor
+final class BiometryAuthenticationMock: BiometryAuthenticatable {
     var requiresAuthentication: Bool
     var availableAuthentication: KeystoreAuthentication
     var lockPeriod: LockPeriod
     var isPrivacyLockEnabled: Bool
+    var isAuthenticating = false
 
     var enableError: Error?
     var privacyLockError: Error?
@@ -30,13 +32,9 @@ final class BiometryAuthenticationMock: BiometryAuthenticatable, @unchecked Send
         self.isPrivacyLockEnabled = isPrivacyLockEnabled
     }
 
-    func shouldRelock(elapsedMilliseconds _: Int64) -> Bool { requiresAuthentication }
+    func authenticate(context _: LAContext) async throws {}
 
-    @MainActor
-    func authenticate(context _: LAContext, reason _: String) async throws {}
-
-    @MainActor
-    func enableAuthentication(_ enable: Bool, context _: LAContext, reason _: String) async throws {
+    func enableAuthentication(_ enable: Bool, context _: LAContext) async throws {
         enableCalls.append(enable)
         if let enableError { throw enableError }
         requiresAuthentication = enable

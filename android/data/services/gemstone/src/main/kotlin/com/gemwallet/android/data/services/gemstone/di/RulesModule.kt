@@ -8,7 +8,6 @@ import uniffi.gemstone.GemAddressService
 import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemAssetConfigServiceInterface
 import uniffi.gemstone.GemConnectionService
-import uniffi.gemstone.GemSecurityService
 import uniffi.gemstone.GemSimulationFormatter
 import uniffi.gemstone.PriceAlertFormatter
 import javax.inject.Singleton
@@ -28,11 +27,6 @@ object RulesModule {
     @Provides
     @Singleton
     fun provideGemConnectionService(): GemConnectionService = GemConnectionService()
-
-
-    @Provides
-    @Singleton
-    fun provideGemSecurityService(): GemSecurityService = GemSecurityService()
 
     @Provides
     @Singleton

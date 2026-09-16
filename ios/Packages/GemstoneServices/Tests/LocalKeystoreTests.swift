@@ -7,9 +7,9 @@ import Testing
 struct LocalKeystoreTests {
     @Test
     func testImportWallet() async {
-        #expect(throws: Never.self) {
+        await #expect(throws: Never.self) {
             let keystore = LocalKeystore.mock()
-            let wallet = try keystore.importWallet(
+            let wallet = try await keystore.importWallet(
                 name: "test",
                 type: .multicoinPhrase(words: LocalKeystore.words, chains: [Primitives.Chain.ethereum].map { $0.toGem() }),
             )
@@ -21,9 +21,9 @@ struct LocalKeystoreTests {
 
     @Test
     func importSolanaWallet() async {
-        #expect(throws: Never.self) {
+        await #expect(throws: Never.self) {
             let keystore = LocalKeystore.mock()
-            let wallet = try keystore.importWallet(
+            let wallet = try await keystore.importWallet(
                 name: "Solana Wallet",
                 type: .multicoinPhrase(words: LocalKeystore.words, chains: [Primitives.Chain.solana].map { $0.toGem() }),
             )
@@ -36,11 +36,11 @@ struct LocalKeystoreTests {
 
     @Test
     func importEthereumWallet() async {
-        #expect(throws: Never.self) {
+        await #expect(throws: Never.self) {
             let keystore = LocalKeystore.mock()
             let chains: [Chain] = [.ethereum, .smartChain, .blast]
 
-            let wallet = try keystore.importWallet(
+            let wallet = try await keystore.importWallet(
                 name: "test",
                 type: .multicoinPhrase(words: LocalKeystore.words, chains: chains.map { $0.toGem() }),
             )
@@ -59,7 +59,7 @@ struct LocalKeystoreTests {
         await #expect(throws: Never.self) {
             let keystore = LocalKeystore.mock()
             let hex = "0xb9095df5360714a69bc86ca92f6191e60355f206909982a8409f7b8358cf41b0"
-            let wallet = try keystore.importWallet(
+            let wallet = try await keystore.importWallet(
                 name: "Test Solana",
                 type: .privateKey(value: hex, chain: Primitives.Chain.solana.toGem()),
             )
@@ -68,7 +68,7 @@ struct LocalKeystoreTests {
             #expect(exported == "DTJi5pMtSKZHdkLX4wxwvjGjf2xwXx1LSuuUZhugYWDV")
 
             let keystore2 = LocalKeystore.mock()
-            let wallet2 = try keystore2.importWallet(
+            let wallet2 = try await keystore2.importWallet(
                 name: "Test Solana 2",
                 type: .privateKey(value: exported, chain: Primitives.Chain.solana.toGem()),
             )
@@ -78,19 +78,24 @@ struct LocalKeystoreTests {
     }
 
     @Test
-    func keystorePasswordIsCreatedOnlyWhenAsked() throws {
+    func keystorePasswordIsCreatedOnlyWhenAsked() async throws {
         let directory = UUID().uuidString
         let baseDir = try FileManager.default
             .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
             .appending(path: directory, directoryHint: .isDirectory)
         defer { try? FileManager.default.removeItem(at: baseDir) }
 
-        let keystore = LocalKeystore(directory: directory, keystorePassword: MockKeystorePassword(memoryPassword: ""))
-        #expect(throws: KeystoreError.self) { try keystore.keystorePassword(createIfMissing: false) }
+        let mockPassword = MockKeystorePassword(memoryPassword: "")
+        let keystore = LocalKeystore(
+            directory: directory,
+            keystorePassword: mockPassword,
+            authentication: BiometryAuthenticationService(keystorePassword: mockPassword, reason: ""),
+        )
+        await #expect(throws: KeystoreError.self) { try await keystore.keystorePassword(createIfMissing: false) }
 
-        let created = try keystore.keystorePassword(createIfMissing: true)
+        let created = try await keystore.keystorePassword(createIfMissing: true)
         #expect(created.isNotEmpty)
-        #expect(try keystore.keystorePassword(createIfMissing: false) == created)
+        #expect(try await keystore.keystorePassword(createIfMissing: false) == created)
     }
 
     @Test
@@ -98,7 +103,7 @@ struct LocalKeystoreTests {
         await #expect(throws: Never.self) {
             let keystore = LocalKeystore.mock()
             let hex = "0x30df0ffc2b43717f4653c2a1e827e9dfb3d9364e019cc60092496cd4997d5d6e"
-            let wallet = try keystore.importWallet(
+            let wallet = try await keystore.importWallet(
                 name: "Test Ethereum",
                 type: .privateKey(value: hex, chain: Primitives.Chain.ethereum.toGem()),
             )
@@ -110,10 +115,10 @@ struct LocalKeystoreTests {
 
     @Test
     func deriveAddress() async {
-        #expect(throws: Never.self) {
+        await #expect(throws: Never.self) {
             let keystore = LocalKeystore.mock()
             let chains = AssetConfiguration.allChains
-            let wallet = try keystore.importWallet(
+            let wallet = try await keystore.importWallet(
                 name: "test",
                 type: .multicoinPhrase(words: LocalKeystore.words, chains: chains.map { $0.toGem() }),
             )

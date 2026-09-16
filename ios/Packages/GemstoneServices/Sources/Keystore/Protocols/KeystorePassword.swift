@@ -6,13 +6,11 @@ import LocalAuthentication
 
 public protocol KeystorePassword: Sendable {
     func setPassword(_ password: String, authentication: KeystoreAuthentication) throws
-    func getPassword() throws -> String
+    func getPassword(context: LAContext) throws -> String
     func getAuthentication() throws -> KeystoreAuthentication
     func getAvailableAuthentication() -> KeystoreAuthentication
     func enableAuthentication(_ enable: Bool, context: LAContext) throws
     func remove() throws
-
-    var isAuthenticating: Bool { get }
 
     func getPrivacyLockStatus() throws -> PrivacyLockStatus?
     func setPrivacyLockStatus(_ status: PrivacyLockStatus) throws

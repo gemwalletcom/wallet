@@ -11,7 +11,6 @@ import androidx.lifecycle.LifecycleDestroyedException
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.withResumed
 import com.gemwallet.android.model.AuthRequest
-import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.model.requiresConfirmation
 import com.gemwallet.android.ui.R
 import kotlin.time.Duration
@@ -28,7 +27,7 @@ internal class SystemAuthenticator(
     private val _enrollmentMissing = MutableStateFlow(false)
     private val authRequests = AuthRequestQueue()
     private lateinit var biometricPrompt: BiometricPrompt
-    private var initialAuthRetry: Job? = null
+    private var unlockRetry: Job? = null
     private var activeAuthTimeout: Job? = null
     private var pendingAuthenticate: Job? = null
 
@@ -38,17 +37,17 @@ internal class SystemAuthenticator(
         val executor = ContextCompat.getMainExecutor(activity)
         biometricPrompt = BiometricPrompt(activity, executor, object : BiometricPrompt.AuthenticationCallback() {
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                if (viewModel.uiState.value.initialAuth != AuthState.Success) {
-                    handleInitialAuthError(errorCode)
+                if (!viewModel.isUnlocked()) {
+                    handleUnlockError(errorCode)
                 } else if (authRequests.hasActive()) {
                     cancelActiveAuthRequest()
                 }
             }
 
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                initialAuthRetry?.cancel()
-                if (viewModel.uiState.value.initialAuth != AuthState.Success) {
-                    viewModel.onInitialAuth(AuthState.Success)
+                unlockRetry?.cancel()
+                if (!viewModel.isUnlocked()) {
+                    viewModel.onUnlocked()
                 } else if (authRequests.hasActive()) {
                     completeActiveAuthRequest()
                 }
@@ -110,25 +109,26 @@ internal class SystemAuthenticator(
     }
 
     fun cancel() {
-        initialAuthRetry?.cancel()
+        unlockRetry?.cancel()
         activeAuthTimeout?.cancel()
         pendingAuthenticate?.cancel()
         runCatching { biometricPrompt.cancelAuthentication() }
     }
 
-    private fun handleInitialAuthError(errorCode: Int) {
+    private fun handleUnlockError(errorCode: Int) {
+        viewModel.onUnlockFailed(SystemAuthPolicy.promptOutcome(errorCode))
         val retryDelay = SystemAuthPolicy.initialRetryDelay(errorCode)
         if (retryDelay == null) {
             activity.finishAffinity()
             return
         }
-        initialAuthRetry?.cancel()
-        initialAuthRetry = activity.lifecycleScope.launch {
+        unlockRetry?.cancel()
+        unlockRetry = activity.lifecycleScope.launch {
             if (retryDelay > Duration.ZERO) {
                 delay(retryDelay)
             }
             if (!activity.isFinishing && !activity.isDestroyed) {
-                viewModel.retryInitialAuth()
+                viewModel.onUnlockRequested()
             }
         }
     }

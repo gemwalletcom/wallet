@@ -10,7 +10,7 @@ class GemstoneKeystorePassword(
     private val passwordStore: PasswordStore,
 ) : GemKeystorePassword {
 
-    override fun getPassword(createIfMissing: Boolean): String {
+    override suspend fun getPassword(createIfMissing: Boolean): String {
         return if (createIfMissing) passwordStore.getOrCreateKeystorePassword() else passwordStore.getKeystorePassword()
     }
 

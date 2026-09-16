@@ -1,17 +1,14 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemAppLockScreen
 import SwiftUI
 
 @MainActor
 public protocol LockWindowPresentable: Observable {
     var lockModel: LockSceneViewModel { get }
-    var overlayWindow: UIWindow? { get }
+    var screen: GemAppLockScreen { get }
 
-    var showLockScreen: Bool { get }
-    var isPrivacyLockVisible: Bool { get }
-
-    func setPhase(phase: ScenePhase)
+    func setPhase(_ phase: ScenePhase)
     func setColorScheme(_ colorScheme: ColorScheme)
-    func toggleLock(show: Bool)
-    func togglePrivacyLock(visible: Bool)
+    func present(_ screen: GemAppLockScreen)
 }

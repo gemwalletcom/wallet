@@ -9,7 +9,7 @@ import Primitives
 public struct KeystoreMock: Keystore {
     public init() {}
 
-    public func keystorePassword(createIfMissing _: Bool) throws -> String {
+    public func keystorePassword(createIfMissing _: Bool) async throws -> String {
         ""
     }
 

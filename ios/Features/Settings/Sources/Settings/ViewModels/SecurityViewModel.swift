@@ -15,8 +15,6 @@ public final class SecurityViewModel {
     private let settings: any GemSettingsServiceProtocol
     private let preferences: ObservablePreferences
 
-    static let reason: String = Localized.Settings.Security.authentication
-
     var isPresentingAlertMessage: AlertMessage?
     var isEnabled: Bool
     private var storedLockPeriod: LockPeriod
@@ -92,7 +90,7 @@ extension SecurityViewModel {
     func toggleBiometrics() async {
         guard isEnabled != service.requiresAuthentication else { return }
         do {
-            try await service.enableAuthentication(isEnabled, reason: SecurityViewModel.reason)
+            try await service.enableAuthentication(isEnabled)
             isPrivacyLockEnabled = service.isPrivacyLockEnabled
             storedLockPeriod = service.lockPeriod
         } catch let error as BiometryAuthenticationError {
