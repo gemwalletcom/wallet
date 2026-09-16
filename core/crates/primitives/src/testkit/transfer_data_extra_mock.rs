@@ -1,4 +1,5 @@
 use super::signer_mock::TEST_EVM_RECIPIENT;
+use crate::swap::ApprovalData;
 use crate::{TransactionType, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType};
 
 impl TransferDataExtra {
@@ -17,5 +18,15 @@ impl TransferDataExtra {
 
     pub fn mock_encoded_transaction(data: Vec<u8>) -> Self {
         TransferDataExtra { data: Some(data), ..Self::mock() }
+    }
+
+    pub fn mock_signature(data: Vec<u8>, approval: Option<ApprovalData>) -> Self {
+        TransferDataExtra {
+            data: Some(data),
+            output_type: TransferDataOutputType::Signature,
+            transaction_type: TransactionType::Transfer,
+            approval,
+            ..Self::mock()
+        }
     }
 }

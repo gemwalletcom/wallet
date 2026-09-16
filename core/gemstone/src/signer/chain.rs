@@ -275,10 +275,11 @@ fn unsupported_error(chain: Chain, action: &str) -> GemstoneError {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use gem_evm::testkit::eip712_mock::mock_eip712_json;
     use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_PRIVATE_KEY};
     use primitives::{
-        ApplicationMetadata, DelegationValidator, PaymentInvoice, StakeType, SwapProvider, TransactionFee, TransactionLoadInput, TransactionLoadMetadata,
-        TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, contract_call_data::ContractCallData, nft::NFTAsset,
+        ApplicationMetadata, DelegationValidator, StakeType, SwapProvider, TransactionFee, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra,
+        TransferDataOutputType, contract_call_data::ContractCallData, nft::NFTAsset,
     };
 
     fn signed(data: Vec<String>, transaction_type: TransactionType) -> Vec<GemSignedTransaction> {
@@ -331,54 +332,23 @@ mod tests {
     }
 
     #[test]
-    fn test_sign_input_signs_a_payment_signature_as_typed_data() {
+    fn test_sign_input_payment() {
         let signer = ChainTransactionSigner::new(Chain::Ethereum);
         let key = TEST_PRIVATE_KEY.to_vec();
-        let typed_data = br#"{"types":{"EIP712Domain":[{"name":"name","type":"string"},{"name":"chainId","type":"uint256"}],"Message":[{"name":"content","type":"string"}]},"primaryType":"Message","domain":{"name":"Test","chainId":1},"message":{"content":"Hello"}}"#.to_vec();
-        let payment: GemSignerInput = SignerInput::mock_evm(
-            TransactionInputType::Payment {
-                asset: Asset::mock_erc20(),
-                invoice: PaymentInvoice::mock(),
-                extra: TransferDataExtra {
-                    data: Some(typed_data.clone()),
-                    output_type: TransferDataOutputType::Signature,
-                    output_action: TransferDataOutputAction::Sign,
-                    transaction_type: TransactionType::Transfer,
-                    ..TransferDataExtra::mock()
-                },
-            },
-            "0",
-            0,
-        )
-        .into();
-
-        assert_eq!(
-            signer.sign_input(payment.clone(), Zeroizing::new(key.clone())).unwrap(),
-            signed(vec![signer.sign_message(typed_data.clone(), key.clone()).unwrap()], TransactionType::Transfer)
-        );
-
-        let approval_data = ApprovalData::mock();
-        let payment_with_approval: GemSignerInput = SignerInput::mock_evm(
-            TransactionInputType::Payment {
-                asset: Asset::mock_erc20(),
-                invoice: PaymentInvoice::mock(),
-                extra: TransferDataExtra {
-                    data: Some(typed_data.clone()),
-                    output_type: TransferDataOutputType::Signature,
-                    output_action: TransferDataOutputAction::Sign,
-                    transaction_type: TransactionType::Transfer,
-                    approval: Some(approval_data.clone()),
-                    ..TransferDataExtra::mock()
-                },
-            },
-            "0",
-            65000,
-        )
-        .into();
+        let typed_data = mock_eip712_json(1).into_bytes();
+        let payment = |approval, gas_limit| -> GemSignerInput {
+            SignerInput::mock_evm(
+                TransactionInputType::mock_payment(Asset::mock_erc20(), TransferDataExtra::mock_signature(typed_data.clone(), approval)),
+                "0",
+                gas_limit,
+            )
+            .into()
+        };
+        let approval = ApprovalData::mock();
         let approve: GemSignerInput = SignerInput::mock_evm(
             TransactionInputType::TokenApprove {
                 asset: Asset::mock_erc20(),
-                approval_data,
+                approval_data: approval.clone(),
             },
             "0",
             65000,
@@ -386,12 +356,18 @@ mod tests {
         .into();
 
         assert_eq!(
-            signer.sign_input(payment_with_approval, Zeroizing::new(key.clone())).unwrap(),
+            signer.sign_input(payment(None, 0), Zeroizing::new(key.clone())).unwrap(),
+            signed(vec![signer.sign_message(typed_data.clone(), key.clone()).unwrap()], TransactionType::Transfer),
+            "a payment is signed as typed data"
+        );
+        assert_eq!(
+            signer.sign_input(payment(Some(approval), 65000), Zeroizing::new(key.clone())).unwrap(),
             [
                 signed(vec![signer.sign_token_approval(approve, key.clone()).unwrap()], TransactionType::TokenApproval),
                 signed(vec![signer.sign_message(typed_data, key).unwrap()], TransactionType::Transfer),
             ]
-            .concat()
+            .concat(),
+            "the approval is signed first"
         );
     }
 

@@ -126,8 +126,8 @@ mod tests {
     use crate::wallet_connect_pay::testkit;
     use crate::wallet_connect_pay::testkit::{
         FETCH_IDENTITY_REQUIRED, FETCH_SEND, OPTIONS, OPTIONS_FAILED, OPTIONS_IDENTITY_REQUIRED, STATUS_EXPIRED, STATUS_FAILED, STATUS_PROCESSING,
-        STATUS_REQUIRES_ACTION, STATUS_SUCCEEDED, STATUS_SUCCEEDED_COIN, TEST_ACCOUNT, TEST_PAYMENT_ID, TEST_PERMIT_SPENDER, TEST_ROUTER, addresses,
-        fetch_actions, quote, quote_actions, quotes,
+        STATUS_REQUIRES_ACTION, STATUS_SUCCEEDED, STATUS_SUCCEEDED_COIN, TEST_ACCOUNT, TEST_PAYMENT_ID, TEST_PERMIT_SPENDER, TEST_ROUTER, accounts, addresses,
+        fetch_actions, options, quote, quote_actions, quotes,
     };
     use gem_client::ClientError;
     use gem_client::testkit::MockClient;
@@ -166,18 +166,16 @@ mod tests {
         }
     }
 
-    fn invoice(options: &str) -> PaymentInvoice {
-        map_invoice(&testkit::invoice(options, TEST_ACCOUNT), TEST_PAYMENT_ID)
+    fn invoice(fixture: &str) -> PaymentInvoice {
+        map_invoice(&testkit::invoice(options(fixture), &accounts(TEST_ACCOUNT)), TEST_PAYMENT_ID)
     }
 
     fn request(quote: &Quote, address: &str) -> Option<PaymentRequest> {
         Some(PaymentRequest {
             address: address.to_string(),
             amount: Some(PaymentAmount::AtomicValue { value: quote.value.clone() }),
-            memo: None,
-            label: None,
-            references: None,
             asset_id: Some(quote.asset_id.clone()),
+            ..PaymentRequest::mock()
         })
     }
 
@@ -235,7 +233,7 @@ mod tests {
                 transaction: PaymentTransaction {
                     invoice: invoice(OPTIONS),
                     account: token.account.clone(),
-                    transaction: serde_json::from_str::<Value>(permit[0].params[1].as_str().unwrap()).unwrap().to_string(),
+                    transaction: permit[0].params[1].as_str().unwrap().to_string(),
                     transaction_type: TransactionType::Transfer,
                     memo: None,
                     request: request(&token, TEST_PERMIT_SPENDER),

@@ -613,8 +613,8 @@ mod tests {
     use primitives::GasPriceType;
     use primitives::asset_balance::BalanceMetadata;
     use primitives::{
-        ApplicationMetadata, Delegation, DelegationBase, DelegationState, DelegationValidator, NFTAsset, PaymentInvoice, PaymentPrice, PerpetualConfirmData,
-        PerpetualDirection, Resource, StakeProviderType, SwapProvider, TransactionType, TransferDataExtra,
+        ApplicationMetadata, Delegation, DelegationBase, DelegationState, DelegationValidator, NFTAsset, PaymentInvoice, PaymentMerchant, PaymentPrice,
+        PerpetualConfirmData, PerpetualDirection, Resource, StakeProviderType, SwapProvider, TransactionType, TransferDataExtra,
         known_assets::HYPERCORE_PERPETUAL_USDC,
         swap::{SwapData, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType},
     };
@@ -767,10 +767,7 @@ mod tests {
         );
         let payment = |price| TransactionInputType::Payment {
             asset: asset(Chain::Ethereum),
-            invoice: PaymentInvoice {
-                price,
-                ..PaymentInvoice::mock()
-            },
+            invoice: PaymentInvoice { price, ..PaymentInvoice::mock() },
             extra: TransferDataExtra::mock(),
         };
         assert_eq!(payment(Some(PaymentPrice::mock())).header_kind(), GemTransactionHeaderKind::Payment);
@@ -790,11 +787,7 @@ mod tests {
     fn test_title_by_input_type() {
         assert_eq!(TransactionInputType::Transfer { asset: asset(Chain::Ethereum) }.title(), GemConfirmTitle::Send);
         assert_eq!(
-            TransactionInputType::Payment {
-                asset: asset(Chain::Ethereum),
-                invoice: PaymentInvoice::mock(),
-                extra: TransferDataExtra::mock(),
-            }
+            TransactionInputType::mock_payment(asset(Chain::Ethereum), TransferDataExtra::mock())
             .title(),
             GemConfirmTitle::Payment
         );
@@ -962,17 +955,13 @@ mod tests {
     fn test_destination_is_the_row_the_confirm_screen_shows() {
         let eth = asset(Chain::Ethereum);
         let paid = transfer(
-            TransactionInputType::Payment {
-                asset: eth.clone(),
-                invoice: PaymentInvoice::mock(),
-                extra: TransferDataExtra::mock(),
-            },
+            TransactionInputType::mock_payment(eth.clone(), TransferDataExtra::mock()),
             "1",
         );
         assert_eq!(
             paid.destination(),
             Some(GemConfirmDestination::Recipient {
-                name: Some("Merchant".into()),
+                name: Some(PaymentMerchant::mock().name),
                 address: "recipient".into()
             })
         );
@@ -1183,20 +1172,16 @@ mod tests {
         assert_eq!(transaction.asset_id, AssetId::from(Chain::Ethereum, Some("0xusdc".into())));
         assert!(transaction.metadata.is_none());
 
-        let generic = TransactionInputType::Payment {
-            asset: asset(Chain::Solana),
-            invoice: PaymentInvoice::mock(),
-            extra: TransferDataExtra {
+        let generic = TransactionInputType::mock_payment(
+            asset(Chain::Solana),
+            TransferDataExtra {
                 to: String::new(),
-                gas_limit: None,
-                gas_price: None,
                 data: Some(b"encoded".to_vec()),
-                output_type: TransferDataOutputType::EncodedTransaction,
                 output_action: TransferDataOutputAction::Send,
                 transaction_type: TransactionType::Transfer,
-                approval: None,
+                ..TransferDataExtra::mock()
             },
-        };
+        );
         let mut generic_input = pending_input(generic, TransactionType::Transfer, "hash", 0, 1);
         generic_input.simulation = Some(primitives::SimulationResult {
             warnings: vec![],
@@ -1213,19 +1198,14 @@ mod tests {
         assert_eq!(transaction.value, BigUint::from(19_000_000u64));
         assert_eq!(transaction.to, "recipient");
 
-        let token_payment = |approval| TransactionInputType::Payment {
-            asset: token(Chain::SmartChain, "0xusdc"),
-            invoice: PaymentInvoice::mock(),
-            extra: TransferDataExtra {
-                to: "0xrouter".into(),
-                gas_limit: None,
-                gas_price: None,
-                data: Some(b"typed data".to_vec()),
-                output_type: TransferDataOutputType::Signature,
-                output_action: TransferDataOutputAction::Sign,
-                transaction_type: TransactionType::Transfer,
-                approval,
-            },
+        let token_payment = |approval| {
+            TransactionInputType::mock_payment(
+                token(Chain::SmartChain, "0xusdc"),
+                TransferDataExtra {
+                    to: "0xrouter".into(),
+                    ..TransferDataExtra::mock_signature(b"typed data".to_vec(), approval)
+                },
+            )
         };
         let payment_approval = ApprovalData {
             token: "0xusdc".into(),

@@ -1,6 +1,6 @@
-use primitives::{AssetId, Chain, ChainAddress, WalletConnectCAIP2};
+use primitives::{AssetId, Chain, ChainAddress, PaymentMerchant, WalletConnectCAIP2};
 
-use crate::wallet_connect_pay::model::{FetchActionsResponse, Invoice, Options, Quote, WalletRpcAction};
+use crate::wallet_connect_pay::model::{FetchActionsResponse, Invoice, Merchant, Options, PaymentOptionsResponse, Quote, WalletRpcAction};
 use crate::wallet_connect_pay::payment_mapper::map_options;
 
 pub const OPTIONS: &str = include_str!("../../testdata/wallet_connect_pay/options.json");
@@ -37,15 +37,29 @@ pub fn accounts(address: &str) -> Vec<String> {
     CHAINS.iter().filter_map(|chain| WalletConnectCAIP2::format_account(*chain, address)).collect()
 }
 
-pub fn invoice(options: &str, address: &str) -> Invoice {
-    match map_options(serde_json::from_str(options).unwrap(), &accounts(address)).unwrap() {
+impl Merchant {
+    pub fn mock() -> Self {
+        let merchant = PaymentMerchant::mock();
+        Self {
+            name: merchant.name,
+            icon_url: Some(merchant.icon),
+        }
+    }
+}
+
+pub fn options(fixture: &str) -> PaymentOptionsResponse {
+    serde_json::from_str(fixture).unwrap()
+}
+
+pub fn invoice(response: PaymentOptionsResponse, accounts: &[String]) -> Invoice {
+    match map_options(response, accounts).unwrap() {
         Options::Invoice(invoice) => invoice,
         Options::Status { status } => panic!("payment is {status:?}"),
     }
 }
 
-pub fn quotes(options: &str, address: &str) -> Vec<Quote> {
-    invoice(options, address).quotes
+pub fn quotes(fixture: &str, address: &str) -> Vec<Quote> {
+    invoice(options(fixture), &accounts(address)).quotes
 }
 
 pub fn quote(options: &str, address: &str, asset_id: &AssetId) -> Quote {

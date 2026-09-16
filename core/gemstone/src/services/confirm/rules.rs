@@ -471,7 +471,6 @@ mod tests {
     use super::super::model::GemConfirmData;
     use super::super::testkit::confirm_data;
     use super::*;
-    use primitives::PaymentInvoice;
     use crate::models::custom_types::GemBigInt;
     use crate::models::custom_types::GemBigUint;
     use crate::models::transaction::{GemFeeOptions, GemTransactionLoadMetadata};
@@ -571,22 +570,15 @@ mod tests {
     }
 
     #[test]
-    fn test_is_broadcast_sends_a_payment_approval_and_hands_over_the_signature() {
+    fn test_is_broadcast() {
         let signed = |transaction_type: TransactionType| GemSignedTransaction {
             data: format!("{transaction_type:?}"),
             transaction_type,
         };
-        let payment = TransactionInputType::Payment {
-            asset: Asset::mock_erc20(),
-            invoice: PaymentInvoice::mock(),
-            extra: TransferDataExtra {
-                output_action: TransferDataOutputAction::Sign,
-                ..TransferDataExtra::mock()
-            },
-        };
+        let payment = TransactionInputType::mock_payment(Asset::mock_erc20(), TransferDataExtra::mock_signature(vec![], None));
 
-        assert!(is_broadcast(&payment, &signed(TransactionType::TokenApproval)));
-        assert!(!is_broadcast(&payment, &signed(TransactionType::Transfer)));
+        assert!(is_broadcast(&payment, &signed(TransactionType::TokenApproval)), "a payment sends its approval");
+        assert!(!is_broadcast(&payment, &signed(TransactionType::Transfer)), "and hands over its signature");
         assert!(is_broadcast(&TransactionInputType::Transfer { asset: Asset::mock_sol() }, &signed(TransactionType::Transfer)));
     }
 
@@ -841,11 +833,7 @@ mod tests {
     #[test]
     fn test_validate_simulation() {
         for chain in [Chain::Solana, Chain::Ethereum, Chain::Sui] {
-            let payment = TransactionInputType::Payment {
-                asset: Asset::from_chain(chain),
-                invoice: PaymentInvoice::mock(),
-                extra: TransferDataExtra::mock(),
-            };
+            let payment = TransactionInputType::mock_payment(Asset::from_chain(chain), TransferDataExtra::mock());
             let wallet_connect = TransactionInputType::Generic {
                 asset: Asset::from_chain(chain),
                 metadata: ApplicationMetadata::mock(),
@@ -886,11 +874,7 @@ mod tests {
                 metadata: ApplicationMetadata::mock(),
                 extra: TransferDataExtra::mock(),
             };
-            let payment = TransactionInputType::Payment {
-                asset: Asset::from_chain(chain),
-                invoice: PaymentInvoice::mock(),
-                extra: TransferDataExtra::mock(),
-            };
+            let payment = TransactionInputType::mock_payment(Asset::from_chain(chain), TransferDataExtra::mock());
             assert_eq!(wallet_connect.broadcast_options().skip_preflight, skip_preflight, "{chain}: wallet connect");
             assert!(!payment.broadcast_options().skip_preflight, "{chain}: payment");
         }
@@ -999,14 +983,7 @@ mod tests {
             (TransactionInputType::Deposit { asset: Asset::mock_erc20() }, false),
             (earn(EarnType::Deposit(DelegationValidator::mock())), false),
             (TransactionInputType::Transfer { asset: Asset::mock_erc20() }, true),
-            (
-                TransactionInputType::Payment {
-                    asset: Asset::mock_erc20(),
-                    invoice: PaymentInvoice::mock(),
-                    extra: TransferDataExtra::mock(),
-                },
-                true,
-            ),
+            (TransactionInputType::mock_payment(Asset::mock_erc20(), TransferDataExtra::mock()), true),
             (TransactionInputType::Withdrawal { asset: Asset::mock_erc20() }, false),
             (earn(EarnType::Withdraw(Delegation::mock())), false),
             (
@@ -1074,11 +1051,7 @@ mod tests {
     fn test_simulation_payload_only_for_utf8_payment_calls() {
         let mut extra = TransferDataExtra::mock();
         extra.data = Some(b"0xdeadbeef".to_vec());
-        let payment = |extra: TransferDataExtra| TransactionInputType::Payment {
-            asset: Asset::mock_sol(),
-            invoice: PaymentInvoice::mock(),
-            extra,
-        };
+        let payment = |extra: TransferDataExtra| TransactionInputType::mock_payment(Asset::mock_sol(), extra);
 
         assert_eq!(payment(extra.clone()).simulation_payload(), Some("0xdeadbeef".to_string()));
 

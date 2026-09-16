@@ -155,8 +155,8 @@ mod tests {
     use futures::executor::block_on;
     use num_bigint::BigInt;
     use primitives::{
-        Account, Asset, AssetId, Chain, FeePriority, PaymentInvoice, SimulationBalanceChange, SimulationResult, SimulationWarning, TransactionInputType,
-        TransferDataExtra, Wallet, WalletId,
+        Account, Asset, AssetId, Chain, FeePriority, SimulationBalanceChange, SimulationResult, SimulationWarning, TransactionInputType, TransferDataExtra,
+        Wallet, WalletId,
     };
 
     use super::super::testkit::ConfirmTestkit;
@@ -252,47 +252,24 @@ mod tests {
     }
 
     #[test]
-    fn test_load_switches_the_asset_only_for_a_payment() {
+    fn test_select_asset() {
         block_on(async {
             let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, "0x0000000000000000000000000000000000000001")]);
             let testkit = ConfirmTestkit::new(wallet.clone(), wallet.clone());
-            let options = |asset_id: Option<AssetId>| GemConfirmLoadOptions {
-                fee_selection: GemConfirmFeeSelection::Priority { priority: FeePriority::Normal },
-                fee_asset_id: None,
-                asset_id,
-            };
-            let transfer = |input_type| GemTransferData {
-                input_type,
-                recipient: GemRecipient::address(String::new()),
-                value: 0.into(),
-                use_max_amount: false,
-            };
-            let other = AssetId::from_chain(Chain::SmartChain);
+            let confirmation = |input_type| testkit.service.clone().confirmation(wallet.clone(), GemTransferData::mock(input_type), None);
+            let ethereum = Asset::from_chain(Chain::Ethereum);
+            let sent = confirmation(TransactionInputType::Transfer { asset: ethereum.clone() });
+            let paid = confirmation(TransactionInputType::mock_payment(ethereum.clone(), TransferDataExtra::mock()));
 
-            let sent = testkit.service.clone().confirmation(
-                wallet.clone(),
-                transfer(TransactionInputType::Transfer {
-                    asset: Asset::from_chain(Chain::Ethereum),
-                }),
-                None,
+            assert_eq!(
+                sent.select_asset(AssetId::from_chain(Chain::SmartChain)).await.map_err(|error| error.to_string()),
+                Err("Transfer is not a payment".to_string())
             );
-            let GemConfirmError::Load { msg } = sent.load(options(Some(other.clone()))).await.unwrap_err() else {
-                panic!("expected a load error");
-            };
-            assert_eq!(msg, "Transfer is not a payment");
-
-            let paid = testkit.service.clone().confirmation(
-                wallet,
-                transfer(TransactionInputType::Payment {
-                    asset: Asset::from_chain(Chain::Ethereum),
-                    invoice: PaymentInvoice::mock(),
-                    extra: TransferDataExtra::mock(),
-                }),
-                None,
+            assert_eq!(
+                paid.select_asset(ethereum.id).await.map_err(|error| error.to_string()),
+                Ok(()),
+                "the asset already paid with is not selected again"
             );
-            let same = paid.load(options(Some(AssetId::from_chain(Chain::Ethereum)))).await.unwrap_err();
-            assert!(!same.to_string().contains("payment"), "the asset already paid with must not be re-selected: {same}");
-            assert!(paid.load(options(Some(other))).await.is_err());
         });
     }
 }
