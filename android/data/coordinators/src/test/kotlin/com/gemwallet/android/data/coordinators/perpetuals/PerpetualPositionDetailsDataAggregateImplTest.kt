@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.perpetuals
 
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.testkit.mockPerpetualPosition
 import com.gemwallet.android.testkit.mockPerpetualPositionData
 import com.gemwallet.android.testkit.mockPerpetualTriggerOrder
@@ -30,7 +30,7 @@ class PerpetualPositionDetailsDataAggregateImplTest {
         val aggregate = aggregate(mockPerpetualPosition(funding = -0.7006f))
 
         assertEquals("-\$0.7006", aggregate.fundingPayments)
-        assertEquals(ValueDirection.Down, aggregate.fundingPaymentsDirection)
+        assertEquals(GemValueTone.NEGATIVE, aggregate.fundingPaymentsDirection)
     }
 
     @Test
@@ -38,7 +38,7 @@ class PerpetualPositionDetailsDataAggregateImplTest {
         val aggregate = aggregate(mockPerpetualPosition(funding = 0.7006f))
 
         assertEquals("+\$0.7006", aggregate.fundingPayments)
-        assertEquals(ValueDirection.Up, aggregate.fundingPaymentsDirection)
+        assertEquals(GemValueTone.POSITIVE, aggregate.fundingPaymentsDirection)
     }
 
     @Test
@@ -46,7 +46,7 @@ class PerpetualPositionDetailsDataAggregateImplTest {
         val aggregate = aggregate(mockPerpetualPosition(funding = null))
 
         assertEquals("-", aggregate.fundingPayments)
-        assertEquals(ValueDirection.None, aggregate.fundingPaymentsDirection)
+        assertEquals(GemValueTone.NEUTRAL, aggregate.fundingPaymentsDirection)
     }
 
     @Test

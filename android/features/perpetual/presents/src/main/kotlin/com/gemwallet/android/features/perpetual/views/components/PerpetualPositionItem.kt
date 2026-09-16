@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregate
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.ui.components.perpetual.color
 import com.gemwallet.android.ui.components.perpetual.text
 import com.gemwallet.android.ui.components.image.AssetIcon
@@ -18,7 +18,7 @@ import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
-import com.gemwallet.android.ui.components.list_item.color
+import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.adaptivePadding
@@ -83,7 +83,7 @@ private fun PerpetualPositionLongItemPreview() {
         override val leverage: String = "40x"
         override val marginAmount: String = "$1,000.00"
         override val pnlWithPercentage: String = "+$1,250.00 (+12.50%)"
-        override val pnlState: ValueDirection = ValueDirection.Up
+        override val pnlState: GemValueTone = GemValueTone.POSITIVE
     }
 
     WalletTheme {
@@ -110,7 +110,7 @@ private fun PerpetualPositionShortItemPreview() {
         override val leverage: String = "40x"
         override val marginAmount: String = "$1,000.00"
         override val pnlWithPercentage: String = "-$1,250.00 (+12.50%)"
-        override val pnlState: ValueDirection = ValueDirection.Down
+        override val pnlState: GemValueTone = GemValueTone.NEGATIVE
     }
 
     WalletTheme {

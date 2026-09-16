@@ -1,7 +1,7 @@
 package com.gemwallet.android.ui.models.perpetual.autoclose
 
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregate
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.wallet.core.primitives.TpslType
@@ -22,7 +22,7 @@ data class AutocloseUIModel(
         val type: TpslType,
         val isProfit: Boolean,
         val pnlText: String,
-        val pnlDirection: ValueDirection,
+        val pnlDirection: GemValueTone,
         val percentSuggestions: List<Int>,
         val validation: AutocloseValidation,
     ) {

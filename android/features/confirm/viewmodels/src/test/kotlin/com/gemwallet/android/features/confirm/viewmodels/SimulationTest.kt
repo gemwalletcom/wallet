@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.confirm.viewmodels
 
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
@@ -40,8 +40,8 @@ class SimulationTest {
             simulation.balanceChanges.map { it.formattedValue() },
         )
         assertEquals(
-            listOf(ValueDirection.Down, ValueDirection.Up),
-            simulation.balanceChanges.map { it.valueDirection() },
+            listOf(GemValueTone.NEGATIVE, GemValueTone.POSITIVE),
+            simulation.balanceChanges.map { it.tone() },
         )
     }
 }

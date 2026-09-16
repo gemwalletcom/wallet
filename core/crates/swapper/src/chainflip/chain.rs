@@ -8,6 +8,7 @@ pub enum ChainflipChain {
     Solana,
     Arbitrum,
     Tron,
+    Bsc,
 }
 
 impl ChainflipChain {
@@ -18,6 +19,7 @@ impl ChainflipChain {
             Chain::Solana => Some(Self::Solana),
             Chain::Arbitrum => Some(Self::Arbitrum),
             Chain::Tron => Some(Self::Tron),
+            Chain::SmartChain => Some(Self::Bsc),
             _ => None,
         }
     }
@@ -29,6 +31,7 @@ impl ChainflipChain {
             Self::Solana => Chain::Solana,
             Self::Arbitrum => Chain::Arbitrum,
             Self::Tron => Chain::Tron,
+            Self::Bsc => Chain::SmartChain,
         }
     }
 }

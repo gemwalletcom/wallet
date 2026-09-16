@@ -7,6 +7,7 @@ import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.NO_QUERY_LIMIT
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetInfo
+import com.wallet.core.primitives.Chain
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -72,9 +73,7 @@ class BaseSelectSearchTest {
         }
         val search = BaseSelectSearch(searchService)
         val filters = MutableStateFlow(
-            SelectAssetFilters(
-                session = null,
-                query = "",
+            mockSelectAssetFilters(
                 chainFilter = listOf(Chain.Ethereum),
                 hasBalance = true,
                 filters = listOf(GemAssetFilter.Buyable),

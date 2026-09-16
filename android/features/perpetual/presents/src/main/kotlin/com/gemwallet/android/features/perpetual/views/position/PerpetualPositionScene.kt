@@ -12,7 +12,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDetailsDataAggregate
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.features.perpetual.views.components.PerpetualActions
 import com.gemwallet.android.features.perpetual.views.components.PerpetualChartSection
@@ -186,13 +186,13 @@ private fun PerpetualPositionScenePreview() {
         override val leverage: String = "10x"
         override val marginAmount: String = "$4,771.03"
         override val pnlWithPercentage: String = "+$460.25 (+9.64%)"
-        override val pnlState: ValueDirection = ValueDirection.Up
+        override val pnlState: GemValueTone = GemValueTone.POSITIVE
         override val size: String = "$47,250.00"
         override val entryPrice: String = "$94,500.00"
         override val liquidationPrice: String = "$85,050.00"
         override val marginType: PerpetualMarginType = PerpetualMarginType.Cross
         override val fundingPayments: String = "+$12.50"
-        override val fundingPaymentsDirection: ValueDirection = ValueDirection.Up
+        override val fundingPaymentsDirection: GemValueTone = GemValueTone.POSITIVE
         override val stopLoss: Double = 90050.00
         override val takeProfit: Double = 95000.00
         override val position: PerpetualPosition = PerpetualPosition(

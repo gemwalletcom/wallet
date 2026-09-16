@@ -1,6 +1,6 @@
 package com.gemwallet.android.ui.models.chart
 
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.model.text
 import com.wallet.core.primitives.ChartCandleStick
 import org.junit.Assert.assertEquals
@@ -31,9 +31,9 @@ class CandlestickChartUIModelTest {
     fun candleDirectionsReflectOpenVsClose() {
         val model = model()
 
-        assertEquals(ValueDirection.Up, model.candles[0].direction)
-        assertEquals(ValueDirection.Down, model.candles[1].direction)
-        assertEquals(ValueDirection.None, model.candles[2].direction)
+        assertEquals(GemValueTone.POSITIVE, model.candles[0].direction)
+        assertEquals(GemValueTone.NEGATIVE, model.candles[1].direction)
+        assertEquals(GemValueTone.NEUTRAL, model.candles[2].direction)
     }
 
     @Test

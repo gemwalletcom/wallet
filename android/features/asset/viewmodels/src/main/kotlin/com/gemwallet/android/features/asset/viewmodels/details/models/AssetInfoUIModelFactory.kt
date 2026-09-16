@@ -5,7 +5,7 @@ import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.banner.BannerRow
 import uniffi.gemstone.GemPercentageStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
-import com.gemwallet.android.domains.price.toValueDirection
+import com.gemwallet.android.domains.price.tone
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.ChainAssetInfo
@@ -43,7 +43,7 @@ class AssetInfoUIModelFactory @Inject constructor() {
             iconUrl = asset.id.iconModel(),
             priceValue = if (price == 0.0) "" else currencyFormatter.string(price),
             priceDayChanges = assetInfo.price?.price?.priceChangePercentage24h.formatAsPercentage(),
-            priceChangedType = assetInfo.price?.price?.priceChangePercentage24h.toValueDirection(),
+            priceChangedType = assetInfo.price?.price?.priceChangePercentage24h.tone(),
             tokenType = asset.type,
             isBuyEnabled = assetInfo.metadata.isBuyEnabled,
             isSwapEnabled = assetInfo.metadata.isSwapEnabled,

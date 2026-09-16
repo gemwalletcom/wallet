@@ -132,11 +132,8 @@ public final class StakeSceneViewModel {
     }
 
     func navigationDestination(for delegation: DelegationViewModel) -> any Hashable {
-        switch service.delegationDestination(walletType: wallet.type.toGem(), asset: asset.toGem(), delegation: delegation.delegation.toGem()) {
-        case .details: delegation.delegation
-        case let .confirm(transfer): transfer
-        case let .amount(asset, input): AmountInput(type: input.map(), asset: asset.toPrimitives())
-        }
+        service.delegationDestination(walletType: wallet.type.toGem(), asset: asset.toGem(), delegation: delegation.delegation.toGem())
+            .navigationValue(delegation: delegation.delegation)
     }
 
     var delegationsViewState: StateViewType<[DelegationViewModel]> {

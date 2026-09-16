@@ -12,8 +12,8 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.domains.pricealerts.formatAmount
 import com.gemwallet.android.domains.percentage.formatAsPercentage
-import com.gemwallet.android.domains.price.ValueDirection
-import com.gemwallet.android.domains.price.toValueDirection
+import uniffi.gemstone.GemValueTone
+import com.gemwallet.android.domains.price.tone
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.NumericFormatter
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertConfirmResult
@@ -76,9 +76,9 @@ class PriceAlertTargetViewModel @Inject constructor(
         it?.price?.price?.priceChangePercentage24h.formatAsPercentage()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
-    val priceState: StateFlow<ValueDirection> = assetInfo.map {
-        it?.price?.price?.priceChangePercentage24h.toValueDirection()
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, ValueDirection.None)
+    val priceState: StateFlow<GemValueTone> = assetInfo.map {
+        it?.price?.price?.priceChangePercentage24h.tone()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, GemValueTone.NEUTRAL)
 
     private val _direction = MutableStateFlow(PriceAlertDirection.Up)
     val direction: StateFlow<PriceAlertDirection> = _direction

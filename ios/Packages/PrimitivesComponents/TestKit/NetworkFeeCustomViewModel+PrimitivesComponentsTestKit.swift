@@ -20,8 +20,6 @@ public extension NetworkFeeCustomViewModel {
         NetworkFeeCustomViewModel(
             chain: chain,
             feeAsset: feeAsset,
-            feeAssetPrice: nil,
-            currency: .usd,
             unitType: unitType,
             decimals: decimals,
             baseFee: baseFee,
@@ -29,6 +27,7 @@ public extension NetworkFeeCustomViewModel {
             normalTotal: normalTotal,
             initialRate: initialRate,
             onSelect: onSelect,
+            display: { AmountDisplay.numeric(asset: feeAsset, price: nil, value: $0, currency: Currency.usd.rawValue, formatter: .auto) },
         )
     }
 }

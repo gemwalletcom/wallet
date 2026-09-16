@@ -2,7 +2,7 @@ package com.gemwallet.android.features.confirm.viewmodels
 
 import uniffi.gemstone.GemAmountSign
 import uniffi.gemstone.GemSimulationBalanceChange
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.GemSimulationValue
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.models.PayloadField
@@ -44,8 +44,8 @@ fun GemConfirmSimulationState.toSimulation(
 fun GemSimulationBalanceChange.formattedValue(): String =
     sign.format(ValueFormatter(style = GemValueStyle.FULL).string(value.abs(), asset.decimals, asset.symbol))
 
-fun GemSimulationBalanceChange.valueDirection(): ValueDirection = when (sign) {
-    GemAmountSign.INCOMING -> ValueDirection.Up
-    GemAmountSign.OUTGOING -> ValueDirection.Down
-    GemAmountSign.NONE -> ValueDirection.None
+fun GemSimulationBalanceChange.tone(): GemValueTone = when (sign) {
+    GemAmountSign.INCOMING -> GemValueTone.POSITIVE
+    GemAmountSign.OUTGOING -> GemValueTone.NEGATIVE
+    GemAmountSign.NONE -> GemValueTone.NEUTRAL
 }

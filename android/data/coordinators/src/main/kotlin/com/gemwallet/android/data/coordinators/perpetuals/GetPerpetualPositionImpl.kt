@@ -5,8 +5,8 @@ import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStor
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregateImpl
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDetailsDataAggregate
-import com.gemwallet.android.domains.price.ValueDirection
-import com.gemwallet.android.domains.price.toValueDirection
+import uniffi.gemstone.GemValueTone
+import com.gemwallet.android.domains.price.tone
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.PriceChangeFormatter
 import com.wallet.core.primitives.Currency
@@ -50,7 +50,7 @@ class PerpetualPositionDetailsDataAggregateImpl(
         ?.let { PriceChangeFormatter(priceFormatter).string(it) }
         ?: "-"
 
-    override val fundingPaymentsDirection: ValueDirection = fundingPaymentsValue.toValueDirection()
+    override val fundingPaymentsDirection: GemValueTone = fundingPaymentsValue.tone()
 
     override val perpetualId: PerpetualId = data.position.perpetualId
 

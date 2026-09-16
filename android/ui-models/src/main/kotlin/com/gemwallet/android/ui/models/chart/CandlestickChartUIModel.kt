@@ -1,7 +1,7 @@
 package com.gemwallet.android.ui.models.chart
 
-import com.gemwallet.android.domains.price.ValueDirection
-import com.gemwallet.android.domains.price.toValueDirection
+import uniffi.gemstone.GemValueTone
+import com.gemwallet.android.domains.price.tone
 import com.gemwallet.android.model.text
 import com.wallet.core.primitives.ChartCandleStick
 import uniffi.gemstone.GemPerpetualChartLayout
@@ -19,7 +19,7 @@ data class CandleUIModel(
     val high: Double,
     val low: Double,
     val close: Double,
-    val direction: ValueDirection,
+    val direction: GemValueTone,
 )
 
 data class CandlestickChartUIModel(
@@ -64,7 +64,7 @@ data class CandlestickChartUIModel(
             high = candle.high,
             low = candle.low,
             close = candle.close,
-            direction = (candle.close - candle.open).toValueDirection(),
+            direction = (candle.close - candle.open).tone(),
         )
     }
 }

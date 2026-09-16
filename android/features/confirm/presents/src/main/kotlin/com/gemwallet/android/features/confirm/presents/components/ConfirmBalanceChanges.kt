@@ -9,10 +9,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.ext.toPrimitives
 import uniffi.gemstone.GemSimulationBalanceChange
 import com.gemwallet.android.features.confirm.viewmodels.formattedValue
-import com.gemwallet.android.features.confirm.viewmodels.valueDirection
+import com.gemwallet.android.features.confirm.viewmodels.tone
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.color
+import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.smallIconSize
 
@@ -45,7 +45,7 @@ private fun ConfirmBalanceChangeItem(change: GemSimulationBalanceChange, listPos
             Text(
                 text = change.formattedValue(),
                 style = MaterialTheme.typography.bodyLarge,
-                color = change.valueDirection().color(),
+                color = change.tone().color(),
                 maxLines = 1,
             )
         },
