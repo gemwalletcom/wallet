@@ -5,6 +5,8 @@ mod model;
 mod payment_mapper;
 mod provider;
 mod target;
+#[cfg(test)]
+mod testkit;
 mod typed_data_mapper;
 
 pub use config::WalletConnectPayAuth;

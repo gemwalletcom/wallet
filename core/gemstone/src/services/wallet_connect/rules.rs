@@ -10,7 +10,7 @@ use primitives::ChainType;
 use primitives::WalletConnectionVerificationStatus;
 use primitives::{
     Account, ApplicationMetadata, ApplicationMetadataSource, Chain, Wallet, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession,
-    WalletConnectionState, WalletId, WalletType,
+    WalletConnectionState, WalletId, WalletType, serde_name,
 };
 
 use crate::services::error::GemServiceError;
@@ -251,10 +251,6 @@ pub fn authentication_methods() -> Vec<String> {
 
 pub fn session_events() -> Vec<String> {
     WalletConnectionEvents::all().iter().filter_map(serde_name).collect()
-}
-
-fn serde_name<T: serde::Serialize>(value: &T) -> Option<String> {
-    serde_json::to_value(value).ok().and_then(|value| value.as_str().map(String::from))
 }
 
 fn parse_chain(chain_id: &str) -> Option<Chain> {

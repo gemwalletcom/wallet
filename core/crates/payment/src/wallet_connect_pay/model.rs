@@ -1,6 +1,6 @@
 use num_bigint::BigUint;
 use primitives::swap::ApprovalData;
-use primitives::{AssetId, ChainAddress, PaymentStatus, PaymentPrice};
+use primitives::{AssetId, ChainAddress, PaymentPrice, PaymentStatus, WalletConnectionMethods};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -131,6 +131,12 @@ pub(super) struct WalletRpcAction {
     pub chain_id: String,
     pub method: String,
     pub params: Value,
+}
+
+impl WalletRpcAction {
+    pub fn method(&self) -> Option<WalletConnectionMethods> {
+        serde_json::from_value(Value::String(self.method.clone())).ok()
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]

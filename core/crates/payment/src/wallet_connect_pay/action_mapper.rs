@@ -2,27 +2,25 @@ use gem_evm::transaction::{EvmTransactionKind, decode_transaction_kind};
 use num_bigint::BigUint;
 use primitives::hex::decode_hex;
 use primitives::swap::ApprovalData;
-use primitives::{WCEthereumTransaction, WalletConnectCAIP2};
+use primitives::{WCEthereumTransaction, WalletConnectCAIP2, WalletConnectionMethods};
 use serde_json::Value;
 
 use crate::error::PaymentError;
 use crate::wallet_connect_pay::model::{PaymentAction, PaymentSend, PaymentSign, Quote, WalletRpcAction};
 use crate::wallet_connect_pay::typed_data_mapper::map_typed_data;
 
-const METHOD_ETHEREUM_SEND_TRANSACTION: &str = "eth_sendTransaction";
-const METHOD_ETHEREUM_SIGN_TYPED_DATA: &str = "eth_signTypedData_v4";
-
 pub(super) fn map_actions(quote: &Quote, actions: &[WalletRpcAction]) -> Result<PaymentAction, PaymentError> {
-    match actions {
-        [send] if send.method == METHOD_ETHEREUM_SEND_TRANSACTION => Ok(PaymentAction::Send(map_send(quote, send)?)),
-        [sign] if sign.method == METHOD_ETHEREUM_SIGN_TYPED_DATA => Ok(PaymentAction::Sign(map_sign(quote, sign)?)),
-        [approve, sign] if approve.method == METHOD_ETHEREUM_SEND_TRANSACTION && sign.method == METHOD_ETHEREUM_SIGN_TYPED_DATA => {
+    let methods: Vec<Option<WalletConnectionMethods>> = actions.iter().map(|action| action.method()).collect();
+    match (actions, methods.as_slice()) {
+        ([send], [Some(WalletConnectionMethods::EthSendTransaction)]) => Ok(PaymentAction::Send(map_send(quote, send)?)),
+        ([sign], [Some(WalletConnectionMethods::EthSignTypedDataV4)]) => Ok(PaymentAction::Sign(map_sign(quote, sign)?)),
+        ([approve, sign], [Some(WalletConnectionMethods::EthSendTransaction), Some(WalletConnectionMethods::EthSignTypedDataV4)]) => {
             let sign = map_sign(quote, sign)?;
             let approval = map_approval(quote, approve)?;
             Ok(PaymentAction::ApproveAndSign { approval, sign })
         }
-        [action] => Err(PaymentError::invalid_request(format!("Payment asks for {}", action.method))),
-        actions => Err(PaymentError::invalid_request(format!("Payment asks for {} actions", actions.len()))),
+        ([action], _) => Err(PaymentError::invalid_request(format!("Payment asks for {}", action.method))),
+        (actions, _) => Err(PaymentError::invalid_request(format!("Payment asks for {} actions", actions.len()))),
     }
 }
 
@@ -128,7 +126,7 @@ fn get_value(value: &str) -> Result<BigUint, PaymentError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{AssetId, Chain, ChainAddress};
+    use primitives::{AssetId, Chain, ChainAddress, WalletConnectionMethods, serde_name};
 
     const ADDRESS: &str = "0x1085c5f70F7F7591D97da281A64688385455c2bD";
     const ROUTER: &str = "0x0000000000a84d1a9b0063a910315c7ffa9cd248";
@@ -156,19 +154,19 @@ mod tests {
     }
 
     fn send(from: &str, value: &str, data: &str) -> WalletRpcAction {
-        WalletRpcAction {
-            chain_id: "eip155:137".to_string(),
-            method: METHOD_ETHEREUM_SEND_TRANSACTION.to_string(),
-            params: serde_json::json!([{"from": from, "to": ROUTER, "value": value, "data": data}]),
-        }
+        WalletRpcAction::mock(
+            WalletConnectionMethods::EthSendTransaction,
+            "eip155:137",
+            serde_json::json!([{"from": from, "to": ROUTER, "value": value, "data": data}]),
+        )
     }
 
     fn approve() -> WalletRpcAction {
-        WalletRpcAction {
-            chain_id: "eip155:137".to_string(),
-            method: METHOD_ETHEREUM_SEND_TRANSACTION.to_string(),
-            params: serde_json::json!([{"from": ADDRESS, "to": USDT_POLYGON.to_lowercase(), "value": "0x0", "data": APPROVE_PERMIT2_MAX}]),
-        }
+        WalletRpcAction::mock(
+            WalletConnectionMethods::EthSendTransaction,
+            "eip155:137",
+            serde_json::json!([{"from": ADDRESS, "to": USDT_POLYGON.to_lowercase(), "value": "0x0", "data": APPROVE_PERMIT2_MAX}]),
+        )
     }
 
     fn permit(amount: &str) -> WalletRpcAction {
@@ -181,11 +179,7 @@ mod tests {
             "primaryType": "PermitTransferFrom",
             "message": {"permitted": {"token": USDT_POLYGON, "amount": amount}, "spender": ROUTER, "nonce": "0x08", "deadline": "1785175272"}
         });
-        WalletRpcAction {
-            chain_id: "eip155:137".to_string(),
-            method: METHOD_ETHEREUM_SIGN_TYPED_DATA.to_string(),
-            params: serde_json::json!([ADDRESS, typed_data.to_string()]),
-        }
+        WalletRpcAction::mock(WalletConnectionMethods::EthSignTypedDataV4, "eip155:137", serde_json::json!([ADDRESS, typed_data.to_string()]))
     }
 
     #[test]
@@ -246,7 +240,7 @@ mod tests {
             map_actions(
                 &usdt_quote(1_000_000),
                 &[WalletRpcAction {
-                    method: "personal_sign".to_string(),
+                    method: serde_name(&WalletConnectionMethods::PersonalSign).unwrap_or_default(),
                     ..permit("1000000")
                 }]
             ),
