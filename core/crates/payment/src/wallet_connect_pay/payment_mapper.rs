@@ -154,7 +154,7 @@ fn get_asset_id(unit: &str) -> Option<AssetId> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::wallet_connect_pay::model::{Merchant, PaymentAmount as PaymentOptionAmount, PaymentCollectData, PaymentInfo, PaymentPriceDisplay, PaymentSend, PaymentSign};
+    use crate::wallet_connect_pay::model::{Merchant, PaymentCollectData, PaymentInfo, PaymentOptionAmount, PaymentPriceDisplay, PaymentSend, PaymentSign};
     use primitives::Chain;
     use primitives::asset_constants::{POLYGON_USDT_TOKEN_ID, SMARTCHAIN_CAKE_TOKEN_ID};
     use primitives::swap::ApprovalData;

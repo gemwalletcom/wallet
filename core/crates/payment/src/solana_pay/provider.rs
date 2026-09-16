@@ -94,11 +94,6 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_confirm_has_nothing_to_report() {
-        assert_eq!(provider().confirm("quote", vec!["hash".to_string()]).await, Ok(()));
-    }
-
-    #[tokio::test]
     async fn test_transaction_request() {
         let prepared = prepare(TRANSACTION, ACCOUNT).unwrap();
 

@@ -67,7 +67,7 @@ pub(super) struct Merchant {
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub(super) struct PaymentAmount {
+pub(super) struct PaymentOptionAmount {
     pub unit: String,
     pub value: String,
 }
@@ -99,7 +99,7 @@ pub(super) struct PaymentPriceDisplay {
 pub(super) struct PaymentOption {
     pub id: String,
     pub account: String,
-    pub amount: PaymentAmount,
+    pub amount: PaymentOptionAmount,
     #[serde(default)]
     pub actions: Vec<WalletConnectPayAction>,
     #[serde(default)]
