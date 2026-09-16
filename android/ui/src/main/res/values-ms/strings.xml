@@ -443,7 +443,7 @@
   <string name="info_watch_wallet_title">Tonton Wallet</string>
   <string name="info_watch_wallet_description">Dompet yang anda tidak mempunyai akses, tetapi anda boleh menonton transaksi dan pergerakannya.</string>
   <string name="info_payment_verification_title">Pengesahan Pembayaran</string>
-  <string name="info_payment_verification_description">Untuk memenuhi keperluan pematuhan, peniaga ini perlu mengesahkan identiti anda sebelum pembayaran.</string>
+  <string name="info_payment_verification_description">Peniaga meminta maklumat tambahan sebelum pembayaran.</string>
   <string name="info_network_fee_description">Setiap transaksi pada rangkaian %1$s memerlukan bayaran dalam %2$s dibayar kepada pelombong untuk memproses transaksi anda, bukan Gem Wallet. Yuran rangkaian berbeza-beza berdasarkan penggunaan rangkaian.</string>
   <string name="info_transaction_error_description">Urus niaga tidak dapat diselesaikan kerana ralat, seperti dana tidak mencukupi, input tidak sah atau penolakan oleh rangkaian. Sila semak butiran dan cuba lagi.</string>
   <string name="info_transaction_pending_description">Urus niaga telah diserahkan dan sedang menunggu pengesahan pada rangkaian. Masa pemprosesan mungkin berbeza-beza. Sila semak semula untuk kemas kini.</string>

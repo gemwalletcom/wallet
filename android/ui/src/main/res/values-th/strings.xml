@@ -443,7 +443,7 @@
   <string name="info_watch_wallet_title">ดูกระเป๋าเงิน</string>
   <string name="info_watch_wallet_description">กระเป๋าเงินที่คุณไม่สามารถเข้าถึงได้แต่คุณสามารถดูธุรกรรมและการเคลื่อนไหวได้</string>
   <string name="info_payment_verification_title">การยืนยันตัวตนสำหรับการชำระเงิน</string>
-  <string name="info_payment_verification_description">เพื่อให้เป็นไปตามข้อกำหนด ผู้ขายรายนี้จำเป็นต้องยืนยันตัวตนของคุณก่อนการชำระเงิน</string>
+  <string name="info_payment_verification_description">ผู้ขายขอข้อมูลเพิ่มเติมก่อนการชำระเงิน</string>
   <string name="info_network_fee_description">ทุกธุรกรรมบนเครือข่าย %1$s ต้องเสียค่าธรรมเนียมเป็น %2$s ที่จ่ายให้กับนักขุดเพื่อดำเนินการธุรกรรมของคุณ ไม่ใช่ Gem Wallet ค่าธรรมเนียมเครือข่ายจะแตกต่างกันไปตามการใช้งานเครือข่าย</string>
   <string name="info_transaction_error_description">ไม่สามารถทำธุรกรรมให้เสร็จสมบูรณ์ได้เนื่องจากเกิดข้อผิดพลาด เช่น เงินไม่เพียงพอ ข้อมูลที่ป้อนไม่ถูกต้อง หรือเครือข่ายปฏิเสธ โปรดตรวจสอบรายละเอียดและลองอีกครั้ง</string>
   <string name="info_transaction_pending_description">ธุรกรรมได้รับการส่งแล้วและกำลังรอการยืนยันบนเครือข่าย เวลาในการประมวลผลอาจแตกต่างกัน โปรดตรวจสอบอีกครั้งเพื่อดูการอัปเดต</string>

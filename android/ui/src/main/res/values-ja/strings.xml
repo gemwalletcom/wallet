@@ -443,7 +443,7 @@
   <string name="info_watch_wallet_title">ウォッチウォレット</string>
   <string name="info_watch_wallet_description">資産を操作する権限はありませんが、取引や資金の動きを確認できるウォレットです。</string>
   <string name="info_payment_verification_title">支払いの本人確認</string>
-  <string name="info_payment_verification_description">法令遵守のため、この加盟店は支払いの前にお客様の本人確認を行う必要があります。</string>
+  <string name="info_payment_verification_description">加盟店が支払いの前に追加情報を求めています。</string>
   <string name="info_network_fee_description">%1$s ネットワーク上のすべての取引には、取引処理のためにマイナーに支払われる %2$s の手数料が必要であり、Gem Wallet には支払われません。ネットワーク手数料はネットワークの使用状況により変動します。</string>
   <string name="info_transaction_error_description">残高不足、無効な入力、ネットワークによる拒否などのエラーにより、取引を完了できませんでした。詳細をご確認の上、再度お試しください。</string>
   <string name="info_transaction_pending_description">取引は送信済みで、ネットワーク上での確認を待っています。処理時間は異なる場合があります。最新情報を再度ご確認ください。</string>

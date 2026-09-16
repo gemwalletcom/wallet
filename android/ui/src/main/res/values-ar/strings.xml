@@ -443,7 +443,7 @@
   <string name="info_watch_wallet_title">شاهد المحفظة</string>
   <string name="info_watch_wallet_description">محفظة لا يمكنك الوصول إليها، ولكن يمكنك مشاهدة معاملاتها وحركاتها.</string>
   <string name="info_payment_verification_title">التحقق من الدفع</string>
-  <string name="info_payment_verification_description">للامتثال للمتطلبات التنظيمية، يحتاج هذا التاجر إلى التحقق من هويتك قبل الدفع.</string>
+  <string name="info_payment_verification_description">يطلب التاجر معلومات إضافية قبل الدفع.</string>
   <string name="info_network_fee_description">تتطلب كل معاملة على شبكة %1$s رسومًا بعملة %2$s تُدفع لعمال المناجم لمعالجة معاملتك، وليس Gem Wallet. تختلف رسوم الشبكة حسب استخدام الشبكة.</string>
   <string name="info_transaction_error_description">تعذّر إتمام المعاملة بسبب خطأ، مثل عدم كفاية الرصيد، أو إدخال غير صحيح، أو رفض من قِبل الشبكة. يُرجى مراجعة التفاصيل والمحاولة مرة أخرى.</string>
   <string name="info_transaction_pending_description">تم إرسال المعاملة وهي بانتظار التأكيد على الشبكة. قد تختلف أوقات المعالجة. يُرجى مراجعة التحديثات.</string>

@@ -443,7 +443,7 @@
   <string name="info_watch_wallet_title">Cüzdanı İzle</string>
   <string name="info_watch_wallet_description">Erişiminizin olmadığı, ancak işlemlerini ve hareketlerini izleyebileceğiniz bir cüzdan.</string>
   <string name="info_payment_verification_title">Ödeme Doğrulaması</string>
-  <string name="info_payment_verification_description">Yasal gereklilikleri karşılamak için bu satıcının ödemeden önce kimliğinizi doğrulaması gerekiyor.</string>
+  <string name="info_payment_verification_description">Satıcı ödemeden önce ek bilgi istiyor.</string>
   <string name="info_network_fee_description">%1$s ağındaki her işlem, işleminizi gerçekleştirmek için madencilere Gem Wallet\'a değil, %2$s tutarında bir ücret ödenmesini gerektirir. Ağ ücretleri ağ kullanımına göre değişir.</string>
   <string name="info_transaction_error_description">İşlem, yetersiz fon, geçersiz giriş veya ağ tarafından reddedilme gibi bir hata nedeniyle tamamlanamadı. Lütfen ayrıntıları inceleyin ve tekrar deneyin.</string>
   <string name="info_transaction_pending_description">İşlem gönderildi ve ağda onay bekleniyor. İşlem süreleri değişiklik gösterebilir. Lütfen güncellemeler için tekrar kontrol edin.</string>

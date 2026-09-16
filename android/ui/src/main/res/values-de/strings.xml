@@ -443,7 +443,7 @@
   <string name="info_watch_wallet_title">Beobachtungs-Wallet</string>
   <string name="info_watch_wallet_description">Eine Wallet, auf die Sie keinen Zugriff haben, deren Transaktionen und Bewegungen Sie jedoch beobachten können.</string>
   <string name="info_payment_verification_title">Zahlungsverifizierung</string>
-  <string name="info_payment_verification_description">Um gesetzliche Vorgaben zu erfüllen, muss dieser Händler Ihre Identität vor der Zahlung überprüfen.</string>
+  <string name="info_payment_verification_description">Der Händler bittet vor der Zahlung um zusätzliche Informationen.</string>
   <string name="info_network_fee_description">Für jede Transaktion im %1$s-Netzwerk wird eine Gebühr in %2$s an die Miner gezahlt, um Ihre Transaktion abzuwickeln, nicht an Gem Wallet. Die Netzwerkgebühren variieren je nach Netzwerknutzung.</string>
   <string name="info_transaction_error_description">Die Transaktion konnte aufgrund eines Fehlers nicht abgeschlossen werden, z. B. aufgrund unzureichender Mittel, ungültiger Eingaben oder einer Ablehnung durch das Netzwerk. Bitte überprüfen Sie die Details und versuchen Sie es erneut.</string>
   <string name="info_transaction_pending_description">Die Transaktion wurde übermittelt und wartet auf die Bestätigung im Netzwerk. Die Bearbeitungszeit kann variieren. Bitte schauen Sie später noch einmal vorbei, um Updates zu erhalten.</string>

@@ -443,7 +443,7 @@
   <string name="info_watch_wallet_title">Dompet Pantau</string>
   <string name="info_watch_wallet_description">Dompet yang tidak dapat Anda akses, tetapi Anda dapat memantau transaksi dan pergerakannya.</string>
   <string name="info_payment_verification_title">Verifikasi Pembayaran</string>
-  <string name="info_payment_verification_description">Untuk memenuhi ketentuan kepatuhan, merchant ini perlu memverifikasi identitas Anda sebelum pembayaran.</string>
+  <string name="info_payment_verification_description">Merchant meminta informasi tambahan sebelum pembayaran.</string>
   <string name="info_network_fee_description">Setiap transaksi di jaringan %1$s memerlukan biaya sebesar %2$s yang dibayarkan kepada penambang untuk memproses transaksi Anda, bukan Gem Wallet. Biaya jaringan bervariasi berdasarkan penggunaan jaringan.</string>
   <string name="info_transaction_error_description">Transaksi tidak dapat diselesaikan karena kesalahan, seperti dana tidak mencukupi, input tidak valid, atau penolakan oleh jaringan. Harap tinjau detailnya dan coba lagi.</string>
   <string name="info_transaction_pending_description">Transaksi telah dikirimkan dan sedang menunggu konfirmasi di jaringan. Waktu pemrosesan dapat bervariasi. Silakan periksa kembali untuk pembaruan.</string>

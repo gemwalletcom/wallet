@@ -443,7 +443,7 @@
   <string name="info_watch_wallet_title">Portofel de monitorizare</string>
   <string name="info_watch_wallet_description">Un portofel la care nu ai acces, dar îi poți urmări tranzacțiile și mișcările.</string>
   <string name="info_payment_verification_title">Verificarea plății</string>
-  <string name="info_payment_verification_description">Pentru a respecta cerințele de conformitate, acest comerciant trebuie să îți verifice identitatea înainte de plată.</string>
+  <string name="info_payment_verification_description">Comerciantul solicită informații suplimentare înainte de plată.</string>
   <string name="info_network_fee_description">Fiecare tranzacție din rețeaua %1$s necesită o taxă în %2$s plătită minerilor pentru a vă procesa tranzacția, nu Gem Wallet. Taxele de rețea variază în funcție de utilizarea rețelei.</string>
   <string name="info_transaction_error_description">Tranzacția nu a putut fi finalizată din cauza unei erori, cum ar fi fonduri insuficiente, introducere nevalidă sau respingere din partea rețelei. Vă rugăm să examinați detaliile și să încercați din nou.</string>
   <string name="info_transaction_pending_description">Tranzacția a fost trimisă și așteaptă confirmarea în rețea. Timpii de procesare pot varia. Vă rugăm să verificați din nou pentru actualizări.</string>

@@ -443,7 +443,7 @@
   <string name="info_watch_wallet_title">वॉलेट देखें</string>
   <string name="info_watch_wallet_description">एक वॉलेट जिस तक आपकी पहुंच नहीं है, लेकिन आप इसके लेनदेन और गतिविधियों पर नजर रख सकते हैं।</string>
   <string name="info_payment_verification_title">भुगतान सत्यापन</string>
-  <string name="info_payment_verification_description">नियामक आवश्यकताओं को पूरा करने के लिए, इस व्यापारी को भुगतान से पहले आपकी पहचान सत्यापित करनी होगी।</string>
+  <string name="info_payment_verification_description">व्यापारी भुगतान से पहले अतिरिक्त जानकारी मांग रहा है।</string>
   <string name="info_network_fee_description">%1$s नेटवर्क पर प्रत्येक लेनदेन के लिए आपके लेनदेन को संसाधित करने के लिए खनिकों को भुगतान किए जाने वाले %2$s शुल्क की आवश्यकता होती है, Gem Wallet की नहीं। नेटवर्क शुल्क नेटवर्क उपयोग के आधार पर भिन्न होता है।</string>
   <string name="info_transaction_error_description">अपर्याप्त धनराशि, अमान्य इनपुट या नेटवर्क द्वारा अस्वीकृति जैसी किसी त्रुटि के कारण लेनदेन पूरा नहीं हो सका। कृपया विवरण की समीक्षा करें और पुनः प्रयास करें।</string>
   <string name="info_transaction_pending_description">लेन-देन सबमिट कर दिया गया है और नेटवर्क पर पुष्टि की प्रतीक्षा कर रहा है। प्रसंस्करण समय अलग-अलग हो सकता है। कृपया अपडेट के लिए वापस जाँच करें।</string>

@@ -42027,187 +42027,187 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "للامتثال للمتطلبات التنظيمية، يحتاج هذا التاجر إلى التحقق من هويتك قبل الدفع."
+            "value": "يطلب التاجر معلومات إضافية قبل الدفع."
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "নিয়ম মেনে চলার জন্য এই মার্চেন্টকে পেমেন্টের আগে আপনার পরিচয় যাচাই করতে হবে।"
+            "value": "মার্চেন্ট পেমেন্টের আগে অতিরিক্ত তথ্য চাইছে।"
           }
         },
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kvůli splnění regulačních požadavků musí tento obchodník před platbou ověřit vaši totožnost."
+            "value": "Obchodník požaduje před platbou další informace."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "For at overholde lovkrav skal denne forhandler bekræfte din identitet før betalingen."
+            "value": "Forhandleren beder om yderligere oplysninger før betalingen."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Um gesetzliche Vorgaben zu erfüllen, muss dieser Händler Ihre Identität vor der Zahlung überprüfen."
+            "value": "Der Händler bittet vor der Zahlung um zusätzliche Informationen."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "To meet compliance requirements, this merchant needs to verify your identity before the payment."
+            "value": "The merchant is asking for additional information before the payment."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Para cumplir con la normativa, este comercio necesita verificar tu identidad antes del pago."
+            "value": "El comercio solicita información adicional antes del pago."
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "برای رعایت الزامات قانونی، این فروشنده باید پیش از پرداخت هویت شما را تأیید کند."
+            "value": "فروشنده پیش از پرداخت اطلاعات بیشتری درخواست می‌کند."
           }
         },
         "fil": {
           "stringUnit": {
             "state": "translated",
-            "value": "Para matugunan ang mga kinakailangan sa pagsunod, kailangang beripikahin ng merchant na ito ang iyong pagkakakilanlan bago ang bayad."
+            "value": "Humihingi ang merchant ng karagdagang impormasyon bago ang bayad."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pour respecter la réglementation, ce marchand doit vérifier votre identité avant le paiement."
+            "value": "Le marchand demande des informations supplémentaires avant le paiement."
           }
         },
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Don cika ƙa'idodin doka, wannan ɗan kasuwa yana buƙatar tabbatar da ainihinka kafin biyan kuɗi."
+            "value": "Ɗan kasuwa yana neman ƙarin bayani kafin biyan kuɗi."
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "כדי לעמוד בדרישות הרגולציה, בית העסק הזה צריך לאמת את זהותך לפני התשלום."
+            "value": "בית העסק מבקש מידע נוסף לפני התשלום."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "नियामक आवश्यकताओं को पूरा करने के लिए, इस व्यापारी को भुगतान से पहले आपकी पहचान सत्यापित करनी होगी।"
+            "value": "व्यापारी भुगतान से पहले अतिरिक्त जानकारी मांग रहा है।"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Untuk memenuhi ketentuan kepatuhan, merchant ini perlu memverifikasi identitas Anda sebelum pembayaran."
+            "value": "Merchant meminta informasi tambahan sebelum pembayaran."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Per rispettare gli obblighi normativi, questo esercente deve verificare la tua identità prima del pagamento."
+            "value": "L'esercente richiede informazioni aggiuntive prima del pagamento."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "法令遵守のため、この加盟店は支払いの前にお客様の本人確認を行う必要があります。"
+            "value": "加盟店が支払いの前に追加情報を求めています。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "규정 준수를 위해 이 가맹점은 결제 전에 본인 확인이 필요합니다."
+            "value": "가맹점에서 결제 전에 추가 정보를 요청합니다."
           }
         },
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Untuk memenuhi keperluan pematuhan, peniaga ini perlu mengesahkan identiti anda sebelum pembayaran."
+            "value": "Peniaga meminta maklumat tambahan sebelum pembayaran."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Om aan de wettelijke vereisten te voldoen, moet deze verkoper uw identiteit verifiëren vóór de betaling."
+            "value": "De verkoper vraagt om aanvullende informatie vóór de betaling."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aby spełnić wymogi regulacyjne, ten sprzedawca musi zweryfikować Twoją tożsamość przed płatnością."
+            "value": "Sprzedawca prosi o dodatkowe informacje przed płatnością."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Para cumprir as exigências regulatórias, este comerciante precisa verificar sua identidade antes do pagamento."
+            "value": "O comerciante solicita informações adicionais antes do pagamento."
           }
         },
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pentru a respecta cerințele de conformitate, acest comerciant trebuie să îți verifice identitatea înainte de plată."
+            "value": "Comerciantul solicită informații suplimentare înainte de plată."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Для соблюдения требований законодательства этот продавец должен подтвердить вашу личность перед платежом."
+            "value": "Продавец запрашивает дополнительную информацию перед оплатой."
           }
         },
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ili kutimiza masharti ya kisheria, mfanyabiashara huyu anahitaji kuthibitisha utambulisho wako kabla ya malipo."
+            "value": "Mfanyabiashara anaomba maelezo ya ziada kabla ya malipo."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "เพื่อให้เป็นไปตามข้อกำหนด ผู้ขายรายนี้จำเป็นต้องยืนยันตัวตนของคุณก่อนการชำระเงิน"
+            "value": "ผู้ขายขอข้อมูลเพิ่มเติมก่อนการชำระเงิน"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Yasal gereklilikleri karşılamak için bu satıcının ödemeden önce kimliğinizi doğrulaması gerekiyor."
+            "value": "Satıcı ödemeden önce ek bilgi istiyor."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Щоб дотриматися вимог законодавства, цей продавець має підтвердити вашу особу перед платежем."
+            "value": "Продавець запитує додаткову інформацію перед оплатою."
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "قانونی تقاضے پورے کرنے کے لیے اس تاجر کو ادائیگی سے پہلے آپ کی شناخت کی تصدیق کرنی ہوگی۔"
+            "value": "تاجر ادائیگی سے پہلے اضافی معلومات مانگ رہا ہے۔"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Để tuân thủ quy định, người bán này cần xác minh danh tính của bạn trước khi thanh toán."
+            "value": "Người bán yêu cầu thêm thông tin trước khi thanh toán."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "为满足合规要求，该商家需要在付款前验证您的身份。"
+            "value": "商家在付款前需要您提供更多信息。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "為符合法規要求，此商家需要在付款前驗證您的身分。"
+            "value": "商家在付款前需要您提供更多資訊。"
           }
         }
       }

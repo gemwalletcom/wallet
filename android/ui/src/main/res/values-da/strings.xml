@@ -443,7 +443,7 @@
   <string name="info_watch_wallet_title">Overvågningstegnebog</string>
   <string name="info_watch_wallet_description">En tegnebog, som du ikke har adgang til, men du kan se dens transaktioner og bevægelser.</string>
   <string name="info_payment_verification_title">Betalingsverificering</string>
-  <string name="info_payment_verification_description">For at overholde lovkrav skal denne forhandler bekræfte din identitet før betalingen.</string>
+  <string name="info_payment_verification_description">Forhandleren beder om yderligere oplysninger før betalingen.</string>
   <string name="info_network_fee_description">Hver transaktion på %1$s netværket kræver et gebyr i %2$s betalt til minearbejdere for at behandle din transaktion, ikke Gem Wallet. Netværksgebyrer varierer afhængigt af netværksbrug.</string>
   <string name="info_transaction_error_description">Transaktionen kunne ikke gennemføres på grund af en fejl, såsom utilstrækkelige midler, ugyldigt input eller afvisning af netværket. Gennemgå venligst detaljerne og prøv igen.</string>
   <string name="info_transaction_pending_description">Transaktionen er blevet indsendt og afventer bekræftelse på netværket. Behandlingstiderne kan variere. Kom venligst tilbage for opdateringer.</string>

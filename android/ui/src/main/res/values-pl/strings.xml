@@ -443,7 +443,7 @@
   <string name="info_watch_wallet_title">Portfel obserwowany</string>
   <string name="info_watch_wallet_description">Portfel, do którego nie masz dostępu, ale możesz śledzić zawarte w nim transakcje i ruchy.</string>
   <string name="info_payment_verification_title">Weryfikacja płatności</string>
-  <string name="info_payment_verification_description">Aby spełnić wymogi regulacyjne, ten sprzedawca musi zweryfikować Twoją tożsamość przed płatnością.</string>
+  <string name="info_payment_verification_description">Sprzedawca prosi o dodatkowe informacje przed płatnością.</string>
   <string name="info_network_fee_description">Każda transakcja w sieci %1$s wymaga opłaty w wysokości %2$s płaconej górnikom za przetworzenie Twojej transakcji, a nie Gem Wallet. Opłaty sieciowe różnią się w zależności od wykorzystania sieci.</string>
   <string name="info_transaction_error_description">Transakcja nie mogła zostać ukończona z powodu błędu, takiego jak niewystarczające środki, nieprawidłowe dane wejściowe lub odrzucenie przez sieć. Sprawdź szczegóły i spróbuj ponownie.</string>
   <string name="info_transaction_pending_description">Transakcja została wysłana i oczekuje na potwierdzenie w sieci. Czasy przetwarzania mogą się różnić. Sprawdź ponownie, czy są jakieś aktualizacje.</string>
