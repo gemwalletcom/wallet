@@ -571,7 +571,7 @@ struct ConfirmTransferSceneViewModelTests {
         }
         #expect(requirement == BalanceRequirement(required: 36_798_300, available: 36_070_000, shortfall: 728_300))
         #expect(InfoSheetModelFactory.create(from: sheet).description == Localized.Info.balanceRequiredDescription(
-            "36.7983 TRX".boldMarkdown(),
+            "36.79 TRX".boldMarkdown(),
             "36.07 TRX".boldMarkdown(),
             "0.7283 TRX".boldMarkdown(),
         ))

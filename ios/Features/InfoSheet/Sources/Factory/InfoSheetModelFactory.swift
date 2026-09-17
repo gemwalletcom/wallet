@@ -113,7 +113,7 @@ public enum InfoSheetModelFactory {
                 button: .url(model.docsUrl),
             )
         case let .accountMinimalBalance(asset, required):
-            let formatter = ValueFormatter(style: .full)
+            let formatter = ValueFormatter(style: .auto)
             let amount = formatter.string(required, asset: asset)
             return InfoSheetModel(
                 title: Localized.Info.AccountMinimumBalance.title,
@@ -245,7 +245,7 @@ public enum InfoSheetModelFactory {
     }
 
     private static func formatted(_ value: BigInt, asset: Asset) -> String {
-        ValueFormatter(style: .full).string(value, asset: asset).boldMarkdown()
+        ValueFormatter(style: .auto).string(value, asset: asset).boldMarkdown()
     }
 
     private static func amountWithFiat(_ value: BigInt, asset: Asset, price: Price?, currency: String) -> String {
