@@ -8,6 +8,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetSolana
+import com.gemwallet.android.testkit.mockPaymentInvoice
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionType
@@ -29,9 +30,7 @@ import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.Payment
-import uniffi.gemstone.PaymentInvoice
 import uniffi.gemstone.PaymentLink
-import uniffi.gemstone.PaymentMerchant
 import uniffi.gemstone.TransactionInputType
 import uniffi.gemstone.TransferDataExtra
 import java.math.BigInteger
@@ -58,7 +57,7 @@ class PaymentNavigationTest {
         assertEquals(mockAssetSolana().id, transfer.asset.id)
         assertEquals(SOLANA_ADDRESS, transfer.recipient.address)
         assertEquals(BigInteger("19000000"), transfer.value)
-        assertEquals(paymentInvoice(), payment.invoice)
+        assertEquals(mockPaymentInvoice(link = PaymentLink.SolanaPay(PAYMENT_URL)), payment.invoice)
     }
 
     @Test
@@ -67,7 +66,7 @@ class PaymentNavigationTest {
         val paymentService = spyk(GemPaymentService(mockk<AlienProvider>(), mockk<GemAssetsService>()))
         every { getWalletAssets() } returns MutableStateFlow(listOf(mockAssetInfo(asset = mockAssetSolana())))
         coEvery { paymentService.load(any(), any()) } returns GemPaymentLoad.Verify(
-            invoice = paymentInvoice(),
+            invoice = mockPaymentInvoice(link = PaymentLink.SolanaPay(PAYMENT_URL)),
             assetId = mockAssetSolana().id.toIdentifier(),
             url = "https://walletconnect.com/verify",
         )
@@ -79,7 +78,7 @@ class PaymentNavigationTest {
     private fun paymentTransfer() = GemTransferData(
         inputType = TransactionInputType.Payment(
             asset = mockAssetSolana().toGem(),
-            invoice = paymentInvoice(),
+            invoice = mockPaymentInvoice(link = PaymentLink.SolanaPay(PAYMENT_URL)),
             extra = TransferDataExtra(
                 to = SOLANA_ADDRESS,
                 gasLimit = null,
@@ -94,14 +93,6 @@ class PaymentNavigationTest {
         recipient = GemRecipient(address = SOLANA_ADDRESS, name = null, memo = null, references = emptyList()),
         value = BigInteger("19000000"),
         useMaxAmount = false,
-    )
-
-    private fun paymentInvoice() = PaymentInvoice(
-        link = PaymentLink.SolanaPay(PAYMENT_URL),
-        merchant = PaymentMerchant(name = "Merchant", icon = "https://example.com/icon.png"),
-        price = null,
-        quotes = emptyList(),
-        verification = null,
     )
 
     private companion object {

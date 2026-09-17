@@ -38,6 +38,7 @@ import com.gemwallet.android.ui.navigation.routes.AssetsResultsRoute
 import com.gemwallet.android.ui.navigation.routes.BridgeConnectionDetailsRoute
 import com.gemwallet.android.ui.navigation.routes.BridgeConnectionsRoute
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
+import com.gemwallet.android.ui.navigation.routes.PaymentSelectRoute
 import com.gemwallet.android.ui.navigation.routes.ContactsRoute
 import com.gemwallet.android.ui.navigation.routes.CurrenciesRoute
 import com.gemwallet.android.ui.navigation.routes.DelegationRoute
@@ -106,6 +107,7 @@ class WalletNavigator(
 ) {
     private val toastMessages = mutableStateMapOf<NavKey, String>()
     private val swapSelections = mutableStateMapOf<NavKey, SwapSelection>()
+    private val paymentSelections = mutableStateMapOf<NavKey, AssetId>()
 
     private fun push(route: NavKey): Boolean {
         if (backStack.lastOrNull() == route) return true
@@ -174,6 +176,22 @@ class WalletNavigator(
 
     fun swapSelection(route: NavKey): SwapSelection? {
         return swapSelections[route]
+    }
+
+    fun paymentSelection(route: NavKey): AssetId? {
+        return paymentSelections[route]
+    }
+
+    fun clearPaymentSelection(route: NavKey) {
+        paymentSelections.remove(route)
+    }
+
+    fun openPaymentSelect(assetIds: List<AssetId>) = push(PaymentSelectRoute(assetIds))
+
+    fun finishPaymentSelect(assetId: AssetId) {
+        val target = backStack.getOrNull(backStack.lastIndex - 1) ?: return
+        paymentSelections[target] = assetId
+        pop()
     }
 
     fun clearSwapSelection(route: NavKey) {
@@ -325,6 +343,7 @@ class WalletNavigator(
 
     private fun clearTransientState() {
         clearSwapSelections()
+        paymentSelections.clear()
         toastMessages.clear()
     }
 }
@@ -340,7 +359,8 @@ internal fun NavKey.isConfirmFlowSegmentRoute(): Boolean {
         is EarnRoute,
         is StakeRoute,
         is SwapPairRoute,
-        is SwapSelectRoute -> true
+        is SwapSelectRoute,
+        is PaymentSelectRoute -> true
         else -> false
     }
 }

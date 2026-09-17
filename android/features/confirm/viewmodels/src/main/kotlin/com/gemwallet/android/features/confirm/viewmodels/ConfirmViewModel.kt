@@ -13,6 +13,8 @@ import com.gemwallet.android.domains.confirm.swapData
 import com.gemwallet.android.domains.confirm.toAsset
 import com.gemwallet.android.domains.confirm.applicationMetadata
 import com.gemwallet.android.domains.confirm.confirmLoadOptions
+import com.gemwallet.android.domains.confirm.paymentInvoice
+import com.gemwallet.android.ext.toAssetId
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -123,6 +125,7 @@ class ConfirmViewModel @Inject constructor(
     val isNetworkFeeSheetVisible = MutableStateFlow(false)
     val feeSelection = MutableStateFlow<GemConfirmFeeSelection>(GemConfirmFeeSelection.Priority(FeePriority.Normal.toGem()))
     private val feeAssetSelection = MutableStateFlow<FeeAssetSelection>(FeeAssetSelection.Automatic)
+    private val assetSelection = MutableStateFlow<AssetId?>(null)
     private var requestSimulation: SimulationResult? = null
 
     private val request = savedStateHandle.getStateFlow<String?>(RouteArgument.Params.key, null)
@@ -130,15 +133,6 @@ class ConfirmViewModel @Inject constructor(
         .mapNotNull { paramsPack -> unpackTransferData(paramsPack) }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val title = request.map { it?.title() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val isPaymentRequest = request.map { it?.inputType is TransactionInputType.Payment }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    val isExternalRequest = combine(request, isPaymentRequest) { request, isPayment -> request?.inputType?.applicationMetadata != null || isPayment }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val session = getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -163,9 +157,10 @@ class ConfirmViewModel @Inject constructor(
         confirmation.filterNotNull(),
         feeSelection,
         feeAssetSelection,
+        assetSelection,
         restart,
-    ) { session, feeSelection, feeAssetSelection, _ ->
-        session to confirmLoadOptions(feeSelection, feeAssetSelection)
+    ) { session, feeSelection, feeAssetSelection, assetSelection, _ ->
+        session to confirmLoadOptions(feeSelection, feeAssetSelection, assetSelection)
     }
     .flatMapLatest { (session, options) ->
         flow {
@@ -190,6 +185,21 @@ class ConfirmViewModel @Inject constructor(
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    private val transfer = combine(request, load) { request, load -> load?.transfer ?: request }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val title = transfer.map { it?.title() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val isPaymentRequest = transfer.map { it?.inputType is TransactionInputType.Payment }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val isExternalRequest = combine(transfer, isPaymentRequest) { transfer, isPayment -> transfer?.inputType?.applicationMetadata != null || isPayment }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val paymentAssetIds = transfer.map { it?.inputType?.paymentInvoice?.quotes?.mapNotNull { quote -> quote.assetId.toAssetId() }.orEmpty() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     val simulation = content
         .map { it?.load?.simulation?.toSimulation(it.session, context) ?: Simulation() }
         .flowOn(ioDispatcher)
@@ -213,7 +223,7 @@ class ConfirmViewModel @Inject constructor(
     val feeAssets = content.map { it?.feeAssets.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val assetPrice = combine(request, content) { request, content -> request?.asset?.let { content?.assetPrice(it) } }
+    private val assetPrice = combine(transfer, content) { transfer, content -> transfer?.asset?.let { content?.assetPrice(it) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val transferAmount = content.map { content ->
@@ -224,16 +234,16 @@ class ConfirmViewModel @Inject constructor(
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val amountUIModel = combine(request, content, transferAmount) { request, content, transferAmount ->
-        val inputType = request?.inputType ?: return@combine null
+    val amountUIModel = combine(transfer, content, transferAmount) { transfer, content, transferAmount ->
+        val inputType = transfer?.inputType ?: return@combine null
         content ?: return@combine null
 
-        val amount = Crypto(transferAmount ?: request.value)
+        val amount = Crypto(transferAmount ?: transfer.value)
 
         AmountUIModel(
-            headerKind = request.headerKind(),
+            headerKind = transfer.headerKind(),
             amount = amount.atomicValue,
-            fromAsset = content.assetPrice(request.asset),
+            fromAsset = content.assetPrice(transfer.asset),
             fromAmount = amount.atomicValue,
             toAsset = inputType.toAsset?.let(content::assetPrice),
             toAmount = inputType.swapData?.quote?.toValue,
@@ -243,8 +253,8 @@ class ConfirmViewModel @Inject constructor(
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val headerAsset = combine(request, amountUIModel) { request, amount ->
-        when (request?.inputType) {
+    val headerAsset = combine(transfer, amountUIModel) { transfer, amount ->
+        when (transfer?.inputType) {
             is TransactionInputType.Withdrawal -> GemPerpetual(PerpetualProvider.HYPERCORE).use { it.depositAsset() }.toPrimitives()
             else -> amount?.asset
         }
@@ -252,15 +262,15 @@ class ConfirmViewModel @Inject constructor(
     .flowOn(ioDispatcher)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val detailElements = combine(request, content, ::buildDetailElements)
+    val detailElements = combine(transfer, content, ::buildDetailElements)
         .distinctUntilChanged()
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val transactionProperties = combine(request, session, content) { request, session, content ->
-        request ?: return@combine emptyList()
+    val transactionProperties = combine(transfer, session, content) { transfer, session, content ->
+        transfer ?: return@combine emptyList()
         session ?: return@combine emptyList()
-        buildConfirmProperties(request, session.wallet, content?.addressName)
+        buildConfirmProperties(transfer, session.wallet, content?.addressName)
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -315,6 +325,7 @@ class ConfirmViewModel @Inject constructor(
     fun init(transfer: GemTransferData, simulationResult: SimulationResult? = null) {
         requestSimulation = simulationResult
         feeSelection.value = GemConfirmFeeSelection.Priority(transfer.defaultFeePriority())
+        assetSelection.value = null
         viewModelScope.launch(ioDispatcher) {
             val pack = transfer.pack()
             if (savedStateHandle.get<String?>(RouteArgument.Params.key) == pack) {
@@ -380,6 +391,14 @@ class ConfirmViewModel @Inject constructor(
         feeSelection.update { selection }
     }
 
+    fun changeAsset(assetId: AssetId) {
+        if (transfer.value?.asset?.id == assetId) return
+        screen.update { it.onLoadStarted() }
+        assetSelection.update { assetId }
+    }
+
+    fun reload() = restart.update { !it }
+
     fun changeFeeAsset(assetId: AssetId) {
         if (feeAsset.value?.asset?.id == assetId) return
         val selection = FeeAssetSelection.Selected(assetId)
@@ -391,7 +410,7 @@ class ConfirmViewModel @Inject constructor(
     fun send(finishAction: FinishConfirmAction) = viewModelScope.launch(ioDispatcher) {
         when (screen.value.action()) {
             GemConfirmAction.LOAD -> {
-                restart.update { !it }
+                reload()
                 return@launch
             }
             GemConfirmAction.EXECUTE -> screen.update { it.onExecuteStarted() }

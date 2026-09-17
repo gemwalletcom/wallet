@@ -34,6 +34,7 @@ sealed interface ConfirmRowUIModel {
         val explorerLink: BlockExplorerLink,
     ) : ConfirmRowUIModel
     data class Network(val chain: Chain, val name: String) : ConfirmRowUIModel
+    data class PaymentAsset(val model: ListItemModel, val selectable: Boolean) : ConfirmRowUIModel
 }
 
 internal fun ConfirmProperty.uiModel(context: Context): ConfirmRowUIModel = when (this) {
@@ -70,6 +71,10 @@ internal fun ConfirmProperty.uiModel(context: Context): ConfirmRowUIModel = when
         ListItemModel(title = context.getString(R.string.common_wallet), subtitle = walletRow.name, image = walletRow.listItemImage()),
     )
     is ConfirmProperty.Network -> ConfirmRowUIModel.Network(chain = chain, name = name)
+    is ConfirmProperty.PaymentAsset -> ConfirmRowUIModel.PaymentAsset(
+        model = ListItemModel(title = context.getString(R.string.transfer_pay_with), subtitle = symbol),
+        selectable = selectable,
+    )
 }
 
 private fun ConfirmProperty.Destination.Transfer.avatar(): ListItemImage? {

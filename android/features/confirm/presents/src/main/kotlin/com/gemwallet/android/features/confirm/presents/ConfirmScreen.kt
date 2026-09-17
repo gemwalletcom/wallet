@@ -77,6 +77,9 @@ fun ConfirmScreen(
     finishAction: FinishConfirmAction,
     cancelAction: CancelAction,
     onAcquireAsset: (AcquireAssetAction, AssetId) -> Unit,
+    paymentAsset: AssetId? = null,
+    onPaymentAssetConsumed: () -> Unit = {},
+    onSelectPaymentAsset: (List<AssetId>) -> Unit = {},
     handleSystemBack: Boolean = false,
     viewModel: ConfirmViewModel = hiltViewModel(),
 ) {
@@ -102,6 +105,7 @@ fun ConfirmScreen(
     val payloadAddressNames by viewModel.payloadAddressNames.collectAsStateWithLifecycle()
     val title by viewModel.title.collectAsStateWithLifecycle()
     val isExternalRequest by viewModel.isExternalRequest.collectAsStateWithLifecycle()
+    val paymentAssetIds by viewModel.paymentAssetIds.collectAsStateWithLifecycle()
 
     var showSelectTxSpeed by remember { mutableStateOf(false) }
     var showSimulationDetails by remember { mutableStateOf(false) }
@@ -115,6 +119,12 @@ fun ConfirmScreen(
             return@LaunchedEffect
         }
         viewModel.init(input.data, simulationResult)
+    }
+
+    LaunchedEffect(paymentAsset) {
+        val assetId = paymentAsset ?: return@LaunchedEffect
+        viewModel.changeAsset(assetId)
+        onPaymentAssetConsumed()
     }
 
     BackHandler(handleSystemBack) {
@@ -180,6 +190,16 @@ fun ConfirmScreen(
                         listPosition = listPosition,
                     )
                     is ConfirmRowUIModel.Network -> PropertyNetworkItem(chain = row.chain, value = row.name, listPosition = listPosition)
+                    is ConfirmRowUIModel.PaymentAsset -> ListItem(
+                        model = row.model,
+                        listPosition = listPosition,
+                        modifier = if (row.selectable) Modifier.clickable { onSelectPaymentAsset(paymentAssetIds) } else Modifier,
+                        accessory = if (row.selectable) {
+                            { DataBadgeChevron() }
+                        } else {
+                            null
+                        },
+                    )
                 }
             }
             itemsIndexed(detailElements) { index, item ->

@@ -20,6 +20,7 @@ import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.compose.LocalSavedStateRegistryOwner
 import androidx.savedstate.savedState
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.serializer.packRoutePayload
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.viewmodel.NavEntryViewModelStoreOwner
 import com.wallet.core.primitives.AssetId
@@ -45,6 +46,9 @@ internal fun routeArguments(vararg arguments: Pair<RouteArgument, Any?>): Map<St
 
 internal fun assetIdArgument(assetId: AssetId): Pair<RouteArgument, String> =
     RouteArgument.AssetId to assetId.toIdentifier()
+
+internal fun assetIdsArgument(assetIds: List<AssetId>): Pair<RouteArgument, String?> =
+    RouteArgument.AssetIds to assetIds.map { it.toIdentifier() }.packRoutePayload()
 
 internal fun fiatAmountArgument(amount: Int?): Pair<RouteArgument, Int?> =
     RouteArgument.FiatAmount to amount
