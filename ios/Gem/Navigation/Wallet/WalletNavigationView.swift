@@ -49,7 +49,14 @@ struct WalletNavigationView: View {
             }
         }
         .onChange(of: navigationState.walletTabReselected, model.onWalletTabReselected)
-        .bindQuery(model.walletQuery, model.assetsQuery, model.bannersQuery, model.fiatValuesQuery, model.collectionsModel.query)
+        .bindQuery(
+            model.walletQuery,
+            model.assetsQuery,
+            model.bannersQuery,
+            model.fiatValuesQuery,
+            model.perpetualBalanceQuery,
+            model.collectionsModel.query,
+        )
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if !model.isPresentingSearch {
