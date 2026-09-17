@@ -1,13 +1,7 @@
 package com.gemwallet.android.features.confirm.presents.components
 
-import com.gemwallet.android.features.confirm.presents.localization.suffix
-import com.gemwallet.android.ui.localization.stringRes
-import com.gemwallet.android.ui.components.screen.SheetExpansion
-import com.gemwallet.android.ext.toGem
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -32,69 +25,71 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.Dp
-import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.confirm.CustomFee
 import com.gemwallet.android.domains.confirm.FeeAssetUIModel
 import com.gemwallet.android.domains.confirm.FeeDetailsModel
 import com.gemwallet.android.domains.confirm.FeeRateUIModel
 import com.gemwallet.android.domains.confirm.FeeUIModel
-import com.gemwallet.android.ext.toPrimitives
-import uniffi.gemstone.GemConfirmFeeSelection
+import com.gemwallet.android.features.confirm.presents.localization.suffix
+import com.gemwallet.android.features.confirm.viewmodels.models.FeeSelectionUIModel
+import com.gemwallet.android.features.confirm.viewmodels.models.listItem
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SuffixTextField
-import com.gemwallet.android.ui.components.image.IconWithBadge
-import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.AssetListItem
+import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
-import com.gemwallet.android.ui.components.list_item.ListItemSupportText
+import com.gemwallet.android.ui.components.list_item.ListItemImage
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
-import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkFee
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.alpha10
-import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingLarge
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.FeeUnitType
-import uniffi.gemstone.Config
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
-import com.gemwallet.android.ui.components.title
+import java.math.BigInteger
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeeDetails(
     isVisible: Boolean,
     currentFee: FeeUIModel.FeeInfo?,
-    selection: GemConfirmFeeSelection,
-    feeDetailsModel: (FeeUIModel.FeeInfo, FeeAssetUIModel, GemConfirmFeeSelection) -> FeeDetailsModel?,
+    feeItems: List<ListItemModel>,
+    feeListItem: ListItemModel?,
+    selection: FeeSelectionUIModel,
+    feeDetailsModel: (FeeUIModel.FeeInfo, FeeAssetUIModel) -> FeeDetailsModel?,
     feeAsset: FeeAssetUIModel?,
     feeAssets: List<FeeAssetUIModel>,
-    onSelect: (GemConfirmFeeSelection) -> Unit,
+    onSelectPriority: (FeePriority) -> Unit,
+    onSelectCustom: (BigInteger) -> Unit,
     onSelectFeeAsset: (AssetId) -> Unit,
     onCancel: () -> Unit,
 ) {
     currentFee ?: return
     feeAsset ?: return
     val model = remember(currentFee, feeAsset, selection) {
-        feeDetailsModel(currentFee, feeAsset, selection)
+        feeDetailsModel(currentFee, feeAsset)
     } ?: return
     val unitSymbol = feeUnitSuffix(model.feeUnitType, feeAsset.asset.symbol)
     val decimals = model.decimals
 
-    val selectedCustomRate = selection.customGasPrice()
+    val selectedCustomRate = selection.customRate
     val showFeeAssets = feeAssets.any { it.asset.id != currentFee.feeAsset.id }
     var page by remember(isVisible) { mutableStateOf(FeeDetailsPage.Details) }
     val customModel = remember(page, model, selection) {
@@ -103,7 +98,7 @@ fun FeeDetails(
     val navigateToDetails: () -> Unit = { page = FeeDetailsPage.Details }
     val confirmCustomFee: () -> Unit = {
         customModel.rate?.let {
-            onSelect(GemConfirmFeeSelection.Custom(it))
+            onSelectCustom(it)
             onCancel()
         }
     }
@@ -140,6 +135,8 @@ fun FeeDetails(
         when (page) {
             FeeDetailsPage.Details -> FeeRates(
                 currentFee = currentFee,
+                feeItems = feeItems,
+                feeListItem = feeListItem,
                 selection = selection,
                 feeRateModels = model.feeRateModels(unitSymbol),
                 feeAsset = feeAsset,
@@ -148,7 +145,8 @@ fun FeeDetails(
                 customRateText = selectedCustomRate?.let { CustomFee.formatRate(it, decimals, unitSymbol) },
                 customFiat = selectedCustomRate?.let { currentFee.fiatAmount },
                 showFeeAssets = showFeeAssets,
-                onSelect = { onSelect(it); onCancel() },
+                onSelectPriority = { onSelectPriority(it); onCancel() },
+                onSelectCustom = onSelectCustom,
                 onCustom = { page = FeeDetailsPage.CustomFee },
                 onFeeAssets = { page = FeeDetailsPage.FeeAssets },
             )
@@ -171,7 +169,9 @@ fun FeeDetails(
 @Composable
 private fun FeeRates(
     currentFee: FeeUIModel.FeeInfo,
-    selection: GemConfirmFeeSelection,
+    feeItems: List<ListItemModel>,
+    feeListItem: ListItemModel?,
+    selection: FeeSelectionUIModel,
     feeRateModels: List<FeeRateUIModel>,
     feeAsset: FeeAssetUIModel,
     unitSymbol: String,
@@ -179,7 +179,8 @@ private fun FeeRates(
     customRateText: String?,
     customFiat: String?,
     showFeeAssets: Boolean,
-    onSelect: (GemConfirmFeeSelection) -> Unit,
+    onSelectPriority: (FeePriority) -> Unit,
+    onSelectCustom: (BigInteger) -> Unit,
     onCustom: () -> Unit,
     onFeeAssets: () -> Unit,
 ) {
@@ -204,9 +205,9 @@ private fun FeeRates(
                     title = stringResource(feeRate.priority.stringRes()),
                     rate = feeRate.price,
                     fiat = feeRate.fiatValue,
-                    isSelected = selection.selectedPriority()?.toPrimitives() == feeRate.priority,
+                    isSelected = selection.selectedPriority == feeRate.priority,
                     position = position,
-                    onClick = { onSelect(GemConfirmFeeSelection.Priority(feeRate.priority.toGem())) },
+                    onClick = { onSelectPriority(feeRate.priority) },
                 )
             }
             if (supportsCustomFee) {
@@ -216,7 +217,7 @@ private fun FeeRates(
                         title = stringResource(R.string.fee_rate_custom),
                         rate = customRateText,
                         fiat = customFiat,
-                        isSelected = selection.customGasPrice() != null,
+                        isSelected = selection.customRate != null,
                         position = ListPosition.getPosition(feeRateModels.size, totalCount),
                         onClick = onCustom,
                     )
@@ -231,21 +232,11 @@ private fun FeeRates(
                 )
             }
         }
-        itemsIndexed(currentFee.feeItems) { index, (option, info) ->
-            PropertyItem(
-                title = option.title(),
-                data = info.cryptoAmount,
-                listPosition = ListPosition.getPosition(index, currentFee.feeItems.size + 1),
-            )
+        itemsIndexed(feeItems) { index, item ->
+            ListItem(model = item, listPosition = ListPosition.getPosition(index, feeItems.size + 1))
         }
         item {
-            PropertyNetworkFee(
-                currentFee.feeAsset.name,
-                currentFee.feeAsset.symbol,
-                currentFee.cryptoAmount,
-                currentFee.fiatAmount,
-                showedCryptoAmount = true,
-            )
+            feeListItem?.let { ListItem(model = it, listPosition = ListPosition.getPosition(feeItems.size, feeItems.size + 1)) }
         }
     }
 }
@@ -325,12 +316,9 @@ private fun ColumnScope.CustomFeeInput(
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.error,
     )
-    PropertyNetworkFee(
-        model.networkFee.feeAsset.name,
-        model.networkFee.feeAsset.symbol,
-        model.networkFee.cryptoAmount,
-        model.networkFee.fiatAmount,
-        showedCryptoAmount = true,
+    ListItem(
+        model = model.networkFee.listItem(LocalContext.current, model.networkFee.feeAsset),
+        listPosition = ListPosition.Single,
     )
     LaunchedEffect(Unit) { runCatching { focusRequester.requestFocus() } }
 }
@@ -384,44 +372,22 @@ private fun FeeRow(
     onClick: () -> Unit,
 ) {
     ListItem(
-        modifier = Modifier.clickable { onClick() },
-        leading = {
-            EmojiCircle(emoji, listItemIconSize, isSelected)
-        },
-        title = {
-            ListItemTitleText(title)
-        },
-        trailing = {
-            DataBadgeChevron(isShowChevron = true) {
-                Column(horizontalAlignment = Alignment.End) {
-                    rate?.takeIf { it.isNotEmpty() }?.let { ListItemTitleText(it) }
-                    fiat?.takeIf { it.isNotEmpty() }?.let { ListItemSupportText(it) }
-                }
-            }
-        },
+        model = ListItemModel(
+            title = title,
+            subtitle = rate?.takeIf { it.isNotEmpty() },
+            subtitleExtra = fiat?.takeIf { it.isNotEmpty() },
+            image = ListItemImage.Emoji(emoji),
+        ),
         listPosition = position,
+        modifier = Modifier.clickable { onClick() },
         minHeight = ListItemDefaults.defaultMinHeight,
+        accessory = {
+            if (isSelected) {
+                SelectionCheckmark()
+            }
+            DataBadgeChevron()
+        },
     )
-}
-
-@Composable
-private fun EmojiCircle(emoji: String, size: Dp, isSelected: Boolean = false) {
-    IconWithBadge(
-        size = size,
-        badge = if (isSelected) {{ SelectionCheckmark() }} else null,
-    ) {
-        Box(
-            modifier = Modifier
-                .size(size)
-                .background(MaterialTheme.colorScheme.secondary.copy(alpha = alpha10), CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = emoji,
-                style = MaterialTheme.typography.headlineSmall,
-            )
-        }
-    }
 }
 
 @Composable

@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toGem
 import androidx.lifecycle.SavedStateHandle
@@ -12,13 +13,13 @@ import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.AssetId
+import kotlinx.coroutines.CoroutineDispatcher
 import uniffi.gemstone.GemChartService
 import uniffi.gemstone.GemChartServiceInterface
 import uniffi.gemstone.GemChartPhase
 import uniffi.gemstone.GemServiceException
 import com.wallet.core.primitives.ChartPeriod
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ensureActive
@@ -38,6 +39,7 @@ class ChartViewModel internal constructor(
     getCurrentCurrency: GetCurrentCurrency,
     private val chartService: GemChartServiceInterface,
     private val assetId: AssetId,
+    private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val selectedPeriod = MutableStateFlow(chartService.chartPeriod())
     private val refreshController = ChartRefreshController()
@@ -61,7 +63,7 @@ class ChartViewModel internal constructor(
             refreshController.stopRefreshing()
             emit(next.viewState())
         }
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(StopTimeoutMillis),
@@ -79,14 +81,14 @@ class ChartViewModel internal constructor(
             },
         )
     }
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), ChartUIModel.State())
 
     fun setPeriod(period: ChartPeriod) {
         if (period.toGem() == selectedPeriod.value) {
             return
         }
-        viewModelScope.launch(Dispatchers.IO) { chartService.setChartPeriod(period.toGem()) }
+        viewModelScope.launch(ioDispatcher) { chartService.setChartPeriod(period.toGem()) }
         selectedPeriod.value = period.toGem()
     }
 
@@ -99,10 +101,12 @@ class ChartViewModel internal constructor(
         getCurrentCurrency: GetCurrentCurrency,
         chartService: GemChartService,
         savedStateHandle: SavedStateHandle,
+        @IoDispatcher ioDispatcher: CoroutineDispatcher,
     ) : this(
         getCurrentCurrency = getCurrentCurrency,
         chartService = chartService,
         assetId = savedStateHandle.requireAssetId(),
+        ioDispatcher = ioDispatcher,
     )
 
 }

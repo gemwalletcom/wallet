@@ -138,6 +138,7 @@ class ChartViewModelTest {
             getCurrentCurrency = getCurrentCurrency,
             chartService = chartService,
             assetId = asset.id,
+            ioDispatcher = testDispatcher,
         ).also(viewModels::add)
     }
 }

@@ -28,8 +28,8 @@ public enum TransactionItemModel {
     case participant(TransactionParticipantItemModel)
     case rate(title: String, value: String)
     case network(title: String, subtitle: String, image: AssetImage)
-    case pnl(title: String, value: String, color: Color)
-    case price(title: String, value: String)
+    case pnl(ListItemModel)
+    case price(ListItemModel)
     case explorer(url: URL, text: String)
     case swapAgain(text: String)
     case empty

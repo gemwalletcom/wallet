@@ -2,52 +2,12 @@ package com.gemwallet.android.features.confirm.presents.components
 
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.text.style.TextOverflow
-import com.gemwallet.android.ext.toPrimitives
-import uniffi.gemstone.GemSimulationBalanceChange
-import com.gemwallet.android.features.confirm.viewmodels.formattedValue
-import com.gemwallet.android.features.confirm.viewmodels.tone
-import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.style.color
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.theme.smallIconSize
 
-fun LazyListScope.confirmBalanceChangesContent(changes: List<GemSimulationBalanceChange>) {
-    itemsIndexed(changes) { index, change ->
-        ConfirmBalanceChangeItem(
-            change = change,
-            listPosition = ListPosition.getPosition(index, changes.size),
-        )
+fun LazyListScope.confirmBalanceChangesContent(rows: List<ListItemModel>) {
+    itemsIndexed(rows) { index, row ->
+        ListItem(model = row, listPosition = ListPosition.getPosition(index, rows.size))
     }
-}
-
-@Composable
-private fun ConfirmBalanceChangeItem(change: GemSimulationBalanceChange, listPosition: ListPosition) {
-    ListItem(
-        listPosition = listPosition,
-        leading = {
-            AssetIcon(asset = change.asset.toPrimitives(), size = smallIconSize)
-        },
-        title = {
-            Text(
-                text = change.asset.name,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        },
-        trailing = {
-            Text(
-                text = change.formattedValue(),
-                style = MaterialTheme.typography.bodyLarge,
-                color = change.tone().color(),
-                maxLines = 1,
-            )
-        },
-    )
 }

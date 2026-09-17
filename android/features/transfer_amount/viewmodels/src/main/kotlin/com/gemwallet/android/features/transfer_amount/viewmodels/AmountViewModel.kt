@@ -7,21 +7,26 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountDataProvider
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountProviderFactory
+import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.math.plainInputNumber
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
+import com.gemwallet.android.ui.components.fields.AmountSymbolUIModel
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
+import com.gemwallet.android.ui.style.amountSymbol
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigInteger
+import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -38,9 +43,6 @@ import uniffi.gemstone.GemAmountEntry
 import uniffi.gemstone.GemAmountEquivalent
 import uniffi.gemstone.GemAmountInputType
 import uniffi.gemstone.GemAmountServiceInterface
-import uniffi.gemstone.GemTransferData
-import java.math.BigInteger
-import javax.inject.Inject
 import uniffi.gemstone.GemValueStyle
 
 @HiltViewModel
@@ -63,6 +65,10 @@ class AmountViewModel @Inject constructor(
 
     val currency: Currency = service.getCurrency().toPrimitives()
     private val currencyFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)
+
+    val amountSymbol: StateFlow<AmountSymbolUIModel> = combine(amountInputType, provider.assetInfo) { inputType, current ->
+        inputType.amountSymbol(current?.asset?.symbol.orEmpty(), currency)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, GemAmountInputType.ASSET.amountSymbol("", currency))
 
     private val entry: StateFlow<GemAmountEntry?> = combine(
         snapshotFlow { amount },
@@ -140,7 +146,7 @@ class AmountViewModel @Inject constructor(
         amount = ""
     }
 
-    fun onNext(onConfirm: (GemTransferData) -> Unit) {
+    fun onNext(onConfirm: (ConfirmTransferInput) -> Unit) {
         viewModelScope.launch {
             val entry = entry.value ?: return@launch
             entry.error?.let {
@@ -150,7 +156,7 @@ class AmountViewModel @Inject constructor(
             val value = entry.value ?: return@launch
             try {
                 amountError.value = null
-                onConfirm(provider.buildTransfer(Crypto(value), entry.isMax))
+                onConfirm(ConfirmTransferInput(provider.buildTransfer(Crypto(value), entry.isMax)))
             } catch (err: CancellationException) {
                 throw err
             } catch (err: Throwable) {

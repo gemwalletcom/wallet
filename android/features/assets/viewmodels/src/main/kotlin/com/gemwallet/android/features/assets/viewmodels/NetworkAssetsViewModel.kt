@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.assets.viewmodels
 
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.domains.asset.assetConfig
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
@@ -13,6 +14,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.model.AssetInfo
+import kotlinx.coroutines.CoroutineDispatcher
 import uniffi.gemstone.GemAssetRow
 import uniffi.gemstone.GemNetworkAssetCounts
 import uniffi.gemstone.GemNetworkAssetSections
@@ -23,7 +25,6 @@ import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -43,8 +44,9 @@ class NetworkAssetsViewModel @Inject constructor(
     assetStore: GemstoneAssetStore,
     getCurrentWalletId: GetCurrentWalletId,
     private val service: GemWalletHomeServiceInterface,
-    @ApplicationContext context: Context,
     savedStateHandle: SavedStateHandle,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @ApplicationContext context: Context,
 ) : ViewModel() {
 
     private val chain: Chain = savedStateHandle.requireChain()
@@ -56,11 +58,11 @@ class NetworkAssetsViewModel @Inject constructor(
     private val assetGroups: StateFlow<NetworkAssetGroups> = getCurrentWalletId()
         .flatMapLatest { walletId ->
             combine(
-                assetStore.observeAssetsInfoByChain(walletId.id, chain).flowOn(Dispatchers.IO),
-                assetStore.observeHiddenAssetsInfoByChain(walletId.id, chain).flowOn(Dispatchers.IO),
+                assetStore.observeAssetsInfoByChain(walletId.id, chain).flowOn(ioDispatcher),
+                assetStore.observeHiddenAssetsInfoByChain(walletId.id, chain).flowOn(ioDispatcher),
             ) { active, hidden -> groups(active, hidden) }
         }
-        .flowOn(Dispatchers.Default)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, NetworkAssetGroups())
 
     val pinned: StateFlow<List<AssetInfoDataAggregate>> = assetGroups
@@ -80,7 +82,7 @@ class NetworkAssetsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, assetGroups.value.counts().sections())
 
     init {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             val loaded = assetGroups.first { it.isLoaded }
             runCatchingCancellable { service.updateBalances(loaded.assetIds()) }
                 .onFailure { Log.e(TAG, "balances update failed for ${chain.string}", it) }
@@ -109,12 +111,12 @@ class NetworkAssetsViewModel @Inject constructor(
 
     fun addToWallet(assetId: AssetId) = setEnabled(assetId, true)
 
-    fun togglePin(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
+    fun togglePin(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable { service.setAssetPinned(assetId.toIdentifier(), assetGroups.value.pinned.none { it.id == assetId }) }
             .onFailure { Log.e(TAG, "pinning ${assetId.toIdentifier()} failed", it) }
     }
 
-    private fun setEnabled(assetId: AssetId, enabled: Boolean) = viewModelScope.launch(Dispatchers.IO) {
+    private fun setEnabled(assetId: AssetId, enabled: Boolean) = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable { service.setAssetsEnabled(listOf(assetId.toIdentifier()), enabled) }
             .onFailure { Log.e(TAG, "setting ${assetId.toIdentifier()} enabled=$enabled failed", it) }
     }

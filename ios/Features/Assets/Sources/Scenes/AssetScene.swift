@@ -36,8 +36,7 @@ public struct AssetScene: View {
             if details.state.showsBanners, let banner = model.visibleBanners.first {
                 Section {
                     BannerView(
-                        banner: banner,
-                        content: model.bannerContent(for: banner),
+                        model: model.bannerModel(for: banner),
                         action: model.onSelectBanner,
                     )
                 }
@@ -52,20 +51,12 @@ public struct AssetScene: View {
 
             if details.state.showsManage {
                 Section(Localized.Common.manage) {
-                    NavigationCustomLink(with:
-                        ListItemView(
-                            title: model.pinText,
-                            imageStyle: .list(assetImage: AssetImage(placeholder: model.pinImage)),
-                        )) {
-                            model.onSelectPin()
-                        }
-                    NavigationCustomLink(with:
-                        ListItemView(
-                            title: model.enableText,
-                            imageStyle: .list(assetImage: AssetImage(placeholder: model.enableImage)),
-                        )) {
-                            model.onSelectEnable()
-                        }
+                    NavigationCustomLink(with: ListItemView(model: model.pinListItem)) {
+                        model.onSelectPin()
+                    }
+                    NavigationCustomLink(with: ListItemView(model: model.enableListItem)) {
+                        model.onSelectEnable()
+                    }
                 }
             }
 
@@ -79,12 +70,7 @@ public struct AssetScene: View {
                 if details.state.showsPriceAlerts {
                     NavigationLink(
                         value: Scenes.AssetPriceAlert(asset: model.assetData.asset),
-                        label: {
-                            ListItemView(
-                                title: model.priceAlertsTitle,
-                                subtitle: String(details.state.priceAlertsCount),
-                            )
-                        },
+                        label: { ListItemView(model: model.priceAlertsListItem(details)) },
                     )
                 }
 
@@ -108,48 +94,27 @@ public struct AssetScene: View {
                 Section(model.balancesTitle) {
                     ForEach(model.balanceRows, id: \.self) { row in
                         switch row {
-                        case let .available(value):
-                            ListItemView(
-                                title: row.title(stakeProvider: .stake),
-                                subtitle: model.balanceText(value),
-                            )
-                        case let .staked(value):
+                        case .available, .pendingUnconfirmed:
+                            ListItemView(model: model.balanceListItem(for: row))
+                        case .staked:
                             NavigationCustomLink(
-                                with: ListItemView(
-                                    title: row.title(stakeProvider: .stake),
-                                    subtitle: model.stakeBalanceText(value),
-                                ),
+                                with: ListItemView(model: model.balanceListItem(for: row)),
                                 action: { model.onSelectStake() },
                             )
                             .accessibilityIdentifier("stake")
-                        case let .earn(value):
+                        case .earn:
                             NavigationCustomLink(
-                                with: ListItemView(
-                                    title: row.title(stakeProvider: .earn),
-                                    subtitle: model.balanceText(value),
-                                ),
+                                with: ListItemView(model: model.balanceListItem(for: row)),
                                 action: { model.onSelectEarn() },
                             )
                             .accessibilityIdentifier("earn")
-                        case let .pendingUnconfirmed(value):
-                            ListItemView(
-                                title: row.title(stakeProvider: .stake),
-                                subtitle: model.balanceText(value),
-                                infoAction: model.onSelectPendingUnconfirmedInfo,
-                            )
-                        case let .reserved(value, url):
+                        case let .reserved(_, url):
                             if let url = url.flatMap(URL.init) {
                                 SafariNavigationLink(url: url) {
-                                    ListItemView(
-                                        title: row.title(stakeProvider: .stake),
-                                        subtitle: model.balanceText(value),
-                                    )
+                                    ListItemView(model: model.balanceListItem(for: row))
                                 }
                             } else {
-                                ListItemView(
-                                    title: row.title(stakeProvider: .stake),
-                                    subtitle: model.balanceText(value),
-                                )
+                                ListItemView(model: model.balanceListItem(for: row))
                             }
                         }
                     }
@@ -162,11 +127,7 @@ public struct AssetScene: View {
                         with: HStack(spacing: Spacing.medium) {
                             EmojiView(color: Colors.grayVeryLight, emoji: Emoji.WalletAvatar.moneyBag.rawValue)
                                 .frame(size: .image.asset)
-                            ListItemView(
-                                title: StakeProviderType.earn.title,
-                                subtitle: model.aprModel(for: .earn).text,
-                                subtitleStyle: model.aprModel(for: .earn).subtitle.style,
-                            )
+                            ListItemView(model: model.earnListItem)
                         },
                         action: { model.onSelectEarn() },
                     )

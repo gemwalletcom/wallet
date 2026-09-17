@@ -10,27 +10,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.domains.duration.formatAvailableIn
-import uniffi.gemstone.GemPercentageStyle
-import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Delegation
-import com.wallet.core.primitives.DelegationValidator
-import uniffi.gemstone.GemValidatorRow
-import com.wallet.core.primitives.StakeProviderType
 
 @Composable
 fun ValidatorItem(
-    data: GemValidatorRow,
+    data: ValidatorRowUIModel,
     listPosition: ListPosition,
     isSelected: Boolean = false,
     onClick: ((String) -> Unit)?
 ) {
     ListItem(
-        modifier = Modifier.clickable(enabled = onClick != null) { onClick?.invoke(data.validator.id) },
+        modifier = Modifier.clickable(enabled = onClick != null) { onClick?.invoke(data.id) },
         leading = {
             ValidatorIcon(data = data, isSelected = isSelected)
         },
@@ -46,7 +40,7 @@ fun ValidatorItem(
         listPosition = listPosition,
         trailing = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                ListItemSupportText(R.string.stake_apr, " ${data.validator.apr.formatApr()}")
+                ListItemSupportText(R.string.stake_apr, " ${data.aprText}")
             }
         },
     )
@@ -54,7 +48,7 @@ fun ValidatorItem(
 
 @Composable
 private fun ValidatorIcon(
-    data: GemValidatorRow,
+    data: ValidatorRowUIModel,
     isSelected: Boolean,
 ) {
     if (isSelected) {
@@ -71,7 +65,6 @@ private fun ValidatorIcon(
     }
 }
 
-fun Double.formatApr(): String = formatAsPercentage(style = GemPercentageStyle.UNSIGNED)
 
 fun availableIn(delegation: Delegation?): String {
     val remaining = availableInDurationMillis(delegation) ?: return ""
@@ -109,18 +102,10 @@ fun PreviewValidatorItemSelected() {
     }
 }
 
-private fun previewValidatorRow() = GemValidatorRow(
-    validator = uniffi.gemstone.DelegationValidator(
-        chain = Chain.Sei.string,
-        id = "some_validator_id",
-        name = "Castlenode",
-        isActive = true,
-        commission = 0.5,
-        apr = 9.10,
-        providerType = uniffi.gemstone.StakeProviderType.STAKE,
-    ),
+private fun previewValidatorRow() = ValidatorRowUIModel(
+    id = "some_validator_id",
     name = "Castlenode",
     imageUrl = "",
     placeholder = "C",
-    provider = null,
+    aprText = 9.10.formatApr(),
 )

@@ -107,6 +107,10 @@ public final class RecipientSceneViewModel {
         asset.chain
     }
 
+    func listItem(for item: ListItemValue<GemRecipient>) -> ListItemModel {
+        ListItemModel(title: item.title ?? item.value.name, subtitle: item.subtitle)
+    }
+
     var recipientSections: [ListItemValueSection<GemRecipient>] {
         service.recipientSections(wallets: walletsQuery.value, chain: asset.chain, hasContacts: contacts.isNotEmpty)
             .map {

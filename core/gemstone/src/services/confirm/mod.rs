@@ -83,10 +83,6 @@ impl GemConfirmService {
         }
     }
 
-    pub async fn sync_missing_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, crate::services::error::GemServiceError> {
-        self.assets.sync_missing_assets(asset_ids).await
-    }
-
     pub async fn load(&self, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmData, GemConfirmError> {
         let transfer = &input.transfer;
         let asset = transfer.input_type.get_asset();
@@ -112,7 +108,7 @@ impl GemConfirmService {
             self.simulate(chain, &input),
         );
         let metadata = metadata.map_err(error::load_error)?;
-        let fee_rates = rules::confirmation_fee_rates(chain, transfer.use_max_amount, fee_rates.map_err(error::load_error)?);
+        let fee_rates = rules::confirmation_fee_rates(&asset.id, transfer.use_max_amount, fee_rates.map_err(error::load_error)?);
         let simulation = simulation?;
 
         rules::validate_scan(scan.as_ref(), transfer.recipient.memo.as_deref(), &symbol)?;

@@ -4,6 +4,7 @@ use config::{Config, ConfigError, Environment, File};
 use gem_client::RemoteProviderConfig;
 use serde::Deserialize;
 use serde_serializers::duration;
+use url::{ParseError, Url};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Settings {
@@ -423,6 +424,15 @@ impl Settings {
             .build()?;
         s.try_deserialize()
     }
+
+    pub fn with_postgres_application_name(self, application_name: &str) -> Result<Self, ParseError> {
+        let mut url = Url::parse(&self.postgres.url)?;
+        url.query_pairs_mut().append_pair("application_name", application_name);
+        Ok(Self {
+            postgres: Postgres { url: url.into(), ..self.postgres },
+            ..self
+        })
+    }
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -478,5 +488,38 @@ pub fn service_user_agent(service: &str, sub_service: Option<&str>) -> String {
     match sub_service {
         Some(sub) => format!("{}_{}", service, sub),
         None => service.to_string(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::testkit::get_test_settings;
+
+    #[test]
+    fn test_with_postgres_application_name() {
+        let settings = Settings {
+            postgres: Postgres {
+                url: "postgres://user:secret@localhost:5432/api".to_string(),
+                pool: 1,
+            },
+            ..get_test_settings()
+        };
+        assert_eq!(
+            settings.with_postgres_application_name("worker_prices").unwrap().postgres.url,
+            "postgres://user:secret@localhost:5432/api?application_name=worker_prices"
+        );
+
+        let settings = Settings {
+            postgres: Postgres {
+                url: "postgres://user:secret@postgres/api?sslmode=disable".to_string(),
+                pool: 1,
+            },
+            ..get_test_settings()
+        };
+        assert_eq!(
+            settings.with_postgres_application_name("worker_prices").unwrap().postgres.url,
+            "postgres://user:secret@postgres/api?sslmode=disable&application_name=worker_prices"
+        );
     }
 }

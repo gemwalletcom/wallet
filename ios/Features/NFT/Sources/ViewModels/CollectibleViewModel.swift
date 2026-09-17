@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemCollectibleAttribute
 import enum Gemstone.GemHeaderButtonKind
 import Components
 import Formatters
@@ -155,6 +156,10 @@ public final class CollectibleViewModel {
         SocialLinksViewModel(links: socialLinks(links: links))
     }
 
+    func attributeListItem(_ attribute: GemCollectibleAttribute) -> ListItemModel {
+        ListItemModel(title: attribute.name, subtitle: attributeText(attribute.value))
+    }
+
     func attributeText(_ value: GemCollectibleAttributeValue) -> String {
         switch value {
         case let .text(value): value
@@ -282,6 +287,10 @@ extension CollectibleViewModel {
 public struct CollectibleInfoRowModel: Identifiable {
     public let title: String
     public let subtitle: String
+
+    public var listItem: ListItemModel {
+        ListItemModel(title: title, subtitle: subtitle)
+    }
     public let assetImage: AssetImage?
     public let copyValue: CopyValue?
     public let explorer: BlockExplorerLink?

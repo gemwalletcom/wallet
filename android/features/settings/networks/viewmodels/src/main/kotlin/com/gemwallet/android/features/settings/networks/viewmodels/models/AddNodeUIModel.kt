@@ -5,6 +5,8 @@ import androidx.annotation.StringRes
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.features.settings.networks.viewmodels.localization.stringRes
 import com.gemwallet.android.features.settings.networks.viewmodels.localization.text
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
@@ -18,12 +20,12 @@ data class AddNodeUIModel(
     val chain: Chain? = null,
     val errorText: String = "",
     val checks: List<NodeCheckRowUIModel> = emptyList(),
+    val warning: ListItemModel? = null,
     val buttonState: ButtonState = ButtonState.Disabled,
 )
 
 data class NodeCheckRowUIModel(
-    @StringRes val title: Int,
-    val value: String,
+    val model: ListItemModel,
     val isInSync: Boolean? = null,
 )
 
@@ -38,13 +40,16 @@ internal fun GemAddNodeSession.uiModel(context: Context): AddNodeUIModel {
         chain = chain.requireChain(),
         errorText = errorText,
         checks = checks,
+        warning = if (checks.isEmpty()) null else ListItemModel(
+            title = context.getString(R.string.asset_verification_warning_title),
+            titleExtra = context.getString(R.string.nodes_import_node_warning_message),
+        ),
         buttonState = buttonState(enabled = state.canImport, loading = state.phase is GemAddNodePhase.Checking),
     )
 }
 
 private fun GemNodeCheckRow.uiModel(context: Context) = NodeCheckRowUIModel(
-    title = stringRes(),
-    value = text(context),
+    model = ListItemModel(title = context.getString(stringRes()), subtitle = text(context).takeIf { this !is GemNodeCheckRow.InSync }),
     isInSync = when (this) {
         is GemNodeCheckRow.InSync -> when (state) {
             GemNodeSyncState.IN_SYNC -> true

@@ -24,4 +24,7 @@ impl BlockScout {
         Explorer::boxed(Metadata::with_token("BlockScout", "https://robinhoodchain.blockscout.com"))
     }
 
+    pub fn new_arc() -> Box<dyn BlockExplorer> {
+        Explorer::boxed(Metadata::with_token("Arc Explorer", "https://explorer.arc.io"))
+    }
 }

@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.asset.viewmodels.details.models
 
+import android.content.Context
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetInfo
@@ -11,14 +12,15 @@ import com.gemwallet.android.testkit.mockGemAssetDetails
 import com.gemwallet.android.testkit.mockGemAssetDetailsState
 import com.wallet.core.primitives.Chain
 import io.mockk.every
+import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
+import java.math.BigInteger
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.math.BigInteger
 
 class AssetInfoUIModelFactoryTest {
 
@@ -54,17 +56,19 @@ class AssetInfoUIModelFactoryTest {
             listOf(AssetInfoUIModel.BalanceViewType.Available, AssetInfoUIModel.BalanceViewType.Stake, AssetInfoUIModel.BalanceViewType.Reserved),
             position.map { it.type },
         )
-        assertEquals(listOf("1 ATOM", "2 ATOM", "0.5 ATOM"), position.map { it.value })
+        assertEquals(listOf("1 ATOM", "2 ATOM", "0.5 ATOM"), position.map { it.model.subtitle })
 
         val apr = model(mockAssetInfo(asset = mockAsset(chain = Chain.Cosmos), owner = null, metadata = mockAssetMetaData(isStakeEnabled = true, stakingApr = 5.0))).accountInfoUIModel.balances
         assertEquals(listOf(AssetInfoUIModel.BalanceViewType.Stake), apr.map { it.type })
-        assertTrue(apr.single().value.startsWith("APR"))
+        assertTrue(apr.single().model.subtitle!!.startsWith("APR"))
 
         val bitcoin = mockAsset()
         assertTrue(model(mockAssetInfo(asset = bitcoin, owner = null, balance = AssetBalance.create(bitcoin, available = BigInteger("100000000")))).accountInfoUIModel.balances.isEmpty())
     }
 
-    private fun model(assetInfo: AssetInfo) = AssetInfoUIModelFactory().create(
+    private val context = mockk<Context> { every { getString(any()) } answers { firstArg<Int>().toString() } }
+
+    private fun model(assetInfo: AssetInfo) = AssetInfoUIModelFactory(context).create(
         mockChainAssetInfo(assetInfo),
         mockGemAssetDetails(assetInfo.asset, mockGemAssetDetailsState(showsBanners = true)),
         banners = emptyList(),

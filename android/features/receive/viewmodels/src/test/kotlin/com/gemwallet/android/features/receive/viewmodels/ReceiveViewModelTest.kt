@@ -13,7 +13,6 @@ import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
-import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import io.mockk.coVerify
 import io.mockk.every
@@ -32,7 +31,6 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemNftServiceInterface
 import uniffi.gemstone.GemReceiveServiceInterface
 import uniffi.gemstone.GemReceiveWarning
 
@@ -70,7 +68,7 @@ class ReceiveViewModelTest {
             every { this@mockk.invoke() } returns MutableStateFlow(assets.values.toList())
         }
         val session: GetSession = mockk { every { this@mockk.invoke() } returns MutableStateFlow(mockSession(wallet = wallet)) }
-        return ReceiveViewModel(bitcoin.id, info, walletAssets, service, session).also { models.add(it) }
+        return ReceiveViewModel(bitcoin.id, info, walletAssets, service, session, dispatcher, mockk(relaxed = true)).also { models.add(it) }
     }
 
     @Test
@@ -115,19 +113,5 @@ class ReceiveViewModelTest {
         model.setVisible().join()
 
         coVerify { service.enableAsset(wallet.id.id, bitcoin.id.toIdentifier()) }
-    }
-
-    @Test
-    fun `the nft receive chains and their addresses come from Core`() = runTest(dispatcher) {
-        val accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xabc"))
-        val service: GemNftServiceInterface = mockk(relaxed = true) {
-            every { receiveAccounts(any(), any()) } returns accounts.map(Account::toGem)
-        }
-        val session: GetSession = mockk { every { this@mockk.invoke() } returns MutableStateFlow(mockSession(wallet = wallet)) }
-        val model = ReceiveNftChainsViewModel(session, service).also { models.add(it) }
-
-        assertEquals(listOf(Chain.Ethereum), model.chains.first { it.isNotEmpty() })
-        assertEquals("0xabc", model.addressFor(Chain.Ethereum))
-        assertEquals("", model.addressFor(Chain.Bitcoin))
     }
 }

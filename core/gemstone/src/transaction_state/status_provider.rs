@@ -34,7 +34,7 @@ impl StatusProvider {
         get_transaction_update(chain, None, created_at, result)
     }
 
-    pub async fn get_swap_status(&self, chain: Chain, request: SwapStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
+    async fn get_swap_status(&self, chain: Chain, request: SwapStateRequest) -> Result<TransactionUpdate, TransactionStatusError> {
         let created_at = request.transaction.created_at;
         let destination_chain = request.destination_chain;
         let result = self.swap_transaction_status(chain, request).await;

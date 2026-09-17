@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import enum Gemstone.GemChainSettingsSection
 import Foundation
 import PrimitivesComponents
 import Style
@@ -16,7 +15,7 @@ public struct ChainSettingsScene: View {
 
     public var body: some View {
         List {
-            ForEach(model.sections, id: \.self) { section in
+            ForEach(model.sections) { section in
                 Section(section.title) {
                     content(for: section)
                 }
@@ -59,8 +58,8 @@ public struct ChainSettingsScene: View {
     }
 
     @ViewBuilder
-    private func content(for section: GemChainSettingsSection) -> some View {
-        switch section {
+    private func content(for section: ChainSettingsSectionViewModel) -> some View {
+        switch section.kind {
         case .nodes:
             ForEach(model.nodesModels) { nodeModel in
                 ListItemSelectionView(

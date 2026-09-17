@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
+import uniffi.gemstone.GemApplicationMetadataServiceInterface
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectJsonRpcResponse
@@ -70,10 +71,13 @@ class WCRequestViewModelTest {
 
     private val verifyContext = mockWalletConnectVerifyContext()
 
+    private fun metadataService(): GemApplicationMetadataServiceInterface = mockk {
+        every { connectionRow(any()) } returns mockGemConnectionRow()
+    }
+
     private fun service(
         onProcess: suspend (GemWalletConnectSessionRequest) -> GemWalletConnectOutcome = { idle },
     ): GemWalletConnectServiceInterface = mockk(relaxed = true) {
-        every { connectionRow(any()) } returns mockGemConnectionRow()
         every { userRejectedError() } returns GemWalletConnectRpcError(code = 4001, message = "User rejected")
         coEvery { processRequest(any()) } coAnswers { onProcess(firstArg()) }
     }
@@ -90,10 +94,13 @@ class WCRequestViewModelTest {
         requests: WalletConnectPendingRequests = WalletConnectPendingRequests(),
     ) = WCRequestViewModel(
         service = service,
+        metadataService = metadataService(),
         signMessageService = signMessageService,
         respondWalletConnectRequest = respond,
         pendingRequests = requests,
         activeRequest = ActiveWalletConnectRequest(events = emptyFlow()),
+        ioDispatcher = dispatcher,
+        context = mockk(relaxed = true),
     ).also { models.add(it) }
 
     private fun TestScope.pending(requests: WalletConnectPendingRequests, signature: CompletableDeferred<String>? = null): Job =

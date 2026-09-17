@@ -1,23 +1,30 @@
 package com.gemwallet.android.features.settings.settings.viewmodels
 
-import com.gemwallet.android.ext.toGem
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.application.wallet.cases.GetWallets
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.features.settings.settings.viewmodels.models.uiModel
 import com.gemwallet.android.model.NotificationsAvailable
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.ListItemImage
+import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.models.ListSection
 import dagger.hilt.android.lifecycle.HiltViewModel
-import uniffi.gemstone.GemSettingsServiceInterface
-import kotlinx.coroutines.Dispatchers
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import uniffi.gemstone.GemSettingsServiceInterface
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -27,13 +34,15 @@ class SettingsViewModel @Inject constructor(
     private val getPushEnabled: GetPushEnabled,
     val notificationsAvailable: NotificationsAvailable,
     private val settingsService: GemSettingsServiceInterface,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val wallets = getWallets()
     private val developerEnabled = MutableStateFlow(userConfig.developEnabled())
     private val walletConnectAvailable = MutableStateFlow(true)
 
-    val sections = combine(wallets, developerEnabled, walletConnectAvailable) { wallets, _, walletConnect ->
+    private val sections = combine(wallets, developerEnabled, walletConnectAvailable) { wallets, _, walletConnect ->
         settingsService.sections(
             wallets = wallets.map { it.toGem() },
             notificationsAvailable = notificationsAvailable,
@@ -46,8 +55,19 @@ class SettingsViewModel @Inject constructor(
         walletConnectAvailable.value = available
     }
 
-    val walletsCount = wallets.map { it.size }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
+    val rows = combine(sections, wallets) { sections, wallets ->
+        sections.mapIndexed { index, section ->
+            ListSection(id = index.toString(), items = section.rows.map { it.uiModel(context, wallets.size) })
+        }
+    }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val notificationsListItem = ListItemModel(title = context.getString(R.string.settings_notifications_title))
+
+    val priceAlertsListItem = ListItemModel(
+        title = context.getString(R.string.settings_price_alerts_title),
+        image = ListItemImage.Drawable(R.drawable.settings_pricealert),
+    )
 
     val pushEnabled = getPushEnabled.getPushEnabled()
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
@@ -58,13 +78,13 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun enableNotifications() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             switchPushEnabled.switchPushEnabled(true)
         }
     }
 
     fun disableNotifications() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             switchPushEnabled.switchPushEnabled(false)
         }
     }

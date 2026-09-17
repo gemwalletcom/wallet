@@ -63,6 +63,27 @@ public final class SwapDetailsViewModel {
         self.swapProviderSelectAction = swapProviderSelectAction
     }
 
+    var detailsListItem: ListItemModel {
+        ListItemModel(title: Localized.Common.details)
+    }
+
+    var providerTitle: String {
+        GemSwapDetailRow.provider.title
+    }
+
+    var detailRowList: [SwapDetailRow] {
+        detailRows.map { row in
+            switch row {
+            case .provider: .provider
+            case .rate: .rate
+            case .estimatedTime: .estimatedTime
+            case .priceImpact: .priceImpact
+            case .minimumReceive: .minimumReceive
+            case .slippage: .slippage
+            }
+        }
+    }
+
     var detailRows: [GemSwapDetailRow] {
         summary.rows(showsPriceImpact: shouldShowPriceImpactInDetails)
     }

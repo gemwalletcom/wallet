@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import enum Gemstone.GemDelegationRow
 import PrimitivesComponents
 import SwiftUI
 
@@ -27,12 +26,12 @@ public struct DelegationScene: View {
             .cleanListRow()
 
             Section {
-                ForEach(model.detailRows, id: \.self) { row in
+                ForEach(model.detailRowModels) { row in
                     content(for: row)
                 }
             }
 
-            if let rewardsRow = model.rewardsRow {
+            if let rewardsRow = model.rewardsRowModel {
                 Section {
                     content(for: rewardsRow)
                 }
@@ -41,7 +40,7 @@ public struct DelegationScene: View {
             if model.showManage {
                 Section(model.manageTitle) {
                     ForEach(model.availableActions) { action in
-                        NavigationCustomLink(with: ListItemView(title: action.title)) {
+                        NavigationCustomLink(with: ListItemView(model: model.actionListItem(action))) {
                             model.onSelectAction(action)
                         }
                     }
@@ -53,37 +52,16 @@ public struct DelegationScene: View {
     }
 
     @ViewBuilder
-    private func content(for row: GemDelegationRow) -> some View {
-        switch row {
-        case .provider:
-            let item = ListItemView(title: model.title(for: row), subtitle: model.model.validatorText)
-            if let url = model.providerUrl {
-                SafariNavigationLink(url: url) { item }
-            } else {
-                item
-            }
-        case .apr:
-            ListItemView(title: model.aprModel.title, subtitle: model.aprModel.subtitle)
-        case .status:
-            ListItemView(title: model.title(for: row), subtitle: model.stateModel.title, subtitleStyle: model.stateModel.textStyle)
-        case .completionDate:
-            ListItemView(title: model.title(for: row), subtitle: model.model.completionDateText)
-        case .rewards:
-            let rewardsItem = ListItemView(
-                title: model.title(for: row),
-                titleStyle: model.model.titleStyle,
-                subtitle: model.model.rewardsText,
-                subtitleStyle: model.model.subtitleStyle,
-                subtitleExtra: model.model.rewardsFiatValueText,
-                subtitleStyleExtra: model.model.subtitleExtraStyle,
-                imageStyle: model.assetImageStyle,
-            )
-            if model.canClaimRewards {
-                NavigationCustomLink(with: rewardsItem) {
-                    model.onClaimRewards()
-                }
-            } else {
-                rewardsItem
+    private func content(for row: DelegationRowViewModel) -> some View {
+        let item = ListItemView(model: row.model)
+        switch row.action {
+        case .plain:
+            item
+        case let .url(url):
+            SafariNavigationLink(url: url) { item }
+        case .claimRewards:
+            NavigationCustomLink(with: item) {
+                model.onClaimRewards()
             }
         }
     }

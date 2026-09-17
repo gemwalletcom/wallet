@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,21 +34,19 @@ import com.gemwallet.android.features.import_wallet.viewmodels.ImportInputUIMode
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.FieldBottomAction
 import com.gemwallet.android.ui.components.clipboard.clear
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.getPlainText
-import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
-import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
-import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.components.fields.NameResolveIndicator
-import uniffi.gemstone.GemNameRecordState
+import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.space8
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 @Composable
 internal fun ImportInput(
     inputState: TextFieldValue,
     input: ImportInputUIModel,
-    uiState: GemNameRecordState,
+    indicator: NameResolveIndicatorUIModel?,
     onValueChange: (TextFieldValue) -> Unit,
     invalidWords: (String) -> Set<String>,
 ) {
@@ -98,8 +95,8 @@ internal fun ImportInput(
                 modifier = Modifier.align(Alignment.TopEnd),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                NameResolveIndicator(uiState)
-                if (uiState != GemNameRecordState.None) {
+                NameResolveIndicator(indicator)
+                if (indicator != null) {
                     Spacer(modifier = Modifier.size(space8))
                 }
             }

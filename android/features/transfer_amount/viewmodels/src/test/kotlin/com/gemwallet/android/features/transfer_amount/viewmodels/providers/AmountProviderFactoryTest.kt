@@ -27,6 +27,7 @@ class AmountProviderFactoryTest {
 
     private val asset = mockAssetCosmos()
     private val factory = AmountProviderFactory(
+        context = mockk(relaxed = true),
         getAssetInfo = mockk<GetAssetInfo>(relaxed = true) {
             every { this@mockk.invoke(any()) } returns flowOf(null)
         },
@@ -50,6 +51,7 @@ class AmountProviderFactoryTest {
             every { this@mockk.invoke() } returns MutableStateFlow(null)
         },
         service = mockk<GemAmountServiceInterface>(relaxed = true),
+        stakeService = mockk(relaxed = true),
     )
     private val scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
 

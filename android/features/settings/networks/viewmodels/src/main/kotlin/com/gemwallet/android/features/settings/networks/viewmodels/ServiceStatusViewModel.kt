@@ -1,14 +1,19 @@
 package com.gemwallet.android.features.settings.networks.viewmodels
 
 import android.content.Context
-import dagger.hilt.android.qualifiers.ApplicationContext
-import com.gemwallet.android.features.settings.networks.viewmodels.localization.string
-import com.gemwallet.android.features.settings.networks.viewmodels.models.uiModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.features.settings.networks.viewmodels.localization.string
 import com.gemwallet.android.features.settings.networks.viewmodels.models.ServiceStatusRowUiModel
 import com.gemwallet.android.features.settings.networks.viewmodels.models.ServiceStatusUIState
+import com.gemwallet.android.features.settings.networks.viewmodels.models.tagStyle
+import com.gemwallet.android.features.settings.networks.viewmodels.models.tagType
+import com.gemwallet.android.features.settings.networks.viewmodels.models.uiModel
+import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,7 +23,6 @@ import kotlinx.coroutines.supervisorScope
 import uniffi.gemstone.GemLatencyStatus
 import uniffi.gemstone.GemServiceEndpoint
 import uniffi.gemstone.GemServiceStatusInterface
-import javax.inject.Inject
 
 @HiltViewModel
 class ServiceStatusViewModel @Inject constructor(
@@ -64,9 +68,17 @@ class ServiceStatusViewModel @Inject constructor(
     }
 }
 
-private fun GemServiceEndpoint.toRow(statusState: GemLatencyStatus, context: Context): ServiceStatusRowUiModel = ServiceStatusRowUiModel(
-    id = url,
-    title = title(endpointType.string(context)),
-    host = host,
-    latency = statusState.uiModel(context),
-)
+private fun GemServiceEndpoint.toRow(statusState: GemLatencyStatus, context: Context): ServiceStatusRowUiModel {
+    val latency = statusState.uiModel(context)
+    return ServiceStatusRowUiModel(
+        id = url,
+        model = ListItemModel(
+            title = title(name = endpointType.name),
+            titleTag = latency.text,
+            titleTagStyle = latency.tagStyle(),
+            titleTagType = latency.tagType(),
+            titleExtra = host,
+            titleExtraStyle = ListItemTextStyle.Body,
+        ),
+    )
+}

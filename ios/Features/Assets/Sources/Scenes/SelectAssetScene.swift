@@ -101,8 +101,7 @@ public struct SelectAssetScene: View {
         ForEach(assets) { assetData in
             let itemView = ListAssetItemSelectionView(
                 assetData: model.displayAssetData(assetData),
-                currency: model.currency,
-                row: model.flow.row,
+                itemsModel: model.assetItems,
                 action: model.onAssetAction,
             )
             switch model.flow.rowAction {

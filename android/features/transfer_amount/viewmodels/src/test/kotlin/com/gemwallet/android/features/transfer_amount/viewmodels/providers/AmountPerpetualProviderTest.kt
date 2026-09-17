@@ -83,6 +83,7 @@ class AmountPerpetualProviderTest {
         }
         return AmountPerpetualProvider(
             params = mockAmountParamsPerpetual(positionAction),
+            context = mockk(relaxed = true),
             service = service,
             getAssetInfo = getAssetInfo,
             getPerpetual = getPerpetual,

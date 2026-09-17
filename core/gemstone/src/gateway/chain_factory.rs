@@ -27,26 +27,28 @@ use primitives::{BitcoinChain, Chain, ChainType, EVMChain, chain_cosmos::CosmosC
 use super::{GatewayError, PreferencesWrapper, SecureStoreWrapper};
 use crate::alien::{AlienProvider, AlienProviderWrapper, new_alien_client};
 use crate::network::JsonRpcClient;
+use crate::services::node::GemNodeService;
 use crate::services::preferences::{GemPreferencesStore, GemSecureStore};
 
 pub struct ChainClientFactory {
     alien: Arc<dyn AlienProvider>,
+    nodes: Arc<GemNodeService>,
     preferences: Arc<dyn GemPreferencesStore>,
     secure_preferences: Arc<dyn GemSecureStore>,
 }
 
 impl ChainClientFactory {
-    pub fn new(alien: Arc<dyn AlienProvider>, preferences: Arc<dyn GemPreferencesStore>, secure_preferences: Arc<dyn GemSecureStore>) -> Self {
+    pub fn new(alien: Arc<dyn AlienProvider>, nodes: Arc<GemNodeService>, preferences: Arc<dyn GemPreferencesStore>, secure_preferences: Arc<dyn GemSecureStore>) -> Self {
         Self {
             alien,
+            nodes,
             preferences,
             secure_preferences,
         }
     }
 
     pub async fn create(&self, chain: Chain) -> Result<Arc<dyn ChainTraits>, GatewayError> {
-        let url = crate::services::node::node_url(self.preferences.as_ref(), chain);
-        self.create_with_url(chain, url).await
+        self.create_with_url(chain, self.nodes.node_url(chain)).await
     }
 
     pub async fn create_with_url(&self, chain: Chain, url: String) -> Result<Arc<dyn ChainTraits>, GatewayError> {
@@ -108,8 +110,28 @@ mod tests {
     use futures::executor::block_on;
 
     #[test]
+    fn test_create_uses_selected_node() {
+        block_on(async {
+            let selected_url = "https://rpc.blockdaemon.mainnet.arc.io";
+            let nodes = Arc::new(GemNodeService::mock());
+            nodes.select_node(Chain::Arc, selected_url.to_string()).await.unwrap();
+            let alien = Arc::new(TestAlienProvider::with_status(404));
+            let factory = ChainClientFactory::new(alien.clone(), nodes, Arc::new(EmptyPreferences), Arc::new(EmptyPreferences));
+
+            let _ = factory.create(Chain::Arc).await.unwrap().get_block_latest_number().await;
+
+            assert_eq!(alien.requested_paths(), vec![selected_url.to_string()]);
+        });
+    }
+
+    #[test]
     fn test_get_is_token_address_matches_chain_config() {
-        let factory = ChainClientFactory::new(Arc::new(TestAlienProvider::with_status(404)), Arc::new(EmptyPreferences), Arc::new(EmptyPreferences));
+        let factory = ChainClientFactory::new(
+            Arc::new(TestAlienProvider::with_status(404)),
+            Arc::new(GemNodeService::mock()),
+            Arc::new(EmptyPreferences),
+            Arc::new(EmptyPreferences),
+        );
         for chain in Chain::all() {
             let client = block_on(factory.create(chain)).unwrap();
             let is_token_supported = chain.default_asset_type().is_some();

@@ -10,6 +10,7 @@ import com.wallet.core.primitives.Appearance
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -101,6 +102,7 @@ class MainViewModelAuthStateTest {
             migratePriceAlertsPreference = mockk<MigratePriceAlertsPreference>(relaxed = true),
             lockTimer = mockk<LockTimer>(relaxed = true),
             pendingNavigationCoordinator = mockk<PendingNavigationCoordinator>(relaxed = true),
+            ioDispatcher = UnconfinedTestDispatcher(),
         )
     }
 }

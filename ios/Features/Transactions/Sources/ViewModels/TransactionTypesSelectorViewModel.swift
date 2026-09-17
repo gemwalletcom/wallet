@@ -26,3 +26,9 @@ public struct TransactionTypesSelectorViewModel: SelectableSheetViewable {
         Localized.Filter.types
     }
 }
+
+extension GemTransactionFilter {
+    var listItem: ListItemModel {
+        ListItemModel(title: title)
+    }
+}

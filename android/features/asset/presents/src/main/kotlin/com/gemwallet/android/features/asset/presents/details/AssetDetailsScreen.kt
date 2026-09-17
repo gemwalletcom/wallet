@@ -5,12 +5,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.features.asset.viewmodels.details.viewmodels.AssetDetailsViewModel
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.components.rememberNotificationPermissionGate
 import com.gemwallet.android.ui.components.screen.LoadingScene
-import com.gemwallet.android.features.asset.viewmodels.details.viewmodels.AssetDetailsViewModel
-import com.gemwallet.android.ui.components.RefreshOnTimer
-import uniffi.gemstone.GemRefreshKind
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.localization.text
 
@@ -26,7 +25,8 @@ fun AssetDetailsScreen(
     val uiModel by viewModel.uiModel.collectAsStateWithLifecycle()
     val requestNotificationPermission = rememberNotificationPermissionGate()
 
-    RefreshOnTimer(GemRefreshKind.WALLET, viewModel::refresh)
+    val refreshIntervalMillis by viewModel.refreshIntervalMillis.collectAsStateWithLifecycle()
+    RefreshOnTimer(refreshIntervalMillis, viewModel::refresh)
 
     if (uiModel != null) {
         AssetDetailsScene(

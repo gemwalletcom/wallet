@@ -11,34 +11,36 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.features.perpetual.localization.stringRes
+import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualButtonAction
+import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualButtonTone
+import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualButtonUIModel
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
-import uniffi.gemstone.GemPerpetualButton
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.mainActionHeight
 
 @Composable
 internal fun PerpetualModifyBottomSheet(
     isVisible: Boolean,
-    buttons: List<GemPerpetualButton>,
+    title: String,
+    buttons: List<PerpetualButtonUIModel>,
     onDismiss: () -> Unit,
-    onSelect: (GemPerpetualButton) -> Unit,
+    onSelect: (PerpetualButtonAction) -> Unit,
 ) {
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismiss,
-        title = stringResource(GemPerpetualButton.MODIFY.stringRes()),
+        title = title,
     ) {
         buttons.forEachIndexed { index, button ->
             if (index > 0) {
                 HorizontalDivider()
             }
             ModifyOption(
-                label = stringResource(button.stringRes()),
-                color = if (button == GemPerpetualButton.REDUCE) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                label = button.title,
+                color = if (button.tone == PerpetualButtonTone.Negative) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
                 onClick = {
                     onDismiss()
-                    onSelect(button)
+                    onSelect(button.action)
                 },
             )
         }

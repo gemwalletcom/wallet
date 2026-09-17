@@ -1,22 +1,25 @@
 package com.gemwallet.android.ui.components.simulation
 
-import com.gemwallet.android.ui.localization.stringRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
-import com.gemwallet.android.ui.format.rememberFormattedAddress
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ext.secondsToMillis
 import com.gemwallet.android.math.getRelativeDate
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
+import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
+import com.gemwallet.android.ui.format.rememberFormattedAddress
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.PayloadField
-import uniffi.gemstone.SimulationPayloadField
-import uniffi.gemstone.SimulationPayloadFieldKind
-import uniffi.gemstone.SimulationPayloadFieldType
 import java.time.Instant
+import uniffi.gemstone.SimulationPayloadFieldType
 
 fun LazyListScope.simulationPayloadFieldsContent(
     fields: List<PayloadField>,
@@ -39,24 +42,22 @@ fun LazyListScope.simulationPayloadFieldsContent(
                 explorerLink = payload.explorerLink,
                 listPosition = listPosition,
             )
-            titleRes != null -> PropertyItem(
-                title = titleRes,
-                data = fieldValue(payload, addressNames),
-                listPosition = listPosition,
-            )
-            else -> PropertyItem(
-                title = field.label.orEmpty(),
-                data = fieldValue(payload, addressNames),
+            else -> ListItem(
+                model = ListItemModel(
+                    title = titleRes?.let { stringResource(it) } ?: field.label.orEmpty(),
+                    subtitle = fieldValue(payload, addressNames),
+                ),
                 listPosition = listPosition,
             )
         }
     }
     onDetailsClick?.let {
         item {
-            PropertyItem(
-                action = R.string.common_details,
+            ListItem(
+                model = ListItemModel(title = stringResource(R.string.common_details)),
                 listPosition = ListPosition.getPosition(totalItems - 1, totalItems),
-                onClick = it,
+                modifier = Modifier.clickable(onClick = it),
+                accessory = { DataBadgeChevron() },
             )
         }
     }

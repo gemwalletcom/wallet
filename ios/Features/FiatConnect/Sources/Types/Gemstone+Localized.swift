@@ -18,11 +18,12 @@ extension GemFiatButtonAction {
 }
 
 extension GemFiatAmountCheck {
-    func limitDescription(locale: Locale) -> String? {
+    func errorText(locale: Locale) -> String? {
         switch self {
         case let .belowMinimum(minimum): Localized.Transfer.minimumAmount(minimum.text(locale: locale))
         case let .aboveMaximum(maximum): Localized.Transfer.maximumAmount(maximum.text(locale: locale))
-        case .valid, .insufficientBalance: nil
+        case let .insufficientBalance(title): Localized.Transfer.insufficientBalance(title.boldMarkdown())
+        case .valid: nil
         }
     }
 }

@@ -14,7 +14,7 @@ public struct SwapDetailsListView: View {
 
     public var body: some View {
         HStack {
-            ListItemView(title: Localized.Common.details)
+            ListItemView(model: model.detailsListItem)
 
             Spacer(minLength: .extraSmall)
 

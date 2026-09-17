@@ -134,6 +134,13 @@ impl Asset {
         format!("{} ({})", self.name, self.symbol)
     }
 
+    pub fn display_title(&self) -> String {
+        match self.name == self.symbol {
+            true => self.name.clone(),
+            false => self.full_name(),
+        }
+    }
+
     pub fn as_basic_primitive(&self) -> AssetBasic {
         AssetBasic::new(self.clone(), AssetProperties::default(self.id.clone()), self.default_score())
     }

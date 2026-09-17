@@ -1,7 +1,8 @@
 package com.gemwallet.android.features.settings.networks.viewmodels
 
 import android.content.Context
-import com.gemwallet.android.features.settings.networks.viewmodels.models.LatencyTone
+import com.gemwallet.android.ui.components.list_item.ListItemTagType
+import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -51,7 +52,7 @@ class ServiceStatusViewModelTest {
         val viewModel = ServiceStatusViewModel(service(emptyMap()), context)
 
         assertEquals(listOf("api", "node"), viewModel.uiState.value.rows.map { it.id })
-        assertEquals(listOf(LatencyTone.Loading, LatencyTone.Loading), viewModel.uiState.value.rows.map { it.latency.tone })
+        assertEquals(listOf(ListItemTagType.Progress, ListItemTagType.Progress), viewModel.uiState.value.rows.map { it.model.titleTagType })
     }
 
     @Test
@@ -62,7 +63,7 @@ class ServiceStatusViewModelTest {
         viewModel.fetch()
         advanceUntilIdle()
 
-        assertEquals(listOf(LatencyTone.Fast, LatencyTone.Error), viewModel.uiState.value.rows.map { it.latency.tone })
-        assertEquals(listOf("10 ms", "Error"), viewModel.uiState.value.rows.map { it.latency.text })
+        assertEquals(listOf(ListItemTextStyle.Positive, ListItemTextStyle.Negative), viewModel.uiState.value.rows.map { it.model.titleTagStyle })
+        assertEquals(listOf("10 ms", "Error"), viewModel.uiState.value.rows.map { it.model.titleTag })
     }
 }

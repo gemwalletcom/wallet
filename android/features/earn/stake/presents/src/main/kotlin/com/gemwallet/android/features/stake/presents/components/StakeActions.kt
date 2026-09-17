@@ -1,73 +1,51 @@
 package com.gemwallet.android.features.stake.presents.components
 
-import com.gemwallet.android.ui.components.image.iconModel
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.gemwallet.android.features.stake.viewmodels.models.StakeAction
+import com.gemwallet.android.features.stake.viewmodels.models.StakeActionUIModel
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.ui.R
-import com.wallet.core.primitives.Resource
 import com.gemwallet.android.ui.components.InfoBottomSheet
-import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
-import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
-import com.gemwallet.android.ui.theme.secondaryFaded
-import com.gemwallet.android.features.stake.presents.localization.stringRes
-import uniffi.gemstone.GemStakeAction
-import uniffi.gemstone.GemStakeActionItem
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Resource
 
 internal fun LazyListScope.stakeActions(
-    actions: List<GemStakeActionItem>,
-    rewardsText: String,
+    actions: List<StakeActionUIModel>,
     assetId: AssetId,
     amountAction: AmountTransactionAction,
     onRewards: () -> Unit
 ) {
     itemsPositioned(actions) { position, item ->
-        val action = item.action
-        val onClick = when (action) {
-            GemStakeAction.STAKE -> {
+        val onClick = when (item.action) {
+            StakeAction.Stake -> {
                 { amountAction(AmountParams.Stake.Delegate(assetId)) }
             }
-            GemStakeAction.FREEZE -> {
+            StakeAction.Freeze -> {
                 { amountAction(AmountParams.Stake.Freeze(assetId, Resource.Bandwidth)) }
             }
-            GemStakeAction.UNFREEZE -> {
+            StakeAction.Unfreeze -> {
                 { amountAction(AmountParams.Stake.Unfreeze(assetId, Resource.Bandwidth)) }
             }
-            GemStakeAction.CLAIM_REWARDS -> onRewards
+            StakeAction.ClaimRewards -> onRewards
         }
-        val info = InfoSheetEntity.StakeFrozenRequired(assetId.iconModel()).takeIf { item.requiresFrozenBalance }
         var showInfo by remember { mutableStateOf(false) }
-        PropertyItem(
+        ListItem(
+            model = item.model,
+            listPosition = position,
             modifier = Modifier.clickable(enabled = item.isEnabled) {
                 if (item.requiresFrozenBalance) showInfo = true else onClick()
             },
-            title = {
-                PropertyTitleText(
-                    text = action.stringRes(),
-                    color = if (item.requiresFrozenBalance) MaterialTheme.colorScheme.secondaryFaded else MaterialTheme.colorScheme.onSurface,
-                    info = info,
-                )
-            },
-            data = {
-                PropertyDataText(
-                    text = if (action == GemStakeAction.CLAIM_REWARDS) rewardsText else "",
-                    badge = { DataBadgeChevron() },
-                )
-            },
-            listPosition = position
+            accessory = { DataBadgeChevron() },
         )
-        info?.let { if (showInfo) InfoBottomSheet(it) { showInfo = false } }
+        item.model.info?.let { if (showInfo) InfoBottomSheet(it) { showInfo = false } }
     }
 }

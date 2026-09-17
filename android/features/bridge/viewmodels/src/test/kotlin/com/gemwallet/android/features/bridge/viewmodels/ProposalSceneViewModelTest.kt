@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
+import uniffi.gemstone.GemApplicationMetadataServiceInterface
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnection
@@ -60,9 +61,12 @@ class ProposalSceneViewModelTest {
 
     private val verifyContext = mockWalletConnectVerifyContext()
 
+    private fun metadataService(): GemApplicationMetadataServiceInterface = mockk {
+        every { connectionRow(any()) } returns mockGemConnectionRow(iconUrl = null)
+    }
+
     private fun service(): GemWalletConnectServiceInterface = mockk(relaxed = true) {
         every { shouldProcessMessage(any()) } returns true
-        every { connectionRow(any()) } returns mockGemConnectionRow(iconUrl = null)
     }
 
     private fun proposals(): PrepareSessionProposal = mockk {
@@ -80,7 +84,9 @@ class ProposalSceneViewModelTest {
         prepareSessionProposal = prepare,
         activeRequest = ActiveWalletConnectRequest(events = emptyFlow()),
         walletConnectService = service,
+        metadataService = metadataService(),
         ioDispatcher = dispatcher,
+        context = mockk(relaxed = true),
     ).also { models.add(it) }
 
     @Test

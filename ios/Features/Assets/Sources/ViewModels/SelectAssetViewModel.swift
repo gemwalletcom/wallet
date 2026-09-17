@@ -2,7 +2,6 @@
 
 import Components
 import Foundation
-import class Gemstone.GemAssetConfigService
 import protocol Gemstone.GemAssetSelectionServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import struct Gemstone.GemSelectAssetFlow
@@ -140,6 +139,10 @@ public final class SelectAssetViewModel {
 
     var searchDebounce: Duration {
         .milliseconds(service.searchDebounceMilliseconds())
+    }
+
+    var assetItems: ListAssetItemsViewModel {
+        ListAssetItemsViewModel(currency: currency, row: flow.row)
     }
 
     var currency: Currency {

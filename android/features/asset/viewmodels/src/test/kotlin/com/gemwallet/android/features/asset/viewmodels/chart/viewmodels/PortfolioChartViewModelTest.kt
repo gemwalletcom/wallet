@@ -1,21 +1,21 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 
+import com.gemwallet.android.ui.R
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockPortfolioData
 import com.gemwallet.android.testkit.mockSession
-import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.dataOrNull
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.ChartValuePercentage
-import com.wallet.core.primitives.PortfolioType
-import uniffi.gemstone.PortfolioData
-import uniffi.gemstone.PortfolioStatistic
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.PortfolioType
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -35,6 +35,8 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.PortfolioData
+import uniffi.gemstone.PortfolioStatistic
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PortfolioChartViewModelTest {
@@ -168,7 +170,8 @@ class PortfolioChartViewModelTest {
         val viewModel = createViewModel()
         val statistics = viewModel.statistics.first { it.isNotEmpty() }
 
-        assertEquals(listOf(PortfolioStatistic.AllTimeHigh(allTimeHigh)), statistics)
+        assertEquals(R.string.asset_all_time_high.toString(), statistics.single().title)
+        assertEquals("+5.00%", statistics.single().subtitleExtra)
     }
 
     private fun createViewModel(initialType: PortfolioType = PortfolioType.Wallet) = PortfolioChartViewModel(
@@ -176,5 +179,7 @@ class PortfolioChartViewModelTest {
         getSession = getSession,
         observePerpetualWallet = observePerpetualWallet,
         initialType = initialType,
+        ioDispatcher = testDispatcher,
+        context = mockk<Context> { every { getString(any()) } answers { firstArg<Int>().toString() } },
     ).also(viewModels::add)
 }

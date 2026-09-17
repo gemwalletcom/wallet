@@ -123,9 +123,7 @@ struct SelectAssetSceneNavigationStack: View {
             NavigationStack {
                 AssetsFilterScene(model: $model.filterModel)
             }
-            .presentationDetentsForCurrentDeviceSize(expandable: true)
-            .presentationDragIndicator(.visible)
-            .presentationBackground(Colors.grayBackground)
+            .sheetPresentation(.forCurrentDeviceSize(expandable: true), dragIndicator: .visible)
         }
         .recentAssetsSheet(model: model.recentModel, onSelect: model.onSelectRecent)
     }

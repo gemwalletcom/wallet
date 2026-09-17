@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import uniffi.gemstone.GemValidatorRow
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.components.image.IconWithBadge
@@ -22,7 +21,7 @@ import com.gemwallet.android.ui.style.color
 fun DelegationItem(
     assetInfo: AssetInfo,
     delegation: Delegation,
-    validator: GemValidatorRow,
+    validator: ValidatorRowUIModel,
     listPosition: ListPosition,
     onClick: () -> Unit
 ) {

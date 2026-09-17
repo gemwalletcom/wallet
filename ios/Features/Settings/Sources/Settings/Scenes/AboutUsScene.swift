@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import enum Gemstone.GemAboutRow
 import Localization
 import PrimitivesComponents
 import Style
@@ -16,9 +15,9 @@ public struct AboutUsScene: View {
 
     public var body: some View {
         List {
-            ForEach(Array(model.sections.enumerated()), id: \.offset) { _, section in
+            ForEach(model.sections) { section in
                 Section {
-                    ForEach(section.rows, id: \.self) { row in
+                    ForEach(section.values) { row in
                         content(for: row)
                     }
                 }
@@ -32,35 +31,19 @@ public struct AboutUsScene: View {
     }
 
     @ViewBuilder
-    private func content(for row: GemAboutRow) -> some View {
-        switch row {
-        case .termsOfService:
-            SafariNavigationLink(url: model.termsOfServiceURL) {
-                ListItemView(title: row.title)
-            }
-        case .privacyPolicy:
-            SafariNavigationLink(url: model.privacyPolicyURL) {
-                ListItemView(title: row.title)
-            }
-        case .website:
-            SafariNavigationLink(url: model.websiteURL) {
-                ListItemView(title: row.title)
+    private func content(for row: AboutRowViewModel) -> some View {
+        switch row.kind {
+        case let .link(url):
+            SafariNavigationLink(url: url) {
+                ListItemView(model: row.model)
             }
         case .community:
             SocialLinksView(model: model.linksViewModel)
         case .version:
-            ListItemView(title: row.title, subtitle: model.versionTextValue)
+            ListItemView(model: row.model)
                 .contextMenu(model.contextMenuItems)
-
-            if let version = model.releaseVersion {
-                NavigationCustomLink(
-                    with: ListItemView(
-                        title: Localized.UpdateApp.title,
-                        subtitle: version,
-                        imageStyle: .settings(assetImage: model.releaseImage),
-                    ),
-                    action: model.onUpdate,
-                )
+            if let item = model.updateListItem {
+                NavigationCustomLink(with: ListItemView(model: item), action: model.onUpdate)
             }
         }
     }

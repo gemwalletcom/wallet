@@ -17,19 +17,10 @@ public struct ServiceStatusScene: View {
         List {
             Section {
                 ForEach(model.itemModels) { item in
-                    ListItemView(
-                        title: item.title,
-                        titleTag: item.titleTag,
-                        titleTagStyle: item.titleTagStyle,
-                        titleTagType: item.titleTagType,
-                        titleExtra: item.subtitle,
-                    )
+                    ListItemView(model: item.listItem)
                 }
 
-                ListItemView(
-                    title: streamModel.title,
-                    subtitle: streamModel.status,
-                )
+                ListItemView(model: streamModel.listItem)
             }
         }
         .listRowInsets(.assetListRowInsets)

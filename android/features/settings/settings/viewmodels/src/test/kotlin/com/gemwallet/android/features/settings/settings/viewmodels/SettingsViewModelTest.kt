@@ -1,34 +1,36 @@
 package com.gemwallet.android.features.settings.settings.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.application.wallet.cases.GetWallets
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.testkit.mockWallet
+import com.gemwallet.android.ui.models.actions.SettingsSceneAction
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletType
-import uniffi.gemstone.GemSettingsRow
-import uniffi.gemstone.GemSettingsSection
-import uniffi.gemstone.GemSettingsServiceInterface
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.job
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import org.junit.Assert.assertEquals
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemSettingsRow
+import uniffi.gemstone.GemSettingsSection
+import uniffi.gemstone.GemSettingsServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
@@ -73,7 +75,8 @@ class SettingsViewModelTest {
         viewModel = createViewModel()
         advanceUntilIdle()
 
-        assertEquals(listOf(GemSettingsRow.WALLETS), viewModel.sections.first { it.isNotEmpty() }.flatMap { it.rows })
+        assertEquals(listOf(SettingsSceneAction.Wallets), viewModel.rows.first { it.isNotEmpty() }.flatMap { it.items }.map { it.action })
+        assertEquals("1", viewModel.rows.value.flatMap { it.items }.single().model.subtitle)
 
         every { settingsService.sections(any(), any(), any()) } returns listOf(
             GemSettingsSection(listOf(GemSettingsRow.WALLETS, GemSettingsRow.REWARDS)),
@@ -82,8 +85,8 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         assertEquals(
-            listOf(GemSettingsRow.WALLETS, GemSettingsRow.REWARDS),
-            viewModel.sections.first { section -> section.flatMap { it.rows }.contains(GemSettingsRow.REWARDS) }.flatMap { it.rows },
+            listOf(SettingsSceneAction.Wallets, SettingsSceneAction.Referral),
+            viewModel.rows.first { rows -> rows.flatMap { it.items }.any { it.action == SettingsSceneAction.Referral } }.flatMap { it.items }.map { it.action },
         )
     }
 
@@ -98,5 +101,7 @@ class SettingsViewModelTest {
         getPushEnabled = getPushEnabled,
         notificationsAvailable = true,
         settingsService = settingsService,
+        ioDispatcher = testDispatcher,
+        context = mockk<Context> { every { getString(any()) } returns "" },
     )
 }

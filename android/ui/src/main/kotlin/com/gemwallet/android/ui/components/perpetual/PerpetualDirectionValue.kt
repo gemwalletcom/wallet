@@ -6,12 +6,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.localization.stringRes
 import com.wallet.core.primitives.PerpetualDirection
-import uniffi.gemstone.GemPerpetual
-import uniffi.gemstone.PerpetualProvider
-
-@Composable
-fun PerpetualDirection.text(leverage: String): String =
-    GemPerpetual(PerpetualProvider.HYPERCORE).use { it.positionText(title(), leverage) }
 
 @Composable
 fun PerpetualDirection.title(): String = stringResource(stringRes())

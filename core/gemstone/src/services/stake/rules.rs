@@ -337,7 +337,7 @@ impl GemAssetBalance {
 }
 
 impl GemAssetBalance {
-    pub fn shows_stake_balance(&self, chain: Chain, is_stake_enabled: bool) -> bool {
+    fn shows_stake_balance(&self, chain: Chain, is_stake_enabled: bool) -> bool {
         StakeChain::from_chain(chain).is_some() && (is_stake_enabled || self.staked_value(chain) > GemBigUint::ZERO)
     }
 }

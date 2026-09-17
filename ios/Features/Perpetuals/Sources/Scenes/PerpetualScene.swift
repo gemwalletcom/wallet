@@ -1,7 +1,4 @@
 import Components
-import enum Gemstone.GemPerpetualButton
-import enum Gemstone.GemPerpetualPositionDetailRow
-import enum Gemstone.GemPerpetualSection
 import Formatters
 import GemstonePrimitives
 import InfoSheet
@@ -90,13 +87,13 @@ public struct PerpetualScene: View {
             InfoSheetScene(type: $0)
         }
         .alert(
-            GemPerpetualButton.modify.title,
+            model.modifyTitle,
             presenting: $model.isPresentingModifyAlert,
             sensoryFeedback: .warning,
             actions: { _ in
-                ForEach(model.modifyButtons, id: \.self) { button in
-                    Button(button.title, role: button == .reduce ? .destructive : nil) {
-                        model.onSelectButton(button)
+                ForEach(model.modifyButtonModels) { button in
+                    Button(button.title, role: button.isDestructive ? .destructive : nil) {
+                        model.onSelect(button)
                     }
                 }
                 Button(Localized.Common.cancel, role: .cancel) {}
@@ -119,8 +116,8 @@ public struct PerpetualScene: View {
     private var buttonsSection: some View {
         Section {
             HStack(spacing: Spacing.medium) {
-                ForEach(model.buttons, id: \.self) { button in
-                    Button(button.title) { model.onSelectButton(button) }
+                ForEach(model.buttonModels) { button in
+                    Button(button.title) { model.onSelect(button) }
                         .frame(maxWidth: .infinity)
                         .buttonStyle(style(for: button))
                 }
@@ -128,11 +125,11 @@ public struct PerpetualScene: View {
         }
     }
 
-    private func style(for button: GemPerpetualButton) -> ColorButtonStyle {
-        switch button {
-        case .long: .green()
-        case .short, .close: .red()
-        case .modify, .increase, .reduce: .blue()
+    private func style(for button: PerpetualButtonViewModel) -> ColorButtonStyle {
+        switch button.style {
+        case .green: .green()
+        case .red: .red()
+        case .blue: .blue()
         }
     }
 
@@ -147,12 +144,7 @@ public struct PerpetualScene: View {
                     .numericTransition(for: position.pnlWithPercentText)
             case .autoclose:
                 NavigationCustomLink(
-                    with: ListItemView(
-                        title: row.title,
-                        subtitle: position.autocloseText.subtitle,
-                        subtitleExtra: position.autocloseText.subtitleExtra,
-                        infoAction: model.infoAction(for: row),
-                    ),
+                    with: ListItemView(model: model.autocloseListItem(position, row: row)),
                     action: model.onSelectAutoclose,
                 )
             case .size, .entryPrice, .liquidationPrice, .margin, .fundingPayments:

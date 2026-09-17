@@ -2,7 +2,7 @@ use std::sync::{Arc, LazyLock};
 
 use async_trait::async_trait;
 use gem_client::Client;
-use gem_jsonrpc::alien::{RpcClient, RpcProvider};
+use gem_jsonrpc::alien::{RpcClient, RpcTransport};
 use primitives::{AssetId, Chain, ChainAddress, EVMChain, PaymentStatus, WalletConnectCAIP2};
 
 use crate::error::PaymentError;
@@ -23,7 +23,7 @@ pub(crate) struct WalletConnectPayProvider<C: Client> {
 }
 
 impl WalletConnectPayProvider<RpcClient> {
-    pub(crate) fn new(rpc_provider: Arc<dyn RpcProvider>, auth: WalletConnectPayAuth, payment_id: String) -> Self {
+    pub(crate) fn new(rpc_provider: Arc<dyn RpcTransport>, auth: WalletConnectPayAuth, payment_id: String) -> Self {
         let client = WalletConnectPayClient::new(RpcClient::new(WALLET_CONNECT_PAY_API_URL.to_string(), rpc_provider), auth);
         Self { client, payment_id }
     }

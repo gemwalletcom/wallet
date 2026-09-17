@@ -9,6 +9,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.activities.viewmodels.TransactionDetailsViewModel
+import com.gemwallet.android.features.activities.viewmodels.models.TransactionDetailsRowUIModel
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.shareText
 
@@ -18,6 +19,8 @@ fun TransactionDetailsNavScreen(
     viewModel: TransactionDetailsViewModel = hiltViewModel(),
 ) {
     val transaction by viewModel.data.collectAsStateWithLifecycle()
+    val sections by viewModel.sections.collectAsStateWithLifecycle()
+    val headerTarget by viewModel.headerTarget.collectAsStateWithLifecycle()
     var isShowFeeDetails by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
@@ -36,6 +39,8 @@ fun TransactionDetailsNavScreen(
 
     TransactionDetailsScene(
         data = model,
+        sections = sections,
+        headerTarget = headerTarget,
         onAction = {
             when (it) {
                 TransactionDetailsAction.Share -> onShare(model.explorer.url, model.explorer.name)
@@ -47,6 +52,6 @@ fun TransactionDetailsNavScreen(
 
     FeeDetailsDialog(
         isVisible = isShowFeeDetails,
-        model = model.fee,
+        model = sections.flatMap { it.items }.firstNotNullOfOrNull { (it as? TransactionDetailsRowUIModel.Fee)?.model },
     ) { isShowFeeDetails = false }
 }

@@ -48,6 +48,8 @@ android {
 }
 
 dependencies {
+    implementation(project(":ui"))
+    implementation(project(":data:services:gemstone"))
     api(project(":ui-models"))
 
     implementation(libs.lifecycle.viewmodel)

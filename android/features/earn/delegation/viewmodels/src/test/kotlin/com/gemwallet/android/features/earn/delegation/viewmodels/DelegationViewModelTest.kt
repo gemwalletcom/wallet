@@ -76,6 +76,7 @@ class DelegationViewModelTest {
                     RouteArgument.DelegationId.key to "d1",
                 )
             ),
+            context = mockk(relaxed = true),
         )
         runCurrent()
 

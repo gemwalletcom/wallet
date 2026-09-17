@@ -71,6 +71,11 @@ impl GemAssetsService {
     }
 
     pub async fn ensure_token_asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {
+        if asset_id.is_native_mirror() {
+            return Err(GemServiceError::Unsupported {
+                msg: format!("{asset_id} mirrors the native coin"),
+            });
+        }
         match self.ensure_asset(asset_id.clone()).await {
             Ok(asset) => Ok(asset),
             Err(error) if asset_id.is_native() => Err(error),
@@ -93,18 +98,6 @@ impl GemAssetsService {
         self.price.update_prices(prices, currency).await
     }
 
-    pub async fn sync_missing_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
-        let existing = self.store.get_asset_ids(asset_ids.clone()).await?;
-        let missing = rules::missing_asset_ids(asset_ids, existing);
-        if missing.is_empty() {
-            return Ok(vec![]);
-        }
-        let assets = self.get_assets(missing, None).await?;
-        let asset_ids = assets.iter().map(|asset| asset.asset.id.clone()).collect();
-        self.store.save_assets(assets).await?;
-        Ok(asset_ids)
-    }
-
     pub async fn open_asset(&self, asset_id: AssetId) -> Result<Option<Asset>, GemServiceError> {
         let wallet = self.session.current_wallet().await?;
         self.open_wallet_asset(wallet, asset_id).await
@@ -125,7 +118,7 @@ impl GemAssetsService {
 }
 
 impl GemAssetsService {
-    pub async fn sync_asset(&self, asset_id: AssetId) -> Result<AssetFull, GemServiceError> {
+    async fn sync_asset(&self, asset_id: AssetId) -> Result<AssetFull, GemServiceError> {
         let currency = self.preferences.get_currency();
         let asset = self.get_asset(asset_id.clone()).await?;
         self.store.save_asset(asset.clone()).await?;
@@ -147,6 +140,18 @@ impl GemAssetsService {
             self.sync_missing_assets(associations.clone()).await?;
         }
         Ok(associations)
+    }
+
+    pub async fn sync_missing_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
+        let existing = self.store.get_asset_ids(asset_ids.clone()).await?;
+        let missing = rules::missing_asset_ids(asset_ids, existing);
+        if missing.is_empty() {
+            return Ok(vec![]);
+        }
+        let assets = self.get_assets(missing, None).await?;
+        let asset_ids = assets.iter().map(|asset| asset.asset.id.clone()).collect();
+        self.store.save_assets(assets).await?;
+        Ok(asset_ids)
     }
 
     pub(crate) async fn ensure_simulation_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, GemServiceError> {
@@ -248,7 +253,8 @@ impl GemAssetsService {
             let token_id = token_id.clone();
             async move {
                 if self.gateway.get_is_token_address(chain, token_id.clone()).await.ok()? {
-                    self.gateway.get_token_data(chain, token_id).await.ok().map(rules::default_asset_basic)
+                    let asset = self.gateway.get_token_data(chain, token_id).await.ok()?;
+                    (!asset.id.is_native_mirror()).then(|| rules::default_asset_basic(asset))
                 } else {
                     None
                 }
@@ -301,7 +307,7 @@ mod tests {
     use crate::services::assets::testkit::MemoryAssetStore;
     use crate::testkit::TestAlienProvider;
     use futures::executor::block_on;
-    use primitives::asset_constants::ETHEREUM_USDT_ASSET_ID;
+    use primitives::asset_constants::{ARC_USDC_TOKEN_ID, ETHEREUM_USDT_ASSET_ID};
 
     const USDT_RESPONSE: &str = r#"[{
         "asset": {"id": "ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7", "name": "Tether", "symbol": "USDT", "decimals": 6, "type": "ERC20"},
@@ -347,6 +353,27 @@ mod tests {
                 service.sync_missing_assets(vec![ETHEREUM_USDT_ASSET_ID.clone()]).await.unwrap().is_empty(),
                 "a stored asset is no longer missing"
             );
+        });
+    }
+
+    #[test]
+    fn test_ensure_token_asset_refuses_the_token_mirroring_the_native_coin() {
+        block_on(async {
+            let provider = Arc::new(TestAlienProvider::with_json(200, USDT_RESPONSE));
+            let store = Arc::new(MemoryAssetStore::default());
+            let service = GemAssetsService::mock(provider.clone(), store.clone());
+
+            let mirror = AssetId::from_token(Chain::Arc, ARC_USDC_TOKEN_ID);
+
+            let error = service.ensure_token_asset(mirror.clone()).await.unwrap_err();
+
+            assert_eq!(
+                error,
+                GemServiceError::Unsupported {
+                    msg: format!("{mirror} mirrors the native coin")
+                }
+            );
+            assert!(provider.requested_paths().is_empty());
         });
     }
 

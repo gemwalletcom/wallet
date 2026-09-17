@@ -45,7 +45,7 @@ import com.gemwallet.android.features.assets.views.AssetsScreen
 import com.gemwallet.android.features.main.models.BottomNavItem
 import com.gemwallet.android.features.main.viewmodels.MainScreenViewModel
 import com.gemwallet.android.features.settings.settings.presents.views.SettingsScene
-import com.gemwallet.android.features.settings.settings.presents.views.SettingsSceneAction
+import com.gemwallet.android.ui.models.actions.SettingsSceneAction
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.ConnectionStatusBannerHost
 import com.gemwallet.android.ui.components.LocalConnectionBannerHandled

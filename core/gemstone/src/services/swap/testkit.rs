@@ -11,7 +11,7 @@ use super::store::GemSwapStore;
 use crate::gem_swapper::GemSwapper;
 use crate::keystore::GemKeystore;
 use crate::services::error::GemServiceError;
-use crate::services::preferences::testkit::MemoryPreferencesStore;
+use crate::services::node::GemNodeService;
 use crate::services::wallet::testkit::MemoryKeystorePassword;
 use crate::testkit::TestAlienProvider;
 
@@ -47,7 +47,7 @@ impl GemSwapStore for MemorySwapStore {
 impl GemSwapService {
     pub fn mock(store: Arc<MemorySwapStore>) -> Self {
         Self::new(
-            Arc::new(GemSwapper::new(Arc::new(TestAlienProvider::with_status(200)), Arc::new(MemoryPreferencesStore::default()))),
+            Arc::new(GemSwapper::new(Arc::new(TestAlienProvider::with_status(200)), Arc::new(GemNodeService::mock()))),
             GemKeystore::new(std::env::temp_dir().to_string_lossy().to_string()).unwrap(),
             Arc::new(MemoryKeystorePassword::default()),
             store,

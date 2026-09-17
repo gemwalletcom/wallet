@@ -33,10 +33,9 @@ import com.gemwallet.android.features.settings.networks.viewmodels.models.Networ
 import com.gemwallet.android.features.settings.networks.viewmodels.models.NetworksUIState
 import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeRowUIModel
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
@@ -139,17 +138,15 @@ private fun BlockExplorerItem(
     listPosition: ListPosition,
     onSelect: (String) -> Unit,
 ) {
-    PropertyItem(
-        modifier = Modifier.clickable { onSelect(explorer.name) },
-        title = {
-            PropertyTitleText(text = explorer.name)
-        },
-        data = if (explorer.isSelected) {
-            {
-                SelectionCheckmark(modifier = Modifier.padding(end = paddingSmall))
-            }
-        } else null,
+    ListItem(
+        model = explorer.model,
         listPosition = listPosition,
+        modifier = Modifier.clickable { onSelect(explorer.name) },
+        accessory = if (explorer.isSelected) {
+            { SelectionCheckmark(modifier = Modifier.padding(end = paddingSmall)) }
+        } else {
+            null
+        },
     )
 }
 

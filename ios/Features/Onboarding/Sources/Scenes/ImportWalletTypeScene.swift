@@ -22,10 +22,7 @@ struct ImportWalletTypeScene: View {
         List {
             Section {
                 NavigationLink(value: ImportWalletType.multicoin) {
-                    ListItemView(
-                        title: Localized.Wallet.multicoin,
-                        imageStyle: .asset(assetImage: AssetImage.image(Images.Logo.logo)),
-                    )
+                    ListItemView(model: model.multicoinListItem)
                 }
             }
 
@@ -35,10 +32,7 @@ struct ImportWalletTypeScene: View {
                 Section {
                     ForEach(model.items(for: searchQuery)) { chain in
                         NavigationLink(value: ImportWalletType.chain(chain)) {
-                            ListItemView(
-                                title: chain.networkName,
-                                imageStyle: .asset(assetImage: AssetImage.image(ChainImage(chain: chain).image)),
-                            )
+                            ListItemView(model: model.listItem(for: chain))
                         }
                     }
                 }

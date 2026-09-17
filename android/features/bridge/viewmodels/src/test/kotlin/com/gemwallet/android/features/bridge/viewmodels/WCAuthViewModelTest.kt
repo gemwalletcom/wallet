@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
+import uniffi.gemstone.GemApplicationMetadataServiceInterface
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthPayloadParams
@@ -81,10 +82,13 @@ class WCAuthViewModelTest {
 
     private val verifyContext = mockWalletConnectVerifyContext()
 
+    private fun metadataService(): GemApplicationMetadataServiceInterface = mockk {
+        every { connectionRow(any()) } returns mockGemConnectionRow()
+    }
+
     private fun service(accounts: (String) -> List<GemWalletConnectAuthAccount>): GemWalletConnectServiceInterface =
         mockk(relaxed = true) {
             every { isOriginRejected(any(), any(), any()) } returns false
-            every { connectionRow(any()) } returns mockGemConnectionRow()
             every { authenticationChainIds(any()) } returns listOf("eip155:1")
             every { authenticationMethods() } returns listOf("personal_sign")
             every { authenticationAccounts(any(), any()) } answers { accounts(secondArg<uniffi.gemstone.Wallet>().id) }
@@ -111,6 +115,9 @@ class WCAuthViewModelTest {
         prepareSessionProposal = prepare,
         activeRequest = ActiveWalletConnectRequest(events = emptyFlow()),
         walletConnectService = service,
+        metadataService = metadataService(),
+        ioDispatcher = dispatcher,
+        context = mockk(relaxed = true),
     ).also { models.add(it) }
 
     private suspend fun WCAuthViewModel.awaitSettled(): AuthSceneState = state.first { it !is AuthSceneState.Loading }

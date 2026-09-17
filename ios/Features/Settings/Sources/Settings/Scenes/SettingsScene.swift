@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import enum Gemstone.GemSettingsRow
 import Localization
 import Primitives
 import SwiftUI
@@ -25,9 +24,9 @@ public struct SettingsScene: View {
 
     public var body: some View {
         List {
-            ForEach(Array(model.sections.enumerated()), id: \.offset) { _, section in
+            ForEach(model.sections) { section in
                 Section {
-                    ForEach(section.rows, id: \.self) { row in
+                    ForEach(section.values) { row in
                         content(for: row)
                     }
                 }
@@ -46,15 +45,11 @@ public struct SettingsScene: View {
 
 extension SettingsScene {
     @ViewBuilder
-    private func content(for row: GemSettingsRow) -> some View {
-        switch row {
+    private func content(for row: SettingsRowViewModel) -> some View {
+        switch row.destination {
         case .wallets:
             NavigationCustomLink(
-                with: ListItemView(
-                    title: row.title,
-                    subtitle: model.walletsValue,
-                    imageStyle: .settings(assetImage: row.assetImage),
-                ),
+                with: ListItemView(model: row.model),
                 action: onOpenWallets,
             )
         case .security:
@@ -67,7 +62,7 @@ extension SettingsScene {
             link(row, to: Scenes.WalletConnect())
         case .support:
             NavigationCustomLink(
-                with: ListItemView(title: row.title, imageStyle: .settings(assetImage: row.assetImage)),
+                with: ListItemView(model: row.model),
                 action: onOpenSupport,
             )
         case .rewards:
@@ -79,9 +74,9 @@ extension SettingsScene {
         }
     }
 
-    private func link(_ row: GemSettingsRow, to scene: some Hashable) -> some View {
+    private func link(_ row: SettingsRowViewModel, to scene: some Hashable) -> some View {
         NavigationLink(value: scene) {
-            ListItemView(title: row.title, imageStyle: .settings(assetImage: row.assetImage))
+            ListItemView(model: row.model)
         }
     }
 }

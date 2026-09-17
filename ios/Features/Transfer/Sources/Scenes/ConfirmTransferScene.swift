@@ -98,18 +98,14 @@ extension ConfirmTransferScene {
         case let .warnings(models):
             SimulationWarningsContent(models: models)
         case let .balanceChange(model):
-            ListItemView(
-                title: TextValue(text: model.assetTitle, style: .body, lineLimit: 1, truncationMode: .tail),
-                subtitle: model.amount,
-                imageStyle: .list(assetImage: model.assetImage, cornerRadiusType: .rounded),
-            )
+            ListItemView(model: model.listItem)
         case let .payload(models):
             Group {
                 SimulationPayloadFieldsContent(models: models)
 
                 if self.model.payloadModel.hasDetails {
                     NavigationCustomLink(
-                        with: ListItemView(title: Localized.Common.details),
+                        with: ListItemView(model: self.model.payloadDetailsListItem),
                         action: self.model.onSelectPayloadDetails,
                     )
                 }

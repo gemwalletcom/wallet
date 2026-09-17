@@ -18,6 +18,7 @@ use crate::services::device::testkit::MemoryDevicePlatform;
 use crate::services::device::{GemDeviceKeyService, GemDeviceService};
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
+use crate::services::node::GemNodeService;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::preferences::testkit::MemoryPreferencesStore;
 use crate::services::price::GemPriceService;
@@ -89,7 +90,7 @@ impl GemAssetsService {
         let preferences = Arc::new(MemoryPreferencesStore::default());
         Self::new(
             Arc::new(GemApiClient::new(provider.clone())),
-            Arc::new(GemGateway::new(provider, preferences.clone(), Arc::new(EmptyPreferences))),
+            Arc::new(GemGateway::new(provider, Arc::new(GemNodeService::mock()), preferences.clone(), Arc::new(EmptyPreferences))),
             store,
             Arc::new(GemPriceService::new(Arc::new(MemoryPriceStore::default()))),
             Arc::new(GemPreferencesService::new(preferences)),

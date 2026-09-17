@@ -20,7 +20,6 @@ import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
-import Validators
 
 @MainActor
 @Observable
@@ -90,9 +89,18 @@ public final class FiatSceneViewModel {
         switch viewState.phase {
         case .noInput, .loading, .noQuotes, .failed: nil
         case .invalidInput: viewState.phase.inputErrorText.map(AnyError.init)
-        case let .invalid(check): amountCheckError(check)
-        case .ready: amountCheckError(viewState.amountCheck)
+        case let .invalid(check): check.errorText(locale: locale).map(AnyError.init)
+        case .ready: viewState.amountCheck.errorText(locale: locale).map(AnyError.init)
         }
+    }
+
+    func providerModel(_ viewState: GemFiatViewState) -> FiatProviderViewModel {
+        FiatProviderViewModel(
+            quotesState: quotesState(viewState),
+            emptyTitle: emptyTitle(viewState),
+            selectedQuote: selectedQuote(viewState),
+            allowSelectProvider: allowSelectProvider(viewState),
+        )
     }
 
     func quotesState(_ viewState: GemFiatViewState) -> StateViewType<[GemFiatQuoteRow]> {
@@ -140,6 +148,10 @@ public final class FiatSceneViewModel {
 
     var providerTitle: String {
         Localized.Common.provider
+    }
+
+    var rateListItem: ListItemModel {
+        ListItemModel(title: rateTitle, subtitle: rateValue)
     }
 
     var rateTitle: String {
@@ -298,13 +310,6 @@ extension FiatSceneViewModel {
         return FiatQuoteViewModel(asset: asset, row: quote, locale: locale)
     }
 
-    private func amountCheckError(_ check: GemFiatAmountCheck) -> (any Error)? {
-        switch check {
-        case .valid, .belowMinimum, .aboveMaximum: check.limitDescription(locale: locale).map { AnyError($0) }
-        case let .insufficientBalance(requirement): TransferAmountCalculatorError.insufficientBalance(asset, requirement: requirement.toPrimitives())
-        }
-    }
-
     private func applyAmount(_ text: String, isImmediate: Bool) {
         guard text != viewState.amount else { return }
         session = session.onAmountChanged(amount: text)
@@ -337,7 +342,3 @@ extension FiatSceneViewModel {
     }
 }
 
-// MARK: - Private
-
-private extension FiatSceneViewModel {
-}

@@ -79,6 +79,33 @@ public struct TransactionViewModel: Sendable, Identifiable, Equatable {
         }
     }
 
+    public func listItem(currency: Currency) -> ListItemModel {
+        let title = titleTextValue
+        let titleExtra = titleExtraTextValue
+        let titleTag = titleTagTextValue
+        let subtitle = subtitleTextValue(currency: currency)
+        let subtitleExtra = subtitleExtraTextValue(currency: currency)
+        return ListItemModel(
+            title: title.text,
+            titleStyle: title.style,
+            titleLineLimit: title.lineLimit,
+            titleTag: titleTag?.text,
+            titleTagStyle: titleTag?.style ?? ListItemModel.StyleDefaults.titleTagStyle,
+            titleTagLineLimit: titleTag?.lineLimit,
+            titleTagType: titleTagType,
+            titleExtra: titleExtra?.text,
+            titleStyleExtra: titleExtra?.style ?? ListItemModel.StyleDefaults.titleExtraStyle,
+            titleExtraLineLimit: titleExtra?.lineLimit,
+            subtitle: subtitle?.text,
+            subtitleStyle: subtitle?.style ?? ListItemModel.StyleDefaults.subtitleStyle,
+            subtitleLineLimit: subtitle?.lineLimit,
+            subtitleExtra: subtitleExtra?.text,
+            subtitleStyleExtra: subtitleExtra?.style ?? ListItemModel.StyleDefaults.subtitleExtraStyle,
+            subtitleExtraLineLimit: subtitleExtra?.lineLimit,
+            imageStyle: .asset(assetImage: assetImage),
+        )
+    }
+
     public var titleTextValue: TextValue {
         TextValue(
             text: row.title.title,

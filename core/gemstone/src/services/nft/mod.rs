@@ -9,7 +9,7 @@ use crate::services::error::GemServiceError;
 use std::future::Future;
 use std::sync::Arc;
 
-use primitives::{Account, NFTAssetData, NFTAssetId, NFTData, ReportNft, Wallet, WalletId};
+use primitives::{NFTAssetData, NFTAssetId, NFTData, ReportNft, WalletId};
 
 pub use collectible::GemCollectibleService;
 pub use model::{
@@ -53,10 +53,6 @@ impl GemNftService {
     pub async fn report(&self, report: ReportNft) -> Result<(), GemServiceError> {
         self.api.client.report_nft(report).await.map_err(GemApiError::from)?;
         Ok(())
-    }
-
-    pub fn receive_accounts(&self, wallet: Wallet, query: String) -> Vec<Account> {
-        rules::receive_accounts(&wallet, &query)
     }
 
     pub fn list_items(&self, data: Vec<NFTData>, list: GemNftList) -> Vec<GemNftItem> {

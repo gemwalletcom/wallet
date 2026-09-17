@@ -48,6 +48,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":ui"))
     api(project(":ui-models"))
 
     implementation(libs.lifecycle.viewmodel)

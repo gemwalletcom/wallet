@@ -11,27 +11,31 @@ import Primitives
 import Style
 import SwiftUI
 
-struct AssetValueHeaderViewModel: ValueHeaderViewModel {
+public struct AssetValueHeaderViewModel: ValueHeaderViewModel {
     private static let formatter = ValueFormatter(style: .full)
 
-    let data: GemSimulationValue
+    public let data: GemSimulationValue
 
-    let isWatchWallet: Bool = false
-    let buttons: [HeaderButton] = []
+    public init(data: GemSimulationValue) {
+        self.data = data
+    }
 
-    var assetImage: AssetImage? {
+    public let isWatchWallet: Bool = false
+    public let buttons: [HeaderButton] = []
+
+    public var assetImage: AssetImage? {
         AssetViewModel(asset: data.asset.toPrimitives()).assetImage
     }
 
-    var title: String {
+    public var title: String {
         data.value.title(symbol: data.asset.symbol, formatter: Self.formatter, decimals: Int(data.asset.decimals))
     }
 
-    var subtitle: String? {
+    public var subtitle: String? {
         nil
     }
 
-    var subtitleColor: Color {
+    public var subtitleColor: Color {
         Colors.gray
     }
 }

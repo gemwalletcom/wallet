@@ -17,7 +17,7 @@ use crate::{
         discovery::{PoolDiscovery, candidate_pairs, discover_v4_pools},
         fee_token::is_quote_input_fee_token,
         quote_result::{QuotePosition, get_best_quote},
-        routed_asset::{Funding, Protocol, RoutedAsset, base_pair},
+        routed_asset::{Funding, Protocol, RoutedAsset, base_pair, routed_pair},
         swap_route::{RouteData, build_swap_route, get_intermediaries},
     },
 };
@@ -79,20 +79,8 @@ impl UniswapV4 {
         base_set.contains(token_in) || base_set.contains(token_out)
     }
 
-    fn routed_pair(from_asset: &AssetId, to_asset: &AssetId) -> Result<(EVMChain, RoutedAsset, RoutedAsset), SwapperError> {
-        if from_asset.chain != to_asset.chain {
-            return Err(SwapperError::NotSupportedChain);
-        }
-        let evm_chain = EVMChain::from_chain(from_asset.chain).ok_or(SwapperError::NotSupportedChain)?;
-        Ok((
-            evm_chain,
-            RoutedAsset::from_asset(from_asset, evm_chain, PROTOCOL)?,
-            RoutedAsset::from_asset(to_asset, evm_chain, PROTOCOL)?,
-        ))
-    }
-
     fn routed_request(request: &QuoteRequest) -> Result<(EVMChain, RoutedAsset, RoutedAsset, u128), SwapperError> {
-        let (evm_chain, input, output) = Self::routed_pair(&request.from_asset.asset_id(), &request.to_asset.asset_id())?;
+        let (evm_chain, input, output) = routed_pair(&request.from_asset.asset_id(), &request.to_asset.asset_id(), PROTOCOL)?;
         let amount_in = U256::from_str(&request.value.to_string()).map_err(SwapperError::from)? / input.scale;
         let amount_in = u128::try_from(amount_in).map_err(|_| SwapperError::ComputeQuoteError("amount is too large".into()))?;
         Ok((evm_chain, input, output, amount_in))
@@ -144,7 +132,7 @@ impl Swapper for UniswapV4 {
     }
 
     async fn preload_routes(&self, from_asset: &AssetId, to_asset: &AssetId) {
-        let Ok((_, input, output)) = Self::routed_pair(from_asset, to_asset) else {
+        let Ok((_, input, output)) = routed_pair(from_asset, to_asset, PROTOCOL) else {
             return;
         };
         _ = self.preload_pool_candidates(from_asset.chain, input.address, output.address).await;
@@ -373,8 +361,8 @@ mod tests {
     #[test]
     fn rejects_tempo_network_asset() {
         let native = AssetId::from_chain(Chain::Tempo);
-        assert!(UniswapV4::routed_pair(&native, &TEMPO_BRIDGED_USDC_ASSET_ID).is_err());
-        assert!(UniswapV4::routed_pair(&TEMPO_BRIDGED_USDC_ASSET_ID, &native).is_err());
+        assert!(routed_pair(&native, &TEMPO_BRIDGED_USDC_ASSET_ID, PROTOCOL).is_err());
+        assert!(routed_pair(&TEMPO_BRIDGED_USDC_ASSET_ID, &native, PROTOCOL).is_err());
     }
 }
 

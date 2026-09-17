@@ -98,6 +98,10 @@ impl SignerInput {
     }
 
     pub fn mock_osmosis(input_type: TransactionInputType, destination: &str) -> Self {
+        Self::mock_osmosis_with_gas_limit(input_type, destination, 200_000)
+    }
+
+    pub fn mock_osmosis_with_gas_limit(input_type: TransactionInputType, destination: &str, gas_limit: u64) -> Self {
         let fee_amount = BigInt::from(10_000u64);
         SignerInput::new(
             TransactionLoadInput {
@@ -113,7 +117,7 @@ impl SignerInput {
             TransactionFee::new_gas_price_type(
                 GasPriceType::regular(fee_amount.clone()),
                 fee_amount,
-                BigInt::from(200_000u64),
+                BigInt::from(gas_limit),
                 HashMap::new(),
                 AssetId::from_chain(Chain::Osmosis),
             ),

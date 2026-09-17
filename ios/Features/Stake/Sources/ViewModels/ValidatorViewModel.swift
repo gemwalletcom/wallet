@@ -22,6 +22,10 @@ public struct ValidatorViewModel: Sendable {
         row.validator.toPrimitives()
     }
 
+    public var listItem: ListItemModel {
+        ListItemModel(title: name, subtitle: aprModel.text)
+    }
+
     public var name: String {
         row.name
     }

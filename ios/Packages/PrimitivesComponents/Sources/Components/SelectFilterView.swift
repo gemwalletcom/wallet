@@ -18,11 +18,7 @@ public struct SelectFilterView: View {
 
     public var body: some View {
         NavigationCustomLink(
-            with: ListItemView(
-                title: typeModel.title,
-                subtitle: typeModel.value,
-                imageStyle: .settings(assetImage: typeModel.image),
-            ),
+            with: ListItemView(model: typeModel.listItem),
             action: action,
         )
     }

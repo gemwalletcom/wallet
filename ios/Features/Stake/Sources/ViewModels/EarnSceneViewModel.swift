@@ -67,6 +67,18 @@ public final class EarnSceneViewModel {
         AssetViewModel(asset: asset)
     }
 
+    var aprListItem: ListItemModel {
+        ListItemModel(title: aprModel.title.text, titleStyle: aprModel.title.style, subtitle: aprModel.subtitle.text, subtitleStyle: aprModel.subtitle.style)
+    }
+
+    var noDataListItem: ListItemModel {
+        ListItemModel(title: Localized.Errors.noDataAvailable)
+    }
+
+    var depositListItem: ListItemModel {
+        ListItemModel(title: Localized.Wallet.deposit)
+    }
+
     var aprModel: AprViewModel {
         AprViewModel(apr: service.earnApr(providers: providers.map { $0.toGem() }, assetApr: assetData.metadata.earnApr))
     }

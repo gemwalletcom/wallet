@@ -211,7 +211,7 @@ impl GemPerpetualService {
         Ok(mode)
     }
 
-    pub async fn account_mode(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<PerpetualAccountMode, GemServiceError> {
+    async fn account_mode(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<PerpetualAccountMode, GemServiceError> {
         match self.gateway.get_perpetual_account_mode(chain, address).await {
             Ok(mode) => {
                 self.wallet_preferences.set_perpetual_account_mode(wallet_id, mode)?;

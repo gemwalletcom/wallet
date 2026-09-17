@@ -1,53 +1,51 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
-import com.gemwallet.android.domains.asset.assetConfig
-import com.gemwallet.android.domains.asset.toQueryFilters
+import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import android.util.Log
-import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
-import com.gemwallet.android.model.AssetFilter
-import com.gemwallet.android.model.NO_QUERY_LIMIT
-import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
+import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
+import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
+import com.gemwallet.android.domains.asset.assetConfig
+import com.gemwallet.android.domains.asset.toQueryFilters
+import com.gemwallet.android.domains.price.values.RowFormatters
 import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toIdentifier
-import com.wallet.core.primitives.RecentActivityType
-import uniffi.gemstone.GemAssetAction
-import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import uniffi.gemstone.GemAssetRowTitle
-import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
-import com.gemwallet.android.domains.price.values.RowFormatters
-import com.gemwallet.android.ui.models.AssetToast
-import com.gemwallet.android.ui.models.AssetToastEmitter
-import com.gemwallet.android.ui.models.AssetToastEmitterImpl
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.features.asset_select.viewmodels.models.AssetSelectFlowUIModel
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
+import com.gemwallet.android.features.asset_select.viewmodels.models.uiModel
+import com.gemwallet.android.model.AssetFilter
+import com.gemwallet.android.model.NO_QUERY_LIMIT
+import com.gemwallet.android.model.RecentAssetsRequest
+import com.gemwallet.android.ui.components.screen.assetAddedToast
+import com.gemwallet.android.ui.components.screen.assetPinnedToast
+import com.gemwallet.android.ui.models.ToastEmitter
+import com.gemwallet.android.ui.models.ToastEmitterImpl
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PerpetualId
-import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.ext.requireChain
-import uniffi.gemstone.GemAssetSelectionServiceInterface
-import uniffi.gemstone.GemSelectAssetType
-import uniffi.gemstone.GemAssetSearchStep
-import uniffi.gemstone.GemSelectAssetState
+import com.wallet.core.primitives.RecentActivityType
+import com.wallet.core.primitives.WalletType
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -56,11 +54,17 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemAssetAction
+import uniffi.gemstone.GemAssetRowTitle
+import uniffi.gemstone.GemAssetSearchStep
+import uniffi.gemstone.GemAssetSelectionServiceInterface
+import uniffi.gemstone.GemSelectAssetState
+import uniffi.gemstone.GemSelectAssetType
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 open class BaseAssetSelectViewModel(
@@ -69,12 +73,13 @@ open class BaseAssetSelectViewModel(
     protected val service: GemAssetSelectionServiceInterface,
     val search: SelectSearch,
     selectType: GemSelectAssetType,
-) : ViewModel(), AssetToastEmitter by AssetToastEmitterImpl() {
+    protected val ioDispatcher: CoroutineDispatcher,
+    protected val context: Context,
+) : ViewModel(), ToastEmitter by ToastEmitterImpl() {
 
     val flow = service.flow(selectType)
-    val queryState = TextFieldState()
-    val chainFilter = MutableStateFlow<List<Chain>>(emptyList())
-    val balanceFilter = MutableStateFlow(false)
+
+    val flowUIModel: AssetSelectFlowUIModel = flow.uiModel(context)
 
     fun reset() {
         queryState.clearText()
@@ -86,6 +91,10 @@ open class BaseAssetSelectViewModel(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val isSearching = MutableStateFlow(false)
+
+    val queryState = TextFieldState()
+    val chainFilter = MutableStateFlow<List<Chain>>(emptyList())
+    val balanceFilter = MutableStateFlow(false)
 
     val availableChains = session
         .map { session -> session?.wallet?.let { service.filterChains(it.toGem()).map { chain -> chain.requireChain() } } ?: emptyList() }
@@ -127,7 +136,7 @@ open class BaseAssetSelectViewModel(
                 assetInfo.toAssetInfoDataAggregate(GemAssetRowTitle.CANONICAL_ASSET, formatters = formatters)
             }
     }
-    .flowOn(Dispatchers.IO)
+    .flowOn(ioDispatcher)
     .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
 
     private data class AssetSections(
@@ -178,8 +187,11 @@ open class BaseAssetSelectViewModel(
             }
         }
     .map { items -> items.map { it.asset }.toImmutableList() }
-    .flowOn(Dispatchers.IO)
+    .flowOn(ioDispatcher)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<Asset>().toImmutableList())
+
+    val showsRecents: StateFlow<Boolean> = combine(snapshotFlow { queryState.text.isNotEmpty() }, recent) { hasQuery, recents -> flow.showsRecents(hasQuery, recents.isNotEmpty()) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val uiState = combine(assetsContent, isSearching) { assets, isSearching ->
         when (flow.state(assets.isNotEmpty(), isSearching)) {
@@ -203,7 +215,7 @@ open class BaseAssetSelectViewModel(
     fun onSelected(asset: Asset) {
         flow.action?.let { updateRecent(asset, it) }
         if (flow.enablesPriceAlert) {
-            viewModelScope.launch(Dispatchers.IO) {
+            viewModelScope.launch(ioDispatcher) {
                 runCatchingCancellable { service.setPriceAlert(asset.id.toIdentifier(), true) }
                     .onFailure { Log.e(TAG, "enabling the price alert for ${asset.id.toIdentifier()} failed", it) }
             }
@@ -216,19 +228,19 @@ open class BaseAssetSelectViewModel(
 
     fun onAddToWallet(assetId: AssetId) = viewModelScope.launch {
         if (setVisibility(assetId, visible = true).isSuccess) {
-            emitToast(AssetToast.AddedToWallet)
+            emitToast(assetAddedToast(context))
         }
     }
 
-    fun onTogglePin(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
+    fun onTogglePin(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {
         val item = assets.value.firstOrNull { it.asset.id == assetId }
         val willPin = item?.pinned != true
         runCatchingCancellable { service.setAssetPinned(assetId.toIdentifier(), willPin) }
             .onFailure { Log.e(TAG, "pinning ${assetId.toIdentifier()} failed", it) }
-        item?.let { emitToast(AssetToast.Pin(it.asset.name, willPin)) }
+        item?.let { emitToast(assetPinnedToast(context, it.asset.name, willPin)) }
     }
 
-    private suspend fun setVisibility(assetId: AssetId, visible: Boolean): Result<Unit> = withContext(Dispatchers.IO) {
+    private suspend fun setVisibility(assetId: AssetId, visible: Boolean): Result<Unit> = withContext(ioDispatcher) {
         runCatchingCancellable { service.setAssetsEnabled(listOf(assetId.toIdentifier()), visible) }
             .onFailure { Log.e(TAG, "setting ${assetId.toIdentifier()} enabled=$visible failed", it) }
     }
@@ -258,7 +270,7 @@ open class BaseAssetSelectViewModel(
 
     init {
         if (flow.networkSearch) {
-            viewModelScope.launch(Dispatchers.IO) {
+            viewModelScope.launch(ioDispatcher) {
                 searchRequests.collectLatest { input ->
                     val step = flow.searchStep(input)
                     if (step !is GemAssetSearchStep.Search) return@collectLatest
@@ -279,13 +291,15 @@ open class BaseAssetSelectViewModel(
     }
 
     protected suspend fun setPerpetualPinned(perpetualId: PerpetualId, pinned: Boolean) {
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             runCatchingCancellable { service.setPerpetualPinned(perpetualId.toIdentifier(), pinned) }
                 .onFailure { Log.e(TAG, "pinning perpetual ${perpetualId.toIdentifier()} failed", it) }
         }
     }
 
-    fun updateRecent(asset: Asset, action: GemAssetAction) = viewModelScope.launch(Dispatchers.IO) {
+    fun openRecent(asset: Asset) = updateRecent(asset, GemAssetAction.OPEN)
+
+    fun updateRecent(asset: Asset, action: GemAssetAction) = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable { service.addRecent(action, asset.toGem()) }
             .onFailure { Log.e(TAG, "recording recent ${asset.id.toIdentifier()} failed", it) }
     }

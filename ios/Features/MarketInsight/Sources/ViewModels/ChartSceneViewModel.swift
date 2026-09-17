@@ -98,6 +98,13 @@ public final class ChartSceneViewModel: ChartListViewable {
         SocialLinksViewModel(links: socialLinks(links: links))
     }
 
+    func listItem(for section: GemChartSection) -> ListItemModel {
+        switch section {
+        case let .priceAlerts(count): ListItemModel(title: section.title ?? "", subtitle: "\(count)")
+        case .setPriceAlert, .market, .links: ListItemModel(title: section.title ?? "")
+        }
+    }
+
     func marketValues(_ rows: [GemAssetMarketRow]) -> [MarketValueViewModel] {
         AssetDetailsInfoViewModel(asset: asset, currency: service.currency).marketValues(rows)
     }

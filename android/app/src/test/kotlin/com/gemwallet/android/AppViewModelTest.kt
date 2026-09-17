@@ -92,6 +92,7 @@ class AppViewModelTest {
             mockk(relaxed = true),
             mockk<GemAppStartServiceInterface>(relaxed = true),
             summary,
+            dispatcher,
         ).also { models.add(it) }
     }
 

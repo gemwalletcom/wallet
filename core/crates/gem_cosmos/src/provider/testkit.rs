@@ -64,3 +64,19 @@ pub fn create_celestia_test_client() -> CosmosClient<ReqwestClient> {
     let reqwest_client = ReqwestClient::new(settings.chains.celestia.url, gem_client::reqwest_client());
     CosmosClient::new(CosmosChain::Celestia, reqwest_client)
 }
+
+#[cfg(all(test, feature = "chain_integration_tests"))]
+pub fn create_test_client(chain: CosmosChain) -> CosmosClient<ReqwestClient> {
+    let chains = get_test_settings().chains;
+    let url = match chain {
+        CosmosChain::Cosmos => chains.cosmos.url,
+        CosmosChain::Osmosis => chains.osmosis.url,
+        CosmosChain::Celestia => chains.celestia.url,
+        CosmosChain::Thorchain => chains.thorchain.url,
+        CosmosChain::Mayachain => chains.mayachain.url,
+        CosmosChain::Injective => chains.injective.url,
+        CosmosChain::Sei => chains.sei.url,
+        CosmosChain::Noble => chains.noble.url,
+    };
+    CosmosClient::new(chain, ReqwestClient::new(url, gem_client::reqwest_client()))
+}

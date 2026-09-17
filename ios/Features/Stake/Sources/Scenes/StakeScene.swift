@@ -1,8 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import enum Gemstone.GemStakeSection
-import struct Gemstone.GemStakeActionItem
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -20,12 +18,12 @@ public struct StakeScene: View {
         List {
             headerSection
             stakeInfoSection
-            ForEach(model.sections, id: \.self) { section in
+            ForEach(model.sectionModels) { section in
                 Section(section.title) {
                     content(for: section)
                 }
             }
-            if !model.sections.contains(.delegations) {
+            if model.showsDelegationsPlaceholder {
                 Section {
                     delegationsPlaceholder
                 }
@@ -52,10 +50,10 @@ extension StakeScene {
     }
 
     @ViewBuilder
-    private func content(for section: GemStakeSection) -> some View {
-        switch section {
+    private func content(for section: StakeSectionViewModel) -> some View {
+        switch section.section {
         case .manage:
-            ForEach(model.actions, id: \.action) { item in
+            ForEach(model.actionModels) { item in
                 actionLink(item)
             }
         case .resources:
@@ -67,19 +65,12 @@ extension StakeScene {
     }
 
     @ViewBuilder
-    private func actionLink(_ item: GemStakeActionItem) -> some View {
-        if let infoAction = model.frozenBalanceInfoAction(for: item) {
-            NavigationCustomLink(
-                with: ListItemView(
-                    title: item.action.title,
-                    titleStyle: .bodySecondary,
-                    infoAction: infoAction,
-                ),
-                action: infoAction,
-            )
+    private func actionLink(_ item: StakeActionViewModel) -> some View {
+        if let infoAction = item.infoAction {
+            NavigationCustomLink(with: ListItemView(model: item.model), action: infoAction)
         } else {
-            NavigationLink(value: model.destination(for: item.action)) {
-                ListItemView(title: item.action.title, subtitle: model.subtitle(for: item.action))
+            NavigationLink(value: item.destination) {
+                ListItemView(model: item.model)
             }
             .enabled(item.isEnabled)
         }

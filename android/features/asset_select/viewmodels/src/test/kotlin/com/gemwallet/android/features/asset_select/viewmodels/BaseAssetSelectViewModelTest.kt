@@ -5,14 +5,17 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
+import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.model.chains
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetEthereum
-import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockAssetInfo
+import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
-import com.gemwallet.android.ui.models.AssetToast
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.models.ToastMessage
 import com.wallet.core.primitives.Chain
 import io.mockk.coVerify
 import io.mockk.every
@@ -24,10 +27,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import com.gemwallet.android.model.AssetFilter
-import com.gemwallet.android.model.chains
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -99,7 +100,7 @@ class BaseAssetSelectViewModelTest {
                 items.filter { (chains.isEmpty() || it.asset.id.chain in chains) && (AssetFilter.HasBalance !in query || it.balance.totalAmount > 0.0) }
             }
         }
-        return BaseAssetSelectViewModel(session, recents, service, search, GemSelectAssetType.Send)
+        return BaseAssetSelectViewModel(session, recents, service, search, GemSelectAssetType.Send, dispatcher, mockk(relaxed = true))
             .also { models.add(it) }
     }
 
@@ -143,12 +144,12 @@ class BaseAssetSelectViewModelTest {
         val model = viewModel(listOf(mockAssetInfo(asset = ethereum)), service = service)
         model.unpinned.first { it.isNotEmpty() }
 
-        val toast = CompletableDeferred<AssetToast>()
+        val toast = CompletableDeferred<ToastMessage>()
         val collector = launch { toast.complete(model.toastEvents.first()) }
 
         model.onTogglePin(ethereum.id)
 
-        assertEquals(AssetToast.Pin("Ethereum", true), toast.await())
+        assertEquals(R.drawable.ic_push_pin, toast.await().image)
         coVerify { service.setAssetPinned(any(), true) }
         collector.cancel()
     }

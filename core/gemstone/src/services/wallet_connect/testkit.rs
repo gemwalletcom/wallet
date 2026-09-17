@@ -16,6 +16,7 @@ use crate::services::device::GemDeviceKeyService;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemNameService;
+use crate::services::node::GemNodeService;
 use crate::services::simulation::GemSimulationService;
 use crate::services::wallet::testkit::{MemoryAddressStore, MemoryKeystorePassword, MemoryWalletStore};
 use crate::services::wallet_connect::sign_message::GemSignMessageService;
@@ -130,7 +131,7 @@ impl GemWalletConnectService {
             Arc::new(MemoryKeystorePassword::default()),
         ));
         Self::new(
-            Arc::new(GemSimulationService::new(provider.clone(), Arc::new(EmptyPreferences))),
+            Arc::new(GemSimulationService::new(provider.clone(), Arc::new(GemNodeService::mock()))),
             store,
             Arc::new(TestWalletConnectSigner::new(signer)),
             wallet_session,

@@ -32,6 +32,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.features.referral.viewmodels.SyncType
+import com.gemwallet.android.features.referral.viewmodels.models.ReferralUIModel
+import com.gemwallet.android.features.referral.viewmodels.models.RewardRedemptionUIModel
 import com.gemwallet.android.features.referral.views.components.referralConfirmCode
 import com.gemwallet.android.features.referral.views.components.referralError
 import com.gemwallet.android.features.referral.views.components.referralHead
@@ -43,6 +45,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.buttons.mainActionButtonColors
 import com.gemwallet.android.ui.components.clickable
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.showSnackbar
@@ -59,8 +62,6 @@ import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemRewardsRedemption
-import uniffi.gemstone.GemRewardsState
 
 private val referralCodeMaxWidth = 250.dp
 
@@ -69,7 +70,9 @@ fun ReferralScene(
     inSync: SyncType,
     isAvailableWalletSelect: Boolean,
     referralLink: String?,
-    uiState: GemRewardsState,
+    uiState: ReferralUIModel,
+    infoRows: List<ListItemModel>,
+    redemptions: List<RewardRedemptionUIModel>,
     currentWallet: Wallet?,
     referralCode: String? = null,
     onUsername: (String, (Exception?) -> Unit) -> Unit,
@@ -77,7 +80,7 @@ fun ReferralScene(
     onCancelCode: () -> Unit,
     onRefresh: () -> Unit,
     onWallet: () -> Unit,
-    onRedeem: (GemRewardsRedemption) -> Unit,
+    onRedeem: (RewardRedemptionUIModel) -> Unit,
     onClose: () -> Unit,
     snackbar: SnackbarHostState = remember { SnackbarHostState() },
 ) {
@@ -188,7 +191,7 @@ fun ReferralScene(
                     }
                 }
                 if (uiState.showsInfo) {
-                    referralInfo(uiState, onRedeem)
+                    referralInfo(infoRows, redemptions, onRedeem)
                 }
             }
         }
@@ -224,6 +227,8 @@ private fun ReferralScenePreview() {
                 referralCountText = "5",
                 pointsText = "1000 \uD83D\uDC8E",
             ),
+            infoRows = emptyList(),
+            redemptions = emptyList(),
             currentWallet = previewWallet(),
             onUsername = { _, _ -> },
             onCode = { _, _ -> },
@@ -245,6 +250,8 @@ private fun ReferralSceneNoRewardsPreview() {
             isAvailableWalletSelect = false,
             referralLink = null,
             uiState = previewRewardsState(canUseReferralCode = true),
+            infoRows = emptyList(),
+            redemptions = emptyList(),
             currentWallet = previewWallet(),
             onUsername = { _, _ -> },
             onCode = { _, _ -> },

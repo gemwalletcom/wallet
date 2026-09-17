@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import BigInt
 import Formatters
 import Foundation
@@ -50,6 +51,10 @@ public final class NetworkFeeCustomViewModel {
     }
 
     public var title: String { Localized.FeeRate.custom }
+    public var networkFeeListItem: ListItemModel {
+        ListItemModel(title: networkFeeTitle, subtitle: value, subtitleExtra: fiatValue)
+    }
+
     public var networkFeeTitle: String { Localized.Transfer.networkFee }
 
     public var suffix: String {

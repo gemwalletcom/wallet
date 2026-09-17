@@ -8,6 +8,7 @@ pub(crate) mod testkit;
 
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemPreferencesStore;
+use std::fmt;
 use std::sync::Arc;
 
 use primitives::Chain;
@@ -24,6 +25,12 @@ const NODE: &str = "node";
 pub struct GemNodeService {
     store: Arc<dyn GemNodeStore>,
     preferences: Arc<dyn GemPreferencesStore>,
+}
+
+impl fmt::Debug for GemNodeService {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("GemNodeService").finish_non_exhaustive()
+    }
 }
 
 #[uniffi::export]
@@ -94,8 +101,8 @@ impl GemNodeService {
 }
 
 impl GemNodeService {
-    fn node_url(&self, chain: Chain) -> String {
-        node_url(self.preferences.as_ref(), chain)
+    pub(crate) fn node_url(&self, chain: Chain) -> String {
+        self.selected_node(chain).url
     }
 
     fn selected_url(&self, chain: Chain) -> Option<String> {
@@ -105,10 +112,6 @@ impl GemNodeService {
     fn set_selected_url(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {
         self.preferences.set(node_key(chain), url)
     }
-}
-
-pub fn node_url(preferences: &dyn GemPreferencesStore, chain: Chain) -> String {
-    rules::preferred_chain_node(chain, preferences.get(node_key(chain))).url
 }
 
 fn node_key(chain: Chain) -> String {

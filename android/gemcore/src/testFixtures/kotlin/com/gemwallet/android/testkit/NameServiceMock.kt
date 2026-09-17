@@ -33,5 +33,5 @@ class NameServiceMock : GemNameServiceInterface {
         if (state is GemNameRecordState.Loading && state.name == name) resolved else state
 
     override fun validateRecipient(chain: uniffi.gemstone.Chain, input: String, state: GemNameRecordState): GemRecipientValidation =
-        GemRecipientValidation(isValid = true, address = input, showsError = false)
+        GemRecipientValidation(isValid = true, address = input, error = null)
 }

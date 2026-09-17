@@ -2,7 +2,6 @@ package com.gemwallet.android.ui.components.empty
 
 import android.content.Context
 import androidx.annotation.DrawableRes
-import androidx.compose.ui.graphics.vector.ImageVector
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.localization.title
 import com.gemwallet.android.ui.style.image
@@ -20,7 +19,7 @@ data class EmptyStateUIModel(
 
 sealed interface EmptyStateImage {
     @JvmInline value class Drawable(@DrawableRes val id: Int) : EmptyStateImage
-    @JvmInline value class Vector(val vector: ImageVector) : EmptyStateImage
+    @JvmInline value class Vector(@DrawableRes val id: Int) : EmptyStateImage
 }
 
 fun EmptyContentType.uiModel(context: Context): EmptyStateUIModel {

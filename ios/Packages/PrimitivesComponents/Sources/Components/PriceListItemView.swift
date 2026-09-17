@@ -13,7 +13,7 @@ public struct PriceListItemView: View {
 
     public var body: some View {
         HStack {
-            ListItemView(title: model.title)
+            ListItemView(model: model.listItem)
 
             if model.showAmount {
                 Spacer()

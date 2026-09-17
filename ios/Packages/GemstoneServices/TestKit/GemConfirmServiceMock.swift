@@ -67,10 +67,6 @@ public final class GemConfirmServiceMock: GemConfirmServiceProtocol, @unchecked 
         feeAssetRows
     }
 
-    public func syncMissingAssets(assetIds: [AssetId]) async throws -> [AssetId] {
-        assetIds
-    }
-
     public func trackPending() async throws {}
 
     public func track(walletId _: WalletId, transactions _: [Transaction]) async throws {}

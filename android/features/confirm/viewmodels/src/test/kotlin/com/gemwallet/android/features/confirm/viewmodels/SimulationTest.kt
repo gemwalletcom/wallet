@@ -33,7 +33,7 @@ class SimulationTest {
                 GemSimulationBalanceChange(asset = solana.toGem(), value = BigInteger("-100005000"), sign = GemAmountSign.OUTGOING),
                 GemSimulationBalanceChange(asset = usdc.toGem(), value = BigInteger("750000"), sign = GemAmountSign.INCOMING),
             ),
-        ).toSimulation(confirmation)
+        ).toSimulation(confirmation, mockk(relaxed = true))
 
         assertEquals(
             listOf("-0.100005 SOL", "+0.75 USDC"),

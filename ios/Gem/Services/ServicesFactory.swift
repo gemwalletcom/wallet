@@ -68,6 +68,7 @@ struct ServicesFactory {
         let gemstoneNotificationStore = GemstoneNotificationStore(store: stores.inAppNotificationStore)
         let gatewayService = GatewayService(
             provider: nativeProvider,
+            nodes: nodeService,
             preferences: GemstonePreferencesStore(namespace: "gateway"),
             securePreferences: GemstoneSecurePreferencesStore(namespace: "gateway"),
         )
@@ -82,7 +83,7 @@ struct ServicesFactory {
             ),
         )
         let paymentService = Gemstone.GemPaymentService(provider: nativeProvider, assets: assetsService)
-        let transactionSimulationService = GemSimulationService(provider: nativeProvider, preferences: preferencesStore)
+        let transactionSimulationService = GemSimulationService(provider: nativeProvider, nodes: nodeService)
         let serviceStatusConfiguration = URLSessionConfiguration.default
         serviceStatusConfiguration.timeoutIntervalForRequest = serviceStatusTimeout()
         let serviceStatusService = Gemstone.GemServiceStatus(
@@ -204,7 +205,7 @@ struct ServicesFactory {
             webSocket: webSocket,
             health: streamHealth,
         )
-        let swapper = GemSwapper(rpcProvider: NativeProvider(), preferences: preferencesStore)
+        let swapper = GemSwapper(rpcProvider: NativeProvider(), nodes: nodeService)
         let swapService = Gemstone.GemSwapService(
             swapper: swapper,
             keystore: storages.keystore.gemKeystore,

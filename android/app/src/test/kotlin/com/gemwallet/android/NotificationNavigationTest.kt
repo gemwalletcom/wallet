@@ -74,7 +74,6 @@ class NotificationNavigationTest {
         coEvery { setCurrentWallet.setCurrentWallet(any()) } coAnswers {
             session.value = mockSession(wallet = mockWallet(id = (invocation.args.first() as WalletId).id))
         }
-        coEvery { assetsService.syncMissingAssets(any()) } returns emptyList()
     }
 
     @After
@@ -209,7 +208,7 @@ class NotificationNavigationTest {
         val route = subject.prepareNavigation(GemPushNotification.Support)
 
         assertEquals(listOf(SupportRoute), route)
-        coVerify(exactly = 0) { assetsService.syncMissingAssets(any()) }
+        coVerify(exactly = 0) { assetsService.ensureAsset(any()) }
         coVerify(exactly = 0) { setCurrentWallet.setCurrentWallet(any()) }
     }
 

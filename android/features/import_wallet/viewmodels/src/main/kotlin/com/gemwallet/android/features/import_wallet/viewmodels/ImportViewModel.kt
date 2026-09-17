@@ -1,30 +1,28 @@
 package com.gemwallet.android.features.import_wallet.viewmodels
 
-import androidx.annotation.StringRes
-import com.gemwallet.android.features.import_wallet.viewmodels.localization.fieldStringRes
-import com.gemwallet.android.features.import_wallet.viewmodels.localization.tabStringRes
 import android.content.Context
-import dagger.hilt.android.qualifiers.ApplicationContext
-import com.gemwallet.android.ui.localization.string
-import com.gemwallet.android.ext.toPrimitives
-import uniffi.gemstone.GemWalletDefaultName
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_import.values.WalletImportResult
-import kotlinx.coroutines.CancellationException
-import uniffi.gemstone.GemNameServiceInterface
-import com.gemwallet.android.ext.words
-import uniffi.gemstone.GemMnemonicInterface
-import uniffi.gemstone.GemWalletServiceInterface
-import uniffi.gemstone.GemWalletImportResult
-import com.gemwallet.android.ext.toGem
-import com.wallet.core.primitives.WalletSource
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.ext.networkName
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.words
+import com.gemwallet.android.features.import_wallet.viewmodels.localization.fieldStringRes
+import com.gemwallet.android.features.import_wallet.viewmodels.localization.tabStringRes
 import com.gemwallet.android.model.ImportType
-import uniffi.gemstone.GemNameRecordState
+import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.name.NameRecordController
-import uniffi.gemstone.GemWalletImportKind
+import com.gemwallet.android.ui.style.indicator
+import com.wallet.core.primitives.WalletSource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -34,13 +32,19 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
+import uniffi.gemstone.GemMnemonicInterface
+import uniffi.gemstone.GemNameRecordState
+import uniffi.gemstone.GemNameServiceInterface
+import uniffi.gemstone.GemWalletImportKind
+import uniffi.gemstone.GemWalletImportResult
+import uniffi.gemstone.GemWalletServiceInterface
 
 @HiltViewModel
 class ImportViewModel @Inject constructor(
     private val service: GemWalletServiceInterface,
     nameService: GemNameServiceInterface,
     private val mnemonic: GemMnemonicInterface,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -54,6 +58,8 @@ class ImportViewModel @Inject constructor(
 
     private val nameRecordController = NameRecordController(nameService, viewModelScope)
     val nameResolveState: StateFlow<GemNameRecordState> = nameRecordController.state
+    val nameResolveIndicator: StateFlow<NameResolveIndicatorUIModel?> = nameResolveState.map { it.indicator() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun importKind(type: ImportType) {
         nameRecordController.reset()
@@ -75,7 +81,7 @@ class ImportViewModel @Inject constructor(
     }
 
     fun importSelect(importType: ImportType) = viewModelScope.launch {
-        val defaultName = withContext(Dispatchers.IO) {
+        val defaultName = withContext(ioDispatcher) {
             service.defaultWalletName(importType.chain?.string)
         }
         val chainName = importType.chain?.networkName().orEmpty()
@@ -101,7 +107,7 @@ class ImportViewModel @Inject constructor(
         val nameRecord = nameRecordController.state.value.record()
         state.update { it.copy(loading = true) }
 
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             try {
                 val importType = state.value.importType
                 val import = service.importRequest(importType.kind, importType.chain?.string, data, nameRecord)

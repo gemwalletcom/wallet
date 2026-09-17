@@ -7,9 +7,9 @@ import Testing
 struct TransactionPnlViewModelTests {
     @Test
     func positivePnl() {
-        if case let .pnl(_, value, color) = TransactionPnlViewModel(pnl: .mock(value: 100, tone: .positive)).itemModel {
-            #expect(value.contains("+"))
-            #expect(color == Colors.green)
+        if case let .pnl(item) = TransactionPnlViewModel(pnl: .mock(value: 100, tone: .positive)).itemModel {
+            #expect(item.subtitle?.contains("+") == true)
+            #expect(item.subtitleStyle.color == Colors.green)
         } else {
             Issue.record("Expected pnl item")
         }
@@ -17,9 +17,9 @@ struct TransactionPnlViewModelTests {
 
     @Test
     func negativePnl() {
-        if case let .pnl(_, value, color) = TransactionPnlViewModel(pnl: .mock(value: -50, tone: .negative)).itemModel {
-            #expect(value.contains("-"))
-            #expect(color == Colors.red)
+        if case let .pnl(item) = TransactionPnlViewModel(pnl: .mock(value: -50, tone: .negative)).itemModel {
+            #expect(item.subtitle?.contains("-") == true)
+            #expect(item.subtitleStyle.color == Colors.red)
         } else {
             Issue.record("Expected pnl item")
         }

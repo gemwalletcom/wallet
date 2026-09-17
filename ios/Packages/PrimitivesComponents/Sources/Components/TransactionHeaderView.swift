@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.GemSimulationValue
 import Components
 import Primitives
 import Style
@@ -12,7 +11,7 @@ public enum TransactionHeaderType {
     case swap(from: SwapAmountField, to: SwapAmountField)
     case nft(name: String?, image: AssetImage)
     case asset(image: AssetImage)
-    case assetValue(GemSimulationValue)
+    case assetValue(AssetValueHeaderViewModel)
 }
 
 public struct TransactionHeaderView: View {
@@ -41,9 +40,9 @@ public struct TransactionHeaderView: View {
             case let .asset(image):
                 AssetImageView(assetImage: image, size: .image.large)
                     .padding(.bottom, .space12)
-            case let .assetValue(data):
+            case let .assetValue(model):
                 ValueHeaderView(
-                    model: AssetValueHeaderViewModel(data: data),
+                    model: model,
                     isPrivacyEnabled: .constant(false),
                     titleActionType: .none,
                     onHeaderAction: nil,

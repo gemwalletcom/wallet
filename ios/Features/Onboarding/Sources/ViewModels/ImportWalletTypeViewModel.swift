@@ -1,4 +1,7 @@
 import Foundation
+import PrimitivesComponents
+import Style
+import Components
 import class Gemstone.GemChainService
 import GemstonePrimitives
 import Localization
@@ -10,6 +13,14 @@ public struct ImportWalletTypeViewModel {
 
     public init() {
         allChains = GemChainService.shared.getChains(query: .empty).map { Chain(core: $0) }
+    }
+
+    var multicoinListItem: ListItemModel {
+        ListItemModel(title: Localized.Wallet.multicoin, imageStyle: .asset(assetImage: AssetImage.image(Images.Logo.logo)))
+    }
+
+    func listItem(for chain: Chain) -> ListItemModel {
+        ListItemModel(title: chain.networkName, imageStyle: .asset(assetImage: AssetImage.image(ChainImage(chain: chain).image)))
     }
 
     var title: String {

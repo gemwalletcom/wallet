@@ -41,7 +41,7 @@ extension TransactionHeaderType {
 private extension ConfirmHeaderViewModel {
     var headerType: TransactionHeaderType {
         if let headerData = state.simulation.headerData {
-            return .assetValue(headerData)
+            return .assetValue(AssetValueHeaderViewModel(data: headerData))
         }
 
         if case let .tokenApprove(asset, _) = state.transfer.inputType {

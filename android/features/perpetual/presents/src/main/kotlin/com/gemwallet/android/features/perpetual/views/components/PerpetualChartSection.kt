@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -13,41 +12,33 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualChartUIModel
 import com.gemwallet.android.math.getRelativeDate
-import com.gemwallet.android.model.text
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.chart.CandlestickTooltip
+import com.gemwallet.android.ui.components.chart.CandlestickTooltipUIModel
 import com.gemwallet.android.ui.components.chart.ChartStateView
 import com.gemwallet.android.ui.components.chart.GemCandlestickChart
-import com.gemwallet.android.ui.models.chart.CandlestickChartUIModel
-import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
 import com.gemwallet.android.ui.models.StateViewType
-import uniffi.gemstone.candlestickHeader
+import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
 import com.gemwallet.android.ui.models.dataOrNull
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartPeriod
-import com.wallet.core.primitives.PerpetualPosition
-import uniffi.gemstone.GemCandleTooltip
-import uniffi.gemstone.GemPerpetualChartLine
-import uniffi.gemstone.GemPerpetualChartLineKind
-import uniffi.gemstone.candleTooltip
-import uniffi.gemstone.perpetualChartLayout
+import uniffi.gemstone.candlestickHeader
 
 private val TooltipRightSafeArea = 96.dp
 
 @Composable
 internal fun PerpetualChartSection(
-    state: StateViewType<List<ChartCandleStick>>,
+    state: StateViewType<PerpetualChartUIModel>,
     period: ChartPeriod,
-    position: PerpetualPosition?,
+    tooltip: (ChartCandleStick) -> CandlestickTooltipUIModel,
     onPeriodSelect: (ChartPeriod) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val data = state.dataOrNull.orEmpty()
+    val model = state.dataOrNull
+    val data = model?.candles.orEmpty()
     var selectedIndex by remember(period) { mutableStateOf<Int?>(null) }
     val safeSelectedIndex = selectedIndex?.takeIf { it in data.indices }
     val selectedCandle = safeSelectedIndex?.let { data[it] }
@@ -55,30 +46,7 @@ internal fun PerpetualChartSection(
     val lastCandle = data.lastOrNull()
     val isSelectedRightHalf = safeSelectedIndex?.let { it.toFloat() / data.size.toFloat() > 0.5f } ?: false
 
-    val entryLabel = stringResource(R.string.charts_entry)
-    val liquidationLabel = stringResource(R.string.perpetual_liquidation)
-    val stopLossLabel = stringResource(R.string.perpetual_stop_loss)
-    val takeProfitLabel = stringResource(R.string.perpetual_take_profit)
-    val lineLabel: (GemPerpetualChartLine) -> String = remember(entryLabel, liquidationLabel, stopLossLabel, takeProfitLabel) {
-        { line ->
-            val label = when (line.kind) {
-                GemPerpetualChartLineKind.ENTRY -> entryLabel
-                GemPerpetualChartLineKind.LIQUIDATION -> liquidationLabel
-                GemPerpetualChartLineKind.STOP_LOSS -> stopLossLabel
-                GemPerpetualChartLineKind.TAKE_PROFIT -> takeProfitLabel
-            }
-            "$label | ${line.price.text()}"
-        }
-    }
-
-    val chartUIModel = remember(data, position, lineLabel) {
-        if (data.isEmpty()) null
-        else CandlestickChartUIModel.from(
-            candles = data,
-            layout = perpetualChartLayout(data.map { it.toGem() }, position?.toGem()),
-            lineLabel = lineLabel,
-        )
-    }
+    val chartUIModel = model?.chart
     val headerUIModel = remember(selectedCandle, baseCandle, lastCandle) {
         val target = selectedCandle ?: lastCandle ?: return@remember null
         val base = baseCandle ?: return@remember null
@@ -88,9 +56,7 @@ internal fun PerpetualChartSection(
             dateFormatter = ::getRelativeDate,
         )
     }
-    val tooltip = remember(selectedCandle) {
-        selectedCandle?.let { candleTooltip(it.toGem()) }
-    }
+    val tooltipModel = remember(selectedCandle) { selectedCandle?.let(tooltip) }
 
     ChartStateView(
         state = state,
@@ -106,8 +72,8 @@ internal fun PerpetualChartSection(
                 onSelectionChanged = { selectedIndex = it },
             )
             TooltipOverlay(
-                visible = tooltip != null,
-                tooltip = tooltip,
+                visible = tooltipModel != null,
+                tooltip = tooltipModel,
                 alignToStart = isSelectedRightHalf,
             )
         }
@@ -117,7 +83,7 @@ internal fun PerpetualChartSection(
 @Composable
 private fun BoxScope.TooltipOverlay(
     visible: Boolean,
-    tooltip: GemCandleTooltip?,
+    tooltip: CandlestickTooltipUIModel?,
     alignToStart: Boolean,
 ) {
     AnimatedVisibility(

@@ -18,6 +18,16 @@ public struct ConfirmBalanceChangeViewModel {
         asset = balanceChange.asset.toPrimitives()
     }
 
+    public var listItem: ListItemModel {
+        ListItemModel(
+            title: assetTitle,
+            titleLineLimit: 1,
+            subtitle: amount.text,
+            subtitleStyle: amount.style,
+            imageStyle: .list(assetImage: assetImage, cornerRadiusType: .rounded),
+        )
+    }
+
     public var assetTitle: String {
         asset.name
     }

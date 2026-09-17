@@ -97,7 +97,7 @@ impl GemTransactionStateService {
         self.store.add_transactions(wallet_id, transactions).await
     }
 
-    pub async fn enable_transaction_assets(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
+    async fn enable_transaction_assets(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
         let asset_ids = rules::assets_to_enable(&transactions);
         if asset_ids.is_empty() {
             return Ok(());

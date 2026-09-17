@@ -1,7 +1,7 @@
 package com.gemwallet.android.ui.models.actions
 
-import uniffi.gemstone.GemTransferData
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 
 fun interface ConfirmTransactionAction {
-    operator fun invoke(transfer: GemTransferData)
+    operator fun invoke(input: ConfirmTransferInput)
 }

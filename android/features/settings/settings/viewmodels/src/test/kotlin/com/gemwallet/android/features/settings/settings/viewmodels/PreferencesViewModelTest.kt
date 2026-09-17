@@ -1,9 +1,11 @@
 package com.gemwallet.android.features.settings.settings.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.features.settings.settings.viewmodels.models.PreferencesRowUIModel
+import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.Currency
 import io.mockk.every
 import io.mockk.mockk
@@ -23,9 +25,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemCurrencyRow
+import uniffi.gemstone.GemPerpetualDefaults
 import uniffi.gemstone.GemPreferencesRow
 import uniffi.gemstone.GemPreferencesSection
-import uniffi.gemstone.GemPerpetualDefaults
 import uniffi.gemstone.GemPreferencesState
 import uniffi.gemstone.GemSettingsServiceInterface
 
@@ -37,6 +39,7 @@ class PreferencesViewModelTest {
     private val currency = MutableStateFlow(Currency.USD)
     private val userConfig = mockk<UserConfig>(relaxed = true) {
         every { isPerpetualEnabled() } returns perpetualEnabled
+        every { appearance() } returns MutableStateFlow(Appearance.System)
     }
     private val getCurrentCurrency = object : GetCurrentCurrency {
         override fun getCurrency() = currency
@@ -56,7 +59,10 @@ class PreferencesViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = PreferencesViewModel(userConfig, settingsService, getCurrentCurrency)
+        viewModel = PreferencesViewModel(userConfig, settingsService, getCurrentCurrency,
+            ioDispatcher = testDispatcher,
+            context = mockk<Context> { every { getString(any()) } returns "None" },
+        )
     }
 
     @After
@@ -67,12 +73,13 @@ class PreferencesViewModelTest {
 
     @Test
     fun `the rows follow the selected currency`() = runTest(testDispatcher) {
-        advanceUntilIdle()
-        assertEquals(Currency.USD.toGem(), viewModel.state.value.currency.currency)
+        assertEquals("🏳 USD", currencyRow(viewModel.rows.first { it.isNotEmpty() }).model.subtitle)
 
         currency.value = Currency.GBP
         advanceUntilIdle()
 
-        assertEquals(Currency.GBP.toGem(), viewModel.state.first { it.currency.currency == Currency.GBP.toGem() }.currency.currency)
+        assertEquals("🏳 GBP", currencyRow(viewModel.rows.first { currencyRow(it).model.subtitle != "🏳 USD" }).model.subtitle)
     }
+
+    private fun currencyRow(rows: List<List<PreferencesRowUIModel>>) = rows.first().first() as PreferencesRowUIModel.Link
 }

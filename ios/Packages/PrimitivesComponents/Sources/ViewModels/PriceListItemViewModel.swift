@@ -5,6 +5,10 @@ import Foundation
 import Style
 
 public struct PriceListItemViewModel {
+    var listItem: ListItemModel {
+        ListItemModel(title: title)
+    }
+
     let title: String
     let model: PriceViewModel
 

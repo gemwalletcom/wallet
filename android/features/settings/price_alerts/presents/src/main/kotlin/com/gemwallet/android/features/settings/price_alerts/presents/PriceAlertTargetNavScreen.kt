@@ -9,10 +9,11 @@ import com.gemwallet.android.features.settings.price_alerts.viewmodels.PriceAler
 import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertConfirmResult
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.rememberNotificationPermissionGate
-import com.wallet.core.primitives.PriceAlertDirection
-import com.wallet.core.primitives.PriceAlertNotificationType
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.style.textStyle
+import com.wallet.core.primitives.PriceAlertDirection
+import com.wallet.core.primitives.PriceAlertNotificationType
 
 @Composable
 fun PriceAlertTargetNavScreen(
@@ -49,7 +50,7 @@ fun PriceAlertTargetNavScreen(
         asset = asset,
         assetPriceFormatted = currentPriceFormatted,
         assetPriceChangeFormatted = priceChangeFormatted,
-        assetValueDirection = priceState,
+        assetValueStyle = priceState.textStyle(),
         buttonState = buttonState,
         snackbar = snackbar,
         onType = viewModel::onType,

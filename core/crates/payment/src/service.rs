@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use gem_jsonrpc::alien::{RpcClient, RpcProvider};
+use gem_jsonrpc::alien::{RpcClient, RpcTransport};
 use primitives::{AssetId, Chain, ChainAddress, PaymentLink};
 
 use crate::error::PaymentError;
@@ -10,12 +10,12 @@ use crate::wallet_connect_pay::{WalletConnectPayAuth, WalletConnectPayProvider};
 use crate::{PaymentLoad, PaymentUpdate};
 
 pub struct PaymentService {
-    rpc_provider: Arc<dyn RpcProvider>,
+    rpc_provider: Arc<dyn RpcTransport>,
     wallet_connect_pay_auth: WalletConnectPayAuth,
 }
 
 impl PaymentService {
-    pub fn new(rpc_provider: Arc<dyn RpcProvider>, wallet_connect_pay_auth: WalletConnectPayAuth) -> Self {
+    pub fn new(rpc_provider: Arc<dyn RpcTransport>, wallet_connect_pay_auth: WalletConnectPayAuth) -> Self {
         Self {
             rpc_provider,
             wallet_connect_pay_auth,

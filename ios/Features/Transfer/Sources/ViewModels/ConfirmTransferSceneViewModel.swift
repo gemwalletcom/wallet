@@ -85,6 +85,10 @@ public final class ConfirmTransferSceneViewModel {
         ConfirmPreloadSelection(fee: feeSelection, feeAsset: feeAssetSelection, asset: assetSelection)
     }
 
+    var payloadDetailsListItem: ListItemModel {
+        ListItemModel(title: Localized.Common.details)
+    }
+
     var title: String {
         dataModel.title
     }

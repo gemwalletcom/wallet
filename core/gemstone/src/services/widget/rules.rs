@@ -16,7 +16,7 @@ pub fn coin_ids(size: GemWidgetSize) -> Vec<AssetId> {
     chains.iter().map(|chain| AssetId::from_chain(*chain)).collect()
 }
 
-pub fn price_style(size: GemWidgetSize) -> GemCurrencyStyle {
+fn price_style(size: GemWidgetSize) -> GemCurrencyStyle {
     match size {
         GemWidgetSize::Small => GemCurrencyStyle::Abbreviated,
         GemWidgetSize::Medium | GemWidgetSize::Large => GemCurrencyStyle::Fiat,

@@ -20,26 +20,26 @@ use primitives::{
 use crate::models::custom_types::GemBigInt;
 use crate::{
     GemstoneError,
-    alien::{AlienClient, AlienProvider, AlienProviderWrapper, NodeEndpoints, PreferencesNodeEndpoints, coalescing_provider, new_alien_client},
+    alien::{AlienClient, AlienProvider, AlienProviderWrapper, coalescing_provider, new_alien_client},
     message::sign_type::SignDigestType,
     network::JsonRpcClient,
-    services::preferences::GemPreferencesStore,
+    services::node::GemNodeService,
     wallet_connect::{WalletConnectTransactionType, simulation},
 };
 
 #[derive(uniffi::Object)]
 pub struct GemSimulationService {
     provider: Arc<dyn AlienProvider>,
-    endpoints: Arc<dyn NodeEndpoints>,
+    nodes: Arc<GemNodeService>,
 }
 
 #[uniffi::export]
 impl GemSimulationService {
     #[uniffi::constructor]
-    pub fn new(provider: Arc<dyn AlienProvider>, preferences: Arc<dyn GemPreferencesStore>) -> Self {
+    pub fn new(provider: Arc<dyn AlienProvider>, nodes: Arc<GemNodeService>) -> Self {
         Self {
             provider: coalescing_provider(provider),
-            endpoints: Arc::new(PreferencesNodeEndpoints::new(preferences)),
+            nodes,
         }
     }
 }
@@ -159,13 +159,13 @@ impl GemSimulationService {
 
     fn ethereum_provider(&self, chain: Chain) -> Result<EthereumProvider<AlienClient>, GemstoneError> {
         let chain = EVMChain::from_chain(chain).ok_or_else(|| format!("{chain} is not an EVM chain"))?;
-        let url = self.endpoints.node_url(chain.to_chain())?;
+        let url = self.nodes.node_url(chain.to_chain());
         let client = new_alien_client(url, self.provider.clone());
         Ok(EthereumProvider::new_rpc_only(EthereumClient::new(JsonRpcClient::new(client), chain)))
     }
 
     fn chain_simulation(&self, chain: Chain) -> Result<Box<dyn ChainSimulation>, GemstoneError> {
-        let url = self.endpoints.node_url(chain)?;
+        let url = self.nodes.node_url(chain);
         let new_client = || new_alien_client(url.clone(), self.provider.clone());
         match chain {
             Chain::Solana => Ok(Box::new(SolanaProvider::new_rpc_only(SolanaClient::new(JsonRpcClient::new(new_client()))))),
@@ -290,7 +290,8 @@ pub struct GemSimulationChange {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::testkit::{EmptyPreferences, TestAlienProvider, mock_wc_ethereum_transaction_data};
+    use crate::services::node::GemNodeService;
+    use crate::testkit::{TestAlienProvider, mock_wc_ethereum_transaction_data};
     use num_bigint::BigInt;
     use primitives::{SimulationBalanceChange, SimulationPayloadFieldDisplay, SimulationPayloadFieldType, SimulationWarningApproval};
 
@@ -412,7 +413,7 @@ mod tests {
     fn test_wallet_connect_send_transaction_ignores_simulation_error() {
         futures::executor::block_on(async {
             let provider = Arc::new(TestAlienProvider::with_status(200));
-            let service = GemSimulationService::new(provider.clone(), Arc::new(EmptyPreferences));
+            let service = GemSimulationService::new(provider.clone(), Arc::new(GemNodeService::mock()));
 
             let result = service
                 .simulate_send_transaction(

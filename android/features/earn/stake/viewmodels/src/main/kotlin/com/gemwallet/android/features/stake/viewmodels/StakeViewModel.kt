@@ -1,12 +1,13 @@
 package com.gemwallet.android.features.stake.viewmodels
 
-import uniffi.gemstone.GemClaimRewardsDestination
-import uniffi.gemstone.GemDelegationDestination
-import uniffi.gemstone.GemStakeServiceInterface
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.AppUrl
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.session.cases.GetSession
@@ -14,28 +15,34 @@ import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.stakeChain
-import com.gemwallet.android.AppUrl
 import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.serializer.toJson
-import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.secondsToDays
 import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.features.stake.viewmodels.models.StakeActionUIModel
+import com.gemwallet.android.features.stake.viewmodels.models.StakeSectionUIModel
+import com.gemwallet.android.features.stake.viewmodels.models.listItem
+import com.gemwallet.android.features.stake.viewmodels.models.uiModel
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.model.toAmountParams
-import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
+import com.gemwallet.android.model.toAmountParams
 import com.gemwallet.android.model.toGem
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Delegation
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import dagger.hilt.android.qualifiers.ApplicationContext
+import java.math.BigInteger
+import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -46,9 +53,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import com.gemwallet.android.ext.secondsToDays
-import java.math.BigInteger
-import javax.inject.Inject
+import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemClaimRewardsDestination
+import uniffi.gemstone.GemDelegationDestination
+import uniffi.gemstone.GemStakeServiceInterface
 import uniffi.gemstone.GemValueStyle
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -61,7 +69,9 @@ class StakeViewModel @Inject constructor(
     private val stakeService: GemStakeServiceInterface,
     getSession: GetSession,
     stateHandle: SavedStateHandle,
-): ViewModel() {
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @param:ApplicationContext private val context: Context,
+) : ViewModel() {
     private val initialAssetId = stateHandle.get<String>(RouteArgument.AssetId.key)?.toAssetId()
         ?: error("Missing assetId")
 
@@ -86,8 +96,9 @@ class StakeViewModel @Inject constructor(
         .mapLatest { it?.asset?.chain?.string?.let { chain -> stakeService.minStakeAmount(chain) } ?: BigInteger.ZERO }
         .stateIn(viewModelScope, SharingStarted.Eagerly, BigInteger.ZERO)
 
-    val infoRows = assetInfo
-        .mapLatest { info -> info?.let { stakeService.stakeInfoRows(it.asset.chain.string, it.metadata.stakingApr) } ?: emptyList() }
+    val infoRows: StateFlow<List<ListItemModel>> = combine(assetInfo, lockTimeDays, minStakeAmount) { info, lockTime, minAmount ->
+        info?.let { stakeService.stakeInfoRows(it.asset.chain.string, it.metadata.stakingApr).map { row -> row.listItem(context, it, lockTime, minAmount) } }.orEmpty()
+    }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val session = getSession()
@@ -102,9 +113,9 @@ class StakeViewModel @Inject constructor(
         .flatMapLatest { (walletId, assetId) -> getDelegations(walletId, assetId) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val validatorRows = delegations
+    private val validatorRows = delegations
         .map { items -> items.associate { it.validator.id to stakeService.validatorRow(it.validator.toGem()) } }
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
     private val hasValidators = assetId
@@ -135,8 +146,9 @@ class StakeViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val sections = combine(assetInfo, actions, delegations) { assetInfo, actions, delegations ->
-        assetInfo?.let { stakeService.stakeSections(it.asset.chain.string, actions.isNotEmpty(), delegations.isNotEmpty()) } ?: emptyList()
+    val sections: StateFlow<List<StakeSectionUIModel>> = combine(assetInfo, actions, delegations, validatorRows) { assetInfo, actions, delegations, validatorRows ->
+        assetInfo?.let { stakeService.stakeSections(it.asset.chain.string, actions.isNotEmpty(), delegations.isNotEmpty()) }.orEmpty()
+            .map { it.uiModel(context, delegations, validatorRows) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val sync = MutableStateFlow<Boolean>(true)
@@ -150,14 +162,19 @@ class StakeViewModel @Inject constructor(
                 }
                 val assetInfo = assetInfo.filterNotNull().first()
                 emit(true)
-                runCatchingCancellable { withContext(Dispatchers.IO) { stakeService.sync(assetInfo.asset.id.chain.string) } }
+                runCatchingCancellable { withContext(ioDispatcher) { stakeService.sync(assetInfo.asset.id.chain.string) } }
                     .onFailure { Log.e(TAG, "stake delegations sync failed", it) }
                 emit(false)
                 sync.update { false }
             }
         }
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    val actionRows: StateFlow<List<StakeActionUIModel>> = combine(actions, assetInfo.filterNotNull(), rewardsText) { actions, info, rewards ->
+        actions.map { it.uiModel(context, info, rewards) }
+    }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun onRefresh() {
         sync.update { true }
@@ -173,7 +190,7 @@ class StakeViewModel @Inject constructor(
         val assetInfo = assetInfo.value ?: return
         when (val destination = stakeService.delegationDestination(walletType.toGem(), assetInfo.asset.toGem(), delegation.toGem())) {
             GemDelegationDestination.Details -> onOpenDetail(delegation.validator.id, delegation.base.delegationId)
-            is GemDelegationDestination.Confirm -> onConfirm(destination.transfer)
+            is GemDelegationDestination.Confirm -> onConfirm(ConfirmTransferInput(destination.transfer))
             is GemDelegationDestination.Amount -> onAmount(destination.input.toAmountParams(destination.asset.toPrimitives().id))
         }
     }
@@ -181,7 +198,7 @@ class StakeViewModel @Inject constructor(
     fun onRewards(onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {
         val assetInfo = assetInfo.value ?: return
         when (val destination = claimRewards.value?.destination ?: return) {
-            is GemClaimRewardsDestination.Transfer -> onConfirm(destination.transfer)
+            is GemClaimRewardsDestination.Transfer -> onConfirm(ConfirmTransferInput(destination.transfer))
             is GemClaimRewardsDestination.Amount -> onAmount(AmountParams.Stake.Rewards(assetInfo.asset.id))
         }
     }

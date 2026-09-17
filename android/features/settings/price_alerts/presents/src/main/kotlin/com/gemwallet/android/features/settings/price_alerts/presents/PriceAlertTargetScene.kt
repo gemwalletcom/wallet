@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.settings.price_alerts.presents
 
-import uniffi.gemstone.GemPriceAlertPrompt
-import com.gemwallet.android.features.settings.price_alerts.presents.localization.string
+import androidx.annotation.StringRes
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +20,7 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,20 +35,21 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.components.clickable
+import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.Badge
 import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.PriceInfo
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingHalfSmall
@@ -58,8 +59,6 @@ import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PriceAlertDirection
 import com.wallet.core.primitives.PriceAlertNotificationType
-import androidx.compose.material3.SnackbarHostState
-import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
 
 private val tabs = listOf(
     PriceAlertNotificationType.Price,
@@ -72,7 +71,7 @@ fun PriceAlertTargetScene(
     value: TextFieldState = rememberTextFieldState(),
     type: PriceAlertNotificationType,
     direction: PriceAlertDirection,
-    prompt: GemPriceAlertPrompt,
+    @StringRes prompt: Int,
     currency: Currency,
     currentPriceFormatted: String,
     priceSuggestions: List<Pair<String, String>> = emptyList(),
@@ -80,7 +79,7 @@ fun PriceAlertTargetScene(
     asset: Asset? = null,
     assetPriceFormatted: String = "",
     assetPriceChangeFormatted: String = "",
-    assetValueDirection: GemValueTone = GemValueTone.NEUTRAL,
+    assetValueStyle: ListItemTextStyle = ListItemTextStyle.Secondary,
     buttonState: ButtonState,
     snackbar: SnackbarHostState? = null,
     onType: (PriceAlertNotificationType) -> Unit,
@@ -153,7 +152,7 @@ fun PriceAlertTargetScene(
         ) {
             item {
                 Text(
-                    text = prompt.string(),
+                    text = stringResource(prompt),
                     color = MaterialTheme.colorScheme.secondary,
                     style = MaterialTheme.typography.bodyMedium,
                 )
@@ -239,7 +238,7 @@ fun PriceAlertTargetScene(
                             PriceInfo(
                                 price = assetPriceFormatted,
                                 changes = assetPriceChangeFormatted,
-                                state = assetValueDirection,
+                                changeStyle = assetValueStyle,
                                 style = MaterialTheme.typography.bodyMedium,
                             )
                         },
@@ -260,7 +259,7 @@ fun PriceAlertTargetScenePricePreview() {
             type = PriceAlertNotificationType.Price,
             currency = Currency.USD,
             currentPriceFormatted = "$901.80",
-            prompt = GemPriceAlertPrompt.PRICE_OVER,
+            prompt = R.string.price_alerts_set_alert_price_over,
             priceSuggestions = listOf("$850" to "850", "$950" to "950"),
             percentageSuggestions = listOf(3, 6, 9),
             buttonState = ButtonState.Enabled,
@@ -282,7 +281,7 @@ fun PriceAlertTargetScenePercentagePreview() {
             type = PriceAlertNotificationType.PricePercentChange,
             currency = Currency.USD,
             currentPriceFormatted = "$901.80",
-            prompt = GemPriceAlertPrompt.PRICE_OVER,
+            prompt = R.string.price_alerts_set_alert_price_over,
             priceSuggestions = listOf("$850" to "850", "$950" to "950"),
             percentageSuggestions = listOf(3, 6, 9),
             buttonState = ButtonState.Enabled,

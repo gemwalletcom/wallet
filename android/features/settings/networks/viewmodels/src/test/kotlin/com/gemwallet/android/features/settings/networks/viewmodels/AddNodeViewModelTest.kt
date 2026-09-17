@@ -31,8 +31,8 @@ class AddNodeViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
     private val context = mockk<Context> {
-        every { getString(any()) } returns "Error"
-        every { getString(any(), *anyVararg()) } returns "Error"
+        every { getString(any()) } answers { firstArg<Int>().toString() }
+        every { getString(any(), *anyVararg()) } answers { firstArg<Int>().toString() }
     }
 
     @Before
@@ -77,12 +77,13 @@ class AddNodeViewModelTest {
 
         val model = viewModel.uiModel.value
         assertEquals(ButtonState.Enabled, model.buttonState)
-        assertEquals("1", model.checks.first { it.title == R.string.nodes_import_node_chain_id }.value)
-        assertEquals(true, model.checks.first { it.title == R.string.nodes_import_node_in_sync }.isInSync)
+        assertEquals("1", model.checks.first { it.model.title == R.string.nodes_import_node_chain_id.toString() }.model.subtitle)
+        assertEquals(true, model.checks.first { it.model.title == R.string.nodes_import_node_in_sync.toString() }.isInSync)
     }
 
     @Test
     fun `a rejected network id is reported and cannot be imported`() = runTest(dispatcher) {
+        val context = mockk<Context> { every { getString(any()) } returns "Error" }
         val viewModel = AddNodeViewModel(service { throw GemAddNodeException.InvalidNetworkId() }, dispatcher, context)
         viewModel.init(Chain.Ethereum)
 
