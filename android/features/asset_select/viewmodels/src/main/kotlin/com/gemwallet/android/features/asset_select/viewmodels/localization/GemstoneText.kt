@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.asset_select.presents.localization
+package com.gemwallet.android.features.asset_select.viewmodels.localization
 
 import androidx.annotation.StringRes
 import com.gemwallet.android.ui.R

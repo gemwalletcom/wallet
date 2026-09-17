@@ -31,6 +31,8 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.buttons.RandomGradientButton
 import com.gemwallet.android.ui.components.fields.AmountField
+import com.gemwallet.android.ui.components.fields.AmountSymbolPlacement
+import com.gemwallet.android.ui.components.fields.AmountSymbolUIModel
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
@@ -48,7 +50,6 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space1
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.FiatQuoteType
 
@@ -107,8 +108,7 @@ fun BuyScene(
         Spacer16()
         AmountField(
             amount = fiatAmount,
-            assetSymbol = "$",
-            currency = Currency.USD,
+            symbol = AmountSymbolUIModel(symbol = "$", placement = AmountSymbolPlacement.Trailing),
             equivalent = selectedProvider?.cryptoFormatted ?: " ",
             error = "",
             onValueChange = onAmount,

@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import com.gemwallet.android.ui.R
 import uniffi.gemstone.GemStakeAction
 import uniffi.gemstone.GemStakeInfoRow
+import uniffi.gemstone.GemStakeSection
 
 @StringRes
 internal fun GemStakeAction.stringRes(): Int = when (this) {
@@ -18,4 +19,11 @@ internal fun GemStakeInfoRow.stringRes(): Int = when (this) {
     GemStakeInfoRow.APR -> R.string.stake_apr
     GemStakeInfoRow.LOCK_TIME -> R.string.stake_lock_time
     GemStakeInfoRow.MINIMUM_AMOUNT -> R.string.stake_minimum_amount
+}
+
+@StringRes
+internal fun GemStakeSection.stringRes(): Int = when (this) {
+    GemStakeSection.MANAGE -> R.string.common_manage
+    GemStakeSection.RESOURCES -> R.string.asset_resources
+    GemStakeSection.DELEGATIONS -> R.string.stake_delegations
 }

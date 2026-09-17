@@ -1,6 +1,6 @@
 package com.gemwallet.android.features.asset.presents.details
 
-import uniffi.gemstone.GemTransferData
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Banner
 import com.wallet.core.primitives.Chain
@@ -28,5 +28,5 @@ sealed interface AssetDetailsAction {
     data class Earn(val assetId: AssetId) : Navigation
     data object OpenPerpetuals : Navigation
     data class OpenPriceAlerts(val assetId: AssetId) : Navigation
-    data class Confirm(val params: GemTransferData) : Navigation
+    data class Confirm(val input: ConfirmTransferInput) : Navigation
 }

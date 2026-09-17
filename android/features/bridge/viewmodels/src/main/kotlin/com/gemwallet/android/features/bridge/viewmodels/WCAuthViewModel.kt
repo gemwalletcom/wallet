@@ -3,23 +3,23 @@ package com.gemwallet.android.features.bridge.viewmodels
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.getKeystorePassword
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthPayloadParams
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticationRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
 import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
-import com.gemwallet.android.application.wallet_connect.fromWalletConnectChainId
-import com.gemwallet.android.ext.getAccount
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
+import com.gemwallet.android.features.bridge.viewmodels.model.ConnectionHeadUIModel
 import com.gemwallet.android.features.bridge.viewmodels.model.ReviewTexts
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectReviewModel
+import com.gemwallet.android.features.bridge.viewmodels.model.headUIModel
 import com.gemwallet.android.features.bridge.viewmodels.model.map
-import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.components.list_item.WalletRowUIModel
+import com.gemwallet.android.ui.components.list_item.uiModel
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.buttonState
@@ -39,10 +39,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemConnectionRow
 import uniffi.gemstone.GemWalletConnectAuthAccount
 import uniffi.gemstone.GemWalletConnectServiceInterface
-import uniffi.gemstone.GemWalletRow
 import uniffi.gemstone.MessageSigner
 import uniffi.gemstone.MessageType
 import uniffi.gemstone.SignDigestType
@@ -108,9 +106,9 @@ class WCAuthViewModel @Inject constructor(
                 _state.update {
                     AuthSceneState.Request(
                         texts = ReviewTexts(context),
-                        peer = walletConnectService.connectionRow(prepared.proposal.metadata.toGem()),
+                        peer = walletConnectService.connectionRow(prepared.proposal.metadata.toGem()).headUIModel(),
                         availableWallets = prepared.proposal.wallets,
-                        availableWalletRows = walletRows(prepared.proposal.wallets.map { it.toGem() }),
+                        availableWalletRows = walletRows(prepared.proposal.wallets.map { it.toGem() }).map { it.uiModel(context) },
                         selectedWallet = selectedWallet,
                         approval = approval,
                     )
@@ -322,9 +320,9 @@ sealed interface AuthSceneState {
     class Error(val message: String?, val cause: Throwable? = null) : AuthSceneState
 
     sealed interface Content : AuthSceneState, WalletConnectReviewModel {
-        val peer: GemConnectionRow
+        val peer: ConnectionHeadUIModel
         val availableWallets: List<Wallet>
-        val availableWalletRows: List<GemWalletRow>
+        val availableWalletRows: List<WalletRowUIModel>
         val selectedWallet: Wallet
         val approval: AuthApproval
         val texts: ReviewTexts
@@ -344,9 +342,9 @@ sealed interface AuthSceneState {
     }
 
     data class Request(
-        override val peer: GemConnectionRow,
+        override val peer: ConnectionHeadUIModel,
         override val availableWallets: List<Wallet>,
-        override val availableWalletRows: List<GemWalletRow>,
+        override val availableWalletRows: List<WalletRowUIModel>,
         override val selectedWallet: Wallet,
         override val approval: AuthApproval,
         override val texts: ReviewTexts,
@@ -355,9 +353,9 @@ sealed interface AuthSceneState {
     data class Approving(
         private val request: Request,
     ) : Content {
-        override val peer: GemConnectionRow get() = request.peer
+        override val peer: ConnectionHeadUIModel get() = request.peer
         override val availableWallets: List<Wallet> get() = request.availableWallets
-        override val availableWalletRows: List<GemWalletRow> get() = request.availableWalletRows
+        override val availableWalletRows: List<WalletRowUIModel> get() = request.availableWalletRows
         override val selectedWallet: Wallet get() = request.selectedWallet
         override val approval: AuthApproval get() = request.approval
         override val texts: ReviewTexts get() = request.texts

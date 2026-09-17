@@ -20,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,8 +29,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.domains.perpetual.values.PerpetualBalance
 import com.gemwallet.android.domains.price.values.EquivalentValue
-import com.gemwallet.android.features.perpetual.localization.stringRes
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualMarketSceneState
+import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualMarketSectionUIModel
 import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualPositionRowUIModel
 import com.gemwallet.android.features.perpetual.views.components.MarketHeadActions
 import com.gemwallet.android.features.perpetual.views.components.PerpetualItem
@@ -65,8 +64,6 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.PerpetualProvider
-import uniffi.gemstone.GemPerpetualMarketCounts
-import uniffi.gemstone.GemPerpetualMarketSection
 
 @Composable
 internal fun PerpetualMarketScene(
@@ -77,17 +74,11 @@ internal fun PerpetualMarketScene(
     pinnedPerpetuals: List<PerpetualDataAggregate>,
     recent: List<Asset> = emptyList(),
     query: TextFieldState,
+    sections: List<PerpetualMarketSectionUIModel>,
+    isSearching: Boolean,
     onAction: (PerpetualMarketAction) -> Unit,
 ) {
     val longPressedAsset = remember { mutableStateOf<PerpetualId?>(null) }
-    var isSearching by rememberSaveable { mutableStateOf(false) }
-    val sections = GemPerpetualMarketCounts(
-        positions = positions.size.toUInt(),
-        pinned = pinnedPerpetuals.size.toUInt(),
-        markets = unpinnedPerpetuals.size.toUInt(),
-        recents = recent.size.toUInt(),
-    ).sections(isSearching, query.text.isEmpty())
-    val sectionList = sections.list()
 
     Scene(
         titleContent = {
@@ -103,14 +94,14 @@ internal fun PerpetualMarketScene(
         onClose = {
             if (isSearching) {
                 query.clearText()
-                isSearching = false
+                onAction(PerpetualMarketAction.SetSearching(false))
             } else {
                 onAction(PerpetualMarketAction.Close)
             }
         },
         actions = {
             if (!isSearching) {
-                IconButton(onClick = { isSearching = true }) {
+                IconButton(onClick = { onAction(PerpetualMarketAction.SetSearching(true)) }) {
                     Icon(imageVector = AppIcons.Search, contentDescription = "search")
                 }
             }
@@ -140,15 +131,15 @@ internal fun PerpetualMarketScene(
                         }
                     }
                 }
-                sectionList.forEach { section ->
+                sections.forEach { section ->
                     when (section) {
-                        GemPerpetualMarketSection.RECENTS -> recentPerpetuals(
+                        PerpetualMarketSectionUIModel.Recents -> recentPerpetuals(
                             items = recent,
                             onSeeAll = { onAction(PerpetualMarketAction.OpenRecentsSheet) },
                             onSelect = { asset -> onAction(PerpetualMarketAction.OpenRecent(asset)) },
                         )
-                        GemPerpetualMarketSection.POSITIONS -> {
-                            section.stringRes()?.let { title -> item { SubheaderItem(title) } }
+                        is PerpetualMarketSectionUIModel.Positions -> {
+                            section.title?.let { title -> item { SubheaderItem(title) } }
                             itemsPositioned(positions) { position, item ->
                                 ListItem(
                                     model = item.model,
@@ -157,7 +148,7 @@ internal fun PerpetualMarketScene(
                                 )
                             }
                         }
-                        GemPerpetualMarketSection.PINNED -> {
+                        PerpetualMarketSectionUIModel.Pinned -> {
                             item {
                                 Spacer16()
                                 PinnedAssetsHeaderItem(AssetsGroupType.Pinned)
@@ -172,8 +163,8 @@ internal fun PerpetualMarketScene(
                                 )
                             }
                         }
-                        GemPerpetualMarketSection.MARKETS -> {
-                            section.stringRes()?.let { title -> item { SubheaderItem(title) } }
+                        is PerpetualMarketSectionUIModel.Markets -> {
+                            section.title?.let { title -> item { SubheaderItem(title) } }
                             itemsPositioned(unpinnedPerpetuals) { position, item ->
                                 PerpetualItem(
                                     item = item,
@@ -184,7 +175,7 @@ internal fun PerpetualMarketScene(
                                 )
                             }
                         }
-                        GemPerpetualMarketSection.EMPTY -> item {
+                        PerpetualMarketSectionUIModel.Empty -> item {
                             EmptyContentView(
                                 type = EmptyContentType.SearchPerpetuals,
                                 modifier = Modifier
@@ -243,6 +234,8 @@ fun PreviewPerpetualMarketScene() {
         PerpetualMarketScene(
             sceneState = PerpetualMarketSceneState.Idle,
             query = androidx.compose.foundation.text.input.TextFieldState(),
+            sections = emptyList(),
+            isSearching = false,
             balance = object : PerpetualBalance {
                 override val deposit: String = "$50,000.00"
                 override val available: String = "$45,000.00"

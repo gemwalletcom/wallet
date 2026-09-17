@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
@@ -19,11 +20,13 @@ import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualButton
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualButtonUIModel
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualDetailsSectionUIModel
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualPositionRowUIModel
+import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualChartUIModel
 import com.gemwallet.android.features.perpetual.views.components.PerpetualActions
 import com.gemwallet.android.features.perpetual.views.components.PerpetualChartSection
 import com.gemwallet.android.features.perpetual.views.components.PerpetualModifyBottomSheet
 import com.gemwallet.android.features.perpetual.views.components.positionProperties
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.chart.CandlestickTooltipUIModel
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
@@ -57,8 +60,9 @@ internal fun PerpetualPositionScene(
     position: PerpetualPositionDetailsDataAggregate?,
     positionListItem: ListItemModel?,
     transactions: List<TransactionDataAggregate>,
-    chart: StateViewType<List<ChartCandleStick>>,
+    chart: StateViewType<PerpetualChartUIModel>,
     period: ChartPeriod,
+    tooltip: (ChartCandleStick) -> CandlestickTooltipUIModel,
     isRefreshing: Boolean,
     sections: List<PerpetualDetailsSectionUIModel>,
     modifyButtons: List<PerpetualButtonUIModel>,
@@ -94,7 +98,7 @@ internal fun PerpetualPositionScene(
                     PerpetualChartSection(
                         state = chart,
                         period = period,
-                        position = position?.position,
+                        tooltip = tooltip,
                         onPeriodSelect = { onAction(PerpetualDetailsAction.SelectChartPeriod(it)) },
                     )
                 }
@@ -229,7 +233,8 @@ private fun PerpetualPositionScenePreview() {
             position = samplePosition,
             positionListItem = null,
             transactions = emptyList(),
-            chart = StateViewType.Data(chartData),
+            chart = StateViewType.Data(PerpetualChartUIModel.from(chartData, samplePosition.position, LocalContext.current)),
+            tooltip = { CandlestickTooltipUIModel(emptyList(), emptyList()) },
             period = ChartPeriod.Day,
             isRefreshing = false,
             sections = listOf(

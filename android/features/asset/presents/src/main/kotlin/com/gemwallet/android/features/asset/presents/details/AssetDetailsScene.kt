@@ -42,7 +42,6 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.open
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemAssetEmptyAction
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,7 +86,7 @@ internal fun AssetDetailsScene(
         actions = {
             AssetDetailsMenu(
                 uiState = uiState,
-                priceAlert = detailsState.priceAlert,
+                priceAlert = uiState.priceAlertMenu,
                 snackBar = snackBar,
                 requestNotificationPermission = requestNotificationPermission,
                 onPriceAlert = { onAction(AssetDetailsAction.TogglePriceAlert(it)) },
@@ -120,7 +119,7 @@ internal fun AssetDetailsScene(
                             assetInfo = uiState.assetInfo,
                             banners = uiState.banners,
                             onStake = { onAction(AssetDetailsAction.Stake(it)) },
-                            onConfirm = { onAction(AssetDetailsAction.Confirm(it)) },
+                            onActivate = { uiState.activateTransferInput?.let { onAction(AssetDetailsAction.Confirm(it)) } },
                             onOpenPerpetuals = { onAction(AssetDetailsAction.OpenPerpetuals) },
                             onClose = { onAction(AssetDetailsAction.CloseBanner(it)) },
                         )
@@ -177,8 +176,8 @@ internal fun AssetDetailsScene(
                         size = transactions.size,
                         symbol = uiState.asset.symbol,
                         isViewOnly = detailsState.isViewOnly,
-                        onBuy = if (detailsState.emptyTransactionsAction == GemAssetEmptyAction.BUY) { { onAction(AssetDetailsAction.Buy(uiState.asset.id)) } } else null,
-                        onSwap = if (detailsState.emptyTransactionsAction == GemAssetEmptyAction.SWAP) swapAction else null,
+                        onBuy = if (uiState.emptyTransactions.showsBuy) { { onAction(AssetDetailsAction.Buy(uiState.asset.id)) } } else null,
+                        onSwap = if (uiState.emptyTransactions.showsSwap) swapAction else null,
                     )
                 }
                 transactionsList(transactionSections) { onAction(AssetDetailsAction.OpenTransaction(it)) }

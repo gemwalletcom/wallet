@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.perpetual.views.position
 
-import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -10,18 +9,19 @@ import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
 import com.gemwallet.android.features.perpetual.viewmodels.PerpetualDetailsViewModel
 import com.gemwallet.android.features.perpetual.views.autoclose.AutocloseNavGraph
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
+import com.gemwallet.android.ui.components.screen.SheetExpansion
+import com.gemwallet.android.ui.components.screen.rememberSnackbarState
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
-import com.wallet.core.primitives.TransactionId
-import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.screen.rememberSnackbarState
-import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
 import com.wallet.core.primitives.AssetId
-import com.gemwallet.android.ui.localization.text
+import com.wallet.core.primitives.TransactionId
 
 @Composable
 fun PerpetualPositionNavScreen(
@@ -60,6 +60,7 @@ fun PerpetualPositionNavScreen(
         positionListItem = positionListItem,
         transactions = transactions,
         chart = chart,
+        tooltip = viewModel::tooltip,
         period = period,
         isRefreshing = isRefreshing,
         sections = sections,

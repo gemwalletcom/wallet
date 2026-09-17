@@ -20,9 +20,11 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.features.asset_select.viewmodels.models.AssetSelectFlowUIModel
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
+import com.gemwallet.android.features.asset_select.viewmodels.models.uiModel
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.NO_QUERY_LIMIT
 import com.gemwallet.android.model.RecentAssetsRequest
@@ -43,6 +45,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -74,9 +77,8 @@ open class BaseAssetSelectViewModel(
 ) : ViewModel(), ToastEmitter by ToastEmitterImpl() {
 
     val flow = service.flow(selectType)
-    val queryState = TextFieldState()
-    val chainFilter = MutableStateFlow<List<Chain>>(emptyList())
-    val balanceFilter = MutableStateFlow(false)
+
+    val flowUIModel: AssetSelectFlowUIModel = flow.uiModel(context)
 
     fun reset() {
         queryState.clearText()
@@ -88,6 +90,10 @@ open class BaseAssetSelectViewModel(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val isSearching = MutableStateFlow(false)
+
+    val queryState = TextFieldState()
+    val chainFilter = MutableStateFlow<List<Chain>>(emptyList())
+    val balanceFilter = MutableStateFlow(false)
 
     val availableChains = session
         .map { session -> session?.wallet?.let { service.filterChains(it.toGem()).map { chain -> chain.requireChain() } } ?: emptyList() }
@@ -182,6 +188,9 @@ open class BaseAssetSelectViewModel(
     .map { items -> items.map { it.asset }.toImmutableList() }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<Asset>().toImmutableList())
+
+    val showsRecents: StateFlow<Boolean> = combine(snapshotFlow { queryState.text.isNotEmpty() }, recent) { hasQuery, recents -> flow.showsRecents(hasQuery, recents.isNotEmpty()) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val uiState = combine(assetsContent, isSearching) { assets, isSearching ->
         when (flow.state(assets.isNotEmpty(), isSearching)) {
@@ -286,6 +295,8 @@ open class BaseAssetSelectViewModel(
                 .onFailure { Log.e(TAG, "pinning perpetual ${perpetualId.toIdentifier()} failed", it) }
         }
     }
+
+    fun openRecent(asset: Asset) = updateRecent(asset, GemAssetAction.OPEN)
 
     fun updateRecent(asset: Asset, action: GemAssetAction) = viewModelScope.launch(Dispatchers.IO) {
         runCatchingCancellable { service.addRecent(action, asset.toGem()) }

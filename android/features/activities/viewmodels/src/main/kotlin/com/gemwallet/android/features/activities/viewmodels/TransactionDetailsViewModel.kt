@@ -5,8 +5,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.transactions.cases.GetTransactionDetails
-import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.features.activities.viewmodels.models.TransactionDetailsRowUIModel
+import com.gemwallet.android.features.activities.viewmodels.models.TransactionHeaderTarget
+import com.gemwallet.android.features.activities.viewmodels.models.target
 import com.gemwallet.android.features.activities.viewmodels.models.uiModel
 import com.gemwallet.android.ui.models.ListSection
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -31,6 +32,9 @@ class TransactionDetailsViewModel @Inject constructor(
     ) { "Invalid TransactionId route argument" }
 
     val data = getTransactionDetails.getTransactionDetails(transactionId)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val headerTarget: StateFlow<TransactionHeaderTarget?> = data.map { it?.headerAction?.target() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val sections: StateFlow<List<ListSection<TransactionDetailsRowUIModel>>> = data.map { details ->

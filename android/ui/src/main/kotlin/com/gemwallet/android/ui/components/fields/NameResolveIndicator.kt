@@ -1,24 +1,24 @@
 package com.gemwallet.android.ui.components.fields
 
-import com.gemwallet.android.ui.style.indicator
-import com.gemwallet.android.ui.style.NameResolveIndicatorStyle
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.ui.components.image.vector
+import com.gemwallet.android.ui.components.list_item.color
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
-import uniffi.gemstone.GemNameRecordState
 import com.gemwallet.android.ui.theme.smallIconSize
-import androidx.compose.foundation.layout.size
 
 @Composable
-fun NameResolveIndicator(state: GemNameRecordState) {
-    when (val style = state.indicator()) {
-        NameResolveIndicatorStyle.Loading -> CircularProgressIndicator16()
-        is NameResolveIndicatorStyle.Icon -> Icon(
+fun NameResolveIndicator(model: NameResolveIndicatorUIModel?) {
+    when (model) {
+        NameResolveIndicatorUIModel.Loading -> CircularProgressIndicator16()
+        is NameResolveIndicatorUIModel.Icon -> Icon(
             modifier = Modifier.size(smallIconSize),
-            imageVector = style.vector,
-            contentDescription = style.contentDescription,
-            tint = style.tint,
+            imageVector = model.symbol.vector(),
+            contentDescription = model.contentDescription?.let { stringResource(it) },
+            tint = model.style.color(),
         )
         null -> Unit
     }

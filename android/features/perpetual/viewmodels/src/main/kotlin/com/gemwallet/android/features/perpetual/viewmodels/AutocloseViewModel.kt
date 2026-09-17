@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositionByAsset
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.PerpetualFormatter
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.math.numberFormat
@@ -41,7 +42,6 @@ import uniffi.gemstone.GemAutocloseEstimator
 import uniffi.gemstone.GemAutocloseField
 import uniffi.gemstone.GemAutocloseModify
 import uniffi.gemstone.GemAutocloseSession
-import uniffi.gemstone.GemTransferData
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -62,8 +62,8 @@ class AutocloseViewModel @Inject constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val _confirmRequests = MutableSharedFlow<GemTransferData>(extraBufferCapacity = 1)
-    val confirmRequests: SharedFlow<GemTransferData> = _confirmRequests
+    private val _confirmRequests = MutableSharedFlow<ConfirmTransferInput>(extraBufferCapacity = 1)
+    val confirmRequests: SharedFlow<ConfirmTransferInput> = _confirmRequests
 
     private val userTakeProfitText = MutableStateFlow<String?>(null)
     private val userStopLossText = MutableStateFlow<String?>(null)
@@ -131,7 +131,7 @@ class AutocloseViewModel @Inject constructor(
         val stopLossField = autocloseField(position, TpslType.StopLoss, stopLossText.value)
         val modify = GemAutocloseModify(position.position.direction.toGem(), assetIndex, takeProfitField, stopLossField)
         if (!GemAutocloseSession(modify, GemAutocloseConfirmPolicy.UNTIL_SUBMITTED, true).viewState().confirmEnabled) return
-        _confirmRequests.tryEmit(modify.transfer(position.perpetual.provider.toGem(), position.asset.toGem()))
+        _confirmRequests.tryEmit(ConfirmTransferInput(modify.transfer(position.perpetual.provider.toGem(), position.asset.toGem())))
     }
 
     private fun buildUiModel(

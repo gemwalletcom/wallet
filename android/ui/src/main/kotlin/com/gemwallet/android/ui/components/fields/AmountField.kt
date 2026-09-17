@@ -39,33 +39,22 @@ import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.wallet.core.primitives.Currency
-import uniffi.gemstone.GemAmountInputType
 
 @Composable
 fun ColumnScope.AmountField(
     amount: String,
-    assetSymbol: String,
-    currency: Currency,
+    symbol: AmountSymbolUIModel,
     equivalent: String,
     onValueChange: (String) -> Unit,
     onNext: () -> Unit,
     modifier: Modifier = Modifier,
-    inputType: GemAmountInputType = GemAmountInputType.ASSET,
     onInputTypeClick: (() -> Unit)? = null,
     readOnly: Boolean = false,
     keyboardType: KeyboardType = KeyboardType.Decimal,
     maximumFractionDigits: UInt? = null,
     error: String,
     textStyle: TextStyle = MaterialTheme.typography.displaySmall,
-    transformation: AmountTransformation = CryptoAmountTransformation(
-        when (inputType) {
-            GemAmountInputType.ASSET -> assetSymbol
-            GemAmountInputType.FIAT -> android.icu.util.Currency.getInstance(currency.string).symbol
-        },
-        inputType,
-        MaterialTheme.colorScheme.secondary
-    ),
+    transformation: AmountTransformation = CryptoAmountTransformation(symbol.symbol, symbol.placement, MaterialTheme.colorScheme.secondary),
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     var fieldValue by remember { mutableStateOf(TextFieldValue(amount, TextRange(amount.length))) }
@@ -126,13 +115,13 @@ fun ColumnScope.AmountField(
     }
 }
 
-class CryptoAmountTransformation(symbol: String, inputType: GemAmountInputType, color: Color) : AmountTransformation(inputType, symbol, color) {
+class CryptoAmountTransformation(symbol: String, placement: AmountSymbolPlacement, color: Color) : AmountTransformation(placement, symbol, color) {
 
     override fun transformText(text: AnnotatedString): AnnotatedString {
         val zeroValue = if (text.isEmpty()) "0" else ""
         val info = buildAnnotatedString {
-            when (inputType) {
-                GemAmountInputType.ASSET -> {
+            when (placement) {
+                AmountSymbolPlacement.Trailing -> {
                     append(zeroValue)
                     append(" ")
                     append(symbol)
@@ -143,7 +132,7 @@ class CryptoAmountTransformation(symbol: String, inputType: GemAmountInputType, 
                         end = zeroValue.length,
                     )
                 }
-                GemAmountInputType.FIAT -> {
+                AmountSymbolPlacement.Leading -> {
                     append(symbol)
                     append(" ")
                     append(zeroValue)
@@ -156,20 +145,20 @@ class CryptoAmountTransformation(symbol: String, inputType: GemAmountInputType, 
                 }
             }
         }
-        return when (inputType) {
-            GemAmountInputType.ASSET -> text + info
-            GemAmountInputType.FIAT -> info + text
+        return when (placement) {
+            AmountSymbolPlacement.Trailing -> text + info
+            AmountSymbolPlacement.Leading -> info + text
         }
     }
 
-    override fun convertToOriginal(text: AnnotatedString, offset: Int): Int = when (inputType) {
-        GemAmountInputType.ASSET -> if (offset > text.text.length) text.text.length else offset
-        GemAmountInputType.FIAT -> if (offset > text.text.length) 0 else text.text.length
+    override fun convertToOriginal(text: AnnotatedString, offset: Int): Int = when (placement) {
+        AmountSymbolPlacement.Trailing -> if (offset > text.text.length) text.text.length else offset
+        AmountSymbolPlacement.Leading -> if (offset > text.text.length) 0 else text.text.length
     }
 }
 
 abstract class AmountTransformation(
-    val inputType: GemAmountInputType,
+    val placement: AmountSymbolPlacement,
     val symbol: String,
     val color: Color,
 ) : VisualTransformation {
@@ -178,9 +167,9 @@ abstract class AmountTransformation(
         val result = transformText(text)
         val offsetMapping = object : OffsetMapping {
             override fun originalToTransformed(offset: Int): Int {
-                return offset + when (inputType) {
-                    GemAmountInputType.ASSET -> 0
-                    GemAmountInputType.FIAT -> symbol.length + 1 + if (text.isEmpty()) 1 else 0
+                return offset + when (placement) {
+                    AmountSymbolPlacement.Trailing -> 0
+                    AmountSymbolPlacement.Leading -> symbol.length + 1 + if (text.isEmpty()) 1 else 0
                 }
             }
 

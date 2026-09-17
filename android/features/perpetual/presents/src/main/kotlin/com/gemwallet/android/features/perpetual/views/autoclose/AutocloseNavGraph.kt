@@ -1,23 +1,24 @@
 package com.gemwallet.android.features.perpetual.views.autoclose
 
 import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.animation.ContentTransform
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.DEFAULT_ARGS_KEY
 import androidx.lifecycle.HasDefaultViewModelProviderFactory
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation3.runtime.NavEntryDecorator
 import androidx.navigation3.runtime.NavKey
@@ -28,17 +29,16 @@ import androidx.navigation3.scene.Scene
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.savedState
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.features.confirm.presents.ConfirmScreen
+import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
 import com.gemwallet.android.features.perpetual.viewmodels.AutocloseViewModel
-import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.theme.SheetSizing
 import com.gemwallet.android.ui.viewmodel.NavEntryViewModelStoreOwner
-import kotlinx.serialization.Serializable
 import com.wallet.core.primitives.AssetId
+import kotlinx.serialization.Serializable
 
 @Composable
 fun AutocloseNavGraph(
@@ -70,7 +70,7 @@ private fun AutocloseNavGraphContent(
     val stopLossText by viewModel.stopLossText.collectAsStateWithLifecycle()
 
     val backStack = remember { mutableStateListOf<NavKey>(AutocloseRoute) }
-    var transfer by remember { mutableStateOf<GemTransferData?>(null) }
+    var transfer by remember { mutableStateOf<ConfirmTransferInput?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.confirmRequests.collect { input ->

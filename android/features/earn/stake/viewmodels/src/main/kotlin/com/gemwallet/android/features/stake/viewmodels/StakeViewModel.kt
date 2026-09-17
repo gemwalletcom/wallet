@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.stake.viewmodels
 
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
@@ -20,14 +21,13 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.stake.viewmodels.models.StakeActionUIModel
+import com.gemwallet.android.features.stake.viewmodels.models.StakeSectionUIModel
 import com.gemwallet.android.features.stake.viewmodels.models.listItem
 import com.gemwallet.android.features.stake.viewmodels.models.uiModel
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.model.toAmountParams
 import com.gemwallet.android.model.toGem
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
@@ -111,7 +111,7 @@ class StakeViewModel @Inject constructor(
         .flatMapLatest { (walletId, assetId) -> getDelegations(walletId, assetId) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val validatorRows = delegations
+    private val validatorRows = delegations
         .map { items -> items.associate { it.validator.id to stakeService.validatorRow(it.validator.toGem()) } }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
@@ -144,8 +144,9 @@ class StakeViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val sections = combine(assetInfo, actions, delegations) { assetInfo, actions, delegations ->
-        assetInfo?.let { stakeService.stakeSections(it.asset.chain.string, actions.isNotEmpty(), delegations.isNotEmpty()) } ?: emptyList()
+    val sections: StateFlow<List<StakeSectionUIModel>> = combine(assetInfo, actions, delegations, validatorRows) { assetInfo, actions, delegations, validatorRows ->
+        assetInfo?.let { stakeService.stakeSections(it.asset.chain.string, actions.isNotEmpty(), delegations.isNotEmpty()) }.orEmpty()
+            .map { it.uiModel(context, delegations, validatorRows) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val sync = MutableStateFlow<Boolean>(true)
@@ -187,7 +188,7 @@ class StakeViewModel @Inject constructor(
         val assetInfo = assetInfo.value ?: return
         when (val destination = stakeService.delegationDestination(walletType.toGem(), assetInfo.asset.toGem(), delegation.toGem())) {
             GemDelegationDestination.Details -> onOpenDetail(delegation.validator.id, delegation.base.delegationId)
-            is GemDelegationDestination.Confirm -> onConfirm(destination.transfer)
+            is GemDelegationDestination.Confirm -> onConfirm(ConfirmTransferInput(destination.transfer))
             is GemDelegationDestination.Amount -> onAmount(destination.input.toAmountParams(destination.asset.toPrimitives().id))
         }
     }
@@ -195,7 +196,7 @@ class StakeViewModel @Inject constructor(
     fun onRewards(onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {
         val assetInfo = assetInfo.value ?: return
         when (val destination = claimRewards.value?.destination ?: return) {
-            is GemClaimRewardsDestination.Transfer -> onConfirm(destination.transfer)
+            is GemClaimRewardsDestination.Transfer -> onConfirm(ConfirmTransferInput(destination.transfer))
             is GemClaimRewardsDestination.Amount -> onAmount(AmountParams.Stake.Rewards(assetInfo.asset.id))
         }
     }

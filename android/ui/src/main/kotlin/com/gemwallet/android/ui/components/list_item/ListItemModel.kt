@@ -69,6 +69,13 @@ enum class ListItemSymbol {
     Receive,
     Add,
     Article,
+    Error,
+    CheckCircle,
+    Notifications,
+    NotificationsOutlined,
+    Warning,
+    CurrencyBitcoin,
+    Close,
 }
 
 enum class ListItemTagType {

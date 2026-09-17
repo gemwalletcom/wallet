@@ -29,7 +29,6 @@ import com.gemwallet.android.ui.models.AssetsGroupType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualId
-import uniffi.gemstone.GemAssetAction
 
 @Composable
 fun AssetsResultsScreen(
@@ -47,11 +46,11 @@ fun AssetsResultsScreen(
     ToastEffect(viewModel.toastEvents, snackbar)
 
     val onAssetClick: (Asset) -> Unit = {
-        viewModel.updateRecent(it, GemAssetAction.OPEN)
+        viewModel.openRecent(it)
         onAction(WalletSearchAction.OpenAsset(it))
     }
     val onPerpetualClick: (Asset) -> Unit = {
-        viewModel.updateRecent(it, GemAssetAction.OPEN)
+        viewModel.openRecent(it)
         onAction(WalletSearchAction.OpenPerpetual(it))
     }
     val contextActions = remember(viewModel) {

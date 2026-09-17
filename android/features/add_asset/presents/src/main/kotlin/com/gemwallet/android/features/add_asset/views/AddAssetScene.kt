@@ -51,13 +51,13 @@ import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.gemwallet.android.ui.theme.space24
 import com.wallet.core.primitives.Asset
 import uniffi.gemstone.DocsUrl
-import uniffi.gemstone.GemAddAssetPhase
 
 private val networkItemHeight = 64.dp
 
 @Composable
 internal fun AddAssetScene(
-    searchState: GemAddAssetPhase,
+    isSearching: Boolean,
+    searchFailed: Boolean,
     addressState: MutableState<String>,
     network: Asset?,
     token: Asset?,
@@ -111,12 +111,12 @@ internal fun AddAssetScene(
                 onQrScanner = { onAction(AddAssetAction.Scan) },
             )
         }
-        if (searchState is GemAddAssetPhase.Loading) {
+        if (isSearching) {
             Box {
                 CircularProgressIndicator16(modifier = Modifier.align(Alignment.Center))
             }
         }
-        if (searchState is GemAddAssetPhase.Failed) {
+        if (searchFailed) {
             Card(
                 modifier = Modifier.padding(horizontal = sceneContentPadding()),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),

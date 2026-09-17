@@ -1,20 +1,12 @@
 package com.gemwallet.android.features.confirm.presents.localization
 
-import com.gemwallet.android.features.confirm.viewmodels.localization.text
 import com.wallet.core.primitives.FeeUnitType
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.title
-import com.gemwallet.android.ext.toGemErrorText
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.components.perpetual.title
-import uniffi.gemstone.GemConfirmButtonKind
-import uniffi.gemstone.GemConfirmDestination
-import uniffi.gemstone.GemConfirmException
-import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemConfirmTitle
 
 
@@ -40,17 +32,7 @@ internal fun GemConfirmTitle.string(): String = when (this) {
     GemConfirmTitle.PerpetualModify -> stringResource(R.string.perpetual_modify_position)
 }
 
-@Composable
-internal fun GemConfirmScreen.buttonLabel(kind: GemConfirmButtonKind): String = when {
-    failure?.error is GemConfirmException.AccountMissing -> stringResource(R.string.errors_wallet_account_missing)
-    kind == GemConfirmButtonKind.RETRY -> stringResource(R.string.common_try_again)
-    else -> stringResource(R.string.transfer_confirm)
-}
 
-@Composable
-internal fun Throwable.toBroadcastLabel(): String = (this as? GemConfirmException)?.display()?.text(LocalContext.current)
-    ?: toGemErrorText()?.text(LocalContext.current)
-    ?: "${stringResource(R.string.errors_transfer_error)}: ${message ?: toString()}"
 
 @Composable
 internal fun FeeUnitType.suffix(assetSymbol: String): String = when (this) {

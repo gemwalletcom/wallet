@@ -38,7 +38,6 @@ import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.PerpetualId
 import kotlinx.collections.immutable.toImmutableList
-import uniffi.gemstone.GemAssetAction
 
 @Composable
 fun WalletSearchScreen(
@@ -77,11 +76,11 @@ fun WalletSearchScreen(
                 }
             )
             is WalletSearchAction.OpenAsset -> {
-                viewModel.updateRecent(action.asset, GemAssetAction.OPEN)
+                viewModel.openRecent(action.asset)
                 onAction(action)
             }
             is WalletSearchAction.OpenPerpetual -> {
-                viewModel.updateRecent(action.asset, GemAssetAction.OPEN)
+                viewModel.openRecent(action.asset)
                 onAction(action)
             }
             WalletSearchAction.AddAsset,

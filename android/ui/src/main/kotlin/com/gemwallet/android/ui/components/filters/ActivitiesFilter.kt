@@ -26,21 +26,19 @@ import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemSymbol
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.SheetExpansion
-import com.gemwallet.android.ui.localization.getLabel
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.GemTransactionFilter
-import uniffi.gemstone.transactionFilters
 
 @Composable
 fun TransactionsFilter(
     isVisible: Boolean,
     availableChains: List<Chain>,
     chainsFilter: List<Chain>,
-    typesFilter: List<GemTransactionFilter>,
+    typesFilter: List<TransactionFilterUIModel>,
+    typeOptions: List<TransactionFilterUIModel>,
     onDismissRequest: () -> Unit,
     onSelectChainsFilter: (List<Chain>) -> Unit,
-    onSelectTypesFilter: (List<GemTransactionFilter>) -> Unit,
+    onSelectTypesFilter: (List<TransactionFilterUIModel>) -> Unit,
     onClearChainsFilter: () -> Unit,
     onClearTypesFilter: () -> Unit,
 ) {
@@ -78,7 +76,7 @@ fun TransactionsFilter(
                         title = stringResource(R.string.filter_types),
                         subtitle = when {
                             typesFilter.isEmpty() -> stringResource(R.string.common_all)
-                            typesFilter.size == 1 -> typesFilter.firstOrNull()?.getLabel()?.let { stringResource(it) } ?: ""
+                            typesFilter.size == 1 -> typesFilter.firstOrNull()?.title ?: ""
                             else -> "${typesFilter.size}"
                         },
                         image = ListItemImage.Symbol(ListItemSymbol.Article),
@@ -126,9 +124,8 @@ fun TransactionsFilter(
         },
         onDismiss = { showedSubFilter = null },
     ) { selectedItems, onToggle ->
-        val filters = remember { transactionFilters() }
         LazyColumn(modifier = Modifier.fillMaxSize()) {
-            selectFilterTransactionType(filters, selectedItems, onToggle)
+            selectFilterTransactionType(typeOptions, selectedItems, onToggle)
         }
     }
 }

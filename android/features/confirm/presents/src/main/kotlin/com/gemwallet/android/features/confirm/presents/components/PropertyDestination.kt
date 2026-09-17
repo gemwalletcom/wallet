@@ -6,9 +6,9 @@ import com.gemwallet.android.ui.LocalAddressService
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
 import com.gemwallet.android.ui.format.rememberFormattedAddress
+import com.gemwallet.android.ui.localization.displayText
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.GemAddressDisplay
 
 @Composable
 internal fun AddressRow(row: ConfirmRowUIModel.Address, listPosition: ListPosition) {
@@ -25,9 +25,5 @@ internal fun AddressRow(row: ConfirmRowUIModel.Address, listPosition: ListPositi
 @Composable
 private fun destinationText(name: String?, address: String, chain: Chain?, hasImage: Boolean): String {
     val formatted = rememberFormattedAddress(address, chain)
-    return when (val display = LocalAddressService.current.display(name, formatted, hasImage)) {
-        is GemAddressDisplay.Address -> formatted
-        is GemAddressDisplay.Name -> display.name
-        is GemAddressDisplay.NameWithAddress -> "${display.name} ($formatted)"
-    }
+    return LocalAddressService.current.displayText(name, formatted, hasImage)
 }

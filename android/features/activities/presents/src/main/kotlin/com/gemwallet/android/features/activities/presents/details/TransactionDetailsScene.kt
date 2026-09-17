@@ -16,6 +16,7 @@ import com.gemwallet.android.domains.transaction.aggregates.TransactionDetailsAg
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.features.activities.presents.details.components.SwapProgressItem
 import com.gemwallet.android.features.activities.viewmodels.models.TransactionDetailsRowUIModel
+import com.gemwallet.android.features.activities.viewmodels.models.TransactionHeaderTarget
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.AmountListHead
@@ -35,14 +36,12 @@ import com.gemwallet.android.ui.models.ListSection
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.padding16
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.NFTAssetId
-import uniffi.gemstone.GemTransactionHeaderAction
 
 @Composable
 internal fun TransactionDetailsScene(
     data: TransactionDetailsAggregate,
     sections: List<ListSection<TransactionDetailsRowUIModel>>,
+    headerTarget: TransactionHeaderTarget?,
     onAction: (TransactionDetailsAction) -> Unit,
 ) {
     val uriHandler = LocalUriHandler.current
@@ -78,16 +77,17 @@ internal fun TransactionDetailsScene(
                         modifier = Modifier.clickable { onAction(TransactionDetailsAction.ShowFeeDetails) },
                         accessory = { DataBadgeChevron() },
                     )
+                    is TransactionDetailsRowUIModel.SwapProgress -> SwapProgressItem(row.model)
                     is TransactionDetailsRowUIModel.Value -> when (val item = row.value) {
                         is TransactionDetailsValue.Amount.NFT -> NftHead(
                             metadata = item.metadata,
-                            onClick = data.headerAction?.let { action -> { onAction(action.navigation()) } },
+                            onClick = headerTarget?.let { target -> { onAction(target.navigation()) } },
                         )
                         is TransactionDetailsValue.Amount.Plain -> AmountListHead(
                             icon = item.asset,
                             amount = item.value,
                             equivalent = item.equivalent,
-                            onClick = data.headerAction?.let { action -> { onAction(action.navigation()) } },
+                            onClick = headerTarget?.let { target -> { onAction(target.navigation()) } },
                         )
                         is TransactionDetailsValue.Amount.Swap -> SwapListHead(
                             fromAsset = item.fromAsset,
@@ -96,11 +96,12 @@ internal fun TransactionDetailsScene(
                             toValueText = item.toValueText,
                             fromEquivalentText = item.fromEquivalentText,
                             toEquivalentText = item.toEquivalentText,
-                            onSwapClick = data.headerAction?.let { action -> { onAction(action.navigation()) } },
+                            onSwapClick = headerTarget?.let { target -> { onAction(target.navigation()) } },
                             onAssetClick = { onAction(TransactionDetailsAction.OpenAsset(it)) },
                         )
                         is TransactionDetailsValue.Network -> PropertyNetworkItem(item.data.chain, listPosition = position)
                         is TransactionDetailsValue.Destination,
+                        is TransactionDetailsValue.SwapProgress,
                         is TransactionDetailsValue.Fee,
                         is TransactionDetailsValue.Status,
                         is TransactionDetailsValue.Date,
@@ -111,7 +112,6 @@ internal fun TransactionDetailsScene(
                         is TransactionDetailsValue.Price,
                         is TransactionDetailsValue.EstimatedConfirmation -> Unit
                         is TransactionDetailsValue.Rate -> AssetRatePropertyItem(item.rate, position)
-                        is TransactionDetailsValue.SwapProgress -> SwapProgressItem(item)
                         is TransactionDetailsValue.SwapAgain -> MainActionButton(
                             title = stringResource(R.string.transaction_swap_again),
                             modifier = Modifier.padding(horizontal = padding16, vertical = paddingSmall),
@@ -131,9 +131,9 @@ internal fun TransactionDetailsScene(
     }
 }
 
-private fun GemTransactionHeaderAction.navigation(): TransactionDetailsAction.Navigation = when (this) {
-    is GemTransactionHeaderAction.Asset -> TransactionDetailsAction.OpenAsset(AssetId(assetId))
-    is GemTransactionHeaderAction.Nft -> TransactionDetailsAction.OpenNft(NFTAssetId(assetId))
-    is GemTransactionHeaderAction.Swap -> TransactionDetailsAction.OpenSwap(fromAssetId = AssetId(fromAssetId), toAssetId = AssetId(toAssetId))
-    is GemTransactionHeaderAction.Perpetual -> TransactionDetailsAction.OpenPerpetual(AssetId(assetId))
+private fun TransactionHeaderTarget.navigation(): TransactionDetailsAction.Navigation = when (this) {
+    is TransactionHeaderTarget.Asset -> TransactionDetailsAction.OpenAsset(assetId)
+    is TransactionHeaderTarget.Nft -> TransactionDetailsAction.OpenNft(assetId)
+    is TransactionHeaderTarget.Swap -> TransactionDetailsAction.OpenSwap(fromAssetId = fromAssetId, toAssetId = toAssetId)
+    is TransactionHeaderTarget.Perpetual -> TransactionDetailsAction.OpenPerpetual(assetId)
 }

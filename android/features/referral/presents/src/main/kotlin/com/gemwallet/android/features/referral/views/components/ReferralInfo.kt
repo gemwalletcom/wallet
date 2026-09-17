@@ -21,12 +21,11 @@ import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.models.ListPosition
-import uniffi.gemstone.GemRewardsRedemption
 
 internal fun LazyListScope.referralInfo(
     rows: List<ListItemModel>,
     redemptions: List<RewardRedemptionUIModel>,
-    onRedeem: (GemRewardsRedemption) -> Unit,
+    onRedeem: (RewardRedemptionUIModel) -> Unit,
 ) {
     item {
         SubheaderItem(R.string.common_info)
@@ -38,7 +37,7 @@ internal fun LazyListScope.referralInfo(
     if (redemptions.isNotEmpty()) {
         item { SubheaderItem(R.string.rewards_ways_spend_title) }
         itemsPositioned(redemptions) { position, item ->
-            RewardRedemptionOptionItem(item, position) { onRedeem(item.redemption) }
+            RewardRedemptionOptionItem(item, position) { onRedeem(item) }
         }
     }
 }

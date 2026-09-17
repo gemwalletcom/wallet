@@ -11,6 +11,7 @@ import com.gemwallet.android.application.nft.cases.GetAssetNft
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.isMemoSupport
 import com.gemwallet.android.ext.toGem
@@ -19,6 +20,7 @@ import com.gemwallet.android.features.recipient.viewmodel.models.RecipientRowUIM
 import com.gemwallet.android.features.recipient.viewmodel.models.RecipientState
 import com.gemwallet.android.features.recipient.viewmodel.models.uiSection
 import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.ListSection
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
@@ -29,6 +31,7 @@ import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.optionalNftAssetId
 import com.gemwallet.android.ui.models.navigation.optionalPaymentRecipient
 import com.gemwallet.android.ui.models.navigation.requireAssetId
+import com.gemwallet.android.ui.style.indicator
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.NFTAsset
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -82,7 +85,8 @@ class RecipientViewModel @Inject constructor(
     private val addressInput = AddressInputModel(nameService, viewModelScope)
 
     val address: StateFlow<String> = addressInput.text
-    val nameResolveState: StateFlow<GemNameRecordState> = addressInput.nameResolveState
+    val nameResolveIndicator: StateFlow<NameResolveIndicatorUIModel?> = addressInput.nameResolveState.map { it.indicator() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     val addressError: StateFlow<Boolean> = addressInput.showError
 
     private val _memo = MutableStateFlow("")
@@ -206,7 +210,7 @@ class RecipientViewModel @Inject constructor(
             is GemRecipientNext.Amount -> amountAction(
                 AmountParams.Transfer(asset.id, next.payment.recipient, memo.value, references, next.payment.amount)
             )
-            is GemRecipientNext.Confirm -> confirmAction(next.transfer)
+            is GemRecipientNext.Confirm -> confirmAction(ConfirmTransferInput(next.transfer))
         }
     }
 
@@ -222,11 +226,11 @@ class RecipientViewModel @Inject constructor(
         _memo.value = input
     }
 
-    fun setQrData(type: GemRecipientType, field: QrScanField, data: String, confirmAction: ConfirmTransactionAction) {
+    fun setQrData(state: RecipientState.Ready, field: QrScanField, data: String, confirmAction: ConfirmTransactionAction) {
         when (field) {
             QrScanField.None -> Unit
             QrScanField.Memo -> _memo.value = data
-            QrScanField.Address -> onAddressScan(type, data, confirmAction)
+            QrScanField.Address -> onAddressScan(state.type, data, confirmAction)
         }
     }
 
@@ -238,7 +242,7 @@ class RecipientViewModel @Inject constructor(
             return
         }
         when (scan) {
-            is GemRecipientScan.Confirm -> confirmAction(scan.transfer)
+            is GemRecipientScan.Confirm -> confirmAction(ConfirmTransferInput(scan.transfer))
             is GemRecipientScan.Recipient -> updateFrom(scan.payment)
         }
     }

@@ -9,6 +9,7 @@ import com.gemwallet.android.application.nft.cases.GetNftCollections
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.features.nft.viewmodels.localization.stringRes
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.toUIModels
@@ -21,7 +22,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -40,6 +40,10 @@ class NftListViewModels @Inject constructor(
 ) : ViewModel() {
 
     val list: GemNftList = savedStateHandle.nftList()
+
+    val title: String = context.getString(list.stringRes())
+
+    val showReceiveAction: Boolean = list != GemNftList.UNVERIFIED
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing

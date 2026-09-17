@@ -6,6 +6,9 @@ import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.domains.stake.hasRewards
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.features.transfer_amount.viewmodels.models.ValidatorsUIModel
+import com.gemwallet.android.features.transfer_amount.viewmodels.models.uiModel
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
@@ -32,10 +35,8 @@ import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemStakeAmountInput
 import uniffi.gemstone.GemStakeValidatorSelection
-import uniffi.gemstone.GemValidatorRow
 import uniffi.gemstone.GemTransferData
-import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.toPrimitives
+import uniffi.gemstone.GemValidatorRow
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AmountStakeProvider(
@@ -127,6 +128,10 @@ class AmountStakeProvider(
 
     val validatorSelection: StateFlow<GemStakeValidatorSelection?> = selected
         .map { it?.validators }
+        .stateIn(scope, SharingStarted.Eagerly, null)
+
+    val validatorRows: StateFlow<ValidatorsUIModel?> = validatorSelection
+        .map { it?.uiModel() }
         .stateIn(scope, SharingStarted.Eagerly, null)
 
     val validatorState: StateFlow<GemValidatorRow?> = selected

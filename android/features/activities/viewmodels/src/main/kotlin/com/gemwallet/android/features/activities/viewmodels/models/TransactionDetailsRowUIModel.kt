@@ -29,6 +29,7 @@ sealed interface TransactionDetailsRowUIModel {
         val explorerLink: BlockExplorerLink?,
     ) : TransactionDetailsRowUIModel
     data class Fee(val model: ListItemModel) : TransactionDetailsRowUIModel
+    data class SwapProgress(val model: SwapProgressUIModel) : TransactionDetailsRowUIModel
     data class Value(val value: TransactionDetailsValue) : TransactionDetailsRowUIModel
 }
 
@@ -71,9 +72,9 @@ internal fun TransactionDetailsValue.uiModel(context: Context, asset: Asset): Tr
             info = InfoSheetEntity.NetworkFeeInfo(this.asset.name, this.asset.symbol),
         ),
     )
+    is TransactionDetailsValue.SwapProgress -> TransactionDetailsRowUIModel.SwapProgress(uiModel(context))
     is TransactionDetailsValue.Amount,
     is TransactionDetailsValue.Network,
     is TransactionDetailsValue.Rate,
-    is TransactionDetailsValue.SwapProgress,
     is TransactionDetailsValue.SwapAgain -> TransactionDetailsRowUIModel.Value(this)
 }

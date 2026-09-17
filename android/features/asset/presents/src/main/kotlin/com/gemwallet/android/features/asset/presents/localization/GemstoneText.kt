@@ -3,7 +3,6 @@ package com.gemwallet.android.features.asset.presents.localization
 import androidx.annotation.StringRes
 import com.gemwallet.android.ui.R
 import com.wallet.core.primitives.PortfolioType
-import uniffi.gemstone.GemPriceAlertToggle
 import uniffi.gemstone.PortfolioChartType
 
 @StringRes
@@ -18,8 +17,3 @@ internal fun PortfolioType.stringRes(): Int = when (this) {
     PortfolioType.Perpetuals -> R.string.perpetuals_title
 }
 
-@StringRes
-internal fun GemPriceAlertToggle.toastRes(): Int = when (this) {
-    GemPriceAlertToggle.ENABLED -> R.string.price_alerts_disabled_for
-    GemPriceAlertToggle.DISABLED -> R.string.price_alerts_enabled_for
-}

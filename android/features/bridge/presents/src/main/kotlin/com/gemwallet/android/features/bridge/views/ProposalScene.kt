@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.bridge.views
 
-import com.gemwallet.android.ui.components.list_item.ListItemModel
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
@@ -8,7 +7,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -16,8 +14,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -27,28 +23,27 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyConte
 import com.gemwallet.android.features.bridge.viewmodels.ProposalSceneState
 import com.gemwallet.android.features.bridge.viewmodels.ProposalSceneViewModel
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
+import com.gemwallet.android.features.bridge.viewmodels.model.ConnectionHeadUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.CenteredListHeadSubtitleLayout
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
+import com.gemwallet.android.ui.components.list_item.WalletRowUIModel
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.style.icon
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.gemwallet.android.ui.theme.pendingColor
 import com.wallet.core.primitives.WalletId
-import uniffi.gemstone.GemConnectionRow
-import uniffi.gemstone.WalletConnectionVerificationStatus
 
 @Composable
 fun ProposalScene(
@@ -62,7 +57,7 @@ fun ProposalScene(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val walletListItem by viewModel.walletListItem.collectAsStateWithLifecycle()
     val statusListItem by viewModel.statusListItem.collectAsStateWithLifecycle()
-    val peer by viewModel.proposal.collectAsStateWithLifecycle()
+    val peer by viewModel.peerHead.collectAsStateWithLifecycle()
     val selectedWallet by viewModel.selectedWallet.collectAsStateWithLifecycle()
     val availableWallets by viewModel.availableWallets.collectAsStateWithLifecycle()
     val availableWalletRows by viewModel.availableWalletRows.collectAsStateWithLifecycle()
@@ -112,7 +107,7 @@ fun ProposalScene(
 
 @Composable
 private fun Proposal(
-    peer: GemConnectionRow,
+    peer: ConnectionHeadUIModel,
     state: ProposalSceneState,
     walletListItem: ListItemModel,
     connectionListItem: ListItemModel,
@@ -120,7 +115,7 @@ private fun Proposal(
     permissionListItems: List<ListItemModel>,
     selectedWallet: com.wallet.core.primitives.Wallet?,
     availableWallets: List<com.wallet.core.primitives.Wallet>,
-    availableWalletRows: List<uniffi.gemstone.GemWalletRow>,
+    availableWalletRows: List<WalletRowUIModel>,
     buttonState: ButtonState,
     onReject: () -> Unit,
     onApprove: () -> Unit,

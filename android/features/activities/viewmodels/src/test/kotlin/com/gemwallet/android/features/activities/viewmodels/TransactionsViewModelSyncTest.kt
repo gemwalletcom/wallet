@@ -90,5 +90,7 @@ class TransactionsViewModelSyncTest {
         getSession = getSession,
         getTransactions = getTransactions,
         service = service,
+        connectionStatusObserver = mockk(relaxed = true),
+        context = mockk(relaxed = true),
     )
 }

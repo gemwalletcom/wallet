@@ -20,6 +20,7 @@ fun TransactionDetailsNavScreen(
 ) {
     val transaction by viewModel.data.collectAsStateWithLifecycle()
     val sections by viewModel.sections.collectAsStateWithLifecycle()
+    val headerTarget by viewModel.headerTarget.collectAsStateWithLifecycle()
     var isShowFeeDetails by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
@@ -39,6 +40,7 @@ fun TransactionDetailsNavScreen(
     TransactionDetailsScene(
         data = model,
         sections = sections,
+        headerTarget = headerTarget,
         onAction = {
             when (it) {
                 TransactionDetailsAction.Share -> onShare(model.explorer.url, model.explorer.name)

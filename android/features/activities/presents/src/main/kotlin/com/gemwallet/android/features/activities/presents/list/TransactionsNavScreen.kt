@@ -9,7 +9,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.activities.viewmodels.TransactionsViewModel
 import com.gemwallet.android.ui.components.RefreshOnTimer
-import uniffi.gemstone.GemRefreshKind
 import com.wallet.core.primitives.TransactionId
 
 @Composable
@@ -23,7 +22,8 @@ fun TransactionsNavScreen(
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val chainFilter by viewModel.chainsFilter.collectAsStateWithLifecycle()
-    val typeFilter by viewModel.typeFilter.collectAsStateWithLifecycle()
+    val typeFilter by viewModel.typeFilterRows.collectAsStateWithLifecycle()
+    val showsNoResults by viewModel.showsNoResults.collectAsStateWithLifecycle()
     val walletId by viewModel.walletId.collectAsStateWithLifecycle()
     val availableChains by viewModel.availableChains.collectAsStateWithLifecycle()
 
@@ -31,7 +31,8 @@ fun TransactionsNavScreen(
         viewModel.syncIfNeeded()
     }
 
-    RefreshOnTimer(GemRefreshKind.WALLET, viewModel::refresh)
+    val refreshIntervalMillis by viewModel.refreshIntervalMillis.collectAsStateWithLifecycle()
+    RefreshOnTimer(refreshIntervalMillis, viewModel::refresh)
 
     TransactionsScene(
         isRefreshing = isRefreshing,
@@ -39,6 +40,8 @@ fun TransactionsNavScreen(
         availableChains = availableChains,
         chainsFilter = chainFilter,
         typeFilter = typeFilter,
+        typeFilterOptions = viewModel.typeFilterOptions,
+        showsNoResults = showsNoResults,
         listState = listState,
         showBuyAction = onBuy != null,
         showReceiveAction = onReceive != null,
@@ -47,7 +50,7 @@ fun TransactionsNavScreen(
                 TransactionsListAction.Refresh -> viewModel.refresh()
                 is TransactionsListAction.OpenTransaction -> onTransaction(action.transactionId)
                 is TransactionsListAction.SelectChainsFilter -> viewModel.setChainsFilter(action.chains)
-                is TransactionsListAction.SelectTypesFilter -> viewModel.setTypesFilter(action.types)
+                is TransactionsListAction.SelectTypesFilter -> viewModel.setTypesFilter(action.types.map { it.filter })
                 TransactionsListAction.ClearChainsFilter -> viewModel.clearChainsFilter()
                 TransactionsListAction.ClearTypesFilter -> viewModel.clearTypeFilter()
                 TransactionsListAction.Buy -> onBuy?.invoke()

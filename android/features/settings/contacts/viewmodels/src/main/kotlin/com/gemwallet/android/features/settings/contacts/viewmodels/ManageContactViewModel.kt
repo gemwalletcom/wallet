@@ -22,6 +22,7 @@ import com.gemwallet.android.ui.components.image.EmojiAvatarRenderer
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.name.AddressInputModel
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ui.style.indicator
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Contact
 import com.wallet.core.primitives.ContactAddress
@@ -97,7 +98,7 @@ class ManageContactViewModel @Inject constructor(
                     chain = form.chain,
                     memo = form.memo,
                     address = address,
-                    nameResolveState = resolve,
+                    nameResolveIndicator = resolve.indicator(),
                     isAddressValid = isValid,
                     showAddressError = showError,
                 )

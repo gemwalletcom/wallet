@@ -5,6 +5,7 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualId
 
 internal sealed interface PerpetualMarketAction {
+    data class SetSearching(val isSearching: Boolean) : PerpetualMarketAction
     data object Refresh : PerpetualMarketAction
     data object Withdraw : PerpetualMarketAction
     data object Deposit : PerpetualMarketAction

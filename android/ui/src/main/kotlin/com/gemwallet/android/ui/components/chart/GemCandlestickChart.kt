@@ -1,6 +1,5 @@
 package com.gemwallet.android.ui.components.chart
 
-import androidx.compose.runtime.setValue
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -27,16 +27,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import uniffi.gemstone.GemValueTone
-import com.gemwallet.android.ui.style.color
+import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
+import com.gemwallet.android.ui.components.list_item.color
+import com.gemwallet.android.ui.models.chart.CandleDirection
 import com.gemwallet.android.ui.models.chart.CandleUIModel
 import com.gemwallet.android.ui.models.chart.CandlestickChartUIModel
 import com.gemwallet.android.ui.models.chart.ChartAxisTick
+import com.gemwallet.android.ui.models.chart.ChartReferenceLineKind
 import com.gemwallet.android.ui.models.chart.ChartReferenceLineUIModel
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.space1
 import com.gemwallet.android.ui.theme.space2
-import uniffi.gemstone.GemPerpetualChartLineKind
 import com.gemwallet.android.ui.theme.space4
 import com.gemwallet.android.ui.theme.space6
 import com.gemwallet.android.ui.theme.space8
@@ -82,9 +84,9 @@ fun GemCandlestickChart(
     val density = LocalDensity.current
     val textMeasurer = rememberTextMeasurer()
 
-    val upColor = GemValueTone.POSITIVE.color()
-    val downColor = GemValueTone.NEGATIVE.color()
-    val flatColor = GemValueTone.NEUTRAL.color()
+    val upColor = ListItemTextStyle.Positive.color()
+    val downColor = ListItemTextStyle.Negative.color()
+    val flatColor = ListItemTextStyle.Secondary.color()
     val axisLabelColor = MaterialTheme.colorScheme.secondary
     val gridGuidelineColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.13f)
     val selectionAccentColor = MaterialTheme.colorScheme.primary
@@ -216,15 +218,23 @@ fun GemCandlestickChart(
 }
 
 @Composable
-private fun referenceColors(): (GemPerpetualChartLineKind) -> Color {
-    val colors = GemPerpetualChartLineKind.entries.associateWith { it.color() }
+private fun referenceColors(): (ChartReferenceLineKind) -> Color {
+    val colors = ChartReferenceLineKind.entries.associateWith { it.color() }
     return { role -> colors.getValue(role) }
 }
 
 private fun candleColor(candle: CandleUIModel, up: Color, down: Color, flat: Color): Color = when (candle.direction) {
-    GemValueTone.POSITIVE -> up
-    GemValueTone.NEGATIVE -> down
-    GemValueTone.NEUTRAL, GemValueTone.PLAIN -> flat
+    CandleDirection.Up -> up
+    CandleDirection.Down -> down
+    CandleDirection.Flat -> flat
+}
+
+@Composable
+private fun ChartReferenceLineKind.color(): Color = when (this) {
+    ChartReferenceLineKind.Entry -> MaterialTheme.colorScheme.outline
+    ChartReferenceLineKind.Liquidation -> MaterialTheme.colorScheme.error
+    ChartReferenceLineKind.StopLoss -> pendingColor
+    ChartReferenceLineKind.TakeProfit -> MaterialTheme.colorScheme.tertiary
 }
 
 private fun DrawScope.drawYAxis(
@@ -310,7 +320,7 @@ private fun DrawScope.drawCandles(
 
 private fun DrawScope.drawReferenceLines(
     referenceLines: List<ChartReferenceLineUIModel>,
-    referenceColorByRole: (GemPerpetualChartLineKind) -> Color,
+    referenceColorByRole: (ChartReferenceLineKind) -> Color,
     valueToY: (Double) -> Float,
     plotLeft: Float,
     plotRight: Float,
@@ -327,12 +337,12 @@ private fun DrawScope.drawReferenceLines(
     textMeasurer: TextMeasurer,
 ) {
     val visible = referenceLines.mapNotNull { line ->
-        val y = valueToY(line.line.price.value)
+        val y = valueToY(line.price)
         if (y < plotTop || y > plotBottom) null else line to y
     }
     visible.forEach { (line, y) ->
         drawLine(
-            color = referenceColorByRole(line.line.kind),
+            color = referenceColorByRole(line.kind),
             start = Offset(plotLeft, y),
             end = Offset(plotRight, y),
             strokeWidth = lineThicknessPx,
@@ -343,13 +353,13 @@ private fun DrawScope.drawReferenceLines(
     visible.forEach { (line, y) ->
         val measured = textMeasurer.measure(line.label, labelStyle)
         val badgeWidth = measured.size.width + 2f * badgeHorizontalPaddingPx
-        val anchorX = if (line.line.overlapLevel == 0u) plotLeft + labelPaddingPx
+        val anchorX = if (line.overlapLevel == 0) plotLeft + labelPaddingPx
                       else lastBadgeEndX + labelHorizontalGapPx
         drawBadgeLabel(
             textMeasurer = textMeasurer,
             text = line.label,
             textStyle = labelStyle,
-            backgroundColor = referenceColorByRole(line.line.kind),
+            backgroundColor = referenceColorByRole(line.kind),
             anchorX = anchorX,
             anchorY = y,
             horizontalPaddingPx = badgeHorizontalPaddingPx,

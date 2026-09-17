@@ -32,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.features.referral.viewmodels.SyncType
+import com.gemwallet.android.features.referral.viewmodels.models.ReferralUIModel
 import com.gemwallet.android.features.referral.viewmodels.models.RewardRedemptionUIModel
 import com.gemwallet.android.features.referral.views.components.referralConfirmCode
 import com.gemwallet.android.features.referral.views.components.referralError
@@ -61,8 +62,6 @@ import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemRewardsRedemption
-import uniffi.gemstone.GemRewardsState
 
 private val referralCodeMaxWidth = 250.dp
 
@@ -71,7 +70,7 @@ fun ReferralScene(
     inSync: SyncType,
     isAvailableWalletSelect: Boolean,
     referralLink: String?,
-    uiState: GemRewardsState,
+    uiState: ReferralUIModel,
     infoRows: List<ListItemModel>,
     redemptions: List<RewardRedemptionUIModel>,
     currentWallet: Wallet?,
@@ -81,7 +80,7 @@ fun ReferralScene(
     onCancelCode: () -> Unit,
     onRefresh: () -> Unit,
     onWallet: () -> Unit,
-    onRedeem: (GemRewardsRedemption) -> Unit,
+    onRedeem: (RewardRedemptionUIModel) -> Unit,
     onClose: () -> Unit,
     snackbar: SnackbarHostState = remember { SnackbarHostState() },
 ) {

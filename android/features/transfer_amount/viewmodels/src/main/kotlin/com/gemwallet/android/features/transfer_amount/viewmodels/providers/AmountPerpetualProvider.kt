@@ -25,10 +25,13 @@ import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.localization.stringRes
+import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModel
+import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModelFactory
 import com.gemwallet.android.ui.style.textStyle
 import com.gemwallet.android.ui.theme.Placeholder
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
+import com.wallet.core.primitives.TpslType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,10 +42,12 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import uniffi.gemstone.AutocloseValidator
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemAssetBalance
 import uniffi.gemstone.GemAutocloseEstimator
+import uniffi.gemstone.GemAutocloseField
 import uniffi.gemstone.GemPerpetual
 import uniffi.gemstone.GemPerpetualAutoclose
 import uniffi.gemstone.GemPerpetualPositionAction
@@ -103,6 +108,20 @@ class AmountPerpetualProvider(
     }
 
     fun setLeverage(value: Int) { userSelectedLeverage.value = value }
+
+    fun autocloseField(type: TpslType, amount: String, price: Double?, showErrors: Boolean): AutocloseUIModel.Field {
+        val marketPrice = perpetual.value?.price ?: 0.0
+        val validation = AutocloseValidator(type.toGem(), direction.toGem(), marketPrice).validate(price)
+        val field = GemAutocloseField(
+            tpslType = type.toGem(),
+            price = price,
+            originalPrice = null,
+            formattedPrice = null,
+            validation = validation,
+            orderId = null,
+        )
+        return AutocloseUIModelFactory.createField(field = field, estimator = estimatorFor(amount), showErrors = showErrors)
+    }
 
     fun estimatorFor(amount: String): GemAutocloseEstimator {
         val market = perpetual.value

@@ -17,9 +17,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.banner.BannerItemUIModel
 import com.gemwallet.android.ui.components.buttons.secondaryActionButtonColors
+import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 
@@ -40,7 +43,7 @@ internal fun WelcomeBanner(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(paddingSmall),
         ) {
-            model.icon?.let { BannerIconView(it, tint = MaterialTheme.colorScheme.onSurface) }
+            model.icon?.let { ListItemImageView(image = it, size = listItemIconSize) }
             model.title?.let { title ->
                 Text(
                     text = title,

@@ -70,7 +70,7 @@ class ReceiveViewModelTest {
             every { this@mockk.invoke() } returns MutableStateFlow(assets.values.toList())
         }
         val session: GetSession = mockk { every { this@mockk.invoke() } returns MutableStateFlow(mockSession(wallet = wallet)) }
-        return ReceiveViewModel(bitcoin.id, info, walletAssets, service, session).also { models.add(it) }
+        return ReceiveViewModel(bitcoin.id, info, walletAssets, service, session, mockk(relaxed = true)).also { models.add(it) }
     }
 
     @Test

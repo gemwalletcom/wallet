@@ -25,9 +25,14 @@ import com.wallet.core.primitives.TransactionState
 import uniffi.gemstone.DelegationState
 import uniffi.gemstone.FeeOption
 import uniffi.gemstone.GemAddNodeFailure
+import uniffi.gemstone.GemAddressDisplay
+import uniffi.gemstone.GemAddressServiceInterface
 import uniffi.gemstone.GemApprovalValue
 import uniffi.gemstone.GemAssetMenuAction
 import uniffi.gemstone.GemBalanceResource
+import uniffi.gemstone.GemBannerAmount
+import uniffi.gemstone.GemBannerDescription
+import uniffi.gemstone.GemBannerTitle
 import uniffi.gemstone.GemCandleTooltipRow
 import uniffi.gemstone.GemDelegationStatus
 import uniffi.gemstone.GemEmptyStateAction
@@ -43,6 +48,7 @@ import uniffi.gemstone.GemTransactionFilter
 import uniffi.gemstone.GemTransactionRowSubtitle
 import uniffi.gemstone.GemTransactionStateTone
 import uniffi.gemstone.GemTransactionTitle
+import uniffi.gemstone.GemValueStyle
 import uniffi.gemstone.GemVerificationLevel
 import uniffi.gemstone.GemWalletSecretKind
 import uniffi.gemstone.GemWalletSubtitle
@@ -404,3 +410,40 @@ private fun prefixed(context: Context, @StringRes prefix: Int?, value: String): 
 fun FeeOption.stringRes(): Int = when (this) {
     FeeOption.TOKEN_ACCOUNT_CREATION -> R.string.banner_account_activation_title
 }
+
+fun GemAddressServiceInterface.displayText(name: String?, formatted: String, hasImage: Boolean): String = when (val display = display(name, formatted, hasImage)) {
+    is GemAddressDisplay.Address -> formatted
+    is GemAddressDisplay.Name -> display.name
+    is GemAddressDisplay.NameWithAddress -> "${display.name} ($formatted)"
+}
+
+fun bannerTitle(context: Context, title: GemBannerTitle): String = when (title) {
+    is GemBannerTitle.Stake -> context.getString(R.string.banner_stake_title, title.assetName)
+    GemBannerTitle.AccountActivation -> context.getString(R.string.banner_account_activation_title)
+    GemBannerTitle.Warning -> context.getString(R.string.common_warning)
+    GemBannerTitle.ActivateAsset -> context.getString(R.string.transfer_activate_asset_title)
+    GemBannerTitle.SuspiciousAsset -> context.getString(R.string.banner_asset_status_title)
+    GemBannerTitle.Onboarding -> context.getString(R.string.banner_onboarding_title)
+    GemBannerTitle.TradePerpetuals -> context.getString(R.string.banner_perpetuals_title)
+}
+
+fun bannerDescription(context: Context, description: GemBannerDescription): String = when (description) {
+    is GemBannerDescription.Stake -> context.getString(R.string.banner_stake_description, description.assetSymbol)
+    is GemBannerDescription.AccountActivation -> context.getString(
+        R.string.banner_account_activation_description,
+        description.networkName,
+        bannerAmount(description.fee),
+    )
+    is GemBannerDescription.MultiSignatureBlocked -> context.getString(R.string.warnings_multi_signature_blocked, description.networkName)
+    is GemBannerDescription.ActivateAsset -> context.getString(
+        R.string.banner_activate_asset_description,
+        description.assetSymbol,
+        description.networkName,
+    )
+    GemBannerDescription.SuspiciousAsset -> context.getString(R.string.banner_asset_status_description)
+    GemBannerDescription.Onboarding -> context.getString(R.string.banner_onboarding_description)
+    GemBannerDescription.TradePerpetuals -> context.getString(R.string.banner_perpetuals_description)
+}
+
+private fun bannerAmount(amount: GemBannerAmount): String = ValueFormatter(style = GemValueStyle.AUTO)
+    .string(amount.value, decimals = amount.decimals, currency = amount.symbol)

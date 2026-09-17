@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet.cases.DeleteWallet
 import com.gemwallet.android.application.wallet.cases.GetWalletDetails
+import com.gemwallet.android.domains.wallet.WalletSecretInput
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.features.wallet.viewmodels.models.WalletSecretUIModel
 import com.gemwallet.android.ui.R
@@ -39,7 +40,7 @@ class WalletViewModel @Inject constructor(
 
     val secret: StateFlow<WalletSecretUIModel?> = wallet.map { details ->
         details?.secretKind?.let { kind ->
-            WalletSecretUIModel(kind, ListItemModel(title = context.getString(R.string.common_show, context.getString(kind.stringRes()))))
+            WalletSecretUIModel(WalletSecretInput(walletId, kind), ListItemModel(title = context.getString(R.string.common_show, context.getString(kind.stringRes()))))
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

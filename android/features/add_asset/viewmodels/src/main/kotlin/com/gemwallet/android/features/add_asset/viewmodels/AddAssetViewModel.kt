@@ -99,6 +99,12 @@ class AddAssetViewModel @Inject constructor(
     val searchState = session.map { it.viewState().phase }
         .stateIn(viewModelScope, SharingStarted.Eagerly, GemAddAssetPhase.Idle)
 
+    val isSearching: StateFlow<Boolean> = searchState.map { it is GemAddAssetPhase.Loading }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val searchFailed: StateFlow<Boolean> = searchState.map { it is GemAddAssetPhase.Failed }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     val token = session.map { it.asset?.toPrimitives() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

@@ -14,11 +14,14 @@ import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
+import com.gemwallet.android.features.bridge.viewmodels.model.ConnectionHeadUIModel
+import com.gemwallet.android.features.bridge.viewmodels.model.headUIModel
 import com.gemwallet.android.features.bridge.viewmodels.model.map
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemSymbol
+import com.gemwallet.android.ui.components.list_item.uiModel
 import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
@@ -31,6 +34,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -61,10 +65,13 @@ class ProposalSceneViewModel @Inject constructor(
     val proposal = _sessionProposal.map { proposal -> proposal?.metadata?.let { walletConnectService.connectionRow(it.toGem()) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    val peerHead: StateFlow<ConnectionHeadUIModel?> = proposal.map { it?.headUIModel() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     val availableWallets = _sessionProposal.map { it?.wallets.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val availableWalletRows = availableWallets.map { wallets -> walletRows(wallets.map { it.toGem() }) }
+    val availableWalletRows = availableWallets.map { wallets -> walletRows(wallets.map { it.toGem() }).map { it.uiModel(context) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val _selectedWallet = MutableStateFlow<com.wallet.core.primitives.Wallet?>(null)

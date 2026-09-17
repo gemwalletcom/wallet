@@ -25,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.features.confirm.models.ConfirmDetailElement
@@ -32,11 +33,10 @@ import com.gemwallet.android.features.confirm.presents.components.AddressRow
 import com.gemwallet.android.features.confirm.presents.components.ConfirmErrorInfo
 import com.gemwallet.android.features.confirm.presents.components.FeeDetails
 import com.gemwallet.android.features.confirm.presents.components.confirmBalanceChangesContent
-import com.gemwallet.android.features.confirm.presents.localization.buttonLabel
 import com.gemwallet.android.features.confirm.presents.localization.string
-import com.gemwallet.android.features.confirm.presents.localization.toBroadcastLabel
 import com.gemwallet.android.features.confirm.viewmodels.ConfirmViewModel
 import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
+import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmHeaderUIModel
 import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmRowUIModel
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
@@ -61,24 +61,18 @@ import com.gemwallet.android.ui.components.simulation.simulationWarningsContent
 import com.gemwallet.android.ui.components.swap.SwapDetailsBottomSheet
 import com.gemwallet.android.ui.components.swap.SwapDetailsSummaryItem
 import com.gemwallet.android.ui.localization.string
-import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.AssetId
-import uniffi.gemstone.GemConfirmButtonState
-import uniffi.gemstone.GemConfirmPhase
-import uniffi.gemstone.GemConfirmStage
-import uniffi.gemstone.GemTransactionHeaderKind
-import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.SimulationResult
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfirmScreen(
-    input: GemTransferData? = null,
+    input: ConfirmTransferInput? = null,
     simulationResult: SimulationResult? = null,
     finishAction: FinishConfirmAction,
     cancelAction: CancelAction,
@@ -87,7 +81,6 @@ fun ConfirmScreen(
     viewModel: ConfirmViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    val amountModel by viewModel.amountUIModel.collectAsStateWithLifecycle()
     val transactionRows by viewModel.transactionRows.collectAsStateWithLifecycle()
     val feeModel by viewModel.feeUIModel.collectAsStateWithLifecycle()
     val feeListItem by viewModel.feeListItem.collectAsStateWithLifecycle()
@@ -97,24 +90,23 @@ fun ConfirmScreen(
     val loadError by viewModel.loadError.collectAsStateWithLifecycle()
     val acquireRequest by viewModel.acquireRequest.collectAsStateWithLifecycle()
     val feeValue by viewModel.feeValue.collectAsStateWithLifecycle()
-    val screen by viewModel.screen.collectAsStateWithLifecycle()
+    val executeErrorText by viewModel.executeErrorText.collectAsStateWithLifecycle()
+    val buttonLabel by viewModel.buttonLabel.collectAsStateWithLifecycle()
+    val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
+    val header by viewModel.header.collectAsStateWithLifecycle()
+    val feeSelectionUIModel by viewModel.feeSelectionUIModel.collectAsStateWithLifecycle()
     val feeAssets by viewModel.feeAssets.collectAsStateWithLifecycle()
     val feeAsset by viewModel.feeAsset.collectAsStateWithLifecycle()
-    val feeSelection by viewModel.feeSelection.collectAsStateWithLifecycle()
     val simulation by viewModel.simulation.collectAsStateWithLifecycle()
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
     val payloadAddressNames by viewModel.payloadAddressNames.collectAsStateWithLifecycle()
-    val button by viewModel.button.collectAsStateWithLifecycle()
     val title by viewModel.title.collectAsStateWithLifecycle()
     val isExternalRequest by viewModel.isExternalRequest.collectAsStateWithLifecycle()
-    val isPayment by viewModel.isPaymentRequest.collectAsStateWithLifecycle()
-    val headerAsset by viewModel.headerAsset.collectAsStateWithLifecycle()
 
     var showSelectTxSpeed by remember { mutableStateOf(false) }
     var showSimulationDetails by remember { mutableStateOf(false) }
     var selectedDetailElement by remember(input) { mutableStateOf<ConfirmDetailElement?>(null) }
-    val executeError = screen.failure?.takeIf { it.stage == GemConfirmStage.EXECUTE }?.error
-    var isShowedBroadcastError by remember(executeError) { mutableStateOf(executeError != null) }
+    var isShowedBroadcastError by remember(executeErrorText) { mutableStateOf(executeErrorText != null) }
     val isShowBottomSheetInfo by viewModel.isNetworkFeeSheetVisible.collectAsStateWithLifecycle()
 
     LaunchedEffect(input, simulationResult) {
@@ -122,7 +114,7 @@ fun ConfirmScreen(
             cancelAction()
             return@LaunchedEffect
         }
-        viewModel.init(input, simulationResult)
+        viewModel.init(input.data, simulationResult)
     }
 
     BackHandler(handleSystemBack) {
@@ -135,8 +127,8 @@ fun ConfirmScreen(
         onClose = { cancelAction() },
         mainAction = {
             MainActionButton(
-                title = screen.buttonLabel(button.kind),
-                state = button.state.toButtonState(),
+                title = buttonLabel,
+                state = buttonState,
                 onClick = {
                     context.requestAuth(AuthRequest.Confirmation) {
                         viewModel.send(finishAction)
@@ -150,43 +142,28 @@ fun ConfirmScreen(
             contentPadding = PaddingValues(bottom = paddingValues.calculateBottomPadding() + paddingDefault),
         ) {
             item {
-                when {
-                    isPayment && simulation.header == null && screen.phase == GemConfirmPhase.LOADING -> Box(
+                when (val model = header) {
+                    is ConfirmHeaderUIModel.Placeholder -> Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .alpha(0f)
                             .clearAndSetSemantics { },
                     ) {
-                        AmountListHead(amount = "", icon = headerAsset)
+                        AmountListHead(amount = "", icon = model.asset)
                     }
-                    simulation.header != null -> AssetValueListHead(requireNotNull(simulation.header))
-                    amountModel?.headerKind is GemTransactionHeaderKind.Swap -> {
-                        val model = requireNotNull(amountModel)
-                        SwapListHead(
-                            fromAsset = model.fromAsset,
-                            fromValueText = model.fromAmountText,
-                            toAsset = requireNotNull(model.toAsset),
-                            toValueText = requireNotNull(model.toAmountText),
-                            fromEquivalentText = model.fromAmountEquivalentText,
-                            toEquivalentText = model.toAmountEquivalentText,
-                        )
-                    }
-
-                    amountModel?.headerKind is GemTransactionHeaderKind.Nft -> amountModel?.nftAsset?.let { NftHead(it) }
-
-                    amountModel?.headerKind is GemTransactionHeaderKind.Symbol || amountModel?.headerKind is GemTransactionHeaderKind.AssetImage -> {
-                        val asset = amountModel?.asset
-                        AmountListHead(
-                            amount = asset?.symbol.orEmpty(),
-                            icon = asset,
-                        )
-                    }
-
-                    else -> AmountListHead(
-                        amount = amountModel?.cryptoAmount ?: "",
-                        equivalent = amountModel?.amountEquivalent?.takeIf { (amountModel?.headerKind as? GemTransactionHeaderKind.Amount)?.showsFiat != false },
-                        icon = headerAsset,
+                    is ConfirmHeaderUIModel.Simulation -> AssetValueListHead(model.header)
+                    is ConfirmHeaderUIModel.Swap -> SwapListHead(
+                        fromAsset = model.fromAsset,
+                        fromValueText = model.fromValueText,
+                        fromEquivalentText = model.fromEquivalentText,
+                        toAsset = model.toAsset,
+                        toValueText = model.toValueText,
+                        toEquivalentText = model.toEquivalentText,
                     )
+                    is ConfirmHeaderUIModel.Nft -> NftHead(model.nftAsset)
+                    is ConfirmHeaderUIModel.Symbol -> AmountListHead(amount = model.asset.symbol, icon = model.asset)
+                    is ConfirmHeaderUIModel.Amount -> AmountListHead(amount = model.amount, equivalent = model.equivalent, icon = model.asset)
+                    null -> Unit
                 }
             }
             val sectionSize = transactionRows.size + detailElements.size
@@ -255,11 +232,12 @@ fun ConfirmScreen(
             currentFee = feeModel as? FeeUIModel.FeeInfo,
             feeItems = feeItems,
             feeListItem = feeListItem,
-            selection = feeSelection,
+            selection = feeSelectionUIModel,
             feeDetailsModel = viewModel::feeDetailsModel,
             feeAsset = feeAsset,
             feeAssets = feeAssets,
-            onSelect = viewModel::changeFeeSelection,
+            onSelectPriority = viewModel::changeFeePriority,
+            onSelectCustom = viewModel::changeCustomFee,
             onSelectFeeAsset = viewModel::changeFeeAsset,
             onCancel = { showSelectTxSpeed = false },
         )
@@ -295,7 +273,7 @@ fun ConfirmScreen(
                 Text(stringResource(R.string.errors_transfer_error))
             },
             text = {
-                Text(executeError?.toBroadcastLabel() ?: stringResource(R.string.errors_error_occurred))
+                Text(executeErrorText ?: stringResource(R.string.errors_error_occurred))
             }
         )
     }
@@ -343,10 +321,4 @@ private fun ConfirmDetailElementBottomSheet(
         model = (item as? ConfirmDetailElement.PerpetualDetails)?.model,
         onDismiss = onDismiss,
     )
-}
-
-private fun GemConfirmButtonState.toButtonState(): ButtonState = when (this) {
-    GemConfirmButtonState.DISABLED -> ButtonState.Disabled
-    GemConfirmButtonState.LOADING -> ButtonState.Loading
-    GemConfirmButtonState.ENABLED -> ButtonState.Enabled
 }

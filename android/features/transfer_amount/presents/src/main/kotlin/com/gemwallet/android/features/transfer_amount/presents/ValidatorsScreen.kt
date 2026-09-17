@@ -1,16 +1,14 @@
 package com.gemwallet.android.features.transfer_amount.presents
 
 import androidx.compose.runtime.Composable
-import uniffi.gemstone.GemStakeValidatorSelection
-import com.gemwallet.android.ext.toPrimitives
 import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.features.transfer_amount.viewmodels.models.ValidatorsUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.FatalStateScene
-import com.gemwallet.android.ui.components.screen.LoadingScene
 
 @Composable
 fun ValidatorsScreen(
-    selection: GemStakeValidatorSelection,
+    selection: ValidatorsUIModel,
     selectedValidatorId: String,
     onCancel: () -> Unit,
     onSelect: (String) -> Unit

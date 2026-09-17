@@ -93,6 +93,7 @@ class PerpetualMarketViewModelTest {
             service = service,
             perpetualObserver = perpetualObserver,
             context = mockk(relaxed = true),
+            connectionStatusObserver = mockk(relaxed = true),
         ).also { model = it }
     }
 

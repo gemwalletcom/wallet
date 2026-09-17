@@ -24,7 +24,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.nft.presents.components.NFTItem
-import com.gemwallet.android.features.nft.presents.localization.stringRes
 import com.gemwallet.android.features.nft.viewmodels.NftListViewModels
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
@@ -42,7 +41,6 @@ import com.gemwallet.android.ui.models.actions.NftAssetIdAction
 import com.gemwallet.android.ui.models.actions.NftCollectionIdAction
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
-import uniffi.gemstone.GemNftList
 
 private val collectibleCellMinSize = 150.dp
 
@@ -69,7 +67,8 @@ fun NftListNavScreen(
         items = items,
         isRefreshing = isRefreshing,
         unverifiedListItem = unverifiedListItem,
-        list = viewModel.list,
+        title = viewModel.title,
+        showReceiveAction = viewModel.showReceiveAction,
         listState = listState,
         onAction = { action ->
             when (action) {
@@ -89,14 +88,13 @@ internal fun NftListScene(
     items: List<NftItemUIModel>,
     isRefreshing: Boolean,
     unverifiedListItem: ListItemModel?,
-    list: GemNftList,
+    title: String,
+    showReceiveAction: Boolean,
     listState: LazyGridState = rememberLazyGridState(),
     onAction: (NftListAction) -> Unit,
 ) {
-    val showReceiveAction = list != GemNftList.UNVERIFIED
-
     Scene(
-        title = stringResource(list.stringRes()),
+        title = title,
         actions = {
             if (showReceiveAction) {
                 IconButton(onClick = { onAction(NftListAction.Receive) }) {

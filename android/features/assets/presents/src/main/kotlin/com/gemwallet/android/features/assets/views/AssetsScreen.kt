@@ -77,6 +77,7 @@ fun AssetsScreen(
     val pinnedAssets by viewModel.pinnedAssets.collectAsStateWithLifecycle()
     val unpinnedAssets by viewModel.unpinnedAssets.collectAsStateWithLifecycle()
     val walletSummary by viewModel.walletSummary.collectAsStateWithLifecycle()
+    val bannerRows by viewModel.bannerRows.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val collectionsAvailable by viewModel.collectionsAvailable.collectAsStateWithLifecycle()
 
@@ -146,7 +147,7 @@ fun AssetsScreen(
                 }
                 item(key = BannersItemKey) {
                     BannersScene(
-                        banners = walletSummary?.banners.orEmpty(),
+                        banners = bannerRows,
                         onSelect = {},
                         onClose = viewModel::closeBanner,
                         onBuy = { onAction(AssetsAction.Buy) },

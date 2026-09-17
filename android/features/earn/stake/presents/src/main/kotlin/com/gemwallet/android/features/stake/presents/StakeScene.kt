@@ -2,8 +2,6 @@
 
 package com.gemwallet.android.features.stake.presents
 
-import android.icu.util.Measure
-import android.icu.util.MeasureUnit
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -13,7 +11,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -21,8 +18,8 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.subtitleSymbol
 import com.gemwallet.android.features.stake.presents.components.stakeActions
-import com.gemwallet.android.features.stake.presents.localization.stringRes
 import com.gemwallet.android.features.stake.viewmodels.models.StakeActionUIModel
+import com.gemwallet.android.features.stake.viewmodels.models.StakeSectionUIModel
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
@@ -35,7 +32,6 @@ import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.energyItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
-import com.gemwallet.android.ui.components.list_item.uiModel
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
@@ -43,12 +39,6 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.paddingLarge
-import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.Delegation
-import java.math.BigInteger
-import uniffi.gemstone.GemStakeSection
-import uniffi.gemstone.GemValidatorRow
-import uniffi.gemstone.GemValueStyle
 
 @Composable
 internal fun StakeScene(
@@ -56,10 +46,8 @@ internal fun StakeScene(
     assetInfo: AssetInfo,
     actions: List<StakeActionUIModel>,
     rewardsText: String,
-    delegations: List<Delegation>,
-    validatorRows: Map<String, GemValidatorRow>,
     stakeInfoUrl: String?,
-    sections: List<GemStakeSection>,
+    sections: List<StakeSectionUIModel>,
     infoRows: List<ListItemModel>,
     amountAction: AmountTransactionAction,
     onAction: (StakeSceneAction) -> Unit,
@@ -94,28 +82,28 @@ internal fun StakeScene(
                 stakeInfoSection(infoRows)
 
                 sections.forEach { section ->
-                    item { SubheaderItem(section.stringRes()) }
+                    item { SubheaderItem(section.title) }
                     when (section) {
-                        GemStakeSection.MANAGE -> stakeActions(
+                        is StakeSectionUIModel.Manage -> stakeActions(
                         actions = actions,
                         assetId = assetInfo.id(),
                             amountAction = amountAction,
                             onRewards = { onAction(StakeSceneAction.ClaimRewards) },
                         )
-                        GemStakeSection.RESOURCES -> energyItem(assetInfo.balance.metadata)
-                        GemStakeSection.DELEGATIONS -> itemsIndexed(delegations) { index, item ->
+                        is StakeSectionUIModel.Resources -> energyItem(assetInfo.balance.metadata)
+                        is StakeSectionUIModel.Delegations -> itemsIndexed(section.rows) { index, item ->
                             DelegationItem(
                                 assetInfo = assetInfo,
-                                delegation = item,
-                                validator = (validatorRows[item.validator.id] ?: return@itemsIndexed).uiModel(),
-                                listPosition = ListPosition.getPosition(index, delegations.size),
-                                onClick = { onAction(StakeSceneAction.OpenDelegation(item)) }
+                                delegation = item.delegation,
+                                validator = item.validator,
+                                listPosition = ListPosition.getPosition(index, section.rows.size),
+                                onClick = { onAction(StakeSceneAction.OpenDelegation(item.delegation)) }
                             )
                         }
                     }
                 }
 
-                if (!sections.contains(GemStakeSection.DELEGATIONS)) {
+                if (sections.none { it is StakeSectionUIModel.Delegations }) {
                     item {
                         Spacer(modifier = Modifier.height(paddingLarge))
                         EmptyContentView(type = EmptyContentType.Stake(symbol = assetInfo.asset.symbol))

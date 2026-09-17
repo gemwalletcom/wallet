@@ -120,5 +120,6 @@ class AssetDetailsViewModelTest {
         getPriceAlerts = getPriceAlerts,
         assetInfoUIModelFactory = AssetInfoUIModelFactory(mockk<Context> { every { getString(any()) } answers { firstArg<Int>().toString() } }),
         userConfig = mockk(relaxed = true),
+        connectionStatusObserver = mockk(relaxed = true),
     ).also(viewModels::add)
 }

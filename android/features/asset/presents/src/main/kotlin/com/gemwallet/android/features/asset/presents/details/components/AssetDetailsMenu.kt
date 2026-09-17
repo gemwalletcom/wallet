@@ -17,22 +17,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
+import com.gemwallet.android.features.asset.viewmodels.details.models.PriceAlertMenuUIModel
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.image.vector
 import com.gemwallet.android.ui.components.screen.showSnackbar
-import com.gemwallet.android.features.asset.presents.localization.toastRes
-import com.gemwallet.android.features.asset.presents.style.icon
 import com.gemwallet.android.ui.icons.AppIcons
-import uniffi.gemstone.GemPriceAlertToggle
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.shareText
-import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
 import com.wallet.core.primitives.AssetId
 import kotlinx.coroutines.launch
 
 @Composable
 fun RowScope.AssetDetailsMenu(
     uiState: AssetInfoUIModel,
-    priceAlert: GemPriceAlertToggle,
+    priceAlert: PriceAlertMenuUIModel,
     snackBar: SnackbarHostState,
     requestNotificationPermission: (() -> Unit) -> Unit,
     onPriceAlert: (AssetId) -> Unit,
@@ -40,7 +39,7 @@ fun RowScope.AssetDetailsMenu(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    val priceAlertToastMessage = stringResource(priceAlert.toastRes(), uiState.asset.name)
+    val priceAlertToastMessage = stringResource(priceAlert.toastRes, uiState.asset.name)
     var menuExpanded by remember { mutableStateOf(false) }
     val uriHandler = LocalUriHandler.current
     val shareTitle = stringResource(id = R.string.common_share)
@@ -57,13 +56,14 @@ fun RowScope.AssetDetailsMenu(
 
     IconButton(
         onClick = {
-            when (priceAlert) {
-                GemPriceAlertToggle.ENABLED -> enablePriceAlert()
-                GemPriceAlertToggle.DISABLED -> requestNotificationPermission(enablePriceAlert)
+            if (priceAlert.needsPermission) {
+                requestNotificationPermission(enablePriceAlert)
+            } else {
+                enablePriceAlert()
             }
         }
     ) {
-        Icon(priceAlert.icon(), "")
+        Icon(priceAlert.symbol.vector(), "")
     }
     IconButton(onClick = { menuExpanded = !menuExpanded }) {
         Icon(

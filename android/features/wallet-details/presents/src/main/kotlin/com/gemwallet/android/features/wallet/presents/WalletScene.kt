@@ -83,7 +83,7 @@ internal fun WalletScene(
                 ListItem(
                     model = it.model,
                     listPosition = ListPosition.Single,
-                    modifier = Modifier.clickable { onAction(WalletAction.ShowPhrase(wallet.id, it.secretKind)) },
+                    modifier = Modifier.clickable { onAction(WalletAction.ShowPhrase(it.input)) },
                     accessory = { DataBadgeChevron() },
                 )
             }

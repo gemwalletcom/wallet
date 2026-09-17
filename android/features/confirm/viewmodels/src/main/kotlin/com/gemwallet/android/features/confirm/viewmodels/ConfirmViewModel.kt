@@ -26,17 +26,25 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.confirm.models.ConfirmDetailElement
 import com.gemwallet.android.features.confirm.models.PerpetualModifyAutocloseFactory
+import com.gemwallet.android.features.confirm.viewmodels.localization.broadcastLabel
+import com.gemwallet.android.features.confirm.viewmodels.localization.buttonLabel
 import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetRequest
 import com.gemwallet.android.features.confirm.viewmodels.models.AcquireOptionUIModel
+import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmHeaderUIModel
 import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmRowUIModel
+import com.gemwallet.android.features.confirm.viewmodels.models.FeeSelectionUIModel
 import com.gemwallet.android.features.confirm.viewmodels.models.acquireOptions
+import com.gemwallet.android.features.confirm.viewmodels.models.buttonState
+import com.gemwallet.android.features.confirm.viewmodels.models.confirmHeader
 import com.gemwallet.android.features.confirm.viewmodels.models.feeItems
 import com.gemwallet.android.features.confirm.viewmodels.models.listItem
 import com.gemwallet.android.features.confirm.viewmodels.models.uiModel
 import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.FeeAssetSelection
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.perpetual.PerpetualConfirmDetailsUIModelFactory
@@ -51,6 +59,7 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FeePriority
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.math.BigInteger
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -335,9 +344,32 @@ class ConfirmViewModel @Inject constructor(
     val acquireOptions: StateFlow<List<AcquireOptionUIModel>> = acquireRequest.map { request -> request?.let { acquireOptions(context, it.buyAmount) }.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    fun feeDetailsModel(currentFee: FeeUIModel.FeeInfo, feeAsset: FeeAssetUIModel, selection: GemConfirmFeeSelection): FeeDetailsModel? {
+    val executeErrorText: StateFlow<String?> = screen.map { it.failure?.takeIf { failure -> failure.stage == GemConfirmStage.EXECUTE }?.error?.broadcastLabel(context) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val isLoading: StateFlow<Boolean> = screen.map { it.phase == GemConfirmPhase.LOADING }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    val buttonLabel: StateFlow<String> = combine(screen, button) { screen, button -> screen.buttonLabel(context, button.kind) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, context.getString(R.string.transfer_confirm))
+
+    val buttonState: StateFlow<ButtonState> = button.map { it.state.buttonState() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Loading)
+
+    val header: StateFlow<ConfirmHeaderUIModel?> = combine(amountUIModel, simulation, isPaymentRequest, isLoading, headerAsset) { amount, simulation, isPayment, isLoading, headerAsset ->
+        confirmHeader(amount, simulation.header, isPayment, isLoading, headerAsset)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val feeSelectionUIModel: StateFlow<FeeSelectionUIModel> = feeSelection.map { FeeSelectionUIModel(it.selectedPriority()?.toPrimitives(), it.customGasPrice()) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, FeeSelectionUIModel(FeePriority.Normal, null))
+
+    fun changeFeePriority(priority: FeePriority) = changeFeeSelection(GemConfirmFeeSelection.Priority(priority.toGem()))
+
+    fun changeCustomFee(gasPrice: BigInteger) = changeFeeSelection(GemConfirmFeeSelection.Custom(gasPrice))
+
+    fun feeDetailsModel(currentFee: FeeUIModel.FeeInfo, feeAsset: FeeAssetUIModel): FeeDetailsModel? {
         val confirmData = content.value?.confirmData ?: return null
-        return FeeDetailsModel(currentFee, feeAsset, confirmData.feeRateRows(selection, feeAsset.asset.toGem()))
+        return FeeDetailsModel(currentFee, feeAsset, confirmData.feeRateRows(feeSelection.value, feeAsset.asset.toGem()))
     }
 
     fun changeFeeSelection(selection: GemConfirmFeeSelection) {
