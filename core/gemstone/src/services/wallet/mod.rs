@@ -183,7 +183,8 @@ impl GemWalletService {
             }
         };
         if let Err(error) = self.store_wallet(&wallet).await {
-            if let Some(keystore_id) = stored_secret {
+            let removed = self.store.delete_wallet(wallet.id.clone()).await;
+            if let (Ok(_), Some(keystore_id)) = (removed, stored_secret) {
                 let _ = self.keystore.delete(keystore_id);
             }
             return Err(error);
@@ -462,6 +463,34 @@ mod tests {
             *context.wallets.add_wallet_error.lock().unwrap() = None;
             let result = context.service.import_wallet("First".to_string(), import, WalletSource::Create).await.unwrap();
             assert!(matches!(result, GemWalletImportResult::New { .. }));
+        });
+    }
+
+    #[test]
+    fn test_a_failed_address_name_write_removes_the_wallet_it_stored() {
+        block_on(async {
+            let context = WalletTestkit::new();
+            let import = GemWalletImportType::MulticoinPhrase {
+                words: PHRASE.iter().map(|word| word.to_string()).collect(),
+                chains: vec![Chain::Ethereum],
+            };
+            *context.addresses.save_error.lock().unwrap() = Some(GemServiceError::Store { msg: "locked".to_string() });
+
+            let error = context.service.import_wallet("First".to_string(), import, WalletSource::Import).await.unwrap_err();
+
+            assert_eq!(error, GemServiceError::Store { msg: "locked".to_string() });
+            assert!(context.wallets.get_wallets().await.unwrap().is_empty());
+            assert!(!context.service.keystore.has_stored_wallets().unwrap());
+
+            *context.addresses.save_error.lock().unwrap() = None;
+            let wallet = context.import("First", PHRASE).await;
+
+            assert_eq!(
+                context.service.export_secret(wallet.id).await.unwrap(),
+                GemWalletSecret::Words {
+                    words: PHRASE.iter().map(|word| word.to_string()).collect()
+                }
+            );
         });
     }
 

@@ -95,6 +95,7 @@ impl GemKeystorePassword for MemoryKeystorePassword {
 #[derive(Default)]
 pub struct MemoryAddressStore {
     pub names: Mutex<HashMap<(Chain, String), AddressName>>,
+    pub save_error: Mutex<Option<GemServiceError>>,
 }
 
 #[async_trait::async_trait]
@@ -103,6 +104,9 @@ impl GemAddressStore for MemoryAddressStore {
         Ok(self.names.lock().unwrap().get(&(chain, address)).cloned())
     }
     async fn save_address_names(&self, names: Vec<AddressName>) -> Result<(), GemServiceError> {
+        if let Some(error) = self.save_error.lock().unwrap().clone() {
+            return Err(error);
+        }
         let mut stored = self.names.lock().unwrap();
         for name in names {
             stored.insert((name.chain, name.address.clone()), name);
