@@ -5,6 +5,11 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.domains.confirm.unpackConfirmTransferInput
 import com.gemwallet.android.features.confirm.presents.ConfirmScreen
+import com.gemwallet.android.features.confirm.presents.PaymentVerificationScreen
+import com.gemwallet.android.serializer.packRoutePayload
+import com.gemwallet.android.ui.models.navigation.RouteArgument
+import kotlinx.serialization.Contextual
+import uniffi.gemstone.PaymentLink
 import com.gemwallet.android.features.asset_select.presents.views.SelectPaymentScreen
 import com.gemwallet.android.ui.navigation.WalletNavigator
 import com.gemwallet.android.ui.navigation.assetIdsArgument
@@ -21,6 +26,9 @@ data class ConfirmRoute(val params: String) : NavKey
 
 @Serializable
 data class PaymentSelectRoute(val assetIds: List<AssetId>) : NavKey
+
+@Serializable
+data class PaymentVerificationRoute(val url: String, val link: @Contextual PaymentLink) : NavKey
 
 fun EntryProviderScope<NavKey>.confirm(
     navigator: WalletNavigator,
@@ -49,6 +57,15 @@ fun EntryProviderScope<NavKey>.confirm(
         SelectPaymentScreen(
             onCancel = cancelAction::invoke,
             onSelect = navigator::finishPaymentSelect,
+        )
+    }
+
+    entry<PaymentVerificationRoute>(
+        metadata = { key -> routeArguments(RouteArgument.Url to key.url, RouteArgument.Payment to key.link.packRoutePayload()) },
+    ) {
+        PaymentVerificationScreen(
+            onCancel = cancelAction::invoke,
+            onConfirm = navigator::replaceWithConfirm,
         )
     }
 }

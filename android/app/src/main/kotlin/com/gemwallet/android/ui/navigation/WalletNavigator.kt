@@ -39,6 +39,7 @@ import com.gemwallet.android.ui.navigation.routes.BridgeConnectionDetailsRoute
 import com.gemwallet.android.ui.navigation.routes.BridgeConnectionsRoute
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
 import com.gemwallet.android.ui.navigation.routes.PaymentSelectRoute
+import com.gemwallet.android.ui.navigation.routes.PaymentVerificationRoute
 import com.gemwallet.android.ui.navigation.routes.ContactsRoute
 import com.gemwallet.android.ui.navigation.routes.CurrenciesRoute
 import com.gemwallet.android.ui.navigation.routes.DelegationRoute
@@ -309,6 +310,10 @@ class WalletNavigator(
         val pack = input.pack() ?: return
         push(ConfirmRoute(pack))
     }
+    fun replaceWithConfirm(input: ConfirmTransferInput) {
+        val pack = input.pack() ?: return
+        replaceTop(ConfirmRoute(pack))
+    }
     fun openNftList() = push(NftListRoute)
     fun openNftCollection(nftCollectionId: String) = push(NftCollectionRoute(nftCollectionId))
     fun openNftUnverifiedCollections() = push(NftUnverifiedCollectionsRoute)
@@ -360,7 +365,8 @@ internal fun NavKey.isConfirmFlowSegmentRoute(): Boolean {
         is StakeRoute,
         is SwapPairRoute,
         is SwapSelectRoute,
-        is PaymentSelectRoute -> true
+        is PaymentSelectRoute,
+        is PaymentVerificationRoute -> true
         else -> false
     }
 }

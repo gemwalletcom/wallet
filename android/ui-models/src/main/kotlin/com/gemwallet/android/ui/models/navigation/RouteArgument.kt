@@ -22,6 +22,7 @@ enum class RouteArgument(val key: String) {
     TransactionId("transactionId"),
     Type("type"),
     Unverified("unverified"),
+    Url("url"),
     ValidatorId("validatorId"),
     WalletId("walletId"),
 }

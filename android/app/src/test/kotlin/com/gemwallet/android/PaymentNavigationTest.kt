@@ -1,12 +1,14 @@
 package com.gemwallet.android
 
-import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.domains.confirm.asset
 import com.gemwallet.android.domains.confirm.unpackTransferData
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAccount
-import com.gemwallet.android.testkit.mockAssetInfo
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.testkit.mockSession
+import com.gemwallet.android.testkit.mockWallet
+import com.gemwallet.android.ui.navigation.routes.PaymentVerificationRoute
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockPaymentInvoice
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
@@ -21,7 +23,6 @@ import io.mockk.spyk
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemAssetsService
@@ -39,15 +40,9 @@ class PaymentNavigationTest {
 
     @Test
     fun routes_paymentLink_confirmsTheLoadedTransfer() = runTest {
-        val assetInfo = mockAssetInfo(
-            asset = mockAssetSolana(),
-            owner = mockAccount(chain = Chain.Solana, address = SOLANA_ADDRESS),
-        )
-        val getWalletAssets = mockk<GetWalletAssets>()
         val paymentService = spyk(GemPaymentService(mockk<AlienProvider>(), mockk<GemAssetsService>()))
-        every { getWalletAssets() } returns MutableStateFlow(listOf(assetInfo))
         coEvery { paymentService.load(any(), any()) } returns GemPaymentLoad.Sign(paymentTransfer())
-        val navigation = PaymentNavigation(getWalletAssets, paymentService)
+        val navigation = PaymentNavigation(mockk(), getSession(), paymentService)
 
         val routes = navigation.routes(Payment.Link(PaymentLink.SolanaPay(PAYMENT_URL)))
 
@@ -60,19 +55,24 @@ class PaymentNavigationTest {
         assertEquals(mockPaymentInvoice(link = PaymentLink.SolanaPay(PAYMENT_URL)), payment.invoice)
     }
 
+    private fun getSession() = mockk<GetSession> {
+        every { this@mockk() } returns MutableStateFlow(mockSession(wallet = mockWallet(accounts = listOf(mockAccount(chain = Chain.Solana, address = SOLANA_ADDRESS)))))
+    }
+
     @Test
-    fun routes_paymentLink_verificationHasNoRoute() = runTest {
-        val getWalletAssets = mockk<GetWalletAssets>()
+    fun routes_paymentLink_opensTheVerification() = runTest {
         val paymentService = spyk(GemPaymentService(mockk<AlienProvider>(), mockk<GemAssetsService>()))
-        every { getWalletAssets() } returns MutableStateFlow(listOf(mockAssetInfo(asset = mockAssetSolana())))
         coEvery { paymentService.load(any(), any()) } returns GemPaymentLoad.Verify(
             invoice = mockPaymentInvoice(link = PaymentLink.SolanaPay(PAYMENT_URL)),
             assetId = mockAssetSolana().id.toIdentifier(),
-            url = "https://walletconnect.com/verify",
+            url = VERIFICATION_URL,
         )
-        val navigation = PaymentNavigation(getWalletAssets, paymentService)
+        val navigation = PaymentNavigation(mockk(), getSession(), paymentService)
 
-        assertTrue(navigation.routes(Payment.Link(PaymentLink.SolanaPay(PAYMENT_URL))).isEmpty())
+        val route = navigation.routes(Payment.Link(PaymentLink.SolanaPay(PAYMENT_URL))).single() as PaymentVerificationRoute
+
+        assertEquals(VERIFICATION_URL, route.url)
+        assertEquals(PaymentLink.SolanaPay(PAYMENT_URL), route.link)
     }
 
     private fun paymentTransfer() = GemTransferData(
@@ -98,5 +98,6 @@ class PaymentNavigationTest {
     private companion object {
         const val PAYMENT_URL = "https://example.com/pay"
         const val SOLANA_ADDRESS = "2kT9W3q7oXg6aPvFTN6DdK3FDZEqUigw6fmNc16YwL5n"
+        const val VERIFICATION_URL = "https://pay.walletconnect.com/collect/?pid=pay_1"
     }
 }

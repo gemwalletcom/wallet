@@ -52,6 +52,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkIte
 import com.gemwallet.android.ui.components.perpetual.AutocloseSummaryRow
 import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsBottomSheet
 import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsSummaryItem
+import com.gemwallet.android.ui.components.WebView
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.SheetExpansion
@@ -106,6 +107,8 @@ fun ConfirmScreen(
     val title by viewModel.title.collectAsStateWithLifecycle()
     val isExternalRequest by viewModel.isExternalRequest.collectAsStateWithLifecycle()
     val paymentAssetIds by viewModel.paymentAssetIds.collectAsStateWithLifecycle()
+    val verification by viewModel.verification.collectAsStateWithLifecycle()
+    val isVerificationVisible by viewModel.isVerificationVisible.collectAsStateWithLifecycle()
 
     var showSelectTxSpeed by remember { mutableStateOf(false) }
     var showSimulationDetails by remember { mutableStateOf(false) }
@@ -221,12 +224,16 @@ fun ConfirmScreen(
             confirmBalanceChangesContent(balanceChangeRows)
             item {
                 feeListItem?.let {
-                    val canSelectFee = feeModel is FeeUIModel.FeeInfo
+                    val onSelect: (() -> Unit)? = when {
+                        verification != null -> viewModel::showVerification
+                        feeModel is FeeUIModel.FeeInfo -> { { showSelectTxSpeed = true } }
+                        else -> null
+                    }
                     ListItem(
                         model = it,
                         listPosition = ListPosition.Single,
-                        modifier = if (canSelectFee) Modifier.clickable { showSelectTxSpeed = true } else Modifier,
-                        accessory = if (canSelectFee) {
+                        modifier = if (onSelect != null) Modifier.clickable(onClick = onSelect) else Modifier,
+                        accessory = if (onSelect != null) {
                             { DataBadgeChevron() }
                         } else {
                             null
@@ -281,6 +288,21 @@ fun ConfirmScreen(
             item = selectedDetailElement,
             onDismiss = { selectedDetailElement = null },
         )
+
+        ModalBottomSheet(
+            isVisible = isVerificationVisible,
+            onDismissRequest = viewModel::dismissVerification,
+            expansion = SheetExpansion.Full,
+            title = stringResource(R.string.info_payment_verification_title),
+        ) {
+            verification?.let {
+                WebView(
+                    url = it.url,
+                    javascriptInterface = viewModel.verificationBridge.javascriptInterface,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+        }
     }
 
     if (isShowedBroadcastError) {

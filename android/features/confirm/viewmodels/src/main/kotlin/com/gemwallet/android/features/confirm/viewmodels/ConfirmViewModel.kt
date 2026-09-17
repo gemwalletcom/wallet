@@ -98,6 +98,8 @@ import com.gemwallet.android.features.confirm.viewmodels.models.buttonState
 import com.gemwallet.android.features.confirm.viewmodels.models.confirmHeader
 import com.gemwallet.android.features.confirm.viewmodels.models.feeItems
 import com.gemwallet.android.features.confirm.viewmodels.models.listItem
+import com.gemwallet.android.features.confirm.viewmodels.models.PaymentVerificationBridge
+import com.gemwallet.android.features.confirm.viewmodels.models.verificationListItem
 import com.gemwallet.android.features.confirm.viewmodels.models.uiModel
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.ButtonState
@@ -123,6 +125,8 @@ class ConfirmViewModel @Inject constructor(
     val screen = MutableStateFlow(GemConfirmScreen(phase = GemConfirmPhase.LOADING, hasCriticalWarning = false, failure = null))
 
     val isNetworkFeeSheetVisible = MutableStateFlow(false)
+    val isVerificationVisible = MutableStateFlow(false)
+    val verificationBridge = PaymentVerificationBridge(::onVerified)
     val feeSelection = MutableStateFlow<GemConfirmFeeSelection>(GemConfirmFeeSelection.Priority(FeePriority.Normal.toGem()))
     private val feeAssetSelection = MutableStateFlow<FeeAssetSelection>(FeeAssetSelection.Automatic)
     private val assetSelection = MutableStateFlow<AssetId?>(null)
@@ -196,6 +200,9 @@ class ConfirmViewModel @Inject constructor(
 
     val isExternalRequest = combine(transfer, isPaymentRequest) { transfer, isPayment -> transfer?.inputType?.applicationMetadata != null || isPayment }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val verification = transfer.map { it?.verification() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val paymentAssetIds = transfer.map { it?.inputType?.paymentInvoice?.quotes?.mapNotNull { quote -> quote.assetId.toAssetId() }.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -340,12 +347,27 @@ class ConfirmViewModel @Inject constructor(
         isNetworkFeeSheetVisible.value = false
     }
 
+    fun showVerification() {
+        isVerificationVisible.value = true
+    }
+
+    fun dismissVerification() {
+        isVerificationVisible.value = false
+    }
+
+    private fun onVerified() {
+        isVerificationVisible.value = false
+        reload()
+    }
+
     private fun showError(error: Throwable) {
         screen.update { it.onLoadFailed(error.toConfirmError()) }
         isNetworkFeeSheetVisible.value = error is GemConfirmException.InsufficientNetworkFee
     }
 
-    val feeListItem: StateFlow<ListItemModel?> = combine(feeUIModel, feeAsset) { fee, asset -> fee?.listItem(context, asset?.asset) }
+    val feeListItem: StateFlow<ListItemModel?> = combine(feeUIModel, feeAsset, verification) { fee, asset, verification ->
+        verification?.let { verificationListItem(context) } ?: fee?.listItem(context, asset?.asset)
+    }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val feeItems: StateFlow<List<ListItemModel>> = feeUIModel.map { (it as? FeeUIModel.FeeInfo)?.feeItems(context).orEmpty() }

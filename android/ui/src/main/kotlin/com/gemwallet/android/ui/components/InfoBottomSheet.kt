@@ -222,6 +222,12 @@ sealed class InfoSheetEntity(
         infoUrl = { AppUrl.docs(DocsUrl.Slippage) },
     )
 
+    object PaymentVerificationInfo : InfoSheetEntity(
+        icon = R.drawable.ic_splash,
+        title = R.string.info_payment_verification_title,
+        description = R.string.info_payment_verification_description,
+    )
+
     object NoQuoteInfo : InfoSheetEntity(
         icon = R.drawable.ic_splash,
         title = R.string.errors_swap_no_quote_available,
