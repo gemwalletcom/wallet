@@ -1,4 +1,5 @@
 {
+  "requestId": "0x1789640713c2c76a335dc51c0732d3437bc97b1353368a029e7f185b0c9ea12f",
   "steps": [
     {
       "id": "deposit",
@@ -9,51 +10,115 @@
         {
           "status": "incomplete",
           "data": {
-            "psbt": "70736274ff0100fd06020200000009188988be5f7ed97e798a890678cb952b2573bba3bb77bc17bc2091312a1c5b950100000000fdffffffeeaec08281b0a80adfb68553ddfb1a5331ec1c95c73cae942dd041ffea59c55e0100000000fdffffff93664049b23b16fecec9f6550f47af654006e255dafb5e23ad377ac659eb415b0100000000fdffffff725e8e9f618f24748285e5e574b062494363f4a6f04b871554b3a61c45f696440100000000fdfffffff2fe390f053c033ad780f32821331d415e2622cccb2554116a1eaf2b382672000100000000fdffffff06d466bda2b182c2a29672b1d324633d8944d6a9d82b6962401106e0cc436ae60100000000fdffffffe49bc962d121be28604457302da6a0a43076811f0bc55d63495c5720170b19840100000000fdffffffb32e121352f9e2f5004fd311d28e4b06008d2687a4c9afe3ca1367b4bdaec2fb0100000000fdffffffe7f5bf0013e8b78c16bba15b33b2d4f772b9dc716e076ef3996083da042989370100000000fdffffff0380841e000000000016001416d73780aae93325aae14a59fb2f01d909e6320d0a8e02000000000016001402b6c186a88f10daaaad754cca4468824f01586c0000000000000000446a42307861646530373737626464663034316566366464333766356365396262313464303236633765353230396465386237306364386531653234363332333630303933000000000001011f0a6d01000000000016001402b6c186a88f10daaaad754cca4468824f01586c0001011f4f9f01000000000016001402b6c186a88f10daaaad754cca4468824f01586c0001011f08fa01000000000016001402b6c186a88f10daaaad754cca4468824f01586c0001011f319202000000000016001402b6c186a88f10daaaad754cca4468824f01586c0001011f335903000000000016001402b6c186a88f10daaaad754cca4468824f01586c0001011f5d1a05000000000016001402b6c186a88f10daaaad754cca4468824f01586c0001011f603905000000000016001402b6c186a88f10daaaad754cca4468824f01586c0001011f82a505000000000016001402b6c186a88f10daaaad754cca4468824f01586c0001011faa3306000000000016001402b6c186a88f10daaaad754cca4468824f01586c00000000"
+            "amount": "2000000",
+            "tokenSymbol": "BTC"
           },
           "check": {
-            "endpoint": "/intents/status/v3?requestId=0x1789423718c4ff3fc96af3fd077e9225f4a3dc239187bdeafec1cc0a941b2a74",
+            "endpoint": "/intents/status/v3?requestId=0x1789640713c2c76a335dc51c0732d3437bc97b1353368a029e7f185b0c9ea12f",
             "method": "GET"
           }
         }
       ],
-      "requestId": "0x1789423718c4ff3fc96af3fd077e9225f4a3dc239187bdeafec1cc0a941b2a74",
-      "depositAddress": ""
+      "requestId": "0x1789640713c2c76a335dc51c0732d3437bc97b1353368a029e7f185b0c9ea12f",
+      "depositAddress": "bc1qa0z550eacdsxytnxf9yk7xvvhqzqvlx2tl44z2"
     }
   ],
   "details": {
+    "operation": "swap",
+    "sender": "bc1qq2mvrp4g3ugd424dw4xv53rgsf8szkrv853jrc",
+    "recipient": "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7",
     "currencyIn": {
-      "amount": "2000000",
       "currency": {
         "chainId": 8253038,
-        "address": "bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqmql8k8"
-      }
+        "address": "bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqmql8k8",
+        "symbol": "BTC",
+        "name": "Bitcoin",
+        "decimals": 8,
+        "metadata": {
+          "logoURI": "https://assets.relay.link/icons/currencies/btc.png",
+          "verified": true
+        }
+      },
+      "amount": "2000000",
+      "amountFormatted": "0.02",
+      "amountUsd": "1525.210540",
+      "minimumAmount": "2000000"
     },
     "currencyOut": {
-      "amount": "1562000123",
       "currency": {
         "chainId": 8453,
-        "address": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+        "address": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+        "symbol": "USDC",
+        "name": "USD Coin",
+        "decimals": 6,
+        "metadata": {
+          "logoURI": "https://coin-images.coingecko.com/coins/images/6319/large/usdc.png?1696506694",
+          "verified": true
+        }
+      },
+      "amount": "1512085317",
+      "amountFormatted": "1512.085317",
+      "amountUsd": "1511.906891",
+      "minimumAmount": "1481843611"
+    },
+    "refundCurrency": {
+      "currency": {
+        "chainId": 8253038,
+        "address": "bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqmql8k8",
+        "symbol": "BTC",
+        "name": "Bitcoin",
+        "decimals": 8,
+        "metadata": {
+          "logoURI": "https://assets.relay.link/icons/currencies/btc.png",
+          "verified": true
+        }
+      },
+      "amount": "2000000",
+      "amountFormatted": "0.02",
+      "amountUsd": "1525.210540",
+      "minimumAmount": "2000000"
+    },
+    "totalImpact": {
+      "usd": "-13.303649",
+      "percent": "-0.87"
+    },
+    "swapImpact": {
+      "usd": "-3.477480",
+      "percent": "-0.23"
+    },
+    "expandedPriceImpact": {
+      "swap": {
+        "usd": "-11.085230"
+      },
+      "execution": {
+        "usd": "-1.304055"
+      },
+      "relay": {
+        "usd": "-0.914364"
+      },
+      "app": {
+        "usd": "0"
+      },
+      "sponsored": {
+        "usd": "0"
       }
     },
-    "timeEstimate": 2,
+    "rate": "75604.26585",
     "slippageTolerance": {
-      "total": "100",
+      "total": "200",
       "origin": {
         "usd": "0.000000",
         "value": "0",
         "percent": "0.00"
       },
       "destination": {
-        "usd": "15.462038",
-        "value": "15620001",
-        "percent": "0.99"
+        "usd": "30.086947",
+        "value": "30241706",
+        "percent": "1.99"
       }
-    }
-  },
-  "fees": {
-    "gas": {
-      "amount": "2936"
-    }
+    },
+    "timeEstimate": 2,
+    "userBalance": "0",
+    "isFixedRate": false
   }
 }

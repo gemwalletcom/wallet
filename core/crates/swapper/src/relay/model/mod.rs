@@ -1,4 +1,3 @@
-mod bitcoin;
 mod chains;
 mod evm;
 mod quote;
@@ -7,7 +6,6 @@ mod solana;
 mod ton;
 mod tron;
 
-pub use bitcoin::*;
 pub use chains::*;
 pub use evm::*;
 pub use quote::*;

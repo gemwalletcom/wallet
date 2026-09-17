@@ -1,9 +1,7 @@
 use std::str::FromStr;
 
-use gem_bitcoin::signer::psbt;
 use gem_tron::address::TronAddress;
 use num_bigint::BigUint;
-use num_traits::ToPrimitive;
 use primitives::{TransactionSwapMetadata, swap::ApprovalData};
 
 use super::{
@@ -16,20 +14,19 @@ use crate::{
     approval::{DEFAULT_EVM_SWAP_GAS_LIMIT, DEFAULT_TRON_SWAP_ENERGY_LIMIT, get_swap_gas_limit_with_approval},
 };
 
-pub fn bitcoin_deposit_address(quote_response: &RelayQuoteResponse, sender: &str, value: &BigUint) -> Result<String, SwapperError> {
-    let bitcoin = quote_response.get_bitcoin_step().ok_or(SwapperError::InvalidRoute)?;
-    let amount = value.to_u64().ok_or(SwapperError::InvalidRoute)?;
-    let (_, address, _) = psbt::parse_transaction(&bitcoin.psbt, sender, amount).map_err(SwapperError::compute_quote_error)?;
-    Ok(address)
+pub fn validate_quote_response(from_chain: RelayChain, quote_response: &RelayQuoteResponse, value: &BigUint) -> Result<(), SwapperError> {
+    match from_chain {
+        RelayChain::Bitcoin => map_bitcoin_quote_data(quote_response, value).map(drop),
+        RelayChain::Evm(_) | RelayChain::Tron | RelayChain::Solana | RelayChain::Ton => Ok(()),
+    }
 }
 
-pub fn map_bitcoin_quote_data(quote_response: &RelayQuoteResponse, sender: &str, value: &BigUint, depository: &str) -> Result<SwapperQuoteData, SwapperError> {
-    let to = bitcoin_deposit_address(quote_response, sender, value)?;
-    if to != depository {
+pub fn map_bitcoin_quote_data(quote_response: &RelayQuoteResponse, value: &BigUint) -> Result<SwapperQuoteData, SwapperError> {
+    let (deposit_address, deposit) = quote_response.get_deposit_address().ok_or(SwapperError::InvalidRoute)?;
+    if deposit.amount != value.to_string() {
         return Err(SwapperError::InvalidRoute);
     }
-    let bitcoin = quote_response.get_bitcoin_step().ok_or(SwapperError::InvalidRoute)?;
-    Ok(SwapperQuoteData::new_contract(to, value.clone(), bitcoin.psbt.clone(), None, None))
+    Ok(SwapperQuoteData::new_transfer(deposit_address.to_string(), value.clone(), None))
 }
 
 pub fn map_evm_quote_data(quote_response: &RelayQuoteResponse, approval: Option<ApprovalData>) -> Result<SwapperQuoteData, SwapperError> {
@@ -104,35 +101,22 @@ mod tests {
 
     #[test]
     fn test_map_bitcoin_quote_data() {
-        let sender = "bc1qq2mvrp4g3ugd424dw4xv53rgsf8szkrv853jrc";
-        let depository = "bc1qzmtn0q92ayejt2hpffvlktcpmyy7vvsd06sefu";
         let response: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_btc_to_base_usdc.json")).unwrap();
         let value = BigUint::from(2_000_000u64);
-        let result = map_bitcoin_quote_data(&response, sender, &value, depository).unwrap();
         assert_eq!(
-            result,
-            SwapperQuoteData::new_contract(depository.to_string(), value.clone(), response.get_bitcoin_step().unwrap().psbt.clone(), None, None)
+            map_bitcoin_quote_data(&response, &value).unwrap(),
+            SwapperQuoteData::new_transfer("bc1qa0z550eacdsxytnxf9yk7xvvhqzqvlx2tl44z2".to_string(), value.clone(), None)
         );
-        assert_eq!(
-            map_bitcoin_quote_data(&response, sender, &value, "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"),
-            Err(SwapperError::InvalidRoute)
-        );
+        assert_eq!(map_bitcoin_quote_data(&response, &BigUint::from(2_000_001u64)), Err(SwapperError::InvalidRoute));
 
-        let redirected = include_str!("testdata/quote_btc_to_base_usdc.json").replace("16d73780aae93325aae14a59fb2f01d909e6320d", "751e76e8199196d454941c45d1b3a323f1433bd6");
-        let redirected: RelayQuoteResponse = serde_json::from_str(&redirected).unwrap();
-        assert_eq!(map_bitcoin_quote_data(&redirected, sender, &value, depository), Err(SwapperError::InvalidRoute));
-
-        let mut renamed = response.clone();
-        renamed.steps[0].id = "swap".to_string();
-        renamed.steps[0].kind = "bitcoin".to_string();
-        assert_eq!(map_bitcoin_quote_data(&renamed, sender, &value, depository).unwrap(), result);
-
-        let mut multiple = response.clone();
-        multiple.steps.push(response.steps[0].clone());
-        assert_eq!(bitcoin_deposit_address(&multiple, sender, &value), Err(SwapperError::InvalidRoute));
-        let mut multiple = response.clone();
-        multiple.steps[0].items.as_mut().unwrap().push(response.steps[0].items.as_ref().unwrap()[0].clone());
-        assert_eq!(bitcoin_deposit_address(&multiple, sender, &value), Err(SwapperError::InvalidRoute));
+        let mut missing = response.clone();
+        missing.steps[0].deposit_address = None;
+        assert_eq!(map_bitcoin_quote_data(&missing, &value), Err(SwapperError::InvalidRoute));
+        let evm = RelayQuoteResponse::mock_with_steps(vec![Step::mock_transaction("deposit", "0xrouter", "0", "0x")]);
+        assert_eq!(map_bitcoin_quote_data(&evm, &value), Err(SwapperError::InvalidRoute));
+        assert_eq!(validate_quote_response(RelayChain::Bitcoin, &evm, &value), Err(SwapperError::InvalidRoute));
+        assert_eq!(validate_quote_response(RelayChain::Tron, &evm, &value), Ok(()));
+        assert_eq!(validate_quote_response(RelayChain::Bitcoin, &response, &value), Ok(()));
     }
 
     #[test]

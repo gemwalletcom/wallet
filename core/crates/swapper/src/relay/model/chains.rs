@@ -36,10 +36,6 @@ impl RelayChainsResponse {
         Self::unique(self.chains.iter().filter_map(RelayChainInfo::depository))
     }
 
-    pub fn depository(&self, chain_id: u64) -> Option<String> {
-        self.chains.iter().find(|chain| chain.id == chain_id)?.depository()
-    }
-
     pub fn send_addresses(&self) -> Vec<String> {
         Self::unique(self.chains.iter().flat_map(RelayChainInfo::solvers))
     }
@@ -84,14 +80,11 @@ mod tests {
         let senders = SendAddressMap::from_iter(response.send_addresses().into_iter().map(|address| (address, SwapperProvider::Relay)));
         let transaction = Transaction {
             asset_id: AssetId::from_chain(Chain::Bitcoin),
-            memo: Some("0xf52d0ea86b4cf88ae40456dec58076f4261ad3a350485c6bd0a3095940570099".to_string()),
             ..Transaction::mock_utxo(
                 vec![TransactionUtxoInput::new("sender".into(), 80_000u32.into())],
                 vec![TransactionUtxoInput::new("bc1qzmtn0q92ayejt2hpffvlktcpmyy7vvsd06sefu".into(), 75_357u32.into())],
             )
         };
-        assert_eq!(response.depository(8253038).as_deref(), Some("bc1qzmtn0q92ayejt2hpffvlktcpmyy7vvsd06sefu"));
-        assert_eq!(response.depository(1), None);
         assert_eq!(swap_provider_with_vault_addresses(&transaction, &deposits), Some(SwapperProvider::Relay));
         let transaction = Transaction {
             utxo_inputs: Some(vec![TransactionUtxoInput::new("bc1qq2mvrp4g3ugd424dw4xv53rgsf8szkrv853jrc".into(), 140_000u32.into())]),

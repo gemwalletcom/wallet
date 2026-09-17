@@ -75,8 +75,8 @@ where
         SUPPORTED_CHAINS.clone()
     }
 
-    fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
-        SwapAmountMode::Fixed
+    fn amount_mode(&self, request: &QuoteRequest) -> SwapAmountMode {
+        RelayChain::from_chain(&request.from_asset.chain()).map_or(SwapAmountMode::Fixed, |chain| chain.amount_mode())
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
@@ -110,9 +110,11 @@ where
             app_fees,
             refund_to: request.wallet_address.clone(),
             max_route_length: 6,
+            use_deposit_address: from_chain.uses_deposit_address(),
         };
 
         let response = self.client.get_quote(relay_request).await?;
+        mapper::validate_quote_response(from_chain, &response, &from_value)?;
 
         let to_value = BigUint::from_str(&response.details.currency_out.amount).map_err(SwapperError::compute_quote_error)?;
 
@@ -144,6 +146,7 @@ where
         let from_chain = RelayChain::from_chain(&from_asset_id.chain).ok_or(SwapperError::NotSupportedChain)?;
         let approval = self.check_approval(quote, &response, &from_asset_id).await?;
         match from_chain {
+            RelayChain::Bitcoin => mapper::map_bitcoin_quote_data(&response, &quote.from_value),
             RelayChain::Evm(_) => mapper::map_evm_quote_data(&response, approval),
             RelayChain::Tron => mapper::map_tron_quote_data(&response, approval),
             RelayChain::Solana => {
@@ -157,7 +160,7 @@ where
     async fn get_swap_result(&self, chain: Chain, transaction_hash: &str) -> Result<SwapResult, SwapperError> {
         match RelayChain::from_chain(&chain).ok_or(SwapperError::NotSupportedChain)? {
             RelayChain::Ton => self.get_ton_swap_result(transaction_hash).await,
-            RelayChain::Evm(_) | RelayChain::Tron | RelayChain::Solana => {
+            RelayChain::Bitcoin | RelayChain::Evm(_) | RelayChain::Tron | RelayChain::Solana => {
                 let response = self.client.get_request(transaction_hash).await?;
                 let request = response.requests.first().ok_or(SwapperError::InvalidRoute)?;
                 Ok(mapper::map_swap_result(request))
@@ -191,7 +194,7 @@ where
     async fn check_approval(&self, quote: &Quote, quote_response: &RelayQuoteResponse, from_asset_id: &AssetId) -> Result<Option<ApprovalData>, SwapperError> {
         let chain = RelayChain::from_chain(&from_asset_id.chain).ok_or(SwapperError::NotSupportedChain)?;
         let token = match (chain, from_asset_id.token_id.clone()) {
-            (RelayChain::Solana | RelayChain::Ton, _) | (RelayChain::Tron, None) => return Ok(None),
+            (RelayChain::Bitcoin | RelayChain::Solana | RelayChain::Ton, _) | (RelayChain::Tron, None) => return Ok(None),
             (_, Some(token)) => token,
             (RelayChain::Evm(chain), None) => match chain.native_currency() {
                 EvmNativeCurrency::Token(token) => token.to_string(),
@@ -217,7 +220,7 @@ where
                 let spender = TronAddress::parse_hex_or_base58(&spender).map_err(|_| SwapperError::InvalidRoute)?.to_string();
                 check_approval_trc20(quote.request.wallet_address.clone(), token, spender, amount, self.rpc_provider.clone()).await?
             }
-            RelayChain::Solana | RelayChain::Ton => return Ok(None),
+            RelayChain::Bitcoin | RelayChain::Solana | RelayChain::Ton => return Ok(None),
         };
 
         Ok(approval.approval_data())
@@ -228,12 +231,33 @@ where
 mod tests {
     use super::*;
     use crate::{SwapperQuoteAsset, alien::mock::ProviderMock, approval::DEFAULT_TRON_SWAP_ENERGY_LIMIT, relay::model::Step};
-    use primitives::asset_constants::{BASE_USDC_ASSET_ID, CELO_WETH_TOKEN_ID, TRON_USDT_TOKEN_ID};
+    use primitives::{
+        asset_constants::{BASE_USDC_ASSET_ID, CELO_WETH_TOKEN_ID, TRON_USDT_TOKEN_ID},
+        swap::SwapQuoteDataType,
+    };
 
     const ROUTER_ADDRESS: &str = "0xCcC88a9d1B4ED6b0EABA998850414b24f1c315bE";
     const QUOTE_VALUE: &str = "40000000000000000000";
     const ZERO_ALLOWANCE: &str = "0x0000000000000000000000000000000000000000000000000000000000000000";
     const SUFFICIENT_ALLOWANCE: &str = "0x0000000000000000000000000000000000000000000000022b1c8c1227a00000";
+
+    #[tokio::test]
+    async fn test_bitcoin_quote_data_transfers_to_deposit_address() {
+        let mut quote = Quote::mock(Chain::Bitcoin, None);
+        quote.from_value = BigUint::from(2_000_000u64);
+        quote.data.routes = vec![Route {
+            input: AssetId::from_chain(Chain::Bitcoin),
+            output: BASE_USDC_ASSET_ID.clone(),
+            route_data: include_str!("testdata/quote_btc_to_base_usdc.json").to_string(),
+        }];
+        let relay = Relay::new(Arc::new(ProviderMock::new(String::new())));
+        assert_eq!(relay.amount_mode(&quote.request), SwapAmountMode::Flexible);
+        let data = relay.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        assert_eq!(
+            (data.to.as_str(), data.value, data.data_type, data.memo),
+            ("bc1qa0z550eacdsxytnxf9yk7xvvhqzqvlx2tl44z2", quote.from_value, SwapQuoteDataType::Transfer, None)
+        );
+    }
 
     #[tokio::test]
     async fn test_check_evm_approval_tokenized_native_currency() -> Result<(), SwapperError> {
@@ -318,10 +342,35 @@ mod swap_integration_tests {
         asset_constants::{
             BASE_USDC_ASSET_ID, CELO_WETH_TOKEN_ID, SMARTCHAIN_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDT_ASSET_ID, TEMPO_BRIDGED_USDC_ASSET_ID, TRON_USDT_ASSET_ID,
         },
-        swap::SwapStatus,
+        swap::{SwapQuoteDataType, SwapStatus},
         testkit::signer_mock::TEST_TON_SENDER,
     };
     use std::collections::HashMap;
+
+    #[tokio::test]
+    async fn test_relay_bitcoin_live() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let relay = Relay::new(Arc::new(NativeProvider::default()));
+        let request = QuoteRequest {
+            from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Bitcoin)),
+            to_asset: SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
+            wallet_address: "bc1qq2mvrp4g3ugd424dw4xv53rgsf8szkrv853jrc".to_string(),
+            destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
+            value: BigUint::from(2_000_000u64),
+            options: Options::new_with_slippage(100.into()),
+        };
+        let quote = relay.get_quote(&request).await?;
+        let data = relay.get_quote_data(&quote, FetchQuoteData::None).await?;
+        assert_eq!(quote.from_value, request.value);
+        assert!(quote.to_value > BigUint::ZERO);
+        assert_eq!((data.value, data.data_type, data.approval), (quote.from_value, SwapQuoteDataType::Transfer, None));
+        assert!(data.to.starts_with("bc1q"));
+        let result = relay
+            .get_swap_result(Chain::Bitcoin, "4e8707e3247bce0797315699ef78b6531cd0776e9dc186ac54512f17b5c04782")
+            .await?;
+        assert_eq!(result.status, SwapStatus::Completed);
+        assert_eq!(result.metadata.unwrap().from_asset, AssetId::from_chain(Chain::Bitcoin));
+        Ok(())
+    }
 
     #[tokio::test]
     async fn test_relay_eth_to_base() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

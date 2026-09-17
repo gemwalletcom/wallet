@@ -83,10 +83,6 @@ impl TransactionInputType {
         }
     }
 
-    pub fn is_contract_swap(&self) -> bool {
-        self.get_swap_data().is_ok_and(|swap| swap.data.data_type == SwapQuoteDataType::Contract)
-    }
-
     pub fn get_generic_data(&self) -> Result<&TransferDataExtra, &'static str> {
         match self {
             TransactionInputType::Generic { extra, .. } => Ok(extra),

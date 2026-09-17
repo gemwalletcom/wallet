@@ -4,8 +4,6 @@ mod chain_signer;
 mod encoding;
 mod personalization;
 mod planner;
-pub mod psbt;
-pub mod relay;
 mod transaction;
 mod zcash;
 
@@ -24,16 +22,6 @@ pub(crate) use planner::PlanInput;
 #[cfg(feature = "rpc")]
 pub(crate) fn estimate_transaction_fee(chain: BitcoinChain, input: &TransactionLoadInput) -> Result<TransactionFee, SignerError> {
     let signer_input = SignerInput::new(input.clone(), input.default_fee());
-    if input.input_type.is_contract_swap() {
-        let (_, fee) = relay::validate_swap_transaction(chain, &signer_input)?;
-        return Ok(TransactionFee::new_gas_price_type(
-            input.gas_price.clone(),
-            BigInt::from(fee),
-            BigInt::ZERO,
-            HashMap::new(),
-            AssetId::from_chain(chain.get_chain()),
-        ));
-    }
     let request = match &input.input_type {
         TransactionInputType::Transfer { .. } | TransactionInputType::Withdrawal { .. } => planner::SpendRequest::transfer(chain, &signer_input)?,
         TransactionInputType::Swap { .. } => planner::SpendRequest::swap(chain, &signer_input)?,

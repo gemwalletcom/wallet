@@ -8318,7 +8318,6 @@ dependencies = [
  "chrono",
  "futures",
  "gem_aptos",
- "gem_bitcoin",
  "gem_client",
  "gem_cosmos",
  "gem_encoding",

@@ -8,7 +8,6 @@ use crate::{QuoteRequest, SwapperError};
 
 pub static RESERVED_NATIVE_FEES: LazyLock<HashMap<Chain, &'static str>> = LazyLock::new(|| {
     HashMap::from([
-        (Chain::Bitcoin, "10000"),
         (Chain::Ethereum, "1000000000000000"),   // 0.001 ETH
         (Chain::Arbitrum, "300000000000000"),    // 0.0003 ARB ETH
         (Chain::Base, "300000000000000"),        // 0.0003 BASE ETH
@@ -62,21 +61,6 @@ mod tests {
         AssetId,
         asset_constants::{SOLANA_USDC_TOKEN_ID, TRON_USDT_TOKEN_ID},
     };
-
-    #[test]
-    fn test_bitcoin_max_quote_keeps_fixed_psbt_fee_reserve() {
-        let mut request = QuoteRequest::mock(Chain::Bitcoin, None);
-        request.value = BigUint::from(2_010_000u64);
-        request.options.use_max_amount = true;
-        assert_eq!(max_quote_value_with_fee_reserve(&request).unwrap(), BigUint::from(2_000_000u64));
-        request.value = BigUint::from(10_000u64);
-        assert_eq!(
-            max_quote_value_with_fee_reserve(&request),
-            Err(SwapperError::InputAmountError {
-                min_amount: Some("10000".to_string())
-            })
-        );
-    }
 
     #[test]
     fn solana_reserve_covers_rent_and_priority_fees() {

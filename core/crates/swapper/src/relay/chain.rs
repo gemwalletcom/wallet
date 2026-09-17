@@ -2,6 +2,8 @@ use gem_evm::address::ethereum_address_checksum;
 use gem_ton::Address as TonAddress;
 use primitives::{Chain, ChainType, chain_evm::EVMChain};
 
+use crate::SwapAmountMode;
+
 pub(super) const BITCOIN_CHAIN_ID: u64 = 8253038;
 pub(super) const BITCOIN_CURRENCY: &str = "bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqmql8k8";
 
@@ -58,6 +60,20 @@ impl RelayChain {
         }
     }
 
+    pub fn amount_mode(&self) -> SwapAmountMode {
+        match self {
+            Self::Bitcoin => SwapAmountMode::Flexible,
+            Self::Evm(_) | Self::Tron | Self::Solana | Self::Ton => SwapAmountMode::Fixed,
+        }
+    }
+
+    pub fn uses_deposit_address(&self) -> bool {
+        match self {
+            Self::Bitcoin => true,
+            Self::Evm(_) | Self::Tron | Self::Solana | Self::Ton => false,
+        }
+    }
+
     pub fn checksum_address(&self, address: &str) -> String {
         match self {
             Self::Evm(_) => ethereum_address_checksum(address).unwrap_or(address.to_string()),
@@ -88,6 +104,10 @@ mod tests {
         assert_eq!(RelayChain::Ton.chain_id(), Some(224235520));
         assert_eq!(RelayChain::from_chain_id(224235520), Some(RelayChain::Ton));
         assert_eq!(RelayChain::Ton.to_chain(), Chain::Ton);
+        assert!(RelayChain::Bitcoin.uses_deposit_address());
+        assert!(!RelayChain::Tron.uses_deposit_address());
+        assert_eq!(RelayChain::Bitcoin.amount_mode(), SwapAmountMode::Flexible);
+        assert_eq!(RelayChain::Evm(EVMChain::Ethereum).amount_mode(), SwapAmountMode::Fixed);
         assert_eq!(RelayChain::from_chain(&Chain::Litecoin), None);
         assert!(RelayChain::from_chain(&Chain::Cosmos).is_none());
     }
