@@ -6,7 +6,6 @@ import GemstonePrimitives
 import GemstoneServices
 import Foundation
 import Localization
-import struct Gemstone.GemAssetRow
 import Primitives
 import PrimitivesComponents
 import Store
@@ -143,8 +142,8 @@ extension AssetsResultsSceneViewModel {
     func setPerpetualPinned(_ perpetualId: PerpetualId, pinned: Bool) async throws {
         try await service.setPerpetualPinned(perpetualId: perpetualId.identifier, pinned: pinned)
     }
-    var assetRow: GemAssetRow {
-        service.flow(selectType: .walletSearchResults).row
+    var assetItems: ListAssetItemsViewModel {
+        ListAssetItemsViewModel(currency: currency, rowStyle: service.flow(selectType: .walletSearchResults).rowStyle)
     }
 
 }

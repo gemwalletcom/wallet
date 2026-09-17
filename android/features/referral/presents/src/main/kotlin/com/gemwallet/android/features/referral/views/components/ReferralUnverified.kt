@@ -11,7 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import uniffi.gemstone.GemRewardsState
+import com.gemwallet.android.features.referral.viewmodels.models.ReferralUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
@@ -22,7 +22,7 @@ import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.tinyIconSize
 
-internal fun LazyListScope.referralUnverified(uiState: GemRewardsState) {
+internal fun LazyListScope.referralUnverified(uiState: ReferralUIModel) {
     if (!uiState.isUnverified) return
     item {
         Column(

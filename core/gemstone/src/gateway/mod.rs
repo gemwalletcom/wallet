@@ -9,9 +9,10 @@ pub(crate) use preferences::{PreferencesWrapper, SecureStoreWrapper};
 
 use crate::services::chain::rules as chain_rules;
 use crate::services::node::GemNodeCheck;
+use crate::services::node::GemNodeService;
 use crate::services::preferences::{GemPreferencesStore, GemSecureStore};
 
-use crate::alien::{AlienProvider, AlienProviderWrapper, NodeEndpoints, PreferencesNodeEndpoints, coalescing_provider};
+use crate::alien::{AlienProvider, AlienRpcProvider, coalescing_provider};
 use crate::models::*;
 use crate::transaction_state::StatusProvider;
 use chain_traits::ChainTraits;
@@ -126,11 +127,10 @@ impl GemGateway {
 #[uniffi::export]
 impl GemGateway {
     #[uniffi::constructor]
-    pub fn new(provider: Arc<dyn AlienProvider>, preferences: Arc<dyn GemPreferencesStore>, secure_preferences: Arc<dyn GemSecureStore>) -> Self {
+    pub fn new(provider: Arc<dyn AlienProvider>, nodes: Arc<GemNodeService>, preferences: Arc<dyn GemPreferencesStore>, secure_preferences: Arc<dyn GemSecureStore>) -> Self {
         let provider = coalescing_provider(provider);
-        let endpoints: Arc<dyn NodeEndpoints> = Arc::new(PreferencesNodeEndpoints::new(preferences.clone()));
-        let chain_factory = Arc::new(ChainClientFactory::new(provider.clone(), preferences, secure_preferences));
-        let alien_wrapper = Arc::new(AlienProviderWrapper::with_endpoints(provider, endpoints));
+        let chain_factory = Arc::new(ChainClientFactory::new(provider.clone(), nodes.clone(), preferences, secure_preferences));
+        let alien_wrapper = Arc::new(AlienRpcProvider::new(provider, nodes));
         let yielder = Yielder::new(alien_wrapper.clone());
         let swapper = Swapper::new(alien_wrapper);
         let status_provider = StatusProvider::new(chain_factory.clone(), swapper);
@@ -218,7 +218,7 @@ mod tests {
         let provider: Arc<dyn AlienProvider> = Arc::new(TestAlienProvider::with_status(404));
         let preferences: Arc<dyn GemPreferencesStore> = Arc::new(EmptyPreferences);
         let secure: Arc<dyn GemSecureStore> = Arc::new(EmptyPreferences);
-        let gateway = GemGateway::new(provider, preferences.clone(), secure);
+        let gateway = GemGateway::new(provider, Arc::new(GemNodeService::mock()), preferences.clone(), secure);
 
         let result = futures::executor::block_on(gateway.get_node_status(Chain::Bitcoin, "https://httpbin.org/status/404"));
 

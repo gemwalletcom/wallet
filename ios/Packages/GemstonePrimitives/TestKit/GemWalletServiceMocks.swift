@@ -116,24 +116,6 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
         self.appearance = appearance
     }
 
-    public func getPerpetualLeverage() -> UInt8 {
-        5
-    }
-
-    public func setPerpetualLeverage(leverage _: UInt8) throws {}
-
-    public func getPerpetualTakeProfitPercent() -> UInt8 {
-        0
-    }
-
-    public func setPerpetualTakeProfitPercent(percent _: UInt8) throws {}
-
-    public func getPerpetualStopLossPercent() -> UInt8 {
-        0
-    }
-
-    public func setPerpetualStopLossPercent(percent _: UInt8) throws {}
-
     public func incrementLaunchesCount() throws -> UInt32 {
         1
     }
@@ -277,8 +259,8 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
         Primitives.Currency.usd.toGem()
     }
 
-    public func assetRow() -> Gemstone.GemAssetRow {
-        Gemstone.GemAssetRow(title: .asset, showsSymbol: false, subtitle: .price, trailing: .balance)
+    public func assetRowStyle() -> Gemstone.GemAssetRowStyle {
+        Gemstone.GemAssetRowStyle(title: .asset, showsSymbol: false, subtitle: .price, trailing: .balance)
     }
 
     public func viewState(wallet: Gemstone.Wallet, balances: [Gemstone.AssetFiatValue], perpetual: Gemstone.PerpetualBalance?, banners: [Gemstone.Banner], isWalletEmpty: Bool) -> GemWalletHomeViewState {
@@ -321,7 +303,7 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
     }
 
     public func bannerContent(event _: Gemstone.BannerEvent, asset _: Gemstone.Asset?) -> GemBannerContent {
-        GemBannerContent(icon: .none, title: .none, description: .none, link: .none)
+        GemBannerContent(icon: .none, title: .none, description: .none, destination: .none)
     }
 
     public func closeBanner(key: GemBannerKey) async throws {
@@ -368,7 +350,7 @@ public final class GemBannerServiceMock: GemBannerServiceProtocol, @unchecked Se
     public func setupWallet(wallet _: Gemstone.Wallet) async throws {}
 
     public func bannerContent(event _: Gemstone.BannerEvent, asset _: Gemstone.Asset?) -> GemBannerContent {
-        GemBannerContent(icon: .none, title: .none, description: .none, link: .none)
+        GemBannerContent(icon: .none, title: .none, description: .none, destination: .none)
     }
 }
 

@@ -101,7 +101,6 @@ public final class ContactsViewModel {
         let row = contactRow(contact: contact.contact.toGem())
         return ListItemModel(
             title: row.title,
-            titleStyle: TextStyle(font: .body, color: .primary, fontWeight: .semibold),
             titleExtra: row.subtitle,
             titleStyleExtra: .calloutSecondary,
             titleExtraLineLimit: 1,

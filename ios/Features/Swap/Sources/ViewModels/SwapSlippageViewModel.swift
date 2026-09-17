@@ -14,7 +14,6 @@ import InfoSheet
 import Localization
 import Primitives
 import PrimitivesComponents
-import Validators
 
 @MainActor
 @Observable
@@ -119,7 +118,7 @@ public final class SwapSlippageViewModel {
     }
 
     private static func format(bps: UInt32, service: any GemSwapQuoteServiceProtocol) -> String {
-        service.slippagePercent(bps: bps).formatted(.number.precision(.fractionLength(0 ... 2)))
+        service.slippagePercentText(bps: bps, format: NumberInput.format())
     }
 }
 

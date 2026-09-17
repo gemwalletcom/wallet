@@ -118,11 +118,11 @@ impl<C: Client + Clone> EVMIndexer<C> {
             EVMChain::Gnosis => vec![ProviderKind::Blockscout, ProviderKind::Ankr("gnosis")],
             EVMChain::Linea => vec![ProviderKind::Ankr("linea")],
             EVMChain::XLayer => vec![ProviderKind::Ankr("xlayer")],
-            EVMChain::ZkSync | EVMChain::Celo | EVMChain::World | EVMChain::Ink | EVMChain::Unichain | EVMChain::Robinhood => {
+            EVMChain::ZkSync | EVMChain::Celo | EVMChain::World | EVMChain::Ink | EVMChain::Unichain | EVMChain::Robinhood | EVMChain::Arc => {
                 vec![ProviderKind::Blockscout, ProviderKind::Alchemy]
             }
             EVMChain::Blast | EVMChain::Abstract | EVMChain::Berachain | EVMChain::Hyperliquid | EVMChain::Monad => vec![ProviderKind::Alchemy],
-            EVMChain::OpBNB | EVMChain::Manta | EVMChain::Mantle | EVMChain::Sonic | EVMChain::SeiEvm | EVMChain::Plasma | EVMChain::Stable | EVMChain::Tempo | EVMChain::Arc => {
+            EVMChain::OpBNB | EVMChain::Manta | EVMChain::Mantle | EVMChain::Sonic | EVMChain::SeiEvm | EVMChain::Plasma | EVMChain::Stable | EVMChain::Tempo => {
                 return None;
             }
         };

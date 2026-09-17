@@ -5,7 +5,7 @@ import protocol Gemstone.GemDeveloperServiceProtocol
 import Components
 import Foundation
 import GemstonePrimitives
-import class GemstoneServices.SecurePreferences
+import class GemstoneServices.GemstoneDevicePlatform
 import Localization
 import Primitives
 import SwiftUI
@@ -15,6 +15,7 @@ import SwiftUI
 public final class DeveloperViewModel {
     private let walletId: WalletId
     private let service: any GemDeveloperServiceProtocol
+    private let devicePlatform: GemstoneDevicePlatform
 
     public var isPresentingToastMessage: ToastMessage?
     public private(set) var deviceId: String = .empty
@@ -23,9 +24,11 @@ public final class DeveloperViewModel {
     public init(
         walletId: WalletId,
         service: any GemDeveloperServiceProtocol,
+        devicePlatform: GemstoneDevicePlatform,
     ) {
         self.walletId = walletId
         self.service = service
+        self.devicePlatform = devicePlatform
     }
 
     var title: String {
@@ -41,7 +44,7 @@ public final class DeveloperViewModel {
         do {
             try clearDocuments()
             try service.clearPreferences()
-            try SecurePreferences.standard.clear()
+            try devicePlatform.clearDeviceEntries()
             fatalError()
         } catch {
             debugLog("reset error \(error)")

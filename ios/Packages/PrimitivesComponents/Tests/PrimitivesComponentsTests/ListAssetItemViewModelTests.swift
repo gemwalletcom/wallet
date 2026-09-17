@@ -23,12 +23,12 @@ struct ListAssetItemViewModelTests {
         let collectionModel = ListAssetItemViewModel(
             showBalancePrivacy: .constant(false),
             assetDataModel: assetDataModel,
-            row: GemSelectAssetType.receiveCollection.flow().row,
+            rowStyle: GemSelectAssetType.receiveCollection.flow().rowStyle,
         )
         let assetModel = ListAssetItemViewModel(
             showBalancePrivacy: .constant(false),
             assetDataModel: assetDataModel,
-            row: GemSelectAssetType.receive.flow().row,
+            rowStyle: GemSelectAssetType.receive.flow().rowStyle,
         )
 
         #expect(collectionModel.name == "TON")

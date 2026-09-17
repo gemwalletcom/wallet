@@ -11,8 +11,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -22,25 +22,25 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.AppUrl
 import com.gemwallet.android.features.wallet.viewmodels.WalletSecretDataViewModel
+import com.gemwallet.android.features.wallet.viewmodels.models.WalletSecretContentUIModel
 import com.gemwallet.android.ui.DetectScreenshot
 import com.gemwallet.android.ui.DisableScreenShooting
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DocsInfoButton
 import com.gemwallet.android.ui.components.buttons.CopyButton
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.PhraseLayout
-import com.gemwallet.android.ui.components.screen.phraseRows
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.components.screen.phraseRows
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.theme.adaptivePadding
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 import com.gemwallet.android.ui.theme.space8
-import com.gemwallet.android.ui.localization.stringRes
-import uniffi.gemstone.GemWalletSecret
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 @Composable
 fun WalletSecretDataNavScreen(
@@ -110,22 +110,17 @@ fun WalletSecretDataNavScreen(
             }
 
             when (secret) {
-                is GemWalletSecret.PrivateKey -> Text(
+                is WalletSecretContentUIModel.PrivateKey -> Text(
                     text = secret.key,
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center,
                 )
-                is GemWalletSecret.Words -> PhraseLayout(rows = remember(secret.words) { phraseRows(secret.words) })
+                is WalletSecretContentUIModel.Words -> PhraseLayout(rows = remember(secret.words) { phraseRows(secret.words) })
             }
 
-            CopyButton(onClick = { clipboardManager.setPlainText(context, secret.text(), true) })
+            CopyButton(onClick = { clipboardManager.setPlainText(context, secret.text, true) })
         }
     }
-}
-
-private fun GemWalletSecret.text(): String = when (this) {
-    is GemWalletSecret.PrivateKey -> key
-    is GemWalletSecret.Words -> words.joinToString(" ")
 }
 
 @Composable

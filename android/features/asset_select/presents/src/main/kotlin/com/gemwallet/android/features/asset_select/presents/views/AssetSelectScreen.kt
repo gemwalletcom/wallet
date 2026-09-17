@@ -7,33 +7,31 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.type
-import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
+import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
+import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.assetPriceSupport
 import com.gemwallet.android.ui.components.list_item.getBalanceInfo
+import com.gemwallet.android.ui.components.screen.SceneTitle
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.iconSize
-import com.gemwallet.android.ui.components.screen.SceneTitle
-import com.gemwallet.android.features.asset_select.presents.localization.stringRes
-import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
-import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetSubtype
 import kotlinx.collections.immutable.toImmutableList
-import uniffi.gemstone.GemAssetRowSubtitle
-import uniffi.gemstone.GemAssetRowTrailing
+import uniffi.gemstone.GemAssetSubtitleStyle
+import uniffi.gemstone.GemAssetTrailingStyle
 
 @Composable
 fun AssetSelectScreen(
@@ -48,27 +46,27 @@ fun AssetSelectScreen(
     viewModel: BaseAssetSelectViewModel,
     recentsViewModel: RecentsSheetViewModel = hiltViewModel(),
 ) {
-    val flow = viewModel.flow
-    val title = stringResource(flow.title.stringRes())
+    val flow = viewModel.flowUIModel
+    val title = flow.title
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
-    val support: (AssetInfoDataAggregate) -> (@Composable () -> Unit)? = when (flow.row.subtitle) {
-        GemAssetRowSubtitle.NETWORK -> { item ->
+    val support: (AssetInfoDataAggregate) -> (@Composable () -> Unit)? = when (flow.subtitle) {
+        GemAssetSubtitleStyle.NETWORK -> { item ->
             if (item.asset.id.type() == AssetSubtype.NATIVE) null else {
                 @Composable { ListItemSupportText(item.asset.id.chain.networkName()) }
             }
         }
-        GemAssetRowSubtitle.PRICE -> { item -> assetPriceSupport(item.price) }
+        GemAssetSubtitleStyle.PRICE -> { item -> assetPriceSupport(item.price) }
     }
-    val itemTrailing: (@Composable (AssetInfoDataAggregate) -> Unit)? = when (flow.row.trailing) {
-        GemAssetRowTrailing.BALANCE -> { item -> getBalanceInfo(item)() }
-        GemAssetRowTrailing.TOGGLE -> { item ->
+    val itemTrailing: (@Composable (AssetInfoDataAggregate) -> Unit)? = when (flow.trailing) {
+        GemAssetTrailingStyle.BALANCE -> { item -> getBalanceInfo(item)() }
+        GemAssetTrailingStyle.TOGGLE -> { item ->
             Switch(
                 checked = item.balanceEnabled,
                 onCheckedChange = { viewModel.onChangeVisibility(item.asset.id, it) },
             )
         }
-        GemAssetRowTrailing.COPY -> { item ->
+        GemAssetTrailingStyle.COPY -> { item ->
             IconButton(
                 onClick = {
                     viewModel.onChangeVisibility(item.asset.id, true)
@@ -84,14 +82,15 @@ fun AssetSelectScreen(
                 )
             }
         }
-        GemAssetRowTrailing.NONE -> null
+        GemAssetTrailingStyle.NONE -> null
     }
     val uiStates by viewModel.uiState.collectAsStateWithLifecycle()
     val popular by viewModel.popular.collectAsStateWithLifecycle()
     val pinned by viewModel.pinned.collectAsStateWithLifecycle()
     val unpinned by viewModel.unpinned.collectAsStateWithLifecycle()
     val recent by viewModel.recent.collectAsStateWithLifecycle()
-    val showRecents = flow.showsRecents(viewModel.queryState.text.isNotEmpty(), recent.isNotEmpty()) && onSelectRecent != null
+    val showsRecents by viewModel.showsRecents.collectAsStateWithLifecycle()
+    val showRecents = showsRecents && onSelectRecent != null
     val isAddAvailable by viewModel.isAddAssetAvailable.collectAsStateWithLifecycle()
     val isChainFilterAvailable by viewModel.isChainFilterAvailable.collectAsStateWithLifecycle()
     val availableChains by viewModel.availableChains.collectAsStateWithLifecycle()
@@ -107,7 +106,7 @@ fun AssetSelectScreen(
 
     AssetSelectScene(
         title = titleContent ?: { SceneTitle(title) },
-        titleBadge = { item -> if (flow.row.showsSymbol) getAssetBadge(item) else null },
+        titleBadge = { item -> if (flow.showsSymbol) getAssetBadge(item) else null },
         closeIcon = closeIcon,
         support = support,
         query = viewModel.queryState,
@@ -121,7 +120,7 @@ fun AssetSelectScreen(
         chainsFilter = chainsFilter,
         balanceFilter = balanceFilter,
         showFilter = showFilter ?: isChainFilterAvailable,
-        showBalanceFilter = flow.balanceFilter,
+        showBalanceFilter = flow.showsBalanceFilter,
         onAction = { action ->
             when (action) {
                 is AssetSelectAction.ChainFilter -> viewModel.onChainFilter(action.chain)

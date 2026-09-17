@@ -24,7 +24,11 @@ pub fn map_delegations(delegations: Vec<SuiStakeDelegation>, system_state: SuiSy
             delegation.stakes.into_iter().map(move |stake| {
                 let completion_date = match map_stake_state(&stake.status) {
                     DelegationState::Activating => Some(DateTime::from_timestamp((epoch_start_ms + epoch_duration_ms) / 1000, 0).unwrap_or_else(Utc::now)),
-                    _ => None,
+                    DelegationState::Active
+                    | DelegationState::Pending
+                    | DelegationState::Inactive
+                    | DelegationState::Deactivating
+                    | DelegationState::AwaitingWithdrawal => None,
                 };
 
                 DelegationBase {

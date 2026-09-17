@@ -4,8 +4,8 @@ import Components
 import Foundation
 import enum Gemstone.Deeplink
 import protocol Gemstone.GemAssetsServiceProtocol
-import class Gemstone.GemDeeplinkService
-import class Gemstone.GemPaymentService
+import protocol Gemstone.GemDeeplinkServiceProtocol
+import protocol Gemstone.GemPaymentServiceProtocol
 import enum Gemstone.Payment
 import enum Gemstone.GemPushNotification
 import protocol Gemstone.GemPushNotificationServiceProtocol
@@ -35,8 +35,8 @@ final class NavigationHandler: Sendable {
     private let toastPresenter: ToastPresenter
     private let pushNotificationService: any GemPushNotificationServiceProtocol
     private let transactionStore: TransactionStore
-    private let deeplinkService: GemDeeplinkService
-    private let paymentService: GemPaymentService
+    private let deeplinkService: any GemDeeplinkServiceProtocol
+    private let paymentService: any GemPaymentServiceProtocol
     private let transactionStateService: any GemTransactionStateServiceProtocol
     private let walletConnectorPresenter: WalletConnectorPresenter
     private let walletSessionService: any GemWalletSessionServiceProtocol
@@ -50,8 +50,8 @@ final class NavigationHandler: Sendable {
         toastPresenter: ToastPresenter,
         pushNotificationService: any GemPushNotificationServiceProtocol,
         transactionStore: TransactionStore,
-        deeplinkService: GemDeeplinkService,
-        paymentService: GemPaymentService,
+        deeplinkService: any GemDeeplinkServiceProtocol,
+        paymentService: any GemPaymentServiceProtocol,
         transactionStateService: any GemTransactionStateServiceProtocol,
         walletConnectorPresenter: WalletConnectorPresenter,
         walletSessionService: any GemWalletSessionServiceProtocol,

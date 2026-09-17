@@ -7,7 +7,7 @@ use std::sync::Arc;
 use primitives::{Asset, AssetFiatValue, AssetId, Banner, BannerEvent, Currency, PerpetualBalance, TotalFiatValue, Wallet};
 
 use crate::services::asset_discovery::GemAssetDiscoveryService;
-use crate::services::assets::model::{GemAssetRow, GemHeaderActions};
+use crate::services::assets::model::{GemAssetRowStyle, GemHeaderActions};
 use crate::services::assets::rules as asset_rules;
 use crate::services::balance::GemBalanceService;
 use crate::services::balance::rules as balance_rules;
@@ -61,8 +61,8 @@ impl GemWalletHomeService {
         self.preferences.get_currency()
     }
 
-    pub fn asset_row(&self) -> GemAssetRow {
-        asset_rules::wallet_row()
+    pub fn asset_row_style(&self) -> GemAssetRowStyle {
+        asset_rules::wallet_asset_row_style()
     }
 
     pub fn view_state(

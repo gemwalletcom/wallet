@@ -420,6 +420,10 @@ pub fn input_text(decimal_separator: &str, value: &str, decimals: u32) -> Option
     Some(plain.replace('.', decimal_separator))
 }
 
+pub fn value_text(decimal_separator: &str, value: f64) -> String {
+    value.to_string().replace('.', decimal_separator)
+}
+
 pub fn plain_number(decimal_separator: &str, text: &str) -> String {
     let mut trimmed = latin_digits(text).trim().to_string();
     while let Some(last) = trimmed.chars().last() {
@@ -498,6 +502,13 @@ fn without_leading_zeros(text: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn test_a_value_echoes_into_the_field_without_grouping_or_trailing_zeros() {
+        assert_eq!(super::value_text(".", 67000.0), "67000");
+        assert_eq!(super::value_text(",", 1234.5), "1234,5");
+        assert_eq!(super::value_text(".", 0.000001), "0.000001");
+    }
 
     #[test]
     fn test_the_amount_screen_title_follows_the_amount_type() {

@@ -58,6 +58,45 @@ public struct DelegationSceneViewModel {
         rows.first { $0 == .rewards }
     }
 
+    public var detailRowModels: [DelegationRowViewModel] {
+        detailRows.map(rowViewModel)
+    }
+
+    public var rewardsRowModel: DelegationRowViewModel? {
+        rewardsRow.map(rowViewModel)
+    }
+
+    private func rowViewModel(_ row: GemDelegationRow) -> DelegationRowViewModel {
+        let action: DelegationRowViewModel.Action = switch row {
+        case .provider: providerUrl.map { .url($0) } ?? .plain
+        case .apr, .status, .completionDate: .plain
+        case .rewards: canClaimRewards ? .claimRewards : .plain
+        }
+        return DelegationRowViewModel(id: String(describing: row), action: action, model: listItem(for: row))
+    }
+
+    public func listItem(for row: GemDelegationRow) -> ListItemModel {
+        switch row {
+        case .provider: ListItemModel(title: title(for: row), subtitle: model.validatorText)
+        case .apr: ListItemModel(title: aprModel.title.text, titleStyle: aprModel.title.style, subtitle: aprModel.subtitle.text, subtitleStyle: aprModel.subtitle.style)
+        case .status: ListItemModel(title: title(for: row), subtitle: stateModel.title, subtitleStyle: stateModel.textStyle)
+        case .completionDate: ListItemModel(title: title(for: row), subtitle: model.completionDateText)
+        case .rewards: ListItemModel(
+            title: title(for: row),
+            titleStyle: model.titleStyle,
+            subtitle: model.rewardsText,
+            subtitleStyle: model.subtitleStyle,
+            subtitleExtra: model.rewardsFiatValueText,
+            subtitleStyleExtra: model.subtitleExtraStyle,
+            imageStyle: assetImageStyle,
+        )
+        }
+    }
+
+    public func actionListItem(_ action: GemDelegationAction) -> ListItemModel {
+        ListItemModel(title: action.title)
+    }
+
     public func title(for row: GemDelegationRow) -> String {
         delegationRowTitle(row, providerType: providerType, completion: model.status.completion)
     }

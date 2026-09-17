@@ -36,11 +36,6 @@ struct PerpetualPositionViewModelTests {
     }
 
     @Test
-    func pnlPercent() {
-        #expect(PerpetualPositionViewModel(.mock(position: .mock(marginAmount: 1000, pnl: 100))).pnlPercent == 10.0)
-    }
-
-    @Test
     func entryPriceField() {
         #expect(PerpetualPositionViewModel(.mock(position: .mock(entryPrice: 42000))).detailField(for: .entryPrice).value.text == "$42,000.00")
     }

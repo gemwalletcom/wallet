@@ -26,13 +26,12 @@ public struct FiatTransactionViewModel: Sendable {
         let status = fiatTransactionStatus(status: info.status.toGem())
         return ListItemModel(
             title: typeTitle,
-            titleStyle: TextStyle(font: Font.system(.body, weight: .medium), color: .primary),
             titleTag: status.badge?.text,
             titleTagStyle: status.badge.map(badgeStyle) ?? ListItemModel.StyleDefaults.titleTagStyle,
             titleExtra: "\(info.asset.name) (\(info.provider.displayName))",
             titleStyleExtra: .footnote,
             subtitle: amount,
-            subtitleStyle: TextStyle(font: .callout, color: status.isDimmed ? Colors.gray : Colors.black, fontWeight: .semibold),
+            subtitleStyle: TextStyle(font: .callout, color: status.isDimmed ? Colors.gray : Colors.black),
             subtitleExtra: fiatValueText,
             subtitleStyleExtra: TextStyle(font: .footnote, color: Colors.gray),
             imageStyle: .asset(assetImage: providerImage),

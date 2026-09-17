@@ -53,8 +53,11 @@ private fun percentText(value: BigDecimal, precision: GemPrecision, showsSign: B
     return formatter.format(value.movePointLeft(2))
 }
 
-private fun GemFormattedNumber.appendSymbol(text: String): String =
-    symbol?.let { "$text $it" } ?: text
+private fun GemFormattedNumber.appendSymbol(text: String): String = when (val unit = unit) {
+    is GemNumberUnit.Symbol -> "$text ${unit.symbol}"
+    GemNumberUnit.Multiplier -> "${text}x"
+    is GemNumberUnit.Currency, GemNumberUnit.Percent, GemNumberUnit.Plain -> text
+}
 
 private fun GemFormattedNumber.numberText(value: BigDecimal, precision: GemPrecision, locale: Locale): String {
     val formatter = (numberFormat(locale) as DecimalFormat).apply {

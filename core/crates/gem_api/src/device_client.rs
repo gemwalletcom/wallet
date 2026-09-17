@@ -3,7 +3,7 @@ use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use gem_auth::build_device_auth_header;
-use gem_client::{ClientError, ContentType, build_request_url, deserialize_response};
+use gem_client::{ClientError, ContentType, build_request_url, deserialize_response, validate_response};
 use gem_jsonrpc::{RpcClientError, RpcProvider, Target};
 use primitives::name::NameRecord;
 use primitives::rewards::{RedemptionRequest, RedemptionResult};
@@ -237,7 +237,8 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
     }
 
     async fn send_ignoring_body(&self, target: GemDeviceApiTarget) -> Result<(), ClientError> {
-        self.request(target).await.map(|_| ())
+        let response = self.request(target).await?;
+        validate_response(&response)
     }
 
     async fn request(&self, target: GemDeviceApiTarget) -> Result<gem_client::Response, ClientError> {
@@ -266,6 +267,7 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
         };
         let response = self.provider.request(request).await.map_err(RpcClientError::into_client_error)?;
         if let Some(status) = response.status.filter(|status| !(200..300).contains(status)) {
+            validate_response(&response)?;
             return Err(ClientError::Http { status, body: response.data });
         }
         Ok(response)

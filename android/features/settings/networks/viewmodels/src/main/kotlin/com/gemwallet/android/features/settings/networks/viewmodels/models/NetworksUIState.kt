@@ -5,6 +5,8 @@ import androidx.annotation.StringRes
 import com.gemwallet.android.features.settings.networks.viewmodels.localization.string
 import com.gemwallet.android.features.settings.networks.viewmodels.localization.text
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemExplorerRow
 import uniffi.gemstone.GemNodeRow
@@ -26,26 +28,33 @@ sealed class NetworkSectionUIModel(@StringRes val title: Int) {
 data class NodeRowUIModel(
     val url: String,
     val host: String,
-    val title: String,
-    val subtitle: String,
-    val latency: LatencyUIModel,
     val isSelected: Boolean,
     val canDelete: Boolean,
+    val model: ListItemModel,
 )
 
 data class ExplorerRowUIModel(
     val name: String,
     val isSelected: Boolean,
+    val model: ListItemModel,
 )
 
-internal fun GemNodeRow.uiModel(context: Context) = NodeRowUIModel(
-    url = node.url,
-    host = node.host,
-    title = title.string(context),
-    subtitle = subtitle.text(context),
-    latency = latencyStatus.uiModel(context),
-    isSelected = node.isSelected,
-    canDelete = canDelete,
-)
+internal fun GemNodeRow.uiModel(context: Context): NodeRowUIModel {
+    val latency = latencyStatus.uiModel(context)
+    return NodeRowUIModel(
+        url = node.url,
+        host = node.host,
+        isSelected = node.isSelected,
+        canDelete = canDelete,
+        model = ListItemModel(
+            title = title.string(context),
+            titleTag = latency.text,
+            titleTagStyle = latency.tagStyle(),
+            titleTagType = latency.tagType(),
+            titleExtra = subtitle.text(context),
+            titleExtraStyle = ListItemTextStyle.Body,
+        ),
+    )
+}
 
-internal fun GemExplorerRow.uiModel() = ExplorerRowUIModel(name = name, isSelected = isSelected)
+internal fun GemExplorerRow.uiModel() = ExplorerRowUIModel(name = name, isSelected = isSelected, model = ListItemModel(title = name))

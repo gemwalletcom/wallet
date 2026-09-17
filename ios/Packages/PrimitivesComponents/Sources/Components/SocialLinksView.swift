@@ -13,11 +13,7 @@ public struct SocialLinksView: View {
 
     public var body: some View {
         ForEach(model.links) { link in
-            let view = ListItemView(
-                title: link.title,
-                subtitle: link.subtitle,
-                imageStyle: .settings(assetImage: link.image),
-            )
+            let view = ListItemView(model: link.listItem)
             if let deepLink = link.deepLink, UIApplication.shared.canOpenURL(deepLink) {
                 NavigationCustomLink(with: view) {
                     UIApplication.shared.open(deepLink)

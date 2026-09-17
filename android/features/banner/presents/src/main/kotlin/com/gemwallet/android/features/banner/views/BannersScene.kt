@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.Image
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -20,17 +19,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
-import com.gemwallet.android.AppUrl
-import com.gemwallet.android.domains.banner.BannerRow
-import com.gemwallet.android.ui.components.image.IconWithBadge
-import com.gemwallet.android.ui.open
+import com.gemwallet.android.ui.components.banner.BannerItemUIModel
+import com.gemwallet.android.ui.components.banner.BannerDestination
+import com.gemwallet.android.ui.components.banner.BannerRowUIModel
+import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
@@ -42,37 +37,32 @@ import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.Banner
 import com.wallet.core.primitives.BannerEvent
-import uniffi.gemstone.GemBannerLink
 
 private val bannerEmojiFontSize = 32.sp
 
 @Composable
 fun BannersScene(
-    banners: List<BannerRow>,
-    onSelect: (Banner) -> Unit,
+    banners: List<BannerRowUIModel>,
+    onSelect: (BannerDestination) -> Unit,
     onClose: (Banner) -> Unit,
     onBuy: () -> Unit = {},
     onReceive: () -> Unit = {},
 ) {
     val pageState = rememberPagerState { banners.size }
-    val context = LocalContext.current
-    val uriHandler = LocalUriHandler.current
 
     if (banners.isEmpty()) {
         return
     }
     HorizontalPager(pageState, pageSpacing = paddingDefault) { page ->
         val banner = banners[page].banner
-        val content = banners[page].content
-        val model = bannerItemUIModel(banner, content)
+        val model = banners[page].model
         if (banner.event == BannerEvent.Onboarding) {
             WelcomeBanner(model = model, onBuy = onBuy, onReceive = onReceive, onClose = { onClose(banner) })
             return@HorizontalPager
         }
         Box(
             modifier = Modifier.listItem(ListPosition.Single).clickable {
-                content.link?.url()?.let { uriHandler.open(context, it) }
-                onSelect(banner)
+                model.destination?.let(onSelect)
             }
         ) {
             BannerText(
@@ -94,7 +84,7 @@ private fun BannerText(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Spacer16()
-            model.icon?.let { BannerIconView(it, tint = MaterialTheme.colorScheme.secondary) }
+            model.icon?.let { ListItemImageView(image = it, size = listItemIconSize) }
             Spacer16()
             Column(
                 modifier = Modifier
@@ -145,28 +135,4 @@ private fun BannerText(
             }
         }
     }
-}
-
-@Composable
-internal fun BannerIconView(icon: BannerIcon, tint: Color) {
-    when (icon) {
-        is BannerIcon.Emoji -> Text(text = icon.value, fontSize = bannerEmojiFontSize)
-        is BannerIcon.Url -> IconWithBadge(icon = icon.value, placeholder = icon.value, size = listItemIconSize)
-        is BannerIcon.Vector -> Icon(
-            modifier = Modifier.size(listItemIconSize),
-            imageVector = icon.image,
-            contentDescription = null,
-            tint = tint,
-        )
-        is BannerIcon.Drawable -> Image(
-            modifier = Modifier.size(listItemIconSize),
-            painter = painterResource(icon.id),
-            contentDescription = null,
-        )
-    }
-}
-
-private fun GemBannerLink.url(): String = when (this) {
-    is GemBannerLink.Docs -> AppUrl.docs(item)
-    is GemBannerLink.External -> url
 }

@@ -80,26 +80,11 @@ public struct TransactionInputViewModel: Sendable {
         }
     }
 
-    var networkFeeText: String? {
-        infoModel.feeDisplay?.amount.text ?? Placeholder.empty
-    }
-
-    var networkFeeFiatText: String? {
-        infoModel.feeDisplay?.fiat?.text
-    }
-
     var headerType: TransactionHeaderType {
         TransactionHeaderTypeBuilder.build(
             infoModel: infoModel,
             transfer: data,
             metadata: metaData,
         )
-    }
-
-    var isReady: Bool {
-        if case .success = transferAmount {
-            return true
-        }
-        return false
     }
 }

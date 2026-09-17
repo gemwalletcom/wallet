@@ -1,8 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Assets
-import enum Gemstone.GemPerpetualPositionAction
-import enum Gemstone.GemTransactionHeaderAction
 import Components
 import InfoSheet
 import Localization
@@ -49,7 +47,14 @@ struct WalletNavigationView: View {
             }
         }
         .onChange(of: navigationState.walletTabReselected, model.onWalletTabReselected)
-        .bindQuery(model.walletQuery, model.assetsQuery, model.bannersQuery, model.fiatValuesQuery, model.collectionsModel.query)
+        .bindQuery(
+            model.walletQuery,
+            model.assetsQuery,
+            model.bannersQuery,
+            model.fiatValuesQuery,
+            model.perpetualBalanceQuery,
+            model.collectionsModel.query,
+        )
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if !model.isPresentingSearch {
@@ -96,8 +101,22 @@ struct WalletNavigationView: View {
                 model: viewModelFactory.transactionScene(
                     transaction: $0.transaction,
                     walletId: model.wallet.id,
-                    onHeaderAction: onSelectTransactionHeaderAction,
+                    onHeaderAction: { action in
+                        Task {
+                            do {
+                                try await presenter.handleTransactionHeaderAction(
+                                    action,
+                                    wallet: model.wallet,
+                                    navigationState: navigationState,
+                                    nftDestination: navigationState.wallet,
+                                )
+                            } catch {
+                                model.isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
+                            }
+                        }
+                    },
                     onAddContact: { model.isPresentingSheet = .addContact($0) },
+                    onSelectAddress: { model.isPresentingSheet = .addressDetails($0) },
                 ),
             )
         }
@@ -200,6 +219,8 @@ struct WalletNavigationView: View {
                     PortfolioScene(model: viewModelFactory.portfolioScene(wallet: model.wallet, defaultType: defaultType))
                 case let .addContact(action):
                     AddContactNavigationView(action: action)
+                case let .addressDetails(chainAddress):
+                    AddressDetailsNavigationStack(model: viewModelFactory.addressDetailsScene(chainAddress: chainAddress))
                 case .swap:
                     SwapNavigationStack(wallet: model.wallet, onComplete: model.onTransferComplete)
                 }
@@ -216,20 +237,5 @@ struct WalletNavigationView: View {
 extension WalletNavigationView {
     private func onScan(_ code: String) {
         Task { await navigationHandler.handle(code: code) }
-    }
-
-    private func onSelectTransactionHeaderAction(_ action: GemTransactionHeaderAction) {
-        Task {
-            do {
-                try await presenter.handleTransactionHeaderAction(
-                    action,
-                    wallet: model.wallet,
-                    navigationState: navigationState,
-                    nftDestination: navigationState.wallet,
-                )
-            } catch {
-                model.isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
-            }
-        }
     }
 }

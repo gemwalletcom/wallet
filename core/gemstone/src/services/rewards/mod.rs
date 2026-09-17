@@ -147,6 +147,27 @@ mod tests {
     }
 
     #[test]
+    fn test_a_rewards_error_answered_with_ok_status_surfaces_its_message() {
+        block_on(async {
+            let username_error = r#"{"error":{"message":"Username must contain only letters and digits"}}"#;
+            let testkit = RewardsTestkit::with_provider(Arc::new(TestAlienProvider::with_json_by_path(
+                200,
+                &[("auth/nonce", TEST_NONCE), ("referrals/create", username_error), ("referrals/use", username_error)],
+            )))
+            .await;
+            let expected = GemServiceError::Api {
+                msg: "Username must contain only letters and digits".to_string(),
+            };
+
+            let created = testkit.service.create_referral(testkit.wallet.clone(), "code".to_string()).await.unwrap_err();
+            let used = testkit.service.use_referral_code(testkit.wallet.clone(), "code".to_string()).await.unwrap_err();
+
+            assert_eq!(created, expected);
+            assert_eq!(used, expected);
+        })
+    }
+
+    #[test]
     fn test_a_wallet_with_no_auth_account_never_reaches_the_api() {
         block_on(async {
             let testkit = RewardsTestkit::with_provider(Arc::new(TestAlienProvider::with_json_by_path(200, &[("auth/nonce", TEST_NONCE)]))).await;

@@ -4,6 +4,7 @@ import Components
 import Formatters
 import Foundation
 import protocol Gemstone.GemPortfolioServiceProtocol
+import func Gemstone.leverageNumber
 import func Gemstone.portfolioChartData
 import struct Gemstone.PortfolioData
 import struct Gemstone.PortfolioMarginUsage
@@ -111,10 +112,7 @@ extension PortfolioSceneViewModel {
     }
 
     func chartTypeTitle(for type: PortfolioChartType) -> String {
-        switch type {
-        case .value: Localized.Perpetual.value
-        case .pnl: Localized.Perpetual.pnl
-        }
+        type.title
     }
 
     func statisticModel(_ statistic: PortfolioStatistic) -> ListItemModel {
@@ -125,7 +123,7 @@ extension PortfolioSceneViewModel {
         case let .unrealizedPnl(value), let .allTimePnl(value):
             return pnlModel(title: title, value: value)
         case let .accountLeverage(value):
-            return ListItemModel(title: title, subtitle: value.formatted(.number.precision(.fractionLength(2))) + "x")
+            return ListItemModel(title: title, subtitle: leverageNumber(value: value).text())
         case let .marginUsage(margin):
             return marginModel(title: title, margin)
         case let .volume(value):

@@ -44,8 +44,7 @@ public struct AutocloseViewModel {
     private let priceChangeCalculator = PriceChangeCalculator()
 
     public var profitTitle: String {
-        let isProfit = price.map { estimator.pnl(price: $0) >= 0 } ?? (type == .takeProfit)
-        return isProfit ? Localized.Perpetual.AutoClose.expectedProfit : Localized.Perpetual.AutoClose.expectedLoss
+        estimator.isProfit(price: price, tpslType: type.toGem()) ? Localized.Perpetual.AutoClose.expectedProfit : Localized.Perpetual.AutoClose.expectedLoss
     }
 
     public var expectedPnL: String {

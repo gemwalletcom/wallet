@@ -29,13 +29,10 @@ public struct CollectionsScene<ViewModel: CollectionsViewable>: View {
                         Spacer(minLength: .medium)
                     }
 
-                    if let unverifiedCount = model.content.unverifiedCount {
+                    if let unverifiedItem = model.content.unverifiedListItem {
                         List {
                             NavigationLink(value: Scenes.UnverifiedCollections()) {
-                                ListItemView(
-                                    title: Localized.Asset.Verification.unverified,
-                                    subtitle: unverifiedCount,
-                                )
+                                ListItemView(model: unverifiedItem)
                             }
                         }
                         .contentMargins(.top, .zero, for: .scrollContent)

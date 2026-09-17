@@ -23,23 +23,21 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.BuildConfig
+import com.gemwallet.android.WalletConnectRequestContent
+import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.ext.updateUrl
+import com.gemwallet.android.features.onboarding.AcceptTermsDestination
 import com.gemwallet.android.features.onboarding.OnboardScreen
 import com.gemwallet.android.flavors.ReviewManager
 import com.gemwallet.android.ui.components.PushRequest
-import com.gemwallet.android.features.onboarding.AcceptTermsDestination
 import com.gemwallet.android.ui.navigation.WalletNavGraph
 import com.gemwallet.android.ui.navigation.WalletRootRoute
 import com.gemwallet.android.ui.navigation.rememberWalletNavigationState
 import com.gemwallet.android.ui.navigation.routes.assetsRoute
 import com.gemwallet.android.ui.theme.Spacer16
-import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
-import com.gemwallet.android.WalletConnectRequestContent
-import uniffi.gemstone.GemDeeplinkService
 
 @Composable
 fun WalletApp(
-    deeplinkService: GemDeeplinkService,
     pendingRoutes: List<NavKey> = emptyList(),
     onPendingNavigationConsumed: () -> Unit = {},
     onContentReady: () -> Unit = {},
@@ -57,7 +55,6 @@ fun WalletApp(
     val navigator = rememberWalletNavigationState(
         startDestination = start,
         currentTab = currentTab,
-        deeplinkService = deeplinkService,
     )
     val currentOnContentReady by rememberUpdatedState(onContentReady)
     val isWalletRootActive = navigator.backStack.lastOrNull() == WalletRootRoute

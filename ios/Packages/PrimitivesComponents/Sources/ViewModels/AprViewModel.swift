@@ -24,8 +24,4 @@ public struct AprViewModel: Sendable {
     public var text: String {
         Localized.Stake.apr(subtitle.text)
     }
-
-    public var showApr: Bool {
-        !apr.isZero
-    }
 }

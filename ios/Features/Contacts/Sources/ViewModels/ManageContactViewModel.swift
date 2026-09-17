@@ -17,7 +17,6 @@ import PrimitivesComponents
 import Style
 import SwiftUI
 import UIKit
-import Validators
 
 @Observable
 @MainActor
@@ -128,7 +127,7 @@ public final class ManageContactViewModel {
     }
 
     var buttonState: ButtonState {
-        guard nameInputModel.isValid, service.canSave(name: nameInputModel.text, isSaving: isSaving) else {
+        guard service.canSave(name: nameInputModel.text, isSaving: isSaving) else {
             return .disabled
         }
         return isSaving ? .loading(showProgress: true) : .normal

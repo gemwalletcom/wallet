@@ -1,5 +1,6 @@
 use alloy_primitives::{Address, hex};
 use gem_client::Client;
+use gem_jsonrpc::alien::{self, RpcClient, RpcProvider};
 use gem_jsonrpc::client::JsonRpcClient;
 use gem_jsonrpc::types::{ERROR_INTERNAL_ERROR, JsonRpcError};
 
@@ -7,6 +8,7 @@ use num_bigint::{BigInt, BigUint, Sign};
 use serde_json::json;
 use serde_serializers::{biguint_from_hex_str, u64_from_str};
 use std::str::FromStr;
+use std::sync::Arc;
 
 use super::model::{Block, BlockHeader, TraceCallResult, TransactionReceipt};
 use crate::jsonrpc::{BlockParameter, EthereumRpc, TransactionObject};
@@ -38,6 +40,10 @@ impl<C: Client + Clone> EthereumClient<C> {
 
     pub fn for_chain(client: JsonRpcClient<C>, chain: Chain) -> Option<Self> {
         EVMChain::from_chain(chain).map(|evm_chain| Self::new(client, evm_chain))
+    }
+
+    pub fn for_provider(provider: Arc<dyn RpcProvider>, chain: Chain) -> Option<EthereumClient<RpcClient>> {
+        alien::create_client(provider, chain).ok().and_then(|client| EthereumClient::for_chain(client, chain))
     }
 
     pub fn get_chain(&self) -> Chain {

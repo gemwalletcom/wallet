@@ -1,3 +1,4 @@
+use primitives::ResponseError;
 use serde::{Serialize, de::DeserializeOwned};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -12,11 +13,12 @@ pub struct Response {
     pub data: Vec<u8>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum ClientError<E = Vec<u8>> {
     Network(String),
     Timeout,
     Http { status: u16, body: E },
+    Response { status: u16, message: String },
     Serialization(String),
 }
 
@@ -29,6 +31,7 @@ impl ClientError {
             },
             Self::Network(message) => ClientError::Network(message),
             Self::Timeout => ClientError::Timeout,
+            Self::Response { status, message } => ClientError::Response { status, message },
             Self::Serialization(message) => ClientError::Serialization(message),
         }
     }
@@ -43,6 +46,7 @@ impl fmt::Debug for ClientError {
                 let body_str = String::from_utf8_lossy(&body[..body.len().min(256)]);
                 f.debug_struct("Http").field("status", status).field("body", &body_str).finish()
             }
+            Self::Response { status, message } => f.debug_struct("Response").field("status", status).field("message", message).finish(),
             Self::Serialization(msg) => f.debug_tuple("Serialization").field(msg).finish(),
         }
     }
@@ -68,6 +72,7 @@ impl<E> fmt::Display for ClientError<E> {
             Self::Network(msg) => write!(f, "Network error: {}", msg),
             Self::Timeout => write!(f, "Timeout error"),
             Self::Http { status, .. } => write!(f, "HTTP error: status {}", status),
+            Self::Response { message, .. } => write!(f, "{}", message),
             Self::Serialization(msg) => write!(f, "{}", msg),
         }
     }
@@ -111,10 +116,20 @@ where
     match serde_json::from_slice(data) {
         Ok(value) => Ok(value),
         Err(error) => {
-            validate_http_status(response)?;
+            validate_response(response)?;
             Err(ClientError::Serialization(error.to_string()))
         }
     }
+}
+
+pub fn validate_response(response: &Response) -> Result<(), ClientError> {
+    if let Ok(body) = serde_json::from_slice::<ResponseError>(&response.data) {
+        return Err(ClientError::Response {
+            status: response.status.unwrap_or_default(),
+            message: body.error.message,
+        });
+    }
+    validate_http_status(response)
 }
 
 fn validate_http_status(response: &Response) -> Result<(), ClientError> {
@@ -127,4 +142,74 @@ fn validate_http_status(response: &Response) -> Result<(), ClientError> {
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const USERNAME_ERROR: &str = r#"{"error":{"message":"Username must contain only letters and digits"}}"#;
+    const USERNAME_ERROR_MESSAGE: &str = "Username must contain only letters and digits";
+
+    #[test]
+    fn test_validate_response() {
+        assert_eq!(
+            validate_response(&Response {
+                status: Some(200),
+                data: USERNAME_ERROR.as_bytes().to_vec()
+            }),
+            Err(ClientError::Response {
+                status: 200,
+                message: USERNAME_ERROR_MESSAGE.to_string()
+            })
+        );
+        assert_eq!(
+            validate_response(&Response {
+                status: Some(400),
+                data: USERNAME_ERROR.as_bytes().to_vec()
+            }),
+            Err(ClientError::Response {
+                status: 400,
+                message: USERNAME_ERROR_MESSAGE.to_string()
+            })
+        );
+        assert_eq!(
+            validate_response(&Response {
+                status: Some(502),
+                data: b"Bad Gateway".to_vec()
+            }),
+            Err(ClientError::Http {
+                status: 502,
+                body: b"Bad Gateway".to_vec()
+            })
+        );
+        assert_eq!(
+            validate_response(&Response {
+                status: Some(200),
+                data: br#"{"points":1}"#.to_vec()
+            }),
+            Ok(())
+        );
+    }
+
+    #[test]
+    fn test_deserialize_response() {
+        assert_eq!(
+            deserialize_response::<bool>(&Response {
+                status: Some(200),
+                data: b"true".to_vec()
+            }),
+            Ok(true)
+        );
+        assert_eq!(
+            deserialize_response::<bool>(&Response {
+                status: Some(200),
+                data: USERNAME_ERROR.as_bytes().to_vec()
+            }),
+            Err(ClientError::Response {
+                status: 200,
+                message: USERNAME_ERROR_MESSAGE.to_string()
+            })
+        );
+    }
 }

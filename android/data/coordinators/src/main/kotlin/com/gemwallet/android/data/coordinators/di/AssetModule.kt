@@ -54,7 +54,7 @@ object AssetModule {
         getWalletAssets: GetWalletAssets,
         userConfig: UserConfig,
         walletHomeService: GemWalletHomeServiceInterface,
-    ): GetActiveAssetsInfo = GetActiveAssetsInfoImpl(getWalletAssets, userConfig, walletHomeService.assetRow())
+    ): GetActiveAssetsInfo = GetActiveAssetsInfoImpl(getWalletAssets, userConfig, walletHomeService.assetRowStyle())
 
     @Provides
     @Singleton

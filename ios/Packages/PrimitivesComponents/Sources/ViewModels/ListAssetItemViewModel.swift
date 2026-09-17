@@ -3,7 +3,7 @@
 import Components
 import Formatters
 import Foundation
-import struct Gemstone.GemAssetRow
+import struct Gemstone.GemAssetRowStyle
 import GemstonePrimitives
 import Primitives
 import Style
@@ -11,7 +11,7 @@ import SwiftUI
 
 public struct ListAssetItemViewModel: ListAssetItemViewable {
     let assetDataModel: AssetDataViewModel
-    let row: GemAssetRow
+    let rowStyle: GemAssetRowStyle
 
     public let showBalancePrivacy: Binding<Bool>
     public var action: ((ListAssetItemAction) -> Void)?
@@ -19,12 +19,12 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
     public init(
         showBalancePrivacy: Binding<Bool>,
         assetDataModel: AssetDataViewModel,
-        row: GemAssetRow,
+        rowStyle: GemAssetRowStyle,
         action: ((ListAssetItemAction) -> Void)? = nil,
     ) {
         self.showBalancePrivacy = showBalancePrivacy
         self.assetDataModel = assetDataModel
-        self.row = row
+        self.rowStyle = rowStyle
         self.action = action
     }
 
@@ -33,7 +33,7 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
         assetData: AssetData,
         formatter: ValueFormatter,
         currency: Currency,
-        row: GemAssetRow,
+        rowStyle: GemAssetRowStyle,
     ) {
         let model = AssetDataViewModel(
             assetData: assetData,
@@ -43,13 +43,13 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
         self.init(
             showBalancePrivacy: showBalancePrivacy,
             assetDataModel: model,
-            row: row,
+            rowStyle: rowStyle,
             action: nil,
         )
     }
 
     public var name: String {
-        switch row.title {
+        switch rowStyle.title {
         case .asset: assetDataModel.name
         case .canonicalAsset: assetDataModel.asset.id.type == .native ? assetDataModel.asset.chain.asset.name : assetDataModel.name
         case .network: assetDataModel.asset.chain.networkName
@@ -57,12 +57,12 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
     }
 
     public var symbol: String? {
-        guard row.showsSymbol, name != assetDataModel.symbol else { return .none }
+        guard rowStyle.showsSymbol, name != assetDataModel.symbol else { return .none }
         return assetDataModel.symbol
     }
 
     public var subtitleView: ListAssetItemSubtitleView {
-        switch row.subtitle {
+        switch rowStyle.subtitle {
         case .price:
             .price(
                 price: TextValue(
@@ -90,7 +90,7 @@ public struct ListAssetItemViewModel: ListAssetItemViewable {
     }
 
     public var rightView: ListAssetItemRightView {
-        switch row.trailing {
+        switch rowStyle.trailing {
         case .balance:
             .balance(
                 balance: TextValue(

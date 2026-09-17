@@ -13,25 +13,47 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.setPlainText
-import com.gemwallet.android.ui.components.image.InitialsAvatar
+import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
+import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.BlockExplorerLink
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 @Composable
 fun AddressPropertyItem(
     @StringRes title: Int,
     displayText: String,
     copyValue: String,
-    icon: Any? = null,
-    placeholderText: String? = null,
+    image: ListItemImage? = null,
     explorerLink: BlockExplorerLink? = null,
     listPosition: ListPosition = ListPosition.Middle,
+    onClick: (() -> Unit)? = null,
+) {
+    AddressPropertyItem(
+        title = stringResource(title),
+        displayText = displayText,
+        copyValue = copyValue,
+        image = image,
+        explorerLink = explorerLink,
+        listPosition = listPosition,
+        onClick = onClick,
+    )
+}
+
+@Composable
+fun AddressPropertyItem(
+    title: String,
+    displayText: String,
+    copyValue: String,
+    image: ListItemImage? = null,
+    explorerLink: BlockExplorerLink? = null,
+    listPosition: ListPosition = ListPosition.Middle,
+    onClick: (() -> Unit)? = null,
 ) {
     var isExpanded by remember { mutableStateOf(false) }
     val clipboardManager = LocalContext.current.clipboardManager()
@@ -42,22 +64,19 @@ fun AddressPropertyItem(
         isExpanded = isExpanded,
         onDismiss = { isExpanded = false },
         onLongClick = { isExpanded = true },
-        onClick = { explorerLink?.let { uriHandler.open(context, it.link) } },
+        onClick = onClick ?: { explorerLink?.let { link -> uriHandler.open(context, link.link) } ?: Unit },
         content = { modifier ->
             PropertyItem(
                 modifier = modifier,
-                title = { PropertyTitleText(title) },
+                title = { PropertyTitleText(text = title) },
                 data = {
                     PropertyDataText(
                         text = displayText,
                         badge = when {
-                            icon != null -> {
-                                { DataBadgeChevron(icon, explorerLink != null) }
+                            image != null -> {
+                                { DataBadgeChevron(onClick != null || explorerLink != null) { ListItemImageView(image = image, size = smallIconSize) } }
                             }
-                            placeholderText != null -> {
-                                { DataBadgeChevron(explorerLink != null) { InitialsAvatar(text = placeholderText, size = smallIconSize) } }
-                            }
-                            explorerLink != null -> {
+                            onClick != null || explorerLink != null -> {
                                 { DataBadgeChevron() }
                             }
                             else -> null

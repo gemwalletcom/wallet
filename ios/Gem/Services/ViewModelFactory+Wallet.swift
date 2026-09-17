@@ -45,6 +45,14 @@ extension ViewModelFactory {
     }
 
     @MainActor
+    public func addressDetailsScene(chainAddress: ChainAddress) -> AddressDetailsSceneViewModel {
+        AddressDetailsSceneViewModel(
+            chainAddress: chainAddress,
+            service: gatewayService.addressDetailsService(explorer: explorerService, names: nameService),
+        )
+    }
+
+    @MainActor
     public func portfolioScene(wallet: Wallet, defaultType: PortfolioType) -> PortfolioSceneViewModel {
         PortfolioSceneViewModel(wallet: wallet, service: portfolioService, preferences: observablePreferences, defaultType: defaultType)
     }

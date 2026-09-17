@@ -46,7 +46,7 @@ public struct WalletDetailScene: View {
                 if let secretKind = model.secretKind {
                     Section {
                         NavigationCustomLink(
-                            with: ListItemView(title: Localized.Common.show(secretKind.title)),
+                            with: ListItemView(model: model.showSecretListItem(for: secretKind)),
                             action: model.onShowSecret,
                         )
                     } header: {

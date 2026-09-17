@@ -41,6 +41,20 @@ public struct DelegationViewModel: Sendable {
         delegationStatus(delegation: delegation.toGem())
     }
 
+    public var listItem: ListItemModel {
+        ListItemModel(
+            title: validatorText,
+            titleStyle: titleStyle,
+            titleExtra: stateModel.title,
+            titleStyleExtra: stateModel.textStyle,
+            subtitle: balanceText,
+            subtitleStyle: subtitleStyle,
+            subtitleExtra: fiatValueText,
+            subtitleStyleExtra: subtitleExtraStyle,
+            imageStyle: .asset(assetImage: validatorImage),
+        )
+    }
+
     public var stateModel: DelegationStateViewModel {
         DelegationStateViewModel(status: status)
     }

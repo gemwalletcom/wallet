@@ -15,7 +15,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.settings.networks.viewmodels.ServiceStatusViewModel
 import com.gemwallet.android.ui.LocalStreamConnected
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
+import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
@@ -41,16 +42,12 @@ fun ServiceStatusScene(
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 itemsPositioned(state.rows) { position, item ->
-                    ServiceStatusItem(
-                        model = item,
-                        listPosition = position,
-                    )
+                    ListItem(model = item.model, listPosition = position)
                 }
 
                 item {
-                    PropertyItem(
-                        title = "Stream",
-                        data = if (isStreamConnected) "🟢" else "🔴",
+                    ListItem(
+                        model = ListItemModel(title = "Stream", subtitle = if (isStreamConnected) "🟢" else "🔴"),
                         listPosition = ListPosition.Single,
                     )
                 }

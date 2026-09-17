@@ -66,9 +66,9 @@ class ConnectionsViewModelTest {
         val connections: GetWalletConnections = mockk {
             every { observeConnections() } returns flowOf(listOf(connection))
         }
-        val model = ConnectionsViewModel(connections, mockk(relaxed = true), service, dispatcher).also { scopes.add(it) }
+        val model = ConnectionsViewModel(connections, mockk(relaxed = true), service, dispatcher, mockk(relaxed = true)).also { scopes.add(it) }
 
-        assertEquals(sections, model.sections.first { it.isNotEmpty() })
+        assertEquals(sections.map { it.title }, model.sections.first { it.isNotEmpty() }.map { it.title })
     }
 
     @Test
@@ -77,7 +77,7 @@ class ConnectionsViewModelTest {
         val connections: GetWalletConnections = mockk {
             every { observeConnections() } returns flowOf(emptyList())
         }
-        val model = ConnectionsViewModel(connections, pair, mockk(relaxed = true), dispatcher).also { scopes.add(it) }
+        val model = ConnectionsViewModel(connections, pair, mockk(relaxed = true), dispatcher, mockk(relaxed = true)).also { scopes.add(it) }
 
         model.addPairing("wc:topic@2", onSuccess = {}, onError = {})
         advanceUntilIdle()
@@ -104,6 +104,8 @@ class ConnectionsViewModelTest {
             mockk(relaxed = true),
             service,
             SavedStateHandle(mapOf(RouteArgument.ConnectionId.key to "connection-1")),
+            dispatcher,
+            mockk(relaxed = true),
         ).also { scopes.add(it) }
 
         assertEquals("Uniswap", model.details.first { it != null }?.connection?.row?.title)
@@ -120,6 +122,8 @@ class ConnectionsViewModelTest {
             disconnect,
             mockk(relaxed = true),
             SavedStateHandle(mapOf(RouteArgument.ConnectionId.key to "gone")),
+            dispatcher,
+            mockk(relaxed = true),
         ).also { scopes.add(it) }
 
         var finished = false

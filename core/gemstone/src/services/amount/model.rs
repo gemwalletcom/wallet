@@ -180,15 +180,8 @@ impl GemAmountError {
                 asset: asset.clone(),
                 minimum: minimum.clone(),
             },
-            Self::InsufficientBalance { asset, .. } => GemAmountErrorDisplay::InsufficientBalance { title: asset_title(asset) },
+            Self::InsufficientBalance { asset, .. } => GemAmountErrorDisplay::InsufficientBalance { title: asset.display_title() },
         }
-    }
-}
-
-fn asset_title(asset: &Asset) -> String {
-    match asset.name == asset.symbol {
-        true => asset.name.clone(),
-        false => asset.full_name(),
     }
 }
 
@@ -219,6 +212,10 @@ impl GemNumberFormat {
 
     pub fn input_text(&self, value: String, decimals: u32) -> Option<String> {
         super::rules::input_text(&self.decimal_separator, &value, decimals)
+    }
+
+    pub fn value_text(&self, value: f64) -> String {
+        super::rules::value_text(&self.decimal_separator, value)
     }
 
     pub fn plain(&self, input: String) -> String {

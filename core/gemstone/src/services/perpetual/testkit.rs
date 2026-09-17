@@ -14,6 +14,7 @@ use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::balance::GemBalanceService;
 use crate::services::balance::testkit::MemoryBalanceStore;
 use crate::services::error::GemServiceError;
+use crate::services::node::GemNodeService;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::preferences::testkit::MemoryPreferencesStore;
 use crate::services::price::GemPriceService;
@@ -96,7 +97,12 @@ impl PerpetualTestkit {
             wallets.clone(),
         ));
         let provider = Arc::new(TestAlienProvider::with_status(503));
-        let gateway = Arc::new(GemGateway::new(provider.clone(), preferences_store, Arc::new(EmptyPreferences)));
+        let gateway = Arc::new(GemGateway::new(
+            provider.clone(),
+            Arc::new(GemNodeService::mock()),
+            preferences_store,
+            Arc::new(EmptyPreferences),
+        ));
         let price = Arc::new(GemPriceService::new(Arc::new(MemoryPriceStore::default())));
         let asset_store = Arc::new(MemoryAssetStore::default());
         let assets = Arc::new(GemAssetsService::mock(provider.clone(), asset_store.clone()));

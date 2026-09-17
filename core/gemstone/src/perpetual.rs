@@ -74,6 +74,10 @@ impl GemPerpetual {
         leverage_text(value)
     }
 
+    pub fn can_withdraw(&self, available: f64) -> bool {
+        available > 0.0
+    }
+
     pub fn autoclose_percent(&self, value: u8) -> Option<u8> {
         (value != 0).then_some(value)
     }
@@ -207,6 +211,13 @@ impl GemAutocloseEstimator {
         self.inner.roe(price)
     }
 
+    pub fn is_profit(&self, price: Option<f64>, tpsl_type: TpslType) -> bool {
+        match price {
+            Some(price) => self.inner.pnl(price) >= 0.0,
+            None => tpsl_type == TpslType::TakeProfit,
+        }
+    }
+
     pub fn target_price_from_roe(&self, roe_percent: i32, trigger_type: TpslType) -> f64 {
         self.inner.target_price_from_roe(roe_percent, trigger_type)
     }
@@ -287,6 +298,25 @@ mod tests {
     use serde_json::json;
 
     use super::*;
+
+    #[test]
+    fn test_a_target_price_reads_as_profit_from_its_pnl_and_falls_back_to_the_trigger_kind() {
+        let estimator = GemAutocloseEstimator::new(100.0, 1.0, PerpetualDirection::Long, 5);
+
+        assert!(estimator.is_profit(Some(110.0), TpslType::StopLoss));
+        assert!(!estimator.is_profit(Some(90.0), TpslType::TakeProfit));
+        assert!(estimator.is_profit(None, TpslType::TakeProfit));
+        assert!(!estimator.is_profit(None, TpslType::StopLoss));
+    }
+
+    #[test]
+    fn test_withdraw_needs_an_available_balance() {
+        let perpetual = GemPerpetual::new(PerpetualProvider::Hypercore);
+
+        assert!(perpetual.can_withdraw(0.01));
+        assert!(!perpetual.can_withdraw(0.0));
+        assert!(!perpetual.can_withdraw(-1.0));
+    }
 
     #[test]
     fn test_the_margin_and_trigger_templates_read_the_same_on_both_apps() {

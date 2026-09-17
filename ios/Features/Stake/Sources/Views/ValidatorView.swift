@@ -14,10 +14,7 @@ public struct ValidatorView: View {
     public var body: some View {
         HStack {
             ValidatorImageView(model: model)
-            ListItemView(
-                title: model.name,
-                subtitle: model.aprModel.text,
-            )
+            ListItemView(model: model.listItem)
         }
     }
 }

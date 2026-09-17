@@ -2,31 +2,39 @@
 
 import Foundation
 import enum Gemstone.Currency
-import class Gemstone.GemDeviceKeyService
+import protocol Gemstone.GemDeviceKeyServiceProtocol
 import struct Gemstone.GemDeviceInfo
 import protocol Gemstone.GemDevicePlatform
 import protocol Gemstone.GemPreferencesServiceProtocol
 import GemstonePrimitives
+import Keychain
 import Primitives
 import UIKit
 import UserNotifications
 
 public final class GemstoneDevicePlatform: GemDevicePlatform, @unchecked Sendable {
+    private enum Keys {
+        static let deviceId = "deviceId"
+        static let deviceToken = "deviceToken"
+        static let devicePrivateKey = "devicePrivateKey"
+        static let devicePublicKey = "devicePublicKey"
+    }
+
     private let preferencesService: any GemPreferencesServiceProtocol
-    private let deviceKeyService: GemDeviceKeyService
-    private let securePreferences: SecurePreferences
+    private let deviceKeyService: any GemDeviceKeyServiceProtocol
+    private let keychain: any Keychain
     private let os: String
     private let model: String
 
     @MainActor
     public init(
         preferencesService: any GemPreferencesServiceProtocol,
-        deviceKeyService: GemDeviceKeyService,
-        securePreferences: SecurePreferences = SecurePreferences(),
+        deviceKeyService: any GemDeviceKeyServiceProtocol,
+        keychain: any Keychain = KeychainDefault(),
     ) {
         self.preferencesService = preferencesService
         self.deviceKeyService = deviceKeyService
-        self.securePreferences = securePreferences
+        self.keychain = keychain
         os = UIDevice.current.osName
         model = UIDevice.current.modelName
     }
@@ -47,7 +55,17 @@ public final class GemstoneDevicePlatform: GemDevicePlatform, @unchecked Sendabl
     }
 
     public func pushToken() async throws -> String {
-        try securePreferences.get(key: .deviceToken) ?? .empty
+        try keychain.get(Keys.deviceToken) ?? .empty
+    }
+
+    public func setPushToken(_ token: String) throws {
+        try keychain.accessibility(.whenUnlockedThisDeviceOnly, authenticationPolicy: []).set(token, key: Keys.deviceToken)
+    }
+
+    public func clearDeviceEntries() throws {
+        for key in [Keys.deviceId, Keys.deviceToken, Keys.devicePrivateKey, Keys.devicePublicKey] {
+            try keychain.remove(key)
+        }
     }
 
     public func isPushEnabled() async throws -> Bool {

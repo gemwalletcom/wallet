@@ -14,6 +14,7 @@ public extension View {
             safeAreaBar(edge: edge) {
                 content()
             }
+            .scrollEdgeEffectStyle(.soft, for: edge.edges)
         } else {
             safeAreaInset(edge: edge) {
                 content()
@@ -39,6 +40,15 @@ public extension View {
             }
         } else {
             self
+        }
+    }
+}
+
+private extension VerticalEdge {
+    var edges: Edge.Set {
+        switch self {
+        case .top: .top
+        case .bottom: .bottom
         }
     }
 }

@@ -11,9 +11,14 @@ import PrimitivesComponents
 
 struct ConfirmRowViewModel {
     private let content: GemConfirmRowContent?
+    private let onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)?
 
-    init(content: GemConfirmRowContent?) {
+    init(
+        content: GemConfirmRowContent?,
+        onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)? = nil,
+    ) {
         self.content = content
+        self.onSelectAddress = onSelectAddress
     }
 }
 
@@ -87,7 +92,18 @@ extension ConfirmRowViewModel {
             ),
             mode: .nameOrAddress,
             addressLink: link,
+            onSelect: selectAction(destination: destination, chainAddress: ChainAddress(chain: chain, address: address)),
         )
+    }
+
+    private func selectAction(destination: GemConfirmDestination, chainAddress: ChainAddress) -> (@MainActor @Sendable () -> Void)? {
+        guard let onSelectAddress else { return nil }
+        switch destination {
+        case .recipient, .contract, .validator, .provider:
+            return { onSelectAddress(chainAddress) }
+        case .resource:
+            return nil
+        }
     }
 
     private func contactImage(_ addressName: AddressName?) -> AssetImage? {

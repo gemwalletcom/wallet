@@ -12,7 +12,6 @@ import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
-import Validators
 
 @Observable
 @MainActor
@@ -82,6 +81,24 @@ public final class ManageContactAddressViewModel {
 
     var fields: [GemContactAddressField] {
         contactAddressFields(chain: chain.rawValue)
+    }
+
+    var fieldList: [ContactAddressField] {
+        fields.map { field in
+            switch field {
+            case .network: .network
+            case .address: .address
+            case .memo: .memo
+            }
+        }
+    }
+
+    var networkTitle: String {
+        GemContactAddressField.network.title
+    }
+
+    var memoTitle: String {
+        GemContactAddressField.memo.title
     }
 
     var networkSelectorModel: NetworkSelectorViewModel {

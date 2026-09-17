@@ -34,14 +34,17 @@ class TransactionsViewModelSyncTest {
     }
     private val getTransactions = mockk<GetTransactions> {
         every { getTransactions(any()) } returns MutableStateFlow(emptyList<TransactionDataAggregate>())
+        every { stored(any()) } returns emptyList()
     }
     private val getSession = mockk<GetSession>(relaxed = true) {
         every { this@mockk() } returns session
     }
 
+    private val dispatcher = UnconfinedTestDispatcher()
+
     @Before
     fun setUp() {
-        Dispatchers.setMain(UnconfinedTestDispatcher())
+        Dispatchers.setMain(dispatcher)
         mockkStatic(Log::class)
         every { Log.e(any(), any(), any()) } returns 0
     }
@@ -90,5 +93,8 @@ class TransactionsViewModelSyncTest {
         getSession = getSession,
         getTransactions = getTransactions,
         service = service,
+        connectionStatusObserver = mockk(relaxed = true),
+        ioDispatcher = dispatcher,
+        context = mockk(relaxed = true),
     )
 }

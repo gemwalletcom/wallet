@@ -3,6 +3,9 @@ package com.gemwallet.android.features.buy.viewmodels.models
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.text
+import com.gemwallet.android.ui.components.image.iconResource
+import com.gemwallet.android.ui.components.list_item.ListItemImage
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.CryptoFormattedUIModel
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.FiatProviderName
@@ -32,6 +35,13 @@ data class BuyFiatProviderUIModel(
         row.rate?.let { it.text(it.value.text()) }.orEmpty()
     }
 }
+
+fun BuyFiatProviderUIModel.listItem(): ListItemModel = ListItemModel(
+    title = providerName,
+    subtitle = cryptoText,
+    subtitleExtra = fiatFormatted,
+    image = ListItemImage.Drawable(provider.iconResource()),
+)
 
 fun GemFiatQuoteRow.toProviderUIModel(asset: Asset): BuyFiatProviderUIModel =
     BuyFiatProviderUIModel(row = this, asset = asset)

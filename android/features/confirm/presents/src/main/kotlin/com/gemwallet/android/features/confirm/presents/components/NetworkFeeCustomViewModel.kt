@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import com.gemwallet.android.domains.confirm.CustomFee
 import com.gemwallet.android.domains.confirm.FeeDetailsModel
 import com.gemwallet.android.domains.confirm.FeeUIModel
+import uniffi.gemstone.GemCustomFeeCheck
 import uniffi.gemstone.GemNumberFormat
 import java.text.DecimalFormatSymbols
 import java.math.BigInteger
@@ -24,9 +25,8 @@ class NetworkFeeCustomViewModel(
 
     val placeholder: String get() = custom.placeholder
     val networkFee: FeeUIModel.FeeInfo get() = custom.networkFee
-    val isOverMax: Boolean get() = custom.isOverMax
+    val check: GemCustomFeeCheck get() = custom.check
     val maxRateText: String get() = custom.maxRateText
-    val isBelowMinimum: Boolean get() = custom.isBelowMinimum
     val minRateText: String get() = custom.minRateText
     val isConfirmEnabled: Boolean get() = custom.isConfirmEnabled
     val rate: BigInteger? get() = custom.rate

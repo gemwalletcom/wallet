@@ -3,6 +3,7 @@
 import Components
 import Formatters
 import Foundation
+import class Gemstone.GemPerpetual
 import struct Gemstone.GemPerpetualDetails
 import enum Gemstone.GemPerpetualDetailsAction
 import struct Gemstone.PerpetualConfirmData
@@ -18,6 +19,7 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
     }
 
     private let details: GemPerpetualDetails
+    private let perpetual = GemPerpetual(provider: .hypercore)
     private let currencyFormatter: CurrencyFormatter
     private let percentFormatter = PercentFormatter.signed
     private let percentSignLessFormatter = PercentFormatter.unsigned
@@ -55,7 +57,7 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
     }
 
     var positionText: String {
-        "\(directionViewModel.title) \(leverageText)"
+        perpetual.positionText(directionName: directionViewModel.title, formattedLeverage: leverageText)
     }
 
     var directionViewModel: PerpetualDirectionViewModel {
@@ -63,7 +65,7 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
     }
 
     var leverageText: String {
-        "\(data.leverage)x"
+        perpetual.leverageText(value: data.leverage)
     }
 
     var slippageField: ListItemField {
@@ -116,6 +118,10 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
         Localized.Perpetual.autoClose
     }
 
+    var autocloseListItem: ListItemModel {
+        ListItemModel(title: autocloseTitle, subtitle: autocloseText.subtitle, subtitleExtra: autocloseText.subtitleExtra)
+    }
+
     var autocloseText: (subtitle: String, subtitleExtra: String?) {
         autocloseFormatter.format(
             takeProfit: data.takeProfit.flatMap { NumberInput.double($0) },
@@ -133,7 +139,7 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
 extension PerpetualDetailsViewModel {
     private var listItemSubtitle: String? {
         switch action {
-        case .open: String(format: "%@ %@", directionViewModel.title, leverageText)
+        case .open: positionText
         case .close: pnlText
         case .increase: directionViewModel.increaseTitle
         case .reduce: directionViewModel.reduceTitle

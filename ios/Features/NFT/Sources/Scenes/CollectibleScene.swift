@@ -33,7 +33,7 @@ public struct CollectibleScene: View {
                 case let .attributes(attributes):
                     Section(Localized.Nft.properties) {
                         ForEach(attributes, id: \.self) {
-                            ListItemView(title: $0.name, subtitle: model.attributeText($0.value))
+                            ListItemView(model: model.attributeListItem($0))
                         }
                     }
                 case let .links(links):
@@ -99,13 +99,13 @@ extension CollectibleScene {
         if let assetImage = row.assetImage {
             ListItemImageView(title: row.title, subtitle: row.subtitle, assetImage: assetImage)
         } else if let copyValue = row.copyValue, let explorer = row.explorer {
-            ListItemView(title: row.title, subtitle: row.subtitle)
+            ListItemView(model: row.listItem)
                 .explorerContext(ExplorerContextData(copyValue: copyValue, explorerLink: explorer))
         } else if let copyValue = row.copyValue {
-            ListItemView(title: row.title, subtitle: row.subtitle)
+            ListItemView(model: row.listItem)
                 .contextMenu(.copy(value: copyValue.rawValue, onCopy: model.onSelectCopyValue))
         } else {
-            ListItemView(title: row.title, subtitle: row.subtitle)
+            ListItemView(model: row.listItem)
         }
     }
 }

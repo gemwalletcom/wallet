@@ -97,6 +97,7 @@ impl<B: HttpErrorBody> From<ClientError<B>> for SwapperError {
         match error {
             ClientError::Network(message) | ClientError::Serialization(message) => Self::ComputeQuoteError(message),
             ClientError::Timeout => Self::ComputeQuoteError("Request timed out".into()),
+            ClientError::Response { message, .. } => Self::ComputeQuoteError(message),
             ClientError::Http { status, body } => body.into_swapper_error(status),
         }
     }

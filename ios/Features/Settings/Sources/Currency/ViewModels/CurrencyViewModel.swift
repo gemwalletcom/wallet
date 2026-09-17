@@ -6,17 +6,18 @@ import GemstonePrimitives
 import Primitives
 
 struct CurrencyViewModel {
-    let currency: Currency
-    let flag: String
+    let row: GemCurrencyRow
 
     init(row: GemCurrencyRow) {
-        currency = row.currency.toPrimitives()
-        flag = row.flag
+        self.row = row
+    }
+
+    var currency: Currency {
+        row.currency.toPrimitives()
     }
 
     var title: String {
-        let localizedName = Locale.current.localizedString(forCurrencyCode: id) ?? .empty
-        return "\(flag) \(id) - \(localizedName)"
+        row.title(localizedName: Locale.current.localizedString(forCurrencyCode: id) ?? .empty)
     }
 }
 

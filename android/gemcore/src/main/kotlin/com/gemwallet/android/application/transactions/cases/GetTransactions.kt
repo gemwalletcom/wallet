@@ -7,4 +7,8 @@ interface GetTransactions {
     fun getTransactions(
         filters: List<TransactionsRequestFilter> = emptyList(),
     ): Flow<List<TransactionDataAggregate>>
+
+    fun stored(
+        filters: List<TransactionsRequestFilter> = emptyList(),
+    ): List<TransactionDataAggregate>
 }

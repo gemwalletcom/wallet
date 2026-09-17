@@ -31,9 +31,4 @@ class LockTimer @Inject constructor(
         authRequired = userConfig.authRequired(),
         hasPendingRequest = activeWalletConnectRequest.current.value != null,
     )
-
-    @VisibleForTesting
-    internal fun setPausedAt(time: Long) {
-        pauseTime.set(time)
-    }
 }

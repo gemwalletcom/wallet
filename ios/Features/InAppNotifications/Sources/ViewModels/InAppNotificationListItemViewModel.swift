@@ -32,7 +32,7 @@ public struct InAppNotificationListItemViewModel: Identifiable, Sendable {
             titleTagStyle: TextStyle(font: .footnote.weight(.medium), color: .blue, background: Colors.blue.opacity(.light)),
             titleExtra: row.subtitle,
             subtitle: row.value,
-            subtitleStyle: TextStyle(font: .callout, color: Colors.black, fontWeight: .semibold),
+            subtitleStyle: .callout,
             subtitleExtra: row.subvalue,
             imageStyle: imageStyle,
         )

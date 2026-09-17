@@ -5,6 +5,7 @@ import com.gemwallet.android.math.parseInputValueOrNull
 import com.gemwallet.android.model.ValueFormatter
 import uniffi.gemstone.GemFeeRateRows
 import uniffi.gemstone.GemCustomFee
+import uniffi.gemstone.GemCustomFeeCheck
 import java.math.BigInteger
 import uniffi.gemstone.GemValueStyle
 
@@ -14,8 +15,7 @@ data class CustomFee(
     val networkFee: FeeUIModel.FeeInfo,
     val maxRateText: String,
     val minRateText: String,
-    val isOverMax: Boolean,
-    val isBelowMinimum: Boolean,
+    val check: GemCustomFeeCheck,
     val isConfirmEnabled: Boolean,
 ) {
     companion object {
@@ -42,8 +42,7 @@ data class CustomFee(
                     networkFee = FeeUIModel.FeeInfo(estimate.feeValue(), currentFee.feeAsset, currentFee.price, currentFee.currency, currentFee.priority),
                     maxRateText = format(estimate.maxRate(), decimals),
                     minRateText = estimate.minimumRate()?.let { format(it, decimals) } ?: "",
-                    isOverMax = estimate.isOverMax(),
-                    isBelowMinimum = estimate.isBelowMinimum(),
+                    check = estimate.check(),
                     isConfirmEnabled = estimate.isValid(),
                 )
             }

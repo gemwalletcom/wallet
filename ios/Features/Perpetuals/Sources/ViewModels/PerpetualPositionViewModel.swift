@@ -102,10 +102,6 @@ public struct PerpetualPositionViewModel {
         pnlViewModel.color
     }
 
-    public var pnlPercent: Double {
-        pnlViewModel.percent
-    }
-
     public var pnlWithPercentText: String {
         pnlViewModel.text ?? ""
     }

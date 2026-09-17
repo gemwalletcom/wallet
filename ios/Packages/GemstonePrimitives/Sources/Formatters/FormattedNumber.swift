@@ -34,21 +34,21 @@ private extension GemFormattedNumber {
     var currencyCode: String? {
         switch unit {
         case let .currency(code): code
-        case .percent, .symbol, .plain: nil
+        case .percent, .symbol, .plain, .multiplier: nil
         }
     }
 
     var symbol: String? {
         switch unit {
         case let .symbol(symbol): symbol
-        case .currency, .percent, .plain: nil
+        case .currency, .percent, .plain, .multiplier: nil
         }
     }
 
     var isPercent: Bool {
         switch unit {
         case .percent: true
-        case .currency, .symbol, .plain: false
+        case .currency, .symbol, .plain, .multiplier: false
         }
     }
 
@@ -98,6 +98,7 @@ private extension GemFormattedNumber {
     }
 
     func appendingSymbol(_ text: String) -> String {
+        if case .multiplier = unit { return "\(text)x" }
         guard let symbol else { return text }
         return "\(text) \(symbol)"
     }

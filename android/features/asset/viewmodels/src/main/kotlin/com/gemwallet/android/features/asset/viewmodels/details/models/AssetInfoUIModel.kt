@@ -1,17 +1,18 @@
 package com.gemwallet.android.features.asset.viewmodels.details.models
 
-import androidx.annotation.StringRes
-import com.gemwallet.android.domains.banner.BannerRow
-import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.banner.BannerRowUIModel
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.BalanceMetadata
 import com.wallet.core.primitives.VerificationStatus
 import uniffi.gemstone.GemAssetDetailsState
+import uniffi.gemstone.GemBalanceRow
 import uniffi.gemstone.GemAssetNetworkDestination
+import uniffi.gemstone.GemPriceAlertToggle
+import uniffi.gemstone.GemValueTone
 
 class AssetInfoUIModel(
     val assetInfo: AssetInfo,
@@ -33,7 +34,13 @@ class AssetInfoUIModel(
     val networkDestination: GemAssetNetworkDestination? = null,
     val shareUrl: String = "",
     val detailsState: GemAssetDetailsState,
-    val banners: List<BannerRow>,
+    val priceAlertMenu: PriceAlertMenuUIModel = GemPriceAlertToggle.DISABLED.menu(),
+    val emptyTransactions: EmptyTransactionsUIModel = EmptyTransactionsUIModel(showsBuy = false, showsSwap = false),
+    val banners: List<BannerRowUIModel>,
+    val pinListItem: ListItemModel = ListItemModel(title = ""),
+    val addListItem: ListItemModel = ListItemModel(title = ""),
+    val priceListItem: ListItemModel = ListItemModel(title = ""),
+    val priceAlertsListItem: ListItemModel = ListItemModel(title = ""),
 ) {
 
     val asset: Asset get() = assetInfo.asset
@@ -48,15 +55,23 @@ class AssetInfoUIModel(
 
     data class BalanceUIModel(
         val type: BalanceViewType,
-        val value: String = "0",
+        val model: ListItemModel,
         val url: String? = null,
     )
 
-    enum class BalanceViewType(@param:StringRes val label: Int) {
-        Available(R.string.asset_balances_available),
-        Stake(R.string.wallet_stake),
-        Earn(R.string.common_earn),
-        PendingUnconfirmed(R.string.stake_pending),
-        Reserved(R.string.asset_balances_reserved)
+    enum class BalanceViewType {
+        Available,
+        Stake,
+        Earn,
+        PendingUnconfirmed,
+        Reserved,
     }
+}
+
+internal fun GemBalanceRow.viewType(): AssetInfoUIModel.BalanceViewType = when (this) {
+    is GemBalanceRow.Available -> AssetInfoUIModel.BalanceViewType.Available
+    is GemBalanceRow.Staked -> AssetInfoUIModel.BalanceViewType.Stake
+    is GemBalanceRow.Earn -> AssetInfoUIModel.BalanceViewType.Earn
+    is GemBalanceRow.PendingUnconfirmed -> AssetInfoUIModel.BalanceViewType.PendingUnconfirmed
+    is GemBalanceRow.Reserved -> AssetInfoUIModel.BalanceViewType.Reserved
 }

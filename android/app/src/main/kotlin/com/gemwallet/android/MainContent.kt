@@ -11,19 +11,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
-import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
 import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.WalletApp
-import uniffi.gemstone.GemDeeplinkService
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.theme.WalletTheme
-import com.wallet.core.primitives.AssetId
 
 @Composable
 internal fun MainContent(
     state: MainViewModel.MainUIState,
-    deeplinkService: GemDeeplinkService,
     darkTheme: Boolean,
     pendingNavigation: PendingNavigation?,
     systemAuthEnrollmentMissing: Boolean,
@@ -62,7 +58,6 @@ internal fun MainContent(
         Box(modifier = Modifier.fillMaxSize()) {
             if (state.hasUnlockedApp) {
                 WalletApp(
-                    deeplinkService = deeplinkService,
                     pendingRoutes = unlockedPendingRoutes,
                     onPendingNavigationConsumed = onPendingNavigationConsumed,
                     onContentReady = onWalletContentReady,

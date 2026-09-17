@@ -48,10 +48,6 @@ public class LockSceneViewModel {
         state != .unlocked && isAutoLockEnabled
     }
 
-    var isUnlocking: Bool {
-        if case .unlocking = state { true } else { false }
-    }
-
     var isUnlockButtonVisible: Bool {
         state == .lockedCanceled
     }

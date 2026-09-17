@@ -22,6 +22,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 
 @Composable
 fun MarketHeadActions(
+    canWithdraw: Boolean,
     onWithdraw: () -> Unit,
     onDeposit: () -> Unit,
 ) {
@@ -37,6 +38,7 @@ fun MarketHeadActions(
             imageVector = AppIcons.Withdraw,
             contentDescription = "withdraw",
             fontSize = actionFontSize,
+            enabled = canWithdraw,
             onNextFontSize = {
                 if (actionFontSize > it) actionFontSize = it
             },
@@ -61,6 +63,7 @@ fun MarketHeadActions(
 private fun MarketHeadActionsPreview() {
     WalletTheme {
         MarketHeadActions(
+            canWithdraw = true,
             onWithdraw = {},
             onDeposit = {}
         )

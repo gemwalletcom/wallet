@@ -11,6 +11,10 @@ impl GemCurrencyRow {
     pub fn text(&self) -> String {
         format!("{} {}", self.flag, self.currency.as_ref())
     }
+
+    pub fn title(&self, localized_name: String) -> String {
+        format!("{} - {}", self.text(), localized_name)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

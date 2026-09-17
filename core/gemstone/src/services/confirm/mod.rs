@@ -82,10 +82,6 @@ impl GemConfirmService {
         }
     }
 
-    pub async fn sync_missing_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, crate::services::error::GemServiceError> {
-        self.assets.sync_missing_assets(asset_ids).await
-    }
-
     pub async fn load(&self, input: GemConfirmInput, options: GemConfirmLoadOptions) -> Result<GemConfirmData, GemConfirmError> {
         let transfer = &input.transfer;
         let asset = transfer.input_type.get_asset();
@@ -111,7 +107,7 @@ impl GemConfirmService {
             self.simulate(chain, &input),
         );
         let metadata = metadata.map_err(error::load_error)?;
-        let fee_rates = rules::confirmation_fee_rates(chain, transfer.use_max_amount, fee_rates.map_err(error::load_error)?);
+        let fee_rates = rules::confirmation_fee_rates(&asset.id, transfer.use_max_amount, fee_rates.map_err(error::load_error)?);
         let simulation = simulation?;
 
         rules::validate_scan(scan.as_ref(), transfer.recipient.memo.as_deref(), &symbol)?;
@@ -337,7 +333,7 @@ impl GemConfirmService {
 
 impl GemConfirmService {
     async fn input_metadata(&self, wallet_id: WalletId, input_type: &TransactionInputType, fee_asset_id: AssetId) -> Result<GemConfirmMetadata, GemConfirmError> {
-        self.metadata(wallet_id, input_type.transaction_asset().id, fee_asset_id, input_type.asset_ids()).await
+        self.metadata(wallet_id, input_type.balance_asset().id, fee_asset_id, input_type.asset_ids()).await
     }
 }
 
@@ -346,10 +342,14 @@ mod tests {
     use std::sync::Arc;
 
     use futures::executor::block_on;
-    use primitives::{Account, Asset, Chain, FeePriority, TransactionInputType, Wallet, asset_constants::HYPERCORE_SPOT_USDC_ASSET_ID, swap::SwapData};
+    use primitives::{
+        Account, Asset, AssetId, Chain, FeePriority, PerpetualConfirmData, PerpetualDirection, PerpetualType, TransactionInputType, Wallet,
+        asset_constants::HYPERCORE_SPOT_USDC_ASSET_ID, known_assets::HYPERCORE_PERPETUAL_USDC, swap::SwapData,
+    };
 
     use super::testkit::ConfirmTestkit;
     use super::{GemConfirmData, GemConfirmError, GemConfirmFeeSelection, GemConfirmLoadOptions};
+    use crate::services::balance::GemAssetBalance;
     use crate::services::transfer::{GemRecipient, GemTransferData};
     use crate::testkit::TestAlienProvider;
 
@@ -402,5 +402,42 @@ mod tests {
             vec!["/v2/devices/scan/transaction", "https://gemnodes.com/hypercore/info"],
             "the transaction load runs once the scan clears, and only then"
         );
+    }
+
+    #[test]
+    fn test_perpetual_metadata_reads_the_collateral_balance_the_wallet_stores() {
+        block_on(async {
+            let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::HyperCore, "0xsender")]);
+            let collateral = HYPERCORE_PERPETUAL_USDC.clone();
+            let testkit = ConfirmTestkit::new(wallet.clone(), wallet.clone());
+            testkit.balances.balances.lock().unwrap().insert(
+                wallet.id.clone(),
+                vec![GemAssetBalance {
+                    asset_id: collateral.id.clone(),
+                    ..GemAssetBalance::mock_with_available(500)
+                }],
+            );
+            let input_type = TransactionInputType::Perpetual {
+                asset: Asset {
+                    id: AssetId::from_token(Chain::HyperCore, "perpetual::ETH"),
+                    ..Asset::from_chain(Chain::HyperCore)
+                },
+                perpetual_type: PerpetualType::Open {
+                    data: PerpetualConfirmData {
+                        base_asset: collateral.clone(),
+                        ..PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None)
+                    },
+                },
+            };
+
+            let metadata = testkit
+                .confirm
+                .input_metadata(wallet.id.clone(), &input_type, collateral.id.clone())
+                .await
+                .expect("a perpetual never has a stored balance row for its market asset, so the load must read the collateral instead");
+
+            assert_eq!(metadata.asset_balance.asset_id, collateral.id);
+            assert_eq!(metadata.asset_balance.available, num_bigint::BigUint::from(500u32));
+        });
     }
 }

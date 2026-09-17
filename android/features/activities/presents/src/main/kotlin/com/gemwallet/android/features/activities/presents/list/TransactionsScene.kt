@@ -21,17 +21,15 @@ import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggre
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
+import com.gemwallet.android.ui.components.filters.TransactionFilterUIModel
 import com.gemwallet.android.ui.components.filters.TransactionsFilter
 import com.gemwallet.android.ui.components.list_item.rememberDateSections
 import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
-import uniffi.gemstone.GemTransactionFilter
-import com.wallet.core.primitives.Chain
 import com.gemwallet.android.ui.theme.space0
-import uniffi.gemstone.GemTransactionsEmptyState
-import uniffi.gemstone.transactionsEmptyState
+import com.wallet.core.primitives.Chain
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,7 +38,9 @@ internal fun TransactionsScene(
     transactions: List<TransactionDataAggregate>?,
     availableChains: List<Chain>,
     chainsFilter: List<Chain>,
-    typeFilter: List<GemTransactionFilter>,
+    typeFilter: List<TransactionFilterUIModel>,
+    typeFilterOptions: List<TransactionFilterUIModel>,
+    showsNoResults: Boolean,
     listState: LazyListState = rememberLazyListState(),
     showBuyAction: Boolean,
     showReceiveAction: Boolean,
@@ -75,7 +75,7 @@ internal fun TransactionsScene(
                     item {
                         EmptyContentView(
                             type = transactionsEmptyContentType(
-                                hasFilters = transactionsEmptyState(chainsFilter.map { it.string }, typeFilter) == GemTransactionsEmptyState.NO_RESULTS,
+                                hasFilters = showsNoResults,
                                 showBuyAction = showBuyAction,
                                 showReceiveAction = showReceiveAction,
                                 onAction = onAction,
@@ -101,6 +101,7 @@ internal fun TransactionsScene(
         availableChains = availableChains,
         chainsFilter = chainsFilter,
         typesFilter = typeFilter,
+        typeOptions = typeFilterOptions,
         onDismissRequest = { showFilters = false },
         onSelectChainsFilter = { onAction(TransactionsListAction.SelectChainsFilter(it)) },
         onSelectTypesFilter = { onAction(TransactionsListAction.SelectTypesFilter(it)) },

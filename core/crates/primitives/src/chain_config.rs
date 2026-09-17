@@ -14,10 +14,10 @@ pub enum ChainStack {
 }
 
 impl ChainStack {
-    pub fn base_fee_multiplier(self) -> u8 {
+    pub fn max_amount_base_fee_increase_percent(self) -> u32 {
         match self {
-            Self::Arbitrum => 2,
-            Self::Native | Self::Optimism | Self::ZkSync => 1,
+            Self::Arbitrum => 5,
+            Self::Native | Self::Optimism | Self::ZkSync => 0,
         }
     }
 }
@@ -352,7 +352,7 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             is_defi_supported: true,
             is_utxo: false,
             evm: Some(EvmChainConfig {
-                min_priority_fee: 10_000_000,
+                min_priority_fee: 0,
                 chain_stack: ChainStack::Arbitrum,
                 is_ethereum_layer2: true,
                 native_currency: EvmNativeCurrency::Wrapped(ARBITRUM_WETH_TOKEN_ID),
@@ -1323,7 +1323,7 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             is_defi_supported: false,
             is_utxo: false,
             evm: Some(EvmChainConfig {
-                min_priority_fee: 1_000_000,
+                min_priority_fee: 0,
                 chain_stack: ChainStack::Arbitrum,
                 is_ethereum_layer2: true,
                 native_currency: EvmNativeCurrency::Wrapped(ROBINHOOD_WETH_TOKEN_ID),

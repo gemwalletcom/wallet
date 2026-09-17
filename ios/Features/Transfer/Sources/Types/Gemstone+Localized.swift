@@ -130,7 +130,7 @@ extension GemConfirmErrorDisplay: @retroactive LocalizedError {
     }
 
     private static func amount(_ value: BigInt, asset: Gemstone.Asset) -> String {
-        ValueFormatter(style: .full).string(value, asset: asset.toPrimitives())
+        ValueFormatter(style: .auto).string(value, asset: asset.toPrimitives())
     }
 
     private static func title(asset: Gemstone.Asset) -> String {

@@ -5,22 +5,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeRowUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ActionIcon
 import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.ListItemSupportText
-import com.gemwallet.android.ui.components.list_item.ListItemTitleText
+import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.list_item.SwipeableItemWithActions
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.gemwallet.android.features.settings.networks.viewmodels.models.LatencyTone
-import com.gemwallet.android.features.settings.networks.viewmodels.models.LatencyUIModel
-import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeRowUIModel
 
 @Composable
 internal fun NodeItem(
@@ -34,27 +32,14 @@ internal fun NodeItem(
 ) {
     val content: @Composable (ListPosition) -> Unit = { position ->
         ListItem(
-            modifier = Modifier.clickable(onClick = { onSelect(model.url) }),
-            title = {
-                ListItemTitleText(
-                    text = model.title,
-                    titleBadge = {
-                        LatencyStatusBadge(latency = model.latency)
-                    },
-                )
-            },
-            subtitle = {
-                ListItemSupportText(
-                    text = model.subtitle,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-            },
+            model = model.model,
             listPosition = position,
-            trailing = if (model.isSelected) {
-                @Composable {
-                    SelectionCheckmark(modifier = Modifier.padding(end = paddingSmall))
-                }
-            } else null
+            modifier = Modifier.clickable(onClick = { onSelect(model.url) }),
+            accessory = if (model.isSelected) {
+                { SelectionCheckmark(modifier = Modifier.padding(end = paddingSmall)) }
+            } else {
+                null
+            },
         )
     }
 
@@ -88,11 +73,9 @@ fun NodeItemPreview() {
             model = NodeRowUIModel(
                 url = "https://some.url.eth",
                 host = "some.url.eth",
-                title = "some.url.eth",
-                subtitle = "Latest block: 123902302938",
-                latency = LatencyUIModel(text = "440 ms", tone = LatencyTone.Fast),
                 isSelected = true,
                 canDelete = true,
+                model = ListItemModel(title = "some.url.eth", titleTag = "440 ms", titleTagStyle = ListItemTextStyle.Positive, titleExtra = "Latest block: 123902302938", titleExtraStyle = ListItemTextStyle.Body),
             ),
             listPosition = ListPosition.Middle,
             isDeleteRevealed = false,

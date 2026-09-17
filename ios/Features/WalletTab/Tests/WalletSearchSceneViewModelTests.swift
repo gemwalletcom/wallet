@@ -76,7 +76,6 @@ struct WalletSearchSceneViewModelTests {
         model.searchQuery.value = .mock(lists: [list])
 
         #expect(model.showLists == true)
-        #expect(model.searchState.isResults)
         #expect(model.listDestination(for: list) == Scenes.AssetsResults(searchQuery: "", scope: .list("stocks"), title: "Stocks"))
     }
 
@@ -105,7 +104,6 @@ struct WalletSearchSceneViewModelTests {
         ]
 
         #expect(model.showNFTs == true)
-        #expect(model.searchState.isResults)
         #expect(model.collectionsContent.items.count == 2)
     }
 

@@ -1,3 +1,4 @@
+pub mod address_details;
 pub mod amount;
 pub mod app_start;
 pub mod app_update;
@@ -62,6 +63,7 @@ pub mod wallet_preferences;
 pub mod wallet_session;
 pub mod widget;
 
+pub use address_details::GemAddressDetailsService;
 pub use app_start::{GemAppStartFailure, GemAppStartService, GemAppStartStep};
 pub use app_update::GemAppUpdateService;
 pub use asset_discovery::GemAssetDiscoveryService;

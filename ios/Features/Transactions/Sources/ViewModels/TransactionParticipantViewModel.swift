@@ -14,17 +14,20 @@ struct TransactionParticipantViewModel {
     private let chain: Chain
     private let memo: String?
     private let onAddContact: ((AddContactType) -> Void)?
+    private let onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)?
 
     init(
         participant: GemTransactionParticipant?,
         chain: Chain,
         memo: String?,
         onAddContact: ((AddContactType) -> Void)? = nil,
+        onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)? = nil,
     ) {
         self.participant = participant
         self.chain = chain
         self.memo = memo
         self.onAddContact = onAddContact
+        self.onSelectAddress = onSelectAddress
     }
 }
 
@@ -52,8 +55,14 @@ extension TransactionParticipantViewModel {
                 account: account,
                 addressLink: participant.link.toPrimitives(),
                 onAddContact: participant.canAddContact ? onAddContact : nil,
+                onSelect: selectAction(chainAddress: ChainAddress(chain: chain, address: participant.address)),
             ),
         )
+    }
+
+    private func selectAction(chainAddress: ChainAddress) -> (@MainActor @Sendable () -> Void)? {
+        guard let onSelectAddress else { return nil }
+        return { onSelectAddress(chainAddress) }
     }
 
 }

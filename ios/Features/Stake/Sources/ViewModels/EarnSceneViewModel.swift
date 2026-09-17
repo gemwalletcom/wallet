@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Components
 import GemstoneServices
 import Foundation
@@ -67,6 +66,18 @@ public final class EarnSceneViewModel {
         AssetViewModel(asset: asset)
     }
 
+    var aprListItem: ListItemModel {
+        ListItemModel(title: aprModel.title.text, titleStyle: aprModel.title.style, subtitle: aprModel.subtitle.text, subtitleStyle: aprModel.subtitle.style)
+    }
+
+    var noDataListItem: ListItemModel {
+        ListItemModel(title: Localized.Errors.noDataAvailable)
+    }
+
+    var depositListItem: ListItemModel {
+        ListItemModel(title: Localized.Wallet.deposit)
+    }
+
     var aprModel: AprViewModel {
         AprViewModel(apr: service.earnApr(providers: providers.map { $0.toGem() }, assetApr: assetData.metadata.earnApr))
     }
@@ -88,9 +99,8 @@ public final class EarnSceneViewModel {
     }
 
     var positionModels: [DelegationViewModel] {
-        positions
-            .filter { (BigInt($0.base.balance)) > 0 }
-            .map { DelegationViewModel(service: service, delegation: $0, asset: asset, currency: service.getCurrency().toPrimitives()) }
+        service.positions(delegations: positions.map { $0.toGem() })
+            .map { DelegationViewModel(service: service, delegation: Delegation(core: $0), asset: asset, currency: service.getCurrency().toPrimitives()) }
     }
 
     var hasPositions: Bool {

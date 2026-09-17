@@ -8,6 +8,7 @@ pub enum GemNumberUnit {
     Symbol { symbol: String },
     Percent,
     Plain,
+    Multiplier,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -144,6 +145,18 @@ impl GemFormattedNumber {
             display: value_display(value, style),
         }
     }
+
+    pub fn leverage(value: f64) -> Self {
+        Self {
+            value,
+            notation: GemNumberNotation::Plain,
+            tone: GemValueTone::Plain,
+            unit: GemNumberUnit::Multiplier,
+            display: GemNumberDisplay::Number {
+                precision: number_formatter::Precision::TWO_PLACES.into(),
+            },
+        }
+    }
 }
 
 fn unit(symbol: Option<String>) -> GemNumberUnit {
@@ -171,6 +184,11 @@ pub fn formatted_currency(value: f64, code: String, style: GemCurrencyStyle) -> 
 #[uniffi::export]
 pub fn formatted_amount(value: f64, symbol: Option<String>, style: GemValueStyle) -> GemFormattedNumber {
     GemFormattedNumber::amount(value, symbol, style)
+}
+
+#[uniffi::export]
+pub fn leverage_number(value: f64) -> GemFormattedNumber {
+    GemFormattedNumber::leverage(value)
 }
 
 fn value_display(value: f64, style: GemValueStyle) -> GemNumberDisplay {
@@ -233,6 +251,15 @@ mod tests {
         );
 
         assert_eq!(GemFormattedNumber::percentage(5.0, GemPercentageStyle::Unsigned).notation, GemNumberNotation::Plain);
+    }
+
+    #[test]
+    fn test_a_leverage_number_keeps_two_places_behind_the_multiplier() {
+        let leverage = GemFormattedNumber::leverage(2.5);
+
+        assert_eq!(leverage.unit, GemNumberUnit::Multiplier);
+        assert_eq!(leverage.display, GemNumberDisplay::Number { precision: number_formatter::Precision::TWO_PLACES.into() });
+        assert_eq!(leverage.notation, GemNumberNotation::Plain);
     }
 
     #[test]

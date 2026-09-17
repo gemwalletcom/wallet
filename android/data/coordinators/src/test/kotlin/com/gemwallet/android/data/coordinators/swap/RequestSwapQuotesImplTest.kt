@@ -21,6 +21,7 @@ import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemNumberFormat
 import uniffi.gemstone.GemSlippageCheck
 import uniffi.gemstone.GemSwapPairSelection
 import uniffi.gemstone.GemSwapSide
@@ -300,6 +301,8 @@ class RequestSwapQuotesImplTest {
         override fun slippageBps(): UInt? = null
 
         override fun slippageCheck(bps: UInt): GemSlippageCheck = throw UnsupportedOperationException()
+
+        override fun slippagePercentText(bps: UInt, format: GemNumberFormat): String = throw UnsupportedOperationException()
 
         override fun newSlippageSession(selection: GemSlippageSelection): GemSlippageSession = throw UnsupportedOperationException()
 

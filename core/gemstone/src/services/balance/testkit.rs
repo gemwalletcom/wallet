@@ -12,6 +12,7 @@ use crate::gateway::GemGateway;
 use crate::services::assets::GemAssetsService;
 use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::error::GemServiceError;
+use crate::services::node::GemNodeService;
 use crate::services::preferences::{GemPreferencesService, testkit::MemoryPreferencesStore};
 use crate::services::price::{GemPriceService, testkit::MemoryPriceStore};
 use crate::services::stream::testkit::SubscriptionTestkit;
@@ -118,7 +119,12 @@ impl BalanceTestkit {
         let provider = Arc::new(TestAlienProvider::with_status(503));
         let preferences_store = Arc::new(MemoryPreferencesStore::default());
         let preferences = Arc::new(GemPreferencesService::new(preferences_store.clone()));
-        let gateway = Arc::new(GemGateway::new(provider.clone(), preferences_store, Arc::new(EmptyPreferences)));
+        let gateway = Arc::new(GemGateway::new(
+            provider.clone(),
+            Arc::new(GemNodeService::mock()),
+            preferences_store,
+            Arc::new(EmptyPreferences),
+        ));
         let wallets = Arc::new(MemoryWalletStore::default());
         let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets.clone()));
         let assets = Arc::new(MemoryAssetStore::default());

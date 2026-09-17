@@ -10,7 +10,7 @@ use crate::{
         discovery::{PoolDiscovery, candidate_pairs, discover_v3_pools},
         fee_token::is_quote_input_fee_token,
         quote_result::{QuotePosition, get_best_quote},
-        routed_asset::{Funding, Protocol, RoutedAsset, base_pair},
+        routed_asset::{Funding, Protocol, RoutedAsset, base_pair, routed_pair},
         swap_route::{RouteData, build_swap_route},
     },
 };
@@ -56,20 +56,8 @@ impl UniswapV3 {
         Ok(JsonRpcClient::new(client))
     }
 
-    fn routed_pair(from_asset: &AssetId, to_asset: &AssetId) -> Result<(EVMChain, RoutedAsset, RoutedAsset), SwapperError> {
-        if from_asset.chain != to_asset.chain {
-            return Err(SwapperError::NotSupportedChain);
-        }
-        let evm_chain = EVMChain::from_chain(from_asset.chain).ok_or(SwapperError::NotSupportedChain)?;
-        Ok((
-            evm_chain,
-            RoutedAsset::from_asset(from_asset, evm_chain, PROTOCOL)?,
-            RoutedAsset::from_asset(to_asset, evm_chain, PROTOCOL)?,
-        ))
-    }
-
     fn routed_request(request: &QuoteRequest) -> Result<(EVMChain, RoutedAsset, RoutedAsset, U256), SwapperError> {
-        let (evm_chain, input, output) = Self::routed_pair(&request.from_asset.asset_id(), &request.to_asset.asset_id())?;
+        let (evm_chain, input, output) = routed_pair(&request.from_asset.asset_id(), &request.to_asset.asset_id(), PROTOCOL)?;
         let amount_in = U256::from_str(&request.value.to_string()).map_err(SwapperError::from)? / input.scale;
         Ok((evm_chain, input, output, amount_in))
     }
@@ -147,7 +135,7 @@ impl Swapper for UniswapV3 {
     }
 
     async fn preload_routes(&self, from_asset: &AssetId, to_asset: &AssetId) {
-        let Ok((_, input, output)) = Self::routed_pair(from_asset, to_asset) else {
+        let Ok((_, input, output)) = routed_pair(from_asset, to_asset, PROTOCOL) else {
             return;
         };
         _ = self.preload_pool_candidates(from_asset.chain, input.address, output.address).await;

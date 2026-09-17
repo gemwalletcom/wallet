@@ -4,6 +4,7 @@ package com.gemwallet.android.features.settings.settings.presents.views
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -32,16 +33,13 @@ import com.gemwallet.android.features.settings.settings.viewmodels.SettingsViewM
 import com.gemwallet.android.ui.BuildConfig
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.PushRequest
-import com.gemwallet.android.ui.components.list_item.LinkItem
+import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
-import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.models.actions.SettingsSceneAction
 import com.gemwallet.android.ui.theme.space0
-import com.gemwallet.android.features.settings.settings.presents.localization.stringRes
-import com.gemwallet.android.features.settings.settings.presents.style.action
-import com.gemwallet.android.features.settings.settings.presents.style.icon
-import uniffi.gemstone.GemSettingsRow
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -51,8 +49,7 @@ fun SettingsScene(
     scrollState: ScrollState = rememberScrollState()
 ) {
     val viewModel: SettingsViewModel = hiltViewModel()
-    val sections by viewModel.sections.collectAsStateWithLifecycle()
-    val walletsCount by viewModel.walletsCount.collectAsStateWithLifecycle()
+    val rows by viewModel.rows.collectAsStateWithLifecycle()
     val pushEnabled by viewModel.pushEnabled.collectAsStateWithLifecycle()
     var isShowDevelopEnable by remember { mutableStateOf(false) }
     var requestPushGrant by remember { mutableStateOf<(() -> Unit)?>(null) }
@@ -60,14 +57,14 @@ fun SettingsScene(
 
     LaunchedEffect(walletConnectEnabled) { viewModel.setWalletConnectAvailable(walletConnectEnabled) }
 
-    val onSupport = {
-        if (notificationsAvailable && !pushEnabled) {
+    val onRowAction: (SettingsSceneAction) -> Unit = { action ->
+        if (action == SettingsSceneAction.Support && notificationsAvailable && !pushEnabled) {
             requestPushGrant = {
                 viewModel.enableNotifications()
-                onAction(SettingsSceneAction.Support)
+                onAction(action)
             }
         } else {
-            onAction(SettingsSceneAction.Support)
+            onAction(action)
         }
     }
 
@@ -80,36 +77,21 @@ fun SettingsScene(
                 .fillMaxSize()
                 .verticalScroll(scrollState)
         ) {
-            sections.forEach { section ->
-                section.rows.forEachIndexed { index, row ->
-                    val listPosition = ListPosition.getPosition(index, section.rows.size)
-                    when (row) {
-                        GemSettingsRow.WALLETS -> LinkItem(
-                            title = stringResource(row.stringRes()),
-                            icon = row.icon(),
+            rows.forEach { section ->
+                section.items.forEachIndexed { index, row ->
+                    val listPosition = ListPosition.getPosition(index, section.items.size)
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        ListItem(
+                            model = row.model,
                             listPosition = listPosition,
-                            trailingContent = {
-                                PropertyDataText(
-                                    text = walletsCount.toString(),
-                                    badge = { DataBadgeChevron() },
-                                )
-                            },
-                            onClick = { onAction(SettingsSceneAction.Wallets) },
+                            modifier = Modifier.combinedClickable(
+                                onClick = { onRowAction(row.action) },
+                                onLongClick = { isShowDevelopEnable = true }.takeIf { row.opensDeveloperMenu },
+                            ),
+                            minHeight = ListItemDefaults.plainMinHeight,
+                            accessory = { DataBadgeChevron() },
                         )
-                        GemSettingsRow.SUPPORT -> LinkItem(
-                            title = stringResource(row.stringRes()),
-                            icon = row.icon(),
-                            listPosition = listPosition,
-                            onClick = { onSupport() },
-                        )
-                        GemSettingsRow.ABOUT_US -> Box(modifier = Modifier.fillMaxWidth()) {
-                            LinkItem(
-                                title = stringResource(row.stringRes()),
-                                icon = row.icon(),
-                                listPosition = listPosition,
-                                onClick = { onAction(SettingsSceneAction.AboutUs) },
-                                onLongClick = { isShowDevelopEnable = true },
-                            )
+                        if (row.opensDeveloperMenu) {
                             DropdownMenu(
                                 isShowDevelopEnable, { isShowDevelopEnable = false },
                                 containerColor = MaterialTheme.colorScheme.background,
@@ -123,17 +105,6 @@ fun SettingsScene(
                                 )
                             }
                         }
-                        GemSettingsRow.SECURITY,
-                        GemSettingsRow.NOTIFICATIONS,
-                        GemSettingsRow.PREFERENCES,
-                        GemSettingsRow.WALLET_CONNECT,
-                        GemSettingsRow.REWARDS,
-                        GemSettingsRow.DEVELOPER -> LinkItem(
-                            title = stringResource(row.stringRes()),
-                            icon = row.icon(),
-                            listPosition = listPosition,
-                            onClick = { onAction(row.action()) },
-                        )
                     }
                 }
             }

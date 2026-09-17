@@ -34,8 +34,10 @@ class PriceAlertViewModelTest {
 
     private val assetId = AssetId(Chain.SmartChain)
 
+    private val dispatcher = UnconfinedTestDispatcher()
+
     @Before
-    fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
+    fun setUp() = Dispatchers.setMain(dispatcher)
 
     @After
     fun tearDown() = Dispatchers.resetMain()
@@ -98,6 +100,8 @@ class PriceAlertViewModelTest {
         getAssetTokenInfo = mockk(relaxed = true),
         service = service,
         savedStateHandle = SavedStateHandle(assetId?.let { mapOf(RouteArgument.AssetId.key to it.toIdentifier()) } ?: emptyMap()),
+        ioDispatcher = dispatcher,
+        context = mockk(relaxed = true),
     )
 
     private fun service(enabled: Boolean): GemPriceAlertService {

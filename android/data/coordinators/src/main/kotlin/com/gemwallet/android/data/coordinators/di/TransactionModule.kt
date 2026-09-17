@@ -27,10 +27,11 @@ object TransactionModule {
     @Provides
     @Singleton
     fun provideGetTransactions(
+        getSession: GetSession,
         getCurrentWalletId: GetCurrentWalletId,
         transactionStore: GemstoneTransactionStore,
         service: GemTransactionsServiceInterface,
-    ): GetTransactions = GetTransactionsImpl(getCurrentWalletId, transactionStore, service)
+    ): GetTransactions = GetTransactionsImpl(getSession, getCurrentWalletId, transactionStore, service)
 
     @Provides
     @Singleton

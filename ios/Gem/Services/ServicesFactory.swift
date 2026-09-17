@@ -26,7 +26,6 @@ import WebSocketClient
 struct ServicesFactory {
     func makeServices(storages: AppResolver.Storages, navigation: NavigationStateManager) -> AppResolver.Services {
         let stores = storages.stores
-        let securePreferences = SecurePreferences()
         let preferencesStore = GemstonePreferencesStore.application()
         let preferencesService = Gemstone.GemPreferencesService(store: preferencesStore)
         let observablePreferences = ObservablePreferences(preferencesService: preferencesService)
@@ -37,7 +36,7 @@ struct ServicesFactory {
 
         let gemstoneWalletStore = GemstoneWalletStore(store: stores.walletStore)
         let walletPreferencesService = Gemstone.GemWalletPreferencesService(store: GemstoneWalletPreferencesStore())
-        let devicePlatform = MainActor.assumeIsolated { GemstoneDevicePlatform(preferencesService: preferencesService, deviceKeyService: deviceKeyService, securePreferences: securePreferences) }
+        let devicePlatform = MainActor.assumeIsolated { GemstoneDevicePlatform(preferencesService: preferencesService, deviceKeyService: deviceKeyService) }
         let deviceService = Gemstone.GemDeviceService(
             api: deviceRegistrationClient,
             subscriptions: Gemstone.GemSubscriptionService(api: deviceRegistrationClient, store: gemstoneWalletStore),
@@ -69,6 +68,7 @@ struct ServicesFactory {
         let gemstoneNotificationStore = GemstoneNotificationStore(store: stores.inAppNotificationStore)
         let gatewayService = GatewayService(
             provider: nativeProvider,
+            nodes: nodeService,
             preferences: GemstonePreferencesStore(namespace: "gateway"),
             securePreferences: GemstoneSecurePreferencesStore(namespace: "gateway"),
         )
@@ -83,7 +83,7 @@ struct ServicesFactory {
             ),
         )
         let paymentService = Gemstone.GemPaymentService(provider: nativeProvider)
-        let transactionSimulationService = GemSimulationService(provider: nativeProvider, preferences: preferencesStore)
+        let transactionSimulationService = GemSimulationService(provider: nativeProvider, nodes: nodeService)
         let serviceStatusConfiguration = URLSessionConfiguration.default
         serviceStatusConfiguration.timeoutIntervalForRequest = serviceStatusTimeout()
         let serviceStatusService = Gemstone.GemServiceStatus(
@@ -204,7 +204,7 @@ struct ServicesFactory {
             webSocket: webSocket,
             health: streamHealth,
         )
-        let swapper = GemSwapper(rpcProvider: NativeProvider(), preferences: preferencesStore)
+        let swapper = GemSwapper(rpcProvider: NativeProvider(), nodes: nodeService)
         let swapService = Gemstone.GemSwapService(
             swapper: swapper,
             keystore: storages.keystore.gemKeystore,
@@ -412,6 +412,7 @@ struct ServicesFactory {
             toastPresenter: toastPresenter,
             walletPreferencesService: walletPreferencesService,
             signMessageService: signMessageService,
+            devicePlatform: devicePlatform,
             developerService: Gemstone.GemDeveloperService(
                 platform: devicePlatform,
                 preferences: preferencesService,
@@ -437,6 +438,7 @@ struct ServicesFactory {
         return AppResolver.Services(
             walletConnector: walletConnector,
             connectionStatusObserver: connectionStatusObserver,
+            devicePlatform: devicePlatform,
             deviceService: deviceService,
             navigationHandler: navigationHandler,
             navigationPresenter: navigationPresenter,

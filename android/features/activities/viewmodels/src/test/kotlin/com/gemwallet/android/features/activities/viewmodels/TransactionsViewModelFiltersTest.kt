@@ -57,9 +57,10 @@ class TransactionsViewModelFiltersTest {
         }
         val transactions: GetTransactions = mockk {
             every { getTransactions(any()) } returns flowOf(emptyList<TransactionDataAggregate>())
+            every { stored(any()) } returns emptyList()
         }
         val getSession: GetSession = mockk { every { this@mockk.invoke() } returns session }
-        return TransactionsViewModel(getSession, transactions, service).also { models.add(it) }
+        return TransactionsViewModel(getSession, transactions, service, mockk(relaxed = true), dispatcher, mockk(relaxed = true)).also { models.add(it) }
     }
 
     @Test
@@ -96,7 +97,7 @@ class TransactionsViewModelFiltersTest {
         val details: GetTransactionDetails = mockk(relaxed = true)
 
         assertThrows(IllegalArgumentException::class.java) {
-            TransactionDetailsViewModel(details, SavedStateHandle(mapOf(RouteArgument.TransactionId.key to "not-an-id")))
+            TransactionDetailsViewModel(details, SavedStateHandle(mapOf(RouteArgument.TransactionId.key to "not-an-id")), mockk(relaxed = true))
         }
     }
 }

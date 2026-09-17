@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.assets.views
 
 import androidx.compose.foundation.layout.fillMaxSize
-import uniffi.gemstone.GemAssetAction
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -23,9 +22,9 @@ import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.assetPriceSupport
 import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
-import com.gemwallet.android.ui.components.screen.AssetToastEffect
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.components.screen.ToastEffect
 import com.gemwallet.android.ui.models.AssetsGroupType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -44,14 +43,14 @@ fun AssetsResultsScreen(
     val longPressedAsset = remember { mutableStateOf<AssetId?>(null) }
     val longPressedPerpetual = remember { mutableStateOf<PerpetualId?>(null) }
     val snackbar = remember { SnackbarHostState() }
-    AssetToastEffect(viewModel.toastEvents, snackbar)
+    ToastEffect(viewModel.toastEvents, snackbar)
 
     val onAssetClick: (Asset) -> Unit = {
-        viewModel.updateRecent(it, GemAssetAction.OPEN)
+        viewModel.openRecent(it)
         onAction(WalletSearchAction.OpenAsset(it))
     }
     val onPerpetualClick: (Asset) -> Unit = {
-        viewModel.updateRecent(it, GemAssetAction.OPEN)
+        viewModel.openRecent(it)
         onAction(WalletSearchAction.OpenPerpetual(it))
     }
     val contextActions = remember(viewModel) {
@@ -77,7 +76,7 @@ fun AssetsResultsScreen(
                         items = pinned,
                         onSelect = onAssetClick,
                         support = { assetPriceSupport(it.price) },
-                        titleBadge = { item -> getAssetBadge(item, viewModel.flow.row.showsSymbol) },
+                        titleBadge = { item -> getAssetBadge(item, viewModel.flow.rowStyle.showsSymbol) },
                         itemTrailing = { getBalanceInfo(it)() },
                         longPressedAsset = longPressedAsset,
                         contextActions = contextActions,
@@ -87,7 +86,7 @@ fun AssetsResultsScreen(
                     items = unpinned,
                     onSelect = onAssetClick,
                     support = { assetPriceSupport(it.price) },
-                    titleBadge = { item -> getAssetBadge(item, viewModel.flow.row.showsSymbol) },
+                    titleBadge = { item -> getAssetBadge(item, viewModel.flow.rowStyle.showsSymbol) },
                     itemTrailing = { getBalanceInfo(it)() },
                     longPressedAsset = longPressedAsset,
                     contextActions = contextActions,

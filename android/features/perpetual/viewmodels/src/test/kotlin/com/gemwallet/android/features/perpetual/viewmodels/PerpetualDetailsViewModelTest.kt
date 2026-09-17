@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -71,6 +72,7 @@ class PerpetualDetailsViewModelTest {
         val positions: GetPerpetualPosition = mockk(relaxed = true)
         val transactions: GetTransactions = mockk {
             every { getTransactions(any()) } returns emptyFlow()
+            every { stored(any()) } returns emptyList()
         }
         val observer: PerpetualObserver = mockk(relaxed = true) {
             every { chartUpdates } returns emptyFlow()
@@ -84,6 +86,8 @@ class PerpetualDetailsViewModelTest {
             service,
             session,
             SavedStateHandle(mapOf(RouteArgument.AssetId.key to asset.id.toIdentifier())),
+            dispatcher,
+            mockk(relaxed = true),
         ).also { models.add(it) }
     }
 
@@ -95,6 +99,7 @@ class PerpetualDetailsViewModelTest {
         val model = viewModel(service = service)
 
         model.period(ChartPeriod.Week)
+        advanceUntilIdle()
 
         assertEquals(ChartPeriod.Week, model.period.first { it == ChartPeriod.Week })
         coVerify { service.setChartPeriod(uniffi.gemstone.ChartPeriod.WEEK) }
@@ -110,6 +115,7 @@ class PerpetualDetailsViewModelTest {
         model.refresh()
 
         assertTrue(model.isRefreshing.value)
+        advanceUntilIdle()
         coVerify { service.syncPositions() }
     }
 

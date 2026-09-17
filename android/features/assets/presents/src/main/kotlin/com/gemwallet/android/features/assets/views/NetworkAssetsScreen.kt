@@ -61,12 +61,12 @@ fun NetworkAssetsScreen(
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             if (pinned.isNotEmpty()) {
                 item { PinnedAssetsHeaderItem(AssetsGroupType.Pinned) }
-                networkAssetRows(pinned, viewModel.row.showsSymbol, onSelectAsset, longPressedAsset, activeActions)
+                networkAssetRows(pinned, viewModel.rowStyle.showsSymbol, onSelectAsset, longPressedAsset, activeActions)
             }
-            networkAssetRows(unpinned, viewModel.row.showsSymbol, onSelectAsset, longPressedAsset, activeActions)
+            networkAssetRows(unpinned, viewModel.rowStyle.showsSymbol, onSelectAsset, longPressedAsset, activeActions)
             if (hidden.isNotEmpty()) {
                 item { SubheaderItem(R.string.common_hidden) }
-                networkAssetRows(hidden, viewModel.row.showsSymbol, onSelectAsset, longPressedAsset, hiddenActions)
+                networkAssetRows(hidden, viewModel.rowStyle.showsSymbol, onSelectAsset, longPressedAsset, hiddenActions)
             }
             if (sections.showsEmpty) {
                 item {

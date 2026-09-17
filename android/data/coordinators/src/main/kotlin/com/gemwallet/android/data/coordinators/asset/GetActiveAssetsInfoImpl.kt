@@ -7,8 +7,8 @@ import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.domains.price.values.RowFormatters
 import com.gemwallet.android.model.AssetInfo
-import uniffi.gemstone.GemAssetRow
-import uniffi.gemstone.GemAssetRowTitle
+import uniffi.gemstone.GemAssetRowStyle
+import uniffi.gemstone.GemAssetTitleStyle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,11 +21,11 @@ import java.util.Locale
 class GetActiveAssetsInfoImpl(
     getWalletAssets: GetWalletAssets,
     userConfig: UserConfig,
-    row: GemAssetRow,
+    rowStyle: GemAssetRowStyle,
     scope: CoroutineScope = CoroutineScope(Dispatchers.Default),
 ) : GetActiveAssetsInfo {
 
-    private val rows = AssetRows(row.title)
+    private val rows = AssetRows(rowStyle.title)
 
     private val assetsInfo: StateFlow<List<AssetInfoDataAggregate>> =
         combine(getWalletAssets(), userConfig.isHideBalances()) { items, hideBalance ->
@@ -37,7 +37,7 @@ class GetActiveAssetsInfoImpl(
     override fun assetsInfo(): StateFlow<List<AssetInfoDataAggregate>> = assetsInfo
 }
 
-internal class AssetRows(private val naming: GemAssetRowTitle) {
+internal class AssetRows(private val naming: GemAssetTitleStyle) {
 
     private data class Presentation(val hideBalance: Boolean, val locale: Locale)
 

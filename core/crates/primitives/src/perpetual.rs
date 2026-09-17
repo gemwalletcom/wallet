@@ -183,3 +183,13 @@ pub enum PerpetualType {
     Increase { data: PerpetualConfirmData },
     Reduce { data: PerpetualReduceData },
 }
+
+impl PerpetualType {
+    pub fn base_asset(&self) -> &Asset {
+        match self {
+            Self::Open { data } | Self::Close { data } | Self::Increase { data } => &data.base_asset,
+            Self::Modify { data } => &data.base_asset,
+            Self::Reduce { data } => &data.data.base_asset,
+        }
+    }
+}

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Assets
 import Components
 import FiatConnect
 import GemstonePrimitives
@@ -7,7 +8,6 @@ import InfoSheet
 import Perpetuals
 import Primitives
 import PrimitivesComponents
-import Style
 import Swap
 import SwiftUI
 import Transfer
@@ -33,9 +33,8 @@ struct ConfirmTransferNavigationView: View {
                             primaryModels: model.fieldModels(for: model.payloadModel.primaryFields),
                             secondaryModels: model.fieldModels(for: model.payloadModel.secondaryFields),
                         )
-                        .presentationDetents([.large])
-                        .presentationBackground(Colors.grayBackground)
                     }
+                    .sheetPresentation([.large])
                 case let .fiatConnect(assetAddress, wallet, amount):
                     NavigationStack {
                         FiatConnectNavigationView(
@@ -61,16 +60,16 @@ struct ConfirmTransferNavigationView: View {
                     if case let .swapDetails(model) = model.detailsViewModel.itemModel {
                         NavigationStack {
                             SwapDetailsView(model: Bindable(model))
-                                .presentationDetentsForCurrentDeviceSize(expandable: true)
-                                .presentationBackground(Colors.grayBackground)
                         }
+                        .sheetPresentation(.forCurrentDeviceSize(expandable: true))
                     }
                 case let .perpetualDetails(model):
                     NavigationStack {
                         PerpetualDetailsView(model: model)
-                            .presentationDetentsForCurrentDeviceSize(expandable: true)
-                            .presentationBackground(Colors.grayBackground)
                     }
+                    .sheetPresentation(.forCurrentDeviceSize(expandable: true))
+                case let .addressDetails(chainAddress):
+                    AddressDetailsNavigationStack(model: viewModelFactory.addressDetailsScene(chainAddress: chainAddress))
                 }
             }
     }
@@ -97,8 +96,6 @@ private struct GetAssetNavigationStack: View {
                 },
             )
             .toolbarDismissItem(type: .close, placement: .topBarLeading)
-            .presentationDetents([Self.optionsDetent])
-            .presentationBackground(Colors.grayBackground)
             .sheet(item: $selectedAction) { action in
                 NavigationStack(path: $actionNavigationPath) {
                     destination(for: action)
@@ -114,10 +111,10 @@ private struct GetAssetNavigationStack: View {
                             )
                         }
                 }
-                .presentationDetents([.large])
-                .presentationBackground(Colors.grayBackground)
+                .sheetPresentation([.large])
             }
         }
+        .sheetPresentation([Self.optionsDetent])
     }
 
     @ViewBuilder

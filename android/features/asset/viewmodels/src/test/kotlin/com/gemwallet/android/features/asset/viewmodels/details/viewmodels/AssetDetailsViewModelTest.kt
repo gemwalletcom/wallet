@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.asset.viewmodels.details.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,10 +15,10 @@ import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoU
 import com.gemwallet.android.model.ChainAssetInfo
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.mockAssetInfo
+import com.gemwallet.android.testkit.mockAssetSolanaUSDC
 import com.gemwallet.android.testkit.mockChainAssetInfo
 import com.gemwallet.android.testkit.mockGemAssetDetails
 import com.gemwallet.android.testkit.mockGemAssetDetailsState
-import com.gemwallet.android.testkit.mockAssetSolanaUSDC
 import com.gemwallet.android.testkit.mockPriceAlert
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -41,9 +42,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemPriceAlertToggle
 import uniffi.gemstone.GemAssetDetailsInput
 import uniffi.gemstone.GemAssetDetailsServiceInterface
+import uniffi.gemstone.GemPriceAlertToggle
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AssetDetailsViewModelTest {
@@ -74,6 +75,7 @@ class AssetDetailsViewModelTest {
         every { getChainAssetInfo(asset.id) } returns chainAssetInfoFlow
         every { getSession() } returns sessionFlow
         every { getTransactions.getTransactions(any()) } returns MutableStateFlow(emptyList())
+        every { getTransactions.stored(any()) } returns emptyList()
         every { getActiveBanners(any()) } returns banners
         every { getPriceAlerts.assetPriceAlerts(asset.id) } returns priceAlerts
         every { service.details(any()) } answers {
@@ -117,7 +119,9 @@ class AssetDetailsViewModelTest {
         assetDetailsService = service,
         getActiveBanners = getActiveBanners,
         getPriceAlerts = getPriceAlerts,
-        assetInfoUIModelFactory = AssetInfoUIModelFactory(),
+        assetInfoUIModelFactory = AssetInfoUIModelFactory(mockk<Context> { every { getString(any()) } answers { firstArg<Int>().toString() } }),
         userConfig = mockk(relaxed = true),
+        ioDispatcher = testDispatcher,
+        connectionStatusObserver = mockk(relaxed = true),
     ).also(viewModels::add)
 }

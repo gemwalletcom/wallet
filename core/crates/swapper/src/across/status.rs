@@ -4,6 +4,7 @@ use std::{str::FromStr, sync::Arc};
 use alloy_primitives::{Address, B256, U256, hex::encode_prefixed as HexEncode, keccak256};
 use alloy_sol_types::SolValue;
 use gem_evm::across::{
+    asset::AcrossAsset,
     contracts::V3SpokePoolInterface,
     deployment::AcrossDeployment,
     deposit::{Deposit, RelayData, parse_deposit},
@@ -136,10 +137,10 @@ pub(in crate::across) fn swap_metadata(deposit: &Deposit) -> Option<TransactionS
     let to_chain = Chain::from_chain_id(deposit.destination_chain_id)?;
     let to_asset = supported_asset_for_token(to_chain, &word_address(relay_data.output_token))?;
     Some(TransactionSwapMetadata {
+        from_value: u256_to_biguint(&(relay_data.input_amount * AcrossAsset::from_asset(&from_asset)?.scale)),
+        to_value: u256_to_biguint(&(relay_data.output_amount * AcrossAsset::from_asset(&to_asset)?.scale)),
         from_asset,
-        from_value: u256_to_biguint(&relay_data.input_amount),
         to_asset,
-        to_value: u256_to_biguint(&relay_data.output_amount),
         provider: Some(SwapperProvider::Across.as_ref().to_string()),
     })
 }

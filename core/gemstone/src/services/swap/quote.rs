@@ -1,3 +1,4 @@
+use crate::services::amount::model::GemNumberFormat;
 use std::sync::Arc;
 
 use primitives::{Asset, AssetId, Chain, Currency};
@@ -79,6 +80,10 @@ impl GemSwapQuoteService {
 
     pub fn slippage_percent(&self, bps: u32) -> f64 {
         rules::slippage_percent(bps)
+    }
+
+    pub fn slippage_percent_text(&self, bps: u32, format: GemNumberFormat) -> String {
+        rules::slippage_percent_text(bps, &format.decimal_separator)
     }
 
     pub fn slippage_check(&self, bps: u32) -> GemSlippageCheck {

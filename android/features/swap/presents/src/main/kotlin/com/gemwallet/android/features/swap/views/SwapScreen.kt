@@ -1,24 +1,24 @@
 package com.gemwallet.android.features.swap.views
 
-import com.gemwallet.android.ui.components.screen.SheetExpansion
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import com.gemwallet.android.model.AuthRequest
-import com.gemwallet.android.ui.requestAuth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import uniffi.gemstone.GemTransferData
-import com.gemwallet.android.features.swap.viewmodels.SwapViewModel
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.swap.SwapItemType
+import com.gemwallet.android.features.swap.viewmodels.SwapViewModel
 import com.gemwallet.android.features.swap.views.dialogs.PriceImpactWarningDialog
+import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.ObserveStartedState
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.components.swap.SwapDetailsBottomSheet
 import com.gemwallet.android.ui.components.swap.SwapSlippageBottomSheet
+import com.gemwallet.android.ui.requestAuth
 import com.wallet.core.primitives.AssetId
 
 @Composable
@@ -29,7 +29,7 @@ fun SwapScreen(
     viewModel: SwapViewModel = hiltViewModel(),
     onSelectionConsumed: () -> Unit,
     onSelect: (select: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) -> Unit,
-    onConfirm: (GemTransferData) -> Unit,
+    onConfirm: (ConfirmTransferInput) -> Unit,
     onCancel: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -114,9 +114,9 @@ fun SwapScreen(
         isVisible = isShowSlippage,
         currentBps = slippageSeedBps,
         defaultBps = defaultSlippageBps,
-        newSession = viewModel::newSlippageSession,
+        slippageState = viewModel::slippageState,
         slippageBps = viewModel::slippageBps,
-        slippagePercent = viewModel::slippagePercent,
+        slippageText = viewModel::slippageText,
         onConfirm = viewModel::setSlippage,
         onDismiss = { isShowSlippage = false },
     )

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import class Gemstone.GemPerpetual
 import Formatters
 import Foundation
 import GemstonePrimitives
@@ -56,6 +57,6 @@ extension PerpetualsHeaderViewModel: ValueHeaderViewModel {
     }
 
     private var isWithdrawEnabled: Bool {
-        balance.available > 0
+        GemPerpetual(provider: .hypercore).canWithdraw(available: balance.available)
     }
 }

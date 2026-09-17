@@ -5,10 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet.cases.GetWalletDetails
 import com.gemwallet.android.application.nft.cases.GetListNft
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.ui.models.NftItemUIModel
 import com.gemwallet.android.ui.theme.AvatarEmoji
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -32,6 +33,7 @@ class WalletImageViewModel @Inject constructor(
     getListNftCase: GetListNft,
     private val avatarService: WalletAvatarService,
     savedStateHandle: SavedStateHandle,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val walletId = savedStateHandle.requireWalletId()
@@ -50,17 +52,17 @@ class WalletImageViewModel @Inject constructor(
     private val errorState = MutableStateFlow<GemErrorText?>(null)
     val error: StateFlow<GemErrorText?> = errorState.asStateFlow()
 
-    fun setEmoji(emoji: String, backgroundColor: Int) = viewModelScope.launch(Dispatchers.IO) {
+    fun setEmoji(emoji: String, backgroundColor: Int) = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable { avatarService.setEmoji(walletId, emoji, backgroundColor) }
             .onFailure { errorState.value = it.errorText() }
     }
 
-    fun setNftImage(url: String) = viewModelScope.launch(Dispatchers.IO) {
+    fun setNftImage(url: String) = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable { avatarService.setNftImage(walletId, url) }
             .onFailure { errorState.value = it.errorText() }
     }
 
-    fun resetToDefault() = viewModelScope.launch(Dispatchers.IO) {
+    fun resetToDefault() = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable { avatarService.reset(walletId) }
             .onFailure { errorState.value = it.errorText() }
     }

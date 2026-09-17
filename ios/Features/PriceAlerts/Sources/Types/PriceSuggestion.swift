@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import GemstonePrimitives
 import PrimitivesComponents
 
 struct PriceSuggestion: SuggestionViewable {
@@ -8,7 +9,7 @@ struct PriceSuggestion: SuggestionViewable {
     let value: Double
 
     var inputValue: String {
-        value.formatted(.number.grouping(.never))
+        NumberInput.format().valueText(value: value)
     }
 
     var id: String {

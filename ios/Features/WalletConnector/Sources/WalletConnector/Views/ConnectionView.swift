@@ -2,7 +2,6 @@
 
 import Components
 import Foundation
-import struct Gemstone.GemConnection
 import Localization
 import PrimitivesComponents
 import Style
@@ -10,17 +9,17 @@ import SwiftUI
 
 struct ConnectionView: View {
     @State private var isPresentingUrl: URL? = nil
-    let connection: GemConnection
+    let model: ConnectionViewModel
 
     var body: some View {
         HStack(spacing: .space12) {
-            AsyncImageView(url: connection.row.iconUrl.flatMap(URL.init(string:)), size: Sizing.image.app)
+            AsyncImageView(url: model.iconUrl, size: Sizing.image.app)
             VStack(alignment: .leading) {
-                Text(connection.row.title)
+                Text(model.title)
                     .font(.body)
                     .foregroundStyle(.primary)
                     .lineLimit(2)
-                if let host = connection.row.host {
+                if let host = model.host {
                     Text(host)
                         .font(.callout)
                         .foregroundStyle(.secondary)
@@ -29,7 +28,7 @@ struct ConnectionView: View {
             }
         }
         .contextMenu {
-            if let url = URL(string: connection.connection.session.metadata.url) {
+            if let url = model.websiteUrl {
                 ContextMenuItem(
                     title: Localized.Settings.website,
                     systemImage: SystemImage.globe,

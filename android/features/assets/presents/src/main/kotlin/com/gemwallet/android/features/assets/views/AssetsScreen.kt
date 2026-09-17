@@ -31,7 +31,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -47,10 +49,12 @@ import com.gemwallet.android.features.perpetual.views.PerpetualsPreviewSection
 import com.gemwallet.android.features.update_app.presents.InAppUpdateBanner
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
-import com.gemwallet.android.ui.components.screen.AssetToastEffect
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.SnackbarHost
+import com.gemwallet.android.ui.components.screen.ToastEffect
+import com.gemwallet.android.ui.components.banner.BannerDestination
 import com.gemwallet.android.ui.models.AssetsGroupType
+import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space2
@@ -73,15 +77,18 @@ fun AssetsScreen(
     listState: LazyListState = rememberLazyListState(),
     viewModel: AssetsViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
     val importing by viewModel.isLoadingAssets.collectAsStateWithLifecycle()
     val pinnedAssets by viewModel.pinnedAssets.collectAsStateWithLifecycle()
     val unpinnedAssets by viewModel.unpinnedAssets.collectAsStateWithLifecycle()
     val walletSummary by viewModel.walletSummary.collectAsStateWithLifecycle()
+    val bannerRows by viewModel.bannerRows.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val collectionsAvailable by viewModel.collectionsAvailable.collectAsStateWithLifecycle()
 
     val snackbar = remember { SnackbarHostState() }
-    AssetToastEffect(viewModel.toastEvents, snackbar)
+    ToastEffect(viewModel.toastEvents, snackbar)
 
     val currentOnContentReady by rememberUpdatedState(onContentReady)
     LaunchedEffect(walletSummary != null) {
@@ -146,8 +153,15 @@ fun AssetsScreen(
                 }
                 item(key = BannersItemKey) {
                     BannersScene(
-                        banners = walletSummary?.banners.orEmpty(),
-                        onSelect = {},
+                        banners = bannerRows,
+                        onSelect = { destination ->
+                            when (destination) {
+                                is BannerDestination.OpenUrl -> uriHandler.open(context, destination.url)
+                                BannerDestination.Stake,
+                                BannerDestination.Perpetuals,
+                                is BannerDestination.Activate -> Unit
+                            }
+                        },
                         onClose = viewModel::closeBanner,
                         onBuy = { onAction(AssetsAction.Buy) },
                         onReceive = { onAction(AssetsAction.Receive) },

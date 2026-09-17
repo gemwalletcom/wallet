@@ -22,6 +22,7 @@ public final class TransactionSceneViewModel {
     private let service: any GemTransactionDetailsServiceProtocol
     private let onHeaderAction: ((GemTransactionHeaderAction) -> Void)?
     private let onAddContact: ((AddContactType) -> Void)?
+    private let onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)?
 
     public let query: ObservableQuery<TransactionRequest>
     var transactionExtended: TransactionExtended {
@@ -37,10 +38,12 @@ public final class TransactionSceneViewModel {
         service: any GemTransactionDetailsServiceProtocol,
         onHeaderAction: ((GemTransactionHeaderAction) -> Void)? = nil,
         onAddContact: ((AddContactType) -> Void)? = nil,
+        onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)? = nil,
     ) {
         self.service = service
         self.onHeaderAction = onHeaderAction
         self.onAddContact = onAddContact
+        self.onSelectAddress = onSelectAddress
         query = ObservableQuery(TransactionRequest(walletId: walletId, recordId: transaction.recordId), initialValue: transaction)
     }
 
@@ -78,6 +81,7 @@ extension TransactionSceneViewModel: ListSectionProvideable {
                 chain: transactionExtended.transaction.assetId.chain,
                 memo: transactionExtended.transaction.memo,
                 onAddContact: onAddContact,
+                onSelectAddress: onSelectAddress,
             )
         case .memo: TransactionMemoViewModel(transaction: transactionExtended.transaction)
         case .resource: TransactionResourceViewModel(resource: rows.resource)

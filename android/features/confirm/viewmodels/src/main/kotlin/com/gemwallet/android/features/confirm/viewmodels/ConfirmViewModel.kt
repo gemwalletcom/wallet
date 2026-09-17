@@ -1,80 +1,79 @@
 package com.gemwallet.android.features.confirm.viewmodels
 
-import com.gemwallet.android.ui.R
-import uniffi.gemstone.GemTransferAmountResult
-import uniffi.gemstone.GemConfirmException
-import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.PerpetualType
-import com.gemwallet.android.serializer.toJson
-import com.gemwallet.android.domains.confirm.asset
-import com.gemwallet.android.domains.confirm.nftAsset
-import com.gemwallet.android.domains.confirm.pack
-import com.gemwallet.android.domains.confirm.perpetualType
-import com.gemwallet.android.domains.confirm.swapData
-import com.gemwallet.android.domains.confirm.toAsset
-import com.gemwallet.android.domains.confirm.applicationMetadata
-import com.wallet.core.primitives.ApplicationMetadataSource
-import com.gemwallet.android.domains.confirm.confirmLoadOptions
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.confirm.cases.BuildConfirmProperties
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.domains.confirm.AmountUIModel
+import com.gemwallet.android.domains.confirm.FeeAssetUIModel
+import com.gemwallet.android.domains.confirm.FeeDetailsModel
+import com.gemwallet.android.domains.confirm.FeeUIModel
+import com.gemwallet.android.domains.confirm.applicationMetadata
+import com.gemwallet.android.domains.confirm.asset
+import com.gemwallet.android.domains.confirm.confirmLoadOptions
+import com.gemwallet.android.domains.confirm.nftAsset
+import com.gemwallet.android.domains.confirm.pack
+import com.gemwallet.android.domains.confirm.perpetualType
+import com.gemwallet.android.domains.confirm.swapData
+import com.gemwallet.android.domains.confirm.toAsset
+import com.gemwallet.android.domains.confirm.toFeeAssetUIModel
+import com.gemwallet.android.domains.confirm.unpackTransferData
 import com.gemwallet.android.ext.toAssetPriceValue
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.features.confirm.models.ConfirmDetailElement
+import com.gemwallet.android.features.confirm.models.PerpetualModifyAutocloseFactory
+import com.gemwallet.android.features.confirm.viewmodels.localization.broadcastLabel
+import com.gemwallet.android.features.confirm.viewmodels.localization.buttonLabel
+import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetRequest
+import com.gemwallet.android.features.confirm.viewmodels.models.AcquireOptionUIModel
+import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmHeaderUIModel
+import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmRowUIModel
+import com.gemwallet.android.features.confirm.viewmodels.models.FeeSelectionUIModel
+import com.gemwallet.android.features.confirm.viewmodels.models.acquireOptions
+import com.gemwallet.android.features.confirm.viewmodels.models.buttonState
+import com.gemwallet.android.features.confirm.viewmodels.models.confirmHeader
+import com.gemwallet.android.features.confirm.viewmodels.models.feeItems
+import com.gemwallet.android.features.confirm.viewmodels.models.listItem
+import com.gemwallet.android.features.confirm.viewmodels.models.uiModel
 import com.gemwallet.android.model.AssetPriceValue
-import uniffi.gemstone.GemConfirmButton
-import uniffi.gemstone.GemConfirmAction
-import uniffi.gemstone.GemConfirmData
-import uniffi.gemstone.GemConfirmButtonKind
-import uniffi.gemstone.GemConfirmButtonState
-import uniffi.gemstone.GemConfirmFeeRow
-import uniffi.gemstone.GemConfirmLoad
-import uniffi.gemstone.GemConfirmPhase
-import uniffi.gemstone.GemConfirmScreen
-import uniffi.gemstone.GemConfirmation
-import uniffi.gemstone.GemAcquireAssetFlow
-import uniffi.gemstone.GemConfirmTransferServiceInterface
-import uniffi.gemstone.GemExecuteResult
-import uniffi.gemstone.perpetualDetails
-import uniffi.gemstone.swapQuoteSummary
 import com.gemwallet.android.model.Crypto
-import uniffi.gemstone.GemConfirmFeeSelection
-import uniffi.gemstone.GemPerpetual
-import uniffi.gemstone.PerpetualProvider
-import uniffi.gemstone.TransactionInputType
 import com.gemwallet.android.model.FeeAssetSelection
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.models.ButtonState
+import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.perpetual.PerpetualConfirmDetailsUIModelFactory
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelFactory
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModelInput
 import com.gemwallet.android.ui.models.swap.SwapProviderUIModelFactory
-import com.gemwallet.android.ui.models.actions.FinishConfirmAction
-import com.gemwallet.android.domains.confirm.AmountUIModel
-import com.gemwallet.android.domains.confirm.FeeAssetUIModel
-import com.gemwallet.android.domains.confirm.toFeeAssetUIModel
-import com.gemwallet.android.features.confirm.models.ConfirmDetailElement
-import com.gemwallet.android.features.confirm.models.PerpetualModifyAutocloseFactory
-import com.gemwallet.android.domains.confirm.FeeDetailsModel
-import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.wallet.core.primitives.AddressName
+import com.wallet.core.primitives.ApplicationMetadataSource
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FeePriority
-import com.wallet.core.primitives.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import java.math.BigInteger
+import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -82,9 +81,31 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemAcquireAssetFlow
+import uniffi.gemstone.GemConfirmAction
+import uniffi.gemstone.GemConfirmButton
+import uniffi.gemstone.GemConfirmButtonKind
+import uniffi.gemstone.GemConfirmButtonState
+import uniffi.gemstone.GemConfirmData
+import uniffi.gemstone.GemConfirmException
+import uniffi.gemstone.GemConfirmFeeRow
+import uniffi.gemstone.GemConfirmFeeSelection
+import uniffi.gemstone.GemConfirmLoad
+import uniffi.gemstone.GemConfirmPhase
+import uniffi.gemstone.GemConfirmScreen
+import uniffi.gemstone.GemConfirmStage
+import uniffi.gemstone.GemConfirmTransferServiceInterface
+import uniffi.gemstone.GemConfirmation
+import uniffi.gemstone.GemExecuteResult
+import uniffi.gemstone.GemPerpetual
+import uniffi.gemstone.GemTransferAmountResult
+import uniffi.gemstone.GemTransferData
+import uniffi.gemstone.PerpetualProvider
+import uniffi.gemstone.PerpetualType
 import uniffi.gemstone.SimulationResult
-import javax.inject.Inject
-import com.gemwallet.android.domains.confirm.unpackTransferData
+import uniffi.gemstone.TransactionInputType
+import uniffi.gemstone.perpetualDetails
+import uniffi.gemstone.swapQuoteSummary
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -93,6 +114,8 @@ class ConfirmViewModel @Inject constructor(
     private val buildConfirmProperties: BuildConfirmProperties,
     private val confirmService: GemConfirmTransferServiceInterface,
     private val savedStateHandle: SavedStateHandle,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val restart = MutableStateFlow(false)
@@ -106,7 +129,7 @@ class ConfirmViewModel @Inject constructor(
     private val request = savedStateHandle.getStateFlow<String?>(RouteArgument.Params.key, null)
         .filterNotNull()
         .mapNotNull { paramsPack -> unpackTransferData(paramsPack) }
-        .flowOn(Dispatchers.Default)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val title = request.map { it?.title() }
@@ -124,17 +147,17 @@ class ConfirmViewModel @Inject constructor(
     private val confirmation = combine(request.filterNotNull(), session.filterNotNull()) { request, session ->
         confirmService.confirmation(session.wallet.toGem(), request, requestSimulation).also { screen.value = it.screen() }
     }
-    .flowOn(Dispatchers.IO)
+    .flowOn(ioDispatcher)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val currency = confirmation.filterNotNull()
         .map { it.getCurrency().toPrimitives() }
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val networkFeeBuyAmount = confirmation.filterNotNull()
+    private val networkFeeBuyAmount = confirmation.filterNotNull()
         .map { it.insufficientNetworkFeeBuyAmount() }
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     private val load = combine(
@@ -160,7 +183,7 @@ class ConfirmViewModel @Inject constructor(
             }
         }
     }
-    .flowOn(Dispatchers.IO)
+    .flowOn(ioDispatcher)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val content = combine(confirmation.filterNotNull(), load.filterNotNull(), currency.filterNotNull()) { session, load, currency ->
@@ -169,8 +192,8 @@ class ConfirmViewModel @Inject constructor(
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val simulation = content
-        .map { it?.load?.simulation?.toSimulation(it.session) ?: Simulation() }
-        .flowOn(Dispatchers.Default)
+        .map { it?.load?.simulation?.toSimulation(it.session, context) ?: Simulation() }
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, Simulation())
 
     val payloadAddressNames = content
@@ -191,7 +214,7 @@ class ConfirmViewModel @Inject constructor(
     val feeAssets = content.map { it?.feeAssets.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val assetPrice = combine(request, content) { request, content -> request?.asset?.let { content?.assetPrice(it) } }
+    private val assetPrice = combine(request, content) { request, content -> request?.asset?.let { content?.assetPrice(it) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val transferAmount = content.map { content ->
@@ -227,12 +250,12 @@ class ConfirmViewModel @Inject constructor(
             else -> amount?.asset
         }
     }
-    .flowOn(Dispatchers.IO)
+    .flowOn(ioDispatcher)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val detailElements = combine(request, content, ::buildDetailElements)
         .distinctUntilChanged()
-        .flowOn(Dispatchers.Default)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val transactionProperties = combine(request, session, content) { request, session, content ->
@@ -241,6 +264,9 @@ class ConfirmViewModel @Inject constructor(
         buildConfirmProperties(request, session.wallet, content?.addressName)
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val transactionRows: StateFlow<List<ConfirmRowUIModel>> = transactionProperties.map { properties -> properties.map { it.uiModel(context) } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val feeUIModel = combine(content, screen) { content, screen ->
         val confirmData = content?.confirmData
@@ -266,11 +292,31 @@ class ConfirmViewModel @Inject constructor(
     val feeValue = feeUIModel.map { (it as? FeeUIModel.FeeInfo)?.cryptoAmountWithFiat.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
+    private val acquireRequestState = MutableStateFlow<AcquireAssetRequest?>(null)
+    val acquireRequest = acquireRequestState.asStateFlow()
+
+    val loadError = combine(screen, feeUIModel, assetPrice, networkFeeBuyAmount) { screen, fee, assetPrice, buyAmount ->
+        screen.failure?.takeIf { it.stage == GemConfirmStage.LOAD }?.error?.display()?.uiModel(
+            context = context,
+            fee = fee as? FeeUIModel.FeeInfo,
+            assetPrice = assetPrice,
+            networkFeeBuyAmount = buyAmount,
+            acquireFlow = ::acquireFlow,
+            onAcquire = ::acquire,
+        )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    fun acquire(asset: Asset, buyAmount: Int?) {
+        acquireRequestState.value = AcquireAssetRequest(asset, buyAmount, offersOptions = acquireFlow(asset) == GemAcquireAssetFlow.OPTIONS)
+    }
+
+    fun dismissAcquire() = acquireRequestState.update { null }
+
 
     fun init(transfer: GemTransferData, simulationResult: SimulationResult? = null) {
         requestSimulation = simulationResult
         feeSelection.value = GemConfirmFeeSelection.Priority(transfer.defaultFeePriority())
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             val pack = transfer.pack()
             if (savedStateHandle.get<String?>(RouteArgument.Params.key) == pack) {
                 return@launch
@@ -289,9 +335,46 @@ class ConfirmViewModel @Inject constructor(
         isNetworkFeeSheetVisible.value = error is GemConfirmException.InsufficientNetworkFee
     }
 
-    fun feeDetailsModel(currentFee: FeeUIModel.FeeInfo, feeAsset: FeeAssetUIModel, selection: GemConfirmFeeSelection): FeeDetailsModel? {
+    val feeListItem: StateFlow<ListItemModel?> = combine(feeUIModel, feeAsset, feeAssets) { fee, asset, assets ->
+        fee?.listItem(context, asset?.asset, showsFeeAssetSymbol = assets.any { it.asset.id != asset?.asset?.id })
+    }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val feeItems: StateFlow<List<ListItemModel>> = feeUIModel.map { (it as? FeeUIModel.FeeInfo)?.feeItems(context).orEmpty() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val balanceChangeRows: StateFlow<List<ListItemModel>> = simulation.map { it.balanceChanges.map { change -> change.listItem() } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val acquireOptions: StateFlow<List<AcquireOptionUIModel>> = acquireRequest.map { request -> request?.let { acquireOptions(context, it.buyAmount) }.orEmpty() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val executeErrorText: StateFlow<String?> = screen.map { it.failure?.takeIf { failure -> failure.stage == GemConfirmStage.EXECUTE }?.error?.broadcastLabel(context) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val isLoading: StateFlow<Boolean> = screen.map { it.phase == GemConfirmPhase.LOADING }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    val buttonLabel: StateFlow<String> = combine(screen, button) { screen, button -> screen.buttonLabel(context, button.kind) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, context.getString(R.string.transfer_confirm))
+
+    val buttonState: StateFlow<ButtonState> = button.map { it.state.buttonState() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Loading)
+
+    val header: StateFlow<ConfirmHeaderUIModel?> = combine(amountUIModel, simulation, isPaymentRequest, isLoading, headerAsset) { amount, simulation, isPayment, isLoading, headerAsset ->
+        confirmHeader(amount, simulation.header, isPayment, isLoading, headerAsset)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val feeSelectionUIModel: StateFlow<FeeSelectionUIModel> = feeSelection.map { FeeSelectionUIModel(it.selectedPriority()?.toPrimitives(), it.customGasPrice()) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, FeeSelectionUIModel(FeePriority.Normal, null))
+
+    fun changeFeePriority(priority: FeePriority) = changeFeeSelection(GemConfirmFeeSelection.Priority(priority.toGem()))
+
+    fun changeCustomFee(gasPrice: BigInteger) = changeFeeSelection(GemConfirmFeeSelection.Custom(gasPrice))
+
+    fun feeDetailsModel(currentFee: FeeUIModel.FeeInfo, feeAsset: FeeAssetUIModel): FeeDetailsModel? {
         val confirmData = content.value?.confirmData ?: return null
-        return FeeDetailsModel(currentFee, feeAsset, confirmData.feeRateRows(selection, feeAsset.asset.toGem()))
+        return FeeDetailsModel(currentFee, feeAsset, confirmData.feeRateRows(feeSelection.value, feeAsset.asset.toGem()))
     }
 
     fun changeFeeSelection(selection: GemConfirmFeeSelection) {
@@ -308,7 +391,7 @@ class ConfirmViewModel @Inject constructor(
         feeAssetSelection.update { selection }
     }
 
-    fun send(finishAction: FinishConfirmAction) = viewModelScope.launch(Dispatchers.IO) {
+    fun send(finishAction: FinishConfirmAction) = viewModelScope.launch(ioDispatcher) {
         when (screen.value.action()) {
             GemConfirmAction.LOAD -> {
                 restart.update { !it }
@@ -406,7 +489,7 @@ class ConfirmViewModel @Inject constructor(
         return ConfirmDetailElement.SwapDetails(model)
     }
 
-    fun acquireFlow(asset: Asset): GemAcquireAssetFlow = requireNotNull(confirmation.value).acquireAssetFlow(asset.chain.string)
+    private fun acquireFlow(asset: Asset): GemAcquireAssetFlow = requireNotNull(confirmation.value).acquireAssetFlow(asset.chain.string)
 }
 
 private fun Throwable.toConfirmError(): GemConfirmException = this as? GemConfirmException ?: GemConfirmException.Load(msg = message.orEmpty())

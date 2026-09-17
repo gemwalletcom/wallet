@@ -56,6 +56,10 @@ fun DevelopScene(
                 PropertyItem("Activate All Cancelled Banners", data = "") { viewModel.activateCancelledBanners() }
                 PropertyItem("Clear Prices", data = "") { viewModel.clearPrices() }
                 PropertyItem("Clear Perpetuals", data = "") { viewModel.clearPerpetuals() }
+                PropertyItem("Clear Preferences", data = "") { viewModel.clearPreferences() }
+                PropertyItem("Delete Wallet Preferences", data = "") { viewModel.deleteWalletPreferences() }
+                PropertyItem("Reset Transactions Timestamp", data = "") { viewModel.resetTransactionsTimestamp() }
+                PropertyItem("Add Sample Transactions", data = "") { viewModel.addSampleTransactions() }
             }
             item {
                 PropertyItem("Device Id", data = deviceId.ifEmpty { Placeholder.empty }) {

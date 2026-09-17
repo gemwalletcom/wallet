@@ -15,10 +15,4 @@ struct AprViewModelTests {
         #expect(AprViewModel(apr: 2.15).text == "APR 2.15%")
         #expect(AprViewModel(apr: .zero).text == "APR ")
     }
-
-    @Test
-    func showApr() {
-        #expect(AprViewModel(apr: 5.0).showApr == true)
-        #expect(AprViewModel(apr: .zero).showApr == false)
-    }
 }

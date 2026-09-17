@@ -3,8 +3,6 @@
 import enum Gemstone.GemAddNodeError
 import enum Gemstone.GemAddNodeFailure
 import Foundation
-import Localization
-import Primitives
 
 extension GemAddNodeError {
     var failure: GemAddNodeFailure {
@@ -12,16 +10,6 @@ extension GemAddNodeError {
         case .InvalidUrl: .invalidUrl
         case .InvalidNetworkId: .invalidNetworkId
         case .Gateway: .unavailable
-        }
-    }
-}
-
-extension GemAddNodeFailure {
-    var error: AnyError {
-        switch self {
-        case .invalidUrl: AnyError(Localized.Errors.invalidUrl)
-        case .invalidNetworkId: AnyError(Localized.Errors.invalidNetworkId)
-        case .unavailable: AnyError(Localized.Errors.errorOccurred)
         }
     }
 }

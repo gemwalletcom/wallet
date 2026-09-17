@@ -21,6 +21,7 @@ public struct AddressListItemViewModel {
     public let account: SimpleAccount
     public let mode: Mode
     public let onAddContact: ((AddContactType) -> Void)?
+    public let onSelect: (@MainActor @Sendable () -> Void)?
     private let addressLink: BlockExplorerLink
 
     public init(
@@ -29,12 +30,14 @@ public struct AddressListItemViewModel {
         mode: Mode,
         addressLink: BlockExplorerLink,
         onAddContact: ((AddContactType) -> Void)? = nil,
+        onSelect: (@MainActor @Sendable () -> Void)? = nil,
     ) {
         self.title = title
         self.account = account
         self.mode = mode
         self.addressLink = addressLink
         self.onAddContact = onAddContact
+        self.onSelect = onSelect
     }
 
     public var subtitle: String {

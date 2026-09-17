@@ -67,7 +67,6 @@ final class AddNodeSceneViewModel {
     var warningModel: ListItemModel {
         ListItemModel(
             title: Localized.Asset.Verification.warningTitle,
-            titleStyle: .headline,
             titleExtra: Localized.Nodes.ImportNode.warningMessage,
             titleStyleExtra: .bodySecondary,
             imageStyle: ListItemImageStyle(

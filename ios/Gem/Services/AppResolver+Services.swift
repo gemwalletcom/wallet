@@ -20,6 +20,7 @@ extension AppResolver {
         // Environment-level services
         let walletConnector: WalletConnectorService
         let connectionStatusObserver: ConnectionStatusObserver
+        let devicePlatform: GemstoneDevicePlatform
         let deviceService: any GemDeviceServiceProtocol
         let navigationHandler: NavigationHandler
         let navigationPresenter: NavigationPresenter

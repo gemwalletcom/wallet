@@ -16,7 +16,7 @@ class SqlQueryBuilderTest {
     @Test
     fun singleClause_addsWhenBaseHasNoWhere() {
         val query = SqlQueryBuilder(baseSql = "SELECT * FROM posts")
-            .where(SqlClause.equalTo("title", "hello"))
+            .where(SqlClause.raw("title = ?", "hello"))
             .build()
         assertEquals("SELECT * FROM posts WHERE title = ?", query.sql)
         assertEquals(listOf<Any>("hello"), query.args)
@@ -25,7 +25,7 @@ class SqlQueryBuilderTest {
     @Test
     fun singleClause_addsAndWhenBaseSqlAlreadyHasWhere() {
         val query = SqlQueryBuilder(baseSql = "SELECT * FROM posts WHERE published = 1")
-            .where(SqlClause.equalTo("title", "hello"))
+            .where(SqlClause.raw("title = ?", "hello"))
             .build()
         assertEquals("SELECT * FROM posts WHERE published = 1 AND title = ?", query.sql)
     }
@@ -33,7 +33,7 @@ class SqlQueryBuilderTest {
     @Test
     fun multipleClauses_joinedWithAndPreservingOrder() {
         val query = SqlQueryBuilder(baseSql = "SELECT * FROM posts")
-            .where(SqlClause.equalTo("authorId", 1))
+            .where(SqlClause.raw("authorId = ?", 1))
             .where(SqlClause.greaterThan("views", 100))
             .where(SqlClause.inList("status", listOf("active", "pinned")))
             .build()
@@ -55,7 +55,7 @@ class SqlQueryBuilderTest {
     @Test
     fun orderByAndLimit_appendedAtEndWithLimitArgLast() {
         val query = SqlQueryBuilder(baseSql = "SELECT * FROM posts")
-            .where(SqlClause.equalTo("authorId", 1))
+            .where(SqlClause.raw("authorId = ?", 1))
             .orderBy("createdAt DESC")
             .limit(50)
             .build()

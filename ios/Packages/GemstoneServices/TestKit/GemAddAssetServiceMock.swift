@@ -27,7 +27,6 @@ public final class GemAddAssetServiceMock: GemAddAssetServiceProtocol, @unchecke
 
     public func chains(wallet _: Wallet) -> [Chain] { chains.map(\.rawValue) }
     public func defaultChain(chains: [Chain]) -> Chain? { chains.first }
-    public func matchingChains(chains: [Chain], query: String) -> [Chain] { chains }
     public func tokenUrl(chain: Chain, tokenId: String) -> Gemstone.BlockExplorerLink? { nil }
     public func token(chain: Chain, address: String) async throws -> Asset { asset.toGem() }
     public func add(wallet: Wallet, assetId: AssetId) async throws {}

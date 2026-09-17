@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemAddNodeFailure
 import enum Gemstone.GemServiceEndpointType
 import enum Gemstone.GemAboutRow
 import enum Gemstone.GemPreferencesRow
@@ -120,6 +121,16 @@ extension KeystoreAuthentication {
                 Localized.Settings.enablePasscode
             }
         case .passcode, .none: Localized.Settings.enablePasscode
+        }
+    }
+}
+
+extension GemAddNodeFailure {
+    var error: AnyError {
+        switch self {
+        case .invalidUrl: AnyError(Localized.Errors.invalidUrl)
+        case .invalidNetworkId: AnyError(Localized.Errors.invalidNetworkId)
+        case .unavailable: AnyError(Localized.Errors.errorOccurred)
         }
     }
 }

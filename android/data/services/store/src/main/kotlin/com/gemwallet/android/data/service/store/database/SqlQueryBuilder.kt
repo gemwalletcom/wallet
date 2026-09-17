@@ -13,9 +13,6 @@ data class SqlClause(val sql: String, val args: List<Any> = emptyList()) {
     companion object {
         val EMPTY = SqlClause("")
 
-        fun equalTo(column: String, value: Any): SqlClause =
-            SqlClause("$column = ?", listOf(value))
-
         fun greaterThan(column: String, value: Any): SqlClause =
             SqlClause("$column > ?", listOf(value))
 

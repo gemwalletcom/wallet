@@ -2,11 +2,8 @@
 
 import Components
 import Foundation
-import enum Gemstone.GemHeaderButtonKind
 import Primitives
 import SwiftUI
-
-public typealias HeaderButtonAction = @MainActor @Sendable (GemHeaderButtonKind) -> Void
 
 public struct HeaderButtonsView: View {
     private let buttons: [HeaderButton]
@@ -66,8 +63,7 @@ public struct HeaderButtonsView: View {
 // MARK: - Previews
 
 #Preview {
-    let kinds: [GemHeaderButtonKind] = [.send, .receive, .buy, .swap, .deposit, .withdraw, .more]
-    let buttons = kinds.map { HeaderButton(type: $0, isEnabled: true) }
+    let buttons = [HeaderButton(type: .send, isEnabled: true), HeaderButton(type: .receive, isEnabled: true), HeaderButton(type: .buy, isEnabled: true), HeaderButton(type: .swap, isEnabled: true), HeaderButton(type: .deposit, isEnabled: true), HeaderButton(type: .withdraw, isEnabled: true), HeaderButton(type: .more, isEnabled: true)]
     VStack {
         Spacer()
         HeaderButtonsView(buttons: buttons, action: nil)

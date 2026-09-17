@@ -34,11 +34,23 @@ impl GemNodeStore for MemoryNodeStore {
 impl GemChainSettingsService {
     pub fn mock() -> Self {
         let preferences = Arc::new(MemoryPreferencesStore::default());
+        let nodes = Arc::new(GemNodeService::new(Arc::new(MemoryNodeStore::default()), preferences.clone()));
         Self::new(
-            Arc::new(GemNodeService::new(Arc::new(MemoryNodeStore::default()), preferences.clone())),
+            nodes.clone(),
             Arc::new(GemExplorerService::mock()),
-            Arc::new(GemGateway::new(Arc::new(TestAlienProvider::with_status(200)), preferences, Arc::new(EmptyPreferences))),
+            Arc::new(GemGateway::new(
+                Arc::new(TestAlienProvider::with_status(200)),
+                nodes,
+                preferences,
+                Arc::new(EmptyPreferences),
+            )),
         )
+    }
+}
+
+impl GemNodeService {
+    pub fn mock() -> Self {
+        Self::new(Arc::new(MemoryNodeStore::default()), Arc::new(MemoryPreferencesStore::default()))
     }
 }
 

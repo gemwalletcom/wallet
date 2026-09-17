@@ -28,6 +28,8 @@ pub struct RelayQuoteRequest {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub app_fees: Vec<RelayAppFee>,
     pub max_route_length: u32,
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub use_deposit_address: bool,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -53,31 +55,39 @@ impl RelayQuoteResponse {
             .and_then(Step::step_data)
     }
 
+    pub fn get_deposit_address(&self) -> Option<(&str, &DepositStepData)> {
+        let step = self.steps.iter().find(|step| step.id == STEP_DEPOSIT)?;
+        match (step.deposit_address.as_deref()?, step.step_data()?) {
+            (deposit_address, StepData::Deposit(deposit)) => Some((deposit_address, deposit)),
+            (_, StepData::Evm(_) | StepData::Tron(_) | StepData::Solana(_) | StepData::Ton(_)) => None,
+        }
+    }
+
     pub fn get_evm_step(&self) -> Option<&EvmStepData> {
         match self.step_data()? {
             StepData::Evm(evm) => Some(evm),
-            StepData::Tron(_) | StepData::Solana(_) | StepData::Ton(_) => None,
+            StepData::Tron(_) | StepData::Solana(_) | StepData::Ton(_) | StepData::Deposit(_) => None,
         }
     }
 
     pub fn get_tron_step(&self) -> Option<&TronStepData> {
         match self.step_data()? {
             StepData::Tron(tron) => Some(tron),
-            StepData::Evm(_) | StepData::Solana(_) | StepData::Ton(_) => None,
+            StepData::Evm(_) | StepData::Solana(_) | StepData::Ton(_) | StepData::Deposit(_) => None,
         }
     }
 
     pub fn get_solana_step(&self) -> Option<&SolanaStepData> {
         match self.step_data()? {
             StepData::Solana(solana) => Some(solana),
-            StepData::Evm(_) | StepData::Tron(_) | StepData::Ton(_) => None,
+            StepData::Evm(_) | StepData::Tron(_) | StepData::Ton(_) | StepData::Deposit(_) => None,
         }
     }
 
     pub fn get_ton_step(&self) -> Option<&TonStepData> {
         match self.step_data()? {
             StepData::Ton(ton) => Some(ton),
-            StepData::Evm(_) | StepData::Tron(_) | StepData::Solana(_) => None,
+            StepData::Evm(_) | StepData::Tron(_) | StepData::Solana(_) | StepData::Deposit(_) => None,
         }
     }
 
@@ -92,6 +102,7 @@ pub struct Step {
     pub id: String,
     pub kind: String,
     pub items: Option<Vec<StepItem>>,
+    pub deposit_address: Option<String>,
 }
 
 impl Step {
@@ -117,6 +128,12 @@ pub enum StepData {
     Tron(TronStepData),
     Solana(SolanaStepData),
     Ton(TonStepData),
+    Deposit(DepositStepData),
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct DepositStepData {
+    pub amount: String,
 }
 
 impl StepData {
@@ -124,7 +141,7 @@ impl StepData {
         match self {
             Self::Evm(evm) => Some(evm.to.clone()),
             Self::Tron(tron) => Some(tron.trigger_smart_contract()?.contract_address.clone()),
-            Self::Solana(_) => None,
+            Self::Solana(_) | Self::Deposit(_) => None,
             Self::Ton(ton) => Some(ton.messages.first()?.to.clone()),
         }
     }

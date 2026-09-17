@@ -1,21 +1,26 @@
 package com.gemwallet.android.features.activities.viewmodels
 
-import com.gemwallet.android.ext.toGem
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
-import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.ext.toPrimitives
-import uniffi.gemstone.GemTransactionFilter
-import com.wallet.core.primitives.Chain
-import uniffi.gemstone.GemTransactionsServiceInterface
-import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
+import com.gemwallet.android.domains.connection.refreshInterval
 import com.gemwallet.android.ext.requireChain
-import android.util.Log
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ui.components.filters.TransactionFilterUIModel
+import com.gemwallet.android.ui.components.filters.transactionFilterOptions
+import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,13 +30,16 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import uniffi.gemstone.GemRefreshKind
+import uniffi.gemstone.GemTransactionFilter
+import uniffi.gemstone.GemTransactionsEmptyState
+import uniffi.gemstone.GemTransactionsServiceInterface
+import uniffi.gemstone.transactionsEmptyState
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -39,7 +47,15 @@ class TransactionsViewModel @Inject constructor(
     getSession: GetSession,
     getTransactions: GetTransactions,
     private val service: GemTransactionsServiceInterface,
+    private val connectionStatusObserver: ConnectionStatusObserver,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
+
+    val refreshIntervalMillis: StateFlow<Long> = connectionStatusObserver.status
+        .map { it.refreshInterval(GemRefreshKind.WALLET).toMillis() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
+
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing
@@ -47,6 +63,16 @@ class TransactionsViewModel @Inject constructor(
     val chainsFilter = MutableStateFlow<List<Chain>>(emptyList())
 
     val typeFilter = MutableStateFlow<List<GemTransactionFilter>>(emptyList())
+
+    val typeFilterOptions: List<TransactionFilterUIModel> = transactionFilterOptions(context)
+
+    val showsNoResults: StateFlow<Boolean> = combine(chainsFilter, typeFilter) { chains, types ->
+        transactionsEmptyState(chains.map { it.string }, types) == GemTransactionsEmptyState.NO_RESULTS
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val typeFilterRows: StateFlow<List<TransactionFilterUIModel>> = typeFilter
+        .map { selected -> typeFilterOptions.filter { it.filter in selected } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val session = getSession()
         .stateIn(viewModelScope, started = SharingStarted.Eagerly, null)
@@ -71,7 +97,7 @@ class TransactionsViewModel @Inject constructor(
     .stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = null,
+        initialValue = getTransactions.stored(TransactionsRequestFilter.activityDefaults()).takeIf { it.isNotEmpty() },
     )
 
     init {
@@ -91,7 +117,7 @@ class TransactionsViewModel @Inject constructor(
         val current = walletId.value ?: return null
         if (current == syncedWalletId) return null
         syncedWalletId = current
-        return viewModelScope.launch(Dispatchers.IO) {
+        return viewModelScope.launch(ioDispatcher) {
             val synced = sync()
             if (!synced && syncedWalletId == current) {
                 syncedWalletId = null
@@ -103,7 +129,7 @@ class TransactionsViewModel @Inject constructor(
         .onFailure { Log.e(TAG, "transactions sync failed", it) }
         .isSuccess
 
-    fun refresh() = viewModelScope.launch(Dispatchers.IO) {
+    fun refresh() = viewModelScope.launch(ioDispatcher) {
         _isRefreshing.update { true }
         try {
             sync()

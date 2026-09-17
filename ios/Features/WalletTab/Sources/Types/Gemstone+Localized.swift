@@ -26,3 +26,12 @@ extension PortfolioType {
         }
     }
 }
+
+extension PortfolioChartType {
+    var title: String {
+        switch self {
+        case .value: Localized.Perpetual.value
+        case .pnl: Localized.Perpetual.pnl
+        }
+    }
+}

@@ -7,7 +7,6 @@ use std::{
 
 use async_trait::async_trait;
 use gem_client::{Client, ClientError, Response, build_request_url, deserialize_response, encode_request_body};
-use primitives::Chain;
 use serde::{Serialize, de::DeserializeOwned};
 
 pub type RpcResponse = Response;
@@ -57,7 +56,6 @@ pub trait RpcProvider: Send + Sync + Debug {
     type Error: std::error::Error + Send + Sync + 'static;
 
     async fn request(&self, target: Target) -> Result<RpcResponse, Self::Error>;
-    fn get_endpoint(&self, chain: Chain) -> Result<String, Self::Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -160,9 +158,5 @@ where
 
     async fn request(&self, target: Target) -> Result<RpcResponse, Self::Error> {
         self.provider.request(target).await
-    }
-
-    fn get_endpoint(&self, chain: Chain) -> Result<String, Self::Error> {
-        self.provider.get_endpoint(chain)
     }
 }

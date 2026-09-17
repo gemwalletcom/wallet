@@ -6,6 +6,12 @@ import GemstoneServices
 import GemstoneServicesTestKit
 import LocalAuthentication
 @testable import AppLock
+
+extension LockSceneViewModel {
+    var isUnlocking: Bool {
+        if case .unlocking = state { true } else { false }
+    }
+}
 import Testing
 
 @MainActor

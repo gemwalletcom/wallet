@@ -8,7 +8,7 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectUserRequest
 import com.gemwallet.android.features.bridge.views.AuthRequestScene
 import com.gemwallet.android.features.bridge.views.ProposalScene
 import com.gemwallet.android.features.bridge.views.RequestScene
-import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
+import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
 import com.wallet.core.primitives.AssetId
 
 @Composable

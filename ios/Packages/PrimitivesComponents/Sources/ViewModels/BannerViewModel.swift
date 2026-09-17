@@ -11,7 +11,7 @@ import Primitives
 import Style
 import SwiftUI
 
-struct BannerViewModel {
+public struct BannerViewModel {
     enum BannerViewType {
         case list
         case banner
@@ -20,13 +20,17 @@ struct BannerViewModel {
     private let banner: Banner
     private let content: GemBannerContent
 
-    init(banner: Banner, content: GemBannerContent) {
+    public init(banner: Banner, content: GemBannerContent) {
         self.banner = banner
         self.content = content
     }
 
     var image: AssetImage? {
         content.icon?.image
+    }
+
+    var listItem: ListItemModel {
+        ListItemModel(title: title, titleExtra: description, imageStyle: imageStyle)
     }
 
     var title: String? {
@@ -65,20 +69,12 @@ struct BannerViewModel {
         }
     }
 
-    var action: BannerAction {
-        BannerAction(banner: banner, type: .event(banner.event), url: url)
+    var action: BannerAction? {
+        content.destination.map { BannerAction(banner: banner, type: .destination($0)) }
     }
 
     var closeAction: BannerAction {
-        BannerAction(banner: banner, type: .closeBanner, url: nil)
-    }
-
-    var url: URL? {
-        switch content.link {
-        case let .docs(item): AppUrl.docs(item)
-        case let .external(url): URL(string: url)
-        case .none: .none
-        }
+        BannerAction(banner: banner, type: .closeBanner)
     }
 
     var imageStyle: ListItemImageStyle? {
@@ -123,7 +119,7 @@ struct BannerViewModel {
 }
 
 extension BannerViewModel: Identifiable {
-    var id: String {
+    public var id: String {
         banner.id
     }
 }

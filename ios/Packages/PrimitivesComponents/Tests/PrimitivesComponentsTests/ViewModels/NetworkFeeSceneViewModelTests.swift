@@ -7,6 +7,12 @@ import enum Gemstone.GemConfirmFeeSelection
 import GemstonePrimitivesTestKit
 import Primitives
 @testable import PrimitivesComponents
+
+extension NetworkFeeSceneViewModel {
+    var selectedFeeRate: FeeRateViewModel? {
+        feeRatesViewModels.first(where: isSelected)
+    }
+}
 import PrimitivesComponentsTestKit
 import PrimitivesTestKit
 import Testing
@@ -122,7 +128,7 @@ struct NetworkFeeSceneViewModelTests {
     func valueMatchesSelectedFeeRateEthereumValueText() {
         let model = NetworkFeeSceneViewModel.mock(feeRates: .mock([(.normal, 1, nil)]))
 
-        #expect(model.selectedFeeRateViewModel?.valueText == "0.000000001 gwei")
+        #expect(model.selectedFeeRate?.valueText == "0.000000001 gwei")
     }
 
     @Test
@@ -132,14 +138,14 @@ struct NetworkFeeSceneViewModelTests {
             feeRates: .mock([(.normal, 105_000, nil)], unitType: .native, decimals: 9),
         )
 
-        #expect(model.selectedFeeRateViewModel?.valueText == "0.000105 SOL")
+        #expect(model.selectedFeeRate?.valueText == "0.000105 SOL")
     }
 
     @Test
     func valueMatchesSelectedFeeRateBitcoinValueText() {
         let model = NetworkFeeSceneViewModel.mock(feeAsset: .mock(), feeRates: .mock([(.normal, 1, nil)], unitType: .satVb, decimals: 1))
 
-        #expect(model.selectedFeeRateViewModel?.valueText == "0.1 sat/vB")
+        #expect(model.selectedFeeRate?.valueText == "0.1 sat/vB")
     }
 
     @Test
@@ -216,9 +222,9 @@ struct NetworkFeeSceneViewModelTests {
     func selectedRateFollowsSelection() {
         let rates = GemFeeRateRows.mock([(.normal, 2, nil), (.fast, 3, nil)], unitType: .native, decimals: 9)
 
-        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mockSolana(), feeRates: rates).selectedFeeRateViewModel?.priority == .normal)
-        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mockSolana(), selection: .priority(priority: .fast), feeRates: rates).selectedFeeRateViewModel?.priority == .fast)
-        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mockSolana(), selection: .custom(gasPrice: 5), feeRates: rates).selectedFeeRateViewModel == nil)
+        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mockSolana(), feeRates: rates).selectedFeeRate?.priority == .normal)
+        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mockSolana(), selection: .priority(priority: .fast), feeRates: rates).selectedFeeRate?.priority == .fast)
+        #expect(NetworkFeeSceneViewModel.mock(feeAsset: .mockSolana(), selection: .custom(gasPrice: 5), feeRates: rates).selectedFeeRate == nil)
     }
 
     @Test

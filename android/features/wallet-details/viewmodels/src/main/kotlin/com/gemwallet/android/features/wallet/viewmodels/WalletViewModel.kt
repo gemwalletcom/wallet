@@ -1,19 +1,29 @@
 package com.gemwallet.android.features.wallet.viewmodels
 
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet.cases.DeleteWallet
 import com.gemwallet.android.application.wallet.cases.GetWalletDetails
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
+import com.gemwallet.android.domains.wallet.WalletSecretInput
 import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.features.wallet.viewmodels.models.WalletSecretUIModel
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.localization.stringRes
 import dagger.hilt.android.lifecycle.HiltViewModel
-import uniffi.gemstone.GemWalletServiceInterface
-import android.util.Log
-import kotlinx.coroutines.Dispatchers
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import uniffi.gemstone.GemWalletServiceInterface
 
 @HiltViewModel
 class WalletViewModel @Inject constructor(
@@ -21,6 +31,8 @@ class WalletViewModel @Inject constructor(
     private val service: GemWalletServiceInterface,
     private val deleteWallet: DeleteWallet,
     savedStateHandle: SavedStateHandle,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val walletId = savedStateHandle.requireWalletId()
@@ -28,12 +40,18 @@ class WalletViewModel @Inject constructor(
     val wallet = getWalletDetails.getWallet(walletId)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    fun setWalletName(name: String) = viewModelScope.launch(Dispatchers.IO) {
+    val secret: StateFlow<WalletSecretUIModel?> = wallet.map { details ->
+        details?.secretKind?.let { kind ->
+            WalletSecretUIModel(WalletSecretInput(walletId, kind), ListItemModel(title = context.getString(R.string.common_show, context.getString(kind.stringRes()))))
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    fun setWalletName(name: String) = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable { service.rename(walletId.id, name) }
             .onFailure { Log.e(TAG, "renaming wallet ${walletId.id} failed", it) }
     }
 
-    fun delete(onBoard: () -> Unit, onComplete: () -> Unit) = viewModelScope.launch(Dispatchers.IO) {
+    fun delete(onBoard: () -> Unit, onComplete: () -> Unit) = viewModelScope.launch(ioDispatcher) {
         deleteWallet.deleteWallet(walletId, onBoard, onComplete)
     }
 

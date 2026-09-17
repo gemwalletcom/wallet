@@ -18,7 +18,7 @@ impl FailureReason {
         if let Some(error) = error.downcast_ref::<ClientError>() {
             return match error {
                 ClientError::Timeout => Self::Timeout,
-                ClientError::Http { status, .. } => Self::Status(*status),
+                ClientError::Http { status, .. } | ClientError::Response { status, .. } => Self::Status(*status),
                 ClientError::Network(_) | ClientError::Serialization(_) => Self::RequestError,
             };
         }

@@ -65,6 +65,10 @@ public final class WalletDetailViewModel {
         Localized.Common.wallet
     }
 
+    func showSecretListItem(for secretKind: GemWalletSecretKind) -> ListItemModel {
+        ListItemModel(title: Localized.Common.show(secretKind.title))
+    }
+
     var secretKind: GemWalletSecretKind? {
         details.secretKind
     }

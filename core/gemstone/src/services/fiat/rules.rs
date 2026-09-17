@@ -7,7 +7,6 @@ use super::model::{GemFiatAmountCheck, GemFiatQuoteRow, GemFiatTransactionBadge,
 use crate::config::fiat_config::FiatConfig;
 use crate::formatted_number::GemFormattedNumber;
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
-use crate::services::balance::GemBalanceRequirement;
 use crate::services::swap::GemAssetRate;
 
 pub fn default_amount(config: &FiatConfig, quote_type: FiatQuoteType) -> u32 {
@@ -32,9 +31,9 @@ pub fn amount_check(config: &FiatConfig, quote_type: FiatQuoteType, amount: f64,
             maximum: GemFormattedNumber::currency(config.maximum_amount as f64, currency, GemCurrencyStyle::Currency),
         };
     }
-    match (quote_type, quote.and_then(quote_value)) {
-        (FiatQuoteType::Sell, Some(value)) if value > *available => GemFiatAmountCheck::InsufficientBalance {
-            requirement: GemBalanceRequirement::new(value.into(), available.clone().into()),
+    match (quote_type, quote) {
+        (FiatQuoteType::Sell, Some(quote)) if quote_value(quote).is_some_and(|value| value > *available) => GemFiatAmountCheck::InsufficientBalance {
+            title: quote.asset.display_title(),
         },
         _ => GemFiatAmountCheck::Valid,
     }
@@ -133,8 +132,7 @@ mod tests {
 
     use super::*;
     use crate::config::fiat_config::get_fiat_config;
-    use num_bigint::BigInt;
-    use primitives::{Asset, Chain, FiatProviderName};
+    use primitives::{Asset, Chain};
 
     #[test]
     fn test_row_prices_a_buy_off_the_asset_price_and_a_sell_off_the_quote() {
@@ -215,7 +213,7 @@ mod tests {
         assert_eq!(
             amount_check(&config, FiatQuoteType::Sell, 100.0, Some(&two_hundred), &BigUint::from(100u32), Currency::USD),
             GemFiatAmountCheck::InsufficientBalance {
-                requirement: GemBalanceRequirement::new(BigInt::from(200), BigInt::from(100))
+                title: Asset::from_chain(Chain::Ethereum).display_title()
             }
         );
         assert_eq!(

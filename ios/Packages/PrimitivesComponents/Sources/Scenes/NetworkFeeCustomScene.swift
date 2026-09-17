@@ -39,11 +39,7 @@ public struct NetworkFeeCustomScene: View {
                 }
             }
 
-            ListItemView(
-                title: model.networkFeeTitle,
-                subtitle: model.value,
-                subtitleExtra: model.fiatValue,
-            )
+            ListItemView(model: model.networkFeeListItem)
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)

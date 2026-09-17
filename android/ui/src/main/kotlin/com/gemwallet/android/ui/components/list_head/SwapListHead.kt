@@ -16,9 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import com.gemwallet.android.model.AssetPriceValue
-import com.gemwallet.android.model.Crypto
-import com.gemwallet.android.model.CryptoFiatConverter
-import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
@@ -28,17 +25,15 @@ import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Currency
-import java.math.BigInteger
-import uniffi.gemstone.GemValueStyle
 
 @Composable
 fun SwapListHead(
     fromAsset: AssetPriceValue?,
-    fromValue: BigInteger,
+    fromValueText: String,
+    fromEquivalentText: String?,
     toAsset: AssetPriceValue?,
-    toValue: BigInteger,
-    currency: Currency? = null,
+    toValueText: String,
+    toEquivalentText: String?,
     onSwapClick: (() -> Unit)? = null,
     onAssetClick: ((AssetId) -> Unit)? = null,
 ) {
@@ -55,8 +50,8 @@ fun SwapListHead(
         ) {
             SwapItem(
                 assetInfo = fromAsset,
-                value = fromValue,
-                currency = currency,
+                valueText = fromValueText,
+                equivalentText = fromEquivalentText,
                 onSwapClick = onSwapClick,
                 onAssetClick = onAssetClick,
             )
@@ -72,8 +67,8 @@ fun SwapListHead(
             Spacer16()
             SwapItem(
                 assetInfo = toAsset,
-                value = toValue,
-                currency = currency,
+                valueText = toValueText,
+                equivalentText = toEquivalentText,
                 onSwapClick = onSwapClick,
                 onAssetClick = onAssetClick,
             )
@@ -84,13 +79,12 @@ fun SwapListHead(
 @Composable
 private fun SwapItem(
     assetInfo: AssetPriceValue,
-    value: BigInteger,
-    currency: Currency?,
+    valueText: String,
+    equivalentText: String?,
     onSwapClick: (() -> Unit)?,
     onAssetClick: ((AssetId) -> Unit)?,
 ) {
     val asset = assetInfo.asset
-    val decimals = asset.decimals
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -107,7 +101,7 @@ private fun SwapItem(
                 ),
         ) {
             Text(
-                text = ValueFormatter(style = GemValueStyle.AUTO).string(value, asset),
+                text = valueText,
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontSize = 24.sp,
                     lineHeight = 32.sp,
@@ -115,10 +109,9 @@ private fun SwapItem(
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Start
             )
-            val price = assetInfo.price?.price?.price
-            if (currency != null && price != null) {
+            if (equivalentText != null) {
                 Text(
-                    text = CryptoFiatConverter.toFiatString(Crypto(value), decimals, price, currency),
+                    text = equivalentText,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary,
                     textAlign = TextAlign.Start

@@ -41,9 +41,9 @@ public struct InfoSheetScene: View {
                 .if(model.shouldShowButton) {
                     $0.safeAreaButton { actionButton }
                 }
-                .presentationDetentsForCurrentDeviceSize()
                 .safariSheet(url: $isPresentedUrl)
         }
+        .presentationDetents(.forCurrentDeviceSize())
     }
 
     private var actionButton: StateButton {

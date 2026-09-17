@@ -1,15 +1,11 @@
 package com.gemwallet.android.ui.components.filters
 
-import com.gemwallet.android.ui.components.screen.SheetExpansion
-import com.gemwallet.android.ui.LocalChainService
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -18,34 +14,31 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.filters.model.FilterType
-import com.gemwallet.android.ui.components.image.IconWithBadge
-import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
-import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemImage
+import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.components.list_item.ListItemSymbol
+import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.models.ListPosition
-import uniffi.gemstone.GemTransactionFilter
-import com.gemwallet.android.ui.theme.iconSize
 import com.wallet.core.primitives.Chain
-import com.gemwallet.android.ui.localization.getLabel
-import uniffi.gemstone.transactionFilters
 
 @Composable
 fun TransactionsFilter(
     isVisible: Boolean,
     availableChains: List<Chain>,
     chainsFilter: List<Chain>,
-    typesFilter: List<GemTransactionFilter>,
+    typesFilter: List<TransactionFilterUIModel>,
+    typeOptions: List<TransactionFilterUIModel>,
     onDismissRequest: () -> Unit,
     onSelectChainsFilter: (List<Chain>) -> Unit,
-    onSelectTypesFilter: (List<GemTransactionFilter>) -> Unit,
+    onSelectTypesFilter: (List<TransactionFilterUIModel>) -> Unit,
     onClearChainsFilter: () -> Unit,
     onClearTypesFilter: () -> Unit,
 ) {
@@ -62,61 +55,35 @@ fun TransactionsFilter(
     ) {
         LazyColumn {
             item {
-                PropertyItem(
-                    modifier = Modifier.clickable { showedSubFilter = FilterType.ByChains },
-                    title = {
-                        PropertyTitleText(
-                            text = R.string.settings_networks_title,
-                            trailing = {
-                                Image(
-                                    modifier = Modifier.size(iconSize),
-                                    painter = painterResource(R.drawable.settings_networks),
-                                    contentDescription = null,
-                                )
-                            }
-                        )
-                    },
-                    data = {
-                        PropertyDataText(
-                            text = when {
-                                chainsFilter.isEmpty() -> stringResource(R.string.common_all)
-                                chainsFilter.size == 1 -> chainsFilter.firstOrNull()?.networkName() ?: ""
-                                else -> "${chainsFilter.size}"
-                            },
-                            badge = { IconWithBadge(null) }
-                        )
-                    },
+                ListItem(
+                    model = ListItemModel(
+                        title = stringResource(R.string.settings_networks_title),
+                        subtitle = when {
+                            chainsFilter.isEmpty() -> stringResource(R.string.common_all)
+                            chainsFilter.size == 1 -> chainsFilter.firstOrNull()?.networkName() ?: ""
+                            else -> "${chainsFilter.size}"
+                        },
+                        image = ListItemImage.Drawable(R.drawable.settings_networks),
+                    ),
                     listPosition = ListPosition.First,
+                    modifier = Modifier.clickable { showedSubFilter = FilterType.ByChains },
+                    accessory = { DataBadgeChevron() },
                 )
             }
             item {
-                PropertyItem(
-                    modifier = Modifier.clickable { showedSubFilter = FilterType.ByTypes },
-                    title = {
-                        PropertyTitleText(
-                            text = R.string.filter_types,
-                            trailing = {
-                                Icon(
-                                    modifier = Modifier.size(iconSize),
-                                    imageVector = AppIcons.Article,
-                                    contentDescription = null,
-                                )
-                            }
-                        )
-                    },
-                    data = {
-                        PropertyDataText(
-                            text = when {
-                                typesFilter.isEmpty() -> stringResource(R.string.common_all)
-                                typesFilter.size == 1 -> typesFilter.firstOrNull()?.getLabel()
-                                    ?.let { stringResource(it) } ?: ""
-
-                                else -> "${typesFilter.size}"
-                            },
-                            badge = { IconWithBadge(null) }
-                        )
-                    },
+                ListItem(
+                    model = ListItemModel(
+                        title = stringResource(R.string.filter_types),
+                        subtitle = when {
+                            typesFilter.isEmpty() -> stringResource(R.string.common_all)
+                            typesFilter.size == 1 -> typesFilter.firstOrNull()?.title ?: ""
+                            else -> "${typesFilter.size}"
+                        },
+                        image = ListItemImage.Symbol(ListItemSymbol.Article),
+                    ),
                     listPosition = ListPosition.Last,
+                    modifier = Modifier.clickable { showedSubFilter = FilterType.ByTypes },
+                    accessory = { DataBadgeChevron() },
                 )
             }
         }
@@ -157,9 +124,8 @@ fun TransactionsFilter(
         },
         onDismiss = { showedSubFilter = null },
     ) { selectedItems, onToggle ->
-        val filters = remember { transactionFilters() }
         LazyColumn(modifier = Modifier.fillMaxSize()) {
-            selectFilterTransactionType(filters, selectedItems, onToggle)
+            selectFilterTransactionType(typeOptions, selectedItems, onToggle)
         }
     }
 }

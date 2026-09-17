@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.bridge.views
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -13,22 +14,19 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.bridge.viewmodels.AuthSceneState
-import com.gemwallet.android.features.bridge.viewmodels.WCAuthViewModel
-import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticationRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.features.bridge.localization.walletConnectMessage
+import com.gemwallet.android.features.bridge.viewmodels.AuthSceneState
+import com.gemwallet.android.features.bridge.viewmodels.WCAuthViewModel
+import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.models.ButtonState
+import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
-import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.screen.FatalStateScene
 import com.gemwallet.android.ui.components.screen.LoadingScene
+import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.ListPosition
-import androidx.activity.compose.BackHandler
 
 @Composable
 fun AuthRequestScene(
@@ -96,24 +94,19 @@ private fun AuthRequestContent(
         model = state,
         buttonState = buttonState,
         walletRow = { position ->
-            PropertyItem(
+            ListItem(
+                model = state.walletListItem,
+                listPosition = position,
                 modifier = if (canSelectWallet && state !is AuthSceneState.Approving) {
                     Modifier.clickable { isShowSelectWallets = true }
                 } else {
                     Modifier
                 },
-                title = { PropertyTitleText(R.string.common_wallet) },
-                data = {
-                    PropertyDataText(
-                        text = state.selectedWallet.name,
-                        badge = if (canSelectWallet) {
-                            { DataBadgeChevron() }
-                        } else {
-                            null
-                        },
-                    )
+                accessory = if (canSelectWallet) {
+                    { DataBadgeChevron() }
+                } else {
+                    null
                 },
-                listPosition = position,
             )
         },
         onApprove = onApprove,

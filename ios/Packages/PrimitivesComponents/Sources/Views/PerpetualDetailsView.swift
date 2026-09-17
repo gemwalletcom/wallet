@@ -30,11 +30,7 @@ public struct PerpetualDetailsView: View {
 
             if model.showAutoclose {
                 Section {
-                    ListItemView(
-                        title: model.autocloseTitle,
-                        subtitle: model.autocloseText.subtitle,
-                        subtitleExtra: model.autocloseText.subtitleExtra,
-                    )
+                    ListItemView(model: model.autocloseListItem)
                 }
             }
 

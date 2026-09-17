@@ -12,7 +12,6 @@ use crate::fee_calculator::FeeCalculator;
 use crate::models::fee::EthereumFeeHistory;
 
 const GAS_LIMIT_PERCENT_INCREASE: u32 = 50;
-const BASE_FEE_PERCENTILE: usize = 80;
 
 pub use crate::transaction_params::TransactionParams;
 
@@ -34,12 +33,7 @@ pub fn map_transaction_preload(nonce_hex: String, chain_id: String) -> Result<Tr
 }
 
 pub fn map_transaction_fee_rates(chain: EVMChain, fee_history: &EthereumFeeHistory) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
-    let mut base_fees = fee_history.base_fee_per_gas.clone();
-    if base_fees.is_empty() {
-        return Err("No base fee available".into());
-    }
-    base_fees.sort_unstable();
-    let base_fee = &base_fees[(base_fees.len() * BASE_FEE_PERCENTILE).div_ceil(100) - 1];
+    let base_fee = fee_history.base_fee_per_gas.last().ok_or("No base fee available")?;
     let min_priority_fee = BigInt::from(chain.min_priority_fee());
 
     Ok(FeeCalculator::new()
@@ -213,23 +207,18 @@ mod tests {
     }
 
     #[test]
-    fn test_map_transaction_fee_rates_base_fee_percentile() {
-        for (base_fees, expected) in [
-            (vec![20, 40], 40),
-            (vec![50, 20, 40, 30, 10], 40),
-            (vec![10, 20, 30, 40, 50], 40),
-            (vec![60, 30, 20, 50, 10, 40], 50),
-            (vec![10, 20, 30, 40, 50, 60, 70, 80, 90, 100], 80),
-        ] {
-            let history = EthereumFeeHistory {
-                base_fee_per_gas: base_fees.into_iter().map(BigInt::from).collect(),
-                ..EthereumFeeHistory::mock()
-            };
-            let rates = map_transaction_fee_rates(EVMChain::Ethereum, &history).unwrap();
+    fn test_map_transaction_fee_rates_next_block_base_fee() {
+        let history = EthereumFeeHistory {
+            base_fee_per_gas: vec![50, 10, 40, 30].into_iter().map(BigInt::from).collect(),
+            ..EthereumFeeHistory::mock()
+        };
+        for chain in EVMChain::all() {
+            let rates = map_transaction_fee_rates(chain, &history).unwrap();
 
             assert_eq!(
                 rates.into_iter().map(|rate| rate.gas_price_type.gas_price()).collect::<Vec<_>>(),
-                vec![BigInt::from(expected), BigInt::from(expected)]
+                vec![BigInt::from(30), BigInt::from(30)],
+                "{chain:?}"
             );
         }
     }

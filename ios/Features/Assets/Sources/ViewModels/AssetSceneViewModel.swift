@@ -8,11 +8,8 @@ import protocol Gemstone.GemAssetDetailsServiceProtocol
 import struct Gemstone.GemAssetDetails
 import struct Gemstone.GemAssetDetailsInput
 import enum Gemstone.GemBalanceRow
-import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerContext
 import typealias Gemstone.GemBigUint
-import struct Gemstone.GemRecipient
-import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -85,8 +82,31 @@ public final class AssetSceneViewModel: Sendable {
         input.wallet
     }
 
-    var priceAlertsTitle: String {
-        Localized.Settings.PriceAlerts.title
+    var pinListItem: ListItemModel {
+        ListItemModel(title: pinText, imageStyle: .list(assetImage: AssetImage(placeholder: pinImage)))
+    }
+
+    var enableListItem: ListItemModel {
+        ListItemModel(title: enableText, imageStyle: .list(assetImage: AssetImage(placeholder: enableImage)))
+    }
+
+    func priceAlertsListItem(_ details: GemAssetDetails) -> ListItemModel {
+        ListItemModel(title: Localized.Settings.PriceAlerts.title, subtitle: String(details.state.priceAlertsCount))
+    }
+
+    func balanceListItem(for row: GemBalanceRow) -> ListItemModel {
+        switch row {
+        case let .available(value): ListItemModel(title: row.title().text, subtitle: balanceText(value))
+        case let .staked(value): ListItemModel(title: row.title().text, subtitle: stakeBalanceText(value))
+        case let .earn(value): ListItemModel(title: row.title().text, subtitle: balanceText(value))
+        case let .pendingUnconfirmed(value): ListItemModel(title: row.title().text, subtitle: balanceText(value), infoAction: onSelectPendingUnconfirmedInfo)
+        case let .reserved(value, _): ListItemModel(title: row.title().text, subtitle: balanceText(value))
+        }
+    }
+
+    var earnListItem: ListItemModel {
+        let apr = aprModel(for: .earn)
+        return ListItemModel(title: StakeProviderType.earn.title, subtitle: apr.text, subtitleStyle: apr.subtitle.style)
     }
 
     var balancesTitle: String {
@@ -188,8 +208,8 @@ public final class AssetSceneViewModel: Sendable {
         bannerContext.visibleBanners(stored: banners.map { $0.toGem() }).map { $0.toPrimitives() }
     }
 
-    func bannerContent(for banner: Banner) -> GemBannerContent {
-        service.bannerContent(event: banner.event.toGem(), asset: banner.asset?.toGem())
+    func bannerModel(for banner: Banner) -> BannerViewModel {
+        BannerViewModel(banner: banner, content: service.bannerContent(event: banner.event.toGem(), asset: banner.asset?.toGem()))
     }
 
     private var bannerContext: GemBannerContext {
@@ -301,25 +321,17 @@ public extension AssetSceneViewModel {
 
     internal func onSelectBanner(_ action: BannerAction) {
         switch action.type {
-        case let .event(event):
-            switch event {
+        case let .destination(destination):
+            switch destination {
             case .stake:
                 onSelectStake()
-            case .activateAsset:
-                isPresentingAssetSheet = .transfer(
-                    GemTransferData(
-                        inputType: .account(assetData.asset, .activate),
-                        recipient: GemRecipient(address: ""),
-                        value: BigInt.zero,
-                    ),
-                )
-            case .accountActivation,
-                 .accountBlockedMultiSignature,
-                 .onboarding,
-                 .suspiciousAsset: break
-            case .tradePerpetuals:
+            case let .activateAsset(transfer):
+                isPresentingAssetSheet = .transfer(transfer)
+            case .perpetuals:
                 UIApplication.shared.open(service.deeplinkGemUrl(deeplink: .perpetuals).asURL!)
                 preferences.isPerpetualEnabled = true
+            case let .url(link):
+                onSelect(url: link.url)
             }
         case let .button(bannerButton):
             switch bannerButton {
@@ -335,7 +347,6 @@ public extension AssetSceneViewModel {
                 }
             }
         }
-        onSelect(url: action.url)
     }
 
     internal func onSelectEarn() {

@@ -2,6 +2,7 @@ package com.gemwallet.android.data.coordinators.transaction
 
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStore
@@ -18,11 +19,16 @@ import com.wallet.core.primitives.TransactionExtended
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
+import com.wallet.core.primitives.WalletId
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import uniffi.gemstone.GemAmountSign
 import uniffi.gemstone.transactionRow
 import uniffi.gemstone.transactionRows
@@ -33,40 +39,61 @@ import uniffi.gemstone.GemTransactionTitle
 import uniffi.gemstone.GemTransactionRow
 import uniffi.gemstone.GemTransactionsServiceInterface
 import uniffi.gemstone.GemValueStyle
+import java.util.concurrent.ConcurrentHashMap
 
 private val usdFiatFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = Currency.USD)
 private val valueFormatter = ValueFormatter(style = GemValueStyle.SHORT)
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class GetTransactionsImpl(
+    private val getSession: GetSession,
     private val getCurrentWalletId: GetCurrentWalletId,
     private val transactionStore: GemstoneTransactionStore,
     private val service: GemTransactionsServiceInterface,
+    scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetTransactions {
+
+    private val rows = TransactionRows()
+    private val stored = ConcurrentHashMap<List<TransactionsRequestFilter>, WalletTransactionRows>()
+
+    init {
+        getTransactions(TransactionsRequestFilter.activityDefaults()).launchIn(scope)
+    }
 
     override fun getTransactions(
         filters: List<TransactionsRequestFilter>,
-    ): Flow<List<TransactionDataAggregate>> = transactionStore.walletTransactions(getCurrentWalletId, filters)
-        .aggregates()
+    ): Flow<List<TransactionDataAggregate>> = getCurrentWalletId()
+        .flatMapLatest { walletId ->
+            transactionStore.observeTransactions(walletId, filters)
+                .map { WalletTransactionRows(walletId, rows.aggregates(filters, it)) }
+        }
+        .onEach { stored[filters] = it }
+        .map { it.rows }
         .flowOn(Dispatchers.IO)
 
-    private fun Flow<List<TransactionExtended>>.aggregates(): Flow<List<TransactionDataAggregate>> = flow {
-        val rows = TransactionRows()
-        collect { emit(rows.aggregates(it)) }
-    }
+    override fun stored(filters: List<TransactionsRequestFilter>): List<TransactionDataAggregate> =
+        stored[filters]?.takeIf { it.walletId == getSession().value?.wallet?.id }?.rows.orEmpty()
 }
+
+private class WalletTransactionRows(
+    val walletId: WalletId,
+    val rows: List<TransactionDataAggregate>,
+)
 
 internal class TransactionRows {
 
-    private var previous: Map<TransactionExtended, TransactionDataAggregate> = emptyMap()
+    private val current = HashMap<List<TransactionsRequestFilter>, Map<TransactionExtended, TransactionDataAggregate>>()
 
-    fun aggregates(items: List<TransactionExtended>): List<TransactionDataAggregate> {
-        val reused = previous
+    @Synchronized
+    fun aggregates(filters: List<TransactionsRequestFilter>, items: List<TransactionExtended>): List<TransactionDataAggregate> {
+        val reused = HashMap<TransactionExtended, TransactionDataAggregate>()
+        current.values.forEach(reused::putAll)
         val missing = items.filterNot(reused::containsKey).distinct()
         val built = missing.zip(transactionRows(missing.map { it.toGem() })) { data, row ->
             data to TransactionDataAggregateImpl(row)
         }.toMap()
         val aggregates = items.mapNotNull { reused[it] ?: built[it] }
-        previous = items.zip(aggregates).toMap()
+        current[filters] = items.zip(aggregates).toMap()
         return aggregates
     }
 }

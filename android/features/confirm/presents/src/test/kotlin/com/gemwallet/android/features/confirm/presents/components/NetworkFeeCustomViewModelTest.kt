@@ -6,6 +6,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.math.BigInteger
+import uniffi.gemstone.GemCustomFeeCheck
 
 class NetworkFeeCustomViewModelTest {
 
@@ -34,7 +35,7 @@ class NetworkFeeCustomViewModelTest {
 
         viewModel.onInputChange("21")
 
-        assertTrue(viewModel.isOverMax)
+        assertEquals(GemCustomFeeCheck.OVER_MAXIMUM, viewModel.check)
         assertFalse(viewModel.isConfirmEnabled)
     }
 }

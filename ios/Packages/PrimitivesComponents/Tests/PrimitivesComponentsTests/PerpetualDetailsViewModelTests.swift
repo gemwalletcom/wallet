@@ -34,12 +34,12 @@ struct PerpetualDetailsViewModelTests {
 
     @Test
     func positionText() {
-        #expect(PerpetualDetailsViewModel.mock(.open(data: .mock(direction: .long, leverage: 40))).positionText == "Long 40x")
-        #expect(PerpetualDetailsViewModel.mock(.open(data: .mock(direction: .short, leverage: 10))).positionText == "Short 10x")
-        #expect(PerpetualDetailsViewModel.mock(.increase(data: .mock(direction: .long, leverage: 5))).positionText == "Long 5x")
+        #expect(PerpetualDetailsViewModel.mock(.open(data: .mock(direction: .long, leverage: 40))).positionText == "LONG 40x")
+        #expect(PerpetualDetailsViewModel.mock(.open(data: .mock(direction: .short, leverage: 10))).positionText == "SHORT 10x")
+        #expect(PerpetualDetailsViewModel.mock(.increase(data: .mock(direction: .long, leverage: 5))).positionText == "LONG 5x")
 
         let reduceModel = PerpetualDetailsViewModel.mock(.reduce(data: .mock(positionDirection: .short)))
-        #expect(reduceModel.positionText == "Short 3x")
+        #expect(reduceModel.positionText == "SHORT 3x")
     }
 
     @Test
@@ -48,7 +48,7 @@ struct PerpetualDetailsViewModelTests {
         #expect(closeModel.listItemModel.title == "Details")
         #expect(closeModel.listItemModel.subtitle == "+$500.00 (+50.00%)")
 
-        #expect(PerpetualDetailsViewModel.mock(.open(data: .mock())).listItemModel.subtitle == "Long 3x")
+        #expect(PerpetualDetailsViewModel.mock(.open(data: .mock())).listItemModel.subtitle == "LONG 3x")
 
         let increaseModel = PerpetualDetailsViewModel.mock(.increase(data: .mock()))
         #expect(increaseModel.listItemModel.subtitle == "Increase Long")

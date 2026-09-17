@@ -41,7 +41,10 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
+import com.gemwallet.android.features.settings.settings.viewmodels.SupportChatLink
+import com.gemwallet.android.features.settings.settings.viewmodels.SupportChatMessage
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.components.list_item.ChevronIcon
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
@@ -51,20 +54,17 @@ import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.gemwallet.android.ui.theme.space8
-import com.gemwallet.android.ui.theme.space12
-import com.gemwallet.android.ui.theme.tinyIconSize
 import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space10
+import com.gemwallet.android.ui.theme.space12
+import com.gemwallet.android.ui.theme.space8
+import com.gemwallet.android.ui.theme.tinyIconSize
 import com.wallet.core.primitives.SupportMessage
 import com.wallet.core.primitives.SupportMessageImage
 import com.wallet.core.primitives.SupportMessageSender
 import com.wallet.core.primitives.SupportMessageStatus
 import java.text.DateFormat
 import java.util.Date
-import uniffi.gemstone.SupportMessageLink
-import uniffi.gemstone.parseSupportMessageDisplayContent
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 private val progressStrokeWidth = 1.5.dp
 
@@ -77,10 +77,11 @@ internal val imageLoaderSize = 40.dp
 
 @Composable
 internal fun SupportMessageBubble(
-    message: SupportMessage,
+    item: SupportChatMessage,
     onImageClick: (String) -> Unit,
     onRetry: (SupportMessage) -> Unit,
 ) {
+    val message = item.message
     val isUser = message.sender is SupportMessageSender.User
     val bubbleColor = if (isUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest
     val textColor = if (isUser) Color.White else MaterialTheme.colorScheme.onSurface
@@ -106,11 +107,8 @@ internal fun SupportMessageBubble(
             val clipboard = LocalContext.current.clipboardManager()
             val uriHandler = LocalUriHandler.current
             var menuExpanded by remember { mutableStateOf(false) }
-            val displayContent = remember(message.content) {
-                parseSupportMessageDisplayContent(message.content)
-            }
-            val hasText = displayContent.text.isNotBlank()
-            val hasLinks = displayContent.links.isNotEmpty()
+            val hasText = item.text.isNotBlank()
+            val hasLinks = item.links.isNotEmpty()
             DropDownContextItem(
                 isExpanded = menuExpanded,
                 onDismiss = { menuExpanded = false },
@@ -137,7 +135,7 @@ internal fun SupportMessageBubble(
                         Column {
                             if (hasText) {
                                 MessageText(
-                                    text = displayContent.text,
+                                    text = item.text,
                                     textColor = textColor,
                                     linkColor = linkColor,
                                     metaColor = metaColor,
@@ -148,7 +146,7 @@ internal fun SupportMessageBubble(
                             }
                             if (hasLinks) {
                                 SupportMessageLinks(
-                                    links = displayContent.links,
+                                    links = item.links,
                                     linkColor = linkColor,
                                     metaColor = metaColor,
                                     showTopDivider = hasText,
@@ -216,7 +214,7 @@ private fun MessageText(
 
 @Composable
 private fun SupportMessageLinks(
-    links: List<SupportMessageLink>,
+    links: List<SupportChatLink>,
     linkColor: Color,
     metaColor: Color,
     showTopDivider: Boolean,
@@ -243,7 +241,7 @@ private fun SupportMessageLinks(
 
 @Composable
 private fun SupportMessageLinkRow(
-    link: SupportMessageLink,
+    link: SupportChatLink,
     linkColor: Color,
     metaColor: Color,
     onClick: (String) -> Unit,

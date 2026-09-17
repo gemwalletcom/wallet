@@ -9,6 +9,7 @@ reqwest = ["dep:reqwest", "dep:tokio"]
 testkit = []
 
 [dependencies]
+primitives = { path = "../primitives" }
 async-trait = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }

@@ -57,6 +57,15 @@ pub fn slippage_percent(bps: u32) -> f64 {
     f64::from(bps) / BPS_PER_PERCENT
 }
 
+pub fn slippage_percent_text(bps: u32, decimal_separator: &str) -> String {
+    let whole = bps / 100;
+    match bps % 100 {
+        0 => whole.to_string(),
+        fraction if fraction % 10 == 0 => format!("{whole}{decimal_separator}{}", fraction / 10),
+        fraction => format!("{whole}{decimal_separator}{fraction:02}"),
+    }
+}
+
 pub fn slippage_check(bps: u32, config: &SwapConfig) -> GemSlippageCheck {
     if bps < config.min_slippage_bps {
         GemSlippageCheck::BelowMinimum
@@ -353,6 +362,16 @@ mod tests {
         assert_eq!(slippage_bps_from_percent(-1.0), None);
         assert_eq!(slippage_bps_from_percent(f64::NAN), None);
         assert_eq!(slippage_percent(250), 2.5);
+    }
+
+    #[test]
+    fn test_slippage_percent_text_drops_trailing_zeros_and_uses_the_locale_separator() {
+        assert_eq!(slippage_percent_text(100, "."), "1");
+        assert_eq!(slippage_percent_text(50, "."), "0.5");
+        assert_eq!(slippage_percent_text(10, "."), "0.1");
+        assert_eq!(slippage_percent_text(275, ","), "2,75");
+        assert_eq!(slippage_percent_text(5, "."), "0.05");
+        assert_eq!(slippage_percent_text(2000, "."), "20");
     }
 
     #[test]

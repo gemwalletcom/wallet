@@ -25,6 +25,7 @@ import uniffi.gemstone.GemBalanceService
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
 import uniffi.gemstone.GemKeystore
+import uniffi.gemstone.GemNodeService
 import uniffi.gemstone.GemDeviceApiClient as GemstoneDeviceApiClient
 import uniffi.gemstone.GemFiatQuoteService
 import uniffi.gemstone.GemFiatQuoteServiceInterface
@@ -96,11 +97,13 @@ object GatewayModule {
     @Singleton
     fun provideGateway(
         alienProvider: AlienProvider,
+        nodes: GemNodeService,
         securePreferences: GemSecureStore,
         @ApplicationContext context: Context,
     ): GemGateway {
         return GemGateway(
             alienProvider,
+            nodes = nodes,
             preferences = GemstonePreferencesStore(
                 sharedPreferences = context.getSharedPreferences("gateway_preferences", Context.MODE_PRIVATE)
             ),
@@ -293,8 +296,8 @@ object GatewayModule {
     @Singleton
     fun provideGemGemSimulationService(
         alienProvider: AlienProvider,
-        preferences: GemstonePreferencesStore,
-    ): GemSimulationService = GemSimulationService(alienProvider, preferences)
+        nodes: GemNodeService,
+    ): GemSimulationService = GemSimulationService(alienProvider, nodes)
 
     @Provides
     @Singleton

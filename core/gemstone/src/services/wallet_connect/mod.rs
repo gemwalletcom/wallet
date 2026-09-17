@@ -11,12 +11,12 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use chrono::{DateTime, Utc};
-use gem_wallet_connect::validate_sign_message_account;
+use gem_wallet_connect::{WalletConnectVerifier, validate_sign_message_account};
 use primitives::{
     Account, ApplicationMetadata, Chain, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus, WalletId,
 };
 
-use crate::application::{GemApplicationMetadataService, GemConnectionRow};
+use crate::application::GemApplicationMetadataService;
 use crate::message::sign_type::SignMessage;
 use crate::services::assets::GemAssetsService;
 use crate::services::error::GemServiceError;
@@ -83,7 +83,7 @@ impl GemWalletConnectService {
     }
 
     pub fn is_origin_rejected(&self, metadata_url: String, origin: Option<String>, validation: WalletConnectionVerificationStatus) -> bool {
-        rules::is_origin_rejected(&self.wallet_connect.validate_origin(metadata_url, origin, validation))
+        rules::is_origin_rejected(&WalletConnectVerifier::validate_origin(metadata_url, origin, validation))
     }
 
     pub async fn add_connection(&self, connection: WalletConnection) -> Result<(), GemServiceError> {
@@ -138,7 +138,7 @@ impl GemWalletConnectService {
         let current_wallet_id = self.session.get_current_wallet_id()?;
         let required = rules::parse_chains(&required_chain_ids).ok_or(GemWalletConnectError::UnsupportedChains)?;
         let optional = rules::parse_known_chains(&optional_chain_ids);
-        let verification_status = self.wallet_connect.validate_origin(metadata.url.clone(), origin, validation);
+        let verification_status = WalletConnectVerifier::validate_origin(metadata.url.clone(), origin, validation);
         if rules::is_origin_rejected(&verification_status) {
             return Err(GemWalletConnectError::InvalidOrigin);
         }
@@ -152,10 +152,6 @@ impl GemWalletConnectService {
             },
             verification_status,
         })
-    }
-
-    pub fn connection_row(&self, metadata: ApplicationMetadata) -> GemConnectionRow {
-        self.metadata.connection_row(metadata)
     }
 
     pub fn connection_sections(&self, connections: Vec<WalletConnection>) -> Vec<GemConnectionSection> {
@@ -235,12 +231,6 @@ impl GemWalletConnectService {
             Err(GemServiceError::Cancelled) => GemWalletConnectOutcome::rejected(None),
             Err(error) => GemWalletConnectOutcome::rejected(Some(GemWalletConnectFailure::Failed { message: error.to_string() })),
         }
-    }
-}
-
-impl GemWalletConnectService {
-    pub fn validate_origin(&self, metadata_url: String, origin: Option<String>, validation: WalletConnectionVerificationStatus) -> WalletConnectionVerificationStatus {
-        self.wallet_connect.validate_origin(metadata_url, origin, validation)
     }
 }
 

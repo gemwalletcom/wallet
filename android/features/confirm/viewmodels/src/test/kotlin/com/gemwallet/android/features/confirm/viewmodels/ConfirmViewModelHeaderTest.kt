@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.confirm.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
@@ -47,17 +48,21 @@ class ConfirmViewModelHeaderTest {
     private val asset = mockAsset()
     private val account = mockAccount(chain = Chain.Bitcoin)
     private val confirmService = mockk<GemConfirmTransferService>(relaxed = true)
+    private var model: ConfirmViewModel? = null
 
     @Before
     fun setUp() = Dispatchers.setMain(testDispatcher)
 
     @After
-    fun tearDown() = Dispatchers.resetMain()
+    fun tearDown() = runTest(testDispatcher) {
+        model?.viewModelScope?.coroutineContext?.job?.cancelAndJoin()
+        Dispatchers.resetMain()
+    }
 
     @Test
     fun headerCarriesTheRequestedAmountWhileTheFeeIsStillLoading() = runTest(testDispatcher) {
         val value = BigInteger.valueOf(150_000)
-        val viewModel = viewModel(mockGemTransferData(value = value))
+        val viewModel = viewModel(mockGemTransferData(value = value)).also { model = it }
 
         val amount = viewModel.amountUIModel.first { it != null }
 
@@ -65,21 +70,17 @@ class ConfirmViewModelHeaderTest {
         assertEquals(value, amount?.amount)
         assertEquals(FeeUIModel.Calculating, viewModel.feeUIModel.first { it != null })
         assertEquals(GemConfirmPhase.LOADING, viewModel.screen.value.phase)
-
-        viewModel.viewModelScope.coroutineContext.job.cancelAndJoin()
     }
 
     @Test
     fun maxSendHeaderCarriesTheRequestedBalanceWhileTheFeeIsStillLoading() = runTest(testDispatcher) {
         val balance = BigInteger.valueOf(170_400)
-        val viewModel = viewModel(mockGemTransferData(value = balance, useMaxAmount = true))
+        val viewModel = viewModel(mockGemTransferData(value = balance, useMaxAmount = true)).also { model = it }
 
         val amount = viewModel.amountUIModel.first { it != null }
 
         assertEquals(asset, amount?.asset)
         assertEquals(balance, amount?.amount)
-
-        viewModel.viewModelScope.coroutineContext.job.cancelAndJoin()
     }
 
     private fun viewModel(transfer: GemTransferData): ConfirmViewModel {
@@ -99,6 +100,8 @@ class ConfirmViewModelHeaderTest {
             buildConfirmProperties = mockk(relaxed = true),
             confirmService = confirmService,
             savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transfer.pack()))),
+            ioDispatcher = testDispatcher,
+            context = mockk<Context> { every { getString(any()) } returns "Error"; every { getString(any(), *anyVararg()) } returns "Error" },
         )
     }
 }

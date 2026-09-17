@@ -86,6 +86,10 @@ public final class ConfirmTransferSceneViewModel {
         ConfirmPreloadSelection(fee: feeSelection, feeAsset: feeAssetSelection)
     }
 
+    var payloadDetailsListItem: ListItemModel {
+        ListItemModel(title: Localized.Common.details)
+    }
+
     var title: String {
         dataModel.title
     }
@@ -192,7 +196,10 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
         case .warnings:
             ConfirmTransferItemModel.warnings(simulationWarningModels)
         case .app, .sender, .network, .recipient, .memo:
-            ConfirmRowViewModel(content: rowContents.first { $0.item == item })
+            ConfirmRowViewModel(
+                content: rowContents.first { $0.item == item },
+                onSelectAddress: { [weak self] in self?.onSelectAddress($0) },
+            )
         case .details:
             detailsViewModel
         case .payload:
@@ -262,6 +269,10 @@ extension ConfirmTransferSceneViewModel {
 
     func onSelectPerpetualDetails(_ model: PerpetualDetailsViewModel) {
         isPresentingSheet = .perpetualDetails(model)
+    }
+
+    func onSelectAddress(_ chainAddress: ChainAddress) {
+        isPresentingSheet = .addressDetails(chainAddress)
     }
 
     func onSelectConfirm() {

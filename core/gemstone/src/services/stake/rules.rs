@@ -234,6 +234,10 @@ pub fn sorted_delegations(mut delegations: Vec<Delegation>) -> Vec<Delegation> {
     delegations
 }
 
+pub fn positions(delegations: Vec<Delegation>) -> Vec<Delegation> {
+    delegations.into_iter().filter(|delegation| delegation.base.balance > BigUint::ZERO).collect()
+}
+
 pub fn lock_time_seconds(chain: Chain) -> u64 {
     stake_config(chain).map(|config| config.time_lock).unwrap_or_default()
 }
@@ -337,7 +341,7 @@ impl GemAssetBalance {
 }
 
 impl GemAssetBalance {
-    pub fn shows_stake_balance(&self, chain: Chain, is_stake_enabled: bool) -> bool {
+    fn shows_stake_balance(&self, chain: Chain, is_stake_enabled: bool) -> bool {
         StakeChain::from_chain(chain).is_some() && (is_stake_enabled || self.staked_value(chain) > GemBigUint::ZERO)
     }
 }

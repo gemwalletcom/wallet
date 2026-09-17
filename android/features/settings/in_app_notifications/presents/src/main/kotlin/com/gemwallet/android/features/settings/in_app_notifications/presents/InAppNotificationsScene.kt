@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.settings.in_app_notifications.presents
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
@@ -8,12 +9,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.settings.in_app_notifications.presents.components.NotificationItem
 import com.gemwallet.android.features.settings.in_app_notifications.viewmodels.InAppNotificationsViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
+import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.dateSectionedList
+import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.rememberDateSections
 import com.gemwallet.android.ui.components.screen.Scene
 
@@ -38,12 +40,13 @@ fun InAppNotificationsScene(
             LazyColumn {
                 dateSectionedList(
                     sections = sections,
-                    key = { _, notification -> notification.item.id },
+                    key = { _, notification -> notification.id },
                 ) { listPosition, notification ->
-                    NotificationItem(
-                        notification = notification,
+                    ListItem(
+                        model = notification.model,
                         listPosition = listPosition,
-                        onOpenUrl = { onAction(InAppNotificationsAction.OpenUrl(it)) },
+                        modifier = notification.url?.let { url -> Modifier.clickable { onAction(InAppNotificationsAction.OpenUrl(url)) } } ?: Modifier,
+                        accessory = notification.url?.let { { DataBadgeChevron() } },
                     )
                 }
             }

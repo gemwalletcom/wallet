@@ -62,6 +62,18 @@ impl RoutedAsset {
     }
 }
 
+pub fn routed_pair(from_asset: &AssetId, to_asset: &AssetId, protocol: Protocol) -> Result<(EVMChain, RoutedAsset, RoutedAsset), SwapperError> {
+    if from_asset.chain != to_asset.chain {
+        return Err(SwapperError::NotSupportedChain);
+    }
+    let evm_chain = EVMChain::from_chain(from_asset.chain).ok_or(SwapperError::NotSupportedChain)?;
+    Ok((
+        evm_chain,
+        RoutedAsset::from_asset(from_asset, evm_chain, protocol)?,
+        RoutedAsset::from_asset(to_asset, evm_chain, protocol)?,
+    ))
+}
+
 pub fn base_pair(chain: EVMChain, protocol: Protocol) -> Option<BasePair> {
     let native = RoutedAsset::from_asset(&AssetId::from_chain(chain.to_chain()), chain, protocol);
     get_base_pair(&chain, native.map(|asset| asset.address).unwrap_or(Address::ZERO))

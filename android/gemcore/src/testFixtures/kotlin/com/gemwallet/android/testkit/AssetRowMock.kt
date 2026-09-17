@@ -1,15 +1,15 @@
 package com.gemwallet.android.testkit
 
-import uniffi.gemstone.GemAssetRow
-import uniffi.gemstone.GemAssetRowSubtitle
-import uniffi.gemstone.GemAssetRowTitle
-import uniffi.gemstone.GemAssetRowTrailing
+import uniffi.gemstone.GemAssetRowStyle
+import uniffi.gemstone.GemAssetSubtitleStyle
+import uniffi.gemstone.GemAssetTitleStyle
+import uniffi.gemstone.GemAssetTrailingStyle
 
-fun mockGemAssetRow(
-    title: GemAssetRowTitle = GemAssetRowTitle.ASSET,
-) = GemAssetRow(
+fun mockGemAssetRowStyle(
+    title: GemAssetTitleStyle = GemAssetTitleStyle.ASSET,
+) = GemAssetRowStyle(
     title = title,
     showsSymbol = false,
-    subtitle = GemAssetRowSubtitle.PRICE,
-    trailing = GemAssetRowTrailing.BALANCE,
+    subtitle = GemAssetSubtitleStyle.PRICE,
+    trailing = GemAssetTrailingStyle.BALANCE,
 )

@@ -214,7 +214,7 @@ class AmountViewModelTest {
 
     private fun AmountViewModel.confirm(): GemTransferData? {
         var confirmed: GemTransferData? = null
-        onNext { confirmed = it }
+        onNext { confirmed = it.data }
         testDispatcher.scheduler.runCurrent()
         return confirmed
     }

@@ -4,6 +4,7 @@ import Foundation
 import Localization
 
 enum PerpetualError: Equatable {
+    case invalidAmount
     case triggerPriceMustBeHigher
     case triggerPriceMustBeLower
 }
@@ -11,6 +12,7 @@ enum PerpetualError: Equatable {
 extension PerpetualError: LocalizedError {
     var errorDescription: String? {
         switch self {
+        case .invalidAmount: Localized.Errors.invalidAmount
         case .triggerPriceMustBeHigher: Localized.Errors.Perpetual.triggerPriceHigher
         case .triggerPriceMustBeLower: Localized.Errors.Perpetual.triggerPriceLower
         }

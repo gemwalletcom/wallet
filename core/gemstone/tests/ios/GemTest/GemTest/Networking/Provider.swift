@@ -32,6 +32,14 @@ public final class MemoryPreferences: GemPreferencesStore, @unchecked Sendable {
     }
 }
 
+public final class MemoryNodeStore: GemNodeStore, @unchecked Sendable {
+    public func getNodes(chain _: Chain) async throws -> [Node] { [] }
+
+    public func addNode(chain _: Chain, node _: Node) async throws {}
+
+    public func deleteNode(chain _: Chain, url _: String) async throws {}
+}
+
 extension NativeProvider: AlienProvider {
     public func request(target: Gemstone.AlienTarget) async throws -> Gemstone.AlienResponse {
         print("==> handle request: \(target)")

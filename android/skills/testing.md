@@ -21,6 +21,11 @@
 - One behavior per test, small number of assertions
 - Keep setup minimal: prefer shared testkit defaults and override only the inputs that the assertion actually depends on
 
+#### Coroutines
+
+- A view-model test sets Main to its own `TestDispatcher` and hands that same dispatcher to the view model, which takes it by injection (see [code-style.md](code-style.md)). `tearDown` cancels `viewModelScope` before `resetMain()`, so nothing survives into the next test
+- Drive the queued work with `advanceUntilIdle()`, then assert on `.value`. `coVerify(timeout = …)`, `verify(timeout = …)`, `Thread.sleep`, and poll loops never advance the test scheduler — they only hide a race that a slower CI runner loses later (issue #1271)
+
 ### Instrumented Tests (`src/androidTest/kotlin/`)
 
 - Test database migrations, Room queries, and Android-specific behavior

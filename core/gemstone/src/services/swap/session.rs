@@ -197,14 +197,6 @@ impl GemSwapSession {
         }
     }
 
-    pub fn on_quote_invalidated(&self) -> GemSwapSession {
-        GemSwapSession {
-            transfer_phase: GemSwapTransferPhase::Idle,
-            refresh_paused_until_restart: false,
-            ..self.clone()
-        }
-    }
-
     pub fn on_refresh_resumed(&self) -> GemSwapSession {
         GemSwapSession {
             refresh_paused_until_restart: false,
@@ -340,6 +332,14 @@ impl GemSwapSession {
 }
 
 impl GemSwapSession {
+    fn on_quote_invalidated(&self) -> GemSwapSession {
+        GemSwapSession {
+            transfer_phase: GemSwapTransferPhase::Idle,
+            refresh_paused_until_restart: false,
+            ..self.clone()
+        }
+    }
+
     fn current_quote(&self) -> Option<&SwapperQuote> {
         self.quotes.as_ref()?;
         self.selected_quote.as_ref()
@@ -352,7 +352,7 @@ impl GemSwapSession {
         }
     }
 
-    pub fn accepts_quotes(&self) -> bool {
+    fn accepts_quotes(&self) -> bool {
         matches!(self.transfer_phase, GemSwapTransferPhase::Idle)
     }
 

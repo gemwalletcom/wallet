@@ -53,10 +53,9 @@ object AutocloseUIModelFactory {
         val priceForEstimation = field.price.takeIf { field.validation == AutocloseValidation.VALID }
         val pnl = priceForEstimation?.let { estimator.pnl(it) }
         val roe = priceForEstimation?.let { estimator.roe(it) }
-        val isProfit = pnl?.let { it >= 0.0 } ?: (field.tpslType == uniffi.gemstone.TpslType.TAKE_PROFIT)
         return AutocloseUIModel.Field(
             type = field.tpslType.toPrimitives(),
-            isProfit = isProfit,
+            isProfit = estimator.isProfit(priceForEstimation, field.tpslType),
             pnlText = pnlText(pnl, roe, estimator.hasSize()),
             pnlDirection = roe?.tone() ?: GemValueTone.NEUTRAL,
             percentSuggestions = estimator.percentSuggestions().map { it.toInt() },

@@ -2,11 +2,10 @@ use gem_wallet_connect::{
     EvmTransactionKind as WcEvmTransactionKind, SignDigestType as WcSignDigestType, WCEthereumTransactionData as WcEthereumTransactionData,
     WalletConnectAction as WcWalletConnectAction, WalletConnectChainOperation as WcWalletConnectChainOperation, WalletConnectRequestHandler, WalletConnectResponseHandler,
     WalletConnectResponseType as WcWalletConnectResponseType, WalletConnectTransaction as WcWalletConnectTransaction,
-    WalletConnectTransactionType as WcWalletConnectTransactionType, WalletConnectVerifier, config_session_properties,
+    WalletConnectTransactionType as WcWalletConnectTransactionType, config_session_properties,
 };
 use primitives::{
     Account, Chain, ChainAddress, TransactionType, TransferDataOutputType, WCEthereumTransaction, WalletConnectCAIP2, WalletConnectLink, WalletConnectRequest,
-    WalletConnectionVerificationStatus,
 };
 use std::collections::HashMap;
 
@@ -343,10 +342,6 @@ pub struct WalletConnect {}
 impl WalletConnect {
     pub fn new() -> Self {
         Self {}
-    }
-
-    pub fn validate_origin(&self, metadata_url: String, origin: Option<String>, validation: WalletConnectionVerificationStatus) -> WalletConnectionVerificationStatus {
-        WalletConnectVerifier::validate_origin(metadata_url, origin, validation)
     }
 
     pub fn config_session_properties(&self, properties: HashMap<String, String>, caip2_chains: Vec<String>, accounts: Vec<Account>) -> HashMap<String, String> {

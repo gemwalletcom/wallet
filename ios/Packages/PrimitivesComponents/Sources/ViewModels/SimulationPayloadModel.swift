@@ -27,23 +27,6 @@ public struct SimulationPayloadModel: Sendable {
     public var hasFields: Bool { primaryFields.isNotEmpty || secondaryFields.isNotEmpty }
     public var hasDetails: Bool { secondaryFields.isNotEmpty }
 
-    public var addressRequests: [ChainAddress] {
-        (primaryFields + secondaryFields).compactMap {
-            guard $0.fieldType == .address else {
-                return nil
-            }
-            return ChainAddress(chain: chain, address: $0.value)
-        }
-    }
-
-    public func fieldViewModel(for field: SimulationPayloadField) -> SimulationPayloadFieldViewModel {
-        SimulationPayloadFieldViewModel(
-            field: field,
-            chain: chain,
-            addressName: addressNames[ChainAddress(chain: chain, address: field.value)],
-        )
-    }
-
     public func fieldModels(
         for fields: [SimulationPayloadField],
         explorerLink: (String) -> BlockExplorerLink,

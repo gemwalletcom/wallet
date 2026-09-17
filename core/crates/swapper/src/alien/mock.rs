@@ -3,6 +3,7 @@ use std::fmt::{self, Debug};
 
 use super::{AlienError, Target};
 use gem_jsonrpc::RpcResponse;
+use gem_jsonrpc::alien::RpcProvider;
 use gem_jsonrpc::rpc::RpcProvider as GenericRpcProvider;
 use primitives::Chain;
 
@@ -45,8 +46,10 @@ impl GenericRpcProvider for ProviderMock {
             data: (self.response.0)(target).into_bytes(),
         })
     }
+}
 
-    fn get_endpoint(&self, _chain: Chain) -> Result<String, Self::Error> {
+impl RpcProvider for ProviderMock {
+    fn get_endpoint(&self, _chain: Chain) -> Result<String, AlienError> {
         Ok(String::from("http://localhost:8080"))
     }
 }

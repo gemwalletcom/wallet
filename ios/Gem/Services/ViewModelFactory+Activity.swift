@@ -18,6 +18,7 @@ extension ViewModelFactory {
         walletId: WalletId,
         onHeaderAction: @escaping (GemTransactionHeaderAction) -> Void,
         onAddContact: @escaping (AddContactType) -> Void,
+        onSelectAddress: @escaping @MainActor @Sendable (ChainAddress) -> Void,
     ) -> TransactionSceneViewModel {
         TransactionSceneViewModel(
             transaction: transaction,
@@ -25,6 +26,7 @@ extension ViewModelFactory {
             service: Gemstone.GemTransactionDetailsService(explorer: explorerService, preferences: preferencesService),
             onHeaderAction: onHeaderAction,
             onAddContact: onAddContact,
+            onSelectAddress: onSelectAddress,
         )
     }
 

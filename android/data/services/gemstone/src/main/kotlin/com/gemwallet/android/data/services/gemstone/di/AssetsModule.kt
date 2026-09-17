@@ -38,6 +38,9 @@ import uniffi.gemstone.GemAddAssetService
 import uniffi.gemstone.GemAddAssetServiceInterface
 import uniffi.gemstone.GemReceiveService
 import uniffi.gemstone.GemReceiveServiceInterface
+import uniffi.gemstone.GemAddressDetailsService
+import uniffi.gemstone.GemNameService
+import uniffi.gemstone.GemAddressDetailsServiceInterface
 import uniffi.gemstone.GemSupportStore
 import uniffi.gemstone.GemNotificationStore
 import uniffi.gemstone.GemFiatService
@@ -229,6 +232,13 @@ object AssetsModule {
         balanceService: GemBalanceService,
         assetsService: GemAssetsService,
     ): GemReceiveServiceInterface = GemReceiveService(balanceService, assetsService)
+
+    @Provides
+    fun provideGemAddressDetailsService(
+        gateway: GemGateway,
+        explorerService: GemExplorerService,
+        nameService: GemNameService,
+    ): GemAddressDetailsServiceInterface = GemAddressDetailsService(gateway, explorerService, nameService)
 
     @Provides
     fun provideGemAddAssetService(

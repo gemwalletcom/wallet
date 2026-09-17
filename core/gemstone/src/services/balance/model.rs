@@ -1,4 +1,5 @@
 use crate::models::custom_types::{GemBigInt, GemBigUint};
+use crate::models::list::GemListRowTitle;
 use number_formatter::BigNumberFormatter;
 use primitives::{AssetId, asset_balance::BalanceMetadata};
 
@@ -153,6 +154,25 @@ pub enum GemBalanceRow {
     Earn { value: GemBigUint },
     PendingUnconfirmed { value: GemBigUint },
     Reserved { value: GemBigUint, url: Option<String> },
+}
+
+#[uniffi::export]
+impl GemBalanceRow {
+    pub fn title(&self) -> GemListRowTitle {
+        match self {
+            Self::Available { .. } => GemListRowTitle::Available,
+            Self::Staked { .. } => GemListRowTitle::Stake,
+            Self::Earn { .. } => GemListRowTitle::Earn,
+            Self::PendingUnconfirmed { .. } => GemListRowTitle::PendingUnconfirmed,
+            Self::Reserved { .. } => GemListRowTitle::Reserved,
+        }
+    }
+
+    pub fn value(&self) -> GemBigUint {
+        match self {
+            Self::Available { value } | Self::Staked { value } | Self::Earn { value } | Self::PendingUnconfirmed { value } | Self::Reserved { value, .. } => value.clone(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

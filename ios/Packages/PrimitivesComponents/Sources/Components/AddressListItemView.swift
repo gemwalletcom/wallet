@@ -13,18 +13,31 @@ public struct AddressListItemView: View {
     }
 
     public var body: some View {
+        content
+            .contextMenu(contextMenuItems)
+            .safariSheet(url: $isPresentingUrl)
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        if let onSelect = model.onSelect {
+            NavigationCustomLink(with: listItem, action: onSelect)
+        } else {
+            listItem
+                .onTap {
+                    if model.canToggleAddress {
+                        showAddress.toggle()
+                    }
+                }
+        }
+    }
+
+    private var listItem: some View {
         ListItemImageView(
             title: model.title,
             subtitle: showAddress ? model.addressSubtitle : model.subtitle,
             assetImage: model.assetImage,
         )
-        .onTap {
-            if model.canToggleAddress {
-                showAddress.toggle()
-            }
-        }
-        .contextMenu(contextMenuItems)
-        .safariSheet(url: $isPresentingUrl)
     }
 
     private var contextMenuItems: [ContextMenuItemType] {

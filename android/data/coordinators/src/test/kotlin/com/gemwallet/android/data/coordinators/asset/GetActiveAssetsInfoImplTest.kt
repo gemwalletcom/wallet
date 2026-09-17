@@ -7,12 +7,12 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetPriceInfo
-import com.gemwallet.android.testkit.mockGemAssetRow
+import com.gemwallet.android.testkit.mockGemAssetRowStyle
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.WalletId
-import uniffi.gemstone.GemAssetRowTitle
+import uniffi.gemstone.GemAssetTitleStyle
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
@@ -43,21 +43,21 @@ class GetActiveAssetsInfoImplTest {
         override fun byIdentifiers(assetIds: List<String>): Flow<List<AssetInfo>> = walletAssets
     }
 
-    private val row = mockGemAssetRow(title = GemAssetRowTitle.CANONICAL_ASSET)
+    private val rowStyle = mockGemAssetRowStyle(title = GemAssetTitleStyle.CANONICAL_ASSET)
 
     private val hideBalances = MutableStateFlow(false)
 
     private fun subject(hideBalance: Boolean, scope: CoroutineScope) = GetActiveAssetsInfoImpl(
         getWalletAssets = getWalletAssets,
         userConfig = mockk<UserConfig> { every { isHideBalances() } returns flowOf(hideBalance) },
-        row = row,
+        rowStyle = rowStyle,
         scope = scope,
     )
 
     private fun observed(scope: CoroutineScope) = GetActiveAssetsInfoImpl(
         getWalletAssets = getWalletAssets,
         userConfig = mockk<UserConfig> { every { isHideBalances() } returns hideBalances },
-        row = row,
+        rowStyle = rowStyle,
         scope = scope,
     )
 
@@ -65,7 +65,7 @@ class GetActiveAssetsInfoImplTest {
     fun emitsFormattedRowsForEveryWalletAsset() = runTest {
         val rows = subject(hideBalance = false, scope = backgroundScope).assetsInfo().first { it.isNotEmpty() }
 
-        assertEquals(assets.toAssetInfoDataAggregates(naming = row.title, hideBalance = false), rows)
+        assertEquals(assets.toAssetInfoDataAggregates(naming = rowStyle.title, hideBalance = false), rows)
         assertEquals("\$50,000.00", rows.first().price?.valueFormatted)
         assertEquals("+2.50%", rows.first().price?.changePercentageFormatted)
     }
@@ -115,7 +115,7 @@ class GetActiveAssetsInfoImplTest {
     fun hidesBalancesWhenAsked() = runTest {
         val rows = subject(hideBalance = true, scope = backgroundScope).assetsInfo().first { it.isNotEmpty() }
 
-        assertEquals(assets.toAssetInfoDataAggregates(naming = row.title, hideBalance = true), rows)
+        assertEquals(assets.toAssetInfoDataAggregates(naming = rowStyle.title, hideBalance = true), rows)
         assertEquals(listOf("*****", "*****", "*****"), rows.map { it.balance })
     }
 }

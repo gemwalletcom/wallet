@@ -9,6 +9,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.math.BigInteger
+import uniffi.gemstone.GemCustomFeeCheck
 
 class CustomFeeTest {
 
@@ -24,15 +25,15 @@ class CustomFeeTest {
         assertTrue(fractional.isConfirmEnabled)
 
         val belowMinimum = CustomFee.from("0.5", mockFeeInfo(feeAsset = mockAsset(chain = Chain.Litecoin)), mockGemFeeRateRows(), 1)
-        assertTrue(belowMinimum.isBelowMinimum)
+        assertEquals(GemCustomFeeCheck.BELOW_MINIMUM, belowMinimum.check)
         assertEquals("5", belowMinimum.minRateText)
         assertFalse(belowMinimum.isConfirmEnabled)
 
         val overMax = CustomFee.from("21", mockFeeInfo(), mockGemFeeRateRows(), 0)
-        assertTrue(overMax.isOverMax)
+        assertEquals(GemCustomFeeCheck.OVER_MAXIMUM, overMax.check)
         assertFalse(overMax.isConfirmEnabled)
 
         val anchoredToNormal = CustomFee.from("21", mockFeeInfo(), mockGemFeeRateRows(selectedTotal = BigInteger("20")), 0)
-        assertTrue(anchoredToNormal.isOverMax)
+        assertEquals(GemCustomFeeCheck.OVER_MAXIMUM, anchoredToNormal.check)
     }
 }

@@ -4,6 +4,7 @@ import android.content.Context
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.NameServiceMock
 import com.gemwallet.android.testkit.mockNameRecord
+import kotlinx.coroutines.CoroutineDispatcher
 import uniffi.gemstone.GemMnemonic
 import uniffi.gemstone.GemNameServiceInterface
 import com.gemwallet.android.ext.networkName
@@ -32,15 +33,15 @@ class ImportViewModelTest {
 
     private val chain = Chain.Ethereum
 
-    private fun viewModel(nameService: GemNameServiceInterface) = ImportViewModel(
+    private fun viewModel(nameService: GemNameServiceInterface, ioDispatcher: CoroutineDispatcher) = ImportViewModel(
         service = mockk(relaxed = true),
         nameService = nameService,
         mnemonic = GemMnemonic(),
+        ioDispatcher = ioDispatcher,
         context = mockk<Context> {
             every { getString(any()) } returns "Wallet"
             every { getString(any(), *anyVararg()) } returns "Wallet"
         },
-
     )
 
     @Before
@@ -57,9 +58,10 @@ class ImportViewModelTest {
 
     @Test
     fun privateKeyInputNeverReachesTheResolver() = runTest {
-        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
         val addressInput = NameServiceMock()
-        val viewModel = viewModel(addressInput)
+        val viewModel = viewModel(addressInput, dispatcher)
 
         viewModel.importSelect(ImportType(GemWalletImportKind.PRIVATE_KEY, chain)).join()
         advanceUntilIdle()
@@ -72,9 +74,10 @@ class ImportViewModelTest {
 
     @Test
     fun viewAddressInputResolves() = runTest {
-        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
         val addressInput = NameServiceMock()
-        val viewModel = viewModel(addressInput)
+        val viewModel = viewModel(addressInput, dispatcher)
 
         viewModel.importSelect(ImportType(GemWalletImportKind.ADDRESS, chain)).join()
         advanceUntilIdle()

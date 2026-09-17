@@ -9,18 +9,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualButtonAction
+import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualButtonTone
+import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualButtonUIModel
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.gemwallet.android.features.perpetual.localization.stringRes
-import uniffi.gemstone.GemPerpetualButton
 
 @Composable
 internal fun PerpetualActions(
-    buttons: List<GemPerpetualButton>,
-    onSelect: (GemPerpetualButton) -> Unit,
+    buttons: List<PerpetualButtonUIModel>,
+    onSelect: (PerpetualButtonAction) -> Unit,
 ) {
     Row(
         modifier = Modifier.listItem().padding(paddingDefault),
@@ -28,21 +29,21 @@ internal fun PerpetualActions(
     ) {
         buttons.forEach { button ->
             Button(
-                onClick = { onSelect(button) },
-                colors = ButtonDefaults.buttonColors().copy(containerColor = button.containerColor()),
+                onClick = { onSelect(button.action) },
+                colors = ButtonDefaults.buttonColors().copy(containerColor = button.tone.color()),
                 modifier = Modifier.weight(1f),
             ) {
-                Text(stringResource(button.stringRes()))
+                Text(button.title)
             }
         }
     }
 }
 
 @Composable
-private fun GemPerpetualButton.containerColor() = when (this) {
-    GemPerpetualButton.LONG -> MaterialTheme.colorScheme.tertiary
-    GemPerpetualButton.SHORT, GemPerpetualButton.CLOSE, GemPerpetualButton.REDUCE -> MaterialTheme.colorScheme.error
-    GemPerpetualButton.MODIFY, GemPerpetualButton.INCREASE -> MaterialTheme.colorScheme.primary
+internal fun PerpetualButtonTone.color(): Color = when (this) {
+    PerpetualButtonTone.Positive -> MaterialTheme.colorScheme.tertiary
+    PerpetualButtonTone.Negative -> MaterialTheme.colorScheme.error
+    PerpetualButtonTone.Primary -> MaterialTheme.colorScheme.primary
 }
 
 @Preview
@@ -50,7 +51,10 @@ private fun GemPerpetualButton.containerColor() = when (this) {
 private fun PerpetualActionsPreview() {
     WalletTheme {
         PerpetualActions(
-            buttons = listOf(GemPerpetualButton.LONG, GemPerpetualButton.SHORT),
+            buttons = listOf(
+                PerpetualButtonUIModel("Long", PerpetualButtonAction.OpenLong, PerpetualButtonTone.Positive),
+                PerpetualButtonUIModel("Short", PerpetualButtonAction.OpenShort, PerpetualButtonTone.Negative),
+            ),
             onSelect = {},
         )
     }

@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Style
 
 struct StreamStatusItemViewModel {
@@ -9,5 +10,9 @@ struct StreamStatusItemViewModel {
 
     var status: String {
         isConnected ? Emoji.greenCircle : Emoji.redCircle
+    }
+
+    var listItem: ListItemModel {
+        ListItemModel(title: title, subtitle: status)
     }
 }

@@ -9,6 +9,8 @@ import enum Gemstone.PerpetualDirection
 import enum Gemstone.FeeOption
 import enum Gemstone.GemAssetMenuAction
 import enum Gemstone.GemContactAddressField
+import enum Gemstone.GemListRowTitle
+import enum Gemstone.GemListSectionTitle
 import enum Gemstone.PerpetualType
 import enum Gemstone.GemApprovalValue
 import enum Gemstone.GemAssetInfoKind
@@ -24,7 +26,9 @@ import enum Gemstone.GemLocalizedText
 import enum Gemstone.GemPriceAlertLabel
 import struct Gemstone.GemPriceAlertRow
 import enum Gemstone.GemPriceAlertText
+import enum Gemstone.GemRecipientErrorDisplay
 import enum Gemstone.GemSimulationWarningKind
+import enum Gemstone.GemSimulationWarningTitle
 import enum Gemstone.SimulationPayloadFieldKind
 import enum Gemstone.GemTransactionRowSubtitle
 import enum Gemstone.GemTransactionStateTone
@@ -134,15 +138,6 @@ extension GemWalletSubtitle {
 }
 
 extension GemSimulationWarningKind {
-    var warningTitle: String {
-        switch self {
-        case .unlimitedApproval: Localized.Simulation.Warning.UnlimitedTokenApproval.title
-        case .nftCollectionApproval: Localized.Simulation.Warning.NftCollectionApproval.title
-        case .externallyOwnedSpender: Localized.Common.warning
-        case .suspiciousSpender, .validationError: Localized.Errors.errorOccurred
-        }
-    }
-
     var defaultMessage: String? {
         switch self {
         case .unlimitedApproval: Localized.Simulation.Warning.UnlimitedTokenApproval.description
@@ -537,6 +532,50 @@ public extension GemBannerDescription {
         case .suspiciousAsset: Localized.Banner.AssetStatus.description
         case .onboarding: Localized.Banner.Onboarding.description
         case .tradePerpetuals: Localized.Banner.Perpetuals.description
+        }
+    }
+}
+
+extension GemRecipientErrorDisplay: @retroactive LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case let .invalidAddress(network): Localized.Errors.invalidAssetAddress(network.boldMarkdown())
+        }
+    }
+}
+
+extension GemSimulationWarningTitle {
+    var text: String {
+        switch self {
+        case .warning: Localized.Common.warning
+        case .error: Localized.Errors.errorOccurred
+        case .unlimitedApproval: Localized.Simulation.Warning.UnlimitedTokenApproval.title
+        case .nftCollectionApproval: Localized.Simulation.Warning.NftCollectionApproval.title
+        }
+    }
+}
+
+public extension GemListSectionTitle {
+    var text: String? {
+        switch self {
+        case .none: nil
+        case .balances: Localized.Asset.balances
+        }
+    }
+}
+
+public extension GemListRowTitle {
+    var text: String {
+        switch self {
+        case .name: Localized.Asset.name
+        case .network: Localized.Transfer.network
+        case .address: Localized.Common.address
+        case .available: Localized.Asset.Balances.available
+        case .stake: Localized.Wallet.stake
+        case .earn: Localized.Common.earn
+        case .pendingUnconfirmed: Localized.Stake.pending
+        case .reserved: Localized.Asset.Balances.reserved
+        case .error: Localized.Errors.errorOccurred
         }
     }
 }

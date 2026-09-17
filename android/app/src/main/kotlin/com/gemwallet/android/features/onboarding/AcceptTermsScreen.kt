@@ -20,7 +20,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -35,11 +34,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.AppUrl
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.components.list_item.SelectionIndicator
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.actions.CancelAction
+import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
@@ -47,10 +46,7 @@ import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
-import com.gemwallet.android.features.onboarding.localization.stringRes
-import uniffi.gemstone.GemAcceptTermsItem
 import uniffi.gemstone.PublicUrl
-import uniffi.gemstone.acceptTermsItems
 
 @Composable
 fun AcceptTermsScreen(
@@ -59,15 +55,15 @@ fun AcceptTermsScreen(
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-    val items = remember { acceptTermsItems() }
-    val accepted = remember { mutableStateMapOf<GemAcceptTermsItem, Boolean>() }
+    val items = remember { acceptTermRows() }
+    val accepted = remember { mutableStateMapOf<Int, Boolean>() }
     Scene(
         title = stringResource(R.string.onboarding_accept_terms_title),
         onClose = { onCancel() },
         mainAction = {
             MainActionButton(
                 title = stringResource(R.string.onboarding_accept_terms_continue),
-                state = buttonState(enabled = items.all { accepted[it] == true }),
+                state = buttonState(enabled = items.indices.all { accepted[it] == true }),
                 onClick = { onAccept() }
             )
         },
@@ -99,10 +95,10 @@ fun AcceptTermsScreen(
             }
             items.forEachIndexed { index, item ->
                 termItem(
-                    isUnderstand = accepted[item] == true,
-                    description = item.stringRes(),
+                    isUnderstand = accepted[index] == true,
+                    description = item.description,
                     testTag = "term_${index + 1}",
-                ) { accepted[item] = accepted[item] != true }
+                ) { accepted[index] = accepted[index] != true }
             }
 
             item { Spacer(modifier = Modifier.size(it.calculateBottomPadding())) }

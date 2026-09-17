@@ -19,18 +19,15 @@ public struct SimulationWarningViewModel: Identifiable {
         row
     }
 
-    public var title: String? {
-        if row.kind == .validationError, row.severity != .critical {
-            return Localized.Common.warning
-        }
-        return warningDetails == nil ? nil : row.kind.warningTitle
+    public var title: String {
+        row.title.text
     }
 
     public var message: String {
         if row.kind == .validationError, row.severity != .critical {
             return row.message ?? ""
         }
-        return warningDetails ?? row.kind.warningTitle
+        return warningDetails ?? row.title.text
     }
 
     public var color: Color {

@@ -37,17 +37,19 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.import_wallet.localization.string
-import uniffi.gemstone.GemWalletImportException
+import com.gemwallet.android.AppUrl
 import com.gemwallet.android.application.wallet_import.values.WalletImportResult
+import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.features.import_wallet.components.ImportInput
 import com.gemwallet.android.features.import_wallet.components.ImportKindTab
-import com.gemwallet.android.features.import_wallet.viewmodels.ImportViewModel
-import com.gemwallet.android.AppUrl
+import com.gemwallet.android.features.import_wallet.localization.string
 import com.gemwallet.android.features.import_wallet.viewmodels.ImportInputUIModel
 import com.gemwallet.android.features.import_wallet.viewmodels.ImportTabUIModel
+import com.gemwallet.android.features.import_wallet.viewmodels.ImportViewModel
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.ui.DetectScreenshot
 import com.gemwallet.android.ui.DisableScreenShooting
@@ -55,26 +57,24 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.models.ButtonState
-import com.gemwallet.android.ui.models.buttonState
+import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.sectionHeaderItem
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
-import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.GemNameRecordState
+import uniffi.gemstone.GemWalletImportException
 import uniffi.gemstone.GemWalletImportKind
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import com.gemwallet.android.ext.errorText
-import com.gemwallet.android.ui.localization.text
 
 private val loadingDialogSize = 100.dp
 
@@ -108,7 +108,7 @@ fun ImportScreen(
         onDispose {}
     }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val nameResolveState by viewModel.nameResolveState.collectAsStateWithLifecycle()
+    val nameResolveIndicator by viewModel.nameResolveIndicator.collectAsStateWithLifecycle()
     val inputState = remember { mutableStateOf(TextFieldValue()) }
 
     ImportScene(
@@ -118,7 +118,7 @@ fun ImportScreen(
         input = uiState.input,
         defaultWalletName = uiState.defaultWalletName,
         chainName = uiState.chainName,
-        nameResolveState = nameResolveState,
+        nameResolveIndicator = nameResolveIndicator,
         dataError = uiState.dataError,
         buttonState = buttonState(loading = uiState.loading),
         onImport = { generatedName, value ->
@@ -176,7 +176,7 @@ private fun ImportScene(
     input: ImportInputUIModel,
     defaultWalletName: String?,
     chainName: String,
-    nameResolveState: GemNameRecordState,
+    nameResolveIndicator: NameResolveIndicatorUIModel?,
     dataError: Throwable?,
     buttonState: ButtonState,
     onImport: (generatedName: String, value: String) -> Unit,
@@ -222,7 +222,7 @@ private fun ImportScene(
                         onTypeChange(type)
                         inputState.value = TextFieldValue()
                     }
-                    DataInput(input, inputState, nameResolveState, invalidWords, phraseSuggestions, onInput) {
+                    DataInput(input, inputState, nameResolveIndicator, invalidWords, phraseSuggestions, onInput) {
                         dataErrorState = null
                     }
                     ErrorMessage(dataErrorState)
@@ -249,7 +249,7 @@ private fun ImportScene(
 private fun DataInput(
     input: ImportInputUIModel,
     inputState: MutableState<TextFieldValue>,
-    nameResolveState: GemNameRecordState,
+    nameResolveIndicator: NameResolveIndicatorUIModel?,
     invalidWords: (String) -> Set<String>,
     phraseSuggestions: (String) -> List<String>,
     onInput: (String) -> Unit,
@@ -261,7 +261,7 @@ private fun DataInput(
         invalidWords = invalidWords,
         inputState = inputState.value,
         input = input,
-        uiState = nameResolveState,
+        indicator = nameResolveIndicator,
         onValueChange = { query ->
             inputState.value = query
             suggestions.clear()
@@ -381,7 +381,7 @@ fun PreviewImportAddress() {
                 ),
                 defaultWalletName = "Wallet 1",
                 chainName = "Ethereum",
-                nameResolveState = GemNameRecordState.None,
+                nameResolveIndicator = null,
                 dataError = null,
                 buttonState = ButtonState.Enabled,
                 onImport = {_, _ -> },

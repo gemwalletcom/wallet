@@ -285,6 +285,11 @@ mod tests {
         };
         assert_eq!((data.asset_index, data.take_profit_order_id, data.stop_loss_order_id), (5, Some(7), None));
         assert_eq!(data.modify_types.len(), 2, "a cancel of the old order and the new tp/sl");
+        assert_eq!(
+            data.base_asset.id,
+            super::super::rules::collateral_asset_id(primitives::Chain::HyperCore).unwrap(),
+            "a modify moves no funds but still names its collateral, which is the balance row the confirm load reads"
+        );
         assert_eq!(transfer.recipient, GemPerpetual::new(PerpetualProvider::Hypercore).recipient());
     }
 }

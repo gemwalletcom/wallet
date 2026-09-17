@@ -17,7 +17,7 @@ sealed interface ConfirmProperty {
     }
 
     sealed class Destination(val data: String, val kind: GemConfirmDestination?) : ConfirmProperty {
-        class Stake(data: String, val address: String? = null, val explorerLink: BlockExplorerLink? = null, kind: GemConfirmDestination? = null) :
+        class Stake(data: String, val chain: Chain, val address: String? = null, val explorerLink: BlockExplorerLink? = null, kind: GemConfirmDestination? = null) :
             Destination(data, kind)
         class Provider(data: String, kind: GemConfirmDestination? = null) : Destination(data, kind)
         class Transfer(
@@ -46,7 +46,7 @@ sealed interface ConfirmProperty {
                     kind = destination,
                 )
                 is GemConfirmDestination.Contract -> Contract(address = destination.address, chain = chain, explorerLink = explorerLink, kind = destination)
-                is GemConfirmDestination.Validator -> Stake(data = destination.name, address = destination.address, explorerLink = explorerLink, kind = destination)
+                is GemConfirmDestination.Validator -> Stake(data = destination.name, chain = chain, address = destination.address, explorerLink = explorerLink, kind = destination)
                 is GemConfirmDestination.Resource -> Resource(destination.resource.toPrimitives(), kind = destination)
                 is GemConfirmDestination.Provider -> Provider(destination.name, kind = destination)
             }

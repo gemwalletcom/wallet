@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemPreferencesRow
 import Components
 import struct Gemstone.GemPreferencesState
 import protocol Gemstone.GemSettingsServiceProtocol
@@ -35,12 +36,60 @@ public final class PreferencesViewModel {
         perpetualStopLoss = AutocloseOption(value: defaults.stopLossPercent)
     }
 
-    var state: GemPreferencesState {
+    private var state: GemPreferencesState {
         settings.preferences(currency: preferences.currency.toGem(), perpetualsEnabled: isPerpetualEnabled)
     }
 
     var title: String {
         Localized.Settings.Preferences.title
+    }
+
+    var leverageTitle: String {
+        GemPreferencesRow.perpetualLeverage.title
+    }
+
+    var takeProfitTitle: String {
+        GemPreferencesRow.perpetualTakeProfit.title
+    }
+
+    var stopLossTitle: String {
+        GemPreferencesRow.perpetualStopLoss.title
+    }
+
+    var sections: [ListSection<PreferencesRowViewModel>] {
+        state.sections.enumerated().map { index, section in
+            ListSection(id: "\(index)", title: nil, image: nil, values: section.rows.map(rowViewModel))
+        }
+    }
+
+    private func rowViewModel(_ row: GemPreferencesRow) -> PreferencesRowViewModel {
+        PreferencesRowViewModel(id: String(describing: row), kind: kind(for: row), model: listItem(for: row))
+    }
+
+    private func kind(for row: GemPreferencesRow) -> PreferencesRowKind {
+        switch row {
+        case .currency: .currency
+        case .language: .language
+        case .appearance: .appearance
+        case .networks: .networks
+        case .contacts: .contacts
+        case .perpetuals: .perpetuals
+        case .perpetualLeverage: .perpetualLeverage
+        case .perpetualTakeProfit: .perpetualTakeProfit
+        case .perpetualStopLoss: .perpetualStopLoss
+        }
+    }
+
+    private func listItem(for row: GemPreferencesRow) -> ListItemModel {
+        switch row {
+        case .currency: ListItemModel(title: row.title, subtitle: state.currency.text(), imageStyle: .settings(assetImage: row.assetImage))
+        case .language: ListItemModel(title: row.title, subtitle: languageValue, imageStyle: .settings(assetImage: row.assetImage))
+        case .appearance: ListItemModel(title: row.title, subtitle: appearanceValue, imageStyle: .settings(assetImage: row.assetImage))
+        case .networks, .contacts, .perpetuals: ListItemModel(title: row.title, imageStyle: .settings(assetImage: row.assetImage))
+        case .perpetualLeverage: ListItemModel(title: row.title, subtitle: defaultLeverageValue)
+        case .perpetualTakeProfit: ListItemModel(title: row.title, subtitle: defaultTakeProfitValue)
+        case .perpetualStopLoss: ListItemModel(title: row.title, subtitle: defaultStopLossValue)
+        }
     }
 
     var languageValue: String {

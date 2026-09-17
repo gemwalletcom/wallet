@@ -1,15 +1,14 @@
 package com.gemwallet.android.features.confirm.presents
 
-import com.gemwallet.android.ui.components.screen.SheetExpansion
+import com.gemwallet.android.ui.theme.smallIconSize
+import com.gemwallet.android.ui.components.image.ListItemImageView
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -28,66 +27,56 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.ext.asset
-import com.gemwallet.android.features.confirm.models.ConfirmDetailElement
-import com.gemwallet.android.ui.models.ButtonState
-import com.gemwallet.android.features.confirm.presents.localization.buttonLabel
-import com.gemwallet.android.features.confirm.presents.localization.string
-import com.gemwallet.android.features.confirm.presents.localization.toBroadcastLabel
-import uniffi.gemstone.GemConfirmButtonKind
-import uniffi.gemstone.GemConfirmButtonState
-import uniffi.gemstone.GemConfirmPhase
-import uniffi.gemstone.GemConfirmStage
-import uniffi.gemstone.GemConfirmScreen
-import com.gemwallet.android.domains.confirm.ConfirmProperty
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.confirm.FeeUIModel
+import com.gemwallet.android.ext.asset
+import com.gemwallet.android.features.asset.presents.address.AddressDetailsSheet
+import com.gemwallet.android.features.confirm.models.ConfirmDetailElement
+import com.gemwallet.android.features.confirm.presents.components.AddressRow
 import com.gemwallet.android.features.confirm.presents.components.ConfirmErrorInfo
-import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.features.confirm.presents.components.FeeDetails
-import com.gemwallet.android.features.confirm.presents.components.PropertyDestination
+import com.gemwallet.android.features.confirm.presents.components.confirmBalanceChangesContent
+import com.gemwallet.android.features.confirm.presents.localization.string
 import com.gemwallet.android.features.confirm.viewmodels.ConfirmViewModel
+import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
+import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmHeaderUIModel
+import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmRowUIModel
 import com.gemwallet.android.model.AuthRequest
-import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.GemTransactionHeaderKind
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.perpetual.AutocloseSummaryRow
-import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsBottomSheet
-import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsSummaryItem
-import com.wallet.core.primitives.AssetId
 import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.components.image.walletImageModel
 import com.gemwallet.android.ui.components.list_head.AmountListHead
 import com.gemwallet.android.ui.components.list_head.AssetValueListHead
 import com.gemwallet.android.ui.components.list_head.NftHead
 import com.gemwallet.android.ui.components.list_head.SwapListHead
+import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
-import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkFee
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
-import com.gemwallet.android.ui.components.list_item.transaction.getTitle
-import com.gemwallet.android.ui.components.list_item.iconModel
-import com.gemwallet.android.ui.components.progress.CircularProgressIndicator14
+import com.gemwallet.android.ui.components.perpetual.AutocloseSummaryRow
+import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsBottomSheet
+import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsSummaryItem
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.components.simulation.simulationPayloadDetailsContent
 import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsContent
 import com.gemwallet.android.ui.components.simulation.simulationWarningsContent
 import com.gemwallet.android.ui.components.swap.SwapDetailsBottomSheet
 import com.gemwallet.android.ui.components.swap.SwapDetailsSummaryItem
+import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.gemwallet.android.features.confirm.presents.components.confirmBalanceChangesContent
+import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.ChainAddress
 import uniffi.gemstone.SimulationResult
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfirmScreen(
-    input: GemTransferData? = null,
+    input: ConfirmTransferInput? = null,
     simulationResult: SimulationResult? = null,
     finishAction: FinishConfirmAction,
     cancelAction: CancelAction,
@@ -96,31 +85,33 @@ fun ConfirmScreen(
     viewModel: ConfirmViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    val amountModel by viewModel.amountUIModel.collectAsStateWithLifecycle()
-    val transactionProperties by viewModel.transactionProperties.collectAsStateWithLifecycle()
+    val transactionRows by viewModel.transactionRows.collectAsStateWithLifecycle()
     val feeModel by viewModel.feeUIModel.collectAsStateWithLifecycle()
+    val feeListItem by viewModel.feeListItem.collectAsStateWithLifecycle()
+    val acquireOptions by viewModel.acquireOptions.collectAsStateWithLifecycle()
+    val feeItems by viewModel.feeItems.collectAsStateWithLifecycle()
+    val balanceChangeRows by viewModel.balanceChangeRows.collectAsStateWithLifecycle()
+    val loadError by viewModel.loadError.collectAsStateWithLifecycle()
+    val acquireRequest by viewModel.acquireRequest.collectAsStateWithLifecycle()
     val feeValue by viewModel.feeValue.collectAsStateWithLifecycle()
-    val screen by viewModel.screen.collectAsStateWithLifecycle()
-    val networkFeeBuyAmount by viewModel.networkFeeBuyAmount.collectAsStateWithLifecycle()
+    val executeErrorText by viewModel.executeErrorText.collectAsStateWithLifecycle()
+    val buttonLabel by viewModel.buttonLabel.collectAsStateWithLifecycle()
+    val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
+    val header by viewModel.header.collectAsStateWithLifecycle()
+    val feeSelectionUIModel by viewModel.feeSelectionUIModel.collectAsStateWithLifecycle()
     val feeAssets by viewModel.feeAssets.collectAsStateWithLifecycle()
     val feeAsset by viewModel.feeAsset.collectAsStateWithLifecycle()
-    val feeSelection by viewModel.feeSelection.collectAsStateWithLifecycle()
     val simulation by viewModel.simulation.collectAsStateWithLifecycle()
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
     val payloadAddressNames by viewModel.payloadAddressNames.collectAsStateWithLifecycle()
-    val button by viewModel.button.collectAsStateWithLifecycle()
-    val assetPrice by viewModel.assetPrice.collectAsStateWithLifecycle()
     val title by viewModel.title.collectAsStateWithLifecycle()
     val isExternalRequest by viewModel.isExternalRequest.collectAsStateWithLifecycle()
-    val isPayment by viewModel.isPaymentRequest.collectAsStateWithLifecycle()
-    val headerAsset by viewModel.headerAsset.collectAsStateWithLifecycle()
-    val displayTransactionProperties = transactionProperties
 
     var showSelectTxSpeed by remember { mutableStateOf(false) }
     var showSimulationDetails by remember { mutableStateOf(false) }
     var selectedDetailElement by remember(input) { mutableStateOf<ConfirmDetailElement?>(null) }
-    val executeError = screen.failure?.takeIf { it.stage == GemConfirmStage.EXECUTE }?.error
-    var isShowedBroadcastError by remember(executeError) { mutableStateOf(executeError != null) }
+    var selectedAddress by remember(input) { mutableStateOf<ChainAddress?>(null) }
+    var isShowedBroadcastError by remember(executeErrorText) { mutableStateOf(executeErrorText != null) }
     val isShowBottomSheetInfo by viewModel.isNetworkFeeSheetVisible.collectAsStateWithLifecycle()
 
     LaunchedEffect(input, simulationResult) {
@@ -128,7 +119,7 @@ fun ConfirmScreen(
             cancelAction()
             return@LaunchedEffect
         }
-        viewModel.init(input, simulationResult)
+        viewModel.init(input.data, simulationResult)
     }
 
     BackHandler(handleSystemBack) {
@@ -141,8 +132,8 @@ fun ConfirmScreen(
         onClose = { cancelAction() },
         mainAction = {
             MainActionButton(
-                title = screen.buttonLabel(button.kind),
-                state = button.state.toButtonState(),
+                title = buttonLabel,
+                state = buttonState,
                 onClick = {
                     context.requestAuth(AuthRequest.Confirmation) {
                         viewModel.send(finishAction)
@@ -156,70 +147,59 @@ fun ConfirmScreen(
             contentPadding = PaddingValues(bottom = paddingValues.calculateBottomPadding() + paddingDefault),
         ) {
             item {
-                when {
-                    isPayment && simulation.header == null && screen.phase == GemConfirmPhase.LOADING -> Box(
+                when (val model = header) {
+                    is ConfirmHeaderUIModel.Placeholder -> Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .alpha(0f)
                             .clearAndSetSemantics { },
                     ) {
-                        AmountListHead(amount = "", icon = headerAsset)
+                        AmountListHead(amount = "", icon = model.asset)
                     }
-                    simulation.header != null -> AssetValueListHead(requireNotNull(simulation.header))
-                    amountModel?.headerKind is GemTransactionHeaderKind.Swap -> {
-                        val model = requireNotNull(amountModel)
-                        SwapListHead(
-                            fromAsset = model.fromAsset,
-                            fromValue = model.fromAmount,
-                            toAsset = requireNotNull(model.toAsset),
-                            toValue = requireNotNull(model.toAmount),
-                            currency = model.currency,
-                        )
-                    }
-
-                    amountModel?.headerKind is GemTransactionHeaderKind.Nft -> amountModel?.nftAsset?.let { NftHead(it) }
-
-                    amountModel?.headerKind is GemTransactionHeaderKind.Symbol || amountModel?.headerKind is GemTransactionHeaderKind.AssetImage -> {
-                        val asset = amountModel?.asset
-                        AmountListHead(
-                            amount = asset?.symbol.orEmpty(),
-                            icon = asset,
-                        )
-                    }
-
-                    else -> AmountListHead(
-                        amount = amountModel?.cryptoAmount ?: "",
-                        equivalent = amountModel?.amountEquivalent?.takeIf { (amountModel?.headerKind as? GemTransactionHeaderKind.Amount)?.showsFiat != false },
-                        icon = headerAsset,
+                    is ConfirmHeaderUIModel.Simulation -> AssetValueListHead(model.header)
+                    is ConfirmHeaderUIModel.Swap -> SwapListHead(
+                        fromAsset = model.fromAsset,
+                        fromValueText = model.fromValueText,
+                        fromEquivalentText = model.fromEquivalentText,
+                        toAsset = model.toAsset,
+                        toValueText = model.toValueText,
+                        toEquivalentText = model.toEquivalentText,
                     )
+                    is ConfirmHeaderUIModel.Nft -> NftHead(model.nftAsset)
+                    is ConfirmHeaderUIModel.Symbol -> AmountListHead(amount = model.asset.symbol, icon = model.asset)
+                    is ConfirmHeaderUIModel.Amount -> AmountListHead(amount = model.amount, equivalent = model.equivalent, icon = model.asset)
+                    null -> Unit
                 }
             }
-            val sectionSize = displayTransactionProperties.size + detailElements.size
-            itemsIndexed(displayTransactionProperties) { index, item ->
+            val sectionSize = transactionRows.size + detailElements.size
+            itemsIndexed(transactionRows) { index, row ->
                 val listPosition = ListPosition.getPosition(index, sectionSize)
-                when (item) {
-                    is ConfirmProperty.Destination -> PropertyDestination(
-                        model = item,
+                when (row) {
+                    is ConfirmRowUIModel.Item -> ListItem(
+                        model = row.model,
                         listPosition = listPosition,
-                    )
-                    is ConfirmProperty.Memo -> PropertyItem(R.string.transfer_memo, item.data, listPosition = listPosition)
-                    is ConfirmProperty.Network -> PropertyNetworkItem(chain = item.chain, value = item.name, listPosition = listPosition)
-                    is ConfirmProperty.Source -> PropertyItem(
-                        title = { PropertyTitleText(R.string.common_wallet) },
-                        data = {
-                            val walletIcon = walletImageModel(context, item.walletRow.imageUrl)
-                                ?: item.walletRow.placeholder.iconModel()
-                            PropertyDataText(
-                                text = item.walletRow.name,
-                                badge = walletIcon?.let { { DataBadgeChevron(icon = it, isShowChevron = false) } },
-                            )
+                        accessory = row.trailingImage?.let { image ->
+                            { DataBadgeChevron(isShowChevron = false) { ListItemImageView(image = image, size = smallIconSize) } }
                         },
-                        listPosition = listPosition,
                     )
+                    is ConfirmRowUIModel.Address -> AddressRow(
+                        row = row,
+                        listPosition = listPosition,
+                        onClick = { selectedAddress = ChainAddress(row.chain, row.address) },
+                    )
+                    is ConfirmRowUIModel.Validator -> AddressPropertyItem(
+                        title = row.title,
+                        displayText = row.name,
+                        copyValue = row.address,
+                        explorerLink = row.explorerLink,
+                        listPosition = listPosition,
+                        onClick = { selectedAddress = ChainAddress(row.chain, row.address) },
+                    )
+                    is ConfirmRowUIModel.Network -> PropertyNetworkItem(chain = row.chain, value = row.name, listPosition = listPosition)
                 }
             }
             itemsIndexed(detailElements) { index, item ->
-                val listPosition = ListPosition.getPosition(displayTransactionProperties.size + index, sectionSize)
+                val listPosition = ListPosition.getPosition(transactionRows.size + index, sectionSize)
                 ConfirmDetailElementRow(
                     item = item,
                     listPosition = listPosition,
@@ -234,46 +214,30 @@ fun ConfirmScreen(
                     .takeIf { it.isNotEmpty() }
                     ?.let { { showSimulationDetails = true } },
             )
-            confirmBalanceChangesContent(simulation.balanceChanges)
+            confirmBalanceChangesContent(balanceChangeRows)
             item {
-                feeModel?.let {
-                    val feeInfo = InfoSheetEntity.NetworkFeeInfo(
-                        feeAsset?.asset?.name.orEmpty(),
-                        feeAsset?.asset?.symbol.orEmpty(),
+                feeListItem?.let {
+                    val canSelectFee = feeModel is FeeUIModel.FeeInfo
+                    ListItem(
+                        model = it,
+                        listPosition = ListPosition.Single,
+                        modifier = if (canSelectFee) Modifier.clickable { showSelectTxSpeed = true } else Modifier,
+                        accessory = if (canSelectFee) {
+                            { DataBadgeChevron() }
+                        } else {
+                            null
+                        },
                     )
-                    when (it) {
-                        FeeUIModel.Calculating -> PropertyItem(
-                            title = { PropertyTitleText(R.string.transfer_network_fee, info = feeInfo) },
-                            data = { Row(horizontalArrangement = Arrangement.End) { CircularProgressIndicator14() } },
-                            listPosition = ListPosition.Single,
-                        )
-
-                        is FeeUIModel.FeeInfo -> PropertyNetworkFee(
-                            networkTitle = it.feeAsset.name,
-                            networkSymbol = it.feeAsset.symbol,
-                            feeCrypto = it.cryptoAmount,
-                            feeFiat = it.fiatAmount,
-                            variantsAvailable = true,
-                            showFeeAssetSymbol = feeAssets.any { asset -> asset.asset.id != it.feeAsset.id },
-                        ) { showSelectTxSpeed = true }
-
-                        FeeUIModel.Error -> PropertyItem(
-                            title = { PropertyTitleText(R.string.transfer_network_fee, info = feeInfo) },
-                            data = { PropertyDataText("~") },
-                            listPosition = ListPosition.Single,
-                        )
-                    }
                 }
             }
             item {
                 ConfirmErrorInfo(
-                    failure = screen.failure,
-                    fee = feeModel as? FeeUIModel.FeeInfo,
+                    error = loadError,
+                    acquireRequest = acquireRequest,
+                    acquireOptions = acquireOptions,
                     isShowBottomSheetInfo = isShowBottomSheetInfo,
                     onDismissBottomSheetInfo = viewModel::dismissNetworkFeeSheet,
-                    assetPrice = assetPrice,
-                    acquireFlow = viewModel::acquireFlow,
-                    networkFeeBuyAmount = networkFeeBuyAmount,
+                    onDismissAcquire = viewModel::dismissAcquire,
                     onAcquireAsset = onAcquireAsset,
                 )
             }
@@ -282,11 +246,14 @@ fun ConfirmScreen(
         FeeDetails(
             isVisible = showSelectTxSpeed,
             currentFee = feeModel as? FeeUIModel.FeeInfo,
-            selection = feeSelection,
+            feeItems = feeItems,
+            feeListItem = feeListItem,
+            selection = feeSelectionUIModel,
             feeDetailsModel = viewModel::feeDetailsModel,
             feeAsset = feeAsset,
             feeAssets = feeAssets,
-            onSelect = viewModel::changeFeeSelection,
+            onSelectPriority = viewModel::changeFeePriority,
+            onSelectCustom = viewModel::changeCustomFee,
             onSelectFeeAsset = viewModel::changeFeeAsset,
             onCancel = { showSelectTxSpeed = false },
         )
@@ -310,6 +277,11 @@ fun ConfirmScreen(
             item = selectedDetailElement,
             onDismiss = { selectedDetailElement = null },
         )
+
+        AddressDetailsSheet(
+            chainAddress = selectedAddress,
+            onDismiss = { selectedAddress = null },
+        )
     }
 
     if (isShowedBroadcastError) {
@@ -322,7 +294,7 @@ fun ConfirmScreen(
                 Text(stringResource(R.string.errors_transfer_error))
             },
             text = {
-                Text(executeError?.toBroadcastLabel() ?: stringResource(R.string.errors_error_occurred))
+                Text(executeErrorText ?: stringResource(R.string.errors_error_occurred))
             }
         )
     }
@@ -370,10 +342,4 @@ private fun ConfirmDetailElementBottomSheet(
         model = (item as? ConfirmDetailElement.PerpetualDetails)?.model,
         onDismiss = onDismiss,
     )
-}
-
-private fun GemConfirmButtonState.toButtonState(): ButtonState = when (this) {
-    GemConfirmButtonState.DISABLED -> ButtonState.Disabled
-    GemConfirmButtonState.LOADING -> ButtonState.Loading
-    GemConfirmButtonState.ENABLED -> ButtonState.Enabled
 }

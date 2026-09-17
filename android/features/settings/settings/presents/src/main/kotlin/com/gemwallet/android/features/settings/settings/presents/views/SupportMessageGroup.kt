@@ -29,19 +29,19 @@ internal fun SupportMessageGroup(
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),
         ) {
-            group.messages.forEach { message ->
+            group.messages.forEach { item ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(paddingSmall),
                 ) {
-                    if (message.status == SupportMessageStatus.Failed) {
+                    if (item.message.status == SupportMessageStatus.Failed) {
                         Icon(
                             imageVector = AppIcons.Warning,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.error,
                         )
                     }
-                    SupportMessageBubble(message = message, onImageClick = onImageClick, onRetry = onRetry)
+                    SupportMessageBubble(item = item, onImageClick = onImageClick, onRetry = onRetry)
                 }
             }
         }
@@ -50,8 +50,8 @@ internal fun SupportMessageGroup(
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),
         ) {
-            group.messages.forEach { message ->
-                SupportMessageBubble(message = message, onImageClick = onImageClick, onRetry = onRetry)
+            group.messages.forEach { item ->
+                SupportMessageBubble(item = item, onImageClick = onImageClick, onRetry = onRetry)
             }
         }
     }

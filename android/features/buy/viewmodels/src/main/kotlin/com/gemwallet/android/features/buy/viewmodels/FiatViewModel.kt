@@ -1,34 +1,39 @@
 package com.gemwallet.android.features.buy.viewmodels
 
-import com.gemwallet.android.features.buy.localization.errorText
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.fiat.cases.GetAssetPriceUsd
 import com.gemwallet.android.application.fiat.cases.GetBuyAssetInfo
-import uniffi.gemstone.GemAssetRowTitle
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.tickerFlow
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.features.buy.localization.errorText
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.features.buy.viewmodels.models.FiatUiState
 import com.gemwallet.android.features.buy.viewmodels.models.createFiatUiState
 import com.gemwallet.android.features.buy.viewmodels.models.toProviderUIModel
 import com.gemwallet.android.model.AssetData
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.image.iconResource
+import com.gemwallet.android.ui.components.list_item.ListItemImage
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.FiatQuoteType
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.withContext
-import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
-import kotlinx.coroutines.CoroutineDispatcher
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,14 +50,12 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemAssetTitleStyle
 import uniffi.gemstone.GemFiatQuoteRequest
 import uniffi.gemstone.GemFiatQuoteServiceInterface
 import uniffi.gemstone.GemFiatQuotesResult
 import uniffi.gemstone.GemServiceException
-import javax.inject.Inject
-import dagger.hilt.android.qualifiers.ApplicationContext
-import android.content.Context
-import com.gemwallet.android.model.text
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
@@ -98,7 +101,7 @@ class FiatViewModel @Inject constructor(
         .map {
             val assetInfo = it.toAssetInfo()
             assetInfo.toAssetInfoDataAggregate(
-                naming = GemAssetRowTitle.CANONICAL_ASSET,
+                naming = GemAssetTitleStyle.CANONICAL_ASSET,
                 displayedAmount = assetInfo.balance.balanceAmount.available,
             )
         }
@@ -117,7 +120,7 @@ class FiatViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val uiState: StateFlow<FiatUiState> = combine(viewState, assetInfoUIModel) { state, asset ->
-        createFiatUiState(state, state.errorText(context, asset?.asset?.name.orEmpty(), asset?.asset?.symbol.orEmpty()))
+        createFiatUiState(state, state.errorText(context))
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, createFiatUiState(viewState.value, null))
 
@@ -128,6 +131,20 @@ class FiatViewModel @Inject constructor(
 
     val selectedProvider = combine(assetInfoUIModel, viewState) { asset, state ->
         asset?.let { state.selectedQuoteRow?.toProviderUIModel(it.asset) }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val providerListItem: StateFlow<ListItemModel?> = selectedProvider.map { provider ->
+        provider?.let {
+            ListItemModel(
+                title = context.getString(R.string.common_provider),
+                subtitle = it.providerName,
+                image = ListItemImage.Drawable(it.provider.iconResource()),
+            )
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val rateListItem: StateFlow<ListItemModel?> = selectedProvider.map { provider ->
+        provider?.let { ListItemModel(title = context.getString(R.string.buy_rate), subtitle = it.rate) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val ticker = tickerFlow(service.quoteRefreshIntervalMilliseconds().toLong()) {}

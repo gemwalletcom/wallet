@@ -50,6 +50,10 @@ public struct NetworkFeeSceneViewModel {
 
     // MARK: - Network Fee
 
+    public var feeListItem: ListItemModel {
+        ListItemModel(title: title, subtitle: value, subtitleExtra: fiatValue, placeholders: [.subtitle])
+    }
+
     public var title: String { Localized.Transfer.networkFee }
     public var infoIcon: String { Localized.FeeRates.info }
     public var value: String? { feeAmount.map { display(for: $0).amount.text } }
@@ -84,11 +88,6 @@ public struct NetworkFeeSceneViewModel {
 
     public var feeRatesViewModels: [FeeRateViewModel] {
         rows.map { feeRateViewModel(priority: $0.priority.toPrimitives(), displayValue: $0.displayValue, fee: $0.fee) }
-    }
-
-    public var selectedFeeRateViewModel: FeeRateViewModel? {
-        guard let priority = selection.selectedPriority()?.toPrimitives() else { return nil }
-        return feeRatesViewModels.first(where: { $0.priority == priority })
     }
 
     public func isSelected(_ rate: FeeRateViewModel) -> Bool {

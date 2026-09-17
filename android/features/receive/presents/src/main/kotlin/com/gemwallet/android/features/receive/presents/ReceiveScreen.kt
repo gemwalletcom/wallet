@@ -1,13 +1,13 @@
 package com.gemwallet.android.features.receive.presents
 
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -37,18 +37,16 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.chain
-import com.gemwallet.android.domains.asset.networkFullName
-import com.gemwallet.android.ext.boldMarkdown
-import com.gemwallet.android.features.receive.presents.localization.string
-import uniffi.gemstone.GemReceiveWarning
+import com.gemwallet.android.domains.asset.subtitleSymbol
 import com.gemwallet.android.ext.networkName
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.receive.presents.components.rememberQRCodePainter
 import com.gemwallet.android.features.receive.viewmodels.ReceiveViewModel
-import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clickable
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.setPlainText
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.HeaderIcon
@@ -59,7 +57,6 @@ import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.domains.asset.subtitleSymbol
 import com.gemwallet.android.ui.shareText
 import com.gemwallet.android.ui.theme.WindowDimension
 import com.gemwallet.android.ui.theme.isCompactDimension
@@ -67,10 +64,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space0
-import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Chain
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 private val qrCardElevation = 3.dp
 
@@ -99,7 +93,7 @@ fun ReceiveScreen(
         ReceiveScene(
             closeIcon = closeIcon,
             assetInfo = info,
-            warnings = remember(info.asset.id) { viewModel.warnings(info.asset.id.chain) },
+            warning = remember(info.asset.id) { viewModel.warningText(info.asset) },
             onSelectNetwork = if (networkAssetIds.size > 1) {
                 { isShowingNetworkSelector = true }
             } else {
@@ -122,7 +116,7 @@ fun ReceiveScreen(
 private fun ReceiveScene(
     closeIcon: Boolean,
     assetInfo: AssetInfo,
-    warnings: List<GemReceiveWarning>,
+    warning: String,
     onSelectNetwork: (() -> Unit)?,
     onCancel: () -> Unit,
 ) {
@@ -232,7 +226,6 @@ private fun ReceiveScene(
                 )
                 Spacer(modifier = Modifier.size(imagePadding))
             }
-            val warning = warnings.map { it.string(assetInfo.asset) }.joinToString(" ")
             Text(
                 modifier = Modifier.width(imageSize),
                 text = remember(warning) { parseMarkdownToAnnotatedString(warning) },

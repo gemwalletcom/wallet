@@ -7,15 +7,15 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.asset
-import com.gemwallet.android.ui.components.animation.navigationSlideTransition
-import com.gemwallet.android.ui.components.QrCodeScannerModal
-import com.wallet.core.primitives.QRScanType
-import com.gemwallet.android.ui.components.screen.SelectChain
 import com.gemwallet.android.features.add_asset.viewmodels.AddAssetViewModel
 import com.gemwallet.android.features.add_asset.viewmodels.models.AddAssetUIState
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.QrCodeScannerModal
+import com.gemwallet.android.ui.components.animation.navigationSlideTransition
+import com.gemwallet.android.ui.components.screen.SelectChain
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.localization.text
+import com.wallet.core.primitives.QRScanType
 
 @Composable
 fun AddAssetScreen(
@@ -29,7 +29,8 @@ fun AddAssetScreen(
     val network by viewModel.selectedChain.collectAsStateWithLifecycle()
     val token by viewModel.token.collectAsStateWithLifecycle()
     val assetRows by viewModel.assetRows.collectAsStateWithLifecycle()
-    val searchState by viewModel.searchState.collectAsStateWithLifecycle()
+    val isSearching by viewModel.isSearching.collectAsStateWithLifecycle()
+    val searchFailed by viewModel.searchFailed.collectAsStateWithLifecycle()
     val explorerLink by viewModel.explorerLink.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = uiState.error?.text(), iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
@@ -55,7 +56,8 @@ fun AddAssetScreen(
             )
         } else {
             AddAssetScene(
-                searchState = searchState,
+                isSearching = isSearching,
+                searchFailed = searchFailed,
                 addressState = viewModel.addressState,
                 network = network?.asset(),
                 token = token,

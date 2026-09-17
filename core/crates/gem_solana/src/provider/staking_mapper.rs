@@ -59,7 +59,7 @@ pub fn map_staking_delegations(stake_accounts: Vec<TokenAccountInfo>, epoch: Epo
                         let completion_seconds = remaining_slots as f64 * 0.420;
                         Some(now + Duration::seconds(completion_seconds as i64))
                     }
-                    _ => None,
+                    DelegationState::Active | DelegationState::Pending | DelegationState::Inactive | DelegationState::AwaitingWithdrawal => None,
                 };
 
                 let rewards = BigUint::from(0u32);

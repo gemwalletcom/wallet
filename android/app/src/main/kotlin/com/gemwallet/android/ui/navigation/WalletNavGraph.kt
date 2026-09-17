@@ -24,42 +24,41 @@ import com.gemwallet.android.features.asset_select.presents.navigation.assetsMan
 import com.gemwallet.android.features.assets.views.WalletSearchAction
 import com.gemwallet.android.features.create_wallet.navigation.createWalletScreen
 import com.gemwallet.android.features.import_wallet.navigation.importWalletScreen
+import com.gemwallet.android.features.main.views.MainScreen
 import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.features.onboarding.acceptTermsScreen
-import com.gemwallet.android.features.main.views.MainScreen
+import com.gemwallet.android.features.settings.contacts.presents.ContactsAction
 import com.gemwallet.android.features.setup_wallet.navigation.setupWalletScreen
 import com.gemwallet.android.features.wallet.presents.WalletImageSource
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
+import com.gemwallet.android.ui.navigation.routes.SettingsAction
 import com.gemwallet.android.ui.navigation.routes.addAssetScreen
 import com.gemwallet.android.ui.navigation.routes.amount
 import com.gemwallet.android.ui.navigation.routes.assetChartScreen
 import com.gemwallet.android.ui.navigation.routes.assetScreen
-import com.gemwallet.android.ui.navigation.routes.networkAssetsScreen
 import com.gemwallet.android.ui.navigation.routes.bridgesScreen
 import com.gemwallet.android.ui.navigation.routes.confirm
+import com.gemwallet.android.ui.navigation.routes.contactsScreen
 import com.gemwallet.android.ui.navigation.routes.fiatScreen
+import com.gemwallet.android.ui.navigation.routes.networkAssetsScreen
 import com.gemwallet.android.ui.navigation.routes.nftCollection
 import com.gemwallet.android.ui.navigation.routes.perpetualScreen
 import com.gemwallet.android.ui.navigation.routes.portfolioChartScreen
 import com.gemwallet.android.ui.navigation.routes.receiveScreen
 import com.gemwallet.android.ui.navigation.routes.recipientInput
 import com.gemwallet.android.ui.navigation.routes.referral
-import com.gemwallet.android.features.settings.contacts.presents.ContactsAction
-import com.gemwallet.android.ui.navigation.routes.contactsScreen
-import com.gemwallet.android.ui.navigation.routes.SettingsAction
 import com.gemwallet.android.ui.navigation.routes.settingsScreen
 import com.gemwallet.android.ui.navigation.routes.stake
 import com.gemwallet.android.ui.navigation.routes.swap
 import com.gemwallet.android.ui.navigation.routes.swapSelect
 import com.gemwallet.android.ui.navigation.routes.transactionDetailsScreen
+import com.gemwallet.android.ui.navigation.routes.walletConnectRequest
 import com.gemwallet.android.ui.navigation.routes.walletScreen
 import com.gemwallet.android.ui.navigation.routes.walletSearchScreen
 import com.gemwallet.android.ui.navigation.routes.walletsScreen
-import com.gemwallet.android.ui.navigation.routes.walletConnectRequest
 import com.wallet.core.primitives.PortfolioType
-import com.wallet.core.primitives.WalletId
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -130,7 +129,7 @@ fun WalletNavGraph(
                         is AssetDetailsAction.Earn -> navigator.openEarn(action.assetId)
                         AssetDetailsAction.OpenPerpetuals -> navigator.openPerpetuals()
                         is AssetDetailsAction.OpenPriceAlerts -> navigator.openPriceAlerts(action.assetId)
-                        is AssetDetailsAction.Confirm -> navigator.openConfirm(action.params)
+                        is AssetDetailsAction.Confirm -> navigator.openConfirm(action.input)
                     }
                 },
             )
@@ -183,7 +182,7 @@ fun WalletNavGraph(
                 collectionIdAction = navigator::openNftCollection,
                 assetIdAction = navigator::openNftAsset,
                 onRecipient = navigator::openNftRecipient,
-                onReceive = navigator::openReceiveNftChains,
+                onReceive = navigator::openReceiveCollection,
                 onUnverified = navigator::openNftUnverifiedCollections,
             )
 

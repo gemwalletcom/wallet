@@ -222,6 +222,10 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         delegations
     }
 
+    public func positions(delegations: [Gemstone.Delegation]) -> [Gemstone.Delegation] {
+        delegations.filter { BigInt($0.base.balance) > 0 }
+    }
+
     public func lockTimeSeconds(chain _: Gemstone.Chain) -> UInt64 {
         lockTime
     }

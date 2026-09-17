@@ -35,19 +35,6 @@ struct SimulationPayloadModelTests {
     }
 
     @Test
-    func addressRequestsCoverBothSectionsAndSkipNonAddressFields() {
-        let contract = SimulationPayloadField.standard(kind: .contract, value: "0x1", fieldType: .address, display: .primary)
-        let method = SimulationPayloadField.standard(kind: .method, value: "approve", fieldType: .text, display: .primary)
-        let spender = SimulationPayloadField.standard(kind: .spender, value: "0x2", fieldType: .address, display: .secondary)
-        let model = SimulationPayloadModel.mock(chain: .arbitrum, primaryFields: [contract, method], secondaryFields: [spender])
-
-        #expect(model.addressRequests == [
-            ChainAddress(chain: .arbitrum, address: contract.value),
-            ChainAddress(chain: .arbitrum, address: spender.value),
-        ])
-    }
-
-    @Test
     func fieldViewModelResolvesAddressName() {
         let contract = SimulationPayloadField.standard(
             kind: .contract,
@@ -61,8 +48,10 @@ struct SimulationPayloadModelTests {
             addressNames: [ChainAddress(chain: .ethereum, address: contract.value): .mock(address: contract.value, name: "Hyperliquid")],
         )
 
-        #expect(model.fieldViewModel(for: contract).addressName?.name == "Hyperliquid")
-        #expect(model.fieldViewModel(for: spender).addressName == nil)
+        let fields = model.fieldModels(for: [contract, spender], explorerLink: { _ in .mock() }, onOpenURL: { _ in })
+
+        #expect(fields[0].addressName?.name == "Hyperliquid")
+        #expect(fields[1].addressName == nil)
     }
 
     @Test

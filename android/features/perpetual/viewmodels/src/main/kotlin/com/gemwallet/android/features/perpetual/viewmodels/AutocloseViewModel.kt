@@ -1,18 +1,20 @@
 package com.gemwallet.android.features.perpetual.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositionByAsset
-import uniffi.gemstone.GemAutocloseEstimator
-import uniffi.gemstone.GemAutocloseField
-import uniffi.gemstone.GemAutocloseModify
-import uniffi.gemstone.AutocloseValidator
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.PerpetualFormatter
-import uniffi.gemstone.GemTransferData
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.model.NumericFormatter
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.components.perpetual.listItem
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModel
 import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModelFactory
@@ -20,7 +22,9 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualPositionData
 import com.wallet.core.primitives.TpslType
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,11 +35,13 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import javax.inject.Inject
-import com.gemwallet.android.serializer.toJson
-import com.gemwallet.android.ext.toGem
+import uniffi.gemstone.AutocloseValidator
 import uniffi.gemstone.GemAutocloseConfirmPolicy
+import uniffi.gemstone.GemAutocloseEstimator
+import uniffi.gemstone.GemAutocloseField
+import uniffi.gemstone.GemAutocloseModify
 import uniffi.gemstone.GemAutocloseSession
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -44,6 +50,8 @@ class AutocloseViewModel @Inject constructor(
     private val getPositionByAsset: GetPerpetualPositionByAsset,
     private val getSession: GetSession,
     savedStateHandle: SavedStateHandle,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val assetId: AssetId = savedStateHandle.requireAssetId()
@@ -53,11 +61,11 @@ class AutocloseViewModel @Inject constructor(
     val position: StateFlow<PerpetualPositionData?> = getSession()
         .filterNotNull()
         .flatMapLatest { session -> getPositionByAsset(session.wallet.id, assetId) }
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val _confirmRequests = MutableSharedFlow<GemTransferData>(extraBufferCapacity = 1)
-    val confirmRequests: SharedFlow<GemTransferData> = _confirmRequests
+    private val _confirmRequests = MutableSharedFlow<ConfirmTransferInput>(extraBufferCapacity = 1)
+    val confirmRequests: SharedFlow<ConfirmTransferInput> = _confirmRequests
 
     private val userTakeProfitText = MutableStateFlow<String?>(null)
     private val userStopLossText = MutableStateFlow<String?>(null)
@@ -80,6 +88,16 @@ class AutocloseViewModel @Inject constructor(
     ) { position, takeProfit, stopLoss, attempted ->
         position?.let { buildUiModel(it, takeProfit, stopLoss, attempted) }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val positionListItem: StateFlow<ListItemModel?> = uiModel.map { it?.position?.listItem(context) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val priceRows: StateFlow<List<ListItemModel>> = uiModel.map { model ->
+        listOfNotNull(
+            model?.let { ListItemModel(title = context.getString(R.string.perpetual_entry_price), subtitle = it.entryPriceText) },
+            model?.let { ListItemModel(title = context.getString(R.string.perpetual_market_price), subtitle = it.marketPriceText) },
+        )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun onTakeProfitChanged(text: String) {
         submitAttempted.value = false
@@ -115,7 +133,7 @@ class AutocloseViewModel @Inject constructor(
         val stopLossField = autocloseField(position, TpslType.StopLoss, stopLossText.value)
         val modify = GemAutocloseModify(position.position.direction.toGem(), assetIndex, takeProfitField, stopLossField)
         if (!GemAutocloseSession(modify, GemAutocloseConfirmPolicy.UNTIL_SUBMITTED, true).viewState().confirmEnabled) return
-        _confirmRequests.tryEmit(modify.transfer(position.perpetual.provider.toGem(), position.asset.toGem()))
+        _confirmRequests.tryEmit(ConfirmTransferInput(modify.transfer(position.perpetual.provider.toGem(), position.asset.toGem())))
     }
 
     private fun buildUiModel(

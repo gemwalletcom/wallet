@@ -37,45 +37,4 @@ struct TransactionInputViewModelTests {
 
         #expect(viewModel.value == .zero)
     }
-
-    @Test
-    func testNetworkFeeText() {
-        let viewModel = TransactionInputViewModel.mock(fee: .mock(fee: 1))
-
-        #expect(viewModel.networkFeeText == "0.00000001 BTC")
-    }
-
-    @Test
-    func customFeeAsset() {
-        let feeAsset = Asset.mockEthereumUSDT()
-        let viewModel = TransactionInputViewModel.mock(
-            fee: .mock(fee: 1_000_000, feeAsset: feeAsset.id.identifier),
-            feeAsset: feeAsset,
-        )
-
-        #expect(viewModel.networkFeeText == "1 USDT")
-    }
-
-    @Test
-    func testNetworkFeeFiatText() {
-        let assetId = AssetId.mock()
-        let metaData = GemConfirmMetadata.mock(
-            assetId: assetId.identifier,
-            prices: [AssetPrice.mock(assetId: assetId, price: Price.mock().price, priceChangePercentage24h: 0).toGem()],
-        )
-        let viewModel = TransactionInputViewModel.mock(
-            fee: .mock(fee: 1),
-            metaData: metaData,
-        )
-
-        #expect(viewModel.networkFeeFiatText == "$0.000000015")
-    }
-
-    @Test
-    func nilFee() {
-        let viewModel = TransactionInputViewModel.mock()
-
-        #expect(viewModel.networkFeeText == "-")
-        #expect(viewModel.networkFeeFiatText == nil)
-    }
 }

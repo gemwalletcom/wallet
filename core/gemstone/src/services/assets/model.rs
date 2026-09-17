@@ -60,20 +60,20 @@ pub enum GemSelectAssetScope {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemAssetRowTitle {
+pub enum GemAssetTitleStyle {
     Asset,
     CanonicalAsset,
     Network,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemAssetRowSubtitle {
+pub enum GemAssetSubtitleStyle {
     Network,
     Price,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemAssetRowTrailing {
+pub enum GemAssetTrailingStyle {
     Balance,
     Toggle,
     Copy,
@@ -94,11 +94,11 @@ pub fn asset_text(asset: Asset) -> GemAssetText {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
-pub struct GemAssetRow {
-    pub title: GemAssetRowTitle,
+pub struct GemAssetRowStyle {
+    pub title: GemAssetTitleStyle,
     pub shows_symbol: bool,
-    pub subtitle: GemAssetRowSubtitle,
-    pub trailing: GemAssetRowTrailing,
+    pub subtitle: GemAssetSubtitleStyle,
+    pub trailing: GemAssetTrailingStyle,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -126,7 +126,7 @@ pub enum GemSelectAssetSection {
 pub struct GemSelectAssetFlow {
     pub title: GemSelectAssetTitle,
     pub assets_section: GemSelectAssetSection,
-    pub row: GemAssetRow,
+    pub row_style: GemAssetRowStyle,
     pub row_action: GemSelectRowAction,
     pub action: Option<GemAssetAction>,
     pub scope: GemSelectAssetScope,

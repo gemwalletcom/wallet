@@ -63,6 +63,7 @@ impl Step {
         Self {
             id: id.to_string(),
             kind: "transaction".to_string(),
+            deposit_address: None,
             items: Some(vec![StepItem {
                 data: Some(StepData::Evm(EvmStepData {
                     to: to.to_string(),
@@ -79,6 +80,7 @@ impl Step {
             id: id.to_string(),
             kind: kind.to_string(),
             items: None,
+            deposit_address: None,
         }
     }
 }
