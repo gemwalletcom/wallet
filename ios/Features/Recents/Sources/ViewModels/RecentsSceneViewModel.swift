@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Style
 import protocol Gemstone.GemRecentActivityServiceProtocol
-import class Gemstone.GemRecentActivityService
 import GemstoneServices
 import Components
 import struct Gemstone.GemRecentsSections
@@ -23,6 +23,15 @@ public final class RecentsSceneViewModel {
     public let onSelect: (Asset) -> Void
 
     var searchQuery: String = ""
+
+    func listItem(for asset: Asset) -> ListItemModel {
+        let assetModel = AssetViewModel(asset: asset)
+        return ListItemModel(
+            title: assetModel.name,
+            titleStyle: TextStyle(font: .body, color: .primary, fontWeight: .semibold),
+            imageStyle: .asset(assetImage: assetModel.assetImage),
+        )
+    }
 
     public var recentAssets: [RecentAsset] {
         query.value

@@ -114,23 +114,20 @@ fn catalog_json(entries: &BTreeMap<String, BTreeMap<String, String>>) -> Result<
 mod tests {
     use super::*;
 
-    fn key_map() -> BTreeMap<String, String> {
-        BTreeMap::from([
+    #[test]
+    fn test_ios_key() {
+        let key_map = BTreeMap::from([
             ("common_cancel".to_string(), "common.cancel".to_string()),
             ("secret_phrase_title".to_string(), "secret_phrase.title".to_string()),
             ("errors_import_invalid_secret_phrase".to_string(), "errors.import.invalid_secret_phrase".to_string()),
-        ])
-    }
-
-    #[test]
-    fn test_ios_key() {
-        assert_eq!(ios_key("common_cancel", &key_map()), "common.cancel");
-        assert_eq!(ios_key("common_new_key", &key_map()), "common.new_key");
-        assert_eq!(ios_key("secret_phrase_new_key", &key_map()), "secret_phrase.new_key");
-        assert_eq!(ios_key("errors_import_invalid_private_key", &key_map()), "errors.import.invalid_private_key");
-        assert_eq!(ios_key("errors_important_note", &key_map()), "errors.important_note");
-        assert_eq!(ios_key("errors_new_key", &key_map()), "errors.new_key");
-        assert_eq!(ios_key("unknown_key", &key_map()), "unknown_key");
+        ]);
+        assert_eq!(ios_key("common_cancel", &key_map), "common.cancel");
+        assert_eq!(ios_key("common_new_key", &key_map), "common.new_key");
+        assert_eq!(ios_key("secret_phrase_new_key", &key_map), "secret_phrase.new_key");
+        assert_eq!(ios_key("errors_import_invalid_private_key", &key_map), "errors.import.invalid_private_key");
+        assert_eq!(ios_key("errors_important_note", &key_map), "errors.important_note");
+        assert_eq!(ios_key("errors_new_key", &key_map), "errors.new_key");
+        assert_eq!(ios_key("unknown_key", &key_map), "unknown_key");
         assert_eq!(ios_key("unknown_key", &BTreeMap::new()), "unknown_key");
     }
 

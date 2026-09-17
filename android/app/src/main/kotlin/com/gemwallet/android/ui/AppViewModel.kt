@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui
 
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.ext.toGem
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,9 +23,9 @@ import com.gemwallet.android.model.NotificationsAvailable
 import com.gemwallet.android.PendingNavigationCoordinator
 import com.gemwallet.android.ui.navigation.WalletRootRoute
 import android.util.Log
+import kotlinx.coroutines.CoroutineDispatcher
 import uniffi.gemstone.GemAppStartServiceInterface
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -55,6 +56,7 @@ class AppViewModel @Inject constructor(
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
     private val appStartService: GemAppStartServiceInterface,
     getWalletSummary: GetWalletSummary,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     fun openPayment(payload: String) {
@@ -91,17 +93,17 @@ class AppViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     init {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             startDestination.value = getStartDestination()
         }
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             handleAppVersion()
             rateAs()
             getSession().collectLatest {
                 onSession(it ?: return@collectLatest)
             }
         }
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             getSession()
                 .filterNotNull()
                 .distinctUntilChangedBy { it.wallet.id }
@@ -138,20 +140,19 @@ class AppViewModel @Inject constructor(
     }
 
     fun acceptTerms() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             userConfig.acceptTerms()
         }
     }
 
     fun onNotificationsEnable() {
-        viewModelScope.launch(Dispatchers.IO) {
-            userConfig.stopAskNotifications()
+        viewModelScope.launch(ioDispatcher) {
             switchPushEnabled.switchPushEnabled(true)
         }
     }
 
     fun laterAskNotifications() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             userConfig.stopAskNotifications()
         }
     }
@@ -171,7 +172,7 @@ class AppViewModel @Inject constructor(
         }
     }
 
-    private suspend fun getStartDestination(): NavKey = withContext(Dispatchers.IO) {
+    private suspend fun getStartDestination(): NavKey = withContext(ioDispatcher) {
         if (getCurrentWallet.getCurrentWallet() != null) {
             WalletRootRoute
         } else {

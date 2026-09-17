@@ -10,9 +10,9 @@ import com.wallet.core.primitives.ChainAddress
 
 @Composable
 internal fun WalletAddress(
-    accounts: List<ChainAddress>,
+    account: ChainAddress?,
 ) {
-    val account = accounts.takeIf { it.size == 1 }?.firstOrNull() ?: return
+    account ?: return
 
     AddressPropertyItem(
         title = R.string.common_address,

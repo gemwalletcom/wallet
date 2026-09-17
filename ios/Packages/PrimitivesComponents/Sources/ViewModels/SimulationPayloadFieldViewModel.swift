@@ -34,6 +34,10 @@ public struct SimulationPayloadFieldViewModel: Identifiable {
         field
     }
 
+    public var listItem: ListItemModel {
+        ListItemModel(title: title, subtitle: subtitle)
+    }
+
     public var title: String {
         field.kind.title ?? field.label ?? ""
     }

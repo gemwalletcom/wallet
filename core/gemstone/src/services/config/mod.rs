@@ -1,3 +1,6 @@
+#[cfg(test)]
+pub(crate) mod testkit;
+
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
@@ -41,7 +44,6 @@ impl GemConfigService {
 mod tests {
     use super::*;
     use crate::alien::{AlienError, AlienProvider, AlienResponse, AlienTarget};
-    use crate::services::preferences::testkit::MemoryPreferencesStore;
     use async_trait::async_trait;
     use primitives::{ConfigVersions, SwapConfig};
     use std::future::Future;
@@ -81,17 +83,10 @@ mod tests {
         }
     }
 
-    fn service(provider: Arc<ConfigProvider>) -> GemConfigService {
-        GemConfigService::new(
-            Arc::new(GemApiClient::new(provider)),
-            Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default()))),
-        )
-    }
-
     #[test]
     fn concurrent_updates_share_one_request() {
         let provider = Arc::new(ConfigProvider::default());
-        let service = service(provider.clone());
+        let service = GemConfigService::mock(provider.clone());
 
         let (first, second, cached) = futures::executor::block_on(futures::future::join3(service.update_config(), service.update_config(), service.get_config()));
 
@@ -104,7 +99,7 @@ mod tests {
     #[test]
     fn a_dropped_update_leaves_the_next_caller_free_to_read_the_stored_config() {
         let provider = Arc::new(ConfigProvider::default());
-        let service = service(provider.clone());
+        let service = GemConfigService::mock(provider.clone());
         futures::executor::block_on(service.update_config()).unwrap();
 
         {
@@ -122,7 +117,7 @@ mod tests {
     #[test]
     fn get_config_uses_cache_after_update() {
         let provider = Arc::new(ConfigProvider::default());
-        let service = service(provider.clone());
+        let service = GemConfigService::mock(provider.clone());
 
         futures::executor::block_on(async {
             service.update_config().await.unwrap();

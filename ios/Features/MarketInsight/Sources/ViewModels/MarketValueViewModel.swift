@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
 import InfoSheet
 import PrimitivesComponents
@@ -11,6 +12,19 @@ struct MarketValueViewModel {
         case none
         case explorer(ExplorerContextData)
         case info(InfoSheetType)
+    }
+
+    func listItem(infoAction: (() -> Void)? = nil) -> ListItemModel {
+        ListItemModel(
+            title: title,
+            titleTag: titleTag,
+            titleTagStyle: titleTagStyle ?? .body,
+            titleExtra: titleExtra,
+            subtitle: subtitle,
+            subtitleExtra: subtitleExtra,
+            subtitleStyleExtra: subtitleExtraStyle ?? .calloutSecondary,
+            infoAction: infoAction,
+        )
     }
 
     let title: String

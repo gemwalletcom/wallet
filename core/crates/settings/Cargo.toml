@@ -8,6 +8,7 @@ serde = { workspace = true }
 config = { workspace = true }
 serde_serializers = { path = "../serde_serializers" }
 gem_client = { path = "../gem_client" }
+url = { workspace = true }
 
 [features]
 testkit = []

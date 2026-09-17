@@ -81,24 +81,21 @@ mod tests {
     use super::*;
     use crate::testkit::{TEST_SUI_ADDRESS, TEST_SUI_PUBLIC_KEY_BASE64, mock_sui_account};
 
-    fn object(json: &str) -> WalletConnectResponseType {
-        WalletConnectResponseType::Object { json: json.to_string() }
-    }
-
-    fn string(value: &str) -> WalletConnectResponseType {
-        WalletConnectResponseType::String { value: value.to_string() }
-    }
-
     #[test]
     fn test_encode_sign_message_ethereum() {
-        assert_eq!(WalletConnectResponseHandler::encode_sign_message(ChainType::Ethereum, "0xsig".to_string()), string("0xsig"));
+        assert_eq!(
+            WalletConnectResponseHandler::encode_sign_message(ChainType::Ethereum, "0xsig".to_string()),
+            WalletConnectResponseType::String { value: "0xsig".to_string() }
+        );
     }
 
     #[test]
     fn test_encode_sign_message_solana() {
         assert_eq!(
             WalletConnectResponseHandler::encode_sign_message(ChainType::Solana, "sig123".to_string()),
-            object(r#"{"signature":"sig123"}"#)
+            WalletConnectResponseType::Object {
+                json: r#"{"signature":"sig123"}"#.to_string()
+            }
         );
     }
 
@@ -106,7 +103,9 @@ mod tests {
     fn test_encode_sign_transaction_tron() {
         assert_eq!(
             WalletConnectResponseHandler::encode_sign_transaction(ChainType::Tron, r#"{"signature":["sig"]}"#.to_string()),
-            object(r#"{"signature":["sig"]}"#)
+            WalletConnectResponseType::Object {
+                json: r#"{"signature":["sig"]}"#.to_string()
+            }
         );
     }
 
@@ -114,7 +113,9 @@ mod tests {
     fn test_encode_sign_transaction_sui() {
         assert_eq!(
             WalletConnectResponseHandler::encode_sign_transaction(ChainType::Sui, "txbytes_sig123".to_string()),
-            object(r#"{"signature":"sig123","transactionBytes":"txbytes"}"#)
+            WalletConnectResponseType::Object {
+                json: r#"{"signature":"sig123","transactionBytes":"txbytes"}"#.to_string()
+            }
         );
     }
 
@@ -122,7 +123,9 @@ mod tests {
     fn test_encode_send_transaction_sui() {
         assert_eq!(
             WalletConnectResponseHandler::encode_send_transaction(ChainType::Sui, "digest123".to_string()),
-            object(r#"{"digest":"digest123"}"#)
+            WalletConnectResponseType::Object {
+                json: r#"{"digest":"digest123"}"#.to_string()
+            }
         );
     }
 
@@ -130,7 +133,9 @@ mod tests {
     fn test_encode_send_transaction_tron() {
         assert_eq!(
             WalletConnectResponseHandler::encode_send_transaction(ChainType::Tron, "txid123".to_string()),
-            object(r#"{"result":true,"txid":"txid123"}"#)
+            WalletConnectResponseType::Object {
+                json: r#"{"result":true,"txid":"txid123"}"#.to_string()
+            }
         );
     }
 
@@ -138,16 +143,23 @@ mod tests {
     fn test_encode_get_accounts() {
         assert_eq!(
             WalletConnectResponseHandler::encode_get_accounts(ChainType::Sui, &[mock_sui_account()]),
-            object(&format!(r#"[{{"pubkey":"{TEST_SUI_PUBLIC_KEY_BASE64}","address":"{TEST_SUI_ADDRESS}"}}]"#))
+            WalletConnectResponseType::Object {
+                json: format!(r#"[{{"pubkey":"{TEST_SUI_PUBLIC_KEY_BASE64}","address":"{TEST_SUI_ADDRESS}"}}]"#)
+            }
         );
-        assert_eq!(WalletConnectResponseHandler::encode_get_accounts(ChainType::Ethereum, &[mock_sui_account()]), object("[]"));
+        assert_eq!(
+            WalletConnectResponseHandler::encode_get_accounts(ChainType::Ethereum, &[mock_sui_account()]),
+            WalletConnectResponseType::Object { json: "[]".to_string() }
+        );
     }
 
     #[test]
     fn test_encode_sign_all_transactions() {
         assert_eq!(
             WalletConnectResponseHandler::encode_sign_all_transactions(vec!["signed_tx_1".to_string(), "signed_tx_2".to_string()]),
-            object(r#"{"transactions":["signed_tx_1","signed_tx_2"]}"#)
+            WalletConnectResponseType::Object {
+                json: r#"{"transactions":["signed_tx_1","signed_tx_2"]}"#.to_string()
+            }
         );
     }
 }

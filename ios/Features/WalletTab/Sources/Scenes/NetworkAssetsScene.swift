@@ -67,9 +67,8 @@ public struct NetworkAssetsScene: View {
 
     private func assetsList(_ assets: [AssetData], onAddToWallet: AssetIdAction = nil) -> some View {
         WalletAssetsList(
-            assets: assets,            currency: model.currency,
-
-            row: model.assetRow,
+            assets: assets,
+            itemsModel: model.assetItems,
             onHideAsset: model.onHideAsset,
             onPinAsset: model.onPinAsset,
             onAddToWallet: onAddToWallet,

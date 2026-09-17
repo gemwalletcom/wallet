@@ -71,7 +71,7 @@ struct RootScene: View {
             },
         )
         .taskOnce(model.setup)
-        .lockManaged(by: model.lockManager)
+        .lockWindow( model.lockWindow)
         .onChange(
             of: model.currentWalletId,
             initial: true,

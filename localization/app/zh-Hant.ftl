@@ -58,7 +58,6 @@ common_token = 代幣
 common_expiration = 有效期限
 common_suspicious_address = 可疑地址
 common_refresh = 重新整理
-common_no_thanks = 不用，謝謝
 common_grant_permission = 允許
 common_required_field = %@ 為必填欄位
 
@@ -165,7 +164,6 @@ transfer_freeze_title = 凍結
 transfer_unfreeze_title = 解凍
 transfer_review_request = 檢視請求
 transfer_amount = 數量
-transfer_amount_title = 金額
 
 # Settings
 
@@ -209,7 +207,6 @@ support_message_placeholder = 訊息
 
 # Errors
 
-errors_transfer = 轉帳錯誤：%@
 errors_validation = 驗證錯誤： %@
 errors_create_wallet = 建立錢包錯誤： %@
 errors_invalid_address_name = 地址或名稱無效
@@ -228,7 +225,6 @@ errors_cancelled = 已取消
 errors_connections_user_cancelled = 使用者已取消
 errors_not_supported = 不支援
 errors_permissions_not_granted = 未授予權限
-errors_decoding = 解碼錯誤
 errors_unknown = 未知
 errors_not_supported_qr = 此裝置不支援掃描 QR 碼，只能從照片圖庫選取 QR 碼圖片。
 errors_camera_permissions_not_granted = 尚未取得相機權限。請在設定中允許相機存取，以掃描 QR 碼。
@@ -239,11 +235,8 @@ errors_invalid_asset_address = 無效的 %@ 地址
 errors_dust_threshold = 交易失敗，因為金額太小，無法滿足 %@ 網路的最低要求（粉塵門檻）。此限制確保交易金額足以支付手續費和處理成本。
 errors_swap_no_quote_available = 暫無報價
 errors_swap_not_supported_asset = 不支援此資產。
-errors_connections_invalid_send_parameters = 發送交易時提供的參數無效。
-errors_connections_invalid_sign_parameters = 提供的簽名參數無效。
 errors_connections_no_supported_wallets = 目前沒有支援的錢包可用。
 errors_connections_unsupported_chain = 不支援指定的區塊鏈。
-errors_connections_unsupported_method = 不支援請求的方法。
 errors_swap_amount_too_small = 金額太小，請輸入更大的金額試試
 errors_required = %@ 為必填欄位
 errors_scan_transaction_malicious_description = 無法完成此交易：收款錢包位址與可疑或惡意行為有關。
@@ -255,7 +248,6 @@ errors_dust_threshold_short = 此網路將這筆金額視為粉塵金額，手�
 errors_swap_minimum_amount = 最低交易金額為 %@。請輸入更高的金額。
 errors_perpetual_trigger_price_lower = 觸發價格應低於市場價格
 errors_perpetual_trigger_price_higher = 觸發價格應高於市場價格
-errors_token_unable_fetch_token_information = 無法取得代幣資訊： %@
 errors_unknown_try_again = 發生未知錯誤，請重試
 errors_network_error = 網路錯誤： %@
 errors_network_offline = 網路連線似乎已斷開。
@@ -279,7 +271,6 @@ update_app_action = 更新
 update_app_permission_title = 允許安裝
 update_app_permission_description = 前往設定，並允許安裝來自外部來源的 App
 update_app_permission_open_settings = 前往設定
-update_app_downloading = 下載中...
 
 # Transaction
 
@@ -483,8 +474,6 @@ banner_account_activation_title = 帳戶啟動費用
 banner_account_activation_description = %@ 網路需支付一次性費用：%@。
 banner_stake_title = 開始質押 %@
 banner_stake_description = 質押 %@ 賺取獎勵，躺著也賺
-banner_enable_notifications_title = 啟用通知
-banner_enable_notifications_description = 即時掌握錢包動態
 banner_activate_asset_description = 若要使用 %@ 資產，必須先符合 %@ 網路的特定要求，才能啟用該資產。
 banner_asset_status_title = 可疑資產
 banner_asset_status_description = 代幣可能不安全或具有誤導性。請僅在完全信任的情況下繼續操作。
@@ -690,8 +679,9 @@ perpetual_margin_isolated = 逐倉
 # Perpetuals
 
 perpetuals_title = 永續合約
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = 交易永續合約
 perpetuals_markets = 市場
-perpetuals_empty_state_no_markets = 沒有市場
 perpetuals_empty_state_no_markets_found = 未找到任何市場
 
 # Rewards
@@ -763,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = 需要相機權限才能掃描 QR 碼。\n請允許存取相機。
 
 # Notifications Permission
 
-notifications_permission_request_notification = 需要通知權限才能接收新交易通知。\n請允許傳送通知。
 
 # Confirm
 
-confirm_fee_error = 費用計算錯誤
 
 # Rootcheck
 

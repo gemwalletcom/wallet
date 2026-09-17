@@ -15,35 +15,19 @@ public struct VerificationStatusViewModel {
     }
 
     public var title: String {
-        switch status {
-        case .verified: .empty
-        case .unverified: Localized.Asset.Verification.unverified
-        case .suspicious: Localized.Asset.Verification.suspicious
-        }
+        status.statusTitle
     }
 
     public var description: String {
-        switch status {
-        case .verified: String.empty
-        case .unverified: Localized.Info.AssetStatus.Unverified.description
-        case .suspicious: Localized.Info.AssetStatus.Suspicious.description
-        }
+        status.statusDescription
     }
 
     public var statusStyle: TextStyle {
-        switch status {
-        case .verified: .calloutSecondary
-        case .unverified: TextStyle(font: .callout, color: Colors.orange)
-        case .suspicious: TextStyle(font: .callout, color: Colors.red)
-        }
+        status.statusStyle
     }
 
     public var assetImage: AssetImage {
-        switch status {
-        case .verified: AssetImage()
-        case .unverified: AssetImage(placeholder: Images.TokenStatus.warning)
-        case .suspicious: AssetImage(placeholder: Images.TokenStatus.risk)
-        }
+        status.statusAssetImage
     }
 
     public var docsUrl: URL {

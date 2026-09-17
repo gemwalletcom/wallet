@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
+import struct Gemstone.GemFeeOptionItem
 import struct Gemstone.GemFeeRateRows
 import enum Gemstone.GemConfirmFeeSelection
 import Primitives
@@ -10,22 +11,23 @@ import PrimitivesTestKit
 public extension NetworkFeeSceneViewModel {
     static func mock(
         feeAsset: Asset = .mockEthereum(),
-        currency: Currency = .usd,
         selection: GemConfirmFeeSelection = .priority(priority: .normal),
         feeRates: GemFeeRateRows? = nil,
         feeAssetPrice: Price? = nil,
         feeAmount: BigInt? = nil,
+        additionalFees: [GemFeeOptionItem] = [],
         feeAssets: [FeeAssetItem] = [],
         onSelect: (@MainActor (GemConfirmFeeSelection) -> Void)? = nil,
         onSelectFeeAsset: (@MainActor (AssetId) -> Void)? = nil,
     ) -> NetworkFeeSceneViewModel {
         NetworkFeeSceneViewModel(
             feeAsset: feeAsset,
-            currency: currency,
+            currency: .usd,
             selection: selection,
             feeRates: feeRates,
             feeAssetPrice: feeAssetPrice,
             feeAmount: feeAmount,
+            additionalFees: additionalFees,
             feeAssets: feeAssets,
             onSelect: onSelect,
             onSelectFeeAsset: onSelectFeeAsset,
@@ -34,13 +36,7 @@ public extension NetworkFeeSceneViewModel {
 }
 
 public extension FeeAssetItem {
-    static func mock(
-        asset: Asset = .mockEthereum(),
-        balance: Balance = .zero,
-        price: Price? = nil,
-        currency: Currency = .usd,
-        isSelected: Bool = false,
-    ) -> FeeAssetItem {
-        FeeAssetItem(asset: asset, balance: balance, price: price, currency: currency, isSelected: isSelected)
+    static func mock(asset: Asset = .mockEthereum()) -> FeeAssetItem {
+        FeeAssetItem(asset: asset, balance: .zero, price: nil, currency: .usd, isSelected: false)
     }
 }

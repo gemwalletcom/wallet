@@ -67,34 +67,41 @@ public struct SwapDetailsView: View {
                     view
                 }
             } header: {
-                Text(Localized.Common.provider)
+                Text(model.providerTitle)
                     .listRowInsets(.horizontalMediumInsets)
             }
 
             Section {
-                if let rateText = model.rateText {
-                    ListItemRotateView(
-                        title: model.rateTitle,
-                        subtitle: rateText,
-                        action: model.switchRateDirection,
-                    )
+                ForEach(model.detailRowList) { row in
+                    switch row {
+                    case .provider:
+                        EmptyView()
+                    case .rate:
+                        if let rateText = model.rateText {
+                            ListItemRotateView(
+                                title: model.rateTitle,
+                                subtitle: rateText,
+                                action: model.switchRateDirection,
+                            )
+                        }
+                    case .estimatedTime:
+                        if let swapEstimationField = model.swapEstimationField {
+                            ListItemView(field: swapEstimationField)
+                        }
+                    case .priceImpact:
+                        PriceImpactView(
+                            model: model.priceImpactModel,
+                            infoAction: { infoSheet = .priceImpact },
+                        )
+                    case .minimumReceive:
+                        ListItemView(field: model.minReceiveField)
+                    case .slippage:
+                        ListItemView(
+                            field: model.slippageField,
+                            infoAction: { infoSheet = .slippage },
+                        )
+                    }
                 }
-
-                if let swapEstimationField = model.swapEstimationField {
-                    ListItemView(field: swapEstimationField)
-                }
-
-                PriceImpactView(
-                    model: model.priceImpactModel,
-                    infoAction: { infoSheet = .priceImpact },
-                )
-
-                ListItemView(field: model.minReceiveField)
-
-                ListItemView(
-                    field: model.slippageField,
-                    infoAction: { infoSheet = .slippage },
-                )
             }
         }
     }

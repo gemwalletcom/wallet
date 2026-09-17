@@ -100,7 +100,7 @@ struct WalletSearchSceneViewModelTests {
         #expect(model.showNFTs == false)
 
         service.nftSearchItems = [
-            .collection(data: NFTData(collection: .mock(), assets: [.mock(), .mock()]).toGem()),
+            .collection(data: NFTData.mock(assets: [.mock(), .mock()]).toGem()),
             .asset(data: NFTAssetData.mock().toGem()),
         ]
 

@@ -40,12 +40,12 @@ public struct AssetsRequest: DatabaseQueryable {
                 .fetchAll(db)
                 .map(\.assetData)
         case .allAssets:
-            return try fetchAllAssetRecordsRequest(db, filters: filters)
+            return try allAssetRecords(db, filters: filters)
                 .map { $0.mapToEmptyAssetData() }
         }
     }
 
-    static func applyFilters(request: QueryInterfaceRequest<AssetRecord>, _ filters: [AssetsRequestFilter]) -> QueryInterfaceRequest<AssetRecord> {
+    static func filtered(request: QueryInterfaceRequest<AssetRecord>, _ filters: [AssetsRequestFilter]) -> QueryInterfaceRequest<AssetRecord> {
         var request: QueryInterfaceRequest<AssetRecord> = request
         for filter in filters {
             switch filter {
@@ -61,7 +61,7 @@ public struct AssetsRequest: DatabaseQueryable {
                  .disabledBalance,
                  .hasBalance,
                  .hasAvailableBalance:
-                request = Self.applyFilter(request: request, filter)
+                request = Self.filtered(request: request, filter)
             }
         }
         return request
@@ -78,7 +78,7 @@ extension AssetsRequest {
             .limit(1).fetchOne(db) != nil
     }
 
-    private static func applyFilter(request: QueryInterfaceRequest<AssetRecord>, _ filter: AssetsRequestFilter) -> QueryInterfaceRequest<AssetRecord> {
+    private static func filtered(request: QueryInterfaceRequest<AssetRecord>, _ filter: AssetsRequestFilter) -> QueryInterfaceRequest<AssetRecord> {
         switch filter {
         case let .search(query, hasPriorityAssets):
             if hasPriorityAssets {
@@ -177,7 +177,7 @@ extension AssetsRequest {
                 AssetRecord.Columns.rank.desc,
             )
 
-        return Self.applyFilters(request: limit.map { request.limit($0) } ?? request, filters)
+        return Self.filtered(request: limit.map { request.limit($0) } ?? request, filters)
             .asRequest(of: AssetRecordInfo.self)
     }
 }
@@ -186,7 +186,7 @@ extension AssetsRequest {
 /// This is necessary because watch-only wallets do not create accounts for other networks.
 /// On the price alerts screen, we fetch all assets and fill them with empty data.
 extension AssetsRequest {
-    private func fetchAllAssetRecordsRequest(
+    private func allAssetRecords(
         _ db: Database,
         filters: [AssetsRequestFilter],
     ) throws -> [PriceAlertAssetRecordInfo] {
@@ -197,7 +197,7 @@ extension AssetsRequest {
             .order(AssetRecord.Columns.rank.desc)
             .limit(Self.defaultQueryLimit)
 
-        request = Self.applyFilters(request: request, filters)
+        request = Self.filtered(request: request, filters)
 
         return try request
             .asRequest(of: PriceAlertAssetRecordInfo.self)

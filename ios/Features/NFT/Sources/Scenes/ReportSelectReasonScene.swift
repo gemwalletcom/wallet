@@ -16,7 +16,7 @@ struct ReportSelectReasonScene: View {
             Section {
                 ForEach(model.reasons, id: \.self) { reason in
                     NavigationCustomLink(
-                        with: ListItemView(title: reason.title),
+                        with: ListItemView(model: model.listItem(for: reason)),
                         action: { model.submitReport(reason: reason.rawValue) },
                     )
                 }

@@ -28,6 +28,7 @@ class AmountInputTest {
     val composeRule = createComposeRule()
 
     private val separator = DecimalFormatSymbols.getInstance().decimalSeparator
+    private val other = if (separator == '.') ',' else '.'
 
     private var amount by mutableStateOf("")
     private lateinit var swapAmount: TextFieldState
@@ -49,26 +50,34 @@ class AmountInputTest {
     }
 
     @Test
-    fun rejectsTheSeparatorTheDeviceDoesNotUse() {
-        setContent("6${separator}3")
-        val other = if (separator == '.') ',' else '.'
-        listOf("12${other}5", "1${other}2${other}3").forEach { input ->
-            fields.forEach { composeRule.onNodeWithTag(it).performTextReplacement(input) }
-            assertAmounts("6${separator}3")
-        }
+    fun typedSeparatorTakesTheOneTheDeviceUses() {
+        setContent("12")
+        fields.forEach { composeRule.onNodeWithTag(it).performTextInput("$other") }
+        assertAmounts("12${separator}")
+        fields.forEach { composeRule.onNodeWithTag(it).performTextInput("5") }
+        assertAmounts("12${separator}5")
     }
 
     @Test
-    fun rejectsMalformedReplacementWithoutChangingAmount() {
+    fun cleansMalformedReplacement() {
         setContent("6")
-        listOf("6-3", "-1", "1e3", "1 234", "$12", "abc").forEach { input ->
+        mapOf(
+            "12${other}5" to "12${separator}5",
+            "1${other}2${other}3" to "1${separator}23",
+            "6-3" to "63",
+            "-1" to "1",
+            "1e3" to "13",
+            "1 234" to "1234",
+            "$12" to "12",
+            "abc" to "",
+        ).forEach { (input, expected) ->
             fields.forEach { composeRule.onNodeWithTag(it).performTextReplacement(input) }
-            assertAmounts("6")
+            assertAmounts(expected)
         }
     }
 
     @Test
-    fun rejectsInvalidInsertion() {
+    fun dropsInvalidInsertion() {
         setContent("6${separator}3")
         listOf("-", ".", ",").forEach { input ->
             fields.forEach { composeRule.onNodeWithTag(it).performTextInput(input) }
@@ -78,17 +87,17 @@ class AmountInputTest {
 
     @Test
     fun allowsSelectionReplacement() {
-        setContent("12.5")
+        setContent("12${separator}5")
         fields.forEach {
             composeRule.onNodeWithTag(it).performTextInputSelection(TextRange(0, 2))
             composeRule.onNodeWithTag(it).performTextInput("3")
         }
-        assertAmounts("3.5")
+        assertAmounts("3${separator}5")
     }
 
     @Test
     fun allowsClearingAmount() {
-        setContent("12.5")
+        setContent("12${separator}5")
         fields.forEach { composeRule.onNodeWithTag(it).performTextClearance() }
         assertAmounts("")
     }
@@ -97,11 +106,11 @@ class AmountInputTest {
     fun allowsEditingProgrammaticAmount() {
         setContent("6")
         composeRule.runOnIdle {
-            amount = "0.0001"
-            swapAmount.setTextAndPlaceCursorAtEnd("0.0001")
+            amount = "0${separator}0001"
+            swapAmount.setTextAndPlaceCursorAtEnd("0${separator}0001")
         }
         fields.forEach { composeRule.onNodeWithTag(it).performTextInput("5") }
-        assertAmounts("0.00015")
+        assertAmounts("0${separator}00015")
     }
 
     private fun setContent(initialAmount: String = "") {
@@ -123,7 +132,7 @@ class AmountInputTest {
                     BasicTextField(
                         modifier = Modifier.testTag("swapAmount"),
                         state = swapAmount,
-                        inputTransformation = AmountInputTransformation,
+                        inputTransformation = AmountInputTransformation(),
                     )
                 }
             }

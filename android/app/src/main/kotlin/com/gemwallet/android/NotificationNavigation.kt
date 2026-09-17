@@ -26,8 +26,10 @@ import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.flow.firstOrNull
 import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemPushNotification
 import uniffi.gemstone.GemPushNotificationService
+import uniffi.gemstone.GemPushNotificationServiceInterface
 import javax.inject.Inject
 
 class NotificationNavigation @Inject constructor(
@@ -36,8 +38,8 @@ class NotificationNavigation @Inject constructor(
     private val getWallet: GetWallet,
     private val createTransaction: CreateTransaction,
     private val assetNavigation: AssetNavigation,
-    private val assetsService: GemAssetsService,
-    private val pushNotificationService: GemPushNotificationService,
+    private val assetsService: GemAssetsServiceInterface,
+    private val pushNotificationService: GemPushNotificationServiceInterface,
 ) {
     suspend fun prepareNavigation(intent: Intent): List<NavKey> {
         if (!intent.hasNotificationPayload()) {
@@ -76,7 +78,7 @@ class NotificationNavigation @Inject constructor(
     }
 
     private suspend fun prepareAssets(vararg assetIds: AssetId) {
-        assetsService.syncMissingAssets(assetIds.map { it.toIdentifier() })
+        assetIds.forEach { assetsService.ensureAsset(it.toIdentifier()) }
     }
 
     private suspend fun prepareWalletAssetRoutes(walletId: WalletId, assetId: AssetId?): List<NavKey> {

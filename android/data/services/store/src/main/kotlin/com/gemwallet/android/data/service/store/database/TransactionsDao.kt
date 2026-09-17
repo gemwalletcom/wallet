@@ -208,4 +208,7 @@ interface TransactionsDao {
 
     @Query("DELETE FROM transactions WHERE state = :state")
     fun deleteByState(state: TransactionState)
+
+    @Query("DELETE FROM transactions")
+    suspend fun deleteAll()
 }

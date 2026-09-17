@@ -24,11 +24,12 @@ public struct SettingsScene: View {
 
     public var body: some View {
         List {
-            Group {
-                walletsSection
-                deviceSection
-                walletConnectSection
-                aboutSection
+            ForEach(model.sections) { section in
+                Section {
+                    ForEach(section.values) { row in
+                        content(for: row)
+                    }
+                }
             }
             .listRowInsets(.assetListRowInsets)
         }
@@ -43,89 +44,39 @@ public struct SettingsScene: View {
 // MARK: - UI Components
 
 extension SettingsScene {
-    private var walletsSection: some View {
-        Section {
+    @ViewBuilder
+    private func content(for row: SettingsRowViewModel) -> some View {
+        switch row.destination {
+        case .wallets:
             NavigationCustomLink(
-                with: ListItemView(
-                    title: model.walletsTitle,
-                    subtitle: model.walletsValue,
-                    imageStyle: .settings(assetImage: model.walletsImage),
-                ),
+                with: ListItemView(model: row.model),
                 action: onOpenWallets,
             )
-
-            NavigationLink(value: Scenes.Security()) {
-                ListItemView(
-                    title: model.securityTitle,
-                    imageStyle: .settings(assetImage: model.securityImage),
-                )
-            }
-        }
-    }
-
-    private var deviceSection: some View {
-        Section {
-            NavigationLink(value: Scenes.Notifications()) {
-                ListItemView(
-                    title: model.notificationsTitle,
-                    imageStyle: .settings(assetImage: model.notificationsImage),
-                )
-            }
-
-            NavigationLink(value: Scenes.Preferences()) {
-                ListItemView(
-                    title: model.preferencesTitle,
-                    imageStyle: .settings(assetImage: model.preferencesImage),
-                )
-            }
-        }
-    }
-
-    private var walletConnectSection: some View {
-        Section {
-            NavigationLink(value: Scenes.WalletConnect()) {
-                ListItemView(
-                    title: model.walletConnectTitle,
-                    imageStyle: .settings(assetImage: model.walletConnectImage),
-                )
-            }
-        }
-    }
-
-    private var aboutSection: some View {
-        Section {
+        case .security:
+            link(row, to: Scenes.Security())
+        case .notifications:
+            link(row, to: Scenes.Notifications())
+        case .preferences:
+            link(row, to: Scenes.Preferences())
+        case .walletConnect:
+            link(row, to: Scenes.WalletConnect())
+        case .support:
             NavigationCustomLink(
-                with: ListItemView(
-                    title: model.supportTitle,
-                    imageStyle: .settings(assetImage: model.supportImage),
-                ),
+                with: ListItemView(model: row.model),
                 action: onOpenSupport,
             )
+        case .rewards:
+            link(row, to: Scenes.Referral())
+        case .aboutUs:
+            link(row, to: Scenes.AboutUs())
+        case .developer:
+            link(row, to: Scenes.Developer())
+        }
+    }
 
-            if model.showsRewards {
-                NavigationLink(value: Scenes.Referral()) {
-                    ListItemView(
-                        title: model.rewardsTitle,
-                        imageStyle: .settings(assetImage: model.rewardsImage),
-                    )
-                }
-            }
-
-            NavigationLink(value: Scenes.AboutUs()) {
-                ListItemView(
-                    title: model.aboutUsTitle,
-                    imageStyle: .settings(assetImage: model.aboutUsImage),
-                )
-            }
-
-            if model.isDeveloperEnabled {
-                NavigationLink(value: Scenes.Developer()) {
-                    ListItemView(
-                        title: model.developerModeTitle,
-                        imageStyle: .settings(assetImage: model.developerModeImage),
-                    )
-                }
-            }
+    private func link(_ row: SettingsRowViewModel, to scene: some Hashable) -> some View {
+        NavigationLink(value: scene) {
+            ListItemView(model: row.model)
         }
     }
 }

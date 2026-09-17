@@ -20,13 +20,8 @@ public struct RecentsScene: View {
                 ForEach(model.sections) { section in
                     Section {
                         ForEach(section.values) { recentAsset in
-                            let assetModel = AssetViewModel(asset: recentAsset.asset)
                             NavigationCustomLink(
-                                with: ListItemView(
-                                    title: assetModel.name,
-                                    titleStyle: TextStyle(font: .body, color: .primary, fontWeight: .semibold),
-                                    imageStyle: .asset(assetImage: assetModel.assetImage),
-                                ),
+                                with: ListItemView(model: model.listItem(for: recentAsset.asset)),
                             ) {
                                 model.onSelect(recentAsset.asset)
                             }

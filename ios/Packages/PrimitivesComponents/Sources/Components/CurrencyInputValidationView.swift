@@ -3,20 +3,22 @@
 import Components
 import Style
 import SwiftUI
-import Validators
 
 public struct CurrencyInputValidationView: View {
-    @Binding private var model: InputValidationViewModel
+    @Binding private var text: String
 
+    private let error: (any Error)?
     private let config: CurrencyInputConfigurable
     private let infoAction: (any Error) -> (() -> Void)?
 
     public init(
-        model: Binding<InputValidationViewModel>,
+        text: Binding<String>,
+        error: (any Error)?,
         config: CurrencyInputConfigurable,
         infoAction: @escaping (any Error) -> (() -> Void)? = { _ in nil },
     ) {
-        _model = model
+        _text = text
+        self.error = error
         self.config = config
         self.infoAction = infoAction
     }
@@ -24,11 +26,11 @@ public struct CurrencyInputValidationView: View {
     public var body: some View {
         VStack(spacing: .small) {
             CurrencyInputView(
-                text: $model.text,
+                text: $text,
                 config: config,
             )
 
-            if let error = model.error, !(error is SilentValidationError) {
+            if let error, !(error is SilentValidationError) {
                 HStack {
                     if let action = infoAction(error) {
                         InfoButton(action: action)

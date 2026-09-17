@@ -26,6 +26,10 @@ extension GemWalletRow {
         showsWatchBadge ? Images.Wallets.watch : nil
     }
 
+    public var listItem: ListItemModel {
+        ListItemModel(title: name, titleExtra: subtitle.text, imageStyle: .asset(assetImage: avatarImage))
+    }
+
     public var avatarImage: AssetImage {
         AssetImage(
             type: .text(name),

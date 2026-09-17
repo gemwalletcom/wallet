@@ -4,20 +4,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.features.recipient.viewmodel.models.QrScanField
-import com.gemwallet.android.features.recipient.viewmodel.models.RecipientError
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.fields.AddressChainField
 import com.gemwallet.android.ui.components.fields.MemoTextField
-import uniffi.gemstone.GemNameRecordState
+import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
 
 fun LazyListScope.destinationView(
     hasMemo: Boolean,
-    assetName: String,
     address: String,
-    addressError: Boolean,
-    nameResolveState: GemNameRecordState,
+    addressError: String,
+    nameResolveIndicator: NameResolveIndicatorUIModel?,
     memo: String,
-    memoError: RecipientError,
     onAddress: (String) -> Unit,
     onMemo: (String) -> Unit,
     onQrScan: (QrScanField) -> Unit,
@@ -28,8 +25,8 @@ fun LazyListScope.destinationView(
             AddressChainField(
                 value = address,
                 label = stringResource(id = R.string.transfer_recipient_address_field),
-                state = nameResolveState,
-                error = if (addressError) stringResource(R.string.errors_invalid_asset_address, assetName) else "",
+                indicator = nameResolveIndicator,
+                error = addressError,
                 onValueChange = onAddress,
                 onQrScanner = { onQrScan(QrScanField.Address) },
                 onSubmit = onSubmitAddress,
@@ -39,7 +36,6 @@ fun LazyListScope.destinationView(
                     value = memo,
                     label = stringResource(id = R.string.transfer_memo),
                     onValueChange = onMemo,
-                    error = recipientErrorString(error = memoError),
                     onQrScanner = { onQrScan(QrScanField.Memo) },
                 )
             }

@@ -67,6 +67,18 @@ public final class EarnSceneViewModel {
         AssetViewModel(asset: asset)
     }
 
+    var aprListItem: ListItemModel {
+        ListItemModel(title: aprModel.title.text, titleStyle: aprModel.title.style, subtitle: aprModel.subtitle.text, subtitleStyle: aprModel.subtitle.style)
+    }
+
+    var noDataListItem: ListItemModel {
+        ListItemModel(title: Localized.Errors.noDataAvailable)
+    }
+
+    var depositListItem: ListItemModel {
+        ListItemModel(title: Localized.Wallet.deposit)
+    }
+
     var aprModel: AprViewModel {
         AprViewModel(apr: service.earnApr(providers: providers.map { $0.toGem() }, assetApr: assetData.metadata.earnApr))
     }
@@ -95,6 +107,11 @@ public final class EarnSceneViewModel {
 
     var hasPositions: Bool {
         positionModels.isNotEmpty
+    }
+
+    func navigationDestination(for delegation: DelegationViewModel) -> any Hashable {
+        service.delegationDestination(walletType: wallet.type.toGem(), asset: asset.toGem(), delegation: delegation.delegation.toGem())
+            .navigationValue(delegation: delegation.delegation)
     }
 
     var showEmptyState: Bool {

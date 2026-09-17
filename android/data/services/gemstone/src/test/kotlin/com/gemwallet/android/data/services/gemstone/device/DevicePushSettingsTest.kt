@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.device
 
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import android.content.Context
 import com.gemwallet.android.data.service.store.ConfigStore
 import dagger.Lazy
@@ -22,6 +23,15 @@ class DevicePushSettingsTest {
 
     private val deviceService = mockk<GemDeviceService>(relaxed = true)
     private val notificationsService = mockk<GemNotificationsService>(relaxed = true)
+    private val userConfig = mockk<UserConfig>(relaxed = true)
+
+    @Test
+    fun `switching push stops asking about notifications`() = runTest {
+        settings(ConfigStore(mockk(relaxed = true))).switchPushEnabled(true)
+
+        coVerify(exactly = 1) { userConfig.stopAskNotifications() }
+        coVerify(exactly = 1) { notificationsService.setEnabled(true) }
+    }
 
     @Test
     fun `a new token is stored and pushed to the backend`() = runTest {
@@ -69,6 +79,7 @@ class DevicePushSettingsTest {
         preferencesService = mockk<GemPreferencesService>(relaxed = true),
         deviceService = mockk<Lazy<GemDeviceService>> { every { get() } returns deviceService },
         notificationsService = mockk<Lazy<GemNotificationsService>> { every { get() } returns notificationsService },
+        userConfig = userConfig,
         scope = this,
     )
 }

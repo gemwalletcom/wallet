@@ -55,7 +55,6 @@ pub fn decode_undelegations(result: &[u8]) -> Result<Vec<BscUndelegation>, Box<d
     Ok(IHubReader::getUndelegationsCall::abi_decode_returns(result)?
         .into_iter()
         .map(|undelegation| BscUndelegation {
-            delegator_address: undelegation.delegatorAddress.to_string(),
             validator_address: undelegation.validatorAddress.to_string(),
             amount: u256_to_biguint(&undelegation.amount),
             shares: u256_to_biguint(&undelegation.shares),
@@ -167,7 +166,6 @@ mod tests {
         let result = hex::decode("00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000001000000000000000000000000ee448667ffc3d15ca023a6deef2d0faf084c0716000000000000000000000000343da7ff0446247ca47aa41e2a25c5bbb230ed0a000000000000000000000000000000000000000000000000016345785d89ffff00000000000000000000000000000000000000000000000001628aab7a64b3dc00000000000000000000000000000000000000000000000000000000664e7431").unwrap();
         let undelegations = decode_undelegations(&result).unwrap();
         assert_eq!(undelegations.len(), 1);
-        assert_eq!(undelegations[0].delegator_address, "0xee448667ffc3D15ca023A6deEf2D0fAf084C0716");
         assert_eq!(undelegations[0].validator_address, "0x343dA7Ff0446247ca47AA41e2A25c5Bbb230ED0A");
         assert_eq!(undelegations[0].amount, BigUint::from_str("99999999999999999").unwrap());
         assert_eq!(undelegations[0].shares, BigUint::from_str("99794610853032924").unwrap());

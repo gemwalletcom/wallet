@@ -278,6 +278,13 @@ pub static ZKSYNC_WETH_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::f
 pub const UNICHAIN_WETH_TOKEN_ID: &str = "0x4200000000000000000000000000000000000006";
 pub static UNICHAIN_WETH_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Unichain, UNICHAIN_WETH_TOKEN_ID));
 
+pub const ARC_USDC_TOKEN_ID: &str = "0x3600000000000000000000000000000000000000";
+pub static ARC_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Arc, ARC_USDC_TOKEN_ID));
+pub const ARC_EURC_TOKEN_ID: &str = "0xbEf5f6d51CB62b58e6A8f77868681825C6fe21c1";
+pub static ARC_EURC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Arc, ARC_EURC_TOKEN_ID));
+pub const ARC_CIRBTC_TOKEN_ID: &str = "0x171A4217b86A807A64eB94757Db6849fb4bDbAA0";
+pub static ARC_CIRBTC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Arc, ARC_CIRBTC_TOKEN_ID));
+
 pub const ROBINHOOD_WETH_TOKEN_ID: &str = "0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73";
 pub static ROBINHOOD_WETH_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Robinhood, ROBINHOOD_WETH_TOKEN_ID));
 

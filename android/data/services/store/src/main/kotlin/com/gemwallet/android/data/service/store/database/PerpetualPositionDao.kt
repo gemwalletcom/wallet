@@ -23,7 +23,7 @@ interface PerpetualPositionDao {
     suspend fun deleteByIds(walletId: String, ids: List<String>)
 
     @Transaction
-    suspend fun applyDiff(walletId: String, deleteIds: List<String>, items: List<DbPerpetualPosition>) {
+    suspend fun deleteAndUpsert(walletId: String, deleteIds: List<String>, items: List<DbPerpetualPosition>) {
         if (deleteIds.isNotEmpty()) {
             deleteByIds(walletId, deleteIds)
         }

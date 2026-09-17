@@ -1,55 +1,53 @@
 package com.gemwallet.android
 
-import com.gemwallet.android.localization.stringRes
-import android.content.Intent
 import android.Manifest
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import com.gemwallet.android.application.notifications.NotificationPermissionRequests
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.CompositionLocalProvider
-import com.gemwallet.android.ui.LocalAddressService
-import com.gemwallet.android.ui.LocalConnectionStatus
-import com.gemwallet.android.ui.LocalStreamConnected
-import com.wallet.core.primitives.ConnectionComponent
-import com.gemwallet.android.ui.LocalChainService
-import com.gemwallet.android.ui.LocalAssetsService
-import uniffi.gemstone.GemAssetConfigService
-import uniffi.gemstone.GemAssetsService
-import uniffi.gemstone.GemChainService
-import uniffi.gemstone.GemDeeplinkService
-import uniffi.gemstone.GemAddressService
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import com.gemwallet.android.application.notifications.NotificationPermissionRequests
 import com.gemwallet.android.application.security.cases.AuthRequester
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
+import com.gemwallet.android.localization.stringRes
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.AppViewModel
-import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.LocalAddressService
+import com.gemwallet.android.ui.LocalAssetsService
+import com.gemwallet.android.ui.LocalChainService
+import com.gemwallet.android.ui.LocalConnectionStatus
+import com.gemwallet.android.ui.LocalDeeplinkService
+import com.gemwallet.android.ui.LocalStreamConnected
 import com.gemwallet.android.ui.components.ConnectionBannerState
 import com.gemwallet.android.ui.components.LocalConnectionBannerState
 import com.wallet.core.primitives.Appearance
-import com.wallet.core.primitives.ConnectionStatus
+import com.wallet.core.primitives.ConnectionComponent
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import uniffi.gemstone.GemAddressService
+import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemChainService
+import uniffi.gemstone.GemDeeplinkService
 
 @AndroidEntryPoint
 class MainActivity : FragmentActivity(), AuthRequester {
@@ -118,7 +116,7 @@ class MainActivity : FragmentActivity(), AuthRequester {
                 Appearance.Light -> false
                 Appearance.Dark -> true
             }
-            LaunchedEffect(darkTheme) { applySystemBarsAppearance(darkTheme) }
+            LaunchedEffect(darkTheme) { setSystemBarsAppearance(darkTheme) }
 
             CompositionLocalProvider(
                 LocalConnectionBannerState provides connectionBannerState,
@@ -126,11 +124,11 @@ class MainActivity : FragmentActivity(), AuthRequester {
                 LocalStreamConnected provides streamConnected,
                 LocalAddressService provides addressService,
                 LocalAssetsService provides assetsService,
+                LocalDeeplinkService provides deeplinkService,
                 LocalChainService provides chainService,
             ) {
                 MainContent(
                     state = state,
-                    deeplinkService = deeplinkService,
                     darkTheme = darkTheme,
                     pendingNavigation = pendingNavigation,
                     systemAuthEnrollmentMissing = systemAuthEnrollmentMissing,
@@ -149,7 +147,7 @@ class MainActivity : FragmentActivity(), AuthRequester {
         }
     }
 
-    private fun applySystemBarsAppearance(darkTheme: Boolean) {
+    private fun setSystemBarsAppearance(darkTheme: Boolean) {
         WindowCompat.getInsetsController(window, window.decorView).apply {
             isAppearanceLightStatusBars = !darkTheme
             isAppearanceLightNavigationBars = !darkTheme

@@ -8,7 +8,7 @@ use primitives::{Asset, AssetId, Chain, Wallet, WalletId};
 use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
-pub use model::GemMemoWarning;
+pub use model::GemReceiveWarning;
 
 #[derive(uniffi::Object)]
 pub struct GemReceiveService {
@@ -23,8 +23,8 @@ impl GemReceiveService {
         Self { balances, assets }
     }
 
-    pub fn memo_warning(&self, chain: Chain) -> GemMemoWarning {
-        rules::memo_warning(chain)
+    pub fn warnings(&self, chain: Chain) -> Vec<GemReceiveWarning> {
+        rules::warnings(chain)
     }
 
     pub fn network_asset_ids(&self, asset_id: AssetId, associations: Vec<AssetId>, wallet: Wallet) -> Vec<AssetId> {
@@ -35,8 +35,9 @@ impl GemReceiveService {
         self.balances.set_assets_enabled(wallet_id, vec![asset_id], true).await
     }
 
-    pub async fn sync_missing_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
-        self.assets.sync_missing_assets(asset_ids).await
+    pub async fn sync_network_asset_ids(&self, asset_id: AssetId, wallet: Wallet) -> Result<Vec<AssetId>, GemServiceError> {
+        let associations = self.assets.sync_asset_associations(asset_id.clone()).await?;
+        Ok(rules::network_asset_ids(asset_id, associations, &wallet))
     }
 
     pub async fn asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {

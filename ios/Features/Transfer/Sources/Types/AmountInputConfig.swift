@@ -49,7 +49,7 @@ struct AmountInputConfig: CurrencyInputConfigurable {
         )
     }
 
-    var sanitizer: ((String) -> String)? {
-        { numberFormat.sanitize(input: $0, maximumFractionDigits: nil, maximumIntegerDigits: nil) }
+    func sanitize(_ text: String) -> String {
+        numberFormat.sanitize(input: text, maximumFractionDigits: nil, maximumIntegerDigits: nil)
     }
 }

@@ -4,11 +4,11 @@ import Style
 import SwiftUI
 
 public struct SecretPhraseGridView: View {
-    private let rows: [[WordIndex]]
+    private let rows: [SecretPhraseRow]
     private let highlightIndex: Int?
 
     public init(
-        rows: [[WordIndex]],
+        rows: [SecretPhraseRow],
         highlightIndex: Int? = .none,
     ) {
         self.rows = rows
@@ -16,38 +16,56 @@ public struct SecretPhraseGridView: View {
     }
 
     public var body: some View {
-        Grid(alignment: .leading) {
-            ForEach(rows, id: \.self) { words in
-                GridRow {
-                    ForEach(words) { word in
+        VStack(spacing: .small) {
+            ForEach(rows, id: \.self) { row in
+                Group {
+                    switch row {
+                    case let .pair(left, right):
+                        HStack(spacing: .small) {
+                            cell(for: left)
+                            cell(for: right)
+                        }
+                    case let .single(word):
                         HStack {
-                            Text("\(word.index + 1).")
-                                .fontWeight(.semibold)
-                                .foregroundStyle(Colors.grayLight)
-                                .multilineTextAlignment(.leading)
-                                .padding(.leading, .small)
-                            Text(word.word)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(Colors.black)
-                                .allowsTightening(false)
-                                .multilineTextAlignment(.leading)
-                                .accessibilityIdentifier("word_\(word.index)")
+                            Spacer()
+                            cell(for: word)
+                                .fixedSize(horizontal: true, vertical: false)
                             Spacer()
                         }
-                        .padding(.small)
-                        .background(Colors.listStyleColor)
-                        .cornerRadius(10)
-                        .overlay {
-                            if highlightIndex == word.index {
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Colors.blue, lineWidth: 2)
-                            }
-                        }
                     }
-                }.padding(.vertical, .space2)
+                }
+                .padding(.vertical, .space2)
             }
         }
         .padding(.horizontal, .medium)
         .frame(maxWidth: .scene.content.maxWidth)
     }
+
+    private func cell(for word: WordIndex) -> some View {
+        HStack {
+            Text("\(word.index + 1).")
+                .fontWeight(.semibold)
+                .foregroundStyle(Colors.grayLight)
+                .multilineTextAlignment(.leading)
+                .padding(.leading, .small)
+            Text(word.word)
+                .fontWeight(.semibold)
+                .foregroundStyle(Colors.black)
+                .allowsTightening(false)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("word_\(word.index)")
+            Spacer()
+        }
+        .padding(.small)
+        .background(Colors.listStyleColor)
+        .cornerRadius(.space10)
+        .overlay {
+            if highlightIndex == word.index {
+                RoundedRectangle(cornerRadius: .space10)
+                    .stroke(Colors.blue, lineWidth: 2)
+            }
+        }
+    }
 }
+

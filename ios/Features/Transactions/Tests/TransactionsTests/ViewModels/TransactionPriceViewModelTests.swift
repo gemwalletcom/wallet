@@ -6,8 +6,8 @@ import Testing
 struct TransactionPriceViewModelTests {
     @Test
     func priceValue() {
-        if case let .price(_, value) = TransactionPriceViewModel(price: .mock(value: 50000, notation: .plain)).itemModel {
-            #expect(value.contains("50"))
+        if case let .price(item) = TransactionPriceViewModel(price: .mock(value: 50000, notation: .plain)).itemModel {
+            #expect(item.subtitle?.contains("50") == true)
         } else {
             Issue.record("Expected price item")
         }

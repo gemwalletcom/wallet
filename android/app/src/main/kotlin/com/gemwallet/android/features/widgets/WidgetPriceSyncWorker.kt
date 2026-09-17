@@ -9,6 +9,8 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.gemwallet.android.data.services.gemstone.di.WidgetEntryPoint
+import dagger.hilt.android.EntryPointAccessors
 import java.util.concurrent.TimeUnit
 
 class WidgetPriceSyncWorker(
@@ -27,11 +29,11 @@ class WidgetPriceSyncWorker(
 
     companion object {
         private const val WORK_NAME = "widget_price_sync"
-        private const val REFRESH_INTERVAL_MINUTES = 15L
 
         fun schedule(context: Context) {
+            val widgetService = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java).widgetService()
             val request = PeriodicWorkRequestBuilder<WidgetPriceSyncWorker>(
-                REFRESH_INTERVAL_MINUTES, TimeUnit.MINUTES
+                widgetService.refreshIntervalSeconds().toLong(), TimeUnit.SECONDS
             )
                 .setConstraints(
                     Constraints.Builder()

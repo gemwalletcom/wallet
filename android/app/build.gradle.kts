@@ -58,8 +58,8 @@ android {
         applicationId = "com.gemwallet.android"
         minSdk = 28
         targetSdk = 37
-        versionCode = 844
-        versionName = "2.114.31"
+        versionCode = 846
+        versionName = "2.114.33"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -216,7 +216,6 @@ dependencies {
     implementation(project(":features:asset_select:presents"))
     implementation(project(":features:asset_select:viewmodels"))
     implementation(project(":features:banner:presents"))
-    implementation(project(":features:banner:viewmodels"))
     implementation(project(":features:buy:presents"))
     implementation(project(":features:buy:viewmodels"))
     implementation(project(":features:confirm:presents"))

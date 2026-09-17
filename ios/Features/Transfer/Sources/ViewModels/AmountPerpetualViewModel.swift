@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import BigInt
 import Formatters
 import Foundation
@@ -38,6 +39,14 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
         (takeProfit, stopLoss) = Self.makeDefaultAutoclose(action: action, leverage: leverageSelection?.selected.value ?? action.transferData().leverage, service: service)
     }
 
+    var leverageListItem: ListItemModel? {
+        leverageSelection.map { ListItemModel(title: $0.title, subtitle: $0.selected.displayText, subtitleStyle: leverageTextStyle) }
+    }
+
+    var autocloseListItem: ListItemModel {
+        ListItemModel(title: autocloseTitle, subtitle: autocloseText.subtitle, subtitleExtra: autocloseText.subtitleExtra)
+    }
+
     var autocloseTitle: String {
         Localized.Perpetual.autoClose
     }
@@ -69,11 +78,7 @@ public final class AmountPerpetualViewModel: AmountDataProvidable {
     }
 
     var title: String {
-        switch action {
-        case .open: PerpetualDirectionViewModel(direction: direction).title
-        case .increase: PerpetualDirectionViewModel(direction: direction).increaseTitle
-        case .reduce: PerpetualDirectionViewModel(direction: direction).reduceTitle
-        }
+        gemAmountType.title().title
     }
 
     var gemAmountType: GemAmountType {

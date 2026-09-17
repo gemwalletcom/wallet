@@ -1,10 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.GemBalanceRequirement
-import struct Gemstone.GemConfirmData
-import BigInt
-import Foundation
-@testable import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesComponents
@@ -12,12 +7,11 @@ import PrimitivesComponentsTestKit
 import PrimitivesTestKit
 import Testing
 @testable import Transfer
-import TransferTestKit
 
 struct ConfirmNetworkFeeViewModelTests {
     @Test
     func loaded() {
-        let feeModel = feeModel(feeAssetPrice: Price(price: 2500, priceChangePercentage24h: 0, updatedAt: Date()))
+        let feeModel = NetworkFeeSceneViewModel.mock(feeRates: .mock([]), feeAssetPrice: .mock(price: 2500), feeAmount: 1_000_000_000_000_000)
         let model = ConfirmNetworkFeeViewModel(
             feeRow: .ready,
             feeModel: feeModel,
@@ -32,7 +26,7 @@ struct ConfirmNetworkFeeViewModelTests {
 
     @Test
     func loadedWithoutFiat() {
-        let feeModel = feeModel()
+        let feeModel = NetworkFeeSceneViewModel.mock(feeRates: .mock([]), feeAmount: 1_000_000_000_000_000)
         let model = ConfirmNetworkFeeViewModel(
             feeRow: .ready,
             feeModel: feeModel,
@@ -49,10 +43,8 @@ struct ConfirmNetworkFeeViewModelTests {
     func loadedWithSelectableFeeAssetShowsSymbolOnRight() {
         let pathUSD = FeeAssetItem.mock(asset: .mockTempoPathUSD())
         let usdc = FeeAssetItem.mock(asset: .mockTempoUSDC())
-        let feeModel = NetworkFeeSceneViewModel(
+        let feeModel = NetworkFeeSceneViewModel.mock(
             feeAsset: pathUSD.asset,
-            currency: .usd,
-            selection: .priority(priority: .normal),
             feeAssetPrice: .mock(price: 1),
             feeAmount: 1,
             feeAssets: [pathUSD, usdc],
@@ -79,14 +71,12 @@ struct ConfirmNetworkFeeViewModelTests {
         let usdc = FeeAssetItem.mock(asset: .mockTempoUSDC())
         let model = ConfirmNetworkFeeViewModel(
             feeRow: .unavailable,
-            feeModel: NetworkFeeSceneViewModel(
+            feeModel: .mock(
                 feeAsset: pathUSD.asset,
-                currency: .usd,
-                selection: .priority(priority: .normal),
                 feeAssetPrice: .mock(price: 1),
                 feeAmount: 1,
                 feeAssets: [pathUSD, usdc],
-                    onSelectFeeAsset: { _ in },
+                onSelectFeeAsset: { _ in },
             ),
             infoAction: {},
         )
@@ -102,7 +92,7 @@ struct ConfirmNetworkFeeViewModelTests {
 
     @Test
     func calculatorError() {
-        let feeModel = feeModel(feeAssetPrice: Price(price: 2500, priceChangePercentage24h: 0, updatedAt: Date()))
+        let feeModel = NetworkFeeSceneViewModel.mock(feeRates: .mock([]), feeAssetPrice: .mock(price: 2500), feeAmount: 1_000_000_000_000_000)
         let model = ConfirmNetworkFeeViewModel(
             feeRow: .ready,
             feeModel: feeModel,
@@ -113,19 +103,5 @@ struct ConfirmNetworkFeeViewModelTests {
         #expect(item.subtitle == feeModel.fiatValue)
         #expect(item.subtitleExtra == nil)
         #expect(selectable == true)
-    }
-
-    private func feeModel(
-        feeAssetPrice: Price? = nil,
-        feeAmount: BigInt? = BigInt(1_000_000_000_000_000),
-    ) -> NetworkFeeSceneViewModel {
-        NetworkFeeSceneViewModel(
-            feeAsset: .mockEthereum(),
-            currency: .usd,
-            selection: .priority(priority: .normal),
-            feeRates: GemConfirmData.mock().feeRateRows(selection: .priority(priority: .normal), feeAsset: Asset.mockEthereum().toGem()),
-            feeAssetPrice: feeAssetPrice,
-            feeAmount: feeAmount,
-        )
     }
 }

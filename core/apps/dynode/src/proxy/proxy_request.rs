@@ -116,52 +116,36 @@ mod tests {
     use std::time::Duration;
 
     use super::*;
-    fn make_request(chain: Chain, method: Method, path: &str, body: &[u8]) -> ProxyRequest {
-        ProxyRequest::new(
-            method,
-            HeaderMap::new(),
-            body.to_vec(),
-            path.to_string(),
-            path.to_string(),
-            "example.com".to_string(),
-            "test-agent".to_string(),
-            chain,
-        )
-    }
-
-    fn broadcast_providers() -> BroadcastProviders {
-        BroadcastProviders::from_chains([Chain::Ethereum, Chain::Tron])
-    }
 
     #[test]
     fn test_detect_broadcast_jsonrpc_single() {
-        let request = make_request(
+        let request = ProxyRequest::mock(
             Chain::Ethereum,
             Method::POST,
             "/rpc",
             br#"{"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0xdeadbeef"],"id":1}"#,
         );
 
-        assert!(request.is_broadcast(&broadcast_providers()));
+        assert!(request.is_broadcast(&BroadcastProviders::from_chains([Chain::Ethereum, Chain::Tron])));
     }
 
     #[test]
     fn test_detect_broadcast_batch_jsonrpc_skipped() {
-        let request = make_request(
+        let request = ProxyRequest::mock(
             Chain::Ethereum,
             Method::POST,
             "/rpc",
             br#"[{"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0x1"],"id":1},{"jsonrpc":"2.0","method":"eth_sendRawTransaction","params":["0x2"],"id":2}]"#,
         );
 
-        assert!(!request.is_broadcast(&broadcast_providers()));
+        assert!(!request.is_broadcast(&BroadcastProviders::from_chains([Chain::Ethereum, Chain::Tron])));
     }
 
     #[test]
     fn test_detect_broadcast_http_path() {
-        let request = make_request(Chain::Tron, Method::POST, "/wallet/broadcasttransaction", br#"{"txID":"abc"}"#);
+        let request = ProxyRequest::mock(Chain::Tron, Method::POST, "/wallet/broadcasttransaction", br#"{"txID":"abc"}"#);
 
-        assert!(request.is_broadcast(&broadcast_providers()));
+        assert!(request.is_broadcast(&BroadcastProviders::from_chains([Chain::Ethereum, Chain::Tron])));
     }
 
     #[test]
@@ -186,16 +170,7 @@ mod tests {
 
     #[test]
     fn test_elapsed_time() {
-        let ctx = ProxyRequest::new(
-            Method::GET,
-            HeaderMap::new(),
-            vec![],
-            "/test".to_string(),
-            "/test".to_string(),
-            "example.com".to_string(),
-            "test-agent".to_string(),
-            Chain::Ethereum,
-        );
+        let ctx = ProxyRequest::mock(Chain::Ethereum, Method::GET, "/test", &[]);
 
         thread::sleep(Duration::from_millis(1));
 

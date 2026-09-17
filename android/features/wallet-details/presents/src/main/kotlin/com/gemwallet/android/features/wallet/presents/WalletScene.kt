@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.wallet.presents
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,14 +21,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.wallet.aggregates.WalletDetailsAggregate
-import com.gemwallet.android.features.wallet.presents.components.ShowSecretDataProperty
 import com.gemwallet.android.features.wallet.presents.components.WalletAddress
 import com.gemwallet.android.features.wallet.presents.dialogs.ConfirmWalletDeleteDialog
+import com.gemwallet.android.features.wallet.viewmodels.models.WalletSecretUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.image.WalletAvatar
+import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.iconModel
+import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.extraLargeIconSize
@@ -36,6 +40,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 @Composable
 internal fun WalletScene(
     wallet: WalletDetailsAggregate?,
+    secret: WalletSecretUIModel?,
     onAction: (WalletAction) -> Unit,
 ) {
     wallet ?: return
@@ -74,12 +79,15 @@ internal fun WalletScene(
                 },
                 singleLine = true,
             )
-            ShowSecretDataProperty(
-                walletId = wallet.id,
-                secretKind = wallet.secretKind,
-                onClick = { walletId, secretKind -> onAction(WalletAction.ShowPhrase(walletId, secretKind)) },
-            )
-            WalletAddress(wallet.accounts)
+            secret?.let {
+                ListItem(
+                    model = it.model,
+                    listPosition = ListPosition.Single,
+                    modifier = Modifier.clickable { onAction(WalletAction.ShowPhrase(it.input)) },
+                    accessory = { DataBadgeChevron() },
+                )
+            }
+            WalletAddress(wallet.address)
 
             Spacer16()
 

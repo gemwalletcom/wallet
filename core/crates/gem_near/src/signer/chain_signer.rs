@@ -20,27 +20,14 @@ impl ChainSigner for NearChainSigner {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{Asset, AssetId, AssetType, Chain, FeeOption, TransactionFee, TransactionInputType, TransactionLoadInput, asset_constants::NEAR_USDT_ASSET_ID};
+    use primitives::{AssetId, Chain, FeeOption, TransactionFee, TransactionLoadInput};
 
-    fn private_key() -> Vec<u8> {
-        bs58::decode("3hoMW1HvnRLSFCLZnvPzWeoGwtdHzke34B2cTHM8rhcbG3TbuLKtShTv3DvyejnXKXKBiV7YPkLeqUHN1ghnqpFv")
-            .into_vec()
-            .unwrap()
-    }
-
-    fn token_transfer_input(memo: Option<&str>, fee: TransactionFee) -> SignerInput {
-        let mut input = TransactionLoadInput::mock_near("test.near", "receiver.near", "1000000", 1, "244ZQ9cgj3CQ6bWBdytfrJMuMQ1jdXLFGnr4HhvtCTnM");
-        input.input_type = TransactionInputType::Transfer {
-            asset: Asset::new(NEAR_USDT_ASSET_ID.clone(), "Tether".to_string(), "USDT".to_string(), 6, AssetType::TOKEN),
-        };
-        input.memo = memo.map(str::to_string);
-        SignerInput::new(input, fee)
-    }
+    const PRIVATE_KEY: &str = "3hoMW1HvnRLSFCLZnvPzWeoGwtdHzke34B2cTHM8rhcbG3TbuLKtShTv3DvyejnXKXKBiV7YPkLeqUHN1ghnqpFv";
 
     // Tests taken from https://github.com/trustwallet/wallet-core/blob/master/tests/chains/NEAR/SignerTests.cpp
     #[test]
     fn test_sign_near_transfer() {
-        let private_key = private_key();
+        let private_key = bs58::decode(PRIVATE_KEY).into_vec().unwrap();
 
         let input = SignerInput::new(
             TransactionLoadInput::mock_near("test.near", "whatever.near", "1", 1, "244ZQ9cgj3CQ6bWBdytfrJMuMQ1jdXLFGnr4HhvtCTnM"),
@@ -57,8 +44,8 @@ mod tests {
 
     #[test]
     fn test_sign_near_token_transfer() {
-        let private_key = private_key();
-        let input = token_transfer_input(Some("invoice-1"), TransactionFee::new_from_fee(0.into(), AssetId::from_chain(Chain::Near)));
+        let private_key = bs58::decode(PRIVATE_KEY).into_vec().unwrap();
+        let input = SignerInput::mock_near_token_transfer(Some("invoice-1"), TransactionFee::new_from_fee(0.into(), AssetId::from_chain(Chain::Near)));
 
         let signed = NearChainSigner.sign_token_transfer(&input, &private_key[..32]).unwrap();
         assert_eq!(
@@ -69,14 +56,14 @@ mod tests {
 
     #[test]
     fn test_sign_near_token_transfer_with_registration() {
-        let private_key = private_key();
+        let private_key = bs58::decode(PRIVATE_KEY).into_vec().unwrap();
         let fee = TransactionFee::new_from_fee_with_option(
             0.into(),
             FeeOption::TokenAccountCreation,
             1_250_000_000_000_000_000_000u128.into(),
             AssetId::from_chain(Chain::Near),
         );
-        let input = token_transfer_input(None, fee);
+        let input = SignerInput::mock_near_token_transfer(None, fee);
 
         let signed = NearChainSigner.sign_token_transfer(&input, &private_key[..32]).unwrap();
         assert_eq!(

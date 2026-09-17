@@ -9,18 +9,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.adaptivePadding
 import com.gemwallet.android.ui.theme.paddingSmall
 
 import com.gemwallet.android.ui.theme.space0
-private val normalTopPadding = 8.dp
-private val normalBottomPadding = 8.dp
+import com.gemwallet.android.ui.theme.padding16
+import com.gemwallet.android.ui.theme.space1
+import com.gemwallet.android.ui.theme.space2
+import com.gemwallet.android.ui.theme.space8
+private val normalTopPadding = space8
+private val normalBottomPadding = space8
 
-private val largeCornerRadius = 16.dp
-private val smallCornerRadius = 2.dp
-private val itemPadding = 1.dp
+private val largeCornerRadius = padding16
+private val smallCornerRadius = space2
+private val itemPadding = space1
 
 private val firstItemShape = RoundedCornerShape(topStart = largeCornerRadius, topEnd = largeCornerRadius, bottomStart = smallCornerRadius, bottomEnd = smallCornerRadius)
 private val lastItemShape = RoundedCornerShape(bottomStart = largeCornerRadius, bottomEnd = largeCornerRadius, topStart = smallCornerRadius, topEnd = smallCornerRadius)

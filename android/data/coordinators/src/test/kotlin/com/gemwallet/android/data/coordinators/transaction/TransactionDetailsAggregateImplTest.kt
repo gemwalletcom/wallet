@@ -4,20 +4,20 @@ import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetEthereum
+import com.gemwallet.android.testkit.mockAssetEthereumUSDT
 import com.gemwallet.android.testkit.mockAssetPrice
 import com.gemwallet.android.testkit.mockGemTransactionAmount
 import com.gemwallet.android.testkit.mockGemTransactionDetailRows
 import com.gemwallet.android.testkit.mockNftAssetId
 import com.gemwallet.android.testkit.mockTransaction
 import com.gemwallet.android.testkit.mockTransactionExtended
+import com.gemwallet.android.testkit.mockTransactionId
 import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.AddressType
-import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Resource
-import com.wallet.core.primitives.TransactionExtended
-import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
 import com.wallet.core.primitives.VerificationStatus
@@ -44,36 +44,24 @@ import java.util.Date
 
 class TransactionDetailsAggregateImplTest {
 
-    private val btcAsset = mockAsset(chain = Chain.Bitcoin, name = "Bitcoin", symbol = "BTC", decimals = 8)
-    private val ethAsset = mockAsset(chain = Chain.Ethereum, name = "Ethereum", symbol = "ETH", decimals = 18)
-    private val usdtAsset = mockAsset(
-        chain = Chain.Ethereum,
-        tokenId = "0xdac17f958d2ee523a2206206994597c13d831ec7",
-        name = "Tether",
-        symbol = "USDT",
-        decimals = 6,
-        type = AssetType.ERC20,
-    )
+    private val btcAsset = mockAsset()
+    private val ethAsset = mockAssetEthereum()
+    private val usdtAsset = mockAssetEthereumUSDT()
 
     private val link = BlockExplorerLink("Explorer", "https://example.com/address")
 
-    private fun createExtended(
-        type: TransactionType = TransactionType.Transfer,
-        state: TransactionState = TransactionState.Confirmed,
-    ): TransactionExtended = mockTransactionExtended(
-        transaction = mockTransaction(assetId = btcAsset.id, id = TransactionId(Chain.Bitcoin, "tx123"), type = type, state = state, createdAt = 1767694414000),
-        asset = btcAsset,
-    )
+    private val transaction = mockTransaction(id = mockTransactionId(hash = "tx123"), createdAt = 1767694414000)
 
     private fun createAggregate(
-        data: TransactionExtended = createExtended(),
-        rows: GemTransactionDetailRows = mockGemTransactionDetailRows(),
+        rows: GemTransactionDetailRows = mockGemTransactionDetailRows(transaction = mockTransactionExtended(transaction)),
         currency: Currency = Currency.USD,
-    ) = TransactionDetailsAggregateImpl(data = data, rows = rows, currency = currency)
+    ) = TransactionDetailsAggregateImpl(rows = rows, currency = currency)
 
     @Test
     fun testBasicProperties() {
-        val aggregate = createAggregate(rows = mockGemTransactionDetailRows(explorer = BlockExplorerLink("Mempool", "https://mempool.space/tx/1")))
+        val aggregate = createAggregate(
+            rows = mockGemTransactionDetailRows(transaction = mockTransactionExtended(transaction), explorer = BlockExplorerLink("Mempool", "https://mempool.space/tx/1")),
+        )
 
         Assert.assertEquals("bitcoin_tx123", aggregate.id)
         Assert.assertEquals(btcAsset, aggregate.asset)
@@ -167,8 +155,8 @@ class TransactionDetailsAggregateImplTest {
 
     @Test
     fun testDate() {
-        val data = createExtended()
-        val date = createAggregate(data).date
+        val data = mockTransactionExtended(transaction)
+        val date = createAggregate(rows = mockGemTransactionDetailRows(transaction = data)).date
 
         Assert.assertTrue(date.data.contains("January 6, 2026"))
         Assert.assertTrue(date.data.contains(DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(data.transaction.createdAt))))
@@ -176,7 +164,7 @@ class TransactionDetailsAggregateImplTest {
 
     @Test
     fun testStatusAndNetwork() {
-        val aggregate = createAggregate(createExtended(state = TransactionState.Pending))
+        val aggregate = createAggregate(rows = mockGemTransactionDetailRows(transaction = mockTransactionExtended(transaction.copy(state = TransactionState.Pending))))
 
         Assert.assertEquals(TransactionState.Pending, aggregate.status.data)
         Assert.assertEquals(btcAsset, aggregate.network.data)
@@ -235,7 +223,9 @@ class TransactionDetailsAggregateImplTest {
 
     @Test
     fun testProvider_namesTheCoreProvider() {
-        val aggregate = createAggregate(createExtended(type = TransactionType.Swap), rows = mockGemTransactionDetailRows(providerName = "unswap"))
+        val aggregate = createAggregate(
+            rows = mockGemTransactionDetailRows(transaction = mockTransactionExtended(transaction.copy(type = TransactionType.Swap)), providerName = "unswap"),
+        )
 
         Assert.assertEquals("unswap", aggregate.provider?.data)
         Assert.assertNull(createAggregate().provider)

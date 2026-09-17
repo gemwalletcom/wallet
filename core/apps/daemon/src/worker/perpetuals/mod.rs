@@ -1,5 +1,5 @@
 mod perpetual_address_refresher;
-mod perpetual_classifier;
+pub(crate) mod perpetual_classifier;
 mod perpetual_observer;
 
 use cacher::CacherClient;

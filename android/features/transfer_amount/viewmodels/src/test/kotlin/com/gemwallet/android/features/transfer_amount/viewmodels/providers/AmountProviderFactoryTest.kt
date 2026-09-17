@@ -1,21 +1,17 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
-import uniffi.gemstone.GemRecipient
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.application.stake.cases.GetDelegations
-import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetValidators
 import uniffi.gemstone.GemAmountServiceInterface
-import uniffi.gemstone.GemPerpetualPositionAction
 import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.testkit.mockAmountParamsPerpetual
+import com.gemwallet.android.testkit.mockAmountParamsTransfer
 import com.gemwallet.android.testkit.mockAssetCosmos
-import com.gemwallet.android.testkit.mockGemPerpetualTransferData
-import com.wallet.core.primitives.PerpetualId
-import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.Resource
 import io.mockk.every
 import io.mockk.mockk
@@ -31,6 +27,7 @@ class AmountProviderFactoryTest {
 
     private val asset = mockAssetCosmos()
     private val factory = AmountProviderFactory(
+        context = mockk(relaxed = true),
         getAssetInfo = mockk<GetAssetInfo>(relaxed = true) {
             every { this@mockk.invoke(any()) } returns flowOf(null)
         },
@@ -54,15 +51,13 @@ class AmountProviderFactoryTest {
             every { this@mockk.invoke() } returns MutableStateFlow(null)
         },
         service = mockk<GemAmountServiceInterface>(relaxed = true),
+        stakeService = mockk(relaxed = true),
     )
     private val scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
 
     @Test
     fun `Transfer params produce TransferProvider`() {
-        val provider = factory.create(
-            AmountParams.Transfer(asset.id, GemRecipient("to", null), null),
-            scope,
-        )
+        val provider = factory.create(mockAmountParamsTransfer(), scope)
         assertTrue(provider is AmountTransferProvider)
     }
 
@@ -77,11 +72,7 @@ class AmountProviderFactoryTest {
 
     @Test
     fun `Perpetual params produce PerpetualProvider`() {
-        val positionAction = GemPerpetualPositionAction.Open(mockGemPerpetualTransferData())
-        val provider = factory.create(
-            AmountParams.Perpetual(asset.id, PerpetualId(PerpetualProvider.Hypercore, "BTC-PERP"), positionAction),
-            scope,
-        )
+        val provider = factory.create(mockAmountParamsPerpetual(), scope)
         assertTrue(provider is AmountPerpetualProvider)
     }
 }

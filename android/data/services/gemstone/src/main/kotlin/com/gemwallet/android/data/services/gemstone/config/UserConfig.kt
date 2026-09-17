@@ -14,6 +14,7 @@ import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemPreferencesServiceInterface
 import uniffi.gemstone.GemSecureStore
 import uniffi.gemstone.lockPeriodFromMinutes
 import kotlinx.coroutines.flow.Flow
@@ -28,7 +29,7 @@ private val Context.dataStore by preferencesDataStore(name = "user_config")
 class UserConfig(
     private val context: Context,
     private val configStore: ConfigStore,
-    private val preferencesService: GemPreferencesService,
+    private val preferencesService: GemPreferencesServiceInterface,
     private val secureStore: GemSecureStore,
 ) {
 
@@ -55,9 +56,7 @@ class UserConfig(
     fun showPerpetuals(wallet: Wallet): Boolean = preferencesService.showPerpetuals(wallet.type.toGem(), wallet.chainIds)
 
 
-    fun chartPeriod(): ChartPeriod = preferencesService.getChartPeriod().toPrimitives()
 
-    fun setChartPeriod(period: ChartPeriod) = preferencesService.setChartPeriod(period.toGem())
 
     private val hideBalancesState = MutableStateFlow(preferencesService.isHideBalanceEnabled())
     private val perpetualEnabledState = MutableStateFlow(preferencesService.isPerpetualEnabled())
@@ -89,40 +88,12 @@ class UserConfig(
         appearanceState.value = preferencesService.getAppearance().toPrimitives()
     }
 
-    private val perpetualLeverageState = MutableStateFlow(preferencesService.getPerpetualLeverage().toInt())
-    private val perpetualTakeProfitState = MutableStateFlow(preferencesService.getPerpetualTakeProfitPercent().toInt())
-    private val perpetualStopLossState = MutableStateFlow(preferencesService.getPerpetualStopLossPercent().toInt())
-
-    fun perpetualLeverage(): StateFlow<Int> = perpetualLeverageState
-
-    fun setPerpetualLeverage(value: Int) {
-        preferencesService.setPerpetualLeverage(value.toUByte())
-        perpetualLeverageState.value = preferencesService.getPerpetualLeverage().toInt()
-    }
-
-    fun perpetualTakeProfit(): StateFlow<Int> = perpetualTakeProfitState
-
-    fun setPerpetualTakeProfit(value: Int) {
-        preferencesService.setPerpetualTakeProfitPercent(value.toUByte())
-        perpetualTakeProfitState.value = preferencesService.getPerpetualTakeProfitPercent().toInt()
-    }
-
-    fun perpetualStopLoss(): StateFlow<Int> = perpetualStopLossState
-
-    fun setPerpetualStopLoss(value: Int) {
-        preferencesService.setPerpetualStopLossPercent(value.toUByte())
-        perpetualStopLossState.value = preferencesService.getPerpetualStopLossPercent().toInt()
-    }
-
     fun reload() {
         hideBalancesState.value = preferencesService.isHideBalanceEnabled()
         perpetualEnabledState.value = preferencesService.isPerpetualEnabled()
         appearanceState.value = preferencesService.getAppearance().toPrimitives()
         termsAcceptedState.value = preferencesService.isAcceptTermsCompleted()
         askNotificationsState.value = preferencesService.shouldAskNotifications()
-        perpetualLeverageState.value = preferencesService.getPerpetualLeverage().toInt()
-        perpetualTakeProfitState.value = preferencesService.getPerpetualTakeProfitPercent().toInt()
-        perpetualStopLossState.value = preferencesService.getPerpetualStopLossPercent().toInt()
     }
 
     fun getLockInterval(): Flow<Int> = lockIntervalState.onStart { migrateLockInterval() }

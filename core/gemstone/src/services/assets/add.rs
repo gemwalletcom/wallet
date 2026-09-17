@@ -6,7 +6,6 @@ use super::rules;
 use crate::address::checksum_address;
 use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
-use crate::services::chain::rules::matching_chains;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use primitives::BlockExplorerLink;
@@ -165,10 +164,6 @@ impl GemAddAssetService {
         rules::default_token_chain(&chains)
     }
 
-    pub fn matching_chains(&self, chains: Vec<Chain>, query: String) -> Vec<Chain> {
-        matching_chains(chains, &query)
-    }
-
     pub fn token_url(&self, chain: Chain, token_id: String) -> Option<BlockExplorerLink> {
         self.explorer.get_token_url(chain, token_id)
     }
@@ -192,10 +187,6 @@ impl GemAddAssetService {
 mod session_tests {
     use super::*;
 
-    fn asset() -> Asset {
-        Asset::from_chain(Chain::Ethereum)
-    }
-
     #[test]
     fn test_a_token_is_searched_only_with_a_chain_and_an_address() {
         let session = GemAddAssetSession::new(Some(Chain::Ethereum));
@@ -208,7 +199,7 @@ mod session_tests {
 
     #[test]
     fn test_a_new_address_drops_the_token_found_for_the_previous_one() {
-        let found = GemAddAssetSession::new(Some(Chain::Ethereum)).on_address("0xabc".to_string()).on_found(asset());
+        let found = GemAddAssetSession::new(Some(Chain::Ethereum)).on_address("0xabc".to_string()).on_found(Asset::mock());
         assert!(found.view_state().can_add);
 
         let retyped = found.on_address("0xdef".to_string());
@@ -218,7 +209,7 @@ mod session_tests {
 
     #[test]
     fn test_switching_chain_starts_over() {
-        let found = GemAddAssetSession::new(Some(Chain::Ethereum)).on_address("0xabc".to_string()).on_found(asset());
+        let found = GemAddAssetSession::new(Some(Chain::Ethereum)).on_address("0xabc".to_string()).on_found(Asset::mock());
 
         assert_eq!(found.on_chain(Some(Chain::SmartChain)).view_state().phase, GemAddAssetPhase::Idle);
     }

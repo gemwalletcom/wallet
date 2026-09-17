@@ -59,4 +59,4 @@ pub mod tempo;
 pub use tempo::TempoExplorer;
 pub mod metadata;
 pub mod stellar_expert;
-pub use metadata::{Explorer, Metadata, MultiChainExplorer};
+pub use metadata::{Explorer, Metadata};

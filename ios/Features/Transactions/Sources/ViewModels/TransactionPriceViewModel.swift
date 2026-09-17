@@ -20,9 +20,6 @@ extension TransactionPriceViewModel: ItemModelProvidable {
         guard let price else {
             return .empty
         }
-        return .price(
-            title: Localized.Asset.price,
-            value: price.text(),
-        )
+        return .price(ListItemModel(title: Localized.Asset.price, subtitle: price.text()))
     }
 }

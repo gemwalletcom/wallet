@@ -40,10 +40,7 @@ public final class SetupWalletViewModel: Sendable {
     }
 
     var title: String {
-        switch wallet.source {
-        case .create: Localized.Wallet.New.title
-        case .import: Localized.Wallet.Import.title
-        }
+        wallet.source.title
     }
 
     var avatarAssetImage: AssetImage {

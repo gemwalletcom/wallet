@@ -3,11 +3,8 @@
 import enum Gemstone.GemConfirmTitle
 import enum Gemstone.TransactionInputType
 import Foundation
-import Localization
 import GemstonePrimitives
 import Primitives
-import PrimitivesComponents
-import struct Gemstone.GemRecipient
 import struct Gemstone.GemTransferData
 
 struct TransferDataViewModel {
@@ -17,16 +14,8 @@ struct TransferDataViewModel {
         data.inputType
     }
 
-    var recipient: GemRecipient {
-        data.recipient
-    }
-
     var asset: Asset {
         data.asset
-    }
-
-    var memo: String? {
-        recipient.memo
     }
 
     var chain: Chain {
@@ -42,26 +31,7 @@ struct TransferDataViewModel {
     }
 
     var title: String {
-        switch data.title() {
-        case .send: Localized.Transfer.Send.title
-        case .deposit: Localized.Wallet.deposit
-        case .withdraw: Localized.Transfer.Withdraw.title
-        case .swap: Localized.Wallet.swap
-        case .approve: Localized.Transfer.Approve.title
-        case .request: Localized.Transfer.reviewRequest
-        case .stake: Localized.Transfer.Stake.title
-        case .unstake: Localized.Transfer.Unstake.title
-        case .redelegate: Localized.Transfer.Redelegate.title
-        case .claimRewards: Localized.Transfer.ClaimRewards.title
-        case .freeze: Localized.Transfer.Freeze.title
-        case .unfreeze: Localized.Transfer.Unfreeze.title
-        case .activateAsset: Localized.Transfer.ActivateAsset.title
-        case let .perpetualOpen(direction): PerpetualDirectionViewModel(direction: direction.toPrimitives()).title
-        case let .perpetualIncrease(direction): PerpetualDirectionViewModel(direction: direction.toPrimitives()).increaseTitle
-        case let .perpetualReduce(direction): PerpetualDirectionViewModel(direction: direction.toPrimitives()).reduceTitle
-        case .perpetualClose: Localized.Perpetual.closePosition
-        case .perpetualModify: Localized.Perpetual.modifyPosition
-        }
+        data.title().title
     }
 
     var websiteURL: URL? {

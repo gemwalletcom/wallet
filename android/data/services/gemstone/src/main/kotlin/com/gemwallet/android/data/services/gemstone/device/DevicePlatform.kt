@@ -14,8 +14,10 @@ import com.wallet.core.primitives.PlatformStore
 import uniffi.gemstone.GemDeviceInfo
 import uniffi.gemstone.GemDevicePlatform
 import uniffi.gemstone.GemDeviceKeyService
+import uniffi.gemstone.GemDeviceKeyServiceInterface
 import java.util.Locale
 import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemPreferencesServiceInterface
 
 class GemstoneDevicePlatform(
     private val context: Context,
@@ -25,8 +27,8 @@ class GemstoneDevicePlatform(
     private val platformStore: PlatformStore,
     private val notificationsAvailable: NotificationsAvailable,
     private val versionName: String,
-    private val deviceKeyService: GemDeviceKeyService,
-    private val preferencesService: GemPreferencesService,
+    private val deviceKeyService: GemDeviceKeyServiceInterface,
+    private val preferencesService: GemPreferencesServiceInterface,
 ) : GemDevicePlatform {
 
     override suspend fun deviceId(): String = deviceKeyService.deviceId()

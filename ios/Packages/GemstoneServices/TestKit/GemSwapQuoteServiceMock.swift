@@ -33,6 +33,7 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
     private let pairSuggestion: GemSwapPairSuggestion?
     private let slippageCheckResult: GemSlippageCheck
     public private(set) var storedSlippageBps: UInt32?
+    public private(set) var priceSubscriptions: [[AssetId]] = []
 
     public init(
         quotes: @escaping @Sendable (BigInt) -> [SwapperQuote],
@@ -99,6 +100,10 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         }
     }
 
+    public func amountForPercent(available: BigInt, percent: UInt32) -> BigInt {
+        available * BigInt(percent) / BigInt(100)
+    }
+
     public func slippageBpsFromPercent(percent: Double) -> UInt32? {
         percent > 0 ? UInt32((percent * 100).rounded()) : .none
     }
@@ -128,7 +133,9 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
 
     public func updateBalances(assetIds _: [AssetId]) async throws {}
 
-    public func addPrices(assetIds _: [AssetId]) async throws {}
+    public func addPrices(assetIds: [AssetId]) async throws {
+        priceSubscriptions.append(assetIds)
+    }
 
     public func getQuotes(fromAsset _: Asset, toAsset _: Asset, value: BigUInt, useMaxAmount _: Bool, slippageBps _: UInt32?) async throws -> [SwapperQuote] {
         if let quotesDelay {

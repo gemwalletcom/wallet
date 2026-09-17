@@ -146,7 +146,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_cetus_clmm_provider_fetch_quote_and_data() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::default());
-        let provider = CetusClmm::new(rpc_provider);
+        let provider = CetusClmm::new(rpc_provider).unwrap();
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Sui)),
             to_asset: SwapperQuoteAsset::from(AssetId::from(Chain::Sui, Some(SUI_USDC_TOKEN_ID.to_string()))),
@@ -171,7 +171,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_cetus_clmm_provider_fetch_quote_usdc_to_sui() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::default());
-        let provider = CetusClmm::new(rpc_provider);
+        let provider = CetusClmm::new(rpc_provider).unwrap();
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from(Chain::Sui, Some(SUI_USDC_TOKEN_ID.to_string()))),
             to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Sui)),
@@ -196,7 +196,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_cetus_clmm_provider_discovers_blue_sui_pool() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::default());
-        let provider = CetusClmm::new(rpc_provider);
+        let provider = CetusClmm::new(rpc_provider).unwrap();
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Sui)),
             to_asset: SwapperQuoteAsset::from(AssetId::from(Chain::Sui, Some(BLUE_TOKEN_ID.to_string()))),
@@ -215,7 +215,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_cetus_clmm_provider_routes_usdc_to_blue() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::default());
-        let provider = CetusClmm::new(rpc_provider);
+        let provider = CetusClmm::new(rpc_provider).unwrap();
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from(Chain::Sui, Some(SUI_USDC_TOKEN_ID.to_string()))),
             to_asset: SwapperQuoteAsset::from(AssetId::from(Chain::Sui, Some(BLUE_TOKEN_ID.to_string()))),
@@ -235,7 +235,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_cetus_clmm_provider_routes_blue_to_usdc() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::default());
-        let provider = CetusClmm::new(rpc_provider);
+        let provider = CetusClmm::new(rpc_provider).unwrap();
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from(Chain::Sui, Some(BLUE_TOKEN_ID.to_string()))),
             to_asset: SwapperQuoteAsset::from(AssetId::from(Chain::Sui, Some(SUI_USDC_TOKEN_ID.to_string()))),

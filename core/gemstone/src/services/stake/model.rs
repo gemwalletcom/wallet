@@ -4,13 +4,36 @@ use crate::services::amount::model::GemAmountType;
 use crate::services::amount::rules as amount_rules;
 use crate::services::error::GemServiceError;
 use crate::services::transfer::GemTransferData;
-use primitives::{Delegation, DelegationState, DelegationValidator, Resource, StakeType, YieldProvider};
+use primitives::{Asset, Delegation, DelegationState, DelegationValidator, EarnType, Resource, StakeType, YieldProvider};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemDelegationTone {
     Positive,
     Pending,
     Negative,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemStakeSection {
+    Manage,
+    Resources,
+    Delegations,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemStakeInfoRow {
+    Apr,
+    LockTime,
+    MinimumAmount,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemDelegationRow {
+    Provider,
+    Apr,
+    Status,
+    CompletionDate,
+    Rewards,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -59,7 +82,15 @@ pub struct GemStakeActionItem {
 #[allow(clippy::large_enum_variant)]
 pub enum GemDelegationDestination {
     Details,
-    Withdraw { transfer: GemTransferData },
+    Confirm { transfer: GemTransferData },
+    Amount { asset: Asset, input: GemDelegationAmountInput },
+}
+
+#[derive(Debug, Clone, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
+pub enum GemDelegationAmountInput {
+    Stake { input: GemStakeAmountInput },
+    Earn { earn_type: EarnType },
 }
 
 #[derive(Debug, Clone, uniffi::Record)]

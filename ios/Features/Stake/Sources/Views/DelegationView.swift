@@ -13,16 +13,6 @@ public struct DelegationView: View {
     }
 
     public var body: some View {
-        ListItemView(
-            title: delegation.validatorText,
-            titleStyle: delegation.titleStyle,
-            titleExtra: delegation.stateModel.title,
-            titleStyleExtra: delegation.stateModel.textStyle,
-            subtitle: delegation.balanceText,
-            subtitleStyle: delegation.subtitleStyle,
-            subtitleExtra: delegation.fiatValueText,
-            subtitleStyleExtra: delegation.subtitleExtraStyle,
-            imageStyle: .asset(assetImage: delegation.validatorImage),
-        )
+        ListItemView(model: delegation.listItem)
     }
 }

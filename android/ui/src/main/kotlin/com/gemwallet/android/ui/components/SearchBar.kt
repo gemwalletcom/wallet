@@ -32,6 +32,7 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.paddingLarge
 import com.gemwallet.android.ui.theme.space10
+import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
 
 private val searchBarHeight = 42.dp
 private val inputStartPadding = 42.dp
@@ -47,9 +48,7 @@ fun SearchBar(
 
     if (autoFocus) {
         LaunchedEffect(Unit) {
-            try {
-                focusRequester.requestFocus()
-            } catch (_: Throwable) {}
+            focusRequester.requestFocusIfAttached()
         }
     }
 

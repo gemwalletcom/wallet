@@ -1,9 +1,8 @@
 import Foundation
-import class Gemstone.GemCollectibleService
-import class Gemstone.GemExplorerService
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 @testable import NFT
+import NFTTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store
@@ -54,22 +53,5 @@ struct CollectibleViewModelTests {
         let model = CollectibleViewModel.mock(assetData: .mock(collection: .mock(status: .verified, links: []), asset: .mock(attributes: [])))
 
         #expect(model.sections.count == 1)
-    }
-}
-
-// MARK: - Mock Extensions
-
-extension CollectibleViewModel {
-    static func mock(
-        wallet: Wallet = .mock(),
-        assetData: NFTAssetData = .mock(),
-        explorerService: GemExplorerService = .mock(),
-    ) -> CollectibleViewModel {
-        CollectibleViewModel(
-            wallet: wallet,
-            assetData: assetData,
-            service: GemCollectibleService.mock(explorer: explorerService),
-            isPresentingSelectedAssetInput: .constant(.none),
-        )
     }
 }

@@ -78,7 +78,7 @@ impl RequestFailureSignal {
     }
 
     fn state(&self) -> MutexGuard<'_, RequestFailureState> {
-        self.inner.state.lock().unwrap()
+        self.inner.state.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
     }
 
     fn take_pending(&self) -> Option<Url> {
@@ -94,20 +94,17 @@ impl RequestFailureSignal {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::testkit::config::url;
-    use primitives::MINUTE;
 
     #[tokio::test]
     async fn test_tracks_only_the_active_url() {
-        let first = url("https://first");
-        let fallback = url("https://fallback");
+        let first = Url::mock("https://first");
+        let fallback = Url::mock("https://fallback");
         let signal = RequestFailureSignal::new(
             first.clone(),
             FailureTriggerConfig {
                 failures: 2,
                 rate: 100,
-                window: MINUTE,
-                latency: None,
+                ..FailureTriggerConfig::mock()
             },
         );
 

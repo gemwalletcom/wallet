@@ -47,12 +47,19 @@ fun DevelopScene(
                 }
             }
             item {
-                PropertyItem(
-                    "Reset transactions",
-                    data = ""
-                ) {
-                    viewModel.resetTransactions()
-                }
+                PropertyItem("Clear Transactions", data = "") { viewModel.clearTransactions() }
+                PropertyItem("Clear Pending Transactions", data = "") { viewModel.clearPendingTransactions() }
+                PropertyItem("Clear Assets", data = "") { viewModel.clearAssets() }
+                PropertyItem("Clear Delegations", data = "") { viewModel.clearDelegations() }
+                PropertyItem("Clear Validators", data = "") { viewModel.clearValidators() }
+                PropertyItem("Clear Banners", data = "") { viewModel.clearBanners() }
+                PropertyItem("Activate All Cancelled Banners", data = "") { viewModel.activateCancelledBanners() }
+                PropertyItem("Clear Prices", data = "") { viewModel.clearPrices() }
+                PropertyItem("Clear Perpetuals", data = "") { viewModel.clearPerpetuals() }
+                PropertyItem("Clear Preferences", data = "") { viewModel.clearPreferences() }
+                PropertyItem("Delete Wallet Preferences", data = "") { viewModel.deleteWalletPreferences() }
+                PropertyItem("Reset Transactions Timestamp", data = "") { viewModel.resetTransactionsTimestamp() }
+                PropertyItem("Add Sample Transactions", data = "") { viewModel.addSampleTransactions() }
             }
             item {
                 PropertyItem("Device Id", data = deviceId.ifEmpty { Placeholder.empty }) {

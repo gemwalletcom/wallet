@@ -67,7 +67,7 @@ pub async fn check_approval_erc20(
     provider: Arc<dyn RpcProvider>,
     chain: &Chain,
 ) -> Result<ApprovalType, SwapperError> {
-    let client = create_client_with_chain(provider.clone(), *chain);
+    let client = create_client_with_chain(provider.clone(), *chain)?;
     check_approval_erc20_with_client(owner, token, spender, amount, &client).await
 }
 
@@ -99,7 +99,7 @@ where
     let decoded = HexDecode(result).map_err(|_| SwapperError::TransactionError("failed to decode permit2 allowance result".into()))?;
     let allowance_return = IAllowanceTransfer::allowanceCall::abi_decode_returns(&decoded).map_err(SwapperError::from)?;
 
-    let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).expect("Time went backwards").as_secs();
+    let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
     let expiration: u64 = allowance_return
         ._1
         .try_into()
@@ -154,7 +154,7 @@ mod tests {
         let provider = Arc::new(mock);
 
         let erc20_result = check_approval_erc20(owner.clone(), token.clone(), permit2_contract.clone(), amount, provider.clone(), &chain).await?;
-        let client = create_client_with_chain(provider.clone(), chain);
+        let client = create_client_with_chain(provider.clone(), chain).unwrap();
         let permit2_result = check_approval_permit2_with_client(&permit2_contract, owner.clone(), token.clone(), spender.clone(), amount, &client).await?;
 
         assert_eq!(

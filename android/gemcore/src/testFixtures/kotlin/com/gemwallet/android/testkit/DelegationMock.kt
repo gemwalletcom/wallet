@@ -14,26 +14,38 @@ import java.math.BigInteger
 fun mockDelegationValidator(
     chain: Chain = Chain.Bitcoin,
     id: String = "validator-id",
-    name: String = "Validator",
-    isActive: Boolean = true,
-    commission: Double = 5.0,
     apr: Double = 10.0,
     providerType: StakeProviderType = StakeProviderType.Stake,
 ) = DelegationValidator(
     chain = chain,
     id = id,
-    name = name,
-    isActive = isActive,
-    commission = commission,
+    name = "Validator",
+    isActive = true,
+    commission = 5.0,
     apr = apr,
     providerType = providerType,
 )
 
-fun mockDelegation(
+fun mockDelegationBase(
     assetId: AssetId = mockAssetId(),
     state: DelegationState = DelegationState.Active,
     balance: BigInteger = BigInteger.ZERO,
-    shares: BigInteger = balance,
+    rewards: BigInteger = BigInteger.ZERO,
+    delegationId: String = "delegation-id",
+    validatorId: String = "validator-id",
+) = DelegationBase(
+    assetId = assetId,
+    state = state,
+    balance = balance,
+    shares = balance,
+    rewards = rewards,
+    delegationId = delegationId,
+    validatorId = validatorId,
+)
+
+fun mockDelegation(
+    assetId: AssetId = mockAssetId(),
+    balance: BigInteger = BigInteger.ZERO,
     rewards: BigInteger = BigInteger.ZERO,
     delegationId: String = "delegation-id",
     validatorId: String = "validator-id",
@@ -42,11 +54,9 @@ fun mockDelegation(
         id = validatorId,
     ),
 ) = Delegation(
-    base = DelegationBase(
+    base = mockDelegationBase(
         assetId = assetId,
-        state = state,
         balance = balance,
-        shares = shares,
         rewards = rewards,
         delegationId = delegationId,
         validatorId = validatorId,
@@ -54,9 +64,7 @@ fun mockDelegation(
     validator = validator,
 )
 
-fun mockClaimRewards(
-    value: BigInteger = BigInteger.ZERO,
-) = GemClaimRewards(
-    value = value,
+fun mockClaimRewards() = GemClaimRewards(
+    value = BigInteger.ZERO,
     destination = GemClaimRewardsDestination.Amount(emptyList()),
 )

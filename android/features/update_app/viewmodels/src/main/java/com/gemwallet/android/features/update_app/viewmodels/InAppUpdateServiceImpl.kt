@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Environment
 import androidx.core.content.FileProvider
 import uniffi.gemstone.GemAppUpdateService
+import uniffi.gemstone.GemAppUpdateServiceInterface
 import com.gemwallet.android.ext.universalApkDownloadUrl
 import com.gemwallet.android.model.BuildInfo
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -33,7 +34,7 @@ import javax.inject.Inject
 class InAppUpdateServiceImpl @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val buildInfo: BuildInfo,
-    private val appUpdateService: GemAppUpdateService,
+    private val appUpdateService: GemAppUpdateServiceInterface,
 ) : InAppUpdateService {
 
     private val appFileProvider = "${context.packageName}.provider"

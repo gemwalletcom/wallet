@@ -11,6 +11,7 @@ import com.wallet.core.primitives.Wallet
 import uniffi.gemstone.GemWalletRow
 import uniffi.gemstone.walletRows
 import uniffi.gemstone.GemWalletService
+import uniffi.gemstone.GemWalletServiceInterface
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -27,7 +28,7 @@ import kotlinx.coroutines.flow.flowOn
 class GetAllWalletsImpl(
     private val getSession: GetSession,
     private val walletStore: GemstoneWalletStore,
-    private val walletService: GemWalletService,
+    private val walletService: GemWalletServiceInterface,
     scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetAllWallets {
 

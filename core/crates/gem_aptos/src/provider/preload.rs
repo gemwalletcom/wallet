@@ -32,9 +32,9 @@ impl<C: Client> ChainTransactionLoad for AptosClient<C> {
 
         let data = match &input.input_type {
             TransactionInputType::Stake { stake_type, .. } => match stake_type {
-                StakeType::Stake(validator) => Some(build_stake_payload_data(&validator.id, &input.value.to_string())),
-                StakeType::Unstake(delegation) => Some(build_unstake_payload_data(&delegation.validator.id, &input.value.to_string())),
-                StakeType::Withdraw(delegation) => Some(build_withdraw_payload_data(&delegation.validator.id, &input.value.to_string())),
+                StakeType::Stake(validator) => Some(build_stake_payload_data(&validator.id, &input.value.to_string())?),
+                StakeType::Unstake(delegation) => Some(build_unstake_payload_data(&delegation.validator.id, &input.value.to_string())?),
+                StakeType::Withdraw(delegation) => Some(build_withdraw_payload_data(&delegation.validator.id, &input.value.to_string())?),
                 StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Freeze(_) | StakeType::Unfreeze(_) => None,
             },
             _ => None,

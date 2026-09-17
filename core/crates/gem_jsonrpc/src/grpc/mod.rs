@@ -45,11 +45,11 @@ fn grpc_headers() -> HashMap<String, String> {
 
 #[derive(Clone)]
 pub struct AlienGrpcTransport {
-    provider: Arc<dyn alien::RpcProvider>,
+    provider: Arc<dyn alien::RpcTransport>,
 }
 
 impl AlienGrpcTransport {
-    pub fn new(provider: Arc<dyn alien::RpcProvider>) -> Self {
+    pub fn new(provider: Arc<dyn alien::RpcTransport>) -> Self {
         Self { provider }
     }
 }

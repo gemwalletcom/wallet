@@ -58,7 +58,6 @@ common_token = אֲסִימוֹן
 common_expiration = תפוגה
 common_suspicious_address = כתובת חשודה
 common_refresh = לְרַעֲנֵן
-common_no_thanks = לא תודה
 common_grant_permission = תן רשות
 common_required_field = %@ נדרש
 
@@ -165,7 +164,6 @@ transfer_freeze_title = הַקפָּאָה
 transfer_unfreeze_title = לְהַפְשִׁיר
 transfer_review_request = סקור בקשה
 transfer_amount = כמות
-transfer_amount_title = כמות
 
 # Settings
 
@@ -209,7 +207,6 @@ support_message_placeholder = הודעה
 
 # Errors
 
-errors_transfer = שגיאת העברה: %@
 errors_validation = שגיאת אימות: %@
 errors_create_wallet = שגיאת יצירת ארנק: %@
 errors_invalid_address_name = כתובת או שם לא חוקיים
@@ -228,7 +225,6 @@ errors_cancelled = בוטל
 errors_connections_user_cancelled = המשתמש ביטל
 errors_not_supported = לא נתמך
 errors_permissions_not_granted = הרשאות לא ניתנו
-errors_decoding = שגיאת פענוח
 errors_unknown = לא ידוע
 errors_not_supported_qr = מכשיר זה אינו תומך בסריקת קוד QR. אתה יכול לבחור רק תמונה של קוד QR מהספרייה.
 errors_camera_permissions_not_granted = הרשאת מצלמה לא ניתנה. אפשר גישה למצלמה בהגדרות כדי לסרוק קוד QR.
@@ -239,11 +235,8 @@ errors_invalid_asset_address = כתובת %@ לא חוקית
 errors_dust_threshold = העסקה נכשלה מכיוון שהסכום קטן מדי לעמוד בדרישת המינימום של רשת %@ (ערך אבק). מגבלה זו מבטיחה שערך העסקה יכסה את העמלות ואת עלויות העיבוד.
 errors_swap_no_quote_available = אין הצעת מחיר זמינה.
 errors_swap_not_supported_asset = נכס לא נתמך.
-errors_connections_invalid_send_parameters = פרמטרים לא חוקיים סופקו לשליחת עסקה.
-errors_connections_invalid_sign_parameters = פרמטרים לא חוקיים סופקו לחתימה.
 errors_connections_no_supported_wallets = אין ארנקים נתמכים זמינים.
 errors_connections_unsupported_chain = השרשרת שסופקה אינה נתמכת.
-errors_connections_unsupported_method = השיטה המבוקשת אינה נתמכת.
 errors_swap_amount_too_small = סכום קטן מדי
 errors_required = נדרש %@
 errors_scan_transaction_malicious_description = לא ניתן להשלים עסקה זו - כתובת ארנק היעד מקושרת לפעילות חשודה או מזיקה.
@@ -255,7 +248,6 @@ errors_dust_threshold_short = הרשת מחשיבה את הכמות הזו כא�
 errors_swap_minimum_amount = סכום המסחר המינימלי הוא %@. אנא הזן סכום גבוה יותר.
 errors_perpetual_trigger_price_lower = מחיר ההפעלה צריך להיות נמוך ממחיר השוק
 errors_perpetual_trigger_price_higher = מחיר ההפעלה צריך להיות גבוה ממחיר השוק
-errors_token_unable_fetch_token_information = לא ניתן להביא מידע על אסימון: %@
 errors_unknown_try_again = אירעה שגיאה לא ידועה. אנא נסה שוב.
 errors_network_error = שגיאת רשת: %@
 errors_network_offline = נראה שחיבור האינטרנט אינו מקוון.
@@ -279,7 +271,6 @@ update_app_action = עדכון
 update_app_permission_title = אפשר התקנה
 update_app_permission_description = עבור להגדרות ואפשר התקנה ממקורות חיצוניים
 update_app_permission_open_settings = עבור אל הגדרות
-update_app_downloading = מוריד...
 
 # Transaction
 
@@ -483,8 +474,6 @@ banner_account_activation_title = עמלת הפעלת חשבון
 banner_account_activation_description = הרשת %@ דורשת תשלום חד פעמי של %@.
 banner_stake_title = התחל להמר %@
 banner_stake_description = זכה בתגמולים של %@ על ההימור שלך בזמן שאתה ישן.
-banner_enable_notifications_title = הפעל התראות
-banner_enable_notifications_description = הישאר מעודכן בפעילות הארנק שלך.
 banner_activate_asset_description = כדי להשתמש בנכס %@, תחילה עליך להפעיל אותו ברשת %@ על ידי מילוי הדרישות הספציפיות של הרשת.
 banner_asset_status_title = נכס חשוד
 banner_asset_status_description = האסימון עשוי להיות לא בטוח או מטעה. המשך רק אם אתה סומך עליו לחלוטין.
@@ -690,8 +679,9 @@ perpetual_margin_isolated = מבודד
 # Perpetuals
 
 perpetuals_title = נצחיים
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = מסחר בנצחיים
 perpetuals_markets = שווקים
-perpetuals_empty_state_no_markets = אין שווקים
 perpetuals_empty_state_no_markets_found = לא נמצאו שווקים
 
 # Rewards
@@ -763,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = נדרשת הרשאת מצלמה לסריקת קוד QR.\nאנא הענק הרשאה.
 
 # Notifications Permission
 
-notifications_permission_request_notification = נדרשת הרשאת פרסום הודעות כדי לקבל הודעות על עסקאות חדשות.\nאנא הענק הרשאה.
 
 # Confirm
 
-confirm_fee_error = טעות בחישוב אגרה
 
 # Rootcheck
 

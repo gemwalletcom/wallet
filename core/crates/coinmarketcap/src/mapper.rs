@@ -1,5 +1,17 @@
-use crate::model::Platform;
-use primitives::Chain;
+use crate::model::{Platform, PriceConversion};
+use primitives::{Chain, Currency, FiatRate};
+
+pub(crate) fn map_fiat_rates(conversion: PriceConversion, currencies: &[Currency]) -> Vec<FiatRate> {
+    currencies
+        .iter()
+        .filter_map(|currency| {
+            conversion.quote.get(currency.as_ref()).map(|quote| FiatRate {
+                symbol: currency.clone(),
+                rate: quote.price,
+            })
+        })
+        .collect()
+}
 
 const COINMARKETCAP_PLATFORM_NAMES: &[(Chain, &str)] = &[
     (Chain::SmartChain, "BNB Smart Chain (BEP20)"),

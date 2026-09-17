@@ -1,7 +1,10 @@
 package com.gemwallet.android.model
 
 import com.gemwallet.android.ext.toPrimitives
+import uniffi.gemstone.EarnType
+import uniffi.gemstone.GemDelegationAmountInput
 import uniffi.gemstone.GemRecipient
+import uniffi.gemstone.GemStakeAmountInput
 import com.gemwallet.android.domains.perpetual.data
 import com.gemwallet.android.serializer.decodeJson
 import uniffi.gemstone.GemPerpetualPositionAction
@@ -18,7 +21,6 @@ import kotlinx.serialization.Contextual
 @Serializable
 sealed interface AmountParams {
     val assetId: AssetId
-    val amount: String? get() = null
 
     fun pack(): String? = packRoutePayload()
 
@@ -29,7 +31,7 @@ sealed interface AmountParams {
         val destination: @Contextual GemRecipient,
         val memo: String? = null,
         val references: List<String> = emptyList(),
-        override val amount: String? = null,
+        val amount: String? = null,
     ) : AmountParams
 
     @Serializable
@@ -122,5 +124,21 @@ sealed interface AmountParams {
 
     companion object {
         fun unpack(input: String): AmountParams? = unpackRoutePayload(input)
+    }
+}
+
+fun GemDelegationAmountInput.toAmountParams(assetId: AssetId): AmountParams = when (this) {
+    is GemDelegationAmountInput.Stake -> when (val input = input) {
+        is GemStakeAmountInput.Stake -> AmountParams.Stake.Delegate(assetId, validatorId = input.validator?.id)
+        is GemStakeAmountInput.Redelegate -> AmountParams.Stake.Redelegate(assetId, input.delegation.validator.id, input.delegation.base.delegationId)
+        is GemStakeAmountInput.Unstake -> AmountParams.Stake.Undelegate(assetId, input.delegation.validator.id, input.delegation.base.delegationId)
+        is GemStakeAmountInput.Withdraw -> AmountParams.Stake.Withdraw(assetId, input.delegation.validator.id, input.delegation.base.delegationId)
+        is GemStakeAmountInput.Rewards -> AmountParams.Stake.Rewards(assetId)
+        is GemStakeAmountInput.Freeze -> AmountParams.Stake.Freeze(assetId, input.resource.toPrimitives())
+        is GemStakeAmountInput.Unfreeze -> AmountParams.Stake.Unfreeze(assetId, input.resource.toPrimitives())
+    }
+    is GemDelegationAmountInput.Earn -> when (val earnType = earnType) {
+        is EarnType.Deposit -> AmountParams.Earn.Deposit(assetId, providerId = earnType.v1.id)
+        is EarnType.Withdraw -> AmountParams.Earn.Withdraw(assetId, earnType.v1.validator.id, earnType.v1.base.delegationId)
     }
 }

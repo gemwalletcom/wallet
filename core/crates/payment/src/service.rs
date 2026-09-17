@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use gem_jsonrpc::alien::{RpcClient, RpcProvider};
+use gem_jsonrpc::alien::{RpcClient, RpcTransport};
 use primitives::{Chain, ChainAddress, PaymentLink};
 
 use crate::PaymentTransaction;
@@ -9,11 +9,11 @@ use crate::provider::PaymentProvider;
 use crate::solana_pay::SolanaPayProvider;
 
 pub struct PaymentService {
-    provider: Arc<dyn RpcProvider>,
+    provider: Arc<dyn RpcTransport>,
 }
 
 impl PaymentService {
-    pub fn new(provider: Arc<dyn RpcProvider>) -> Self {
+    pub fn new(provider: Arc<dyn RpcTransport>) -> Self {
         Self { provider }
     }
 

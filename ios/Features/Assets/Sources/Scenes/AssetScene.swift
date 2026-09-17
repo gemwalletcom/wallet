@@ -22,7 +22,7 @@ public struct AssetScene: View {
         return List {
             Section {} header: {
                 ValueHeaderView(
-                    model: model.assetHeaderModel,
+                    model: model.assetHeaderModel(details),
                     isPrivacyEnabled: .constant(false),
                     titleActionType: .none,
                     onHeaderAction: model.onSelectHeader,
@@ -36,15 +36,14 @@ public struct AssetScene: View {
             if details.state.showsBanners, let banner = model.visibleBanners.first {
                 Section {
                     BannerView(
-                        banner: banner,
-                        content: model.bannerContent(for: banner),
+                        model: model.bannerModel(for: banner),
                         action: model.onSelectBanner,
                     )
                 }
                 .listRowInsets(.zero)
             }
 
-            if let statusViewModel = model.statusViewModel {
+            if let statusViewModel = model.statusViewModel(details) {
                 Section {
                     AssetStatusView(model: statusViewModel, action: model.onSelectTokenStatus)
                 }
@@ -52,20 +51,12 @@ public struct AssetScene: View {
 
             if details.state.showsManage {
                 Section(Localized.Common.manage) {
-                    NavigationCustomLink(with:
-                        ListItemView(
-                            title: model.pinText,
-                            imageStyle: .list(assetImage: AssetImage(placeholder: model.pinImage)),
-                        )) {
-                            model.onSelectPin()
-                        }
-                    NavigationCustomLink(with:
-                        ListItemView(
-                            title: model.enableText,
-                            imageStyle: .list(assetImage: AssetImage(placeholder: model.enableImage)),
-                        )) {
-                            model.onSelectEnable()
-                        }
+                    NavigationCustomLink(with: ListItemView(model: model.pinListItem)) {
+                        model.onSelectPin()
+                    }
+                    NavigationCustomLink(with: ListItemView(model: model.enableListItem)) {
+                        model.onSelectEnable()
+                    }
                 }
             }
 
@@ -79,12 +70,7 @@ public struct AssetScene: View {
                 if details.state.showsPriceAlerts {
                     NavigationLink(
                         value: Scenes.AssetPriceAlert(asset: model.assetData.asset),
-                        label: {
-                            ListItemView(
-                                title: model.priceAlertsTitle,
-                                subtitle: String(details.state.priceAlertsCount),
-                            )
-                        },
+                        label: { ListItemView(model: model.priceAlertsListItem(details)) },
                     )
                 }
 
@@ -108,65 +94,40 @@ public struct AssetScene: View {
                 Section(model.balancesTitle) {
                     ForEach(model.balanceRows, id: \.self) { row in
                         switch row {
-                        case let .available(value):
-                            ListItemView(
-                                title: model.assetDataModel.availableBalanceTitle,
-                                subtitle: model.balanceText(value),
-                            )
-                        case let .staked(value):
+                        case .available, .pendingUnconfirmed:
+                            ListItemView(model: model.balanceListItem(for: row))
+                        case .staked:
                             NavigationCustomLink(
-                                with: ListItemView(
-                                    title: model.balanceTitle(for: .stake),
-                                    subtitle: model.stakeBalanceText(value),
-                                ),
+                                with: ListItemView(model: model.balanceListItem(for: row)),
                                 action: { model.onSelectStake() },
                             )
                             .accessibilityIdentifier("stake")
-                        case let .earn(value):
+                        case .earn:
                             NavigationCustomLink(
-                                with: ListItemView(
-                                    title: model.balanceTitle(for: .earn),
-                                    subtitle: model.balanceText(value),
-                                ),
+                                with: ListItemView(model: model.balanceListItem(for: row)),
                                 action: { model.onSelectEarn() },
                             )
                             .accessibilityIdentifier("earn")
-                        case let .pendingUnconfirmed(value):
-                            ListItemView(
-                                title: model.assetDataModel.pendingUnconfirmedBalanceTitle,
-                                subtitle: model.balanceText(value),
-                                infoAction: model.onSelectPendingUnconfirmedInfo,
-                            )
-                        case let .reserved(value, url):
+                        case let .reserved(_, url):
                             if let url = url.flatMap(URL.init) {
                                 SafariNavigationLink(url: url) {
-                                    ListItemView(
-                                        title: model.assetDataModel.reservedBalanceTitle,
-                                        subtitle: model.balanceText(value),
-                                    )
+                                    ListItemView(model: model.balanceListItem(for: row))
                                 }
                             } else {
-                                ListItemView(
-                                    title: model.assetDataModel.reservedBalanceTitle,
-                                    subtitle: model.balanceText(value),
-                                )
+                                ListItemView(model: model.balanceListItem(for: row))
                             }
                         }
                     }
                 }
             }
 
-            if model.showEarnButton {
+            if details.state.showsEarn {
                 Section {
                     NavigationCustomLink(
                         with: HStack(spacing: Spacing.medium) {
                             EmojiView(color: Colors.grayVeryLight, emoji: Emoji.WalletAvatar.moneyBag.rawValue)
                                 .frame(size: .image.asset)
-                            ListItemView(
-                                title: model.balanceTitle(for: .earn),
-                                subtitle: model.aprModel(for: .earn).text,
-                                subtitleStyle: model.aprModel(for: .earn).subtitle.style,
-                            )
+                            ListItemView(model: model.earnListItem)
                         },
                         action: { model.onSelectEarn() },
                     )
@@ -186,7 +147,7 @@ public struct AssetScene: View {
             } else {
                 Section {
                     Spacer()
-                    EmptyContentView(model: model.emptyContentModel)
+                    EmptyContentView(model: model.emptyContentModel(details))
                         .padding(.bottom, .extraLarge)
                 }
                 .cleanListRow()
@@ -197,7 +158,7 @@ public struct AssetScene: View {
         }
         .taskOnce(model.loadOnce)
         .listSectionSpacing(.compact)
-        .navigationTitle(model.title)
+        .navigationTitle(details.title)
         .contentMargins([.top], .small, for: .scrollContent)
     }
 }

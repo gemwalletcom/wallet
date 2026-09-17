@@ -12,7 +12,7 @@ import com.gemwallet.android.ui.navigation.routeArguments
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.TransactionId
 import kotlinx.serialization.Serializable
-import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
+import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
 
 @Serializable
 data object PerpetualRoute : NavKey

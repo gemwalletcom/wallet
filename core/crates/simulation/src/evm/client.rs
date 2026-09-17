@@ -63,9 +63,8 @@ mod tests {
 
     use alloy_primitives::{U256, address};
     use alloy_sol_types::SolCall;
-    use gem_evm::{eip712::parse_eip712_json, method, rpc::EthereumClient};
-    use gem_jsonrpc::testkit::mock_jsonrpc_client;
-    use primitives::{Chain, EVMChain, SimulationSeverity, SimulationWarning, SimulationWarningType, asset_constants::ETHEREUM_USDC_TOKEN_ID};
+    use gem_evm::{eip712::parse_eip712_json, rpc::EthereumClient};
+    use primitives::{Chain, SimulationSeverity, SimulationWarning, SimulationWarningType, asset_constants::ETHEREUM_USDC_TOKEN_ID};
     use serde_json::Value;
 
     use super::SimulationClient;
@@ -74,7 +73,7 @@ mod tests {
     async fn eip712_permit_with_externally_owned_spender_adds_warning() -> Result<(), Box<dyn Error + Send + Sync>> {
         let json: Value = serde_json::from_str(include_str!("../../../gem_evm/testdata/1inch_permit.json"))?;
         let message = parse_eip712_json(&json)?;
-        let client = ethereum_client("0x");
+        let client = EthereumClient::mock_with_code("0x");
 
         let result = SimulationClient::new(&client).simulate_eip712_message(Chain::Ethereum, &message).await?;
 
@@ -95,7 +94,7 @@ mod tests {
         }
         .abi_encode();
 
-        let client = ethereum_client("0x1234");
+        let client = EthereumClient::mock_with_code("0x1234");
         let result = SimulationClient::new(&client)
             .simulate_evm_calldata(Chain::Ethereum, &calldata, ETHEREUM_USDC_TOKEN_ID)
             .await?;
@@ -110,7 +109,7 @@ mod tests {
     async fn invalid_spender_code_response_returns_error() {
         let json: Value = serde_json::from_str(include_str!("../../../gem_evm/testdata/1inch_permit.json")).unwrap();
         let message = parse_eip712_json(&json).unwrap();
-        let client = ethereum_client("0xzz");
+        let client = EthereumClient::mock_with_code("0xzz");
 
         let result = SimulationClient::new(&client).simulate_eip712_message(Chain::Ethereum, &message).await;
 
@@ -121,7 +120,7 @@ mod tests {
     async fn zero_filled_spender_code_is_treated_as_externally_owned() -> Result<(), Box<dyn Error + Send + Sync>> {
         let json: Value = serde_json::from_str(include_str!("../../../gem_evm/testdata/1inch_permit.json"))?;
         let message = parse_eip712_json(&json)?;
-        let client = ethereum_client("0x00");
+        let client = EthereumClient::mock_with_code("0x00");
 
         let result = SimulationClient::new(&client).simulate_eip712_message(Chain::Ethereum, &message).await?;
 
@@ -135,7 +134,7 @@ mod tests {
     async fn eip712_permit_with_excessive_expiration_keeps_warning_with_client() -> Result<(), Box<dyn Error + Send + Sync>> {
         let json: Value = serde_json::from_str(include_str!("../../testdata/permit_excessive_expiration.json"))?;
         let message = parse_eip712_json(&json)?;
-        let client = ethereum_client("0x1234");
+        let client = EthereumClient::mock_with_code("0x1234");
 
         let result = SimulationClient::new(&client).simulate_eip712_message(Chain::Ethereum, &message).await?;
 
@@ -150,7 +149,7 @@ mod tests {
     async fn eip712_permit_batch_with_externally_owned_spender_adds_warning() -> Result<(), Box<dyn Error + Send + Sync>> {
         let json: Value = serde_json::from_str(include_str!("../../testdata/permit_batch_multiple_tokens.json"))?;
         let message = parse_eip712_json(&json)?;
-        let client = ethereum_client("0x");
+        let client = EthereumClient::mock_with_code("0x");
 
         let result = SimulationClient::new(&client).simulate_eip712_message(Chain::Ethereum, &message).await?;
 
@@ -161,13 +160,5 @@ mod tests {
         );
 
         Ok(())
-    }
-    fn ethereum_client(code: &str) -> EthereumClient<gem_client::testkit::MockClient> {
-        let code = code.to_string();
-        let client = mock_jsonrpc_client(move |request_method, _| match request_method {
-            method::ETH_GET_CODE => Ok(Value::from(code.clone())),
-            _ => Ok(Value::Null),
-        });
-        EthereumClient::new(client, EVMChain::Ethereum)
     }
 }

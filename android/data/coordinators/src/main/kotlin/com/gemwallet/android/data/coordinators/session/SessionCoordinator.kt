@@ -29,17 +29,20 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemCurrencyService
+import uniffi.gemstone.GemCurrencyServiceInterface
 import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemPreferencesServiceInterface
 import uniffi.gemstone.GemWalletSessionService
+import uniffi.gemstone.GemWalletSessionServiceInterface
 import java.util.Locale
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SessionCoordinator(
     private val sessionStore: GemstoneWalletSessionStore,
     private val walletStore: GemstoneWalletStore,
-    private val walletSessionService: GemWalletSessionService,
-    private val preferencesService: GemPreferencesService,
-    private val currencyService: GemCurrencyService,
+    private val walletSessionService: GemWalletSessionServiceInterface,
+    private val preferencesService: GemPreferencesServiceInterface,
+    private val currencyService: GemCurrencyServiceInterface,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : GetSession, GetCurrentWallet, GetCurrentCurrency, SetCurrentCurrency, SetCurrentWallet {
 

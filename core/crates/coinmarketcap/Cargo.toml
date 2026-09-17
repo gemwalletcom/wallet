@@ -3,7 +3,11 @@ name = "coinmarketcap"
 edition = { workspace = true }
 version = { workspace = true }
 
+[features]
+testkit = []
+
 [dependencies]
+futures = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 gem_client = { path = "../gem_client", features = ["reqwest"] }

@@ -13,6 +13,10 @@ let package = Package(
             name: "FiatConnect",
             targets: ["FiatConnect"],
         ),
+        .library(
+            name: "FiatConnectTestKit",
+            targets: ["FiatConnectTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "Gemstone", path: "../../Packages/Gemstone"),
@@ -26,7 +30,6 @@ let package = Package(
         .package(name: "PrimitivesComponents", path: "../../Packages/PrimitivesComponents"),
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
         .package(name: "BigInt", path: "../../Submodules/BigInt"),
-        .package(name: "Validators", path: "../../Packages/Validators"),
     ],
     targets: [
         .target(
@@ -43,14 +46,25 @@ let package = Package(
                 "PrimitivesComponents",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
                 .product(name: "BigInt", package: "BigInt"),
-                "Validators",
             ],
             path: "Sources",
+        ),
+        .target(
+            name: "FiatConnectTestKit",
+            dependencies: [
+                "FiatConnect",
+                "Gemstone",
+                "Primitives",
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
+            ],
+            path: "TestKit",
         ),
         .testTarget(
             name: "FiatConnectTests",
             dependencies: [
                 "FiatConnect",
+                "FiatConnectTestKit",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
                 .product(name: "BigInt", package: "BigInt"),
@@ -60,6 +74,7 @@ let package = Package(
                 "Localization",
                 "Primitives",
                 "Store",
+                "GemstonePrimitives",
             ],
             path: "Tests",
         ),

@@ -13,27 +13,28 @@ public struct FiatScene: View {
     }
 
     public var body: some View {
-        List {
+        let viewState = model.viewState
+        return List {
             CurrencyInputValidationView(
-                model: $model.inputValidationModel,
+                text: $model.amount,
+                error: model.amountError,
                 config: model.currencyInputConfig,
             )
             .padding(.top, .medium)
             .listGroupRowStyle()
             amountSelectorSection
-            providerSection
+            providerSection(model.providerModel(viewState))
         }
         .safeAreaButton {
             StateButton(
-                text: model.actionButtonTitle,
-                type: .primary(model.actionButtonState),
+                text: model.actionButtonTitle(viewState),
+                type: .primary(model.actionButtonState(viewState)),
                 action: model.onSelectContinue,
             )
         }
         .contentMargins([.top], .zero, for: .scrollContent)
         .frame(maxWidth: .infinity)
         .onChange(of: model.type, model.onChangeType)
-        .onChange(of: model.inputValidationModel.text, model.onChangeAmountText)
         .debouncedTask(id: model.loadTrigger, interval: model.quoteDebounce) {
             await model.load()
         }
@@ -78,22 +79,22 @@ extension FiatScene {
         }
     }
 
-    private var providerSection: some View {
+    private func providerSection(_ provider: FiatProviderViewModel) -> some View {
         Section {
-            switch model.quotesState {
+            switch provider.quotesState {
             case .noData:
-                StateEmptyView(title: model.emptyTitle)
+                StateEmptyView(title: provider.emptyTitle)
             case .loading:
                 ListItemLoadingView()
                     .id(UUID())
             case .data:
-                if let quote = model.selectedQuote {
+                if let quote = provider.selectedQuote {
                     let view = ListItemImageView(
                         title: model.providerTitle,
                         subtitle: quote.providerName,
                         assetImage: model.providerAssetImage(quote.provider),
                     )
-                    if model.allowSelectProvider {
+                    if provider.allowSelectProvider {
                         NavigationCustomLink(
                             with: view,
                             action: model.onSelectFiatProviders,
@@ -101,7 +102,7 @@ extension FiatScene {
                     } else {
                         view
                     }
-                    ListItemView(title: model.rateTitle, subtitle: model.rateValue)
+                    ListItemView(model: model.rateListItem)
                 }
             case let .error(error):
                 ListItemErrorView(errorTitle: model.errorTitle, error: error)

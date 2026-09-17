@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.models.name
 
+import com.gemwallet.android.ext.display
 import com.gemwallet.android.ext.validateRecipient
 import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.CoroutineScope
@@ -11,6 +12,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import uniffi.gemstone.GemNameRecordState
 import uniffi.gemstone.GemNameServiceInterface
+import uniffi.gemstone.GemRecipientErrorDisplay
+import uniffi.gemstone.GemRecipientException
 import uniffi.gemstone.GemRecipientValidation
 
 class AddressInputModel(
@@ -20,14 +23,14 @@ class AddressInputModel(
 ) {
     private val nameRecordController = NameRecordController(nameService, scope)
     private val _text = MutableStateFlow("")
-    private val _showError = MutableStateFlow(false)
+    private val _error = MutableStateFlow<GemRecipientErrorDisplay?>(null)
     private val _chain = MutableStateFlow(initialChain)
 
     val chain: Chain? get() = _chain.value
 
     val text: StateFlow<String> = _text.asStateFlow()
     val nameResolveState: StateFlow<GemNameRecordState> = nameRecordController.state
-    val showError: StateFlow<Boolean> = _showError.asStateFlow()
+    val error: StateFlow<GemRecipientErrorDisplay?> = _error.asStateFlow()
 
     val isValid: StateFlow<Boolean> = combine(_text, nameRecordController.state, _chain) { text, resolve, chain ->
         isValid(text, resolve, chain)
@@ -40,7 +43,7 @@ class AddressInputModel(
 
     fun onTextChange(value: String) {
         _text.value = value
-        _showError.value = false
+        _error.value = null
         nameRecordController.getNameRecord(value, chain)
     }
 
@@ -52,7 +55,7 @@ class AddressInputModel(
         validate()
     }
 
-    fun applyExternalAddress(address: String) {
+    fun setScannedAddress(address: String) {
         _text.value = address
         nameRecordController.getNameRecord(address, chain)
         validate()
@@ -63,18 +66,18 @@ class AddressInputModel(
         val chain = _chain.value
         val resolve = nameRecordController.state.value
         val valid = isValid(text, resolve, chain)
-        _showError.value = if (chain == null) text.isNotBlank() else validation(text, resolve, chain).showsError
+        _error.value = chain?.let { validation(text, resolve, it).error }
         return valid
     }
 
-    fun markInvalid() {
-        _showError.value = _text.value.isNotBlank()
+    fun markInvalid(rejection: GemRecipientException) {
+        _error.value = _chain.value?.let { rejection.display(it) }
     }
 
     fun reset() {
         nameRecordController.reset()
         _text.value = ""
-        _showError.value = false
+        _error.value = null
     }
 
     private fun isValid(text: String, resolve: GemNameRecordState, chain: Chain?): Boolean =

@@ -21,6 +21,11 @@
 - One behavior per test, small number of assertions
 - Keep setup minimal: prefer shared testkit defaults and override only the inputs that the assertion actually depends on
 
+#### Coroutines
+
+- A view-model test sets Main to its own `TestDispatcher` and hands that same dispatcher to the view model, which takes it by injection (see [code-style.md](code-style.md)). `tearDown` cancels `viewModelScope` before `resetMain()`, so nothing survives into the next test
+- Drive the queued work with `advanceUntilIdle()`, then assert on `.value`. `coVerify(timeout = …)`, `verify(timeout = …)`, `Thread.sleep`, and poll loops never advance the test scheduler — they only hide a race that a slower CI runner loses later (issue #1271)
+
 ### Instrumented Tests (`src/androidTest/kotlin/`)
 
 - Test database migrations, Room queries, and Android-specific behavior
@@ -28,11 +33,11 @@
 
 ## Shared TestKit
 
-Reusable test data factories live in the `:gemcore` `testFixtures` source set (`gemcore/src/testFixtures/kotlin/com/gemwallet/android/testkit/`, one file per type: `AssetMock.kt`, `AssetInfoMock.kt`, `DelegationMock.kt`, and so on). Consumer modules add `testImplementation(testFixtures(project(":gemcore")))`.
+A mock exists once, beside its type, so every test reuses it instead of rebuilding the value. Test data factories live in the owning module's `testFixtures` source set, one file per type: shared models in `gemcore/src/testFixtures/kotlin/com/gemwallet/android/testkit/` (`AssetMock.kt`, `AssetInfoMock.kt`, `DelegationMock.kt`), database entities and store doubles in `data/services/store/src/testFixtures` (`DbAssetInfoMock.kt`, `StoreTransactionRunnerMock.kt`). Consumer modules add `testImplementation(testFixtures(project(":gemcore")))` or the owning module's equivalent.
 
 - `mockType()` returns a sensible default; expose only the fields tests vary, override one or two at the call site, and use `copy()` for one-offs
-- For shared domain types (wallet, account, asset, asset info, prices) never add local `mock*()` or `create*()` helpers in feature or data module tests. If a fixture is missing, add it to the owning module's `testFixtures` and depend on it
-- A concrete shape used by more than one test becomes a named fixture (`mockAssetSolanaUSDC()`, `mockAssetMetaData(isSwapEnabled = true)`), not a repeated `mockAsset(chain = ..., symbol = ..., ...)` call. A fixture used once is inlined
+- A test file declares no `mock*()`, `create*()`, `make*()`, or `build*()` helper of its own for any type, even for one test. Search the owning `testFixtures` first and extend an existing factory rather than adding a near-duplicate; merge near-duplicate factories into one with sensible defaults and delete factories nothing calls
+- A concrete shape used by more than one test becomes a named fixture (`mockAssetSolanaUSDC()`, `mockAssetMetaData(isStakeEnabled = true, stakingApr = 5.0)`), not a repeated `mockAsset(chain = ..., symbol = ..., ...)` call. A shape used once stays an override at the call site
 - Do not turn a mock helper into a second constructor by passing every field. Do not mock what you can construct directly; use MockK only for interfaces that cannot be constructed
 - Prefer the simplest test that proves the behavior: no extra fixtures, mocks, or assertions that do not move the behavior under test
 

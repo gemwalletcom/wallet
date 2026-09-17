@@ -39,13 +39,12 @@ public struct SelectableListNavigationStack<ViewModel: SelectableListAdoptable &
             .contentMargins([.top], .medium, for: .scrollContent)
             .navigationTitle(model.title)
             .navigationBarTitleDisplayMode(.inline)
-            .presentationDetentsForCurrentDeviceSize(expandable: true)
-            .presentationBackground(Colors.grayBackground)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("", systemImage: SystemImage.xmark, action: { dismiss() })
                 }
             }
         }
+        .sheetPresentation(.forCurrentDeviceSize(expandable: true))
     }
 }

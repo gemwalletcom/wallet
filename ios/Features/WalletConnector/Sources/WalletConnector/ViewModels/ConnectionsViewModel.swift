@@ -3,6 +3,9 @@
 import Components
 import WalletConnectorService
 import Foundation
+import struct Gemstone.GemConnection
+import struct Gemstone.GemConnectionSection
+import protocol Gemstone.GemWalletConnectServiceProtocol
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -15,6 +18,7 @@ import UIKit
 public final class ConnectionsViewModel {
     let connector: any WalletConnectorServiceable
     let walletConnectorPresenter: WalletConnectorPresenter?
+    private let service: any GemWalletConnectServiceProtocol
 
     public let query: ObservableQuery<ConnectionsRequest>
     var connections: [WalletConnection] {
@@ -27,9 +31,11 @@ public final class ConnectionsViewModel {
 
     public init(
         connector: any WalletConnectorServiceable,
+        service: any GemWalletConnectServiceProtocol,
         walletConnectorPresenter: WalletConnectorPresenter? = nil,
     ) {
         self.connector = connector
+        self.service = service
         self.walletConnectorPresenter = walletConnectorPresenter
         query = ObservableQuery(ConnectionsRequest(), initialValue: [])
     }
@@ -54,30 +60,16 @@ public final class ConnectionsViewModel {
         AppUrl.docs(.walletConnect)
     }
 
-    var sections: [ListSection<WalletConnection>] {
-        let grouped = Dictionary(grouping: connections, by: { $0.wallet })
-        return grouped.keys
-            .sorted { $0.index < $1.index }
-            .map { wallet in
-                ListSection(
-                    id: wallet.id.id,
-                    title: wallet.name,
-                    image: nil,
-                    values: grouped[wallet]?.sorted { $0.session.createdAt > $1.session.createdAt } ?? [],
-                )
-            }
+    var sections: [GemConnectionSection] {
+        service.connectionSections(connections: connections.map { $0.toGem() })
     }
 
     var emptyContentModel: EmptyContentTypeViewModel {
         EmptyContentTypeViewModel(type: .walletConnect)
     }
 
-    func connectionViewModel(connection: WalletConnection) -> WalletConnectionViewModel {
-        WalletConnectionViewModel(connection: connection)
-    }
-
     func connectionSceneModel(connection: WalletConnection) -> ConnectionSceneViewModel {
-        ConnectionSceneViewModel(model: connectionViewModel(connection: connection))
+        ConnectionSceneViewModel(details: service.connectionDetails(connection: connection.toGem()))
     }
 
     func pair(uri: String) async throws {

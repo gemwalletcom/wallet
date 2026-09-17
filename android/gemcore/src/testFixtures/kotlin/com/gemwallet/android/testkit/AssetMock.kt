@@ -56,6 +56,15 @@ fun mockAssetEthereum() = mockAsset(
     decimals = 18,
 )
 
+fun mockAssetEthereumUSDT() = mockAsset(
+    chain = Chain.Ethereum,
+    tokenId = "0xdac17f958d2ee523a2206206994597c13d831ec7",
+    name = "Tether",
+    symbol = "USDT",
+    decimals = 6,
+    type = AssetType.ERC20,
+)
+
 fun mockAssetCosmos() = mockAsset(
     chain = Chain.Cosmos,
     name = "Cosmos",

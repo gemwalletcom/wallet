@@ -23,7 +23,7 @@ impl ChainSigner for AlgorandChainSigner {
 mod tests {
     // Tests taken from https://github.com/trustwallet/wallet-core/blob/master/tests/chains/Algorand/TWAnySignerTests.cpp
     use super::*;
-    use primitives::{Asset, AssetId, AssetType, Chain, TransactionFee, TransactionLoadInput, TransactionLoadMetadata};
+    use primitives::{Asset, AssetId, AssetType, Chain, TransactionFee, TransactionInputType, TransactionLoadMetadata};
 
     const PRIVATE_KEY: &str = "5a6a3cfe5ff4cc44c19381d15a0d16de2a76ee5c9b9d83b232e38cb5a2c84b04";
     const SENDER: &str = "QKDS2YGDHDFZFAAGA4HAF3AJIKW5ZN46P66QDR3ELCXKKJUJTPJSXVHNQU";
@@ -33,17 +33,20 @@ mod tests {
     fn test_sign_algorand_transactions() {
         let key = hex::decode(PRIVATE_KEY).unwrap();
         let token = Asset::new(AssetId::token(Chain::Algorand, "13379146"), "AlgoToken".into(), "ALGO".into(), 6, AssetType::TOKEN);
-        let metadata = |sequence: u64| TransactionLoadMetadata::Algorand {
-            sequence,
-            block_hash: "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=".into(),
-            chain_id: "testnet-v1.0".into(),
-        };
 
         // Native transfer
-        let input = SignerInput::new(
-            TransactionLoadInput::mock_transfer(Asset::from_chain(Chain::Algorand), SENDER, DESTINATION, "1000000", 2340, None, metadata(15775683)),
-            TransactionFee::new_from_fee(2340.into(), AssetId::from_chain(Chain::Algorand)),
-        );
+        let input = SignerInput {
+            fee: TransactionFee::new_from_fee(2340.into(), AssetId::from_chain(Chain::Algorand)),
+            ..SignerInput::mock_with_input_type(
+                TransactionInputType::Transfer {
+                    asset: Asset::from_chain(Chain::Algorand),
+                },
+                SENDER,
+                DESTINATION,
+                "1000000",
+                TransactionLoadMetadata::mock_algorand(15775683),
+            )
+        };
         let signed = AlgorandChainSigner.sign_transfer(&input, &key).unwrap();
         assert_eq!(
             signed,
@@ -51,10 +54,16 @@ mod tests {
         );
 
         // Token transfer
-        let input = SignerInput::new(
-            TransactionLoadInput::mock_transfer(token.clone(), SENDER, DESTINATION, "1000000", 2340, None, metadata(15775683)),
-            TransactionFee::new_from_fee(2340.into(), AssetId::from_chain(Chain::Algorand)),
-        );
+        let input = SignerInput {
+            fee: TransactionFee::new_from_fee(2340.into(), AssetId::from_chain(Chain::Algorand)),
+            ..SignerInput::mock_with_input_type(
+                TransactionInputType::Transfer { asset: token.clone() },
+                SENDER,
+                DESTINATION,
+                "1000000",
+                TransactionLoadMetadata::mock_algorand(15775683),
+            )
+        };
         let signed = AlgorandChainSigner.sign_token_transfer(&input, &key).unwrap();
         assert_eq!(
             signed,
@@ -62,10 +71,16 @@ mod tests {
         );
 
         // Account action (asset opt-in)
-        let input = SignerInput::new(
-            TransactionLoadInput::mock_transfer(token, SENDER, "", "0", 2340, None, metadata(15775553)),
-            TransactionFee::new_from_fee(2340.into(), AssetId::from_chain(Chain::Algorand)),
-        );
+        let input = SignerInput {
+            fee: TransactionFee::new_from_fee(2340.into(), AssetId::from_chain(Chain::Algorand)),
+            ..SignerInput::mock_with_input_type(
+                TransactionInputType::Transfer { asset: token },
+                SENDER,
+                "",
+                "0",
+                TransactionLoadMetadata::mock_algorand(15775553),
+            )
+        };
         let signed = AlgorandChainSigner.sign_account_action(&input, &key).unwrap();
         assert_eq!(
             signed,
@@ -76,20 +91,23 @@ mod tests {
     #[test]
     fn test_sign_native_transfer_with_note() {
         let key = hex::decode("d5b43d706ef0cb641081d45a2ec213b5d8281f439f2425d1af54e2afdaabf55b").unwrap();
-        let load = TransactionLoadInput::mock_transfer(
-            Asset::from_chain(Chain::Algorand),
-            "MG7QMDX4ALRIQ7P77SHNQUTIZDAJDQAT53PTCW6FA6KNAKUHSGW4FGK32Q",
-            "CRLADAHJZEW2GFY2UPEHENLOGCUOU74WYSTUXQLVLJUJFHEUZOHYZNWYR4",
-            "1000000000000",
-            263000,
-            Some("hello"),
-            TransactionLoadMetadata::Algorand {
-                sequence: 1937767,
-                block_hash: "wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=".into(),
-                chain_id: "mainnet-v1.0".into(),
-            },
-        );
-        let input = SignerInput::new(load, TransactionFee::new_from_fee(263000.into(), AssetId::from_chain(Chain::Algorand)));
+        let mut input = SignerInput {
+            fee: TransactionFee::new_from_fee(263000.into(), AssetId::from_chain(Chain::Algorand)),
+            ..SignerInput::mock_with_input_type(
+                TransactionInputType::Transfer {
+                    asset: Asset::from_chain(Chain::Algorand),
+                },
+                "MG7QMDX4ALRIQ7P77SHNQUTIZDAJDQAT53PTCW6FA6KNAKUHSGW4FGK32Q",
+                "CRLADAHJZEW2GFY2UPEHENLOGCUOU74WYSTUXQLVLJUJFHEUZOHYZNWYR4",
+                "1000000000000",
+                TransactionLoadMetadata::Algorand {
+                    sequence: 1937767,
+                    block_hash: "wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=".into(),
+                    chain_id: "mainnet-v1.0".into(),
+                },
+            )
+        };
+        input.input.memo = Some("hello".to_string());
 
         let signed = AlgorandChainSigner.sign_transfer(&input, &key).unwrap();
         assert_eq!(

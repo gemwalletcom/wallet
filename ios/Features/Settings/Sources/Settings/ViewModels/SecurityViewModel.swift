@@ -2,6 +2,8 @@
 
 import Primitives
 import Components
+import enum Gemstone.GemSecurityRow
+import protocol Gemstone.GemSettingsServiceProtocol
 import Foundation
 import GemstoneServices
 import Localization
@@ -10,12 +12,14 @@ import Localization
 @MainActor
 public final class SecurityViewModel {
     private let service: any BiometryAuthenticatable
+    private let settings: any GemSettingsServiceProtocol
     private let preferences: ObservablePreferences
 
     static let reason: String = Localized.Settings.Security.authentication
 
     var isPresentingAlertMessage: AlertMessage?
     var isEnabled: Bool
+    private var storedLockPeriod: LockPeriod
     var isPrivacyLockEnabled: Bool
     var isHideBalanceEnabled: Bool {
         get {
@@ -27,7 +31,8 @@ public final class SecurityViewModel {
     }
 
     var lockPeriod: LockPeriod {
-        didSet { updateLockPeriod() }
+        get { storedLockPeriod }
+        set { updateLockPeriod(to: newValue) }
     }
 
     var allLockPeriods: [LockPeriod] {
@@ -36,14 +41,31 @@ public final class SecurityViewModel {
 
     public init(
         service: any BiometryAuthenticatable,
+        settings: any GemSettingsServiceProtocol,
         preferences: ObservablePreferences,
     ) {
         self.service = service
+        self.settings = settings
         self.preferences = preferences
 
-        lockPeriod = service.lockPeriod
+        storedLockPeriod = service.lockPeriod
         isEnabled = service.requiresAuthentication
         isPrivacyLockEnabled = service.isPrivacyLockEnabled
+    }
+
+    var sections: [ListSection<SecurityRow>] {
+        settings.securitySections(authenticationEnabled: isEnabled).enumerated().map { index, section in
+            ListSection(id: "\(index)", title: nil, image: nil, values: section.rows.map(securityRow))
+        }
+    }
+
+    private func securityRow(_ row: GemSecurityRow) -> SecurityRow {
+        switch row {
+        case .authentication: .authentication
+        case .lockPeriod: .lockPeriod
+        case .privacyLock: .privacyLock
+        case .hideBalance: .hideBalance
+        }
     }
 
     var title: String {
@@ -71,10 +93,7 @@ public final class SecurityViewModel {
     }
 
     var authenticationTitle: String {
-        switch service.availableAuthentication {
-        case .biometrics: Localized.Settings.enableValue("Face ID")
-        case .passcode, .none: Localized.Settings.enablePasscode
-        }
+        service.availableAuthentication.enableTitle
     }
 }
 
@@ -86,7 +105,7 @@ extension SecurityViewModel {
         do {
             try await service.enableAuthentication(isEnabled, reason: SecurityViewModel.reason)
             isPrivacyLockEnabled = service.isPrivacyLockEnabled
-            lockPeriod = service.lockPeriod
+            storedLockPeriod = service.lockPeriod
         } catch let error as BiometryAuthenticationError {
             if !error.isAuthenticationCancelled {
                 isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
@@ -108,12 +127,15 @@ extension SecurityViewModel {
         }
     }
 
-    func updateLockPeriod() {
+    func updateLockPeriod(to period: LockPeriod) {
+        guard period != storedLockPeriod else { return }
+        let previous = storedLockPeriod
+        storedLockPeriod = period
         do {
-            try service.update(period: lockPeriod)
+            try service.update(period: period)
         } catch {
             isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
-            lockPeriod = service.lockPeriod
+            storedLockPeriod = previous
         }
     }
 }

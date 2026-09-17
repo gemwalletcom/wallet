@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Formatters
 import struct Gemstone.SwapPriceImpact
 import Localization
@@ -28,6 +29,10 @@ struct PriceImpactViewModel {
     var highImpactWarningDescription: String? {
         guard let priceImpactText else { return nil }
         return Localized.Swap.PriceImpactWarning.description(priceImpactText, fromAssetPrice.asset.symbol)
+    }
+
+    func listItem(infoAction: (() -> Void)?) -> ListItemModel? {
+        value.map { ListItemModel(title: priceImpactTitle, subtitle: $0.value, subtitleStyle: priceImpactStyle, infoAction: infoAction) }
     }
 
     var priceImpactTitle: String {

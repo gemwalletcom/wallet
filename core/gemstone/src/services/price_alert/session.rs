@@ -168,23 +168,23 @@ mod tests {
         assert_eq!(percentage.on_direction(PriceAlertDirection::Down).view_state().prompt, GemPriceAlertPrompt::DecreasesBy);
     }
 
-    fn session() -> GemPriceAlertSession {
-        GemPriceAlertSession::new(AssetId::from_chain(primitives::Chain::Ethereum), Currency::USD).on_price(Some(100.0))
-    }
-
     #[test]
     fn test_without_an_input_there_is_no_direction_and_nothing_to_confirm() {
-        let state = session().view_state();
+        let state = GemPriceAlertSession::mock().view_state();
 
         assert_eq!(state.direction, None);
         assert!(!state.can_confirm);
-        assert!(session().alert().is_none());
+        assert!(GemPriceAlertSession::mock().alert().is_none());
     }
 
     #[test]
     fn test_a_price_alert_carries_the_price_and_a_percentage_alert_the_percentage() {
-        let price = session().on_input(Some(120.0)).alert().unwrap();
-        let percent = session().on_type(PriceAlertNotificationType::PricePercentChange).on_input(Some(5.0)).alert().unwrap();
+        let price = GemPriceAlertSession::mock().on_input(Some(120.0)).alert().unwrap();
+        let percent = GemPriceAlertSession::mock()
+            .on_type(PriceAlertNotificationType::PricePercentChange)
+            .on_input(Some(5.0))
+            .alert()
+            .unwrap();
 
         assert_eq!((price.price, price.price_percent_change), (Some(120.0), None));
         assert_eq!((percent.price, percent.price_percent_change), (None, Some(5.0)));
@@ -192,7 +192,7 @@ mod tests {
 
     #[test]
     fn test_saving_blocks_a_second_confirm() {
-        let ready = session().on_input(Some(120.0));
+        let ready = GemPriceAlertSession::mock().on_input(Some(120.0));
 
         assert!(ready.view_state().can_confirm);
         assert!(!ready.on_saving(true).view_state().can_confirm);
@@ -204,6 +204,6 @@ mod tests {
 
         assert!(without_price.view_state().price_suggestions.is_empty());
         assert!(without_price.on_price(Some(0.0)).view_state().percentage_suggestions.is_empty());
-        assert!(!session().view_state().price_suggestions.is_empty());
+        assert!(!GemPriceAlertSession::mock().view_state().price_suggestions.is_empty());
     }
 }

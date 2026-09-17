@@ -11,7 +11,6 @@ import Localization
 import Primitives
 import PrimitivesComponents
 import Stake
-import Validators
 import struct Gemstone.GemTransferData
 
 public enum AmountStakeSelection {
@@ -52,7 +51,7 @@ public final class AmountStakeViewModel: AmountDataProvidable {
     }
 
     var title: String {
-        action.title
+        gemAmountType.title().title
     }
 
     var gemAmountType: GemAmountType {

@@ -1,5 +1,8 @@
 package com.gemwallet.android.application.wallet_connect
 
+import com.gemwallet.android.testkit.mockWalletConnectSessionProposal
+import com.gemwallet.android.testkit.mockWalletConnectSessionRequest
+import com.gemwallet.android.testkit.mockWalletConnectVerifyContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -12,35 +15,14 @@ class ActiveWalletConnectRequestTest {
 
     private val events = MutableSharedFlow<WalletConnectEvent>()
 
-    private fun proposal(name: String) = WalletConnectSessionProposal(
-        name = name,
-        description = "",
-        url = "https://example.com",
-        icons = emptyList(),
-        requiredNamespaces = emptyMap(),
-        optionalNamespaces = emptyMap(),
-        proposerPublicKey = "key-$name",
-        properties = null,
-    )
-
-    private fun sessionRequest(id: Long) = WalletConnectSessionRequest(
-        topic = "topic",
-        chainId = "eip155:1",
-        request = WalletConnectJsonRpcRequest(id = id, method = "personal_sign", params = ""),
-    )
-
-    private val verifyContext = WalletConnectVerifyContext(
-        origin = "https://example.com",
-        validation = WalletConnectValidation.Valid,
-        isScam = false,
-    )
+    private val verifyContext = mockWalletConnectVerifyContext()
 
     @Test
     fun finishWithPayloadClearsOnlyTheRequestThatProducedIt() = runTest {
         val activeRequest = ActiveWalletConnectRequest(events, backgroundScope)
         testScheduler.runCurrent()
-        val first = proposal("first")
-        val second = sessionRequest(1)
+        val first = mockWalletConnectSessionProposal()
+        val second = mockWalletConnectSessionRequest(id = 1)
 
         events.emit(WalletConnectEvent.SessionProposal(first, verifyContext))
         events.emit(WalletConnectEvent.SessionRequest(second, verifyContext))
@@ -58,7 +40,7 @@ class ActiveWalletConnectRequestTest {
     fun aDeletedSessionClearsThePendingRequest() = runTest {
         val activeRequest = ActiveWalletConnectRequest(events, backgroundScope)
         testScheduler.runCurrent()
-        events.emit(WalletConnectEvent.SessionProposal(proposal("pinned"), verifyContext))
+        events.emit(WalletConnectEvent.SessionProposal(mockWalletConnectSessionProposal(), verifyContext))
         testScheduler.runCurrent()
         checkNotNull(activeRequest.current.value)
 
@@ -72,7 +54,7 @@ class ActiveWalletConnectRequestTest {
     fun finishWithoutPayloadClearsUnconditionally() = runTest {
         val activeRequest = ActiveWalletConnectRequest(events, backgroundScope)
         testScheduler.runCurrent()
-        events.emit(WalletConnectEvent.SessionProposal(proposal("only"), verifyContext))
+        events.emit(WalletConnectEvent.SessionProposal(mockWalletConnectSessionProposal(), verifyContext))
         testScheduler.runCurrent()
         checkNotNull(activeRequest.current.value)
 
@@ -83,11 +65,11 @@ class ActiveWalletConnectRequestTest {
 
     @Test
     fun everyRequestKindHasItsOwnKey() {
-        val proposalKey = WalletConnectUserRequest.SessionProposal(proposal("dapp"), verifyContext).key
-        val firstRequest = WalletConnectUserRequest.SessionRequest(sessionRequest(1), verifyContext).key
-        val secondRequest = WalletConnectUserRequest.SessionRequest(sessionRequest(2), verifyContext).key
+        val proposalKey = WalletConnectUserRequest.SessionProposal(mockWalletConnectSessionProposal(), verifyContext).key
+        val firstRequest = WalletConnectUserRequest.SessionRequest(mockWalletConnectSessionRequest(id = 1), verifyContext).key
+        val secondRequest = WalletConnectUserRequest.SessionRequest(mockWalletConnectSessionRequest(id = 2), verifyContext).key
 
-        assertEquals(firstRequest, WalletConnectUserRequest.SessionRequest(sessionRequest(1), verifyContext).key)
+        assertEquals(firstRequest, WalletConnectUserRequest.SessionRequest(mockWalletConnectSessionRequest(id = 1), verifyContext).key)
         assertEquals(3, setOf(proposalKey, firstRequest, secondRequest).size)
     }
 }

@@ -6,13 +6,11 @@ import Localization
 import Primitives
 import PrimitivesComponents
 import Style
-import struct Gemstone.GemAssetRow
 import SwiftUI
 
 struct WalletAssetsList: View {
     let assets: [AssetData]
-    let currency: Currency
-    let row: GemAssetRow
+    let itemsModel: ListAssetItemsViewModel
     let onHideAsset: AssetIdAction
     let onPinAsset: AssetBoolAction
     let onAddToWallet: AssetIdAction
@@ -22,8 +20,7 @@ struct WalletAssetsList: View {
 
     init(
         assets: [AssetData],
-        currency: Currency,
-        row: GemAssetRow,
+        itemsModel: ListAssetItemsViewModel,
         onHideAsset: AssetIdAction,
         onPinAsset: AssetBoolAction,
         onAddToWallet: AssetIdAction = nil,
@@ -31,8 +28,7 @@ struct WalletAssetsList: View {
         showBalancePrivacy: Binding<Bool>,
     ) {
         self.assets = assets
-        self.currency = currency
-        self.row = row
+        self.itemsModel = itemsModel
         self.onHideAsset = onHideAsset
         self.onPinAsset = onPinAsset
         self.onAddToWallet = onAddToWallet
@@ -43,15 +39,7 @@ struct WalletAssetsList: View {
     var body: some View {
         ForEach(assets) { asset in
             NavigationLink(value: Scenes.Asset(asset: asset.asset)) {
-                ListAssetItemView(
-                    model: ListAssetItemViewModel(
-                        showBalancePrivacy: $showBalancePrivacy,
-                        assetData: asset,
-                        formatter: .short,
-                        currency: currency,
-                        row: row,
-                    ),
-                )
+                ListAssetItemView(model: itemsModel.item(asset, showBalancePrivacy: $showBalancePrivacy))
                 .contextMenu(
                     AssetContextMenu.items(
                         for: asset,

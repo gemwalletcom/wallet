@@ -1,15 +1,16 @@
 package com.gemwallet.android.features.import_wallet.viewmodels
 
+import android.content.Context
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.testkit.NameServiceMock
+import com.gemwallet.android.testkit.mockNameRecord
+import kotlinx.coroutines.CoroutineDispatcher
 import uniffi.gemstone.GemMnemonic
-import io.mockk.coEvery
 import uniffi.gemstone.GemNameServiceInterface
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.model.ImportType
 import uniffi.gemstone.GemNameRecordState
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.NameProvider
-import com.wallet.core.primitives.NameRecord
 import uniffi.gemstone.GemWalletImportKind
 import io.mockk.every
 import io.mockk.mockk
@@ -26,51 +27,21 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemNameInputStep
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ImportViewModelTest {
 
     private val chain = Chain.Ethereum
-    private val record = NameRecord(
-        name = "vitalik.eth",
-        chain = chain,
-        address = "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-        provider = NameProvider.Ens,
-    )
 
-    private class NameRequests(private val result: NameRecord) {
-        val requests = mutableListOf<Pair<String, Chain>>()
-
-        fun service(): GemNameServiceInterface = mockk(relaxed = true) {
-            every { isNameSupported(any()) } answers { firstArg<String>().split(".").size >= 2 }
-            every { nameInputStep(any(), any(), any()) } answers {
-                val state = firstArg<GemNameRecordState>()
-                val name = secondArg<String>()
-                when {
-                    name.isEmpty() -> GemNameInputStep.Reset
-                    state is GemNameRecordState.Loading && state.name == name -> GemNameInputStep.Unchanged
-                    state is GemNameRecordState.Complete && state.record.name == name -> GemNameInputStep.Unchanged
-                    !thirdArg<Boolean>() || name.split(".").size < 2 -> GemNameInputStep.Reset
-                    else -> GemNameInputStep.Resolve(name, 500u)
-                }
-            }
-            every { resolvedState(any(), any(), any()) } answers {
-                val state = firstArg<GemNameRecordState>()
-                val name = secondArg<String>()
-                if (state is GemNameRecordState.Loading && state.name == name) thirdArg() else state
-            }
-            coEvery { getNameRecord(any(), any()) } answers {
-                requests.add(firstArg<String>() to Chain.entries.first { it.string == secondArg<String>() })
-                GemNameRecordState.Complete(result.toGem())
-            }
-        }
-    }
-
-    private fun viewModel(nameService: GemNameServiceInterface) = ImportViewModel(
+    private fun viewModel(nameService: GemNameServiceInterface, ioDispatcher: CoroutineDispatcher) = ImportViewModel(
         service = mockk(relaxed = true),
         nameService = nameService,
         mnemonic = GemMnemonic(),
+        ioDispatcher = ioDispatcher,
+        context = mockk<Context> {
+            every { getString(any()) } returns "Wallet"
+            every { getString(any(), *anyVararg()) } returns "Wallet"
+        },
     )
 
     @Before
@@ -87,9 +58,10 @@ class ImportViewModelTest {
 
     @Test
     fun privateKeyInputNeverReachesTheResolver() = runTest {
-        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
-        val addressInput = NameRequests(record)
-        val viewModel = viewModel(addressInput.service())
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        val addressInput = NameServiceMock()
+        val viewModel = viewModel(addressInput, dispatcher)
 
         viewModel.importSelect(ImportType(GemWalletImportKind.PRIVATE_KEY, chain)).join()
         advanceUntilIdle()
@@ -102,9 +74,10 @@ class ImportViewModelTest {
 
     @Test
     fun viewAddressInputResolves() = runTest {
-        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
-        val addressInput = NameRequests(record)
-        val viewModel = viewModel(addressInput.service())
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(dispatcher)
+        val addressInput = NameServiceMock()
+        val viewModel = viewModel(addressInput, dispatcher)
 
         viewModel.importSelect(ImportType(GemWalletImportKind.ADDRESS, chain)).join()
         advanceUntilIdle()
@@ -112,6 +85,6 @@ class ImportViewModelTest {
         advanceUntilIdle()
 
         assertEquals(listOf("vitalik.eth" to chain), addressInput.requests)
-        assertEquals(GemNameRecordState.Complete(record.toGem()), viewModel.nameResolveState.value)
+        assertEquals(GemNameRecordState.Complete(mockNameRecord().toGem()), viewModel.nameResolveState.value)
     }
 }

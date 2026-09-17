@@ -9,18 +9,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ext.networkName
-import com.gemwallet.android.ui.components.fields.AddressChainField
-import com.gemwallet.android.ui.components.fields.MemoTextField
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressInput
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.QrCodeScannerModal
-import com.wallet.core.primitives.QRScanType
+import com.gemwallet.android.ui.components.fields.AddressChainField
+import com.gemwallet.android.ui.components.fields.MemoTextField
 import com.gemwallet.android.ui.components.list_item.ChainItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
+import com.wallet.core.primitives.QRScanType
 
 @Composable
 fun ManageContactAddressScene(
@@ -51,22 +51,16 @@ fun ManageContactAddressScene(
             trailing = { DataBadgeChevron() },
             onClick = { onAction(ManageContactAddressAction.SelectChain) },
         )
-
         AddressChainField(
             value = input.address,
             label = stringResource(R.string.common_address),
-            state = input.nameResolveState,
+            indicator = input.nameResolveIndicator,
             onValueChange = onAddressChange,
-            error = if (input.showAddressError) {
-                stringResource(R.string.errors_invalid_asset_address, input.chain.networkName())
-            } else {
-                ""
-            },
+            error = input.addressError,
             onPaste = onPaste,
             onQrScanner = { scanning = true },
         )
-
-        if (input.showMemo) {
+        if (input.showsMemo) {
             MemoTextField(
                 value = input.memo,
                 label = stringResource(R.string.transfer_memo),

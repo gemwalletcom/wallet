@@ -1,13 +1,17 @@
 #[cfg(test)]
 use crate::address::TronAddress;
 #[cfg(test)]
-use crate::models::account::{TronAccount, TronAccountOwnerPermission, TronAccountPermission, TronAccountPermissionKey, TronFrozen, TronVote};
+use crate::models::account::{TronAccount, TronAccountOwnerPermission, TronAccountPermission, TronAccountPermissionKey, TronAccountUsage, TronFrozen, TronUnfrozen, TronVote};
 #[cfg(test)]
-use crate::models::{InternalTransaction, InternalTransactionCallValue, Transaction, TransactionReceipt, TransactionReceiptData, TronLog};
+use crate::models::{
+    ChainParameter, InternalTransaction, InternalTransactionCallValue, Transaction, TransactionReceipt, TransactionReceiptData, TronLog, WitnessAccount, WitnessesList,
+};
 #[cfg(test)]
 use crate::rpc::constants::ERC20_TRANSFER_EVENT_SIGNATURE;
 #[cfg(test)]
 use crate::rpc::trongrid::client::TronGridClient;
+#[cfg(test)]
+use crate::rpc::trongrid::model::TronGridTransaction;
 #[cfg(test)]
 use crate::rpc::{TronClient, TronProvider};
 #[cfg(all(test, feature = "chain_integration_tests"))]
@@ -28,6 +32,79 @@ pub const TEST_TOKEN_APPROVAL_TRANSACTION_ID: &str = "5c8c1556e2c124dd74ed3639f9
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 pub const TEST_USDT_TOKEN_ID: &str = TRON_USDT_TOKEN_ID;
+
+#[cfg(test)]
+impl TronAddress {
+    pub fn mock() -> Self {
+        TronAddress::from_hex_or_base58("TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM").unwrap()
+    }
+}
+
+#[cfg(test)]
+impl TronAccountUsage {
+    pub fn mock(free_bandwidth: u64, staked_bandwidth: u64, available_energy: u64) -> Self {
+        Self {
+            free_net_used: 0,
+            free_net_limit: free_bandwidth,
+            net_used: 0,
+            net_limit: staked_bandwidth,
+            energy_used: 0,
+            energy_limit: available_energy,
+        }
+    }
+}
+
+#[cfg(test)]
+impl TronUnfrozen {
+    pub fn mock(unfreeze_amount: u64, unfreeze_expire_time: u64) -> Self {
+        Self {
+            unfreeze_amount,
+            unfreeze_expire_time: Some(unfreeze_expire_time),
+        }
+    }
+}
+
+#[cfg(test)]
+impl ChainParameter {
+    pub fn mock(key: &str, value: i64) -> Self {
+        Self {
+            key: key.to_string(),
+            value: Some(value),
+        }
+    }
+}
+
+#[cfg(test)]
+impl WitnessesList {
+    pub fn mock() -> Self {
+        Self {
+            witnesses: vec![
+                WitnessAccount {
+                    address: "4159f3440fd40722f716144e4490a4de162d3b3fcb".to_string(),
+                    vote_count: Some(1000000),
+                    url: "https://validator1.com".to_string(),
+                    is_jobs: Some(true),
+                },
+                WitnessAccount {
+                    address: "41357a7401a0f0c2d4a44a1881a0c622f15d986291".to_string(),
+                    vote_count: Some(500000),
+                    url: "https://validator2.com".to_string(),
+                    is_jobs: Some(false),
+                },
+            ],
+        }
+    }
+}
+
+#[cfg(test)]
+impl TronGridTransaction {
+    pub fn mock(transaction_id: &str, block_timestamp: u64) -> Self {
+        Self {
+            transaction_id: transaction_id.to_string(),
+            block_timestamp,
+        }
+    }
+}
 
 #[cfg(test)]
 impl TronAccount {
@@ -81,7 +158,7 @@ impl Transaction {
 
 #[cfg(test)]
 impl TransactionReceiptData {
-    pub fn mock_transaction_receipt_with_result(result: &str) -> Self {
+    pub fn mock_with_result(result: &str) -> Self {
         Self {
             id: "test_id".to_string(),
             fee: Some(1000),
@@ -91,14 +168,6 @@ impl TransactionReceiptData {
             receipt: TransactionReceipt { result: Some(result.to_string()) },
             log: None,
             internal_transactions: None,
-        }
-    }
-
-    pub fn mock_transaction_receipt_with_logs(log: Vec<TronLog>, internal_transactions: Vec<InternalTransaction>) -> Self {
-        Self {
-            log: Some(log),
-            internal_transactions: Some(internal_transactions),
-            ..Self::mock_transaction_receipt_with_result("SUCCESS")
         }
     }
 }

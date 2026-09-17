@@ -219,9 +219,9 @@ pub fn instructions_from_primitives<D: InstructionDataDecoder>(instructions: Vec
 #[cfg(test)]
 mod tests {
     use super::*;
-    #[cfg(feature = "signer")]
-    use crate::signer::testkit::{SINGLE_SIG_TX, mock_legacy_transaction};
     use crate::testkit::{mock_transaction, mock_transaction_with_accounts};
+    #[cfg(feature = "signer")]
+    use crate::{signer::testkit::SINGLE_SIG_TX, testkit::mock_legacy_transaction};
 
     #[test]
     fn test_try_decode_blockhash() {

@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.settings.develop.viewmodels
 
+import com.wallet.core.primitives.WalletId
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.toPrimitives
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,6 +19,7 @@ import uniffi.gemstone.GemDeveloperServiceInterface
 @HiltViewModel
 class DevelopViewModel @Inject constructor(
     private val service: GemDeveloperServiceInterface,
+    private val getSession: GetSession,
     val notificationsAvailable: NotificationsAvailable,
 ) : ViewModel() {
 
@@ -37,9 +40,34 @@ class DevelopViewModel @Inject constructor(
         }
     }
 
-    fun resetTransactions() {
-        viewModelScope.launch(Dispatchers.IO) {
-            service.clearPendingTransactions()
-        }
+    fun clearPendingTransactions() = launchAction { service.clearPendingTransactions() }
+
+    fun clearTransactions() = launchAction { service.clearTransactions() }
+
+    fun clearAssets() = launchAction { service.clearAssets() }
+
+    fun clearDelegations() = launchAction { service.clearDelegations() }
+
+    fun clearValidators() = launchAction { service.clearValidators() }
+
+    fun clearBanners() = launchAction { service.clearBanners() }
+
+    fun activateCancelledBanners() = launchAction { service.activateCancelledBanners() }
+
+    fun clearPrices() = launchAction { service.clearPrices() }
+
+    fun clearPerpetuals() = launchAction { service.clearPerpetualMarkets() }
+    fun clearPreferences() = launchAction { service.clearPreferences() }
+    fun resetTransactionsTimestamp() = launchWalletAction { service.resetTransactionsTimestamp(it.id) }
+    fun deleteWalletPreferences() = launchWalletAction { service.deleteWalletPreferences(it.id) }
+    fun addSampleTransactions() = launchWalletAction { service.addSampleTransactions(it.id) }
+
+    private fun launchWalletAction(action: suspend (WalletId) -> Unit) = launchAction {
+        val walletId = getSession().value?.wallet?.id ?: return@launchAction
+        action(walletId)
+    }
+
+    private fun launchAction(action: suspend () -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) { action() }
     }
 }

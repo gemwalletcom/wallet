@@ -175,21 +175,14 @@ impl<C: Client + Clone> SolanaClient<C> {
 #[cfg(test)]
 mod tests {
     use crate::models::ResultTokenInfo;
-    use serde::{Deserialize, Serialize};
-
-    #[derive(Debug, Clone, Serialize, Deserialize)]
-    struct JsonRpcResult<T> {
-        result: T,
-    }
+    use primitives::testkit::json_rpc::load_json_rpc_result;
 
     #[test]
     fn test_decode_token_data() {
-        let json: serde_json::Value = serde_json::from_str(include_str!("../../testdata/pyusd_mint.json")).expect("file should be proper JSON");
-        let result: JsonRpcResult<ResultTokenInfo> = serde_json::from_value(json).expect("Decoded into ParsedTokenInfo");
-        assert_eq!(result.result.value.data.parsed.info.decimals, 6);
+        let result = load_json_rpc_result::<ResultTokenInfo>(include_str!("../../testdata/pyusd_mint.json"));
+        assert_eq!(result.value.data.parsed.info.decimals, 6);
 
-        let json: serde_json::Value = serde_json::from_str(include_str!("../../testdata/usdc_mint.json")).expect("file should be proper JSON");
-        let result: JsonRpcResult<ResultTokenInfo> = serde_json::from_value(json).expect("Decoded into ParsedTokenInfo");
-        assert_eq!(result.result.value.data.parsed.info.decimals, 6);
+        let result = load_json_rpc_result::<ResultTokenInfo>(include_str!("../../testdata/usdc_mint.json"));
+        assert_eq!(result.value.data.parsed.info.decimals, 6);
     }
 }

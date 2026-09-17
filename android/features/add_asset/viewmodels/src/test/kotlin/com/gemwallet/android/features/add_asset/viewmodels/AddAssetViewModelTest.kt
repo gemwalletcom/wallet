@@ -1,10 +1,12 @@
 package com.gemwallet.android.features.add_asset.viewmodels
 
+import uniffi.gemstone.GemChainServiceInterface
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemAddAssetPhase
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
@@ -41,28 +43,33 @@ class AddAssetViewModelTest {
 
     private val wallet = mockWallet(accounts = listOf(mockAccount(chain = Chain.Ethereum)))
     private val token = mockAsset(chain = Chain.Ethereum, tokenId = "0x1", name = "Token", symbol = "TKN", decimals = 18, type = AssetType.ERC20)
+    private val chainService = mockk<GemChainServiceInterface> {
+        every { getMatchingChains(any(), any()) } answers { firstArg() }
+    }
+
     private val service = mockk<GemAddAssetServiceInterface> {
         every { newSession(any()) } answers {
             GemAddAssetSession(chain = firstArg(), address = "", asset = null, isLoading = false, failed = false)
         }
         every { chains(any()) } returns listOf(Chain.Ethereum.string)
         every { defaultChain(any()) } returns Chain.Ethereum.string
-        every { matchingChains(any(), any()) } answers { firstArg() }
         every { tokenUrl(any(), any()) } returns null
         coEvery { token(Chain.Ethereum.string, "0x1") } returns token.toGem()
         coEvery { add(any(), any()) } returns Unit
     }
     private val getSession = mockk<GetSession> { every { this@mockk() } returns MutableStateFlow(mockSession(wallet = wallet)) }
 
+    private val dispatcher = UnconfinedTestDispatcher()
+
     @Before
-    fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
+    fun setUp() = Dispatchers.setMain(dispatcher)
 
     @After
     fun tearDown() = Dispatchers.resetMain()
 
     @Test
     fun `typed address resolves the token through the service`() = runTest {
-        val viewModel = AddAssetViewModel(getSession, service)
+        val viewModel = AddAssetViewModel(getSession, service, chainService, dispatcher, mockk(relaxed = true))
         try {
             withContext(Dispatchers.Main) {
                 viewModel.addressState.value = "0x1"
@@ -78,7 +85,7 @@ class AddAssetViewModelTest {
 
     @Test
     fun `addAsset adds the found token to the current wallet`() = runTest {
-        val viewModel = AddAssetViewModel(getSession, service)
+        val viewModel = AddAssetViewModel(getSession, service, chainService, dispatcher, mockk(relaxed = true))
         try {
             withContext(Dispatchers.Main) {
                 viewModel.addressState.value = "0x1"
@@ -99,7 +106,7 @@ class AddAssetViewModelTest {
     @Test
     fun `a failed add stays on the screen and reports the Core message`() = runTest {
         coEvery { service.add(any(), any()) } throws GemServiceException.Store("disk full")
-        val viewModel = AddAssetViewModel(getSession, service)
+        val viewModel = AddAssetViewModel(getSession, service, chainService, dispatcher, mockk(relaxed = true))
         try {
             withContext(Dispatchers.Main) {
                 viewModel.addressState.value = "0x1"
@@ -112,7 +119,7 @@ class AddAssetViewModelTest {
 
             assertEquals(false, finished)
             val failed = viewModel.uiState.first { it.error != null }
-            assertEquals("disk full", failed.error)
+            assertEquals(GemErrorText.Message("disk full"), failed.error)
             assertEquals(false, failed.isLoading)
 
             viewModel.clearError()

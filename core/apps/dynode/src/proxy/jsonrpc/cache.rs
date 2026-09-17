@@ -81,8 +81,7 @@ mod tests {
     use serde_json::json;
 
     use super::*;
-    use crate::config::{CacheConfig, ChainTypesConfig, MemoryConfig};
-    use crate::testkit::config::chain_config;
+    use crate::config::{CacheConfig, ChainConfig, ChainTypesConfig};
 
     #[tokio::test]
     async fn test_result_cache_roundtrip_rebuilds_request_id() {
@@ -90,14 +89,7 @@ mod tests {
             "ethereum": { "cache": [{ "rpc_method": "eth_chainId", "ttl": "1m" }] }
         }))
         .unwrap();
-        let chains = [chain_config(Chain::Ethereum, "https://example.com")];
-        let cache = RequestCache::for_chains(
-            &CacheConfig {
-                memory: MemoryConfig { max: 1_000_000 },
-            },
-            &policies,
-            chains.iter(),
-        );
+        let cache = RequestCache::for_chains(&CacheConfig::mock(), &policies, [ChainConfig::mock(Chain::Ethereum)].iter());
         let request = ProxyRequest::from_http(
             Method::POST,
             HeaderMap::from_iter([(HOST, HeaderValue::from_static("example.com"))]),

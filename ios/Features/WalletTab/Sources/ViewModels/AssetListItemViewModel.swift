@@ -15,6 +15,10 @@ struct AssetListItemViewModel: Identifiable {
         list.id
     }
 
+    var listItem: ListItemModel {
+        ListItemModel(title: name, subtitle: count, imageStyle: .settings(assetImage: image))
+    }
+
     var name: String {
         list.name
     }

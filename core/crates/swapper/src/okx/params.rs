@@ -94,7 +94,6 @@ pub(super) fn build_swap_params(request: &QuoteRequest, route: &QuoteData) -> Re
 
 #[cfg(test)]
 mod tests {
-    use super::super::testkit::{mock_quote_asset_with_symbol, mock_quote_data};
     use super::*;
     use crate::{SwapperSlippage, fees::default_referral_address, testkit::mock_quote};
     use primitives::{
@@ -104,12 +103,6 @@ mod tests {
             SOLANA_USDC_ASSET_ID, SOLANA_USDC_TOKEN_ID, TRON_USDT_TOKEN_ID,
         },
     };
-
-    fn mock_request(from_asset: QuoteAsset, to_asset: QuoteAsset, slippage_bps: u32, mode: SlippageMode) -> QuoteRequest {
-        let mut request = mock_quote(from_asset, to_asset);
-        request.options.slippage = SwapperSlippage { bps: slippage_bps, mode };
-        request
-    }
 
     #[test]
     fn test_slippage_percent() {
@@ -133,32 +126,36 @@ mod tests {
 
     #[test]
     fn test_asset_to_token_address() {
-        let sol = AssetId::from_chain(Chain::Solana).to_string();
-        let eth = AssetId::from_chain(Chain::Ethereum).to_string();
-        let trx = AssetId::from_chain(Chain::Tron).to_string();
-        assert_eq!(asset_to_token_address(&mock_quote_asset_with_symbol(&sol, "")).unwrap(), SOLANA_SYSTEM_PROGRAM_ID);
-        assert_eq!(asset_to_token_address(&mock_quote_asset_with_symbol(&eth, "")).unwrap(), EVM_NATIVE_TOKEN_ADDRESS);
         assert_eq!(
-            asset_to_token_address(&mock_quote_asset_with_symbol(&ETHEREUM_USDC_ASSET_ID.to_string(), "")).unwrap(),
+            asset_to_token_address(&QuoteAsset::mock_with_asset_id(AssetId::from_chain(Chain::Solana), "", 18)).unwrap(),
+            SOLANA_SYSTEM_PROGRAM_ID
+        );
+        assert_eq!(
+            asset_to_token_address(&QuoteAsset::mock_with_asset_id(AssetId::from_chain(Chain::Ethereum), "", 18)).unwrap(),
+            EVM_NATIVE_TOKEN_ADDRESS
+        );
+        assert_eq!(
+            asset_to_token_address(&QuoteAsset::mock_with_asset_id(ETHEREUM_USDC_ASSET_ID.clone(), "", 18)).unwrap(),
             ETHEREUM_USDC_TOKEN_ID
         );
-        assert_eq!(asset_to_token_address(&mock_quote_asset_with_symbol(&trx, "")).unwrap(), TRON_BLACK_HOLE_ADDRESS);
         assert_eq!(
-            asset_to_token_address(&mock_quote_asset_with_symbol(&AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID).to_string(), "")).unwrap(),
+            asset_to_token_address(&QuoteAsset::mock_with_asset_id(AssetId::from_chain(Chain::Tron), "", 18)).unwrap(),
+            TRON_BLACK_HOLE_ADDRESS
+        );
+        assert_eq!(
+            asset_to_token_address(&QuoteAsset::mock_with_asset_id(AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID), "", 18)).unwrap(),
             TRON_USDT_TOKEN_ID
         );
     }
 
     #[test]
     fn test_build_swap_params() {
-        let eth = AssetId::from_chain(Chain::Ethereum).to_string();
-        let evm_request = mock_request(
-            mock_quote_asset_with_symbol(&ETHEREUM_USDC_ASSET_ID.to_string(), ""),
-            mock_quote_asset_with_symbol(&eth, ""),
-            100,
-            SlippageMode::Auto,
+        let mut evm_request = mock_quote(
+            QuoteAsset::mock_with_asset_id(ETHEREUM_USDC_ASSET_ID.clone(), "", 18),
+            QuoteAsset::mock_with_asset_id(AssetId::from_chain(Chain::Ethereum), "", 18),
         );
-        let evm_route = mock_quote_data(ETHEREUM_USDC_TOKEN_ID, EVM_NATIVE_TOKEN_ADDRESS);
+        evm_request.options.slippage.bps = 100;
+        let evm_route = QuoteData::mock(ETHEREUM_USDC_TOKEN_ID, EVM_NATIVE_TOKEN_ADDRESS);
         let evm_params = build_swap_params(&evm_request, &evm_route).unwrap();
         assert_eq!(evm_params.chain_index, "1");
         assert_eq!(evm_params.approve_transaction, Some(true));
@@ -170,28 +167,23 @@ mod tests {
         assert!(evm_params.to_token_referrer_wallet_address.is_some());
         assert!(evm_params.from_token_referrer_wallet_address.is_none());
 
-        let bnb = AssetId::from_chain(Chain::SmartChain).to_string();
-        let cake = AssetId::from_token(Chain::SmartChain, SMARTCHAIN_CAKE_TOKEN_ID).to_string();
-        let bsc_request = mock_request(
-            mock_quote_asset_with_symbol(&bnb, "BNB"),
-            mock_quote_asset_with_symbol(&cake, "CAKE"),
-            100,
-            SlippageMode::Auto,
+        let mut bsc_request = mock_quote(
+            QuoteAsset::mock_with_asset_id(AssetId::from_chain(Chain::SmartChain), "BNB", 18),
+            QuoteAsset::mock_with_asset_id(AssetId::from_token(Chain::SmartChain, SMARTCHAIN_CAKE_TOKEN_ID), "CAKE", 18),
         );
-        let bsc_route = mock_quote_data(EVM_NATIVE_TOKEN_ADDRESS, SMARTCHAIN_CAKE_TOKEN_ID);
+        bsc_request.options.slippage.bps = 100;
+        let bsc_route = QuoteData::mock(EVM_NATIVE_TOKEN_ADDRESS, SMARTCHAIN_CAKE_TOKEN_ID);
         let bsc_params = build_swap_params(&bsc_request, &bsc_route).unwrap();
         let evm_referrer = default_referral_address(Chain::SmartChain);
         assert_eq!(bsc_params.from_token_referrer_wallet_address.as_deref(), Some(evm_referrer.as_str()));
         assert_eq!(bsc_params.to_token_referrer_wallet_address, None);
 
-        let sol = AssetId::from_chain(Chain::Solana).to_string();
-        let sol_request = mock_request(
-            mock_quote_asset_with_symbol(&sol, ""),
-            mock_quote_asset_with_symbol(&SOLANA_USDC_ASSET_ID.to_string(), ""),
-            300,
-            SlippageMode::Auto,
+        let mut sol_request = mock_quote(
+            QuoteAsset::mock_with_asset_id(AssetId::from_chain(Chain::Solana), "", 18),
+            QuoteAsset::mock_with_asset_id(SOLANA_USDC_ASSET_ID.clone(), "", 18),
         );
-        let sol_route = mock_quote_data(SOLANA_SYSTEM_PROGRAM_ID, SOLANA_USDC_TOKEN_ID);
+        sol_request.options.slippage.bps = 300;
+        let sol_route = QuoteData::mock(SOLANA_SYSTEM_PROGRAM_ID, SOLANA_USDC_TOKEN_ID);
         let sol_params = build_swap_params(&sol_request, &sol_route).unwrap();
         assert_eq!(sol_params.chain_index, "501");
         assert!(sol_params.approve_transaction.is_none());
@@ -201,14 +193,12 @@ mod tests {
         assert!(sol_params.from_token_referrer_wallet_address.is_some());
         assert!(sol_params.to_token_referrer_wallet_address.is_none());
 
-        let trx = AssetId::from_chain(Chain::Tron).to_string();
-        let tron_request = mock_request(
-            mock_quote_asset_with_symbol(&trx, ""),
-            mock_quote_asset_with_symbol(&AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID).to_string(), ""),
-            100,
-            SlippageMode::Auto,
+        let mut tron_request = mock_quote(
+            QuoteAsset::mock_with_asset_id(AssetId::from_chain(Chain::Tron), "", 18),
+            QuoteAsset::mock_with_asset_id(AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID), "", 18),
         );
-        let tron_route = mock_quote_data(TRON_BLACK_HOLE_ADDRESS, TRON_USDT_TOKEN_ID);
+        tron_request.options.slippage.bps = 100;
+        let tron_route = QuoteData::mock(TRON_BLACK_HOLE_ADDRESS, TRON_USDT_TOKEN_ID);
         let tron_params = build_swap_params(&tron_request, &tron_route).unwrap();
         assert_eq!(tron_params.chain_index, "195");
         assert_eq!(tron_params.fee_percent, "1.5");
@@ -216,26 +206,22 @@ mod tests {
         assert!(tron_params.from_token_referrer_wallet_address.is_some());
         assert!(tron_params.to_token_referrer_wallet_address.is_none());
 
-        let robinhood = AssetId::from_chain(Chain::Robinhood).to_string();
-        let robinhood_request = mock_request(
-            mock_quote_asset_with_symbol(&robinhood, ""),
-            mock_quote_asset_with_symbol(&ROBINHOOD_USDG_ASSET_ID.to_string(), ""),
-            100,
-            SlippageMode::Auto,
+        let mut robinhood_request = mock_quote(
+            QuoteAsset::mock_with_asset_id(AssetId::from_chain(Chain::Robinhood), "", 18),
+            QuoteAsset::mock_with_asset_id(ROBINHOOD_USDG_ASSET_ID.clone(), "", 18),
         );
-        let robinhood_route = mock_quote_data(EVM_NATIVE_TOKEN_ADDRESS, ROBINHOOD_USDG_TOKEN_ID);
+        robinhood_request.options.slippage.bps = 100;
+        let robinhood_route = QuoteData::mock(EVM_NATIVE_TOKEN_ADDRESS, ROBINHOOD_USDG_TOKEN_ID);
         let robinhood_params = build_swap_params(&robinhood_request, &robinhood_route).unwrap();
         assert_eq!(robinhood_params.chain_index, "4663");
         assert_eq!(robinhood_params.dex_ids, None);
 
-        let plasma = AssetId::from_chain(Chain::Plasma).to_string();
-        let plasma_request = mock_request(
-            mock_quote_asset_with_symbol(&plasma, ""),
-            mock_quote_asset_with_symbol(&PLASMA_USDT_ASSET_ID.to_string(), ""),
-            100,
-            SlippageMode::Auto,
+        let mut plasma_request = mock_quote(
+            QuoteAsset::mock_with_asset_id(AssetId::from_chain(Chain::Plasma), "", 18),
+            QuoteAsset::mock_with_asset_id(PLASMA_USDT_ASSET_ID.clone(), "", 18),
         );
-        let plasma_route = mock_quote_data(EVM_NATIVE_TOKEN_ADDRESS, PLASMA_USDT_TOKEN_ID);
+        plasma_request.options.slippage.bps = 100;
+        let plasma_route = QuoteData::mock(EVM_NATIVE_TOKEN_ADDRESS, PLASMA_USDT_TOKEN_ID);
         let plasma_params = build_swap_params(&plasma_request, &plasma_route).unwrap();
         assert_eq!(plasma_params.chain_index, "9745");
         assert_eq!(plasma_params.dex_ids, None);
@@ -243,14 +229,12 @@ mod tests {
 
     #[test]
     fn test_build_swap_params_exact_slippage_disables_auto() {
-        let eth = AssetId::from_chain(Chain::Ethereum).to_string();
-        let evm_request = mock_request(
-            mock_quote_asset_with_symbol(&ETHEREUM_USDC_ASSET_ID.to_string(), ""),
-            mock_quote_asset_with_symbol(&eth, ""),
-            100,
-            SlippageMode::Exact,
+        let mut evm_request = mock_quote(
+            QuoteAsset::mock_with_asset_id(ETHEREUM_USDC_ASSET_ID.clone(), "", 18),
+            QuoteAsset::mock_with_asset_id(AssetId::from_chain(Chain::Ethereum), "", 18),
         );
-        let evm_route = mock_quote_data(ETHEREUM_USDC_TOKEN_ID, EVM_NATIVE_TOKEN_ADDRESS);
+        evm_request.options.slippage = SwapperSlippage::mock_exact(100);
+        let evm_route = QuoteData::mock(ETHEREUM_USDC_TOKEN_ID, EVM_NATIVE_TOKEN_ADDRESS);
         let evm_params = build_swap_params(&evm_request, &evm_route).unwrap();
 
         assert_eq!(evm_params.auto_slippage, Some(false));
@@ -260,12 +244,11 @@ mod tests {
 
     #[test]
     fn test_build_quote_params() {
-        let request = mock_request(
-            mock_quote_asset_with_symbol(&AssetId::from_chain(Chain::Solana).to_string(), ""),
-            mock_quote_asset_with_symbol(&SOLANA_USDC_ASSET_ID.to_string(), ""),
-            300,
-            SlippageMode::Auto,
+        let mut request = mock_quote(
+            QuoteAsset::mock_with_asset_id(AssetId::from_chain(Chain::Solana), "", 18),
+            QuoteAsset::mock_with_asset_id(SOLANA_USDC_ASSET_ID.clone(), "", 18),
         );
+        request.options.slippage.bps = 300;
         let params = build_quote_params(&request).unwrap();
 
         assert_eq!(params.chain_index, "501");

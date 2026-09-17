@@ -2,9 +2,9 @@
 
 import enum Gemstone.GemHeaderButtonKind
 import struct Gemstone.GemPerpetualMarketCounts
+import enum Gemstone.GemPerpetualMarketSection
 import struct Gemstone.GemPerpetualMarketSections
 import protocol Gemstone.GemRecentActivityServiceProtocol
-import class Gemstone.GemRecentActivityService
 import GemstonePrimitives
 import enum Gemstone.GemMarketsRefreshTrigger
 import protocol Gemstone.GemPerpetualServiceProtocol
@@ -81,18 +81,6 @@ public final class PerpetualsSceneViewModel {
         Localized.Perpetuals.title
     }
 
-    var positionsSectionTitle: String {
-        Localized.Perpetual.positions
-    }
-
-    var marketsSectionTitle: String {
-        Localized.Perpetuals.markets
-    }
-
-    var pinnedSectionTitle: String {
-        Localized.Common.pinned
-    }
-
     var emptyContentModel: EmptyContentTypeViewModel {
         EmptyContentTypeViewModel(type: .search(type: .perpetuals))
     }
@@ -114,24 +102,16 @@ public final class PerpetualsSceneViewModel {
         ).sections(isSearching: isSearching, isQueryEmpty: searchQuery.isEmpty)
     }
 
-    var showPositions: Bool {
-        marketSections.showsPositions
+    var marketSectionList: [GemPerpetualMarketSection] {
+        marketSections.list()
     }
 
-    var showPinned: Bool {
-        marketSections.showsPinned
-    }
-
-    var showMarkets: Bool {
-        marketSections.showsMarkets
-    }
-
-    var showRecents: Bool {
-        marketSections.showsRecents
+    var marketSectionModels: [PerpetualMarketSectionViewModel] {
+        marketSectionList.map { PerpetualMarketSectionViewModel(section: $0) }
     }
 
     var showSearchEmptyState: Bool {
-        marketSections.showsEmpty
+        marketSectionList.contains(.empty)
     }
 
     var sections: PerpetualsSections {

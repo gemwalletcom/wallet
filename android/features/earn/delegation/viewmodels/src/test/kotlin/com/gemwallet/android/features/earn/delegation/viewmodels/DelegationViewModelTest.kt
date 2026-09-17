@@ -69,12 +69,14 @@ class DelegationViewModelTest {
                 every { getCurrency() } returns Currency.USD.toGem()
             },
             getSession = getSession,
+            ioDispatcher = testDispatcher,
             savedStateHandle = SavedStateHandle(
                 mapOf(
                     RouteArgument.ValidatorId.key to "v1",
                     RouteArgument.DelegationId.key to "d1",
                 )
             ),
+            context = mockk(relaxed = true),
         )
         runCurrent()
 

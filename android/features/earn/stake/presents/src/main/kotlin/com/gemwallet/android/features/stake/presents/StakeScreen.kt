@@ -5,11 +5,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.features.stake.viewmodels.StakeViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
-import com.gemwallet.android.features.stake.viewmodels.StakeViewModel
 
 @Composable
 fun StakeScreen(
@@ -22,13 +22,11 @@ fun StakeScreen(
     val inSync by viewModel.isSync.collectAsStateWithLifecycle()
     val assetInfo by viewModel.assetInfo.collectAsStateWithLifecycle()
     val delegations by viewModel.delegations.collectAsStateWithLifecycle()
-    val actions by viewModel.actions.collectAsStateWithLifecycle()
+    val actions by viewModel.actionRows.collectAsStateWithLifecycle()
     val rewardsText by viewModel.rewardsText.collectAsStateWithLifecycle()
     val stakeInfoUrl by viewModel.stakeInfoUrl.collectAsStateWithLifecycle()
-    val validatorRows by viewModel.validatorRows.collectAsStateWithLifecycle()
-    val lockTimeDays by viewModel.lockTimeDays.collectAsStateWithLifecycle()
-    val minStakeAmount by viewModel.minStakeAmount.collectAsStateWithLifecycle()
-    val usesFreeze by viewModel.usesFreeze.collectAsStateWithLifecycle()
+    val sections by viewModel.sections.collectAsStateWithLifecycle()
+    val infoRows by viewModel.infoRows.collectAsStateWithLifecycle()
 
     val stakeAssetInfo = assetInfo
     if (stakeAssetInfo == null) {
@@ -40,20 +38,17 @@ fun StakeScreen(
         StakeScene(
             inSync = inSync,
             assetInfo = stakeAssetInfo,
-            delegations = delegations,
-            validatorRows = validatorRows,
             actions = actions,
             rewardsText = rewardsText,
             stakeInfoUrl = stakeInfoUrl,
-            lockTimeDays = lockTimeDays,
-            minStakeAmount = minStakeAmount,
-            usesFreeze = usesFreeze,
+            sections = sections,
+            infoRows = infoRows,
             amountAction = amountAction,
             onAction = { action ->
                 when (action) {
                     StakeSceneAction.Refresh -> viewModel.onRefresh()
                     StakeSceneAction.ClaimRewards -> viewModel.onRewards(amountAction, onConfirm)
-                    is StakeSceneAction.OpenDelegation -> viewModel.onDelegation(action.delegation, onDelegation, onConfirm)
+                    is StakeSceneAction.OpenDelegation -> viewModel.onDelegation(action.delegation, onDelegation, amountAction, onConfirm)
                     StakeSceneAction.Cancel -> onCancel()
                 }
             },

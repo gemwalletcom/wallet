@@ -27,6 +27,7 @@ settings = { path = "../settings" }
 
 [dev-dependencies]
 gem_client = { path = "../gem_client", features = ["testkit"] }
+settings = { path = "../settings", features = ["testkit"] }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
 [[test]]

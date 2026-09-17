@@ -24,10 +24,8 @@ public struct ManageContactAddressScene: View {
 
     public var body: some View {
         List {
-            chainSection
-            addressSection
-            if model.showMemo {
-                memoSection
+            ForEach(model.fieldList) { field in
+                section(for: field)
             }
         }
         .toolbar {
@@ -58,6 +56,15 @@ public struct ManageContactAddressScene: View {
 // MARK: - UI Components
 
 extension ManageContactAddressScene {
+    @ViewBuilder
+    private func section(for field: ContactAddressField) -> some View {
+        switch field {
+        case .network: chainSection
+        case .address: addressSection
+        case .memo: memoSection
+        }
+    }
+
     private var chainSection: some View {
         Section(model.networkTitle) {
             NavigationLink(value: Scenes.NetworksSelector()) {

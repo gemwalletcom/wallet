@@ -2,7 +2,7 @@
 
 import Foundation
 import Gemstone
-import class Gemstone.GemPaymentService
+import protocol Gemstone.GemPaymentServiceProtocol
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -16,7 +16,7 @@ public enum PaymentDestinationBuilder {
     public static func transfer(
         payment: Gemstone.PaymentRequest,
         asset: Primitives.Asset,
-        paymentService: GemPaymentService,
+        paymentService: any GemPaymentServiceProtocol,
     ) throws -> TransferDestination {
         switch paymentService.transferDestination(request: payment, asset: asset.paymentWalletAsset) {
         case let .confirm(transfer):
@@ -31,7 +31,7 @@ public enum PaymentDestinationBuilder {
     public static func build(
         payment: Gemstone.PaymentRequest,
         assets: [AssetData],
-        paymentService: GemPaymentService,
+        paymentService: any GemPaymentServiceProtocol,
     ) throws -> PaymentDestination {
         switch paymentService.destination(request: payment, assets: assets.map { $0.asset.paymentWalletAsset }) {
         case let .confirm(transfer):
@@ -60,7 +60,7 @@ public enum PaymentDestinationBuilder {
     public static func build(
         transaction: GemPaymentTransaction,
         asset: Primitives.Asset,
-        paymentService: GemPaymentService,
+        paymentService: any GemPaymentServiceProtocol,
     ) -> PaymentDestination {
         .confirm(paymentService.transactionTransferData(transaction: transaction, asset: asset.toGem()))
     }

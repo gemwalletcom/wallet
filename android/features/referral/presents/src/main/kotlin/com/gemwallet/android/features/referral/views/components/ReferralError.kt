@@ -12,6 +12,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.gemwallet.android.features.referral.viewmodels.models.ReferralUIModel
+import com.gemwallet.android.features.referral.views.previewRewardsState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.listItem
@@ -22,10 +24,8 @@ import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.tinyIconSize
-import com.gemwallet.android.features.referral.views.previewRewardsState
-import uniffi.gemstone.GemRewardsState
 
-internal fun LazyListScope.referralError(uiState: GemRewardsState) {
+internal fun LazyListScope.referralError(uiState: ReferralUIModel) {
     val reason = uiState.disableReason ?: return
     item {
         Column(

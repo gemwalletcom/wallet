@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import struct Gemstone.GemWalletRow
 import Primitives
 import PrimitivesComponents
 import Style
@@ -19,7 +18,10 @@ struct SelectWalletScene: View {
     var body: some View {
         SelectableListView(
             model: $model,
-            onFinishSelection: onSelect,
+            onFinishSelection: { rows in
+                model.selectedItems = rows.asSet()
+                dismiss()
+            },
             listContent: {
                 SimpleListItemView(model: $0)
             },
@@ -29,10 +31,3 @@ struct SelectWalletScene: View {
 }
 
 // MARK: - Actions
-
-extension SelectWalletScene {
-    private func onSelect(rows: [GemWalletRow]) {
-        model.selectedItems = rows.asSet()
-        dismiss()
-    }
-}

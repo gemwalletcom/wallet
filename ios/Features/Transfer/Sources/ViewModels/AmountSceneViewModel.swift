@@ -8,7 +8,6 @@ import enum Gemstone.GemAmountError
 import struct Gemstone.GemAmountInput
 import enum Gemstone.GemAmountInputType
 import protocol Gemstone.GemAmountServiceProtocol
-import struct Gemstone.GemNumberFormat
 import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import GemstoneServices
@@ -19,7 +18,6 @@ import Primitives
 import PrimitivesComponents
 import Store
 import Style
-import Validators
 
 @MainActor
 @Observable
@@ -235,8 +233,9 @@ extension AmountSceneViewModel {
 private extension AmountSceneViewModel {
     func setMax() {
         let max = input.maxEntry()
+        guard let text = NumberInput.format().inputText(value: max.value.description, decimals: UInt32(asset.decimals)) else { return }
         amountInputType = max.inputType
-        amountInputModel.text = formatter.string(max.value, decimals: asset.decimals.asInt)
+        amountInputModel.text = text
         refreshEntry()
     }
 

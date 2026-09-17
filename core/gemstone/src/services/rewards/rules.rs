@@ -1,10 +1,11 @@
-use chrono::{DateTime, Utc};
-use number_formatter::BigNumberFormatter;
 use crate::formatted_number::GemFormattedNumber;
 use crate::precision::GemValueStyle;
+use chrono::{DateTime, Utc};
+use number_formatter::BigNumberFormatter;
 use primitives::{CoreEmoji, RewardRedemptionOption, RewardStatus, Rewards};
 
 use super::model::{GemRewardsRedemption, GemRewardsState};
+use crate::config::rewards::get_referral_url;
 
 pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
     let Some(rewards) = rewards else {
@@ -16,6 +17,7 @@ pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
     let has_referral_code = has_value(rewards.code.as_deref());
     let has_used_referral_code = has_value(rewards.used_referral_code.as_deref());
     let has_pending_referral = has_used_referral_code && rewards.verify_after.is_some();
+    let referral_code = rewards.code.clone().filter(|code| !code.is_empty());
     GemRewardsState {
         has_referral_code,
         has_used_referral_code,
@@ -26,7 +28,8 @@ pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
         has_pending_referral,
         can_activate_pending_referral: has_pending_referral && rewards.verify_after.is_some_and(|verify_after| now >= verify_after),
         invite_reward_points: rewards.invite_reward_points,
-        referral_code: rewards.code.clone().filter(|code| !code.is_empty()),
+        referral_code: referral_code.clone(),
+        referral_link: referral_code.as_deref().map(get_referral_url),
         used_referral_code: rewards.used_referral_code.clone().filter(|code| !code.is_empty()),
         verify_after: rewards.verify_after,
         disable_reason: rewards.disable_reason.clone(),
@@ -67,6 +70,22 @@ fn has_value(code: Option<&str>) -> bool {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn test_state_carries_the_referral_link() {
+        let rewards = Rewards {
+            code: Some("abc123".to_string()),
+            ..Rewards::default()
+        };
+        let with_code = super::state(Some(&rewards), Utc::now());
+        assert_eq!(with_code.referral_code.as_deref(), Some("abc123"));
+        assert_eq!(with_code.referral_link, Some(get_referral_url("abc123")));
+
+        let without_code = super::state(Some(&Rewards::default()), Utc::now());
+        assert_eq!(without_code.referral_code, None);
+        assert_eq!(without_code.referral_link, None);
+    }
+
     #[test]
     fn test_points_read_with_the_gem_glyph() {
         assert_eq!(points_text(250), "250 \u{1f48e}");
@@ -75,37 +94,10 @@ mod tests {
     use super::*;
     use chrono::TimeDelta;
     use num_bigint::BigUint;
-    use primitives::{Asset, RewardRedemptionType};
+    use primitives::Asset;
 
     fn now() -> DateTime<Utc> {
         DateTime::from_timestamp(1_767_694_414, 0).unwrap()
-    }
-
-    fn rewards(code: Option<&str>, status: RewardStatus) -> Rewards {
-        Rewards {
-            code: code.map(str::to_string),
-            status,
-            ..Rewards::default()
-        }
-    }
-
-    fn pending(code: Option<&str>, verify_after: DateTime<Utc>) -> Rewards {
-        Rewards {
-            used_referral_code: Some("friend".to_string()),
-            verify_after: Some(verify_after),
-            ..rewards(code, RewardStatus::Pending)
-        }
-    }
-
-    fn option(id: &str, points: i32, remaining: Option<i32>, asset: Option<Asset>) -> RewardRedemptionOption {
-        RewardRedemptionOption {
-            id: id.to_string(),
-            redemption_type: RewardRedemptionType::Asset,
-            points,
-            asset,
-            value: BigUint::from(1u32),
-            remaining,
-        }
     }
 
     #[test]
@@ -115,7 +107,7 @@ mod tests {
             points: 1000,
             redemption_options: vec![RewardRedemptionOption {
                 value: BigUint::from(25_000_000_000_000_000u64),
-                ..option("one", 10, None, Some(asset.clone()))
+                ..RewardRedemptionOption::mock(Some(asset.clone()))
             }],
             ..Rewards::default()
         };
@@ -131,11 +123,33 @@ mod tests {
         let rewards = Rewards {
             points: 100,
             redemption_options: vec![
-                option("affordable", 100, None, asset.clone()),
-                option("too-expensive", 101, None, asset.clone()),
-                option("sold-out", 10, Some(0), asset.clone()),
-                option("last-one", 10, Some(1), asset),
-                option("no-asset", 10, None, None),
+                RewardRedemptionOption {
+                    id: "affordable".to_string(),
+                    points: 100,
+                    ..RewardRedemptionOption::mock(asset.clone())
+                },
+                RewardRedemptionOption {
+                    id: "too-expensive".to_string(),
+                    points: 101,
+                    ..RewardRedemptionOption::mock(asset.clone())
+                },
+                RewardRedemptionOption {
+                    id: "sold-out".to_string(),
+                    points: 10,
+                    remaining: Some(0),
+                    ..RewardRedemptionOption::mock(asset.clone())
+                },
+                RewardRedemptionOption {
+                    id: "last-one".to_string(),
+                    points: 10,
+                    remaining: Some(1),
+                    ..RewardRedemptionOption::mock(asset)
+                },
+                RewardRedemptionOption {
+                    id: "no-asset".to_string(),
+                    points: 10,
+                    ..RewardRedemptionOption::mock(None)
+                },
             ],
             ..Rewards::default()
         };
@@ -176,7 +190,7 @@ mod tests {
             points: 250,
             invite_reward_points: 150,
             disable_reason: Some("verification required".to_string()),
-            ..rewards(Some("gem"), RewardStatus::Verified)
+            ..Rewards::mock(Some("gem"), RewardStatus::Verified)
         };
 
         let state = state(Some(&rewards), now());
@@ -191,7 +205,7 @@ mod tests {
 
     #[test]
     fn test_state_reads_an_empty_code_as_no_code() {
-        let state = state(Some(&rewards(Some(""), RewardStatus::Unverified)), now());
+        let state = state(Some(&Rewards::mock(Some(""), RewardStatus::Unverified)), now());
 
         assert_eq!(state.referral_code, None);
         assert_eq!(state.used_referral_code, None);
@@ -199,7 +213,7 @@ mod tests {
 
     #[test]
     fn test_state_without_a_code_lets_the_wallet_start_or_use_a_code() {
-        let state = state(Some(&rewards(Some(""), RewardStatus::Unverified)), now());
+        let state = state(Some(&Rewards::mock(Some(""), RewardStatus::Unverified)), now());
 
         assert!(!state.has_referral_code);
         assert!(state.can_use_referral_code);
@@ -211,26 +225,26 @@ mod tests {
     #[test]
     fn test_state_invites_only_from_a_verified_trusted_or_attribution_code() {
         for status in [RewardStatus::Verified, RewardStatus::Trusted, RewardStatus::Attribution] {
-            let state = state(Some(&rewards(Some("gem"), status)), now());
+            let state = state(Some(&Rewards::mock(Some("gem"), status)), now());
             assert!(state.can_invite, "{status:?}");
             assert!(state.shows_info);
             assert!(!state.can_use_referral_code);
             assert!(!state.is_unverified);
         }
         for status in [RewardStatus::Unverified, RewardStatus::Pending, RewardStatus::Disabled] {
-            assert!(!state(Some(&rewards(Some("gem"), status)), now()).can_invite, "{status:?}");
+            assert!(!state(Some(&Rewards::mock(Some("gem"), status)), now()).can_invite, "{status:?}");
         }
     }
 
     #[test]
     fn test_state_flags_an_unverified_code_until_a_referral_is_pending() {
-        assert!(state(Some(&rewards(Some("gem"), RewardStatus::Unverified)), now()).is_unverified);
-        assert!(!state(Some(&rewards(None, RewardStatus::Unverified)), now()).is_unverified);
+        assert!(state(Some(&Rewards::mock(Some("gem"), RewardStatus::Unverified)), now()).is_unverified);
+        assert!(!state(Some(&Rewards::mock(None, RewardStatus::Unverified)), now()).is_unverified);
 
         let pending = Rewards {
-            used_referral_code: Some("friend".to_string()),
-            verify_after: Some(now() + TimeDelta::hours(1)),
-            ..rewards(Some("gem"), RewardStatus::Unverified)
+            code: Some("gem".to_string()),
+            status: RewardStatus::Unverified,
+            ..Rewards::mock_pending(now() + TimeDelta::hours(1))
         };
         let state = state(Some(&pending), now());
         assert!(!state.is_unverified);
@@ -239,18 +253,19 @@ mod tests {
 
     #[test]
     fn test_state_activates_a_pending_referral_once_verify_after_is_reached() {
-        let waiting = state(Some(&pending(None, now() + TimeDelta::hours(1))), now());
+        let waiting = state(Some(&Rewards::mock_pending(now() + TimeDelta::hours(1))), now());
         assert!(waiting.has_pending_referral);
         assert!(!waiting.can_activate_pending_referral);
         assert!(waiting.shows_info);
         assert!(!waiting.can_use_referral_code);
 
-        assert!(state(Some(&pending(None, now())), now()).can_activate_pending_referral);
-        assert!(state(Some(&pending(None, now() - TimeDelta::seconds(1))), now()).can_activate_pending_referral);
+        assert!(state(Some(&Rewards::mock_pending(now())), now()).can_activate_pending_referral);
+        assert!(state(Some(&Rewards::mock_pending(now() - TimeDelta::seconds(1))), now()).can_activate_pending_referral);
 
         let without_used_code = Rewards {
+            code: Some("gem".to_string()),
             used_referral_code: None,
-            ..pending(Some("gem"), now() - TimeDelta::hours(1))
+            ..Rewards::mock_pending(now() - TimeDelta::hours(1))
         };
         let state = state(Some(&without_used_code), now());
         assert!(!state.has_pending_referral);

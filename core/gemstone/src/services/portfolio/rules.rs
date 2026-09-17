@@ -79,10 +79,7 @@ pub fn perpetual_portfolio_data(portfolio: PerpetualPortfolio, period: ChartPeri
         statistics.push(PortfolioStatistic::UnrealizedPnl { value: summary.unrealized_pnl });
         statistics.push(PortfolioStatistic::AccountLeverage { value: summary.account_leverage });
         statistics.push(PortfolioStatistic::MarginUsage {
-            value: PortfolioMarginUsage {
-                account_value: summary.account_value,
-                usage: summary.margin_usage,
-            },
+            value: PortfolioMarginUsage::new(summary.account_value, summary.margin_usage),
         });
     }
     if let Some(all_time) = &portfolio.all_time {
@@ -123,7 +120,7 @@ fn timeframe_data(portfolio: &PerpetualPortfolio, period: ChartPeriod) -> Option
 
 #[cfg(test)]
 mod tests {
-    use chrono::{DateTime, Utc};
+    use chrono::Utc;
     use primitives::{ChartDateValue, ChartValue, PerpetualAccountSummary};
 
     use super::*;
@@ -140,19 +137,15 @@ mod tests {
 
     #[test]
     fn test_portfolio_chart_data_picks_the_chart_the_screen_asked_for() {
-        let point = |seconds: i64, value: f64| ChartDateValue {
-            date: DateTime::from_timestamp(seconds, 0).unwrap(),
-            value,
-        };
         let data = PortfolioData {
             charts: vec![
                 PortfolioChartData {
                     chart_type: PortfolioChartType::Pnl,
-                    values: vec![point(1, 1.0), point(2, 3.0)],
+                    values: vec![ChartDateValue::mock(1, 1.0), ChartDateValue::mock(2, 3.0)],
                 },
                 PortfolioChartData {
                     chart_type: PortfolioChartType::Value,
-                    values: vec![point(1, 10.0), point(2, 12.0)],
+                    values: vec![ChartDateValue::mock(1, 10.0), ChartDateValue::mock(2, 12.0)],
                 },
             ],
             statistics: vec![],
@@ -180,14 +173,13 @@ mod tests {
 
     #[test]
     fn test_converted_portfolio_applies_rate_to_values_and_extremes() {
-        let now = Utc::now();
         let portfolio = PortfolioAssets {
             total_value: 10.0,
             values: vec![ChartValue { timestamp: 2, value: 2.0 }, ChartValue { timestamp: 1, value: 1.0 }],
             all_time_high: Some(ChartValuePercentage {
-                date: now,
                 value: 4.0,
                 percentage: 10.0,
+                ..ChartValuePercentage::mock()
             }),
             all_time_low: None,
             allocation: vec![],
@@ -223,12 +215,16 @@ mod tests {
                 PortfolioStatistic::UnrealizedPnl { value: 7.0 },
                 PortfolioStatistic::AccountLeverage { value: 2.0 },
                 PortfolioStatistic::MarginUsage {
-                    value: PortfolioMarginUsage { account_value: 100.0, usage: 0.5 }
+                    value: PortfolioMarginUsage::new(100.0, 0.5)
                 },
                 PortfolioStatistic::AllTimePnl { value: 50.0 },
                 PortfolioStatistic::Volume { value: 5000.0 },
             ]
         );
+        let margin = PortfolioMarginUsage::new(100.0, 0.5);
+        assert_eq!(margin.used_value, 50.0);
+        assert_eq!(margin.usage_percent, 50.0);
+
         assert_eq!(data.available_periods, vec![ChartPeriod::Day, ChartPeriod::Year, ChartPeriod::All]);
 
         let without_summary = perpetual_portfolio_data(PerpetualPortfolio::mock(), ChartPeriod::Week);

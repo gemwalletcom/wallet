@@ -2,15 +2,12 @@ use gem_encoding::encode_base64;
 use gem_hash::{keccak::keccak256, sha2::sha256};
 use k256::{PublicKey, elliptic_curve::sec1::ToSec1Point};
 use num_bigint::BigUint;
-use primitives::{ChainSigner, SignerError, SignerInput, TransactionLoadMetadata, chain_cosmos::CosmosChain};
+use primitives::{ChainSigner, SignerError, SignerInput, chain_cosmos::CosmosChain};
 use signer::{SignatureScheme, Signer};
 
 use super::transaction::{self, COSMOS_SECP256K1_PUBKEY_TYPE, CosmosTxParams, INJECTIVE_ETHSECP256K1_PUBKEY_TYPE};
 use crate::models::{Coin, CosmosMessage};
 
-const BASE_FEE_GAS_UNITS: u64 = 200_000;
-const GAS_BUFFER_NUMERATOR: u64 = 13;
-const GAS_BUFFER_DENOMINATOR: u64 = 10;
 const DEFAULT_STAKE_MEMO: &str = "Stake via Gem Wallet";
 
 #[derive(Default)]
@@ -31,28 +28,18 @@ impl ChainSigner for CosmosChainSigner {
     fn sign_swap(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
         let swap_data = input.input_type.get_swap_data()?;
         let chain = Self::chain(input)?;
-
         let messages = CosmosMessage::parse_array(&swap_data.data.data)?;
-        // Prefer the provider's gas limit (with buffer); fall back to the preloaded swap gas
-        // limit scaled by message count when the provider omits it.
-        let gas_limit = match swap_data.data.gas_limit.as_ref().and_then(|g| g.parse::<u64>().ok()).filter(|&g| g > 0) {
-            Some(provider_gas) => (provider_gas as u128 * GAS_BUFFER_NUMERATOR as u128 / GAS_BUFFER_DENOMINATOR as u128) as u64,
-            None => Self::gas_limit(input, messages.len())?,
-        };
-        let fee_amount = Self::scale_fee(gas_limit, input.fee.gas_price_u64()?);
         let memo = input.memo.as_deref().unwrap_or("");
 
-        Ok(vec![Self::sign_messages(chain, &input.metadata, messages, gas_limit, fee_amount, memo, private_key)?])
+        Ok(vec![Self::sign_messages(chain, input, messages, memo, private_key)?])
     }
 
     fn sign_stake(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
         let chain = Self::chain(input)?;
         let messages = transaction::stake_messages(input, chain)?;
-        let gas_limit = Self::gas_limit(input, messages.len())?;
-        let fee_amount = input.fee.fee.to_biguint().ok_or_else(|| SignerError::invalid_input("invalid cosmos fee"))?;
         let memo = input.memo.as_deref().filter(|m| !m.is_empty()).unwrap_or(DEFAULT_STAKE_MEMO);
 
-        Ok(vec![Self::sign_messages(chain, &input.metadata, messages, gas_limit, fee_amount, memo, private_key)?])
+        Ok(vec![Self::sign_messages(chain, input, messages, memo, private_key)?])
     }
 }
 
@@ -90,19 +77,6 @@ impl CosmosChainSigner {
         }
     }
 
-    fn gas_limit(input: &SignerInput, message_count: usize) -> Result<u64, SignerError> {
-        let message_count = u64::try_from(message_count).map_err(|_| SignerError::invalid_input("too many messages"))?;
-        input
-            .fee
-            .gas_limit()?
-            .checked_mul(message_count)
-            .ok_or_else(|| SignerError::invalid_input("gas limit overflow"))
-    }
-
-    fn scale_fee(gas_limit: u64, base_fee: u64) -> BigUint {
-        BigUint::from(gas_limit) * BigUint::from(base_fee) / BigUint::from(BASE_FEE_GAS_UNITS)
-    }
-
     fn fee_coins(chain: CosmosChain, fee_amount: BigUint) -> Vec<Coin> {
         match chain {
             CosmosChain::Thorchain | CosmosChain::Mayachain => vec![],
@@ -116,24 +90,15 @@ impl CosmosChainSigner {
     fn sign_send(chain: CosmosChain, input: &SignerInput, denom: &str, private_key: &[u8]) -> Result<String, SignerError> {
         let amount = input.value.clone();
         let message = transaction::transfer_message(input, denom, amount);
-        let gas_limit = Self::gas_limit(input, 1)?;
-        let fee_amount = input.fee.fee.to_biguint().ok_or_else(|| SignerError::invalid_input("invalid cosmos fee"))?;
         let memo = input.memo.as_deref().unwrap_or("");
-        Self::sign_messages(chain, &input.metadata, vec![message], gas_limit, fee_amount, memo, private_key)
+        Self::sign_messages(chain, input, vec![message], memo, private_key)
     }
 
-    fn sign_messages(
-        chain: CosmosChain,
-        metadata: &TransactionLoadMetadata,
-        messages: Vec<CosmosMessage>,
-        gas_limit: u64,
-        fee_amount: BigUint,
-        memo: &str,
-        private_key: &[u8],
-    ) -> Result<String, SignerError> {
-        let account_number = metadata.get_account_number()?;
-        let sequence = metadata.get_sequence()?;
-        let chain_id = metadata.get_chain_id()?;
+    fn sign_messages(chain: CosmosChain, input: &SignerInput, messages: Vec<CosmosMessage>, memo: &str, private_key: &[u8]) -> Result<String, SignerError> {
+        let account_number = input.metadata.get_account_number()?;
+        let sequence = input.metadata.get_sequence()?;
+        let chain_id = input.metadata.get_chain_id()?;
+        let fee_amount = input.fee.fee.to_biguint().ok_or_else(|| SignerError::invalid_input("invalid cosmos fee"))?;
         let encoded: Vec<Vec<u8>> = messages.iter().map(|m| m.encode_as_any(chain)).collect::<Result<Vec<_>, _>>()?;
         let body_bytes = CosmosTxParams::encode_tx_body(&encoded, memo);
 
@@ -143,7 +108,7 @@ impl CosmosChainSigner {
             account_number,
             sequence,
             fee_coins: Self::fee_coins(chain, fee_amount),
-            gas_limit,
+            gas_limit: input.fee.gas_limit()?,
             pubkey_type: Self::pubkey_type(chain),
         };
 
@@ -302,21 +267,21 @@ mod tests {
             "Cq4BCpUBCiMvY29zbW9zLnN0YWtpbmcudjFiZXRhMS5Nc2dEZWxlZ2F0ZRJuCitvc21vMWtnbGVtdW11OG1uNjU4ajZnNHo5anpuM3plZjJxZHl5dmtsd2EzEjJvc21vdmFsb3BlcjFweHBodGZocW54OW55MjdkNTN6NDA1MmUzcjc2ZTdxcTQ5NWVobRoLCgV1b3NtbxICMTASFFN0YWtlIHZpYSBHZW0gV2FsbGV0EmgKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQMslcYn7DhPe5b/8lM3FnPXhGBj5SdC15+XI1hZ1gYbBBIECgIIARgKEhQKDgoFdW9zbW8SBTEwMDAwEMCaDBpAxh9uwNZvql2fODCEAp4XhucO1cxXYrz2oMEkat+wvJEP1VDlai4ZnLz+n9mRbgjF143EfsaonoEh36uQKYOWuQ=="
         );
 
-        let undelegate = SignerInput::mock_osmosis(
+        let undelegate = SignerInput::mock_osmosis_with_gas_limit(
             TransactionInputType::Stake {
                 asset: Asset::from_chain(Chain::Osmosis),
                 stake_type: StakeType::Unstake(Delegation::mock_osmosis(OSMO_VALIDATOR)),
             },
             "",
+            400_000,
         );
-        // Auto-claims pending rewards before unstake.
         let signed = signer.sign_stake(&undelegate, &private_key).unwrap();
         assert_eq!(
             signed_tx_bytes(&signed[0]),
             "Cs8CCpwBCjcvY29zbW9zLmRpc3RyaWJ1dGlvbi52MWJldGExLk1zZ1dpdGhkcmF3RGVsZWdhdG9yUmV3YXJkEmEKK29zbW8xa2dsZW11bXU4bW42NThqNmc0ejlqem4zemVmMnFkeXl2a2x3YTMSMm9zbW92YWxvcGVyMXB4cGh0Zmhxbng5bnkyN2Q1M3o0MDUyZTNyNzZlN3FxNDk1ZWhtCpcBCiUvY29zbW9zLnN0YWtpbmcudjFiZXRhMS5Nc2dVbmRlbGVnYXRlEm4KK29zbW8xa2dsZW11bXU4bW42NThqNmc0ejlqem4zemVmMnFkeXl2a2x3YTMSMm9zbW92YWxvcGVyMXB4cGh0Zmhxbng5bnkyN2Q1M3o0MDUyZTNyNzZlN3FxNDk1ZWhtGgsKBXVvc21vEgIxMBIUU3Rha2UgdmlhIEdlbSBXYWxsZXQSaApQCkYKHy9jb3Ntb3MuY3J5cHRvLnNlY3AyNTZrMS5QdWJLZXkSIwohAyyVxifsOE97lv/yUzcWc9eEYGPlJ0LXn5cjWFnWBhsEEgQKAggBGAoSFAoOCgV1b3NtbxIFMTAwMDAQgLUYGkCA133uwfd5FIq0KwZtG+gduTmeUmvgZ4dFmxLb23a37zBIOAx26XVJQ9PNDD2tFlODaVLjnN+a2saa4KOXz/wG"
         );
 
-        let redelegate = SignerInput::mock_osmosis(
+        let redelegate = SignerInput::mock_osmosis_with_gas_limit(
             TransactionInputType::Stake {
                 asset: Asset::from_chain(Chain::Osmosis),
                 stake_type: StakeType::Redelegate(RedelegateData {
@@ -325,6 +290,7 @@ mod tests {
                 }),
             },
             "",
+            400_000,
         );
         let signed = signer.sign_stake(&redelegate, &private_key).unwrap();
         assert_eq!(
@@ -332,12 +298,13 @@ mod tests {
             "CokDCpwBCjcvY29zbW9zLmRpc3RyaWJ1dGlvbi52MWJldGExLk1zZ1dpdGhkcmF3RGVsZWdhdG9yUmV3YXJkEmEKK29zbW8xa2dsZW11bXU4bW42NThqNmc0ejlqem4zemVmMnFkeXl2a2x3YTMSMm9zbW92YWxvcGVyMXB4cGh0Zmhxbng5bnkyN2Q1M3o0MDUyZTNyNzZlN3FxNDk1ZWhtCtEBCiovY29zbW9zLnN0YWtpbmcudjFiZXRhMS5Nc2dCZWdpblJlZGVsZWdhdGUSogEKK29zbW8xa2dsZW11bXU4bW42NThqNmc0ejlqem4zemVmMnFkeXl2a2x3YTMSMm9zbW92YWxvcGVyMXB4cGh0Zmhxbng5bnkyN2Q1M3o0MDUyZTNyNzZlN3FxNDk1ZWhtGjJvc21vdmFsb3BlcjF6MHNoNHM4MHU5OWw2eTlkM3ZmeTU4MnA4amVqZWV1NnRjdWNzMiILCgV1b3NtbxICMTASFFN0YWtlIHZpYSBHZW0gV2FsbGV0EmgKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQMslcYn7DhPe5b/8lM3FnPXhGBj5SdC15+XI1hZ1gYbBBIECgIIARgKEhQKDgoFdW9zbW8SBTEwMDAwEIC1GBpAPgfCbDv4AFbBsGokEl26JCKuyt7R0PN2/jHsBnva4dQqd7kxKIIwGq2yDmwserV4/2B1I51W2JHL0m8/ZOYT7g=="
         );
 
-        let rewards = SignerInput::mock_osmosis(
+        let rewards = SignerInput::mock_osmosis_with_gas_limit(
             TransactionInputType::Stake {
                 asset: Asset::from_chain(Chain::Osmosis),
                 stake_type: StakeType::Rewards(vec![DelegationValidator::mock_osmosis(OSMO_VALIDATOR), DelegationValidator::mock_osmosis(OSMO_VALIDATOR)]),
             },
             "",
+            400_000,
         );
         let signed = signer.sign_stake(&rewards, &private_key).unwrap();
         assert_eq!(
@@ -346,29 +313,24 @@ mod tests {
         );
     }
 
-    // sign_swap should accept a missing/zero provider gas limit and fall back to the preloaded value.
     #[test]
-    fn test_sign_swap_falls_back_when_provider_gas_missing() {
+    fn test_sign_swap() {
         let private_key = hex::decode(OSMO_PRIVATE_KEY_HEX).unwrap();
         let msg_send = r#"[{"typeUrl":"/cosmos.bank.v1beta1.MsgSend","value":{"from_address":"osmo1kglemumu8mn658j6g4z9jzn3zef2qdyyvklwa3","to_address":"osmo1rcjvzz8wzktqfz8qjf0l9q45kzxvd0z0n7l5cf","amount":[{"denom":"uosmo","amount":"10"}]}}]"#;
+        let input = SignerInput::mock_osmosis(
+            TransactionInputType::Swap {
+                from_asset: Asset::from_chain(Chain::Osmosis),
+                to_asset: Asset::from_chain(Chain::Osmosis),
+                swap_data: SwapData::mock_with_provider_data(SwapProvider::Squid, msg_send, Some("900000")),
+            },
+            "",
+        );
 
-        for gas_limit in [None, Some("0"), Some("")] {
-            let swap_data = SwapData::mock_with_provider_data(SwapProvider::Squid, msg_send, gas_limit);
-            let input = SignerInput::mock_osmosis(
-                TransactionInputType::Swap {
-                    from_asset: Asset::from_chain(Chain::Osmosis),
-                    to_asset: Asset::from_chain(Chain::Osmosis),
-                    swap_data,
-                },
-                "",
-            );
-            let signed = CosmosChainSigner.sign_swap(&input, &private_key).expect("swap should sign");
-            assert_eq!(signed.len(), 1);
-            // Identical bytes to the OSMO native transfer (1 msg, 200000 gas, 10000 uosmo fee).
-            assert_eq!(
-                signed_tx_bytes(&signed[0]),
-                "CooBCocBChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEmcKK29zbW8xa2dsZW11bXU4bW42NThqNmc0ejlqem4zemVmMnFkeXl2a2x3YTMSK29zbW8xcmNqdnp6OHd6a3RxZno4cWpmMGw5cTQ1a3p4dmQwejBuN2w1Y2YaCwoFdW9zbW8SAjEwEmgKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQMslcYn7DhPe5b/8lM3FnPXhGBj5SdC15+XI1hZ1gYbBBIECgIIARgKEhQKDgoFdW9zbW8SBTEwMDAwEMCaDBpAVJkDxaS5ZaghmJ6ZtpC9yim7JA8duO8MwOODdJeHEHssH3PQN+4Yl+SVyLtNEW6+IDUKfkG1dfIYOvpRiFlOyg=="
-            );
-        }
+        let signed = CosmosChainSigner.sign_swap(&input, &private_key).unwrap();
+        assert_eq!(signed.len(), 1);
+        assert_eq!(
+            signed_tx_bytes(&signed[0]),
+            "CooBCocBChwvY29zbW9zLmJhbmsudjFiZXRhMS5Nc2dTZW5kEmcKK29zbW8xa2dsZW11bXU4bW42NThqNmc0ejlqem4zemVmMnFkeXl2a2x3YTMSK29zbW8xcmNqdnp6OHd6a3RxZno4cWpmMGw5cTQ1a3p4dmQwejBuN2w1Y2YaCwoFdW9zbW8SAjEwEmgKUApGCh8vY29zbW9zLmNyeXB0by5zZWNwMjU2azEuUHViS2V5EiMKIQMslcYn7DhPe5b/8lM3FnPXhGBj5SdC15+XI1hZ1gYbBBIECgIIARgKEhQKDgoFdW9zbW8SBTEwMDAwEMCaDBpAVJkDxaS5ZaghmJ6ZtpC9yim7JA8duO8MwOODdJeHEHssH3PQN+4Yl+SVyLtNEW6+IDUKfkG1dfIYOvpRiFlOyg=="
+        );
     }
 }

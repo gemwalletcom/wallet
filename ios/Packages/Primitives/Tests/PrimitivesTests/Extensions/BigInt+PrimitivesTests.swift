@@ -5,41 +5,9 @@ import Primitives
 import Testing
 
 struct BigInt_PrimitivesTests {
-    @Test
-    func increaseByPercent() {
-        #expect(BigInt(1).increase(byPercent: 1) == BigInt(1))
-        #expect(BigInt(100).increase(byPercent: 1) == BigInt(101))
-        #expect(BigInt(100).increase(byPercent: 11) == BigInt(111))
-        #expect(BigInt(100).increase(byPercent: 15) == BigInt(115))
-        #expect(BigInt(100).increase(byPercent: 0) == BigInt(100))
-        #expect(BigInt(100).increase(byPercent: 100) == BigInt(200))
-        #expect(BigInt(1_000_000).increase(byPercent: 500) == BigInt(6_000_000))
-    }
 
-    @Test
-    func decreaseByPercent() {
-        #expect(BigInt(100).decrease(byPercent: 1) == BigInt(99))
-        #expect(BigInt(100).decrease(byPercent: 10) == BigInt(90))
-        #expect(BigInt(100).decrease(byPercent: 50) == BigInt(50))
-        #expect(BigInt(1000).decrease(byPercent: 25) == BigInt(750))
-        #expect(BigInt(100).decrease(byPercent: 0) == BigInt(100))
-    }
 
-    @Test
-    func decreaseByBasisPoints() {
-        #expect(BigInt(1_000_000).decrease(byBasisPoints: 30) == BigInt(997_000))
-        #expect(BigInt(1_000_000).decrease(byBasisPoints: 50) == BigInt(995_000))
-        #expect(BigInt(1_000_000).decrease(byBasisPoints: 100) == BigInt(990_000))
-        #expect(BigInt(1_000_000).decrease(byBasisPoints: 300) == BigInt(970_000))
-        #expect(BigInt(1_000_000).decrease(byBasisPoints: 0) == BigInt(1_000_000))
-    }
 
-    @Test
-    func multiplyByPercent() {
-        #expect(BigInt(100).multiply(byPercent: 10) == BigInt(10))
-        #expect(BigInt(100).multiply(byPercent: 5) == BigInt(5))
-        #expect(BigInt(1000).multiply(byPercent: 75) == BigInt(750))
-    }
 
     @Test
     func testIsBetween() {
@@ -51,7 +19,7 @@ struct BigInt_PrimitivesTests {
 
     @Test
     func fromString() throws {
-        #expect(try BigInt.from(string: "111").description == "111")
-        #expect(try BigInt.from(string: "0.1").description == "0")
+        #expect(BigInt.from(string: "111").description == "111")
+        #expect(BigInt.from(string: "0.1").description == "0")
     }
 }

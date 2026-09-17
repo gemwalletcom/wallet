@@ -9,7 +9,7 @@ use super::model::SolanaStepData;
 use crate::{SwapperError, SwapperQuoteData, alien::RpcProvider, client_factory::create_client_with_chain};
 
 pub async fn build_quote_data(wallet_address: &str, step: &SolanaStepData, rpc_provider: Arc<dyn RpcProvider>) -> Result<SwapperQuoteData, SwapperError> {
-    let client = SolanaClient::new(create_client_with_chain(rpc_provider, Chain::Solana));
+    let client = SolanaClient::new(create_client_with_chain(rpc_provider, Chain::Solana)?);
     let lookup_tables = async {
         client
             .get_address_lookup_tables(step.address_lookup_table_addresses.clone())

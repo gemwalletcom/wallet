@@ -20,17 +20,14 @@ public struct EarnScene: View {
             switch model.providersState {
             case .noData:
                 Section {
-                    ListItemView(title: Localized.Errors.noDataAvailable)
+                    ListItemView(model: model.noDataListItem)
                 }
             case .loading:
                 ListItemLoadingView()
                     .id(UUID())
             case .data:
                 Section {
-                    ListItemView(
-                        title: model.aprModel.title,
-                        subtitle: model.aprModel.subtitle,
-                    )
+                    ListItemView(model: model.aprListItem)
                 }
             case let .error(error):
                 ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
@@ -39,7 +36,7 @@ public struct EarnScene: View {
             if model.showDeposit {
                 Section(Localized.Common.manage) {
                     NavigationLink(value: model.depositDestination) {
-                        ListItemView(title: Localized.Wallet.deposit)
+                        ListItemView(model: model.depositListItem)
                     }
                 }
             }
@@ -47,7 +44,7 @@ public struct EarnScene: View {
             Section(model.positionsSectionTitle) {
                 if model.hasPositions {
                     ForEach(model.positionModels) { delegation in
-                        NavigationLink(value: delegation.delegation) {
+                        NavigationLink(value: model.navigationDestination(for: delegation)) {
                             DelegationView(delegation: delegation)
                         }
                     }

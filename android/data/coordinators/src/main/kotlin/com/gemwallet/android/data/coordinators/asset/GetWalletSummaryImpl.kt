@@ -9,10 +9,12 @@ import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore
 import com.gemwallet.android.data.service.store.database.entities.toDTO
 import com.gemwallet.android.application.session.cases.GetSession
 import uniffi.gemstone.GemPercentageStyle
+import com.gemwallet.android.domains.banner.BannerRow
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.values.EquivalentValue
 import com.gemwallet.android.domains.wallet.aggregates.WalletSummaryAggregate
 import com.gemwallet.android.model.CurrencyFormatter
+import com.gemwallet.android.model.PriceChangeFormatter
 import com.wallet.core.primitives.BannerEvent
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.Currency
@@ -28,6 +30,7 @@ import kotlinx.coroutines.flow.stateIn
 import java.math.BigDecimal
 import uniffi.gemstone.AssetFiatValue as GemAssetFiatValue
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import uniffi.gemstone.GemHeaderActions
 import uniffi.gemstone.GemWalletHomeServiceInterface
 import uniffi.gemstone.TotalFiatValue as GemTotalFiatValue
@@ -78,6 +81,9 @@ class GetWalletSummaryImpl(
                 isBalanceHidden = hideBalances,
                 headerActions = state.headerActions,
                 showCollections = state.showCollections,
+                banners = state.visibleBanners.map { banner ->
+                    BannerRow(banner.toPrimitives(), walletHomeService.bannerContent(banner.event, banner.asset))
+                },
             )
         }
     }.stateIn(scope, SharingStarted.Eagerly, null)
@@ -116,8 +122,7 @@ internal class WalletSummaryEquivalentValue(
     override val changePercentage: Double?,
 ) : EquivalentValue {
     override val valueFormatted: String = value?.takeIf(Double::isFinite)?.let { amount ->
-        val formatted = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency).string(amount)
-        if (amount > 0) "+$formatted" else formatted
+        PriceChangeFormatter(CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)).string(amount)
     }.orEmpty()
 
     override val changePercentageFormatted: String = changePercentage.formatAsPercentage(style = GemPercentageStyle.UNSIGNED)
@@ -135,6 +140,7 @@ internal class WalletSummaryAggregateImpl(
     override val isBalanceHidden: Boolean,
     override val headerActions: GemHeaderActions,
     override val showCollections: Boolean,
+    override val banners: List<BannerRow>,
 ) : WalletSummaryAggregate {
     override val walletTotalValue: String = displayState.totalValue
 

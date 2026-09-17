@@ -150,28 +150,28 @@ impl AutocloseEstimator {
 mod estimator_tests {
     use super::*;
 
-    fn long(size: f64, leverage: u8) -> AutocloseEstimator {
-        AutocloseEstimator::new(100.0, size, PerpetualDirection::Long, leverage)
-    }
-
     #[test]
     fn test_has_size_counts_a_short_position_held_as_a_negative_size() {
-        assert!(long(1.0, 2).has_size());
+        assert!(AutocloseEstimator::new(100.0, 1.0, PerpetualDirection::Long, 2).has_size());
         assert!(AutocloseEstimator::new(100.0, -1.0, PerpetualDirection::Short, 2).has_size());
-        assert!(!long(0.0, 2).has_size());
+        assert!(!AutocloseEstimator::new(100.0, 0.0, PerpetualDirection::Long, 2).has_size());
     }
 
     #[test]
     fn test_pnl_follows_the_direction_and_ignores_the_size_sign() {
-        assert_eq!(long(2.0, 1).pnl(110.0), 20.0);
+        assert_eq!(AutocloseEstimator::new(100.0, 2.0, PerpetualDirection::Long, 1).pnl(110.0), 20.0);
         assert_eq!(AutocloseEstimator::new(100.0, -2.0, PerpetualDirection::Short, 1).pnl(110.0), -20.0);
         assert_eq!(AutocloseEstimator::new(100.0, -2.0, PerpetualDirection::Short, 1).pnl(90.0), 20.0);
     }
 
     #[test]
     fn test_target_price_from_roe_survives_a_zero_leverage() {
-        assert!((long(1.0, 2).target_price_from_roe(20, TpslType::TakeProfit) - 110.0).abs() < 1e-9);
-        assert!((long(1.0, 2).target_price_from_roe(20, TpslType::StopLoss) - 90.0).abs() < 1e-9);
-        assert!(long(1.0, 0).target_price_from_roe(20, TpslType::TakeProfit).is_finite());
+        assert!((AutocloseEstimator::new(100.0, 1.0, PerpetualDirection::Long, 2).target_price_from_roe(20, TpslType::TakeProfit) - 110.0).abs() < 1e-9);
+        assert!((AutocloseEstimator::new(100.0, 1.0, PerpetualDirection::Long, 2).target_price_from_roe(20, TpslType::StopLoss) - 90.0).abs() < 1e-9);
+        assert!(
+            AutocloseEstimator::new(100.0, 1.0, PerpetualDirection::Long, 0)
+                .target_price_from_roe(20, TpslType::TakeProfit)
+                .is_finite()
+        );
     }
 }

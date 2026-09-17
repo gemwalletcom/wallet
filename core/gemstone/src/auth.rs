@@ -25,14 +25,12 @@ pub fn sign_auth_message_hash(hash: [u8; 32], private_key: Zeroizing<Vec<u8>>) -
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloy_primitives::{Address, keccak256};
     use gem_auth::verify_auth_signature;
-    use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
-    use signer::secp256k1_uncompressed_public_key;
+    use primitives::testkit::signer_mock::{TEST_PRIVATE_KEY, TEST_PRIVATE_KEY_ETHEREUM_ADDRESS};
 
     #[test]
     fn test_sign_auth_message_hash() {
-        let address = address_from_private_key(&TEST_PRIVATE_KEY);
+        let address = TEST_PRIVATE_KEY_ETHEREUM_ADDRESS.to_string();
         let auth_nonce = AuthNonce {
             nonce: "test-nonce-123".to_string(),
             timestamp: 1734100000,
@@ -52,11 +50,5 @@ mod tests {
     #[test]
     fn test_sign_auth_message_hash_rejects_a_short_key() {
         assert!(sign_auth_message_hash([0; 32], Zeroizing::new(vec![0; 31])).is_err());
-    }
-
-    fn address_from_private_key(private_key: &[u8]) -> String {
-        let public_key = secp256k1_uncompressed_public_key(private_key).unwrap();
-        let hash = keccak256(&public_key[1..]);
-        Address::from_slice(&hash[12..]).to_checksum(None)
     }
 }

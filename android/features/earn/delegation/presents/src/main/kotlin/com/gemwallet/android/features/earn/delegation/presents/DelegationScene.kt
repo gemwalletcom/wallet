@@ -10,27 +10,20 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.features.earn.delegation.models.DelegationRowUIModel
+import com.gemwallet.android.features.earn.delegation.viewmodels.DelegationViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_head.AmountListHead
+import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyAssetBalanceItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
-import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
-import com.gemwallet.android.features.earn.delegation.presents.localization.stringRes
-import uniffi.gemstone.GemDelegationAction
-import com.gemwallet.android.features.earn.delegation.models.DelegationProperty
-import com.gemwallet.android.features.earn.delegation.presents.components.DelegationState
-import com.gemwallet.android.features.earn.delegation.presents.components.StakeApr
-import com.gemwallet.android.features.earn.delegation.presents.components.TransactionStatus
-import com.gemwallet.android.features.earn.delegation.viewmodels.DelegationViewModel
+import com.gemwallet.android.ui.open
 
 @Composable
 fun DelegationScene(
@@ -41,7 +34,6 @@ fun DelegationScene(
 ) {
     val delegationInfo by viewModel.delegationInfo.collectAsStateWithLifecycle()
     val properties by viewModel.properties.collectAsStateWithLifecycle()
-    val balances by viewModel.balances.collectAsStateWithLifecycle()
     val actions by viewModel.actions.collectAsStateWithLifecycle()
     val canClaimRewards by viewModel.canClaimRewards.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -66,63 +58,35 @@ fun DelegationScene(
                     )
                 }
             }
-            itemsPositioned(properties) { position, item ->
-                when (item) {
-                    is DelegationProperty.Apr -> StakeApr(item.data, position)
-                    is DelegationProperty.Name -> PropertyItem(
-                        modifier = item.url?.let { url -> Modifier.clickable { uriHandler.open(context, url) } } ?: Modifier,
-                        title = { PropertyTitleText(stringResource(R.string.stake_validator)) },
-                        data = {
-                            PropertyDataText(
-                                text = item.data,
-                                badge = item.url?.let { { DataBadgeChevron() } },
-                            )
-                        },
-                        listPosition = position,
-                    )
-                    is DelegationProperty.State -> DelegationState(
-                        item.completion,
-                        item.availableIn,
-                        position
-                    )
-                    is DelegationProperty.TransactionStatus -> TransactionStatus(
-                        item.status,
-                        position
-                    )
+            properties?.let { properties ->
+                itemsPositioned(properties.rows) { position, row ->
+                    when (row) {
+                        is DelegationRowUIModel.Item -> ListItem(
+                            model = row.model,
+                            listPosition = position,
+                            modifier = row.url?.let { url -> Modifier.clickable { uriHandler.open(context, url) } } ?: Modifier,
+                            accessory = row.url?.let { { DataBadgeChevron() } },
+                        )
+                        DelegationRowUIModel.Rewards -> PropertyAssetBalanceItem(
+                            model = properties.rewards,
+                            title = stringResource(R.string.stake_rewards),
+                            modifier = if (canClaimRewards) Modifier.clickable { viewModel.onClaimRewards(onConfirm) } else Modifier,
+                            showChevron = canClaimRewards,
+                            listPosition = position,
+                        )
+                    }
                 }
-            }
-
-            itemsPositioned(balances) { position, item ->
-                val modifier = if (canClaimRewards) {
-                    Modifier.clickable { viewModel.onClaimRewards(onConfirm) }
-                } else {
-                    Modifier
-                }
-                PropertyAssetBalanceItem(
-                    model = item,
-                    title = stringResource(R.string.stake_rewards),
-                    modifier = modifier,
-                    showChevron = canClaimRewards,
-                    listPosition = position,
-                )
             }
 
             if (actions.isNotEmpty()) {
                 item { SubheaderItem(R.string.common_manage) }
             }
             itemsPositioned(actions) { position, item ->
-                PropertyItem(
-                    action = item.stringRes(),
-                    onClick = {
-                        when (item) {
-                            GemDelegationAction.REDELEGATE -> viewModel.onRedelegate(onAmount)
-                            GemDelegationAction.STAKE -> viewModel.onStake(onAmount)
-                            GemDelegationAction.UNSTAKE -> viewModel.onUnstake(onAmount, onConfirm)
-                            GemDelegationAction.WITHDRAW -> viewModel.onWithdraw(onAmount, onConfirm)
-                            GemDelegationAction.DEPOSIT -> viewModel.onDeposit(onAmount)
-                        }
-                    },
+                ListItem(
+                    model = item.model,
                     listPosition = position,
+                    modifier = Modifier.clickable { viewModel.onAction(item.action, onAmount, onConfirm) },
+                    accessory = { DataBadgeChevron() },
                 )
             }
         }

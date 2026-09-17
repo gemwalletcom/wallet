@@ -39,6 +39,14 @@ public struct ConnectionProposalViewModel {
         Localized.Transfer.confirm
     }
 
+    var walletListItem: ListItemModel {
+        ListItemModel(title: walletTitle, subtitle: walletName)
+    }
+
+    var connectionListItem: ListItemModel {
+        ListItemModel(title: connectionTitle, subtitle: connectionText)
+    }
+
     var walletTitle: String {
         Localized.Common.wallet
     }

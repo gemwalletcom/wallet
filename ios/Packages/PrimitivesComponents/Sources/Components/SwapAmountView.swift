@@ -30,7 +30,7 @@ struct SwapAmountView: View {
     let action: TransactionHeaderActionHandler?
 
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: .zero) {
             SwapAmountSingleView(field: from, action: action)
             Images.Actions.receive
                 .resizable()
@@ -49,7 +49,7 @@ struct SwapAmountSingleView: View {
     let action: TransactionHeaderActionHandler?
 
     var body: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: .zero) {
             if let action {
                 Button { action(.header) } label: { textContent }
                     .buttonStyle(.plain)

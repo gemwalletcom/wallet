@@ -5,6 +5,7 @@ import GemstonePrimitivesTestKit
 import Components
 import Primitives
 import PrimitivesComponents
+import PrimitivesComponentsTestKit
 import PrimitivesTestKit
 import Testing
 @testable import Transactions
@@ -12,10 +13,10 @@ import Testing
 final class TransactionViewModelTests {
     @Test
     func transactionTitle() {
-        testTransactionTitle(expectedTitle: "Received", transaction: .mock(state: .confirmed))
-        testTransactionTitle(expectedTitle: "Sent", transaction: .mock(state: .confirmed, direction: .outgoing))
-        testTransactionTitle(expectedTitle: "Transfer", transaction: .mock(state: .failed))
-        testTransactionTitle(expectedTitle: "Swap", transaction: .mock(type: .swap))
+        #expect(TransactionViewModel.mock(type: .transfer, state: .confirmed).titleTextValue.text == "Received")
+        #expect(TransactionViewModel.mock(type: .transfer, state: .confirmed, direction: .outgoing).titleTextValue.text == "Sent")
+        #expect(TransactionViewModel.mock(type: .transfer, state: .failed).titleTextValue.text == "Transfer")
+        #expect(TransactionViewModel.mock(type: .swap).titleTextValue.text == "Swap")
     }
 
     @Test
@@ -177,16 +178,7 @@ final class TransactionViewModelTests {
 
     @Test
     func titleExtraHidesEmptySender() {
-        let model = TransactionViewModel(
-            transaction: .mock(
-                transaction: .mock(
-                    type: .transfer,
-                    direction: .incoming,
-                    from: "",
-                    to: "0x123",
-                ),
-            ),
-        )
+        let model = TransactionViewModel.mock(type: .transfer, direction: .incoming, from: "", to: "0x123")
 
         #expect(model.titleExtraTextValue == nil)
     }
@@ -206,46 +198,5 @@ final class TransactionViewModelTests {
             Issue.record("Expected progress indicator for in-transit title tag")
         }
         #expect(inTransitModel.titleTagTextValue?.text == TransactionStateViewModel(state: .inTransit, tone: .pending).title)
-    }
-
-    func testTransactionTitle(expectedTitle: String, transaction: Transaction) {
-        #expect(TransactionViewModel(transaction: .mock(transaction: transaction)).titleTextValue.text == expectedTitle)
-    }
-}
-
-extension TransactionViewModel {
-    static func mock(
-        type: TransactionType = .swap,
-        state: TransactionState = .confirmed,
-        direction: TransactionDirection = .incoming,
-        from: String = "",
-        to: String = "",
-        memo: String? = nil,
-        fromAddress: AddressName? = nil,
-        toAddress: AddressName? = nil,
-        value: String = "1000000000000000000",
-        asset: Asset = .mockEthereum(),
-        assets: [Asset] = [.mockEthereum(), .mockEthereumUSDT()],
-        metadata: AnyCodableValue? = nil,
-    ) -> TransactionViewModel {
-        let transaction = Transaction.mock(
-            type: type,
-            state: state,
-            direction: direction,
-            from: from,
-            to: to,
-            value: value,
-            memo: memo,
-            metadata: metadata,
-        )
-        let extended = TransactionExtended.mock(
-            transaction: transaction,
-            asset: asset,
-            assets: assets,
-            fromAddress: fromAddress,
-            toAddress: toAddress,
-        )
-
-        return TransactionViewModel(transaction: extended)
     }
 }

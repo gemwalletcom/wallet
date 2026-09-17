@@ -164,41 +164,10 @@ mod tests {
     use crate::config::MemoryConfig;
     use crate::proxy::CacheStatus;
     use crate::proxy::constants::JSON_CONTENT_TYPE;
-    use crate::testkit::config::chain_config;
-    fn create_test_cache_config() -> CacheConfig {
-        CacheConfig {
-            memory: MemoryConfig { max: 64_000_000 },
-        }
-    }
-
-    fn create_test_chain_types() -> ChainTypesConfig {
-        serde_json::from_value(serde_json::json!({
-                "ethereum": {
-                    "cache": [
-                        { "path": "/api/v1/data", "method": "GET", "ttl": "5m" },
-                        { "rpc_method": "eth_blockNumber", "ttl": "1m" }
-                    ]
-                }
-        }))
-        .unwrap()
-    }
-
-    fn create_test_cache() -> RequestCache {
-        let chains = [chain_config(Chain::Ethereum, "https://example.com")];
-        RequestCache::for_chains(&create_test_cache_config(), &create_test_chain_types(), chains.iter())
-    }
-
-    fn regular_request(path: &str, method: &str, body: &[u8]) -> RequestType {
-        RequestType::Regular {
-            path: path.to_string(),
-            method: method.to_string(),
-            body: body.to_vec(),
-        }
-    }
 
     #[tokio::test]
     async fn test_set_and_get_cache() {
-        let cache = create_test_cache();
+        let cache = RequestCache::mock();
         let chain = Chain::Ethereum;
 
         let response = ProxyResponse::with_content_type(StatusCode::OK.as_u16(), b"test".to_vec(), JSON_CONTENT_TYPE);
@@ -227,13 +196,13 @@ mod tests {
 
     #[test]
     fn test_should_cache_path_rule() {
-        let cache = create_test_cache();
+        let cache = RequestCache::mock();
         let chain = Chain::Ethereum;
 
-        let ttl = cache.should_cache_request(&chain, &regular_request("/api/v1/data", "GET", &[]));
+        let ttl = cache.should_cache_request(&chain, &RequestType::mock_regular("/api/v1/data", "GET", &[]));
         assert_eq!(ttl, Some(MINUTE * 5));
 
-        let ttl = cache.should_cache_request(&chain, &regular_request("/api/v1/data", "POST", &[]));
+        let ttl = cache.should_cache_request(&chain, &RequestType::mock_regular("/api/v1/data", "POST", &[]));
         assert_eq!(ttl, None);
     }
 
@@ -254,23 +223,22 @@ mod tests {
                 }
         }))
         .unwrap();
-        let chains = [chain_config(Chain::Ethereum, "https://example.com")];
-        let cache = RequestCache::for_chains(&create_test_cache_config(), &config, chains.iter());
+        let cache = RequestCache::for_chains(&CacheConfig::mock(), &config, [ChainConfig::mock(Chain::Ethereum)].iter());
         let chain = Chain::Ethereum;
 
-        let ttl = cache.should_cache_request(&chain, &regular_request("/info", "POST", br#"{"type":"metaAndAssetCtxs"}"#));
+        let ttl = cache.should_cache_request(&chain, &RequestType::mock_regular("/info", "POST", br#"{"type":"metaAndAssetCtxs"}"#));
         assert_eq!(ttl, Some(Duration::from_secs(200)));
 
-        let ttl = cache.should_cache_request(&chain, &regular_request("/info", "POST", br#"{"type":"other"}"#));
+        let ttl = cache.should_cache_request(&chain, &RequestType::mock_regular("/info", "POST", br#"{"type":"other"}"#));
         assert_eq!(ttl, None);
 
-        let ttl = cache.should_cache_request(&chain, &regular_request("/info", "POST", &[]));
+        let ttl = cache.should_cache_request(&chain, &RequestType::mock_regular("/info", "POST", &[]));
         assert_eq!(ttl, None);
     }
 
     #[test]
     fn test_should_cache_call() {
-        let cache = create_test_cache();
+        let cache = RequestCache::mock();
         let chain = Chain::Ethereum;
 
         let call = JsonRpcCall::mock(1, "eth_blockNumber");
@@ -296,8 +264,7 @@ mod tests {
                 }
         }))
         .unwrap();
-        let chains = [chain_config(Chain::Aptos, "https://example.com")];
-        let cache = RequestCache::for_chains(&create_test_cache_config(), &config, chains.iter());
+        let cache = RequestCache::for_chains(&CacheConfig::mock(), &config, [ChainConfig::mock(Chain::Aptos)].iter());
         let chain = Chain::Aptos;
 
         let body1 = r#"{
@@ -308,7 +275,7 @@ mod tests {
         .as_bytes()
         .to_vec();
 
-        let ttl = cache.should_cache_request(&chain, &regular_request("/v1/view", "POST", &body1));
+        let ttl = cache.should_cache_request(&chain, &RequestType::mock_regular("/v1/view", "POST", &body1));
         assert_eq!(ttl, Some(HOUR));
 
         let body2 = r#"{
@@ -319,7 +286,7 @@ mod tests {
         .as_bytes()
         .to_vec();
 
-        let ttl = cache.should_cache_request(&chain, &regular_request("/v1/view", "POST", &body2));
+        let ttl = cache.should_cache_request(&chain, &RequestType::mock_regular("/v1/view", "POST", &body2));
         assert_eq!(ttl, Some(HOUR));
 
         let body3 = r#"{
@@ -330,24 +297,14 @@ mod tests {
         .as_bytes()
         .to_vec();
 
-        let ttl = cache.should_cache_request(&chain, &regular_request("/v1/view", "POST", &body3));
+        let ttl = cache.should_cache_request(&chain, &RequestType::mock_regular("/v1/view", "POST", &body3));
         assert_eq!(ttl, None);
-    }
-
-    fn provider_routes() -> HashMap<String, RouteConfig> {
-        let enabled: RouteConfig = serde_json::from_value(serde_json::json!({
-            "group": "evm", "selection": "ordered", "endpoints": [],
-            "cache": [{ "path": "/info", "method": "POST", "params": { "type": "meta" }, "ttl": "1m" }]
-        }))
-        .unwrap();
-        let disabled: RouteConfig = serde_json::from_value(serde_json::json!({ "group": "evm", "selection": "ordered", "endpoints": [] })).unwrap();
-        HashMap::from([("ethereum".into(), enabled), ("disabled".into(), disabled)])
     }
 
     #[tokio::test]
     async fn test_cache_namespaces_and_provider_headers() {
-        let nodes = create_test_cache();
-        let cache = RequestCache::for_routes(&create_test_cache_config(), &provider_routes());
+        let nodes = RequestCache::mock();
+        let cache = RequestCache::mock_providers(&CacheConfig::mock());
         let node = ProxyResponse::with_content_type(200, b"node".to_vec(), JSON_CONTENT_TYPE);
         let mut headers = HeaderMap::from_iter([(CONTENT_TYPE, HeaderValue::from_static("application/json"))]);
         headers.append("x-provider", HeaderValue::from_static("first"));
@@ -373,7 +330,7 @@ mod tests {
 
     #[test]
     fn test_provider_cache_requires_explicit_matching_rules() {
-        let cache = RequestCache::for_routes(&create_test_cache_config(), &provider_routes());
+        let cache = RequestCache::mock_providers(&CacheConfig::mock());
         for (service, path, method, body, ttl) in [
             ("ethereum", "/info?key=one", "POST", br#"{"type":"meta"}"#.as_slice(), Some(MINUTE)),
             ("ethereum", "/info", "GET", br#"{"type":"meta"}"#.as_slice(), None),
@@ -395,12 +352,9 @@ mod tests {
         let provider_config = CacheConfig {
             memory: MemoryConfig { max: 3 * size },
         };
-        let chains = [
-            chain_config(Chain::Ethereum, "https://example.com"),
-            chain_config(Chain::Optimism, "https://optimism.example.com"),
-        ];
-        let nodes = RequestCache::for_chains(&node_config, &create_test_chain_types(), chains.iter());
-        let providers = RequestCache::for_routes(&provider_config, &provider_routes());
+        let chains = [ChainConfig::mock(Chain::Ethereum), ChainConfig::mock(Chain::Optimism)];
+        let nodes = RequestCache::for_chains(&node_config, &ChainTypesConfig::mock(), chains.iter());
+        let providers = RequestCache::mock_providers(&provider_config);
         nodes.set(&Chain::Ethereum, "first".into(), response.clone(), MINUTE).await;
         let namespace = nodes.namespaces.get(&CacheScope::Chain(Chain::Ethereum)).unwrap();
         namespace.entries.write().await.get_mut("first").unwrap().created_at = Instant::now() - MINUTE;
@@ -429,8 +383,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_expired_entries_are_removed_in_both_caches() {
-        let nodes = create_test_cache();
-        let providers = RequestCache::for_routes(&create_test_cache_config(), &provider_routes());
+        let nodes = RequestCache::mock();
+        let providers = RequestCache::mock_providers(&CacheConfig::mock());
         let response = ProxyResponse::with_content_type(200, b"expired".to_vec(), JSON_CONTENT_TYPE);
         nodes.set(&Chain::Ethereum, "expired".into(), response.clone(), MINUTE).await;
         providers.set_provider("evm", "ethereum", "expired".into(), response, MINUTE).await;
@@ -468,28 +422,14 @@ mod tests {
                 }
         }))
         .unwrap();
-        let chains = [chain_config(Chain::Ethereum, "https://example.com")];
-        let cache = RequestCache::for_chains(&create_test_cache_config(), &config, chains.iter());
+        let cache = RequestCache::for_chains(&CacheConfig::mock(), &config, [ChainConfig::mock(Chain::Ethereum)].iter());
 
         assert_eq!(
             cache.should_cache_call(&Chain::Ethereum, &JsonRpcCall::mock(1, "eth_blockNumber")),
             Some(Duration::from_secs(60))
         );
         assert_eq!(
-            cache.should_cache_call(
-                &Chain::Ethereum,
-                &JsonRpcCall::mock_with_params(
-                    1,
-                    "eth_call",
-                    serde_json::json!([
-                        {
-                            "to": CONTRACT,
-                            "data": SELECTOR
-                        },
-                        "latest"
-                    ])
-                )
-            ),
+            cache.should_cache_call(&Chain::Ethereum, &JsonRpcCall::mock_eth_call(CONTRACT, SELECTOR)),
             Some(Duration::from_secs(30))
         );
     }

@@ -5,6 +5,7 @@ import Foundation
 import Primitives
 import PrimitivesTestKit
 @testable import Swap
+@testable import SwapTestKit
 import Testing
 
 struct PriceImpactViewModelTests {
@@ -52,16 +53,5 @@ struct PriceImpactViewModelTests {
         #expect(PriceImpactViewModel.mock(fromValue: 100, toValue: 109).priceImpactText == "9.00%")
         #expect(PriceImpactViewModel.mock(fromValue: 100, toValue: 111).priceImpactText == "11.00%")
         #expect(PriceImpactViewModel.mock(fromValue: 100, toValue: 120).priceImpactText == "20.00%")
-    }
-}
-
-extension PriceImpactViewModel {
-    static func mock(fromValue: BigUInt, toValue: BigUInt) -> PriceImpactViewModel {
-        let assetPrice = AssetPriceValue(asset: .mockEthereum(), price: .mock())
-        return PriceImpactViewModel(
-            fromAssetPrice: assetPrice,
-            swapPriceImpact: assetPrice.swapValue(fromValue)
-                .priceImpact(receive: assetPrice.swapValue(toValue)),
-        )
     }
 }

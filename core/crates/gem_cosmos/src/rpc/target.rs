@@ -1,4 +1,5 @@
 use gem_client::Target;
+use primitives::chain_cosmos::CosmosChain;
 
 use crate::constants::BOND_STATUS_BONDED;
 
@@ -24,6 +25,8 @@ pub enum CosmosTarget {
     GetAccount { address: String },
     GetNodeInfo,
     GetContractSmartQuery { contract: String, encoded_query: String },
+    GetFeemarketGasPrice { denom: String },
+    GetBaseFee { chain: CosmosChain },
     BroadcastTransaction,
 }
 
@@ -48,6 +51,8 @@ impl Target for CosmosTarget {
             Self::GetAccount { address } => format!("/cosmos/auth/v1beta1/accounts/{address}"),
             Self::GetNodeInfo => "/cosmos/base/tendermint/v1beta1/node_info".to_string(),
             Self::GetContractSmartQuery { contract, encoded_query } => format!("/cosmwasm/wasm/v1/contract/{contract}/smart/{encoded_query}"),
+            Self::GetFeemarketGasPrice { denom } => format!("/feemarket/v1/gas_price/{denom}"),
+            Self::GetBaseFee { chain } => format!("/{}/txfees/v1beta1/cur_eip_base_fee", chain.as_ref()),
             Self::BroadcastTransaction => "/cosmos/tx/v1beta1/txs".to_string(),
         }
     }

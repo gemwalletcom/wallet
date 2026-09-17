@@ -17,7 +17,7 @@ struct PriceWidgetProvider: TimelineProvider {
         } else {
             Task.detached {
                 let widgetPriceService = WidgetPriceService()
-                let entry = await widgetPriceService.fetchTopCoinPrices(widgetFamily: widgetFamily)
+                let entry = await widgetPriceService.topCoinPrices(widgetFamily: widgetFamily)
                 completion(entry)
             }
         }
@@ -29,8 +29,8 @@ struct PriceWidgetProvider: TimelineProvider {
 
         Task.detached {
             let widgetPriceService = WidgetPriceService()
-            let entry = await widgetPriceService.fetchTopCoinPrices(widgetFamily: widgetFamily)
-            let nextUpdateDate = Calendar.current.date(byAdding: .minute, value: 1, to: currentDate)!
+            let entry = await widgetPriceService.topCoinPrices(widgetFamily: widgetFamily)
+            let nextUpdateDate = currentDate.addingTimeInterval(widgetPriceService.refreshInterval)
             let timeline = Timeline(entries: [entry], policy: .after(nextUpdateDate))
             completion(timeline)
         }

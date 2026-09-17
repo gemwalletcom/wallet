@@ -58,7 +58,6 @@
   <string name="common_expiration">Kedaluwarsa</string>
   <string name="common_suspicious_address">Alamat mencurigakan</string>
   <string name="common_refresh">Menyegarkan</string>
-  <string name="common_no_thanks">Tidak, terima kasih</string>
   <string name="common_grant_permission">Berikan izin</string>
   <string name="common_required_field">%1$s dibutuhkan</string>
   <string name="welcome_title">Selamat Bergabung dengan Keluarga Gem</string>
@@ -144,7 +143,6 @@
   <string name="transfer_unfreeze_title">Cairkan</string>
   <string name="transfer_review_request">Tinjau Permintaan</string>
   <string name="transfer_amount">Jumlah</string>
-  <string name="transfer_amount_title">Jumlah</string>
   <string name="settings_terms_of_services">Syarat dan Ketentuan</string>
   <string name="settings_privacy_policy">Kebijakan Privasi</string>
   <string name="settings_title">Pengaturan</string>
@@ -179,7 +177,6 @@
   <string name="support_state_empty_title">Apa yang bisa kami bantu?</string>
   <string name="support_state_empty_description">Tanyakan apa saja kepada kami. Kami siap membantu.</string>
   <string name="support_message_placeholder">Pesan</string>
-  <string name="errors_transfer">Kesalahan Transfer: %1$s</string>
   <string name="errors_validation">Kesalahan Validasi: %1$s</string>
   <string name="errors_create_wallet">Kesalahan Pembuatan Dompet: %1$s</string>
   <string name="errors_invalid_address_name">Alamat atau nama tidak valid</string>
@@ -198,7 +195,6 @@
   <string name="errors_connections_user_cancelled">Pengguna dibatalkan</string>
   <string name="errors_not_supported">Tidak didukung</string>
   <string name="errors_permissions_not_granted">Izin tidak diberikan</string>
-  <string name="errors_decoding">Kesalahan dalam pemrosesan</string>
   <string name="errors_unknown">Tidak dikenal</string>
   <string name="errors_not_supported_qr">Perangkat ini tidak mendukung pemindaian kode QR. Anda hanya dapat memilih gambar kode QR dari galeri.</string>
   <string name="errors_camera_permissions_not_granted">Izin kamera tidak diberikan. Silakan aktifkan akses kamera di pengaturan untuk memindai kode QR.</string>
@@ -209,11 +205,8 @@
   <string name="errors_dust_threshold">Transaksi gagal karena jumlahnya terlalu kecil untuk memenuhi persyaratan minimum jaringan %1$s (ambang batas debu). Batas ini memastikan nilai transaksi mencakup biaya dan ongkos pemrosesan.</string>
   <string name="errors_swap_no_quote_available">Tidak ada kuotasi yang tersedia.</string>
   <string name="errors_swap_not_supported_asset">Aset yang tidak didukung.</string>
-  <string name="errors_connections_invalid_send_parameters">Parameter yang diberikan untuk mengirim transaksi tidak valid.</string>
-  <string name="errors_connections_invalid_sign_parameters">Parameter yang diberikan untuk penandatanganan tidak valid.</string>
   <string name="errors_connections_no_supported_wallets">Tidak ada dompet yang didukung tersedia.</string>
   <string name="errors_connections_unsupported_chain">Rantai yang disediakan tidak didukung.</string>
-  <string name="errors_connections_unsupported_method">Metode yang diminta tidak didukung.</string>
   <string name="errors_swap_amount_too_small">Jumlahnya terlalu kecil</string>
   <string name="errors_required">%1$s diperlukan</string>
   <string name="errors_scan_transaction_malicious_description">Transaksi ini tidak dapat diselesaikan — alamat dompet tujuan terkait dengan aktivitas yang mencurigakan atau berbahaya.</string>
@@ -225,7 +218,6 @@
   <string name="errors_swap_minimum_amount">Jumlah transaksi minimum adalah %1$s. Silakan masukkan jumlah yang lebih tinggi.</string>
   <string name="errors_perpetual_trigger_price_lower">Harga pemicu harus lebih rendah dari harga pasar</string>
   <string name="errors_perpetual_trigger_price_higher">Harga pemicu harus lebih tinggi dari harga pasar</string>
-  <string name="errors_token_unable_fetch_token_information">Gagal mengambil informasi token: %1$s</string>
   <string name="errors_unknown_try_again">Terjadi kesalahan. Silakan coba lagi.</string>
   <string name="errors_network_error">Kesalahan jaringan: %1$s</string>
   <string name="errors_network_offline">Koneksi internet tampaknya sedang offline.</string>
@@ -243,7 +235,6 @@
   <string name="update_app_permission_title">Izinkan instalasi</string>
   <string name="update_app_permission_description">Buka pengaturan dan izinkan penginstalan dari sumber eksternal</string>
   <string name="update_app_permission_open_settings">Buka pengaturan</string>
-  <string name="update_app_downloading">Mengunduh...</string>
   <string name="transaction_recipient">Penerima</string>
   <string name="transaction_sender">Pengirim</string>
   <string name="transaction_date">Tanggal</string>
@@ -399,8 +390,6 @@
   <string name="banner_account_activation_description">Jaringan %1$s memerlukan biaya satu kali sebesar %2$s</string>
   <string name="banner_stake_title">Mulai Staking %1$s</string>
   <string name="banner_stake_description">Dapatkan hadiah %1$s dari staking ketika anda istirahat</string>
-  <string name="banner_enable_notifications_title">Nyalakan Notifikasi</string>
-  <string name="banner_enable_notifications_description">Tetap memantau aktivitas dompet anda</string>
   <string name="banner_activate_asset_description">Untuk menggunakan aset %1$s, Anda harus terlebih dahulu mengaktifkannya di jaringan %2$s dengan memenuhi persyaratan khusus jaringan.</string>
   <string name="banner_asset_status_title">Aset Mencurigakan</string>
   <string name="banner_asset_status_description">Token mungkin tidak aman atau menyesatkan. Lanjutkan hanya jika Anda sepenuhnya memercayainya.</string>
@@ -555,8 +544,8 @@
   <string name="perpetual_margin_cross">Cross</string>
   <string name="perpetual_margin_isolated">Terisolasi</string>
   <string name="perpetuals_title">Perpetual</string>
+  <string name="perpetuals_trade">Perdagangkan Perpetual</string>
   <string name="perpetuals_markets">Pasar</string>
-  <string name="perpetuals_empty_state_no_markets">Tidak ada pasar</string>
   <string name="perpetuals_empty_state_no_markets_found">Tidak ada pasar yang ditemukan</string>
   <string name="rewards_title">Hadiah</string>
   <string name="rewards_share_text">Bergabung Gem Wallet Gunakan tautan referensi saya dan dapatkan hadiah: %1$s</string>
@@ -604,9 +593,6 @@
   <string name="simulation_warning_nft_collection_approval_title">Akses penuh ke koleksi NFT diminta.</string>
   <string name="simulation_warning_unlimited_token_approval_title">Persetujuan token tanpa batas</string>
   <string name="application_name">Gem</string>
-  <string name="camera_permission_request_camera">Izin kamera diperlukan untuk memindai kode QR.\nHarap berikan izin.</string>
-  <string name="notifications_permission_request_notification">Izin notifikasi dibutuhkan untuk menerima pemberitahuan tentang transaksi baru.\nHarap berikan izin.</string>
-  <string name="confirm_fee_error">Kesalahan perhitungan biaya</string>
   <string name="rootcheck_security_alert">Peringatan Keamanan</string>
   <string name="rootcheck_body">Perangkat Anda tampaknya memiliki akses root, yang dapat meningkatkan risiko keamanan secara signifikan. Penggunaan aplikasi ini pada perangkat yang di-root dapat menyebabkan aset Anda rentan terhadap akses tidak sah dan potensi kerugian. Demi keamanan dana Anda, kami sangat menyarankan untuk menggunakan perangkat yang tidak di-root.</string>
   <string name="rootcheck_ignore">Abaikan</string>

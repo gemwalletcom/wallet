@@ -299,18 +299,6 @@ mod tests {
     use super::*;
     use crate::{Asset, Chain, DelegationValidator, PerpetualConfirmData, PerpetualDirection, Resource, SwapProvider};
 
-    fn swap_signer_input(swap_data: SwapData, value: &str) -> SignerInput {
-        SignerInput::mock_evm(
-            TransactionInputType::Swap {
-                from_asset: Asset::from_chain(Chain::Ethereum),
-                to_asset: Asset::from_chain(Chain::Tron),
-                swap_data,
-            },
-            value,
-            21000,
-        )
-    }
-
     #[test]
     fn test_swap_value() {
         let fee = 21000u64 * 20_000_000_000;
@@ -318,21 +306,53 @@ mod tests {
         let mut swap_data = SwapData::mock_transfer(SwapProvider::NearIntents, value, "1", "0x0000000000000000000000000000000000000001");
         swap_data.quote.use_max_amount = Some(true);
 
-        let input = swap_signer_input(swap_data.clone(), value);
+        let input = SignerInput::mock_evm(
+            TransactionInputType::Swap {
+                from_asset: Asset::from_chain(Chain::Ethereum),
+                to_asset: Asset::from_chain(Chain::Tron),
+                swap_data: swap_data.clone(),
+            },
+            value,
+            21000,
+        );
         assert_eq!(input.swap_value().unwrap(), BigInt::from(1_000_000_000_000_000_000u64 - fee));
 
         swap_data.quote.use_max_amount = Some(false);
-        let input = swap_signer_input(swap_data.clone(), value);
+        let input = SignerInput::mock_evm(
+            TransactionInputType::Swap {
+                from_asset: Asset::from_chain(Chain::Ethereum),
+                to_asset: Asset::from_chain(Chain::Tron),
+                swap_data: swap_data.clone(),
+            },
+            value,
+            21000,
+        );
         assert_eq!(input.swap_value().unwrap(), BigInt::from(1_000_000_000_000_000_000u64));
 
         swap_data.quote.use_max_amount = Some(true);
         swap_data.quote.min_from_value = Some(value.parse().unwrap());
-        let input = swap_signer_input(swap_data.clone(), value);
+        let input = SignerInput::mock_evm(
+            TransactionInputType::Swap {
+                from_asset: Asset::from_chain(Chain::Ethereum),
+                to_asset: Asset::from_chain(Chain::Tron),
+                swap_data: swap_data.clone(),
+            },
+            value,
+            21000,
+        );
         assert_eq!(input.swap_value().unwrap_err(), SignerError::SwapValueBelowMinimum);
 
         swap_data.quote.min_from_value = None;
         swap_data.data.data_type = SwapQuoteDataType::Contract;
-        let input = swap_signer_input(swap_data, value);
+        let input = SignerInput::mock_evm(
+            TransactionInputType::Swap {
+                from_asset: Asset::from_chain(Chain::Ethereum),
+                to_asset: Asset::from_chain(Chain::Tron),
+                swap_data,
+            },
+            value,
+            21000,
+        );
         assert_eq!(input.swap_value().unwrap(), BigInt::from(1_000_000_000_000_000_000u64));
     }
 

@@ -26,50 +26,21 @@ public struct DelegationScene: View {
             .cleanListRow()
 
             Section {
-                if let url = model.providerUrl {
-                    SafariNavigationLink(url: url) {
-                        ListItemView(field: model.providerField)
-                    }
-                } else {
-                    ListItemView(field: model.providerField)
-                }
-
-                if model.aprModel.showApr {
-                    ListItemView(title: model.aprModel.title, subtitle: model.aprModel.subtitle)
-                }
-
-                ListItemView(title: model.stateTitle, subtitle: model.stateModel.title, subtitleStyle: model.stateModel.textStyle)
-
-                if let completionDateField = model.completionDateField {
-                    ListItemView(field: completionDateField)
+                ForEach(model.detailRowModels) { row in
+                    content(for: row)
                 }
             }
 
-            if let rewardsText = model.model.rewardsText {
+            if let rewardsRow = model.rewardsRowModel {
                 Section {
-                    let rewardsItem = ListItemView(
-                        title: model.rewardsTitle,
-                        titleStyle: model.model.titleStyle,
-                        subtitle: rewardsText,
-                        subtitleStyle: model.model.subtitleStyle,
-                        subtitleExtra: model.model.rewardsFiatValueText,
-                        subtitleStyleExtra: model.model.subtitleExtraStyle,
-                        imageStyle: model.assetImageStyle,
-                    )
-                    if model.canClaimRewards {
-                        NavigationCustomLink(with: rewardsItem) {
-                            model.onClaimRewards()
-                        }
-                    } else {
-                        rewardsItem
-                    }
+                    content(for: rewardsRow)
                 }
             }
 
             if model.showManage {
                 Section(model.manageTitle) {
                     ForEach(model.availableActions) { action in
-                        NavigationCustomLink(with: ListItemView(title: model.actionTitle(action))) {
+                        NavigationCustomLink(with: ListItemView(model: model.actionListItem(action))) {
                             model.onSelectAction(action)
                         }
                     }
@@ -78,5 +49,20 @@ public struct DelegationScene: View {
         }
         .navigationTitle(model.title)
         .listSectionSpacing(.compact)
+    }
+
+    @ViewBuilder
+    private func content(for row: DelegationRowViewModel) -> some View {
+        let item = ListItemView(model: row.model)
+        switch row.action {
+        case .plain:
+            item
+        case let .url(url):
+            SafariNavigationLink(url: url) { item }
+        case .claimRewards:
+            NavigationCustomLink(with: item) {
+                model.onClaimRewards()
+            }
+        }
     }
 }

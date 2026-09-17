@@ -44,14 +44,14 @@ fn build_split_and_stake_ptb(input: &StakeInput) -> Result<TransactionBuilder, B
         let stake_amount = ptb.pure(&input.stake_amount);
         let gas = ptb.gas();
         let mut split_results = ptb.split_coins(gas, vec![stake_amount]);
-        split_results.pop().expect("split_coins should return one argument")
+        split_results.pop().ok_or("split_coins returned no argument")?
     };
 
     // move call request_add_stake
     let function = Function::new(
         ObjectId::from(SUI_SYSTEM_PACKAGE_ID).into(),
-        Identifier::new(SUI_SYSTEM_ID).unwrap(),
-        Identifier::new(SUI_REQUEST_ADD_STAKE).unwrap(),
+        Identifier::new(SUI_SYSTEM_ID)?,
+        Identifier::new(SUI_REQUEST_ADD_STAKE)?,
     );
 
     let sys_state = ptb.object(sui_system_state_object_input());
@@ -76,8 +76,8 @@ fn build_unstake_ptb(input: &UnstakeInput) -> Result<(TransactionBuilder, Object
     let gas_coin = input.gas_coin.to_input();
     let function = Function::new(
         ObjectId::from(SUI_SYSTEM_PACKAGE_ID).into(),
-        Identifier::new(SUI_SYSTEM_ID).unwrap(),
-        Identifier::new(SUI_REQUEST_WITHDRAW_STAKE).unwrap(),
+        Identifier::new(SUI_SYSTEM_ID)?,
+        Identifier::new(SUI_REQUEST_WITHDRAW_STAKE)?,
     );
 
     let sys_state = ptb.object(sui_system_state_object_input());

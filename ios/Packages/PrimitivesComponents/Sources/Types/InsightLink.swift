@@ -5,6 +5,10 @@ import Foundation
 import SwiftUI
 
 struct InsightLink {
+    var listItem: ListItemModel {
+        ListItemModel(title: title, subtitle: subtitle, imageStyle: .settings(assetImage: image))
+    }
+
     let title: String
     let subtitle: String?
     var url: URL

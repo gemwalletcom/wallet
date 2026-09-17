@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemWalletDeletion
 import protocol Gemstone.GemPreferencesServiceProtocol
 import GemstonePrimitives
 import Observation
@@ -56,6 +57,13 @@ public final class ObservablePreferences: Sendable {
     public var isAcceptTermsCompleted: Bool {
         access(keyPath: \.isAcceptTermsCompleted)
         return preferencesService.isAcceptTermsCompleted()
+    }
+
+    public func reload(after deletion: GemWalletDeletion) {
+        switch deletion {
+        case .walletsRemaining: break
+        case .lastWalletDeleted: reload()
+        }
     }
 
     public func reload() {

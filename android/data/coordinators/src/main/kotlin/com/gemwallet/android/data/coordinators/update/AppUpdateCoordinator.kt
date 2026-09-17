@@ -12,11 +12,12 @@ import com.wallet.core.primitives.PlatformStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import uniffi.gemstone.GemAppUpdateService
+import uniffi.gemstone.GemAppUpdateServiceInterface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class AppUpdateCoordinator(
-    private val appUpdateService: GemAppUpdateService,
+    private val appUpdateService: GemAppUpdateServiceInterface,
     private val buildInfo: BuildInfo,
 ) : SyncAppUpdate, ObserveAppUpdateOffer, SkipAppUpdate {
 

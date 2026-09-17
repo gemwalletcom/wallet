@@ -9,7 +9,7 @@ use crate::services::error::GemServiceError;
 use std::future::Future;
 use std::sync::Arc;
 
-use primitives::{Account, NFTAssetData, NFTAssetId, NFTData, ReportNft, Wallet, WalletId};
+use primitives::{NFTAssetData, NFTAssetId, NFTData, ReportNft, WalletId};
 
 pub use collectible::GemCollectibleService;
 pub use model::{
@@ -55,10 +55,6 @@ impl GemNftService {
         Ok(())
     }
 
-    pub fn receive_accounts(&self, wallet: Wallet, query: String) -> Vec<Account> {
-        rules::receive_accounts(&wallet, &query)
-    }
-
     pub fn list_items(&self, data: Vec<NFTData>, list: GemNftList) -> Vec<GemNftItem> {
         rules::list_items(data, list)
     }
@@ -93,60 +89,26 @@ impl GemNftService {
 mod tests {
     use super::testkit::MemoryNftStore;
     use super::*;
-    use primitives::{Chain, NFTAsset, NFTCollection, NFTCollectionId, NFTImages, NFTResource, NFTType, VerificationStatus};
+    use primitives::{NFTCollection, VerificationStatus};
     use std::sync::Mutex;
-
-    fn asset_data(name: &str) -> NFTAssetData {
-        let collection_id = NFTCollectionId::new(Chain::Ethereum, "0xcollection");
-        let asset_id = NFTAssetId::new(Chain::Ethereum, "0xcollection", "1");
-        let images = NFTImages {
-            preview: NFTResource {
-                url: "".into(),
-                mime_type: "".into(),
-            },
-        };
-        NFTAssetData {
-            collection: NFTCollection {
-                id: collection_id.clone(),
-                name: name.into(),
-                symbol: None,
-                description: None,
-                chain: Chain::Ethereum,
-                contract_address: "0xcollection".into(),
-                images: images.clone(),
-                status: VerificationStatus::Verified,
-                links: vec![],
-            },
-            asset: NFTAsset {
-                id: asset_id,
-                collection_id,
-                contract_address: Some("0xcollection".into()),
-                token_id: "1".into(),
-                token_type: NFTType::ERC721,
-                name: name.into(),
-                description: None,
-                chain: Chain::Ethereum,
-                resource: NFTResource {
-                    url: "".into(),
-                    mime_type: "".into(),
-                },
-                images,
-                attributes: vec![],
-            },
-        }
-    }
 
     #[test]
     fn test_cached_asset_skips_loading() {
         let store = MemoryNftStore {
-            cached: Some(asset_data("cached")),
+            cached: Some(NFTAssetData {
+                collection: NFTCollection::mock_with("cached", VerificationStatus::Verified),
+                ..NFTAssetData::mock()
+            }),
             ..Default::default()
         };
         let loaded = Mutex::new(false);
 
-        let data = futures::executor::block_on(cached_or_loaded(&store, asset_data("cached").asset.id, async {
+        let data = futures::executor::block_on(cached_or_loaded(&store, NFTAssetId::mock(), async {
             *loaded.lock().unwrap() = true;
-            Ok(asset_data("remote"))
+            Ok(NFTAssetData {
+                collection: NFTCollection::mock_with("remote", VerificationStatus::Verified),
+                ..NFTAssetData::mock()
+            })
         }))
         .unwrap();
 
@@ -159,7 +121,13 @@ mod tests {
     fn test_missing_asset_is_loaded_and_added() {
         let store = MemoryNftStore::default();
 
-        let data = futures::executor::block_on(cached_or_loaded(&store, asset_data("remote").asset.id, async { Ok(asset_data("remote")) })).unwrap();
+        let data = futures::executor::block_on(cached_or_loaded(&store, NFTAssetId::mock(), async {
+            Ok(NFTAssetData {
+                collection: NFTCollection::mock_with("remote", VerificationStatus::Verified),
+                ..NFTAssetData::mock()
+            })
+        }))
+        .unwrap();
 
         assert_eq!(data.collection.name, "remote");
         assert_eq!(store.added.lock().unwrap().len(), 1);

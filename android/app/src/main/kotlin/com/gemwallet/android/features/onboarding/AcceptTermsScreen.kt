@@ -19,7 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -34,11 +34,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.AppUrl
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.components.list_item.SelectionIndicator
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.actions.CancelAction
+import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.WalletTheme
@@ -55,16 +55,15 @@ fun AcceptTermsScreen(
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-    var isUnderstand1 by remember { mutableStateOf(false) }
-    var isUnderstand2 by remember { mutableStateOf(false) }
-    var isUnderstand3 by remember { mutableStateOf(false) }
+    val items = remember { acceptTermRows() }
+    val accepted = remember { mutableStateMapOf<Int, Boolean>() }
     Scene(
         title = stringResource(R.string.onboarding_accept_terms_title),
         onClose = { onCancel() },
         mainAction = {
             MainActionButton(
                 title = stringResource(R.string.onboarding_accept_terms_continue),
-                state = buttonState(enabled = isUnderstand1 && isUnderstand2 && isUnderstand3),
+                state = buttonState(enabled = items.indices.all { accepted[it] == true }),
                 onClick = { onAccept() }
             )
         },
@@ -94,21 +93,13 @@ fun AcceptTermsScreen(
                 )
                 Spacer(Modifier.size(paddingDefault))
             }
-            termItem(
-                isUnderstand1,
-                R.string.onboarding_accept_terms_item1_message,
-                testTag = "term_1",
-            ) { isUnderstand1 = !isUnderstand1 }
-            termItem(
-                isUnderstand2,
-                R.string.onboarding_accept_terms_item2_message,
-                testTag = "term_2",
-            ) { isUnderstand2 = !isUnderstand2 }
-            termItem(
-                isUnderstand3,
-                R.string.onboarding_accept_terms_item3_message,
-                testTag = "term_3",
-            ) { isUnderstand3 = !isUnderstand3 }
+            items.forEachIndexed { index, item ->
+                termItem(
+                    isUnderstand = accepted[index] == true,
+                    description = item.description,
+                    testTag = "term_${index + 1}",
+                ) { accepted[index] = accepted[index] != true }
+            }
 
             item { Spacer(modifier = Modifier.size(it.calculateBottomPadding())) }
         }

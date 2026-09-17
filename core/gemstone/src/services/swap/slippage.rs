@@ -39,10 +39,6 @@ impl GemSlippageSession {
 
 #[uniffi::export]
 impl GemSlippageSession {
-    pub fn on_auto(&self, is_auto: bool) -> Self {
-        Self { is_auto, ..self.clone() }
-    }
-
     pub fn view_state(&self) -> GemSlippageViewState {
         let config = get_swap_config();
         let check = rules::slippage_check(self.bps, &config);
@@ -70,22 +66,24 @@ const SLIPPAGE_FRACTION_DIGITS: u32 = 2;
 mod tests {
     use super::*;
 
-    fn session(bps: u32) -> GemSlippageSession {
-        GemSlippageSession::new(GemSlippageSelection::Manual { bps })
-    }
-
     #[test]
     fn test_auto_confirms_whatever_the_input_says() {
-        let above_maximum = session(get_swap_config().max_slippage_bps + 1);
+        let above_maximum = GemSlippageSession::new(GemSlippageSelection::Manual {
+            bps: get_swap_config().max_slippage_bps + 1,
+        });
 
         assert!(!above_maximum.view_state().allows_confirm);
-        assert!(above_maximum.on_auto(true).view_state().allows_confirm, "auto does not read the input");
-        assert!(!above_maximum.on_auto(true).view_state().shows_warning);
+        let auto = GemSlippageSession::new(GemSlippageSelection::Auto);
+        assert!(auto.view_state().allows_confirm, "auto does not read the input");
+        assert!(!auto.view_state().shows_warning);
     }
 
     #[test]
     fn test_a_high_slippage_warns_but_still_confirms() {
-        let state = session(get_swap_config().high_slippage_warning_bps).view_state();
+        let state = GemSlippageSession::new(GemSlippageSelection::Manual {
+            bps: get_swap_config().high_slippage_warning_bps,
+        })
+        .view_state();
 
         assert_eq!(state.check, GemSlippageCheck::High);
         assert!(state.shows_warning);
@@ -94,7 +92,7 @@ mod tests {
 
     #[test]
     fn test_the_integer_digits_follow_the_configured_maximum() {
-        let state = session(100).view_state();
+        let state = GemSlippageSession::new(GemSlippageSelection::Manual { bps: 100 }).view_state();
         let maximum_percent = rules::slippage_percent(state.maximum_bps);
 
         assert_eq!(state.maximum_integer_digits, maximum_percent.trunc().to_string().len() as u32);

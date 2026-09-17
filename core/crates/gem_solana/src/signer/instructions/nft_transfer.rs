@@ -165,13 +165,9 @@ mod tests {
             program_ids::{SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID, SOLANA_TOKEN_PROGRAM_ID, token_program},
         },
     };
-    use num_bigint::BigUint;
     use primitives::contract_constants::SOLANA_METAPLEX_AUTH_RULES_PROGRAM_ID;
-    use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
-    use primitives::{
-        Asset, Chain, ChainSigner, GasPriceType, NFTAsset, NFTAssetId, NFTImages, NFTResource, NFTType, SignerInput, SolanaNftStandard, SolanaTokenProgramId, TransactionFee,
-        TransactionInputType, TransactionLoadInput, TransactionLoadMetadata,
-    };
+    use primitives::testkit::signer_mock::{TEST_PRIVATE_KEY, TEST_PRIVATE_KEY_SOLANA_ADDRESS};
+    use primitives::{Asset, Chain, ChainSigner, NFTAsset, SignerInput, SolanaNftStandard, SolanaTokenProgramId, TransactionInputType, TransactionLoadMetadata};
 
     const NFT_MINT: &str = "HP82kPNXnQcozjDrV4dLYfV6wwABQDMVPJXezDbZXHEy";
     const PNFT_RULE_SET: &str = "Brq4ESPuwPNwBhzvEcY2uM1fXTB171yWuem6U8jEiHiY";
@@ -185,47 +181,17 @@ mod tests {
         data
     }
 
-    fn nft_asset(token_id: &str, collection: &str) -> NFTAsset {
-        let id = NFTAssetId::new(Chain::Solana, collection, token_id);
-        NFTAsset {
-            id: id.clone(),
-            collection_id: id.get_collection_id(),
-            contract_address: Some(token_id.to_string()),
-            token_id: token_id.to_string(),
-            token_type: NFTType::SPL,
-            name: "Solana NFT".to_string(),
-            description: None,
-            chain: Chain::Solana,
-            resource: NFTResource::new(String::new(), String::new()),
-            images: NFTImages {
-                preview: NFTResource::new(String::new(), String::new()),
-            },
-            attributes: vec![],
-        }
-    }
-
-    fn signer_input(nft_asset: NFTAsset, metadata: TransactionLoadMetadata) -> SignerInput {
-        let input = TransactionLoadInput {
-            input_type: TransactionInputType::TransferNft {
-                asset: Asset::from_chain(Chain::Solana),
-                nft_asset,
-            },
-            sender_address: sender_address(),
-            destination_address: TEST_RECIPIENT.to_string(),
-            value: BigUint::from(1u64),
-            gas_price: GasPriceType::regular(0),
-            memo: None,
-            is_max_value: false,
-            metadata,
-        };
-        SignerInput::new(input, TransactionFee::mock())
-    }
-
     #[test]
     fn test_sign_spl_nft_transfer() {
         let signer = SolanaChainSigner;
-        let input = signer_input(
-            nft_asset(NFT_MINT, NFT_MINT),
+        let input = SignerInput::mock_with_input_type(
+            TransactionInputType::TransferNft {
+                asset: Asset::from_chain(Chain::Solana),
+                nft_asset: NFTAsset::mock_solana(NFT_MINT, NFT_MINT),
+            },
+            TEST_PRIVATE_KEY_SOLANA_ADDRESS,
+            TEST_RECIPIENT,
+            "1",
             TransactionLoadMetadata::mock_solana_nft(TEST_SENDER_TOKEN_ADDRESS, SolanaTokenProgramId::Token, SolanaNftStandard::NonFungible),
         );
 
@@ -250,8 +216,14 @@ mod tests {
     #[test]
     fn test_sign_p_nft_transfer() {
         let signer = SolanaChainSigner;
-        let input = signer_input(
-            nft_asset(NFT_MINT, NFT_MINT),
+        let input = SignerInput::mock_with_input_type(
+            TransactionInputType::TransferNft {
+                asset: Asset::from_chain(Chain::Solana),
+                nft_asset: NFTAsset::mock_solana(NFT_MINT, NFT_MINT),
+            },
+            TEST_PRIVATE_KEY_SOLANA_ADDRESS,
+            TEST_RECIPIENT,
+            "1",
             TransactionLoadMetadata::mock_solana_nft(
                 TEST_SENDER_TOKEN_ADDRESS,
                 SolanaTokenProgramId::Token,
@@ -283,7 +255,7 @@ mod tests {
         let auth_rules_program = Pubkey::from_base58(SOLANA_METAPLEX_AUTH_RULES_PROGRAM_ID).unwrap();
         let sysvar_instructions = Pubkey::from_base58(SYSVAR_INSTRUCTIONS_ID).unwrap();
         let system_program_pk = Pubkey::from_base58(SYSTEM_PROGRAM_ID).unwrap();
-        let sender = Pubkey::from_base58(&sender_address()).unwrap();
+        let sender = Pubkey::from_base58(TEST_PRIVATE_KEY_SOLANA_ADDRESS).unwrap();
 
         assert_eq!(account_key(&transaction, 0, 0), source);
         assert_eq!(account_key(&transaction, 0, 1), sender);
@@ -307,7 +279,16 @@ mod tests {
     #[test]
     fn test_sign_core_nft_transfer() {
         let signer = SolanaChainSigner;
-        let input = signer_input(nft_asset(CORE_ASSET, CORE_COLLECTION), TransactionLoadMetadata::mock_solana_core_nft(Some(CORE_COLLECTION)));
+        let input = SignerInput::mock_with_input_type(
+            TransactionInputType::TransferNft {
+                asset: Asset::from_chain(Chain::Solana),
+                nft_asset: NFTAsset::mock_solana(CORE_ASSET, CORE_COLLECTION),
+            },
+            TEST_PRIVATE_KEY_SOLANA_ADDRESS,
+            TEST_RECIPIENT,
+            "1",
+            TransactionLoadMetadata::mock_solana_core_nft(Some(CORE_COLLECTION)),
+        );
 
         let result = signer.sign_nft_transfer(&input, &TEST_PRIVATE_KEY).unwrap();
 
@@ -317,7 +298,7 @@ mod tests {
         let asset = Pubkey::from_base58(CORE_ASSET).unwrap();
         let collection = Pubkey::from_base58(CORE_COLLECTION).unwrap();
         let recipient = Pubkey::from_base58(TEST_RECIPIENT).unwrap();
-        let sender = Pubkey::from_base58(&sender_address()).unwrap();
+        let sender = Pubkey::from_base58(TEST_PRIVATE_KEY_SOLANA_ADDRESS).unwrap();
         assert_eq!(transaction.instructions().len(), 1);
         assert_eq!(program_id(&transaction, 0), METAPLEX_CORE_PROGRAM);
         assert_eq!(transaction.instructions()[0].data, vec![14, 0]);
@@ -329,7 +310,16 @@ mod tests {
         assert_eq!(account_key(&transaction, 0, 5), system_program_pk);
         assert_eq!(account_key(&transaction, 0, 6), core_program);
 
-        let input = signer_input(nft_asset(CORE_ASSET, CORE_ASSET), TransactionLoadMetadata::mock_solana_core_nft(None));
+        let input = SignerInput::mock_with_input_type(
+            TransactionInputType::TransferNft {
+                asset: Asset::from_chain(Chain::Solana),
+                nft_asset: NFTAsset::mock_solana(CORE_ASSET, CORE_ASSET),
+            },
+            TEST_PRIVATE_KEY_SOLANA_ADDRESS,
+            TEST_RECIPIENT,
+            "1",
+            TransactionLoadMetadata::mock_solana_core_nft(None),
+        );
         let result = signer.sign_nft_transfer(&input, &TEST_PRIVATE_KEY).unwrap();
         let transaction = crate::decode_transaction(&result).unwrap();
         assert_eq!(account_key(&transaction, 0, 1), core_program);

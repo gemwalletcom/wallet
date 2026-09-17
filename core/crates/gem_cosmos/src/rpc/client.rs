@@ -1,16 +1,19 @@
 use std::error::Error;
 
+use crate::constants::get_base_fee;
 use crate::models::account::Balances;
 use crate::models::staking::{Delegations, Rewards, UnbondingDelegations};
 use crate::models::{Account, AccountResponse, BroadcastRequest, BroadcastResponse, InjectiveAccount};
 use crate::models::{
-    AnnualProvisionsResponse, BlockResponse, InflationResponse, OsmosisEpochProvisionsResponse, OsmosisMintParamsResponse, SmartQueryResponse, StakingPoolResponse, SupplyResponse,
-    TransactionResponse, TransactionsResponse, ValidatorsResponse,
+    AnnualProvisionsResponse, BaseFeeResponse, BlockResponse, FeemarketGasPriceResponse, InflationResponse, InjectiveBaseFeeResponse, OsmosisEpochProvisionsResponse,
+    OsmosisMintParamsResponse, SmartQueryResponse, StakingPoolResponse, SupplyResponse, TransactionResponse, TransactionsResponse, ValidatorsResponse,
 };
+use crate::provider::state_mapper::map_transfer_fee;
 use crate::rpc::target::CosmosTarget;
 use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainSimulation, ChainTraits};
 use gem_client::{Client, ClientExt};
 use gem_encoding::encode_base64;
+use num_bigint::BigInt;
 use primitives::chain_cosmos::CosmosChain;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -126,8 +129,23 @@ impl<C: Client> CosmosClient<C> {
         Ok(self.client.get(CosmosTarget::GetDelegationRewards { address: address.to_string() }).await?)
     }
 
-    pub fn get_base_fee(&self) -> u64 {
-        crate::constants::get_base_fee(self.chain)
+    pub async fn get_base_fee(&self) -> Result<BigInt, Box<dyn Error + Send + Sync>> {
+        Ok(match self.chain {
+            CosmosChain::Cosmos => {
+                let denom = self.chain.denom().as_ref().to_string();
+                let response: FeemarketGasPriceResponse = self.client.get(CosmosTarget::GetFeemarketGasPrice { denom }).await?;
+                map_transfer_fee(&response.price.amount)?
+            }
+            CosmosChain::Osmosis => {
+                let response: BaseFeeResponse = self.client.get(CosmosTarget::GetBaseFee { chain: self.chain }).await?;
+                map_transfer_fee(&response.base_fee)?
+            }
+            CosmosChain::Injective => {
+                let response: InjectiveBaseFeeResponse = self.client.get(CosmosTarget::GetBaseFee { chain: self.chain }).await?;
+                map_transfer_fee(&response.base_fee.base_fee)?
+            }
+            CosmosChain::Celestia | CosmosChain::Sei | CosmosChain::Noble | CosmosChain::Thorchain | CosmosChain::Mayachain => BigInt::from(get_base_fee(self.chain)),
+        })
     }
 
     pub async fn get_account_info(&self, address: &str) -> Result<Account, Box<dyn Error + Send + Sync>> {

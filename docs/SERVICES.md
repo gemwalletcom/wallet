@@ -51,7 +51,7 @@ Everything that decides belongs in a pure function or receiver method with a tes
 
 A constructible service is **not** a licence to hold one at file scope. `private let addressService = GemAddressService()` or `private val assetConfig = GemAssetConfigService()` above a value-type extension is a hidden global: nothing can substitute it, and the extension reaches outward instead of receiving what it needs. A mocked Core rule is a premise, not a check, so its real mutation-checked test remains with its owning Core implementation; app tests assert only mapping, wiring and state.
 
-The narrow exception is a dependency-free FFI transport adapter for a type whose receiver methods cannot cross the boundary. `GemSimulationFormatter`, `PriceAlertFormatter` and the config lookup `GemChainService` inside `NetworkSelectorViewModel` may be constructed locally; they have no state, I/O or substitutable dependency. Keep the adapter cohesive and do not create one object per method.
+The narrow exception is a dependency-free rule object: a constructor that takes no argument over a body with no state, I/O or substitutable dependency. `GemSimulationFormatter`, `PriceAlertFormatter`, `GemAddressService`, `GemAssetConfigService`, `GemChainService`, `GemConnectionService` and `GemApplicationMetadataService` are that shape; iOS holds each once as `.shared` and Android once as a Hilt singleton in the rules module, and a test substitutes nothing because there is nothing to substitute. Keep the object cohesive and do not create one per method.
 
 ### 2. Pick the store the value belongs in
 
@@ -104,6 +104,10 @@ class GemstonePriceAlertStore(
 ```
 
 The two adapters are mirrors: same methods, same conflict behaviour (upsert where the other upserts), same "write only rows whose values differ" rule, same treatment of a missing row. A difference between them is a bug in one of them, not a platform choice. Types retained as JSON custom types (`Account`, `Wallet`, `SimulationResult`, …) arrive as `String` typealiases and are decoded once at the relevant FFI/app boundary. That boundary may be a store adapter, coordinator, or feature mapper; undecoded JSON must not travel deeper into the app. Types listed in `core/bin/generate/remote_types.yml`, such as `Asset`, use generated structural mappers instead; enums listed there as codes (`Currency`) cross as their string code with a generated `Currency(core:)` / `toCurrency()`.
+
+**Identifiers cross as their stored string, and stay that way.** `Currency` is a `remote` enum and crosses as a real enum; `Chain` is a `code` and crosses as its string with a generated mapper; `AssetId`, `WalletId`, `TransactionId` and the rest of `identifiers` cross as `String` custom types, so a call site writes `wallet.id.id` or `asset.id.identifier` and a return is rebuilt with the generated `toPrimitives()` / `toGem()`. That is the same footing for all of them: there is no identifier that crosses as the app's own struct.
+
+Reviewed on 2026-09-15 and kept. Two things hold it in place. The string *is* the stored form — Room columns and GRDB rows persist a wallet id and an asset id as text — so a typed crossing would convert to and from that string at every store call rather than removing the conversion. And the typed crossing cannot be made symmetric: uniffi's custom-type `type_name` can name the app's own type (that is how `GemBigInt` becomes `BigInt` and `DateTimeUtc` becomes `Date`), and Swift could point it at `Primitives.WalletId` today, but Kotlin cannot — `com.wallet.core.primitives` lives in `:gemcore`, which depends on `:gemstone`, and `:gemstone` is published standalone as `com.gemwallet.gemstone:gemstone`. Pointing the generated binding at the app's types would either invert that dependency or move app-side serializers into the published Core artifact. Revisit only if the Kotlin primitives stop living behind `:gemstone`; until then the generated mappers are the one place the conversion is written, and a new Core parameter takes the typed `WalletId`/`Chain`, never a bare `String`.
 
 ### 4. Construct it once
 
@@ -158,7 +162,7 @@ public final class SupportChatSceneViewModel {
 ```kotlin
 private val alertsEnabled = MutableStateFlow(service.isEnabled())
 
-fun togglePriceAlerts(enable: Boolean) = viewModelScope.launch(Dispatchers.IO) {
+fun togglePriceAlerts(enable: Boolean) = viewModelScope.launch(ioDispatcher) {
     service.setEnabled(enable)
     alertsEnabled.value = service.isEnabled()
 }
@@ -168,7 +172,7 @@ Android keeps a narrow case only when the screen needs a reactive Room read or a
 
 **A screen asks at most one Core service.** Android may additionally inject narrow observed-read cases. A view model that combines multiple `Gem*Service` protocols is doing the feature's job in the view layer. Compose the decision in Core, while keeping platform-only ports explicit.
 
-Rules belong in `gemstone`, not in an app class wrapping several services — `GemChainSettingsService.check_node` owns the URL rule, the network-id check and the node status `AddNodeSceneViewModel` used to assemble. The gateway's transport and `GemNodeService` read the selected node through the same `node_url` rule over the preferences store, so neither holds the other. Check where a service sits in that graph before giving it a new collaborator.
+Rules belong in `gemstone`, not in an app class wrapping several services — `GemChainSettingsService.check_node` owns the URL rule, the network-id check and the node status `AddNodeSceneViewModel` used to assemble. `GemGateway`, `GemSwapper` and `GemSimulationService` take `GemNodeService` and read the selected node from it; the gateway's own preferences store holds gateway state such as HyperCore agent data, never the node selection. Check where a service sits in that graph before giving it a new collaborator.
 
 The same rule with each platform's noun, for the cases Core genuinely cannot answer:
 
@@ -187,6 +191,18 @@ The precedent that made this work: `GemWalletStore.get_wallets`/`get_wallet` are
 
 **Tests.** iOS mocks the protocol from [`GemstoneServices/TestKit`](../ios/Packages/GemstoneServices/TestKit/); Android fakes the case interface, or mocks `Gem*Service` with MockK, using fixtures from `gemcore` `testFixtures`. Never mock a dependency-free constructible service (`GemAssetConfigService`, `GemChainService`, …) — construct the real one, or the test asserts the mock. Never fabricate I/O to reach a rule either: an offline `AlienProvider`, in-memory preference and secure stores and empty row stores, stood up so a test can touch rules that use none of them, is always the wrong answer — pass the answer in from the caller that owns the service, or mock the service and state the premise plainly. Neither app tests a rule that lives in Core — that test stays with its owning Core implementation.
 
+### 6. Publish a multi-source refresh as one batch
+
+A refresh that asks several sources at once — [`GemBalanceService.update`](../core/gemstone/src/services/balance/mod.rs) asks every chain of a wallet concurrently — publishes **one** store write carrying every source that answered. The contract each app's observers rely on:
+
+- **One write per refresh, and it is atomic.** Both adapters write the batch inside a single database transaction, so an observed query never sees a wallet half updated and a portfolio total never mixes rows from two different refreshes of the same call.
+- **A source that fails holds nothing back.** The sources that answered are written; the first failure in request order is returned after the write, so the caller can report it without discarding good data. `published_balances` owns that split and is tested on its own.
+- **A source that fails leaves its rows as they were.** There is no "unknown" state: the previous values stay and stay visible, so a total computed while one chain is offline is a total of older values for that chain, not a total missing it.
+- **The wallet is named, not implied.** Every write is keyed by the `WalletId` the refresh was asked for, so a response that lands after the user switched wallets writes the wallet it belongs to and never the one on screen.
+- **Only rows whose values differ are written.** The refresh reads the stored rows, folds its updates onto them by kind — a stake answer does not clear a coin's available balance — and drops the rows that come back equal.
+
+What the contract does **not** give you, and what any move to per-source publication has to add first: two refreshes of the same wallet in flight together each read, fold and write independently, so the slower one can publish over the newer values; nothing fences a write by the age of what it read. Splitting one batch into several also multiplies observer notifications and makes mixed-age totals the normal case rather than the exception, so the policy for both has to be decided before the split, not after.
+
 ### Done means
 
 - Core has the flow, the rules and their tests; the app code it replaced is deleted in the same commit.
@@ -204,23 +220,25 @@ One Core service per screen, held by the screen's view model on both apps. The s
 | --- | --- | --- | --- |
 | `GemAddAssetService` | — | `AddAssetSceneViewModel` | `AddAssetViewModel` |
 | `GemAmountService` | — | `AmountSceneViewModel` and its providers | `AmountViewModel`, `AmountPerpetualProvider` |
-| `GemAppUpdateService` | — | `AboutUsViewModel` | — (Play in-app update instead) |
+| `GemAppUpdateService` | — | `AboutUsViewModel` | `AppUpdateCoordinator` (adds the Play vs universal-APK delivery channel) |
 | `GemAssetDetailsService` | — | `AssetSceneViewModel` | `AssetDetailsViewModel` |
 | `GemAssetSelectionService` | — | `SelectAssetViewModel`, `WalletSearchSceneViewModel`, `AssetsResultsSceneViewModel` | `BaseAssetSelectViewModel` and its subclasses |
-| `GemAvatarService` | — | `WalletImageViewModel`, vended by `CreateWalletModel` and `ImportWalletViewModel` | — (no avatar surface) |
-| `GemBannerService` | — | — (a collaborator inside `GemAssetDetailsService` and `GemWalletHomeService`) | `BannersViewModel` |
+| `GemAvatarService` | — | `WalletImageViewModel`, vended by `CreateWalletModel` and `ImportWalletViewModel` | `WalletImageViewModel` (through `WalletAvatarService`) |
+| `GemBannerService` | — | — (a collaborator inside `GemAssetDetailsService` and `GemWalletHomeService`) | — (the same two services carry `bannerContent` and `closeBanner`) |
+| `GemChainService` | — | `ChainListSettingsViewModel` (chain picker) | `ContactChainSelectViewModel`, `SelectImportTypeViewModel` |
 | `GemChainSettingsService` | — | `ChainSettingsSceneViewModel`, `AddNodeSceneViewModel` | `NetworksViewModel`, `AddNodeViewModel` |
 | `GemChartService` | — | `ChartSceneViewModel` | `ChartViewModel` |
 | `GemCollectibleService` | — | `CollectibleViewModel`, `ReportNftViewModel` | `NftDetailsViewModel` (+ `GetNftAssetDetails` observed read) |
 | `GemConfirmTransferService` | `GemConfirmation` (one confirmation in flight; it loads and executes, so it is not a session) | `ConfirmTransferSceneViewModel` | `ConfirmViewModel` |
 | `GemContactService` | — | `ContactsViewModel` | `ContactsViewModel` |
 | `GemCurrencyService` | — | `CurrencySceneViewModel` | `CurrenciesViewModel` (+ session currency cases) |
+| `GemDeviceService` | — | `RootSceneViewModel`, `AppLifecycleService` | `MainViewModel` |
 | `GemDeveloperService` | — | `DeveloperViewModel` (+ the iOS stores it wipes) | `DevelopViewModel` |
 | `GemFiatQuoteService` | `GemFiatSession` | `FiatSceneViewModel` | `FiatViewModel` |
 | `GemManageContactService` | — | `ManageContactViewModel` (+ `nameService`) | `ManageContactViewModel` (+ `GemNameServiceInterface`) |
 | `GemNftService` | — | `CollectionsViewModel`, `CollectionViewModel`, `UnverifiedCollectionsViewModel` | `NftListViewModels`, `ReceiveNftChainsViewModel` |
 | `GemNotificationService` | — | `InAppNotificationsViewModel` | `InAppNotificationsViewModel` |
-| `GemNotificationsService` | — | `NotificationsViewModel` | — (`SettingsViewModel` uses push cases) |
+| `GemNotificationsService` | — | `NotificationsViewModel` | `DevicePushSettings` (the push cases `SettingsViewModel` calls) |
 | `GemPerpetualDetailsService` | — | `PerpetualSceneViewModel` | `PerpetualDetailsViewModel` |
 | `GemPerpetualService` | — | `PerpetualsSceneViewModel` (+ recent activity) | `PerpetualMarketViewModel` (+ recent activity) |
 | `GemPortfolioService` | — | `PortfolioSceneViewModel` | `PortfolioChartViewModel` |
@@ -229,16 +247,47 @@ One Core service per screen, held by the screen's view model on both apps. The s
 | `GemRecentActivityService` | — | `RecentsSceneViewModel`, `SelectAssetViewModel`, `PerpetualsSceneViewModel` | `RecentsSheetViewModel`, `PerpetualMarketViewModel` |
 | `GemRecipientService` | — | `RecipientSceneViewModel` (+ `nameService`) | `RecipientViewModel` (+ `GemNameServiceInterface`) |
 | `GemRewardsService` | — | `RewardsViewModel`, `CreateRewardsCodeViewModel`, `RedeemRewardsCodeViewModel` | `ReferralViewModel` |
+| `GemSettingsService` | — | `SettingsViewModel`, `PreferencesViewModel`, `SecurityViewModel` | `SettingsViewModel`, `PreferencesViewModel`, `SecurityViewModel` |
 | `GemSignMessageService` | — | `SignMessageSceneViewModel` | `WCRequestViewModel`, `WCAuthViewModel` |
 | `GemStakeService` | — | `StakeSceneViewModel`, `DelegationSceneViewModel`, `EarnSceneViewModel` | `StakeViewModel`, `DelegationViewModel`, `EarnViewModel` |
 | `GemSupportService` | — | `SupportChatSceneViewModel` | `SupportChatSceneViewModel` |
 | `GemSwapQuoteService` | `GemSwapSession` | `SwapSceneViewModel` | `SwapViewModel` |
 | `GemTransactionDetailsService` | — | `TransactionSceneViewModel` | `GetTransactionDetailsImpl` (observed read + links) |
 | `GemTransactionsService` | — | `TransactionsViewModel` | `TransactionsViewModel` |
-| `GemWalletConnectService` | — | `WalletConnectorService` | `WCRequestViewModel`, `ProposalSceneViewModel`, `WCAuthViewModel` |
+| `GemWalletConnectService` | — | `WalletConnectorService`, `ConnectionsViewModel` | `WCRequestViewModel`, `ProposalSceneViewModel`, `WCAuthViewModel`, `ConnectionsViewModel`, `ConnectionViewModel` |
 | `GemWalletHomeService` | — | `WalletSceneViewModel`, `NetworkAssetsSceneViewModel` | `AssetsViewModel`, `NetworkAssetsViewModel` |
 | `GemWalletService` | — | onboarding and manage-wallet view models (`WalletsSceneViewModel` gates on `can_add_wallet`, `WalletDetailViewModel` exports the secret through `export_secret`) | `CreateWalletViewModel`, `ImportViewModel`, `WalletsViewModel` (`can_add_wallet`), `WalletViewModel` / `SetupWalletViewModel` (`rename`), `WalletSecretDataViewModel` (`export_secret`), wallet cases |
-| `GemWalletSessionService` | — | `SettingsViewModel` | `SettingsViewModel` |
+| `GemWalletSessionService` | — | `RootSceneViewModel`, `NavigationHandler` | `SessionCoordinator` (+ the services it composes) |
+| `GemWidgetService` | — | `WidgetPriceService` (the price widget) | `PricesWidget` and `WidgetPriceSyncWorker` through `WidgetEntryPoint` |
+
+### Services no screen holds
+
+These are not screen services and must not be added to the table above. Each is either a collaborator another Core service composes, or an app-lifecycle service the platform holds outside any screen. A screen view model that starts holding one of these has taken on a second service, which [§ 7](ARCHITECTURE.md#7-at-most-one-core-service-on-ios-narrow-cases-on-android) forbids.
+
+| Core service | Held by |
+| --- | --- |
+| `GemAssetsService` | composed by `app_start`, `assets`, `balance`, `confirm`, `fiat`, `receive`, `search`, `transaction_state`, `transactions`, `wallet_connect` |
+| `GemExplorerService` | composed by `assets`, `chart`, `confirm`, `nft`, `node`, `stake`, `transactions`, `wallet`, `wallet_connect` |
+| `GemPriceService` | composed by `assets`, `chart`, `confirm`, `currency`, `perpetual`, `portfolio`, `search`, `stream` |
+| `GemStreamSubscriptionService` | composed by `assets`, `balance`, `stream`, `swap` |
+| `GemSwapService` | composed by `assets` and `swap` |
+| `GemSimulationService` | composed by `confirm` and `wallet_connect` |
+| `GemScanService` | composed by `confirm` |
+| `GemSearchService` | composed by `assets` |
+| `GemFiatService` | composed by `fiat` and `stream` |
+| `GemAssetDiscoveryService` | composed by `wallet_home` |
+| `GemAuthService` | composed by `rewards` |
+| `GemConfigService` | composed by `app_start` and `app_update` |
+| `GemWalletConfigurationService` | composed by `app_start` |
+| `GemDeviceKeyService` | composed by `auth` and the device signer |
+| `GemSubscriptionService` | composed by `device` |
+| `GemAppStartService` | iOS `OnstartService`, Android `MainViewModel` — launch orchestration, not a screen |
+| `GemConnectionService` | iOS `ConnectionStatusObserver`, Android `RefreshInterval` |
+| `GemPerpetualStreamService` | `HyperliquidObserverService` on both apps |
+| `GemPushNotificationService` | iOS `NavigationHandler`, Android notification routing |
+| `GemSecurityService` | iOS `LockSceneViewModel` and `BiometryAuthenticationService`, Android `LockTimer` |
+
+`GemNameService` is not a row in this table: it is the [shared-component dependency](ARCHITECTURE.md#a-service-never-hands-out-another-service) that `AddressInputViewModel` and `NameRecordViewModel` take, and a parent passes it down beside its own service.
 
 Android holds an observed Room read beside the service where the screen lists rows (a `Get*` case); that is the platform's reactive read, not a second service.
 
@@ -274,7 +323,7 @@ Open work lives in [TODO.md](TODO.md): the architecture migration to row records
 - The stream reconnect cap is 30 seconds because the price stream must resume within half a minute. The 60 seconds one app used to carry was an untouched import default, not a decision.
 - The confirm button on the autoclose screen differs by design: one app enables it on any pending change and reveals validation after a tap, the other keeps it disabled until the change can build. Both read the same Core outcome; only the moment errors appear differs.
 - `debugLog` compiles out in release on purpose. Stream connection errors and dropped events are logged only in debug builds.
-- Wallet auth signs and verifies an Ethereum-scheme signature on every chain: `create_auth_message` fixes the chain to Ethereum, so the verifier's `_ => false` is fail-closed by construction rather than a missing chain. The TON verified-collection allowlist stays hardcoded until there is an authoritative source to read it from; that is a backend gap, not a Core decision.
+- Wallet auth signs and verifies an Ethereum-scheme signature on every chain: `GemAuthService` signs with `AUTH_CHAIN`, which is `Chain::Ethereum`, so the verifier's `_ => false` is fail-closed by construction rather than a missing chain. The TON verified-collection allowlist stays hardcoded until there is an authoritative source to read it from; that is a backend gap, not a Core decision.
 - A contact address can carry a memo and neither app shows it. Both apps agree, so this is a product gap rather than a duplicated decision: the title, the address format and the chain icon already come from Core, and the memo is waiting for a screen that wants it.
 - Three Core deprecations are dated or gated, not forgotten: the singular transaction route in the devices API is due after 2026-11-15; the legacy locale compat answers installed clients that still send a raw platform code; and `CetusAggregator` is a wire value a stored swap can still carry, so it goes when no stored swap carries it. A new build reading old data must keep working — that is the opposite direction from the wire tolerance above, and it has no expiry a release can decide.
 - Two iOS markers are open questions, not debt: the swap-again button is styled only on iOS 26, and the `Gemstone` package pins Swift 5 language mode until `GemstoneFFI` is Swift 6 clean. The lint tasks the Android `gemstone` module disables are deliberate — every Kotlin file in it is written by uniffi-bindgen, so a finding there has no author to fix it.
@@ -286,8 +335,8 @@ Open work lives in [TODO.md](TODO.md): the architecture migration to row records
 - `GemAmountError::display` decides whether an amount error reads at all — a zero amount is silent on both apps now, where iOS used to call it an invalid amount — and names the asset as `Name (SYMBOL)` unless the name is the symbol. Android used to print the bare symbol.
 - A currency symbol is locale data, not a Core answer: it is what the platform prints for a currency code in a locale, and it changes with neither. `FiatSceneViewModel` keeps a `CurrencyFormatter` for that one lookup and a `ValueFormatter` for the balance, which is a `BigInt` that must not round through an `f64`. Every number the fiat session hands the screen crosses as `GemFormattedNumber`.
 - Both apps take the value ladder from `GemValueStyle` — the precision for a magnitude, whether the value abbreviates, and whether it reads as dust — and render it with their own locale formatter. Core owns the decision and neither app owns a threshold; `ValueFormatter` on iOS moved to `GemstonePrimitives` for that reason.
-- The iOS currency and numeric formatters live in `GemstonePrimitives` and take their precision from Core (`GemCurrencyStyle::precision`, `adaptive_precision`, `abbreviation_threshold`); `Formatters` stays free of Gemstone so the price widget can link it. The widget keeps its own `PriceWidgetFormatter` with a plain precision rule, which is the only copy left and is not read by the app.
-- The iOS reading of a typed number into a plain one stays in the app. Core owns the rule and Android calls it, but the price widget links the formatter package without the Rust library, and the validators package may not import Gemstone at all, so the iOS copy is the price of those two boundaries.
+- The iOS currency and numeric formatters live in `GemstonePrimitives` and take their precision from Core (`GemCurrencyStyle::precision`, `adaptive_precision`, `abbreviation_threshold`). `Formatters` holds only locale formatting with no rule of its own; it can depend on Gemstone — the price widget links `libgemstone.a` like the app target does — so a rule that Core owns has no reason to keep an iOS copy there. The widget's remaining copies are open work: F49 and F50 in [TODO.md](TODO.md).
+- Reading a typed number into a plain one is Core's rule on both apps: Android calls it directly and iOS through `NumberInput`, which reads `GemNumberFormat`. `Formatters` is not a boundary either; the "cannot link" that once said otherwise was a missing linker flag on the widget target, fixed on 2026-09-16. The iOS `Validators` package was the last consumer that parsed an amount itself, and it is gone: Core owns every amount rule, and the text-validation seam now lives in `PrimitivesComponents/Sources/Validation/` beside the `InputValidationViewModel` that stores it.
 - A view model may hold more than one Core service when it is a launch host or a flow parent vending child models, and the extra services are private. A non-private service is the real defect: the view is reaching through the model, so have the parent vend the child model instead.
 - The privacy lock is iOS-only and WalletConnect one-click auth is Android-only. Both were reviewed on 2026-09-14 and kept one-sided; neither is a Core decision waiting to be shared.
 - The biometric gate is per call site on Android and per secret read on iOS. Core does not mark which operations need authentication, so an Android caller that reaches the config store directly is not prompted. Reviewed on 2026-09-14 and left as is; a new Android secret read must request auth at its call site.

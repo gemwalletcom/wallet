@@ -3,7 +3,8 @@ use chrono::{DateTime, Utc};
 use primitives::contact::ContactAddress;
 use primitives::{AddressName, AddressType, Chain, Contact, PaymentRequest, VerificationStatus};
 
-use super::model::GemContactScannedAddress;
+use super::model::{GemContactAddressField, GemContactScannedAddress};
+use crate::config::chain::is_memo_supported;
 use std::collections::HashSet;
 
 pub fn default_contact_chain() -> Chain {
@@ -74,6 +75,14 @@ pub fn can_save_contact(name: &str, is_saving: bool) -> bool {
     !name.trim().is_empty() && !is_saving
 }
 
+pub fn contact_address_fields(chain: Chain) -> Vec<GemContactAddressField> {
+    let mut fields = vec![GemContactAddressField::Network, GemContactAddressField::Address];
+    if is_memo_supported(chain) {
+        fields.push(GemContactAddressField::Memo);
+    }
+    fields
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -88,37 +97,26 @@ mod tests {
     use chrono::Utc;
     use primitives::Chain;
 
-    fn address(id: &str) -> ContactAddress {
-        ContactAddress {
-            id: id.into(),
-            contact_id: "contact".into(),
-            address: format!("0x{id}"),
-            chain: Chain::Ethereum,
-            memo: None,
-        }
-    }
-
     #[test]
     fn test_contact_rules() {
         let contact = Contact {
-            id: "contact".into(),
-            name: "Alice".into(),
-            description: None,
             image_url: Some("image".into()),
-            created_at: Utc::now(),
-            updated_at: Utc::now(),
+            ..Contact::mock()
         };
-        let names = address_names(&contact, &[address("a")]);
+        let names = address_names(&contact, &[ContactAddress::mock("a")]);
         assert_eq!(names.len(), 1);
         assert_eq!(names[0].name, "Alice");
         assert_eq!(names[0].address_type, AddressType::Contact);
         assert_eq!(names[0].status, VerificationStatus::Verified);
         assert_eq!(names[0].image_url.as_deref(), Some("image"));
 
-        let stale: Vec<String> = stale_addresses(vec![address("a"), address("b")], &[address("a"), address("c")])
-            .into_iter()
-            .map(|address| address.id)
-            .collect();
+        let stale: Vec<String> = stale_addresses(
+            vec![ContactAddress::mock("a"), ContactAddress::mock("b")],
+            &[ContactAddress::mock("a"), ContactAddress::mock("c")],
+        )
+        .into_iter()
+        .map(|address| address.id)
+        .collect();
         assert_eq!(stale, vec!["b".to_string()]);
     }
 
@@ -139,11 +137,8 @@ mod tests {
     fn test_scanned_address_prefers_the_payment_address_and_memo() {
         let payment = PaymentRequest {
             address: " 0xabc ".into(),
-            amount: None,
             memo: Some("tag".into()),
-            label: None,
-            references: None,
-            asset_id: None,
+            ..PaymentRequest::mock()
         };
         assert_eq!(
             scanned_address("bitcoin:0xabc?dt=tag", Some(&payment)),
@@ -165,10 +160,10 @@ mod tests {
 
     #[test]
     fn test_upsert_address_replaces_an_edited_address_in_place() {
-        let existing = vec![address("a"), address("b"), address("c")];
+        let existing = vec![ContactAddress::mock("a"), ContactAddress::mock("b"), ContactAddress::mock("c")];
         let edited = ContactAddress {
             address: "0xnew".into(),
-            ..address("renamed")
+            ..ContactAddress::mock("renamed")
         };
 
         let addresses = upsert_address(existing.clone(), edited.clone(), Some("b".into()));
@@ -179,7 +174,7 @@ mod tests {
         let appended: Vec<String> = upsert_address(existing.clone(), edited, None).into_iter().map(|address| address.id).collect();
         assert_eq!(appended, vec!["a".to_string(), "b".to_string(), "c".to_string(), "renamed".to_string()]);
 
-        let same_id: Vec<String> = upsert_address(existing, address("b"), None).into_iter().map(|address| address.id).collect();
+        let same_id: Vec<String> = upsert_address(existing, ContactAddress::mock("b"), None).into_iter().map(|address| address.id).collect();
         assert_eq!(same_id, vec!["a".to_string(), "b".to_string(), "c".to_string()]);
     }
 
@@ -187,12 +182,11 @@ mod tests {
     fn test_contact_keeps_the_original_creation_time() {
         let created_at = Utc::now() - chrono::Duration::days(2);
         let existing = Contact {
-            id: "contact".into(),
-            name: "Alice".into(),
             description: Some("old".into()),
             image_url: Some("image".into()),
             created_at,
             updated_at: created_at,
+            ..Contact::mock()
         };
         let now = Utc::now();
 
@@ -203,5 +197,17 @@ mod tests {
         assert_eq!(updated.created_at, created_at);
         assert_eq!(updated.updated_at, now);
         assert_eq!(contact(None, "new".into(), "Bob".into(), "note".into(), None, now).created_at, now);
+    }
+
+    #[test]
+    fn test_a_contact_address_offers_a_memo_only_where_the_chain_carries_one() {
+        assert_eq!(
+            contact_address_fields(Chain::Ethereum),
+            vec![GemContactAddressField::Network, GemContactAddressField::Address]
+        );
+        assert_eq!(
+            contact_address_fields(Chain::Cosmos),
+            vec![GemContactAddressField::Network, GemContactAddressField::Address, GemContactAddressField::Memo]
+        );
     }
 }

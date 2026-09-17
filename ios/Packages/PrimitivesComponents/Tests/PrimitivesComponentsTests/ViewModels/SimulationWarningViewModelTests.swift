@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Localization
+import GemstonePrimitivesTestKit
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesTestKit
@@ -11,7 +12,7 @@ import struct Gemstone.GemSimulationWarningRow
 struct SimulationWarningViewModelTests {
     @Test
     func titleUsesWarningTitleWhenMessageExists() {
-        let row = GemSimulationWarningRow(kind: .validationError, severity: .warning, message: "Chain ID mismatch")
+        let row = GemSimulationWarningRow.mock(kind: .validationError, message: "Chain ID mismatch")
         let model = SimulationWarningViewModel(row: row)
 
         #expect(model.id == row)
@@ -21,7 +22,7 @@ struct SimulationWarningViewModelTests {
 
     @Test
     func titleUsesWarningTitleWhenDefaultMessageExists() {
-        let model = SimulationWarningViewModel(row: GemSimulationWarningRow(kind: .unlimitedApproval, severity: .warning, message: nil))
+        let model = SimulationWarningViewModel(row: .mock(kind: .unlimitedApproval))
 
         #expect(model.title == Localized.Simulation.Warning.UnlimitedTokenApproval.title)
         #expect(model.message == Localized.Simulation.Warning.UnlimitedTokenApproval.description)
@@ -29,13 +30,13 @@ struct SimulationWarningViewModelTests {
 
     @Test
     func colorMatchesSeverity() {
-        #expect(SimulationWarningViewModel(row: GemSimulationWarningRow(kind: .validationError, severity: .critical, message: nil)).color == Colors.red)
-        #expect(SimulationWarningViewModel(row: GemSimulationWarningRow(kind: .validationError, severity: .warning, message: nil)).color == Colors.orange)
+        #expect(SimulationWarningViewModel(row: .mock(kind: .validationError, severity: .critical)).color == Colors.red)
+        #expect(SimulationWarningViewModel(row: .mock(kind: .validationError)).color == Colors.orange)
     }
 
     @Test
     func suspiciousAddressUsesErrorOccurredTitle() {
-        let model = SimulationWarningViewModel(row: GemSimulationWarningRow(kind: .suspiciousSpender, severity: .critical, message: nil))
+        let model = SimulationWarningViewModel(row: .mock(kind: .suspiciousSpender, severity: .critical))
 
         #expect(model.title == Localized.Errors.errorOccurred)
         #expect(model.message == Localized.Common.suspiciousAddress)
@@ -43,7 +44,7 @@ struct SimulationWarningViewModelTests {
 
     @Test
     func externallyOwnedSpenderUsesSpecificWarningDescription() {
-        let model = SimulationWarningViewModel(row: GemSimulationWarningRow(kind: .externallyOwnedSpender, severity: .warning, message: nil))
+        let model = SimulationWarningViewModel(row: .mock(kind: .externallyOwnedSpender))
 
         #expect(model.title == Localized.Common.warning)
         #expect(model.message == Localized.Simulation.warningExternallyOwnedSpenderDescription)

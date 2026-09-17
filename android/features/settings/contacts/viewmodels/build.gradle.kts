@@ -49,6 +49,7 @@ android {
 dependencies {
     api(project(":ui-models"))
     implementation(project(":ui"))
+    implementation(project(":data:services:gemstone"))
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
@@ -57,4 +58,7 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.savedstate)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockk.android)
+    testImplementation(testFixtures(project(":gemcore")))
 }

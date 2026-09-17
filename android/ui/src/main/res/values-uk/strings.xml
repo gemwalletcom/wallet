@@ -58,7 +58,6 @@
   <string name="common_expiration">Термін дії</string>
   <string name="common_suspicious_address">Підозріла адреса</string>
   <string name="common_refresh">Оновити</string>
-  <string name="common_no_thanks">Ні, дякую</string>
   <string name="common_grant_permission">Надати дозвіл</string>
   <string name="common_required_field">%1$s є обов\'язковим</string>
   <string name="welcome_title">Ласкаво просимо до Gem Сім\'ї</string>
@@ -144,7 +143,6 @@
   <string name="transfer_unfreeze_title">Розморозити</string>
   <string name="transfer_review_request">Переглянути запит</string>
   <string name="transfer_amount">Сума</string>
-  <string name="transfer_amount_title">Сума</string>
   <string name="settings_terms_of_services">Умови надання послуг</string>
   <string name="settings_privacy_policy">Політика конфіденційності</string>
   <string name="settings_title">Налаштування</string>
@@ -179,7 +177,6 @@
   <string name="support_state_empty_title">Чим ми можемо допомогти?</string>
   <string name="support_state_empty_description">Запитуйте нас про що завгодно. Ми завжди раді допомогти.</string>
   <string name="support_message_placeholder">Повідомлення</string>
-  <string name="errors_transfer">Помилка переказу: %1$s</string>
   <string name="errors_validation">Помилка перевірки: %1$s</string>
   <string name="errors_create_wallet">Помилка створення гаманця: %1$s</string>
   <string name="errors_invalid_address_name">Недійсна адреса або ім\'я</string>
@@ -198,7 +195,6 @@
   <string name="errors_connections_user_cancelled">Скасовано користувачем</string>
   <string name="errors_not_supported">Не підтримується</string>
   <string name="errors_permissions_not_granted">Дозволу не надано</string>
-  <string name="errors_decoding">Помилка декодування</string>
   <string name="errors_unknown">Невідомий</string>
   <string name="errors_not_supported_qr">Цей пристрій не підтримує сканування QR-коду. Ви можете вибрати лише зображення QR-коду з бібліотеки.</string>
   <string name="errors_camera_permissions_not_granted">Дозвіл на камеру не надано. Будь ласка, увімкніть доступ до камери в налаштуваннях, щоб відсканувати QR-код.</string>
@@ -209,11 +205,8 @@
   <string name="errors_dust_threshold">Транзакцію не вдалося виконати, оскільки сума занадто мала, щоб відповідати мінімальним вимогам мережі %1$s (поріг пилу). Це обмеження гарантує, що сума транзакції покриває комісії та витрати на обробку.</string>
   <string name="errors_swap_no_quote_available">Котирування недоступне.</string>
   <string name="errors_swap_not_supported_asset">Не підтримуваний актив.</string>
-  <string name="errors_connections_invalid_send_parameters">Надано недійсні параметри для відправки транзакції.</string>
-  <string name="errors_connections_invalid_sign_parameters">Для підпису надано недійсні параметри.</string>
   <string name="errors_connections_no_supported_wallets">Немає підтримуваних гаманців.</string>
   <string name="errors_connections_unsupported_chain">Наданий ланцюжок не підтримується.</string>
-  <string name="errors_connections_unsupported_method">Потрібний метод не підтримується.</string>
   <string name="errors_swap_amount_too_small">Сума занадто мала</string>
   <string name="errors_required">%1$s є обов\'язковим</string>
   <string name="errors_scan_transaction_malicious_description">Цю транзакцію неможливо завершити — адреса гаманця призначення пов\'язана з підозрілою або шкідливою активністю.</string>
@@ -225,7 +218,6 @@
   <string name="errors_swap_minimum_amount">Мінімально дозволена сума угоди становить %1$s. Будь ласка, введіть більшу суму.</string>
   <string name="errors_perpetual_trigger_price_lower">Ціна спрацювання має бути нижчою за ринкову ціну</string>
   <string name="errors_perpetual_trigger_price_higher">Ціна спрацювання має бути вищою за ринкову ціну</string>
-  <string name="errors_token_unable_fetch_token_information">Не вдається отримати інформацію про токен: %1$s</string>
   <string name="errors_unknown_try_again">Сталася невідома помилка. Будь ласка, спробуйте ще раз.</string>
   <string name="errors_network_error">Помилка мережі: %1$s</string>
   <string name="errors_network_offline">Здається, підключення до Інтернету відсутнє.</string>
@@ -243,7 +235,6 @@
   <string name="update_app_permission_title">Дозволити встановлення</string>
   <string name="update_app_permission_description">Перейдіть до налаштувань та дозвольте встановлення із зовнішніх джерел</string>
   <string name="update_app_permission_open_settings">Відкрити налаштування</string>
-  <string name="update_app_downloading">Завантаження...</string>
   <string name="transaction_recipient">Одержувач</string>
   <string name="transaction_sender">Відправник</string>
   <string name="transaction_date">Дата</string>
@@ -399,8 +390,6 @@
   <string name="banner_account_activation_description">Мережа %1$s вимагає одноразової оплати в розмірі %2$s.</string>
   <string name="banner_stake_title">Почніть стейкінг %1$s</string>
   <string name="banner_stake_description">Заробляйте %1$s винагороди на свій стейк, поки ви спите.</string>
-  <string name="banner_enable_notifications_title">Увімкнути сповіщення</string>
-  <string name="banner_enable_notifications_description">Будьте в курсі активності гаманця.</string>
   <string name="banner_activate_asset_description">Щоб використовувати ресурс %1$s, ви повинні спочатку ввімкнути його в мережі %2$s виконавши спеціальні вимоги мережі.</string>
   <string name="banner_asset_status_title">Підозрілий актив</string>
   <string name="banner_asset_status_description">Маркер може бути небезпечним або оманливим. Продовжуйте, лише якщо ви повністю довіряєте цьому.</string>
@@ -555,8 +544,8 @@
   <string name="perpetual_margin_cross">Крос</string>
   <string name="perpetual_margin_isolated">Ізольовані</string>
   <string name="perpetuals_title">Перпетуали</string>
+  <string name="perpetuals_trade">Торгувати перпетуалами</string>
   <string name="perpetuals_markets">Ринки</string>
-  <string name="perpetuals_empty_state_no_markets">Жодних ринків</string>
   <string name="perpetuals_empty_state_no_markets_found">Ринків не знайдено</string>
   <string name="rewards_title">Нагороди</string>
   <string name="rewards_share_text">Приєднатися Gem Wallet за моїм реферальним посиланням та отримуйте винагороди: %1$s</string>
@@ -604,9 +593,6 @@
   <string name="simulation_warning_nft_collection_approval_title">Запитується повний доступ до колекції NFT</string>
   <string name="simulation_warning_unlimited_token_approval_title">Необмежене схвалення токенів</string>
   <string name="application_name">Gem</string>
-  <string name="camera_permission_request_camera">Для сканування QR-коду потрібен дозвіл на камеру.\nБудь ласка, надайте дозвіл.</string>
-  <string name="notifications_permission_request_notification">Для отримання сповіщень про нові транзакції потрібен дозвіл на публікацію сповіщень.\n Будь ласка, дайте дозвіл.</string>
-  <string name="confirm_fee_error">Помилка розрахунку комісії</string>
   <string name="rootcheck_security_alert">Попередження безпеки</string>
   <string name="rootcheck_body">Схоже, ваш пристрій має кореневий доступ, що може значно збільшити ризики для безпеки. Використання цієї програми на пристрої з root-доступом може наражати ваші активи на несанкціонований доступ і потенційну втрату. Для безпеки ваших коштів ми наполегливо рекомендуємо використовувати пристрій без рутованих прав.</string>
   <string name="rootcheck_ignore">Ігнорувати</string>

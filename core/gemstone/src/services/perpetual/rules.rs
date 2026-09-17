@@ -11,9 +11,10 @@ use primitives::{
 };
 
 use super::model::{
-    GemAutocloseSummary, GemCandleTooltip, GemMarketsRefreshTrigger, GemPerpetualChartLayout, GemPerpetualChartLine, GemPerpetualChartLineKind, GemPerpetualCloseInput,
-    GemPerpetualDetails, GemPerpetualDetailsAction, GemPerpetualMarketCounts, GemPerpetualMarketRow, GemPerpetualMarketSections, GemPerpetualOrderAction, GemPerpetualOrderInput,
-    GemPerpetualPositionAction, GemPerpetualPositionKind, GemPerpetualPositionRow, GemPerpetualTransferData,
+    GemAutocloseSummary, GemCandleTooltip, GemCandleTooltipCell, GemCandleTooltipRow, GemMarketsRefreshTrigger, GemPerpetualButton, GemPerpetualChartLayout, GemPerpetualChartLine,
+    GemPerpetualChartLineKind, GemPerpetualCloseInput, GemPerpetualDetails, GemPerpetualDetailsAction, GemPerpetualInfoRow, GemPerpetualMarketCounts, GemPerpetualMarketRow,
+    GemPerpetualMarketSection, GemPerpetualMarketSections, GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualPositionAction, GemPerpetualPositionDetailRow,
+    GemPerpetualPositionKind, GemPerpetualPositionRow, GemPerpetualSection, GemPerpetualTransferData,
 };
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::GemBigInt;
@@ -488,7 +489,7 @@ pub fn symbol(perpetual: &Perpetual) -> String {
     perpetual.name.clone()
 }
 
-pub fn apply_candle_update(candles: Vec<ChartCandleStick>, update: ChartCandleUpdate, perpetual: &Perpetual, period: &ChartPeriod) -> Option<Vec<ChartCandleStick>> {
+pub fn merged_candles(candles: Vec<ChartCandleStick>, update: ChartCandleUpdate, perpetual: &Perpetual, period: &ChartPeriod) -> Option<Vec<ChartCandleStick>> {
     (update.coin == symbol(perpetual) && update.interval == candle_interval(period)).then(|| merge_candle(candles, update.candle))
 }
 
@@ -523,15 +524,39 @@ pub fn market_sections(counts: &GemPerpetualMarketCounts, is_searching: bool, is
     }
 }
 
+pub fn market_section_list(sections: &GemPerpetualMarketSections) -> Vec<GemPerpetualMarketSection> {
+    [
+        (sections.shows_recents, GemPerpetualMarketSection::Recents),
+        (sections.shows_positions, GemPerpetualMarketSection::Positions),
+        (sections.shows_pinned, GemPerpetualMarketSection::Pinned),
+        (sections.shows_markets, GemPerpetualMarketSection::Markets),
+        (sections.shows_empty, GemPerpetualMarketSection::Empty),
+    ]
+    .into_iter()
+    .filter_map(|(shows, section)| shows.then_some(section))
+    .collect()
+}
+
 pub fn candle_tooltip(candle: &ChartCandleStick) -> GemCandleTooltip {
     GemCandleTooltip {
-        open: GemFormattedNumber::adaptive(candle.open, None),
-        high: GemFormattedNumber::adaptive(candle.high, None),
-        low: GemFormattedNumber::adaptive(candle.low, None),
-        close: GemFormattedNumber::adaptive(candle.close, None),
-        change: GemFormattedNumber::percentage(PriceChangeCalculator::percentage(candle.open, candle.close), GemPercentageStyle::Signed),
-        volume: GemFormattedNumber::usd_abbreviated(candle.volume * candle.close),
+        prices: vec![
+            tooltip_cell(GemCandleTooltipRow::Open, GemFormattedNumber::adaptive(candle.open, None)),
+            tooltip_cell(GemCandleTooltipRow::High, GemFormattedNumber::adaptive(candle.high, None)),
+            tooltip_cell(GemCandleTooltipRow::Low, GemFormattedNumber::adaptive(candle.low, None)),
+            tooltip_cell(GemCandleTooltipRow::Close, GemFormattedNumber::adaptive(candle.close, None)),
+        ],
+        summary: vec![
+            tooltip_cell(
+                GemCandleTooltipRow::Change,
+                GemFormattedNumber::percentage(PriceChangeCalculator::percentage(candle.open, candle.close), GemPercentageStyle::Signed),
+            ),
+            tooltip_cell(GemCandleTooltipRow::Volume, GemFormattedNumber::usd_abbreviated(candle.volume * candle.close)),
+        ],
     }
+}
+
+fn tooltip_cell(row: GemCandleTooltipRow, value: GemFormattedNumber) -> GemCandleTooltipCell {
+    GemCandleTooltipCell { row, value }
 }
 
 pub fn market_row(perpetual: &Perpetual) -> GemPerpetualMarketRow {
@@ -555,15 +580,92 @@ pub fn position_row(perpetual: &Perpetual, asset: &Asset, position: &PerpetualPo
     }
 }
 
+pub fn perpetual_sections(has_position: bool) -> Vec<GemPerpetualSection> {
+    [has_position.then_some(GemPerpetualSection::Position), Some(GemPerpetualSection::Info)]
+        .into_iter()
+        .flatten()
+        .collect()
+}
+
+pub fn position_detail_rows(position: &PerpetualPosition) -> Vec<GemPerpetualPositionDetailRow> {
+    [
+        Some(GemPerpetualPositionDetailRow::Pnl),
+        Some(GemPerpetualPositionDetailRow::Autoclose),
+        Some(GemPerpetualPositionDetailRow::Size),
+        Some(GemPerpetualPositionDetailRow::EntryPrice),
+        position
+            .liquidation_price
+            .filter(|value| *value > 0.0)
+            .map(|_| GemPerpetualPositionDetailRow::LiquidationPrice),
+        Some(GemPerpetualPositionDetailRow::Margin),
+        Some(GemPerpetualPositionDetailRow::FundingPayments),
+    ]
+    .into_iter()
+    .flatten()
+    .collect()
+}
+
+pub fn info_rows() -> Vec<GemPerpetualInfoRow> {
+    vec![GemPerpetualInfoRow::DailyVolume, GemPerpetualInfoRow::OpenInterest, GemPerpetualInfoRow::FundingRate]
+}
+
+pub fn perpetual_buttons(has_position: bool) -> Vec<GemPerpetualButton> {
+    match has_position {
+        true => vec![GemPerpetualButton::Modify, GemPerpetualButton::Close],
+        false => vec![GemPerpetualButton::Long, GemPerpetualButton::Short],
+    }
+}
+
+pub fn modify_buttons() -> Vec<GemPerpetualButton> {
+    vec![GemPerpetualButton::Increase, GemPerpetualButton::Reduce]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::services::amount::{GemAmountPerpetualPosition, GemAmountType, rules::perpetual_amount_type};
-    use chrono::DateTime;
     use num_bigint::BigInt;
     use num_bigint::BigUint;
-    use primitives::PerpetualId;
+    use primitives::PerpetualTriggerOrder;
     use primitives::TransactionInputType;
+
+    #[test]
+    fn test_the_perpetual_screen_names_its_sections_rows_and_buttons_from_the_position() {
+        assert_eq!(perpetual_sections(false), vec![GemPerpetualSection::Info]);
+        assert_eq!(perpetual_sections(true), vec![GemPerpetualSection::Position, GemPerpetualSection::Info]);
+        assert_eq!(perpetual_buttons(false), vec![GemPerpetualButton::Long, GemPerpetualButton::Short]);
+        assert_eq!(perpetual_buttons(true), vec![GemPerpetualButton::Modify, GemPerpetualButton::Close]);
+
+        let without_liquidation = PerpetualPosition {
+            liquidation_price: Some(0.0),
+            ..PerpetualPosition::mock()
+        };
+        assert!(
+            !position_detail_rows(&without_liquidation).contains(&GemPerpetualPositionDetailRow::LiquidationPrice),
+            "a zero liquidation price is no liquidation price"
+        );
+        let unliquidatable = PerpetualPosition {
+            liquidation_price: None,
+            ..PerpetualPosition::mock()
+        };
+        assert!(!position_detail_rows(&unliquidatable).contains(&GemPerpetualPositionDetailRow::LiquidationPrice));
+        let liquidatable = PerpetualPosition {
+            liquidation_price: Some(1.0),
+            ..without_liquidation
+        };
+        assert_eq!(
+            position_detail_rows(&liquidatable),
+            vec![
+                GemPerpetualPositionDetailRow::Pnl,
+                GemPerpetualPositionDetailRow::Autoclose,
+                GemPerpetualPositionDetailRow::Size,
+                GemPerpetualPositionDetailRow::EntryPrice,
+                GemPerpetualPositionDetailRow::LiquidationPrice,
+                GemPerpetualPositionDetailRow::Margin,
+                GemPerpetualPositionDetailRow::FundingPayments,
+            ]
+        );
+    }
 
     #[test]
     fn test_market_sections_hide_recents_mid_search_and_answer_empty_only_while_searching() {
@@ -599,55 +701,48 @@ mod tests {
         assert!(!sections.shows_empty);
     }
 
-    fn modify_data(modify_types: Vec<PerpetualModifyPositionType>, take_profit_order_id: Option<u64>, stop_loss_order_id: Option<u64>) -> PerpetualModifyConfirmData {
-        PerpetualModifyConfirmData {
-            base_asset: Asset::mock(),
-            asset_index: 0,
-            modify_types,
-            take_profit_order_id,
-            stop_loss_order_id,
-        }
-    }
-
-    fn tpsl(take_profit: Option<&str>, stop_loss: Option<&str>) -> PerpetualModifyPositionType {
-        PerpetualModifyPositionType::Tpsl {
-            order: primitives::perpetual::TPSLOrderData {
-                direction: PerpetualDirection::Long,
-                take_profit: take_profit.map(|value| value.to_string()),
-                stop_loss: stop_loss.map(|value| value.to_string()),
-                size: "1".to_string(),
-            },
-        }
-    }
-
-    fn cancel(order_ids: Vec<u64>) -> PerpetualModifyPositionType {
-        PerpetualModifyPositionType::Cancel {
-            orders: order_ids
-                .into_iter()
-                .map(|order_id| primitives::perpetual::CancelOrderData { asset_index: 0, order_id })
-                .collect(),
-        }
-    }
-
     #[test]
     fn test_autoclose_summary_reads_new_prices_and_cleared_orders() {
-        let both = autoclose_summary(&modify_data(vec![tpsl(Some("65000"), Some("55000"))], None, None)).unwrap();
+        let both = autoclose_summary(&PerpetualModifyConfirmData::mock(
+            vec![PerpetualModifyPositionType::mock_tpsl(Some("65000"), Some("55000"))],
+            None,
+            None,
+        ))
+        .unwrap();
         assert_eq!(both.take_profit, Some(GemFormattedNumber::usd(65000.0)));
         assert_eq!(both.stop_loss, Some(GemFormattedNumber::usd(55000.0)));
         assert!(!both.take_profit_cleared && !both.stop_loss_cleared);
 
-        let cleared = autoclose_summary(&modify_data(vec![cancel(vec![111, 222])], Some(111), Some(222))).unwrap();
+        let cleared = autoclose_summary(&PerpetualModifyConfirmData::mock(
+            vec![PerpetualModifyPositionType::mock_cancel(vec![111, 222])],
+            Some(111),
+            Some(222),
+        ))
+        .unwrap();
         assert_eq!(cleared.take_profit, None);
         assert_eq!(cleared.stop_loss, None);
         assert!(cleared.take_profit_cleared && cleared.stop_loss_cleared);
 
-        let replaced = autoclose_summary(&modify_data(vec![tpsl(Some("70000"), None), cancel(vec![111])], Some(111), None)).unwrap();
+        let replaced = autoclose_summary(&PerpetualModifyConfirmData::mock(
+            vec![
+                PerpetualModifyPositionType::mock_tpsl(Some("70000"), None),
+                PerpetualModifyPositionType::mock_cancel(vec![111]),
+            ],
+            Some(111),
+            None,
+        ))
+        .unwrap();
         assert_eq!(replaced.take_profit, Some(GemFormattedNumber::usd(70000.0)));
         assert!(!replaced.take_profit_cleared, "a replaced order is not a cleared one");
 
-        assert!(autoclose_summary(&modify_data(vec![], None, None)).is_none());
+        assert!(autoclose_summary(&PerpetualModifyConfirmData::mock(vec![], None, None)).is_none());
         assert!(
-            autoclose_summary(&modify_data(vec![cancel(vec![999])], Some(111), None)).is_none(),
+            autoclose_summary(&PerpetualModifyConfirmData::mock(
+                vec![PerpetualModifyPositionType::mock_cancel(vec![999])],
+                Some(111),
+                None
+            ))
+            .is_none(),
             "cancelling an unrelated order leaves nothing to show"
         );
     }
@@ -658,28 +753,9 @@ mod tests {
         assert!(!includes_perpetual_collateral(PerpetualAccountMode::Unified));
     }
 
-    fn trigger_order(price: f64) -> primitives::PerpetualTriggerOrder {
-        primitives::PerpetualTriggerOrder {
-            price,
-            order_type: primitives::PerpetualOrderType::Limit,
-            order_id: "order".into(),
-        }
-    }
-
-    fn candle_range(low: f64, high: f64) -> ChartCandleStick {
-        ChartCandleStick {
-            date: DateTime::from_timestamp(0, 0).unwrap(),
-            open: low,
-            high,
-            low,
-            close: high,
-            volume: 0.0,
-        }
-    }
-
     #[test]
     fn test_chart_layout_pads_the_candle_range_and_draws_four_ticks() {
-        let layout = chart_layout(&[candle_range(9.0, 12.0), candle_range(10.0, 13.0)], None);
+        let layout = chart_layout(&[ChartCandleStick::mock_range(9.0, 12.0), ChartCandleStick::mock_range(10.0, 13.0)], None);
 
         assert!(layout.price_low < 9.0 && layout.price_low >= 9.0 * CHART_RANGE_FLOOR_FRACTION);
         assert!(layout.price_high > 13.0);
@@ -699,13 +775,13 @@ mod tests {
 
     #[test]
     fn test_chart_layout_keeps_the_lines_near_the_candles_sorted_and_inside_the_range() {
-        let mut open = position("p1");
+        let mut open = PerpetualPosition::mock();
         open.entry_price = 14.0;
-        open.stop_loss = Some(trigger_order(8.0));
-        open.take_profit = Some(trigger_order(100.0));
+        open.stop_loss = Some(PerpetualTriggerOrder::mock(8.0));
+        open.take_profit = Some(PerpetualTriggerOrder::mock(100.0));
         open.liquidation_price = Some(1.0);
 
-        let layout = chart_layout(&[candle_range(9.0, 13.0)], Some(&open));
+        let layout = chart_layout(&[ChartCandleStick::mock_range(9.0, 13.0)], Some(&open));
         let lines: Vec<(GemPerpetualChartLineKind, f64)> = layout.lines.iter().map(|line| (line.kind, line.price.value)).collect();
 
         assert_eq!(lines, vec![(GemPerpetualChartLineKind::StopLoss, 8.0), (GemPerpetualChartLineKind::Entry, 14.0)]);
@@ -714,12 +790,12 @@ mod tests {
 
     #[test]
     fn test_chart_layout_levels_the_labels_that_would_overlap() {
-        let mut open = position("p1");
+        let mut open = PerpetualPosition::mock();
         open.entry_price = 121.0;
-        open.take_profit = Some(trigger_order(180.0));
+        open.take_profit = Some(PerpetualTriggerOrder::mock(180.0));
         open.liquidation_price = Some(120.0);
 
-        let layout = chart_layout(&[candle_range(100.0, 200.0)], Some(&open));
+        let layout = chart_layout(&[ChartCandleStick::mock_range(100.0, 200.0)], Some(&open));
         let levels: Vec<(GemPerpetualChartLineKind, u32)> = layout.lines.iter().map(|line| (line.kind, line.overlap_level)).collect();
 
         assert_eq!(
@@ -734,20 +810,20 @@ mod tests {
 
     #[test]
     fn test_chart_layout_keeps_a_measurable_range_for_flat_and_negative_series() {
-        let flat = chart_layout(&[candle_range(100.0, 100.0)], None);
+        let flat = chart_layout(&[ChartCandleStick::mock_range(100.0, 100.0)], None);
         assert!(flat.price_low < flat.price_high);
         assert_eq!(flat.ticks.iter().map(|tick| tick.value).collect::<Vec<_>>(), vec![100.0]);
 
-        let negative = chart_layout(&[candle_range(-10.0, -5.0)], None);
+        let negative = chart_layout(&[ChartCandleStick::mock_range(-10.0, -5.0)], None);
         assert!(negative.price_low < -10.0);
     }
 
     #[test]
     fn test_chart_lines_show_the_prices_a_position_has() {
-        let mut open = position("p1");
+        let mut open = PerpetualPosition::mock();
         open.entry_price = 100.0;
-        open.take_profit = Some(trigger_order(120.0));
-        open.stop_loss = Some(trigger_order(90.0));
+        open.take_profit = Some(PerpetualTriggerOrder::mock(120.0));
+        open.stop_loss = Some(PerpetualTriggerOrder::mock(90.0));
         open.liquidation_price = Some(80.0);
         let kinds: Vec<(GemPerpetualChartLineKind, f64)> = chart_lines(&open);
         assert_eq!(
@@ -760,7 +836,7 @@ mod tests {
             ]
         );
 
-        let mut bare = position("p2");
+        let mut bare = PerpetualPosition::mock();
         bare.liquidation_price = Some(0.0);
         assert_eq!(chart_lines(&bare).len(), 1, "a zero liquidation price and missing orders draw only the entry line");
     }
@@ -792,14 +868,22 @@ mod tests {
         };
         let tooltip = candle_tooltip(&candle);
 
-        assert_eq!(tooltip.volume, GemFormattedNumber::usd_abbreviated(220.0));
-        assert_eq!(tooltip.change, GemFormattedNumber::percentage(10.0, GemPercentageStyle::Signed));
-        assert_eq!(tooltip.high, GemFormattedNumber::adaptive(120.0, None));
+        assert_eq!(
+            tooltip.prices.iter().map(|cell| cell.row).collect::<Vec<_>>(),
+            vec![GemCandleTooltipRow::Open, GemCandleTooltipRow::High, GemCandleTooltipRow::Low, GemCandleTooltipRow::Close]
+        );
+        assert_eq!(
+            tooltip.summary.iter().map(|cell| cell.row).collect::<Vec<_>>(),
+            vec![GemCandleTooltipRow::Change, GemCandleTooltipRow::Volume]
+        );
+        assert_eq!(tooltip.prices[1].value, GemFormattedNumber::adaptive(120.0, None));
+        assert_eq!(tooltip.summary[0].value, GemFormattedNumber::percentage(10.0, GemPercentageStyle::Signed));
+        assert_eq!(tooltip.summary[1].value, GemFormattedNumber::usd_abbreviated(220.0));
     }
 
     #[test]
     fn test_a_market_row_hides_a_price_it_does_not_have() {
-        let priced = market("BTC");
+        let priced = Perpetual::mock();
         let unpriced = Perpetual { price: 0.0, ..priced.clone() };
 
         assert!(market_row(&priced).shows_price);
@@ -812,7 +896,7 @@ mod tests {
         let row = market_row(&Perpetual {
             volume_24h: 1_500_000.0,
             open_interest: 5_250_000.0,
-            ..market("BTC")
+            ..Perpetual::mock()
         });
 
         for number in [&row.volume_24h, &row.open_interest] {
@@ -825,8 +909,8 @@ mod tests {
 
     #[test]
     fn test_a_position_row_falls_back_to_the_market_name_when_the_asset_has_no_symbol() {
-        let market = market("BTC");
-        let mut held = position("one");
+        let market = Perpetual::mock();
+        let mut held = PerpetualPosition::mock();
         held.leverage = 40;
         let symboled = Asset::from_chain(Chain::HyperCore);
         let unsymboled = Asset {
@@ -841,19 +925,19 @@ mod tests {
 
     #[test]
     fn test_a_position_row_drops_a_liquidation_price_that_cannot_happen() {
-        let market = market("BTC");
+        let market = Perpetual::mock();
         let asset = Asset::from_chain(Chain::HyperCore);
         let priced = PerpetualPosition {
             liquidation_price: Some(12.5),
-            ..position("one")
+            ..PerpetualPosition::mock()
         };
         let zero = PerpetualPosition {
             liquidation_price: Some(0.0),
-            ..position("one")
+            ..PerpetualPosition::mock()
         };
         let absent = PerpetualPosition {
             liquidation_price: None,
-            ..position("one")
+            ..PerpetualPosition::mock()
         };
 
         assert_eq!(position_row(&market, &asset, &priced).liquidation_price, Some(GemFormattedNumber::usd(12.5)));
@@ -861,48 +945,14 @@ mod tests {
         assert_eq!(position_row(&market, &asset, &absent).liquidation_price, None);
     }
 
-    fn position(id: &str) -> PerpetualPosition {
-        PerpetualPosition {
-            id: id.into(),
-            perpetual_id: PerpetualId::new(PerpetualProvider::Hypercore, "BTC"),
-            asset_id: AssetId::from_chain(Chain::HyperCore),
-            size: 1.0,
-            size_value: 1.0,
-            leverage: 1,
-            entry_price: 1.0,
-            liquidation_price: None,
-            margin_type: PerpetualMarginType::Cross,
-            direction: PerpetualDirection::Long,
-            margin_amount: 1.0,
-            take_profit: None,
-            stop_loss: None,
-            pnl: 0.0,
-            funding: None,
-        }
-    }
-
-    fn market(identifier: &str) -> Perpetual {
-        Perpetual {
-            id: PerpetualId::new(PerpetualProvider::Hypercore, "BTC"),
-            name: "BTC".into(),
-            provider: PerpetualProvider::Hypercore,
-            asset_id: AssetId::from_chain(Chain::HyperCore),
-            identifier: identifier.into(),
-            price: 100.0,
-            price_percent_change_24h: 0.0,
-            open_interest: 0.0,
-            volume_24h: 0.0,
-            funding: 0.0,
-            max_leverage: 20,
-            is_isolated_only: true,
-        }
-    }
-
     #[test]
     fn test_position_action_reads_the_market_for_an_open_and_the_position_otherwise() {
-        let market = market("7");
+        let market = Perpetual {
+            identifier: "7".to_string(),
+            ..Perpetual::mock()
+        };
         let asset = Asset::from_chain(Chain::HyperCore);
-        let mut held = position("p");
+        let mut held = PerpetualPosition::mock();
         held.direction = PerpetualDirection::Short;
         held.leverage = 5;
         held.margin_amount = 2.5;
@@ -949,12 +999,19 @@ mod tests {
             position_action(&market, &asset, None, GemPerpetualPositionKind::Increase).is_err(),
             "increasing needs a position"
         );
-        assert!(position_action(&self::market("BTC"), &asset, None, open_long).is_err());
+        let unindexed = Perpetual {
+            identifier: "BTC".to_string(),
+            ..Perpetual::mock()
+        };
+        assert!(position_action(&unindexed, &asset, None, open_long).is_err());
     }
 
     #[test]
     fn test_full_reduce_uses_the_exact_close_transfer() {
-        let market = Perpetual { price: 3390.0, ..market("7") };
+        let market = Perpetual {
+            price: 3390.0,
+            ..Perpetual::mock()
+        };
         let asset = Asset {
             decimals: 4,
             ..Asset::from_chain(Chain::HyperCore)
@@ -975,7 +1032,7 @@ mod tests {
                         margin_amount: 6.0 / f64::from(leverage),
                         entry_price: 3000.0,
                         pnl: 0.78,
-                        ..position("p")
+                        ..PerpetualPosition::mock()
                     };
                     let action = position_action(&market, &asset, Some(held.clone()), GemPerpetualPositionKind::Reduce).unwrap();
                     let close = close_transfer(&market, &asset, Some(held)).unwrap();
@@ -993,7 +1050,10 @@ mod tests {
 
     #[test]
     fn test_partial_reduce_keeps_the_requested_size_even_with_the_max_flag() {
-        let market = Perpetual { price: 3390.0, ..market("7") };
+        let market = Perpetual {
+            price: 3390.0,
+            ..Perpetual::mock()
+        };
         let asset = Asset {
             decimals: 4,
             ..Asset::from_chain(Chain::HyperCore)
@@ -1002,7 +1062,7 @@ mod tests {
             let held = PerpetualPosition {
                 direction: direction.clone(),
                 margin_amount: 40.0,
-                ..position("p")
+                ..PerpetualPosition::mock()
             };
             let action = position_action(&market, &asset, Some(held), GemPerpetualPositionKind::Reduce).unwrap();
             for use_max_amount in [false, true] {
@@ -1019,7 +1079,7 @@ mod tests {
 
     #[test]
     fn test_order_transfer_and_close_transfer_address_the_provider() {
-        let market = market("7");
+        let market = Perpetual::mock();
         let asset = Asset::from_chain(Chain::HyperCore);
         let open = position_action(
             &market,
@@ -1047,7 +1107,7 @@ mod tests {
         assert_eq!(transfer.value, BigInt::from(50_000_000));
         assert_eq!(transfer.recipient, GemPerpetual::new(PerpetualProvider::Hypercore).recipient());
 
-        let close = close_transfer(&market, &asset, Some(position("p"))).unwrap();
+        let close = close_transfer(&market, &asset, Some(PerpetualPosition::mock())).unwrap();
         assert!(matches!(
             close.input_type,
             TransactionInputType::Perpetual {
@@ -1060,7 +1120,19 @@ mod tests {
 
     #[test]
     fn test_stale_position_ids_keeps_only_positions_that_disappeared() {
-        let stale = stale_position_ids(vec!["a".into(), "b".into()], &[position("b"), position("c")]);
+        let stale = stale_position_ids(
+            vec!["a".into(), "b".into()],
+            &[
+                PerpetualPosition {
+                    id: "b".into(),
+                    ..PerpetualPosition::mock()
+                },
+                PerpetualPosition {
+                    id: "c".into(),
+                    ..PerpetualPosition::mock()
+                },
+            ],
+        );
 
         assert_eq!(stale, vec!["a".to_string()]);
     }
@@ -1153,24 +1225,6 @@ mod tests {
         assert_eq!(slippage_percent(Some(0.5)), 0.5);
     }
 
-    fn order_input(action: GemPerpetualOrderAction) -> GemPerpetualOrderInput {
-        GemPerpetualOrderInput {
-            action,
-            direction: PerpetualDirection::Long,
-            margin_type: PerpetualMarginType::Cross,
-            base_asset: Asset::mock(),
-            asset: Asset::mock(),
-            asset_index: 1,
-            price: 100.0,
-            usdc_value: BigInt::from(50_000_000),
-            usdc_decimals: 6,
-            leverage: 4,
-            slippage: None,
-            take_profit: None,
-            stop_loss: None,
-        }
-    }
-
     #[test]
     fn test_details_read_the_reduce_direction_from_the_position_and_leave_a_modify_without_details() {
         let data = PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None);
@@ -1190,7 +1244,7 @@ mod tests {
 
         assert!(
             details(&PerpetualType::Modify {
-                data: modify_data(vec![], None, None)
+                data: PerpetualModifyConfirmData::mock(vec![], None, None)
             })
             .is_none()
         );
@@ -1198,11 +1252,11 @@ mod tests {
 
     #[test]
     fn test_perpetual_order_keeps_the_position_action_and_prices_in_the_slippage() {
-        let open = order(PerpetualProvider::Hypercore, order_input(GemPerpetualOrderAction::Open));
-        let increase = order(PerpetualProvider::Hypercore, order_input(GemPerpetualOrderAction::Increase));
+        let open = order(PerpetualProvider::Hypercore, GemPerpetualOrderInput::mock(GemPerpetualOrderAction::Open));
+        let increase = order(PerpetualProvider::Hypercore, GemPerpetualOrderInput::mock(GemPerpetualOrderAction::Increase));
         let reduce = order(
             PerpetualProvider::Hypercore,
-            order_input(GemPerpetualOrderAction::Reduce {
+            GemPerpetualOrderInput::mock(GemPerpetualOrderAction::Reduce {
                 position_direction: PerpetualDirection::Short,
             }),
         );
@@ -1244,48 +1298,55 @@ mod tests {
         assert_eq!(data.fiat_value, 196.0);
     }
 
-    fn candle(date: i64, close: f64) -> ChartCandleStick {
-        ChartCandleStick {
-            date: DateTime::from_timestamp(date, 0).unwrap(),
-            open: close - 1.0,
-            high: close + 1.0,
-            low: close - 2.0,
-            close,
-            volume: 1000.0,
-        }
-    }
-
     #[test]
     fn test_merge_candle() {
-        let candles = vec![candle(1000, 100.0), candle(2000, 100.0)];
+        let candles = vec![ChartCandleStick::mock(1000, 100.0), ChartCandleStick::mock(2000, 100.0)];
 
-        let replaced = merge_candle(candles.clone(), candle(2000, 105.0));
+        let replaced = merge_candle(candles.clone(), ChartCandleStick::mock(2000, 105.0));
         assert_eq!(replaced.len(), 2);
         assert_eq!(replaced[0].date, candles[0].date);
         assert_eq!(replaced[1].close, 105.0);
 
-        let appended = merge_candle(candles.clone(), candle(3000, 110.0));
+        let appended = merge_candle(candles.clone(), ChartCandleStick::mock(3000, 110.0));
         assert_eq!(appended.len(), 2);
         assert_eq!(appended[0].date, candles[1].date);
         assert_eq!(appended[1].close, 110.0);
 
-        assert_eq!(merge_candle(candles.clone(), candle(500, 90.0)), candles);
-        assert_eq!(merge_candle(Vec::new(), candle(500, 90.0)), Vec::new());
+        assert_eq!(merge_candle(candles.clone(), ChartCandleStick::mock(500, 90.0)), candles);
+        assert_eq!(merge_candle(Vec::new(), ChartCandleStick::mock(500, 90.0)), Vec::new());
 
-        let perpetual = market("0");
-        let update = |coin: &str, interval: &str| ChartCandleUpdate {
-            coin: coin.to_string(),
-            interval: interval.to_string(),
-            candle: candle(3000, 110.0),
+        let perpetual = Perpetual::mock();
+        let update = ChartCandleUpdate {
+            coin: symbol(&perpetual),
+            interval: "30m".to_string(),
+            candle: ChartCandleStick::mock(3000, 110.0),
         };
-        let symbol = symbol(&perpetual);
-        assert_eq!(apply_candle_update(candles.clone(), update(&symbol, "30m"), &perpetual, &ChartPeriod::Day), Some(appended));
+        assert_eq!(merged_candles(candles.clone(), update.clone(), &perpetual, &ChartPeriod::Day), Some(appended));
         assert_eq!(
-            apply_candle_update(candles.clone(), update(&symbol, "1m"), &perpetual, &ChartPeriod::Day),
+            merged_candles(
+                candles.clone(),
+                ChartCandleUpdate {
+                    interval: "1m".to_string(),
+                    ..update.clone()
+                },
+                &perpetual,
+                &ChartPeriod::Day
+            ),
             None,
             "a candle for another interval is not this chart's"
         );
-        assert_eq!(apply_candle_update(candles, update("OTHER", "30m"), &perpetual, &ChartPeriod::Day), None);
+        assert_eq!(
+            merged_candles(
+                candles,
+                ChartCandleUpdate {
+                    coin: "OTHER".to_string(),
+                    ..update
+                },
+                &perpetual,
+                &ChartPeriod::Day
+            ),
+            None
+        );
     }
 
     #[test]
@@ -1296,5 +1357,44 @@ mod tests {
         assert_eq!(candle_interval(&ChartPeriod::Month), "12h");
         assert_eq!(candle_interval(&ChartPeriod::Year), "1w");
         assert_eq!(candle_interval(&ChartPeriod::All), "1M");
+    }
+
+    #[test]
+    fn test_the_market_screen_lists_its_sections_in_order() {
+        let counts = GemPerpetualMarketCounts {
+            positions: 1,
+            pinned: 1,
+            markets: 2,
+            recents: 1,
+        };
+
+        assert_eq!(
+            market_sections(&counts, false, true).list(),
+            vec![GemPerpetualMarketSection::Positions, GemPerpetualMarketSection::Pinned, GemPerpetualMarketSection::Markets]
+        );
+        assert_eq!(
+            market_sections(&counts, true, true).list(),
+            vec![
+                GemPerpetualMarketSection::Recents,
+                GemPerpetualMarketSection::Positions,
+                GemPerpetualMarketSection::Pinned,
+                GemPerpetualMarketSection::Markets
+            ],
+            "an empty search query offers the recents above the rest"
+        );
+        assert_eq!(
+            market_sections(
+                &GemPerpetualMarketCounts {
+                    positions: 0,
+                    pinned: 0,
+                    markets: 0,
+                    recents: 0
+                },
+                true,
+                false
+            )
+            .list(),
+            vec![GemPerpetualMarketSection::Empty]
+        );
     }
 }

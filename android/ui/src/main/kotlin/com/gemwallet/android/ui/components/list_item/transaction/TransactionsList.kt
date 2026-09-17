@@ -2,16 +2,16 @@ package com.gemwallet.android.ui.components.list_item.transaction
 
 import androidx.compose.foundation.lazy.LazyListScope
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
-import com.gemwallet.android.ui.components.list_item.dateGroupedList
+import com.gemwallet.android.ui.components.list_item.DateSection
+import com.gemwallet.android.ui.components.list_item.dateSectionedList
 import com.wallet.core.primitives.TransactionId
 
 fun LazyListScope.transactionsList(
-    items: List<TransactionDataAggregate>,
+    sections: List<DateSection<TransactionDataAggregate>>,
     onTransactionClick: (TransactionId) -> Unit
 ) {
-    dateGroupedList(
-        items = items,
-        createdAt = { it.createdAt },
+    dateSectionedList(
+        sections = sections,
         key = { _, item -> item.id.identifier },
     ) { position, item ->
         TransactionItem(

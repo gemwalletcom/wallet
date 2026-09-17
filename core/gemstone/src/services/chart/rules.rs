@@ -197,34 +197,14 @@ fn has_variation(values: &[ChartDateValue]) -> bool {
 
 #[cfg(test)]
 mod tests {
-    fn usd(value: f64) -> GemFormattedNumber {
-        GemFormattedNumber::currency(value, Currency::USD, GemCurrencyStyle::Currency)
-    }
-
-    fn signed_percent(value: f64) -> GemFormattedNumber {
-        GemFormattedNumber::percentage(value, GemPercentageStyle::Signed)
-    }
-
     use super::*;
     use crate::formatted_number::GemValueTone;
     use primitives::{AssetId, ChartValuePercentage, LinkType, PriceAlertDirection, currency::Currency};
 
-    fn point(seconds: i64, value: f64) -> ChartDateValue {
-        ChartDateValue {
-            date: DateTime::from_timestamp(seconds, 0).unwrap(),
-            value,
-        }
-    }
-
-    fn chart(values: Vec<ChartDateValue>, current: Option<GemChartCurrent>) -> GemChart {
-        let base_value = base_value(&values);
-        GemChart { values, base_value, current }
-    }
-
     #[test]
     fn test_price_chart_data_needs_two_points() {
-        assert_eq!(price_chart_data(chart(vec![point(1, 100.0)], None), Currency::USD), None);
-        assert_eq!(price_chart_data(chart(vec![], None), Currency::USD), None);
+        assert_eq!(price_chart_data(GemChart::mock(vec![ChartDateValue::mock(1, 100.0)]), Currency::USD), None);
+        assert_eq!(price_chart_data(GemChart::mock(vec![]), Currency::USD), None);
     }
 
     #[test]
@@ -234,7 +214,11 @@ mod tests {
             value: 200.0,
             change_percentage: 4.2,
         };
-        let data = price_chart_data(chart(vec![point(1_000, 100.0)], Some(current)), Currency::USD).expect("data");
+        let chart = GemChart {
+            current: Some(current),
+            ..GemChart::mock(vec![ChartDateValue::mock(1_000, 100.0)])
+        };
+        let data = price_chart_data(chart, Currency::USD).expect("data");
 
         assert_eq!(data.value_type, GemChartValueType::Price);
         assert_eq!(data.base, 100.0);
@@ -242,36 +226,48 @@ mod tests {
         assert_eq!(
             data.header,
             Some(GemChartHeader {
-                value: usd(200.0),
+                value: GemFormattedNumber::currency(200.0, Currency::USD, GemCurrencyStyle::Currency),
                 secondary_value: None,
-                change: Some(signed_percent(4.2)),
+                change: Some(GemFormattedNumber::percentage(4.2, GemPercentageStyle::Signed)),
             })
         );
     }
 
     #[test]
     fn test_price_chart_data_header_falls_back_to_the_last_point() {
-        let data = price_chart_data(chart(vec![point(1, 100.0), point(2, 150.0)], None), Currency::USD).expect("data");
+        let data = price_chart_data(GemChart::mock(vec![ChartDateValue::mock(1, 100.0), ChartDateValue::mock(2, 150.0)]), Currency::USD).expect("data");
 
         assert_eq!(
             data.header,
             Some(GemChartHeader {
-                value: usd(150.0),
+                value: GemFormattedNumber::currency(150.0, Currency::USD, GemCurrencyStyle::Currency),
                 secondary_value: None,
-                change: Some(signed_percent(50.0)),
+                change: Some(GemFormattedNumber::percentage(50.0, GemPercentageStyle::Signed)),
             })
         );
     }
 
     #[test]
     fn test_change_chart_data_needs_a_series_that_moves() {
-        assert_eq!(change_chart_data(vec![point(1, 5.0), point(2, 5.0), point(3, 5.0)], true, Currency::USD), None);
-        assert_eq!(change_chart_data(vec![point(1, 5.0)], true, Currency::USD), None);
+        assert_eq!(
+            change_chart_data(
+                vec![ChartDateValue::mock(1, 5.0), ChartDateValue::mock(2, 5.0), ChartDateValue::mock(3, 5.0)],
+                true,
+                Currency::USD
+            ),
+            None
+        );
+        assert_eq!(change_chart_data(vec![ChartDateValue::mock(1, 5.0)], true, Currency::USD), None);
     }
 
     #[test]
     fn test_change_chart_data_header_is_the_distance_from_the_first_value() {
-        let data = change_chart_data(vec![point(1, 10.0), point(2, 12.0), point(3, 15.0)], true, Currency::USD).expect("data");
+        let data = change_chart_data(
+            vec![ChartDateValue::mock(1, 10.0), ChartDateValue::mock(2, 12.0), ChartDateValue::mock(3, 15.0)],
+            true,
+            Currency::USD,
+        )
+        .expect("data");
 
         assert_eq!(data.value_type, GemChartValueType::PriceChange);
         assert_eq!(data.base, 10.0);
@@ -279,7 +275,7 @@ mod tests {
             data.header,
             Some(GemChartHeader {
                 value: GemFormattedNumber::signed_currency(5.0, Currency::USD, GemCurrencyStyle::Currency),
-                secondary_value: Some(usd(15.0)),
+                secondary_value: Some(GemFormattedNumber::currency(15.0, Currency::USD, GemCurrencyStyle::Currency)),
                 change: Some(GemFormattedNumber::percentage(50.0, GemPercentageStyle::Unsigned).in_parentheses().toned()),
             })
         );
@@ -288,7 +284,7 @@ mod tests {
 
     #[test]
     fn test_change_chart_data_hides_the_percentage_without_a_secondary_value() {
-        let values = vec![point(1, 10.0), point(2, 12.0)];
+        let values = vec![ChartDateValue::mock(1, 10.0), ChartDateValue::mock(2, 12.0)];
 
         assert_eq!(change_chart_data(values.clone(), false, Currency::USD).unwrap().header.unwrap().change, None);
         assert_eq!(
@@ -299,12 +295,12 @@ mod tests {
 
     #[test]
     fn test_a_price_headline_is_plain_and_a_change_headline_carries_its_direction() {
-        let price = price_chart_data(chart(vec![point(1, 100.0), point(2, 90.0)], None), Currency::USD).expect("data");
+        let price = price_chart_data(GemChart::mock(vec![ChartDateValue::mock(1, 100.0), ChartDateValue::mock(2, 90.0)]), Currency::USD).expect("data");
         let price_header = price.header.expect("header");
         assert_eq!(price_header.value.tone, GemValueTone::Plain);
         assert_eq!(price_header.change.expect("change").tone, GemValueTone::Negative);
 
-        let change = change_chart_data(vec![point(1, 100.0), point(2, 90.0)], true, Currency::USD).expect("data");
+        let change = change_chart_data(vec![ChartDateValue::mock(1, 100.0), ChartDateValue::mock(2, 90.0)], true, Currency::USD).expect("data");
         let change_header = change.header.expect("header");
         assert_eq!(change_header.value.tone, GemValueTone::Negative);
         assert_eq!(
@@ -317,7 +313,10 @@ mod tests {
     #[test]
     fn test_header_hides_the_percentage_of_a_zero_value() {
         assert_eq!(super::super::candlestick_header(100.0, 0.0).change, None);
-        assert_eq!(super::super::candlestick_header(100.0, 150.0).change, Some(signed_percent(50.0)));
+        assert_eq!(
+            super::super::candlestick_header(100.0, 150.0).change,
+            Some(GemFormattedNumber::percentage(50.0, GemPercentageStyle::Signed))
+        );
     }
 
     #[test]
@@ -329,49 +328,34 @@ mod tests {
 
     #[test]
     fn test_current_value_is_only_a_price_newer_than_the_chart() {
-        let point = |seconds: i64| ChartDateValue {
-            date: DateTime::from_timestamp(seconds, 0).unwrap(),
-            value: 1.0,
-        };
-        let price = |seconds: i64| AssetPrice {
-            asset_id: AssetId::from_chain(primitives::Chain::Bitcoin),
-            price: 9.0,
-            price_change_percentage_24h: 4.2,
-            updated_at: DateTime::from_timestamp(seconds, 0).unwrap(),
+        let points = [ChartDateValue::mock(10, 1.0), ChartDateValue::mock(20, 1.0)];
+        let newer = AssetPrice::new(AssetId::from_chain(primitives::Chain::Bitcoin), 9.0, 4.2, DateTime::from_timestamp(30, 0).unwrap());
+        let same_age = AssetPrice {
+            updated_at: DateTime::from_timestamp(20, 0).unwrap(),
+            ..newer.clone()
         };
         let now = DateTime::from_timestamp(500, 0).unwrap();
 
-        let current = current_value(&[point(10), point(20)], Some(price(30)), now, ChartPeriod::Day, 1.0).expect("current");
+        let current = current_value(&points, Some(newer.clone()), now, ChartPeriod::Day, 1.0).expect("current");
         assert_eq!(current.value, 9.0);
         assert_eq!(current.date, now);
         assert_eq!(current.change_percentage, 4.2);
-        assert_eq!(
-            current_value(&[point(10), point(20)], Some(price(30)), now, ChartPeriod::Week, 3.0)
-                .unwrap()
-                .change_percentage,
-            200.0
-        );
-        assert_eq!(
-            current_value(&[point(10), point(20)], Some(price(30)), now, ChartPeriod::Week, 0.0)
-                .unwrap()
-                .change_percentage,
-            0.0
-        );
+        assert_eq!(current_value(&points, Some(newer.clone()), now, ChartPeriod::Week, 3.0).unwrap().change_percentage, 200.0);
+        assert_eq!(current_value(&points, Some(newer.clone()), now, ChartPeriod::Week, 0.0).unwrap().change_percentage, 0.0);
 
-        assert_eq!(current_value(&[point(10), point(20)], Some(price(20)), now, ChartPeriod::Day, 1.0), None);
-        assert_eq!(current_value(&[point(10), point(20)], None, now, ChartPeriod::Day, 1.0), None);
-        assert!(current_value(&[], Some(price(20)), now, ChartPeriod::Day, 0.0).is_some());
+        assert_eq!(current_value(&points, Some(same_age.clone()), now, ChartPeriod::Day, 1.0), None);
+        assert_eq!(current_value(&points, None, now, ChartPeriod::Day, 1.0), None);
+        assert!(current_value(&[], Some(same_age), now, ChartPeriod::Day, 0.0).is_some());
     }
 
     #[test]
     fn test_base_value_is_the_first_non_zero_value() {
-        let point = |value: f64| ChartDateValue {
-            date: DateTime::from_timestamp(0, 0).unwrap(),
-            value,
-        };
-        assert_eq!(base_value(&[point(0.0), point(100.0), point(200.0)]), 100.0);
-        assert_eq!(base_value(&[point(50.0), point(100.0)]), 50.0);
-        assert_eq!(base_value(&[point(0.0)]), 0.0);
+        assert_eq!(
+            base_value(&[ChartDateValue::mock(0, 0.0), ChartDateValue::mock(0, 100.0), ChartDateValue::mock(0, 200.0)]),
+            100.0
+        );
+        assert_eq!(base_value(&[ChartDateValue::mock(0, 50.0), ChartDateValue::mock(0, 100.0)]), 50.0);
+        assert_eq!(base_value(&[ChartDateValue::mock(0, 0.0)]), 0.0);
         assert_eq!(base_value(&[]), 0.0);
     }
 

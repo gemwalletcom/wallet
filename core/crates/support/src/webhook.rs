@@ -67,20 +67,15 @@ mod tests {
     const TEST_NOW: i64 = 1_750_000_000;
     const TEST_DATA: &str = r#"{"event":"message_created"}"#;
 
-    fn signed_headers(data: &str, timestamp: i64, secret: &str) -> HashMap<String, String> {
-        let timestamp = timestamp.to_string();
-        let mut mac = Hmac::<Sha256>::new_from_slice(secret.as_bytes()).unwrap();
-        mac.update(format!("{timestamp}.{data}").as_bytes());
-        HashMap::from([
-            (TIMESTAMP_HEADER.to_string(), timestamp),
-            (SIGNATURE_HEADER.to_string(), format!("{SIGNATURE_PREFIX}{}", hex::encode(mac.finalize().into_bytes()))),
-        ])
-    }
-
     #[test]
     fn test_verify() {
         let verifier = ChatwootWebhookVerifier::new(TEST_SECRET.to_string());
-        let headers = signed_headers(TEST_DATA, TEST_NOW, TEST_SECRET);
+        let mut mac = Hmac::<Sha256>::new_from_slice(TEST_SECRET.as_bytes()).unwrap();
+        mac.update(format!("{TEST_NOW}.{TEST_DATA}").as_bytes());
+        let headers = HashMap::from([
+            (TIMESTAMP_HEADER.to_string(), TEST_NOW.to_string()),
+            (SIGNATURE_HEADER.to_string(), format!("{SIGNATURE_PREFIX}{}", hex::encode(mac.finalize().into_bytes()))),
+        ]);
         assert!(verifier.verify_at(&headers, TEST_DATA, TEST_NOW).is_ok());
         assert!(verifier.verify_at(&headers, r#"{"event":"conversation_created"}"#, TEST_NOW).is_err());
         assert!(ChatwootWebhookVerifier::new("wrong_secret".to_string()).verify_at(&headers, TEST_DATA, TEST_NOW).is_err());

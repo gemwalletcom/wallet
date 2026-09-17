@@ -26,11 +26,11 @@ pub fn map_swap_result(response: &TransactionStatus, network: THORChainNetwork) 
     };
 
     let from_coin = tx.coins.first();
-    let from_asset = from_coin.and_then(|c| c.resolve_asset_id(network));
+    let from_asset = from_coin.and_then(|c| c.asset_id(network));
     let from_value = from_coin.and_then(|c| c.native_value(chain));
 
     let out_coin = response.destination_coin();
-    let to_asset = out_coin.and_then(|c| c.resolve_asset_id(network));
+    let to_asset = out_coin.and_then(|c| c.asset_id(network));
     let to_value = out_coin.and_then(|c| to_asset.as_ref().and_then(|a| c.native_value(a.chain)));
 
     let metadata = match (from_asset, from_value, to_asset, to_value) {

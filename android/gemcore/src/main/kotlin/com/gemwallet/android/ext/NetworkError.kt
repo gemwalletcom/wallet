@@ -1,7 +1,8 @@
 package com.gemwallet.android.ext
 
-import com.gemwallet.android.model.GemNetworkError
 import uniffi.gemstone.AlienException
+import uniffi.gemstone.GemErrorText
+import uniffi.gemstone.alienErrorText
 import uniffi.gemstone.GatewayException
 import java.io.EOFException
 import java.io.IOException
@@ -11,18 +12,15 @@ import java.net.UnknownHostException
 import java.security.cert.CertPathValidatorException
 import javax.net.ssl.SSLHandshakeException
 
-fun Throwable.toGemNetworkError(): GemNetworkError? = when (this) {
-    is GatewayException.Offline -> GemNetworkError.Offline
-    is GatewayException.NetworkException -> GemNetworkError.Display(msg)
-    is AlienException.Offline -> GemNetworkError.Offline
-    is AlienException.RequestException -> GemNetworkError.Generic(msg)
-    is AlienException.ResponseException -> GemNetworkError.Generic(msg)
+fun Throwable.toGemErrorText(): GemErrorText? = when (this) {
+    is GatewayException -> text()
+    is AlienException -> alienErrorText(this)
     is IOException -> if (isNetworkUnavailable()) {
-        GemNetworkError.Offline
+        GemErrorText.NetworkOffline
     } else {
-        GemNetworkError.Generic(toGatewayNetworkMessage())
+        GemErrorText.NetworkMessage(toGatewayNetworkMessage())
     }
-    else -> cause?.toGemNetworkError()
+    else -> cause?.toGemErrorText()
 }
 
 fun IOException.toGatewayNetworkMessage(): String = when {

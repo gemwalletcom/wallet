@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D8A1B2C42E90000100AAAA02 /* AppUpdateAlertTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1B2C32E90000100AAAA01 /* AppUpdateAlertTests.swift */; };
 		0741683A2D3AFDBB00AC26A4 /* NFT in Frameworks */ = {isa = PBXBuildFile; productRef = 074168392D3AFDBB00AC26A4 /* NFT */; };
 		0FF1CEBA22E20000000000B2 /* View+ConnectionStatusBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FF1CEBA22E20000000000B1 /* View+ConnectionStatusBanner.swift */; };
 		0FF1CEBA22E20000000000C2 /* ConnectionStatusService in Frameworks */ = {isa = PBXBuildFile; productRef = 0FF1CEBA22E20000000000C1 /* ConnectionStatusService */; };
@@ -19,7 +20,7 @@
 		833931A52D2D5B1D0063BB6A /* PriceAlerts in Frameworks */ = {isa = PBXBuildFile; productRef = 833931A42D2D5B1D0063BB6A /* PriceAlerts */; };
 		833CDFD02D10622D00DAABEE /* ServicesFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 833CDFCF2D10622D00DAABEE /* ServicesFactory.swift */; };
 		8349F1472D5E4FF4003A0A93 /* ManageWallets in Frameworks */ = {isa = PBXBuildFile; productRef = 8349F1462D5E4FF4003A0A93 /* ManageWallets */; };
-		834B381A2D1D85E2009D58D4 /* LockManager in Frameworks */ = {isa = PBXBuildFile; productRef = 834B38192D1D85E2009D58D4 /* LockManager */; };
+		834B381A2D1D85E2009D58D4 /* AppLock in Frameworks */ = {isa = PBXBuildFile; productRef = 834B38192D1D85E2009D58D4 /* AppLock */; };
 		8358DBBD2EA6AD31007A4DC7 /* AutocloseNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8358DBBC2EA6AD31007A4DC7 /* AutocloseNavigationStack.swift */; };
 		8358DBBF2EA6AE59007A4DC7 /* PerpetualNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8358DBBE2EA6AE59007A4DC7 /* PerpetualNavigationView.swift */; };
 		8361BB612D3FE5F2008D89CF /* Transactions in Frameworks */ = {isa = PBXBuildFile; productRef = 8361BB602D3FE5F2008D89CF /* Transactions */; };
@@ -73,6 +74,13 @@
 		D83819562E256A5B0076CDB3 /* GemPriceWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D83819492E256A5A0076CDB3 /* GemPriceWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D83BDCB72E3E878A00E41807 /* PerpetualPositionNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83BDCB52E3E878A00E41807 /* PerpetualPositionNavigationStack.swift */; };
 		D83BDCB92E3E8AA400E41807 /* ViewModelFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83BDCB82E3E8AA400E41807 /* ViewModelFactory.swift */; };
+		D8A200060000000000E41807 /* ViewModelFactory+Wallets.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A100060000000000E41807 /* ViewModelFactory+Wallets.swift */; };
+		D8A200050000000000E41807 /* ViewModelFactory+Wallet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A100050000000000E41807 /* ViewModelFactory+Wallet.swift */; };
+		D8A200040000000000E41807 /* ViewModelFactory+Transfer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A100040000000000E41807 /* ViewModelFactory+Transfer.swift */; };
+		D8A200030000000000E41807 /* ViewModelFactory+Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A100030000000000E41807 /* ViewModelFactory+Settings.swift */; };
+		D8A200020000000000E41807 /* ViewModelFactory+Perpetuals.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A100020000000000E41807 /* ViewModelFactory+Perpetuals.swift */; };
+		D8A200010000000000E41807 /* ViewModelFactory+Collectibles.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A100010000000000E41807 /* ViewModelFactory+Collectibles.swift */; };
+		D8A200000000000000E41807 /* ViewModelFactory+Activity.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A100000000000000E41807 /* ViewModelFactory+Activity.swift */; };
 		D852CAFD2C9C9837004121D3 /* AddAssetPriceAlertNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D852CAFC2C9C9837004121D3 /* AddAssetPriceAlertNavigationStack.swift */; };
 		D852CB012C9CC315004121D3 /* PriceAlertsNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D852CB002C9CC315004121D3 /* PriceAlertsNavigationView.swift */; };
 		D85AD2A62CD7017E0010DEF8 /* NativeProviderService in Frameworks */ = {isa = PBXBuildFile; productRef = D85AD2A52CD7017E0010DEF8 /* NativeProviderService */; };
@@ -92,9 +100,7 @@
 		D8C4A3B22EA6B00000C26819 /* RecipientNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8C4A3B12EA6B00000C26819 /* RecipientNavigationView.swift */; };
 		D8CF19E32CC747370025D6B4 /* Transfer in Frameworks */ = {isa = PBXBuildFile; productRef = D8CF19E22CC747370025D6B4 /* Transfer */; };
 		D8CFDE9E2E37FC2500D27283 /* Style in Frameworks */ = {isa = PBXBuildFile; productRef = D8CFDE9D2E37FC2500D27283 /* Style */; };
-		D8CFDEA02E37FC3B00D27283 /* Primitives in Frameworks */ = {isa = PBXBuildFile; productRef = D8CFDE9F2E37FC3B00D27283 /* Primitives */; };
-		D8CFDEAA2E37FC8C00D27283 /* GemAPI in Frameworks */ = {isa = PBXBuildFile; productRef = D8CFDEA92E37FC8C00D27283 /* GemAPI */; };
-		D8CFDEAE2E37FCA800D27283 /* Formatters in Frameworks */ = {isa = PBXBuildFile; productRef = D8CFDEAD2E37FCA800D27283 /* Formatters */; };
+		D8CFDEA02E37FC3B00D27283 /* Primitives in Frameworks */ = {isa = PBXBuildFile; productRef = D8CFDE9F2E37FC3B00D27283 /* Primitives */; };		D8CFDEAE2E37FCA800D27283 /* Formatters in Frameworks */ = {isa = PBXBuildFile; productRef = D8CFDEAD2E37FCA800D27283 /* Formatters */; };
 		D8CFDEB02E37FCB000D27283 /* Components in Frameworks */ = {isa = PBXBuildFile; productRef = D8CFDEAF2E37FCB000D27283 /* Components */; };
 		D8D5C1D12E6CAC16007628A1 /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8D5C1D02E6CAC16007628A1 /* Errors.swift */; };
 		D8D726BD2C7157A000A6B559 /* Primitives in Frameworks */ = {isa = PBXBuildFile; productRef = D8D726BC2C7157A000A6B559 /* Primitives */; };
@@ -162,11 +168,10 @@
 		830FDA412C2236B6003DA605 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		830FDA442C224316003DA605 /* NavigationStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationStateManager.swift; sourceTree = "<group>"; };
 		830FDA472C22EEC4003DA605 /* TabItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabItem.swift; sourceTree = "<group>"; };
-		8311A89A2DF9D35D00598C43 /* Validators */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Validators; sourceTree = "<group>"; };
 		833931A32D2D54060063BB6A /* PriceAlerts */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = PriceAlerts; sourceTree = "<group>"; };
 		833CDFCF2D10622D00DAABEE /* ServicesFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesFactory.swift; sourceTree = "<group>"; };
 		8349F1452D5E4D04003A0A93 /* ManageWallets */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = ManageWallets; sourceTree = "<group>"; };
-		834B38182D1D858D009D58D4 /* LockManager */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = LockManager; sourceTree = "<group>"; };
+		834B38182D1D858D009D58D4 /* AppLock */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = AppLock; sourceTree = "<group>"; };
 		83518CCC2D1C998300B339E5 /* PrimitivesComponents */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = PrimitivesComponents; sourceTree = "<group>"; };
 		8358DBBC2EA6AD31007A4DC7 /* AutocloseNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutocloseNavigationStack.swift; sourceTree = "<group>"; };
 		8358DBBE2EA6AE59007A4DC7 /* PerpetualNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerpetualNavigationView.swift; sourceTree = "<group>"; };
@@ -201,12 +206,11 @@
 		C30952B3299C39D70004C0F9 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		C30952B7299C39D80004C0F9 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		C30952B9299C39D80004C0F9 /* Gem.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Gem.entitlements; sourceTree = "<group>"; };
+		D8A1B2C32E90000100AAAA01 /* AppUpdateAlertTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateAlertTests.swift; sourceTree = "<group>"; };
 		C30952C1299C39D80004C0F9 /* GemTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GemTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C34C7CF729FDE942009EEC21 /* unit_frameworks.xctestplan */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = unit_frameworks.xctestplan; sourceTree = "<group>"; };
 		C3549B4C29CA3A9000B4BE01 /* Store */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Store; sourceTree = "<group>"; };
-		C36679092A0B7E5800F1D74D /* Environment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
-		C36679142A0FF81000F1D74D /* GemAPI */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = GemAPI; sourceTree = "<group>"; };
-		C366791B2A1860E500F1D74D /* QRScanner */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = QRScanner; sourceTree = "<group>"; };
+		C36679092A0B7E5800F1D74D /* Environment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };		C366791B2A1860E500F1D74D /* QRScanner */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = QRScanner; sourceTree = "<group>"; };
 		C370289B2A9C3B0E009AE123 /* Settings */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Settings; sourceTree = "<group>"; };
 		C3CF3B7529A98C5D00E96586 /* Primitives */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Primitives; sourceTree = "<group>"; };
 		C3CF3B8629AC2B5500E96586 /* Components */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Components; sourceTree = "<group>"; };
@@ -229,6 +233,13 @@
 		D83819492E256A5A0076CDB3 /* GemPriceWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = GemPriceWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D83BDCB52E3E878A00E41807 /* PerpetualPositionNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerpetualPositionNavigationStack.swift; sourceTree = "<group>"; };
 		D83BDCB82E3E8AA400E41807 /* ViewModelFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModelFactory.swift; sourceTree = "<group>"; };
+		D8A100060000000000E41807 /* ViewModelFactory+Wallets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewModelFactory+Wallets.swift"; sourceTree = "<group>"; };
+		D8A100050000000000E41807 /* ViewModelFactory+Wallet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewModelFactory+Wallet.swift"; sourceTree = "<group>"; };
+		D8A100040000000000E41807 /* ViewModelFactory+Transfer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewModelFactory+Transfer.swift"; sourceTree = "<group>"; };
+		D8A100030000000000E41807 /* ViewModelFactory+Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewModelFactory+Settings.swift"; sourceTree = "<group>"; };
+		D8A100020000000000E41807 /* ViewModelFactory+Perpetuals.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewModelFactory+Perpetuals.swift"; sourceTree = "<group>"; };
+		D8A100010000000000E41807 /* ViewModelFactory+Collectibles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewModelFactory+Collectibles.swift"; sourceTree = "<group>"; };
+		D8A100000000000000E41807 /* ViewModelFactory+Activity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewModelFactory+Activity.swift"; sourceTree = "<group>"; };
 		D852CAFC2C9C9837004121D3 /* AddAssetPriceAlertNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddAssetPriceAlertNavigationStack.swift; sourceTree = "<group>"; };
 		D852CB002C9CC315004121D3 /* PriceAlertsNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceAlertsNavigationView.swift; sourceTree = "<group>"; };
 		D87316542E3AF1F000C11634 /* FeatureServices */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = FeatureServices; sourceTree = "<group>"; };
@@ -308,7 +319,7 @@
 				DF93C4EE2C969F4F00204ABD /* Gemstone in Frameworks */,
 				D8CF19E32CC747370025D6B4 /* Transfer in Frameworks */,
 				D829BF452CBDD9F700DEB2E8 /* FiatConnect in Frameworks */,
-				834B381A2D1D85E2009D58D4 /* LockManager in Frameworks */,
+				834B381A2D1D85E2009D58D4 /* AppLock in Frameworks */,
 				B66AFC6C2DDB260A0082C026 /* AppService in Frameworks */,
 				0FF1CEBA22E20000000000C2 /* ConnectionStatusService in Frameworks */,
 				833931A52D2D5B1D0063BB6A /* PriceAlerts in Frameworks */,
@@ -342,7 +353,6 @@
 				D8CFDEAE2E37FCA800D27283 /* Formatters in Frameworks */,
 				D8CFDEB02E37FCB000D27283 /* Components in Frameworks */,
 				D838194B2E256A5A0076CDB3 /* SwiftUI.framework in Frameworks */,
-				D8CFDEAA2E37FC8C00D27283 /* GemAPI in Frameworks */,
 				D8CFDEA02E37FC3B00D27283 /* Primitives in Frameworks */,
 				D838194A2E256A5A0076CDB3 /* WidgetKit.framework in Frameworks */,
 			);
@@ -473,6 +483,13 @@
 				83B08BDC2D0B4B1E00CA1B33 /* AppResolver+Services.swift */,
 				833CDFCF2D10622D00DAABEE /* ServicesFactory.swift */,
 				D83BDCB82E3E8AA400E41807 /* ViewModelFactory.swift */,
+				D8A100060000000000E41807 /* ViewModelFactory+Wallets.swift */,
+				D8A100050000000000E41807 /* ViewModelFactory+Wallet.swift */,
+				D8A100040000000000E41807 /* ViewModelFactory+Transfer.swift */,
+				D8A100030000000000E41807 /* ViewModelFactory+Settings.swift */,
+				D8A100020000000000E41807 /* ViewModelFactory+Perpetuals.swift */,
+				D8A100010000000000E41807 /* ViewModelFactory+Collectibles.swift */,
+				D8A100000000000000E41807 /* ViewModelFactory+Activity.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -562,6 +579,7 @@
 		C30952C4299C39D80004C0F9 /* GemTests */ = {
 			isa = PBXGroup;
 			children = (
+				D8A1B2C32E90000100AAAA01 /* AppUpdateAlertTests.swift */,
 				D8D726BF2C716C5B00A6B559 /* Screenshots */,
 				C34C7CF729FDE942009EEC21 /* unit_frameworks.xctestplan */,
 				D87316B72E3AF30300C11634 /* ui_tests.xctestplan */,
@@ -584,14 +602,12 @@
 			children = (
 				837D7DE62E005D2800BBBDDA /* Formatters */,
 				D8D203D12AE0813E00261CA2 /* SwiftHTTPClient */,
-				C36679142A0FF81000F1D74D /* GemAPI */,
 				C3549B4C29CA3A9000B4BE01 /* Store */,
 				C3CF3B7529A98C5D00E96586 /* Primitives */,
 				C3CF3BD929BBE40300E96586 /* Style */,
 				C3CF3B8629AC2B5500E96586 /* Components */,
 				D829BF2B2CBDB82600DEB2E8 /* Localization */,
 				83518CCC2D1C998300B339E5 /* PrimitivesComponents */,
-				8311A89A2DF9D35D00598C43 /* Validators */,
 				D87316542E3AF1F000C11634 /* FeatureServices */,
 				D87316552E3AF1F000C11634 /* SystemServices */,
 				D87316B62E3AF2FA00C11634 /* Gemstone */,
@@ -633,7 +649,7 @@
 				D829BF432CBDD9D200DEB2E8 /* FiatConnect */,
 				D829BF402CBDD64D00DEB2E8 /* MarketInsight */,
 				C366791B2A1860E500F1D74D /* QRScanner */,
-				834B38182D1D858D009D58D4 /* LockManager */,
+				834B38182D1D858D009D58D4 /* AppLock */,
 				C370289B2A9C3B0E009AE123 /* Settings */,
 				D88BB2682E2EE09F006310B9 /* Perpetuals */,
 			);
@@ -739,7 +755,7 @@
 				D85AD2A52CD7017E0010DEF8 /* NativeProviderService */,
 				D8D83C832CECFA610083AA53 /* Swap */,
 				839C794A2D1C42A500E32072 /* PrimitivesComponents */,
-				834B38192D1D85E2009D58D4 /* LockManager */,
+				834B38192D1D85E2009D58D4 /* AppLock */,
 				833931A42D2D5B1D0063BB6A /* PriceAlerts */,
 				B604C2E92F3F538100CBAFDC /* Contacts */,
 				D9F015752F10654000000002 /* InAppNotifications */,
@@ -826,9 +842,11 @@
 			packageProductDependencies = (
 				D8CFDE9D2E37FC2500D27283 /* Style */,
 				D8CFDE9F2E37FC3B00D27283 /* Primitives */,
-				D8CFDEA92E37FC8C00D27283 /* GemAPI */,
 				D8CFDEAD2E37FCA800D27283 /* Formatters */,
 				D8CFDEAF2E37FCB000D27283 /* Components */,
+				D8WIDGETGEMSTONE00000001 /* Gemstone */,
+				D8WIDGETGEMPRIMS00000001 /* GemstonePrimitives */,
+				D8WIDGETNATIVEPROV000001 /* NativeProviderService */,
 				D8WIDGET12345678901234 /* WidgetLocalization */,
 			);
 			productName = GemPriceWidgetExtension;
@@ -1016,6 +1034,13 @@
 				D8C4A3A52C9696FE006FABE8 /* AssetNavigationView.swift in Sources */,
 				D890F7A52C7FC0AC00C26819 /* WalletsNavigationStack.swift in Sources */,
 				D83BDCB92E3E8AA400E41807 /* ViewModelFactory.swift in Sources */,
+				D8A200060000000000E41807 /* ViewModelFactory+Wallets.swift in Sources */,
+				D8A200050000000000E41807 /* ViewModelFactory+Wallet.swift in Sources */,
+				D8A200040000000000E41807 /* ViewModelFactory+Transfer.swift in Sources */,
+				D8A200030000000000E41807 /* ViewModelFactory+Settings.swift in Sources */,
+				D8A200020000000000E41807 /* ViewModelFactory+Perpetuals.swift in Sources */,
+				D8A200010000000000E41807 /* ViewModelFactory+Collectibles.swift in Sources */,
+				D8A200000000000000E41807 /* ViewModelFactory+Activity.swift in Sources */,
 				83B08BDD2D0B4B1E00CA1B33 /* AppResolver+Services.swift in Sources */,
 				83E0415A2D0AFCB80031D4BC /* RootSceneViewModel.swift in Sources */,
 				D8B738D42C59643D004EF083 /* MainTabViewModel.swift in Sources */,
@@ -1039,6 +1064,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D8A1B2C42E90000100AAAA02 /* AppUpdateAlertTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1278,7 +1304,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Gem/Resources/Gem.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 202;
+				CURRENT_PROJECT_VERSION = 204;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = U2D6XV88CZ;
@@ -1304,7 +1330,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				LLVM_LTO = NO;
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 2.114.31;
+				MARKETING_VERSION = 2.114.33;
 				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"$(inherited)",
 					"$(SRCROOT)/../core/target/aarch64-apple-ios/debug/libgemstone.a",
@@ -1335,7 +1361,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 202;
+				CURRENT_PROJECT_VERSION = 204;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = "";
@@ -1363,7 +1389,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				LLVM_LTO = YES_THIN;
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 2.114.31;
+				MARKETING_VERSION = 2.114.33;
 				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"$(inherited)",
 					"$(SRCROOT)/../core/target/aarch64-apple-ios/release/libgemstone.a",
@@ -1392,7 +1418,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 202;
+				CURRENT_PROJECT_VERSION = 204;
 				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -1413,7 +1439,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 202;
+				CURRENT_PROJECT_VERSION = 204;
 				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -1433,7 +1459,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 202;
+				CURRENT_PROJECT_VERSION = 204;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -1454,7 +1480,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 202;
+				CURRENT_PROJECT_VERSION = 204;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -1479,10 +1505,18 @@
 				CODE_SIGN_ENTITLEMENTS = GemPriceWidget/GemPriceWidget.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 202;
+				CURRENT_PROJECT_VERSION = 204;
 				DEVELOPMENT_TEAM = U2D6XV88CZ;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
+				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
+					"$(inherited)",
+					"$(SRCROOT)/../core/target/aarch64-apple-ios/debug/libgemstone.a",
+				);
+				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = (
+					"$(inherited)",
+					"$(SRCROOT)/../core/target/aarch64-apple-ios-sim/debug/libgemstone.a",
+				);
 				INFOPLIST_FILE = GemPriceWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = GemPriceWidget;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -1493,7 +1527,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.114.31;
+				MARKETING_VERSION = 2.114.33;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gemwallet.ios.widgetprice;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1514,10 +1548,18 @@
 				CODE_SIGN_ENTITLEMENTS = GemPriceWidget/GemPriceWidget.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 202;
+				CURRENT_PROJECT_VERSION = 204;
 				DEVELOPMENT_TEAM = U2D6XV88CZ;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
+				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
+					"$(inherited)",
+					"$(SRCROOT)/../core/target/aarch64-apple-ios/release/libgemstone.a",
+				);
+				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = (
+					"$(inherited)",
+					"$(SRCROOT)/../core/target/aarch64-apple-ios-sim/release/libgemstone.a",
+				);
 				INFOPLIST_FILE = GemPriceWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = GemPriceWidget;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -1528,7 +1570,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.114.31;
+				MARKETING_VERSION = 2.114.33;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gemwallet.ios.widgetprice;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1546,7 +1588,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 202;
+				CURRENT_PROJECT_VERSION = 204;
 				DEVELOPMENT_TEAM = U2D6XV88CZ;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1569,7 +1611,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 202;
+				CURRENT_PROJECT_VERSION = 204;
 				DEVELOPMENT_TEAM = U2D6XV88CZ;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1667,9 +1709,9 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = ManageWallets;
 		};
-		834B38192D1D85E2009D58D4 /* LockManager */ = {
+		834B38192D1D85E2009D58D4 /* AppLock */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = LockManager;
+			productName = AppLock;
 		};
 		8361BB602D3FE5F2008D89CF /* Transactions */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -1751,6 +1793,10 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = FiatConnect;
 		};
+		D8WIDGETNATIVEPROV000001 /* NativeProviderService */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = NativeProviderService;
+		};
 		D85AD2A52CD7017E0010DEF8 /* NativeProviderService */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = NativeProviderService;
@@ -1795,10 +1841,6 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = Primitives;
 		};
-		D8CFDEA92E37FC8C00D27283 /* GemAPI */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = GemAPI;
-		};
 		D8CFDEAD2E37FCA800D27283 /* Formatters */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Formatters;
@@ -1823,9 +1865,17 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = InAppNotifications;
 		};
+		D8WIDGETGEMPRIMS00000001 /* GemstonePrimitives */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GemstonePrimitives;
+		};
 		DF8421ED2C1526ED003F558C /* GemstonePrimitives */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = GemstonePrimitives;
+		};
+		D8WIDGETGEMSTONE00000001 /* Gemstone */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Gemstone;
 		};
 		DF93C4ED2C969F4F00204ABD /* Gemstone */ = {
 			isa = XCSwiftPackageProductDependency;

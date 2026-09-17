@@ -3,7 +3,7 @@ pub mod rules;
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
-use primitives::{PlatformStore, Release};
+use primitives::{PlatformStore, Release, is_version_higher};
 
 use crate::services::config::GemConfigService;
 use crate::services::preferences::GemPreferencesService;
@@ -43,6 +43,6 @@ impl GemAppUpdateService {
     }
 
     pub fn is_version_higher(&self, new: String, current: String) -> bool {
-        rules::is_version_higher(new, current)
+        is_version_higher(new, current)
     }
 }

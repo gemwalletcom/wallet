@@ -128,4 +128,14 @@ public extension Sizing {
         public static let radius: CGFloat = 10
         public static let yOffset: CGFloat = 5
     }
+
+    enum picker {
+        /// 200
+        public static let segmentedWidth: CGFloat = 200
+    }
+
+    enum chart {
+        /// 320
+        public static let height: CGFloat = 320
+    }
 }

@@ -24,13 +24,15 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemMarketsRefreshTrigger
 import uniffi.gemstone.GemPerpetualService
+import uniffi.gemstone.GemPerpetualServiceInterface
 import uniffi.gemstone.GemPerpetualStreamService
+import uniffi.gemstone.GemPerpetualStreamServiceInterface
 import uniffi.gemstone.GemPerpetualSubscription
 
 class HyperliquidObserverService(
     private val observePerpetualWallet: ObservePerpetualWallet,
-    private val perpetualService: GemPerpetualService,
-    private val streamService: GemPerpetualStreamService,
+    private val perpetualService: GemPerpetualServiceInterface,
+    private val streamService: GemPerpetualStreamServiceInterface,
     private val connection: WebSocketConnectable,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) : PerpetualObserver {

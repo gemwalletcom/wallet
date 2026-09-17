@@ -1,7 +1,5 @@
 package com.gemwallet.android.ui.models.chart
 
-import com.gemwallet.android.domains.price.ValueDirection
-import com.gemwallet.android.model.text
 import com.wallet.core.primitives.ChartCandleStick
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -31,9 +29,9 @@ class CandlestickChartUIModelTest {
     fun candleDirectionsReflectOpenVsClose() {
         val model = model()
 
-        assertEquals(ValueDirection.Up, model.candles[0].direction)
-        assertEquals(ValueDirection.Down, model.candles[1].direction)
-        assertEquals(ValueDirection.None, model.candles[2].direction)
+        assertEquals(CandleDirection.Up, model.candles[0].direction)
+        assertEquals(CandleDirection.Down, model.candles[1].direction)
+        assertEquals(CandleDirection.Flat, model.candles[2].direction)
     }
 
     @Test
@@ -50,7 +48,7 @@ class CandlestickChartUIModelTest {
         val model = model()
 
         assertEquals(listOf("Entry | 10.50"), model.referenceLines.map { it.label })
-        assertEquals(GemPerpetualChartLineKind.ENTRY, model.referenceLines.single().line.kind)
+        assertEquals(ChartReferenceLineKind.Entry, model.referenceLines.single().kind)
     }
 
     @Test
@@ -63,6 +61,6 @@ class CandlestickChartUIModelTest {
     private fun model(layout: GemPerpetualChartLayout = this.layout) = CandlestickChartUIModel.from(
         candles = candles,
         layout = layout,
-        lineLabel = { "Entry | ${it.price.text()}" },
+        lineLabel = { "Entry" },
     )
 }

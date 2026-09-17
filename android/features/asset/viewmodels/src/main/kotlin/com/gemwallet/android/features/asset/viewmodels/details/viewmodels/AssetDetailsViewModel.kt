@@ -1,38 +1,42 @@
 package com.gemwallet.android.features.asset.viewmodels.details.viewmodels
 
 import android.util.Log
-import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.ext.serviceMessage
-import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.ext.toGem
-import uniffi.gemstone.GemAssetDetailsInput
-import uniffi.gemstone.GemAssetDetailsServiceInterface
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetChainAssetInfo
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
+import com.gemwallet.android.application.banner.cases.GetActiveBanners
+import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
-import com.gemwallet.android.application.banner.cases.GetActiveBanners
-import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
+import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
+import com.gemwallet.android.domains.banner.BannerRow
+import com.gemwallet.android.domains.connection.refreshInterval
+import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toGemKey
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
+import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModelFactory
 import com.gemwallet.android.model.ChainAssetInfo
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.model.toGem
-import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
-import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModelFactory
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.BannerEvent
+import com.wallet.core.primitives.Banner
 import com.wallet.core.primitives.PriceAlert
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -46,7 +50,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import javax.inject.Inject
+import kotlinx.coroutines.launch
+import uniffi.gemstone.GemAssetDetailsInput
+import uniffi.gemstone.GemAssetDetailsServiceInterface
+import uniffi.gemstone.GemErrorText
+import uniffi.gemstone.GemPriceAlertToggle
+import uniffi.gemstone.GemRefreshKind
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -60,22 +69,30 @@ class AssetDetailsViewModel @Inject constructor(
     private val getActiveBanners: GetActiveBanners,
     private val getPriceAlerts: GetPriceAlerts,
     private val assetInfoUIModelFactory: AssetInfoUIModelFactory,
+    private val userConfig: UserConfig,
+    private val connectionStatusObserver: ConnectionStatusObserver,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
+
+    val refreshIntervalMillis: StateFlow<Long> = connectionStatusObserver.status
+        .map { it.refreshInterval(GemRefreshKind.WALLET).toMillis() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
+
     private var syncJob: Job? = null
 
     val session = getSession()
 
     val isRefreshing = MutableStateFlow(false)
 
-    private val errorState = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = errorState.asStateFlow()
+    private val errorState = MutableStateFlow<GemErrorText?>(null)
+    val error: StateFlow<GemErrorText?> = errorState.asStateFlow()
 
     private val assetId = savedStateHandle.requireAssetId()
 
     private val chainAssetInfo = getChainAssetInfo(assetId)
         .onStart { restartAssetSync() }
         .filterNotNull()
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, storedChainAssetInfo())
 
     private fun storedChainAssetInfo(): ChainAssetInfo? {
@@ -87,25 +104,28 @@ class AssetDetailsViewModel @Inject constructor(
 
     val transactions = getTransactions.getTransactions(listOf(TransactionsRequestFilter.Asset(assetId)))
         .map { it.toImmutableList() }
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val bannerEvents = chainAssetInfo.filterNotNull()
+    private val banners = chainAssetInfo.filterNotNull()
         .map { it.assetInfo.asset }
         .distinctUntilChanged()
-        .flatMapLatest { getActiveBanners(it, isGlobal = false) }
-        .map { banners -> banners.map { it.event } }
+        .flatMapLatest { asset ->
+            getActiveBanners(asset).map { banners ->
+                banners.map { banner -> BannerRow(banner, assetDetailsService.bannerContent(banner.event.toGem(), banner.asset?.toGem())) }
+            }
+        }
 
     private val priceAlerts = getPriceAlerts.assetPriceAlerts(assetId)
 
-    val uiModel = combine(chainAssetInfo, session, bannerEvents, priceAlerts, ::uiModel)
-        .flowOn(Dispatchers.IO)
+    val uiModel = combine(chainAssetInfo, session, banners, priceAlerts, ::uiModel)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private fun uiModel(
         chainInfo: ChainAssetInfo?,
         session: Session?,
-        bannerEvents: List<BannerEvent>,
+        banners: List<BannerRow>,
         priceAlerts: List<PriceAlert>,
     ): AssetInfoUIModel? {
         val wallet = session?.wallet ?: return null
@@ -118,11 +138,11 @@ class AssetDetailsViewModel @Inject constructor(
                 metadata = assetInfo.metadata.toGem(),
                 balance = assetInfo.balance.toGem(),
                 price = assetInfo.price?.price?.price,
-                bannerEvents = bannerEvents.map { event -> event.toGem() },
+                bannerEvents = banners.map { row -> row.banner.event.toGem() },
                 priceAlerts = priceAlerts.map { alert -> alert.toGem() },
             )
         )
-        return assetInfoUIModelFactory.create(chainAssetInfo = chainInfo, details = details)
+        return assetInfoUIModelFactory.create(chainAssetInfo = chainInfo, details = details, banners = banners)
     }
 
     fun refresh() {
@@ -132,7 +152,7 @@ class AssetDetailsViewModel @Inject constructor(
 
         isRefreshing.value = true
         syncPriceAlerts()
-        syncJob = viewModelScope.launch(Dispatchers.IO) {
+        syncJob = viewModelScope.launch(ioDispatcher) {
             try {
                 syncAssetDetails()
             } finally {
@@ -145,13 +165,13 @@ class AssetDetailsViewModel @Inject constructor(
         val previousJob = syncJob
 
         syncPriceAlerts()
-        syncJob = viewModelScope.launch(Dispatchers.IO) {
+        syncJob = viewModelScope.launch(ioDispatcher) {
             previousJob?.cancelAndJoin()
             syncAssetDetails()
         }
     }
 
-    private fun syncPriceAlerts() = viewModelScope.launch(Dispatchers.IO) {
+    private fun syncPriceAlerts() = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable { assetDetailsService.syncPriceAlerts(assetId.toIdentifier()) }
             .onFailure { Log.e(TAG, "price alerts sync failed for ${assetId.toIdentifier()}", it) }
     }
@@ -162,20 +182,29 @@ class AssetDetailsViewModel @Inject constructor(
             .forEach { Log.e(TAG, "asset refresh ${it.step} failed: ${it.message}") }
     }
 
-    fun pin() = viewModelScope.launch(Dispatchers.IO) {
+    fun pin() = viewModelScope.launch(ioDispatcher) {
         val assetInfo = chainAssetInfo.value?.assetInfo ?: return@launch
         assetDetailsService.setAssetPinned(assetInfo.id().toIdentifier(), !assetInfo.metadata.isPinned)
     }
 
-    fun add() = viewModelScope.launch(Dispatchers.IO) {
+    fun add() = viewModelScope.launch(ioDispatcher) {
         val assetInfo = chainAssetInfo.value?.assetInfo ?: return@launch
         assetDetailsService.setAssetsEnabled(listOf(assetInfo.id().toIdentifier()), true)
     }
 
-    fun togglePriceAlert(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
-        val enabled = uiModel.value?.detailsState?.priceAlertEnabled ?: return@launch
-        runCatchingCancellable { assetDetailsService.setPriceAlert(assetId.toIdentifier(), !enabled) }
-            .onFailure { errorState.value = it.serviceMessage() }
+    fun togglePriceAlert(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {
+        val toggled = uiModel.value?.detailsState?.priceAlert?.toggled() ?: return@launch
+        runCatchingCancellable { assetDetailsService.setPriceAlert(assetId.toIdentifier(), toggled == GemPriceAlertToggle.ENABLED) }
+            .onFailure { errorState.value = it.errorText() }
+    }
+
+    fun closeBanner(banner: Banner) = viewModelScope.launch(ioDispatcher) {
+        runCatchingCancellable { assetDetailsService.closeBanner(banner.toGemKey()) }
+            .onFailure { Log.e(TAG, "banner ${banner.event} close failed", it) }
+    }
+
+    fun enablePerpetuals() {
+        userConfig.setPerpetualEnabled(true)
     }
 
     fun clearError() = errorState.update { null }

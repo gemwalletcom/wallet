@@ -4,11 +4,12 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import androidx.annotation.DrawableRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -24,40 +25,32 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.domains.perpetual.formatLeverage
+import com.gemwallet.android.features.settings.settings.viewmodels.PreferencesViewModel
+import com.gemwallet.android.features.settings.settings.viewmodels.localization.stringRes
+import com.gemwallet.android.features.settings.settings.viewmodels.models.PreferencesRowUIModel
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.LinkItem
+import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemDefaults
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
-import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.models.actions.PreferencesAction
 import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.compactIconSize
-import com.gemwallet.android.features.settings.settings.viewmodels.SettingsViewModel
-import com.gemwallet.android.features.settings.settings.presents.localization.stringRes
 import com.wallet.core.primitives.Appearance
 import java.util.Locale
-import uniffi.gemstone.GemPerpetual
-import uniffi.gemstone.PerpetualProvider
-import com.gemwallet.android.math.toUnsignedInts
 
 @Composable
 fun PreferencesScene(
     onAction: (PreferencesAction) -> Unit,
-    viewModel: SettingsViewModel = hiltViewModel(),
+    viewModel: PreferencesViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val isPerpetualEnabled by viewModel.isPerpetualEnabled.collectAsStateWithLifecycle()
-    val appearance by viewModel.appearance.collectAsStateWithLifecycle()
-    val perpetualLeverage by viewModel.perpetualLeverage.collectAsStateWithLifecycle()
-    val perpetualTakeProfit by viewModel.perpetualTakeProfit.collectAsStateWithLifecycle()
-    val perpetualStopLoss by viewModel.perpetualStopLoss.collectAsStateWithLifecycle()
-
+    val rows by viewModel.rows.collectAsStateWithLifecycle()
     val configuration = LocalConfiguration.current
     val context = LocalContext.current
 
@@ -66,152 +59,84 @@ fun PreferencesScene(
         onClose = { onAction(PreferencesAction.Cancel) },
     ) {
         LazyColumn {
-            item {
-                LinkItem(
-                    title = stringResource(R.string.settings_currency),
-                    icon = R.drawable.settings_currency,
-                    listPosition = ListPosition.First,
-                    trailingContent = {
-                        PropertyDataText(
-                            text = "${uiState.currency.flag}  ${uiState.currency.currency}",
-                            badge = { DataBadgeChevron() },
+            rows.forEach { section ->
+                itemsIndexed(section) { index, row ->
+                    val listPosition = ListPosition.getPosition(index, section.size)
+                    when (row) {
+                        is PreferencesRowUIModel.Link -> ListItem(
+                            model = row.model,
+                            listPosition = listPosition,
+                            modifier = Modifier.clickable { onAction(row.action) },
+                            minHeight = ListItemDefaults.plainMinHeight,
+                            accessory = { DataBadgeChevron() },
                         )
-                    },
-                    onClick = { onAction(PreferencesAction.Currencies) },
-                )
-            }
-
-            item {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    val language = configuration.locales
-                        .get(0).displayLanguage.replaceFirstChar {
-                            if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString()
-                        }
-                    LinkItem(
-                        title = stringResource(id = R.string.settings_language),
-                        icon = R.drawable.settings_language,
-                        trailingContent = {
-                            PropertyDataText(
-                                text = language,
-                                badge = { DataBadgeChevron() },
+                        is PreferencesRowUIModel.Language -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            val language = configuration.locales
+                                .get(0).displayLanguage.replaceFirstChar {
+                                    if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString()
+                                }
+                            ListItem(
+                                model = row.model.copy(subtitle = language),
+                                listPosition = listPosition,
+                                modifier = Modifier.clickable {
+                                    val intent = Intent(Settings.ACTION_APP_LOCALE_SETTINGS)
+                                    intent.data = Uri.fromParts("package", context.packageName, null)
+                                    context.startActivity(intent)
+                                },
+                                minHeight = ListItemDefaults.plainMinHeight,
+                                accessory = { DataBadgeChevron() },
                             )
-                        },
-                        onClick = {
-                            val intent = Intent(Settings.ACTION_APP_LOCALE_SETTINGS)
-                            intent.data = Uri.fromParts("package", context.packageName, null)
-                            context.startActivity(intent)
                         }
-                    )
-                }
-            }
-
-            item {
-                OptionPickerLinkItem(
-                    title = stringResource(R.string.settings_appearance_title),
-                    current = appearance,
-                    options = Appearance.entries,
-                    listPosition = ListPosition.Middle,
-                    icon = R.drawable.settings_appearance,
-                    indented = false,
-                    label = { stringResource(it.stringRes()) },
-                    onSelect = { viewModel.setAppearance(it) },
-                )
-            }
-
-            item {
-                LinkItem(
-                    title = stringResource(id = R.string.settings_networks_title),
-                    icon = R.drawable.settings_networks,
-                    listPosition = ListPosition.Middle
-                ) {
-                    onAction(PreferencesAction.Networks)
-                }
-            }
-
-            item {
-                LinkItem(
-                    title = stringResource(id = R.string.contacts_title),
-                    icon = R.drawable.settings_contacts,
-                    listPosition = ListPosition.Last,
-                    onClick = { onAction(PreferencesAction.Contacts) },
-                )
-            }
-
-            item {
-                LinkItem(
-                    title = stringResource(id = R.string.perpetuals_title),
-                    icon = R.drawable.settings_pricealert,
-                    listPosition = if (isPerpetualEnabled) ListPosition.First else ListPosition.Single,
-                    trailingContent = {
-                        Switch(
-                            checked = isPerpetualEnabled,
-                            onCheckedChange = viewModel::setPerpetualEnabled,
+                        is PreferencesRowUIModel.AppearancePicker -> OptionPickerLinkItem(
+                            model = row.model,
+                            current = row.current,
+                            options = Appearance.entries,
+                            listPosition = listPosition,
+                            label = { stringResource(it.stringRes()) },
+                            onSelect = { viewModel.setAppearance(it) },
                         )
-                    },
-                    onClick = { viewModel.setPerpetualEnabled(!isPerpetualEnabled) },
-                )
-            }
-
-            if (isPerpetualEnabled) {
-                item {
-                    OptionPickerLinkItem(
-                        title = stringResource(R.string.settings_preferences_perpetual_default_leverage),
-                        current = perpetualLeverage,
-                        options = GemPerpetual(PerpetualProvider.HYPERCORE).use { it.leverageOptions(null) }.toUnsignedInts(),
-                        listPosition = ListPosition.Middle,
-                        label = { it.formatLeverage() },
-                        onSelect = { viewModel.setPerpetualLeverage(it) },
-                    )
-                }
-                item {
-                    OptionPickerLinkItem(
-                        title = stringResource(R.string.settings_preferences_perpetual_default_take_profit),
-                        current = perpetualTakeProfit,
-                        options = GemPerpetual(PerpetualProvider.HYPERCORE).use { it.takeProfitOptions() }.toUnsignedInts(),
-                        listPosition = ListPosition.Middle,
-                        label = { autocloseLabel(it) },
-                        onSelect = { viewModel.setPerpetualTakeProfit(it) },
-                    )
-                }
-                item {
-                    OptionPickerLinkItem(
-                        title = stringResource(R.string.settings_preferences_perpetual_default_stop_loss),
-                        current = perpetualStopLoss,
-                        options = GemPerpetual(PerpetualProvider.HYPERCORE).use { it.stopLossOptions() }.toUnsignedInts(),
-                        listPosition = ListPosition.Last,
-                        label = { autocloseLabel(it) },
-                        onSelect = { viewModel.setPerpetualStopLoss(it) },
-                    )
+                        is PreferencesRowUIModel.PerpetualsSwitch -> ListItem(
+                            model = row.model,
+                            listPosition = listPosition,
+                            modifier = Modifier.clickable { viewModel.setPerpetualEnabled(!row.isEnabled) },
+                            minHeight = ListItemDefaults.plainMinHeight,
+                            accessory = {
+                                Switch(
+                                    checked = row.isEnabled,
+                                    onCheckedChange = viewModel::setPerpetualEnabled,
+                                )
+                            },
+                        )
+                        is PreferencesRowUIModel.Picker -> OptionPickerLinkItem(
+                            model = row.model,
+                            current = row.current,
+                            options = row.options.map { it.value },
+                            listPosition = listPosition,
+                            label = { value -> row.options.first { it.value == value }.label },
+                            onSelect = { viewModel.setPerpetualOption(row.setting, it) },
+                        )
+                    }
                 }
             }
         }
     }
 }
-
-@Composable
-private fun autocloseLabel(percent: Int): String =
-    GemPerpetual(PerpetualProvider.HYPERCORE).use { it.autoclosePercent(percent.toUByte()) }
-        ?.let { "$it%" } ?: stringResource(R.string.common_none)
-
 @Composable
 private fun <T> OptionPickerLinkItem(
-    title: String,
+    model: ListItemModel,
     current: T,
     options: List<T>,
     listPosition: ListPosition,
     label: @Composable (T) -> String,
     onSelect: (T) -> Unit,
-    @DrawableRes icon: Int? = null,
-    indented: Boolean = true,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    LinkItem(
-        title = title,
-        painter = icon?.let { painterResource(id = it) },
+    ListItem(
+        model = model,
         listPosition = listPosition,
-        indented = indented,
-        trailingContent = {
-            PropertyDataText(text = label(current), badge = { DataBadgeChevron() })
+        modifier = Modifier.clickable { expanded = true },
+        accessory = {
+            DataBadgeChevron()
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
@@ -238,6 +163,5 @@ private fun <T> OptionPickerLinkItem(
                 }
             }
         },
-        onClick = { expanded = true },
     )
 }

@@ -23,28 +23,22 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.features.settings.networks.viewmodels.AddNodeViewModel
+import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeCheckRowUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.QrCodeScannerModal
-import com.wallet.core.primitives.QRScanType
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.fields.TransferTextFieldActions
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.ListItemTitleText
-import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.theme.Placeholder
 import com.gemwallet.android.ui.theme.Spacer16
 import com.wallet.core.primitives.Chain
-import java.text.NumberFormat
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.localization.string
+import com.wallet.core.primitives.QRScanType
 
 @Composable
 fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
@@ -82,50 +76,15 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
         )
         UrlField(
             value = viewModel.url,
-            error = uiModel.failure?.string().orEmpty(),
+            error = uiModel.errorText,
             onValueChange = viewModel::onUrlChange,
             onQRScan = {
                 isShowQRScan = true
             }
         )
         Spacer16()
-        if (uiModel.canImport) {
-            val nf = NumberFormat.getInstance()
-            val status = requireNotNull(uiModel.status)
-
-            PropertyItem(R.string.nodes_import_node_chain_id, status.chainId ?: Placeholder.empty)
-            PropertyItem(
-                title = {
-                    PropertyTitleText(R.string.nodes_import_node_in_sync)
-                },
-                data = {
-                    PropertyDataText(
-                        "",
-                        badge = {
-                            if (status.isInSync) {
-                                Icon(
-                                    imageVector = AppIcons.CheckCircleOutlined,
-                                    tint = MaterialTheme.colorScheme.tertiary,
-                                    contentDescription = ""
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = AppIcons.Cancel,
-                                    tint = MaterialTheme.colorScheme.error,
-                                    contentDescription = ""
-                                )
-                            }
-                        }
-                    )
-                },
-            )
-            PropertyItem(R.string.nodes_import_node_latest_block, nf.format(status.latestBlockNumber.toLong()))
-            PropertyItem(
-                R.string.nodes_import_node_latency,
-                stringResource(R.string.common_latency_in_ms, status.latency.value.toLong())
-            )
-            WarningItem()
-        }
+        uiModel.checks.forEach { NodeCheckRow(it) }
+        uiModel.warning?.let { ListItem(model = it, listPosition = ListPosition.Single) }
     }
 
     QrCodeScannerModal(
@@ -181,18 +140,19 @@ private fun UrlField(
 }
 
 @Composable
-private fun WarningItem() {
+private fun NodeCheckRow(row: NodeCheckRowUIModel) {
+    val isInSync = row.isInSync
     ListItem(
-        listPosition = ListPosition.Single,
-        title = {
-            ListItemTitleText(stringResource(R.string.asset_verification_warning_title))
-        },
-        subtitle = {
-            Text(
-                text = stringResource(R.string.nodes_import_node_warning_message),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.secondary,
-            )
+        model = row.model,
+        listPosition = ListPosition.Middle,
+        accessory = isInSync?.let {
+            {
+                Icon(
+                    imageVector = if (it) AppIcons.CheckCircleOutlined else AppIcons.Cancel,
+                    tint = if (it) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.error,
+                    contentDescription = "",
+                )
+            }
         },
     )
 }

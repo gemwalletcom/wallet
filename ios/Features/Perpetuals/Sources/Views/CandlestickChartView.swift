@@ -140,7 +140,7 @@ struct CandlestickChartView: View {
         ForEach(Array(model.lines.enumerated()), id: \.element.id) { index, line in
             RuleMark(y: .value(ChartKey.price, line.price))
                 .foregroundStyle(.clear)
-                .annotation(position: .overlay, alignment: .leading, spacing: 0) {
+                .annotation(position: .overlay, alignment: .leading, spacing: .zero) {
                     Text(line.label)
                         .font(.app.caption)
                         .foregroundStyle(Colors.whiteSolid)

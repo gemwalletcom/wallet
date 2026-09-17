@@ -3,7 +3,7 @@ use std::error::Error;
 use gem_evm::fee_calculator::FeeCalculator;
 use gem_evm::models::fee::EthereumFeeHistory;
 use gem_evm::{ether_conv::EtherConv, jsonrpc::EthereumRpc};
-use gem_jsonrpc::RpcProvider;
+use gem_jsonrpc::alien::RpcProvider;
 use gemstone::alien::{new_alien_client, reqwest_provider::NativeProvider};
 use gemstone::network::JsonRpcClient;
 use num_bigint::BigInt;

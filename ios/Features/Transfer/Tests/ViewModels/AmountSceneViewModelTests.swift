@@ -1,17 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import BigInt
-import class Gemstone.GemAmountService
-import struct Gemstone.GemPaymentRecipient
-import enum Gemstone.GemStakeAmountInput
 import GemstonePrimitives
-import GemstonePrimitivesTestKit
-import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
 @testable import Store
 import Testing
 @testable import Transfer
+import TransferTestKit
 
 @MainActor
 struct AmountSceneViewModelTests {
@@ -39,10 +35,7 @@ struct AmountSceneViewModelTests {
             balance: .mock(available: 5_000_000_000_000_000_000),
             price: .mock(price: 2.5),
         )
-        let model = AmountSceneViewModel.mock(
-            type: .transfer(recipient: GemPaymentRecipient(recipient: .mock())),
-            assetData: assetData,
-        )
+        let model = AmountSceneViewModel.mock(assetData: assetData)
 
         model.onSelectInputButton()
         model.amountInputModel.text = "10"
@@ -99,10 +92,7 @@ struct AmountSceneViewModelTests {
             asset: .mockBNB(),
             balance: .mock(available: 10_000_000_000_000_000),
         )
-        let model = AmountSceneViewModel.mock(
-            type: .transfer(recipient: GemPaymentRecipient(recipient: .mock())),
-            assetData: assetData,
-        )
+        let model = AmountSceneViewModel.mock(assetData: assetData)
 
         model.amountInputModel.text = "0.001"
         model.onChangeAmountText("", "0.001")
@@ -188,22 +178,5 @@ struct AmountSceneViewModelTests {
 
         model.onAppear()
         #expect(model.amountInputModel.text.isEmpty == false)
-    }
-}
-
-extension AmountSceneViewModel {
-    static func mock(
-        type: AmountType = .transfer(recipient: GemPaymentRecipient(recipient: .mock())),
-        assetData: AssetData = .mock(balance: .mock()),
-    ) -> AmountSceneViewModel {
-        let model = AmountSceneViewModel(
-            input: AmountInput(type: type, asset: assetData.asset),
-            wallet: .mock(),
-            service: GemAmountServiceMock(builder: GemAmountService.mock()),
-            onTransferAction: { _ in },
-        )
-        model.assetQuery.value = assetData
-        model.onChangeAssetBalance(assetData, assetData)
-        return model
     }
 }

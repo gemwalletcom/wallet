@@ -58,7 +58,6 @@
   <string name="common_expiration">有効期限</string>
   <string name="common_suspicious_address">不審なアドレス</string>
   <string name="common_refresh">更新</string>
-  <string name="common_no_thanks">結構です</string>
   <string name="common_grant_permission">許可する</string>
   <string name="common_required_field">%1$sは必須です</string>
   <string name="welcome_title">Gemファミリーへようこそ</string>
@@ -144,7 +143,6 @@
   <string name="transfer_unfreeze_title">凍結解除</string>
   <string name="transfer_review_request">リクエストを確認</string>
   <string name="transfer_amount">金額</string>
-  <string name="transfer_amount_title">金額</string>
   <string name="settings_terms_of_services">利用規約</string>
   <string name="settings_privacy_policy">プライバシーポリシー</string>
   <string name="settings_title">設定</string>
@@ -179,7 +177,6 @@
   <string name="support_state_empty_title">どのようなご用件でしょうか？</string>
   <string name="support_state_empty_description">何でもお気軽にお尋ねください。サポートいたします。</string>
   <string name="support_message_placeholder">メッセージ</string>
-  <string name="errors_transfer">送金エラー: %1$s</string>
   <string name="errors_validation">検証エラー: %1$s</string>
   <string name="errors_create_wallet">ウォレット作成エラー: %1$s</string>
   <string name="errors_invalid_address_name">無効なアドレスまたはドメイン</string>
@@ -198,7 +195,6 @@
   <string name="errors_connections_user_cancelled">ユーザーがキャンセルしました</string>
   <string name="errors_not_supported">サポートされていません</string>
   <string name="errors_permissions_not_granted">許可が得られていません</string>
-  <string name="errors_decoding">デコードエラー</string>
   <string name="errors_unknown">不明</string>
   <string name="errors_not_supported_qr">このデバイスではQRコードをスキャンできません。写真ライブラリからQRコード画像を選択してください。</string>
   <string name="errors_camera_permissions_not_granted">カメラの権限が許可されていません。QRコードをスキャンするためには、設定でカメラへのアクセスを有効にしてください。</string>
@@ -209,11 +205,8 @@
   <string name="errors_dust_threshold">金額が%1$sネットワークの最小要件（ダストしきい値）を満たしていないため、取引は失敗しました。この制限は、取引額が手数料と処理コストをカバーすることを保証するものです。</string>
   <string name="errors_swap_no_quote_available">見積もりを取得できません</string>
   <string name="errors_swap_not_supported_asset">未対応のアセットです。</string>
-  <string name="errors_connections_invalid_send_parameters">トランザクションの送信に無効なパラメータが指定されました。</string>
-  <string name="errors_connections_invalid_sign_parameters">署名に無効なパラメータが指定されました。</string>
   <string name="errors_connections_no_supported_wallets">サポートされているウォレットは利用できません。</string>
   <string name="errors_connections_unsupported_chain">選択されたチェーンはサポートされていません</string>
-  <string name="errors_connections_unsupported_method">要求されたメソッドはサポートされていません。</string>
   <string name="errors_swap_amount_too_small">金額が小さすぎます</string>
   <string name="errors_required">%1$sは必須です</string>
   <string name="errors_scan_transaction_malicious_description">この取引は完了できません。送信先アドレスが不審または悪意のある活動に関連しています。</string>
@@ -225,7 +218,6 @@
   <string name="errors_swap_minimum_amount">最低取引金額は %1$s です。これより大きい金額を入力してください。</string>
   <string name="errors_perpetual_trigger_price_lower">トリガー価格は市場価格より低くする必要があります</string>
   <string name="errors_perpetual_trigger_price_higher">トリガー価格は市場価格より高くする必要があります</string>
-  <string name="errors_token_unable_fetch_token_information">トークン情報を取得できません: %1$s</string>
   <string name="errors_unknown_try_again">不明なエラーが発生しました。もう一度お試しください。</string>
   <string name="errors_network_error">ネットワークエラー: %1$s</string>
   <string name="errors_network_offline">インターネット接続が切断されているようです。</string>
@@ -243,7 +235,6 @@
   <string name="update_app_permission_title">インストールを許可</string>
   <string name="update_app_permission_description">設定を開き、この提供元からのアプリのインストールを許可してください</string>
   <string name="update_app_permission_open_settings">設定に移動</string>
-  <string name="update_app_downloading">ダウンロード中...</string>
   <string name="transaction_recipient">受取人</string>
   <string name="transaction_sender">送信者</string>
   <string name="transaction_date">日付</string>
@@ -399,8 +390,6 @@
   <string name="banner_account_activation_description">%1$s ネットワークでは、1回限りの有効化手数料 %2$s が必要です。</string>
   <string name="banner_stake_title">%1$s のステーキングを開始</string>
   <string name="banner_stake_description">%1$s をステーキングして、寝ている間も報酬を獲得できます。</string>
-  <string name="banner_enable_notifications_title">通知を有効にする</string>
-  <string name="banner_enable_notifications_description">ウォレットのアクティビティを常に把握しましょう。</string>
   <string name="banner_activate_asset_description">%1$s を利用するには、%2$s ネットワーク固有の要件を満たして有効化する必要があります。</string>
   <string name="banner_asset_status_title">不審資産</string>
   <string name="banner_asset_status_description">トークンは安全でないか、誤解を招く可能性があります。完全に信頼できる場合のみ続行してください。</string>
@@ -555,8 +544,8 @@
   <string name="perpetual_margin_cross">クロス</string>
   <string name="perpetual_margin_isolated">分離マージン</string>
   <string name="perpetuals_title">パーペチュアル</string>
+  <string name="perpetuals_trade">パーペチュアルを取引</string>
   <string name="perpetuals_markets">市場</string>
-  <string name="perpetuals_empty_state_no_markets">市場がない</string>
   <string name="perpetuals_empty_state_no_markets_found">市場が見つかりません</string>
   <string name="rewards_title">ポイント</string>
   <string name="rewards_share_text">私の紹介リンクから Gem Wallet に参加して、ポイントを獲得しましょう：%1$s</string>
@@ -604,9 +593,6 @@
   <string name="simulation_warning_nft_collection_approval_title">NFT コレクション全体へのアクセスが要求されています</string>
   <string name="simulation_warning_unlimited_token_approval_title">無制限のトークン承認</string>
   <string name="application_name">Gem</string>
-  <string name="camera_permission_request_camera">QRコードをスキャンするにはカメラへのアクセスが必要です。\nアクセスを許可してください。</string>
-  <string name="notifications_permission_request_notification">新しい取引の通知を受け取るには、通知の許可が必要です。\n通知を許可してください。</string>
-  <string name="confirm_fee_error">手数料計算エラー</string>
   <string name="rootcheck_security_alert">セキュリティ警告</string>
   <string name="rootcheck_body">このデバイスは root 化されているようです。root 化されたデバイスではセキュリティリスクが大幅に高まり、資産への不正アクセスや損失につながる可能性があります。資金を守るため、root 化されていないデバイスの使用を強くお勧めします。</string>
   <string name="rootcheck_ignore">無視する</string>

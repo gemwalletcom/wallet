@@ -42,7 +42,6 @@ public extension Primitives.Chain {
         }
         return asset.toPrimitives()
     }
-
 }
 
 private extension Primitives.Chain {
@@ -51,12 +50,5 @@ private extension Primitives.Chain {
             preconditionFailure("Missing chain asset for \(self)")
         }
         return asset
-    }
-}
-
-public extension [Primitives.Asset] {
-    func matching(query: String) -> [Primitives.Asset] {
-        let assets = map { $0.toGem() }
-        return GemAssetConfigService.shared.matchingAssets(assets: assets, query: query).map { $0.toPrimitives() }
     }
 }

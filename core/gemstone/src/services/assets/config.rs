@@ -2,10 +2,9 @@ use primitives::{Asset, AssetBasic, AssetId, AssetType, Chain, ChainAsset};
 
 use super::icon::{GemAssetIcon, asset_icon};
 use super::model::GemAssetSectionIds;
-use super::rules::{asset_sections, default_asset_basic, default_token_chain, popular_asset_ids};
-use crate::models::asset::{chain_asset_wrapper, chain_fee_asset_ids, default_token_rank};
+use super::rules::{asset_sections, default_asset_basic, popular_asset_ids};
+use crate::models::asset::chain_asset_wrapper;
 use crate::services::confirm::{GemAcquireAssetFlow, acquire_asset_flow};
-use crate::services::search::rules::matching_assets;
 
 #[derive(Default, uniffi::Object)]
 pub struct GemAssetConfigService {}
@@ -19,10 +18,6 @@ impl GemAssetConfigService {
 
     pub fn default_asset_basic(&self, asset: Asset) -> AssetBasic {
         default_asset_basic(asset)
-    }
-
-    pub fn default_token_rank(&self) -> i32 {
-        default_token_rank()
     }
 
     pub fn default_asset(&self, chain: Chain, asset_type: AssetType) -> Option<Asset> {
@@ -41,25 +36,8 @@ impl GemAssetConfigService {
         asset_icon(&asset_id)
     }
 
-    pub fn matching_assets(&self, assets: Vec<Asset>, query: String) -> Vec<Asset> {
-        matching_assets(assets, &query)
-    }
-
-    pub fn matching_asset_ids(&self, assets: Vec<Asset>, query: String) -> Vec<AssetId> {
-        matching_assets(assets, &query).into_iter().map(|asset| asset.id).collect()
-    }
-
     pub fn asset_sections(&self, ids: Vec<AssetId>, pinned_ids: Vec<AssetId>, shows_popular: bool) -> GemAssetSectionIds {
         asset_sections(ids, pinned_ids, shows_popular, popular_asset_ids())
-    }
-}
-
-impl GemAssetConfigService {
-    pub fn chain_fee_asset_ids(&self, chain: Chain) -> Vec<AssetId> {
-        chain_fee_asset_ids(chain)
-    }
-    pub fn default_token_chain(&self, chains: Vec<Chain>) -> Option<Chain> {
-        default_token_chain(&chains)
     }
 }
 

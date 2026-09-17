@@ -10,6 +10,7 @@ serde = { workspace = true }
 tokio = { workspace = true }
 
 coingecko = { path = "../coingecko" }
+coinmarketcap = { path = "../coinmarketcap" }
 gem_client = { path = "../gem_client", features = ["reqwest"] }
 gem_tracing = { path = "../tracing" }
 gem_ton = { path = "../gem_ton" }

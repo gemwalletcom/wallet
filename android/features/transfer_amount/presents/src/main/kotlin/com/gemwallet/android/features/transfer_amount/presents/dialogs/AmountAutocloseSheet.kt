@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.transfer_amount.presents.dialogs
 
-import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -15,31 +14,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import uniffi.gemstone.GemAutocloseEstimator
-import uniffi.gemstone.GemAutocloseField
-import uniffi.gemstone.AutocloseValidator
 import com.gemwallet.android.ext.PerpetualFormatter
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountPerpetualProvider
-import com.gemwallet.android.math.parseInputNumberOrNull
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.NumericFormatter
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.models.buttonState
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.PercentSuggestionsBar
+import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.perpetual.AutocloseInputSection
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
-import uniffi.gemstone.AutocloseValidation
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModel
-import com.gemwallet.android.ui.models.perpetual.autoclose.AutocloseUIModelFactory
+import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.Currency
-import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TpslType
-import com.gemwallet.android.ext.toGem
+import uniffi.gemstone.AutocloseValidation
 
 @Composable
 internal fun AmountAutocloseSheet(
@@ -55,15 +48,10 @@ internal fun AmountAutocloseSheet(
     }
     val storedTakeProfit by provider.takeProfit.collectAsStateWithLifecycle()
     val storedStopLoss by provider.stopLoss.collectAsStateWithLifecycle()
-    val leverageState by provider.leverageState.collectAsStateWithLifecycle()
+    val marketPriceListItem by provider.marketPriceListItem.collectAsStateWithLifecycle()
 
-    val direction = provider.direction
-    val marketPrice = perpetual.price
     val assetDecimals = perpetual.asset.decimals
     val perpetualProvider = perpetual.provider
-    val leverage = leverageState?.current ?: 1
-    val marketPriceText = usdFormatter.string(marketPrice)
-    val sizeText = usdFormatter.string((amount.parseInputNumberOrNull()?.toDouble() ?: 0.0) * leverage)
 
     var takeProfitText by remember { mutableStateOf(storedTakeProfit.orEmpty()) }
     var stopLossText by remember { mutableStateOf(storedStopLoss.orEmpty()) }
@@ -74,12 +62,8 @@ internal fun AmountAutocloseSheet(
     val estimator = provider.estimatorFor(amount)
     val takeProfitPrice = numericFormatter.double(takeProfitText)
     val stopLossPrice = numericFormatter.double(stopLossText)
-    val takeProfitValidator = remember(direction, marketPrice) { AutocloseValidator(TpslType.TakeProfit.toGem(), direction.toGem(), marketPrice) }
-    val stopLossValidator = remember(direction, marketPrice) { AutocloseValidator(TpslType.StopLoss.toGem(), direction.toGem(), marketPrice) }
-    val takeProfitValidation = takeProfitValidator.validate(takeProfitPrice)
-    val stopLossValidation = stopLossValidator.validate(stopLossPrice)
-    val takeProfitField = buildField(TpslType.TakeProfit, takeProfitPrice, takeProfitValidation, estimator, submitAttempted)
-    val stopLossField = buildField(TpslType.StopLoss, stopLossPrice, stopLossValidation, estimator, submitAttempted)
+    val takeProfitField = provider.autocloseField(TpslType.TakeProfit, amount, takeProfitPrice, submitAttempted)
+    val stopLossField = provider.autocloseField(TpslType.StopLoss, amount, stopLossPrice, submitAttempted)
 
     val activeField = focused?.let {
         when (it) {
@@ -92,8 +76,8 @@ internal fun AmountAutocloseSheet(
         TpslType.StopLoss -> stopLossText
         null -> ""
     }
-    val isTakeProfitValid = takeProfitText.isEmpty() || takeProfitValidation == AutocloseValidation.VALID
-    val isStopLossValid = stopLossText.isEmpty() || stopLossValidation == AutocloseValidation.VALID
+    val isTakeProfitValid = takeProfitText.isEmpty() || takeProfitField.validation == AutocloseValidation.VALID
+    val isStopLossValid = stopLossText.isEmpty() || stopLossField.validation == AutocloseValidation.VALID
     val hasInput = takeProfitPrice != null || stopLossPrice != null ||
         (takeProfitText.isEmpty() && stopLossText.isEmpty())
     val confirmEnabled = if (submitAttempted) isTakeProfitValid && isStopLossValid else hasInput
@@ -111,19 +95,9 @@ internal fun AmountAutocloseSheet(
                 .padding(horizontal = paddingDefault)
                 .imePadding(),
         ) {
-            OpenPositionItem(
-                asset = perpetual.asset,
-                direction = direction,
-                leverage = leverage,
-                sizeText = sizeText,
-                listPosition = ListPosition.Single,
-            )
+            provider.openPositionListItem(amount)?.let { ListItem(model = it, listPosition = ListPosition.Single) }
             Spacer16()
-            PropertyItem(
-                title = stringResource(R.string.perpetual_market_price),
-                data = marketPriceText,
-                listPosition = ListPosition.Single,
-            )
+            marketPriceListItem?.let { ListItem(model = it, listPosition = ListPosition.Single) }
             Spacer16()
             AutocloseInputSection(
                 field = takeProfitField,
@@ -188,21 +162,3 @@ internal fun AmountAutocloseSheet(
 }
 
 private val usdFormatter = CurrencyFormatter(type = CurrencyFormatter.Type.Currency, currency = Currency.USD)
-
-private fun buildField(
-    type: TpslType,
-    price: Double?,
-    validation: AutocloseValidation,
-    estimator: GemAutocloseEstimator,
-    showErrors: Boolean,
-): AutocloseUIModel.Field {
-    val field = GemAutocloseField(
-        tpslType = type.toGem(),
-        price = price,
-        originalPrice = null,
-        formattedPrice = null,
-        validation = validation,
-        orderId = null,
-    )
-    return AutocloseUIModelFactory.createField(field = field, estimator = estimator, showErrors = showErrors)
-}

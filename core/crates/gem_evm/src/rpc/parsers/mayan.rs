@@ -155,7 +155,6 @@ mod tests {
     use alloy_primitives::{Address, B256, Bytes, U256};
     use alloy_sol_types::SolCall;
     use chrono::DateTime;
-    use num_bigint::BigUint;
 
     use crate::rpc::{
         model::{Transaction, TransactionReceipt},
@@ -219,14 +218,22 @@ mod tests {
             (FulfillMethod::Erc20, POLYGON_USDC_ASSET_ID.clone(), AssetId::from_chain(Chain::Polygon)),
             (FulfillMethod::Eth, AssetId::from_chain(Chain::Polygon), POLYGON_USDC_ASSET_ID.clone()),
         ] {
-            let transaction = fulfillment_transaction(cases[0].2, 9_906_901, order_hash, method);
+            let transaction = Transaction {
+                from: cases[0].2.to_string(),
+                input: fulfillment_input(9_906_901, order_hash, method),
+                ..Transaction::mock()
+            };
             let parsed = ProtocolParsers::map_transaction(&Chain::Polygon, &transaction, &receipt, DateTime::default()).unwrap();
             let metadata = serde_json::from_value::<TransactionSwapMetadata>(parsed.metadata.unwrap()).unwrap();
             assert_eq!(metadata.from_asset, expected_from);
             assert_eq!(metadata.to_asset, expected_to);
         }
 
-        let transaction = fulfillment_transaction(cases[0].2, 9_906_901, order_hash, FulfillMethod::Erc20);
+        let transaction = Transaction {
+            from: cases[0].2.to_string(),
+            input: fulfillment_input(9_906_901, order_hash, FulfillMethod::Erc20),
+            ..Transaction::mock()
+        };
         let mut mismatched_receipt = receipt;
         mismatched_receipt
             .logs
@@ -241,7 +248,7 @@ mod tests {
         );
     }
 
-    fn fulfillment_transaction(solver: &str, amount: u64, order_hash: &str, method: FulfillMethod) -> Transaction {
+    fn fulfillment_input(amount: u64, order_hash: &str, method: FulfillMethod) -> String {
         let recipient = Address::from_str("0x2a49c84b7173e21f9116b2798735f87531526b36").unwrap().into_word();
         let token = Address::from_str(POLYGON_USDC_TOKEN_ID).unwrap();
         let output_token = match method {
@@ -295,14 +302,6 @@ mod tests {
             .abi_encode(),
         };
 
-        Transaction {
-            from: solver.to_string(),
-            gas: 1_000_000,
-            hash: B256::ZERO.to_string(),
-            input: hex::encode_with_0x(&input),
-            to: None,
-            value: BigUint::from(0u8),
-            calls: None,
-        }
+        hex::encode_with_0x(&input)
     }
 }

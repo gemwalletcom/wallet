@@ -6,14 +6,11 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import uniffi.gemstone.GemPerpetualPositionAction
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDetailsDataAggregate
-import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
-import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.testkit.mockAssetCosmos
+import uniffi.gemstone.GemAmountTitle
+import com.gemwallet.android.testkit.mockAmountParamsPerpetual
 import com.gemwallet.android.testkit.mockGemPerpetualTransferData
 import com.gemwallet.android.testkit.mockPerpetualPosition
 import com.wallet.core.primitives.PerpetualDirection
-import com.wallet.core.primitives.PerpetualId
-import com.wallet.core.primitives.PerpetualProvider
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
@@ -39,9 +36,8 @@ class AmountPerpetualProviderTest {
     @Test
     fun `title carries the direction`() {
         val provider = makeProvider(direction = PerpetualDirection.Short)
-        val title = provider.title as AmountTitle.Perpetual
-        val open = title.action as GemPerpetualPositionAction.Open
-        assertEquals(PerpetualDirection.Short.toGem(), open.data.direction)
+        val title = provider.title.value as GemAmountTitle.PerpetualOpen
+        assertEquals(PerpetualDirection.Short.toGem(), title.direction)
     }
 
     @Test
@@ -68,7 +64,6 @@ class AmountPerpetualProviderTest {
         positionAction: GemPerpetualPositionAction = GemPerpetualPositionAction.Open(mockGemPerpetualTransferData(direction = direction)),
         scope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob()),
     ): AmountPerpetualProvider {
-        val asset = mockAssetCosmos()
         val getAssetInfo = mockk<GetAssetInfo>(relaxed = true) {
             every { this@mockk.invoke(any()) } returns flowOf(null)
         }
@@ -87,7 +82,8 @@ class AmountPerpetualProviderTest {
             every { getBalance() } returns flowOf(null)
         }
         return AmountPerpetualProvider(
-            params = AmountParams.Perpetual(asset.id, PerpetualId(PerpetualProvider.Hypercore, "BTC-PERP"), positionAction),
+            params = mockAmountParamsPerpetual(positionAction),
+            context = mockk(relaxed = true),
             service = service,
             getAssetInfo = getAssetInfo,
             getPerpetual = getPerpetual,

@@ -98,37 +98,10 @@ pub fn evaluate_risk(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::IpCheckResult;
-    use primitives::IpUsageType;
-
-    fn create_test_input() -> RiskScoringInput {
-        RiskScoringInput {
-            username: "user1".to_string(),
-            device_id: 1,
-            device_platform: Platform::IOS,
-            device_platform_store: PlatformStore::AppStore,
-            device_os: "18.0".to_string(),
-            device_model: "iPhone15,2".to_string(),
-            device_locale: "en-US".to_string(),
-            device_currency: "USD".to_string(),
-            ip_result: IpCheckResult {
-                ip_address: "192.168.1.1".to_string(),
-                country_code: "US".to_string(),
-                confidence_score: 0,
-                is_tor: false,
-                is_vpn: false,
-                usage_type: IpUsageType::Isp,
-                isp: "Comcast".to_string(),
-            },
-            referrer_status: RewardStatus::Unverified,
-            referrer_referral_count: 2,
-            user_agent: String::new(),
-        }
-    }
 
     #[test]
     fn evaluate_clean_user() {
-        let input = create_test_input();
+        let input = RiskScoringInput::mock();
         let config = RiskScoreConfig::default();
         let result = evaluate_risk(&input, &[], 0, 0, 0, 0, 0, &config);
 
@@ -140,7 +113,7 @@ mod tests {
 
     #[test]
     fn evaluate_high_abuse_score() {
-        let mut input = create_test_input();
+        let mut input = RiskScoringInput::mock();
         input.ip_result.confidence_score = 60;
         let config = RiskScoreConfig::default();
         let result = evaluate_risk(&input, &[], 0, 0, 0, 0, 0, &config);
@@ -151,7 +124,7 @@ mod tests {
 
     #[test]
     fn signal_populated_correctly() {
-        let input = create_test_input();
+        let input = RiskScoringInput::mock();
         let config = RiskScoreConfig::default();
         let result = evaluate_risk(&input, &[], 0, 0, 0, 0, 0, &config);
 

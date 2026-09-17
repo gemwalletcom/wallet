@@ -1,10 +1,8 @@
 package com.gemwallet.android.ui.components.swap
 
-import com.gemwallet.android.domains.duration.formatEstimatedConfirmation
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,32 +16,32 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import com.gemwallet.android.domains.duration.formatEstimatedConfirmation
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.dialog.DialogBarDismissType
 import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.AssetRatePropertyItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
-import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.models.swap.SwapDetailRowUIModel
 import com.gemwallet.android.ui.models.swap.SwapDetailsUIModel
 import com.gemwallet.android.ui.models.swap.SwapPriceImpactUIModel
 import com.gemwallet.android.ui.models.swap.SwapProviderUIModel
-import uniffi.gemstone.SwapPriceImpactType
-import com.gemwallet.android.ui.theme.Spacer8
-import com.gemwallet.android.ui.theme.pendingColor
+import com.gemwallet.android.ui.style.textStyle
 import com.gemwallet.android.ui.theme.listItemIconSize
+import com.gemwallet.android.ui.theme.pendingColor
+import uniffi.gemstone.SwapPriceImpactType
 import uniffi.gemstone.SwapProvider
 
 @Composable
@@ -54,30 +52,22 @@ fun SwapDetailsSummaryItem(
 ) {
     val badgeText = model.summaryPriceImpactBadgeText
 
-    PropertyItem(
-        modifier = Modifier.clickable(onClick = onClick),
-        title = { PropertyTitleText(R.string.common_details) },
-        data = {
-            PropertyDataText(
-                text = model.rate.forward,
-                badge = if (badgeText != null) {
-                    {
-                        DataBadgeChevron {
-                            Text(
-                                text = badgeText,
-                                color = model.priceImpact.getColor(),
-                                maxLines = 1,
-                                overflow = TextOverflow.Clip,
-                                softWrap = false,
-                            )
-                        }
-                    }
-                } else {
-                    { DataBadgeChevron() }
-                },
-            )
-        },
+    ListItem(
+        model = ListItemModel(title = stringResource(R.string.common_details), subtitle = model.rate.forward),
         listPosition = listPosition,
+        modifier = Modifier.clickable(onClick = onClick),
+        accessory = {
+            if (badgeText != null) {
+                Text(
+                    text = badgeText,
+                    color = model.priceImpact.getColor(),
+                    maxLines = 1,
+                    overflow = TextOverflow.Clip,
+                    softWrap = false,
+                )
+            }
+            DataBadgeChevron()
+        },
     )
 }
 
@@ -140,42 +130,32 @@ fun SwapDetailsBottomSheet(
                     )
                 }
             }
-            item {
-                AssetRatePropertyItem(model.rate, ListPosition.First)
-            }
-            model.etaInSeconds?.let(::formatEstimatedConfirmation)?.takeIf { it.isNotEmpty() }?.let {
-                item {
-                    PropertyItem(
-                        title = R.string.swap_estimated_time_title,
-                        data = it,
-                        listPosition = ListPosition.Middle,
+            itemsIndexed(model.rows) { index, row ->
+                val listPosition = ListPosition.getPosition(index, model.rows.size)
+                when (row) {
+                    is SwapDetailRowUIModel.Rate -> AssetRatePropertyItem(row.rate, listPosition)
+                    is SwapDetailRowUIModel.EstimatedTime -> formatEstimatedConfirmation(row.seconds).takeIf { it.isNotEmpty() }?.let {
+                        ListItem(model = ListItemModel(title = stringResource(R.string.swap_estimated_time_title), subtitle = it), listPosition = listPosition)
+                    }
+                    is SwapDetailRowUIModel.PriceImpact -> ListItem(
+                        model = ListItemModel(
+                            title = stringResource(R.string.swap_price_impact),
+                            subtitle = row.model.displayText,
+                            subtitleStyle = row.model.type.textStyle(),
+                            info = InfoSheetEntity.PriceImpactInfo,
+                        ),
+                        listPosition = listPosition,
+                    )
+                    is SwapDetailRowUIModel.MinimumReceive -> ListItem(model = ListItemModel(title = stringResource(R.string.swap_min_receive), subtitle = row.text), listPosition = listPosition)
+                    is SwapDetailRowUIModel.Slippage -> ListItem(
+                        model = ListItemModel(
+                            title = stringResource(R.string.swap_slippage),
+                            subtitle = row.text ?: stringResource(R.string.swap_slippage_auto),
+                            info = InfoSheetEntity.Slippage,
+                        ),
+                        listPosition = listPosition,
                     )
                 }
-            }
-            model.priceImpact?.let {
-                item {
-                    PriceImpactPropertyItem(it, ListPosition.Middle)
-                }
-            }
-            item {
-                PropertyItem(
-                    title = R.string.swap_min_receive,
-                    data = model.minimumReceive,
-                    listPosition = ListPosition.Middle,
-                )
-            }
-            item {
-                val slippageDisplay = if (model.selectedSlippage == null) {
-                    stringResource(R.string.swap_slippage_auto)
-                } else {
-                    model.slippageText
-                }
-                PropertyItem(
-                    title = R.string.swap_slippage,
-                    data = slippageDisplay,
-                    info = InfoSheetEntity.Slippage,
-                    listPosition = ListPosition.Last,
-                )
             }
         }
     }
@@ -256,20 +236,6 @@ private fun SwapDetailsUIModel.inlineProviders(isSelectionEnabled: Boolean): Lis
 }
 
 private const val MAX_INLINE_PROVIDERS = 3
-
-@Composable
-private fun PriceImpactPropertyItem(
-    priceImpact: SwapPriceImpactUIModel,
-    listPosition: ListPosition,
-) {
-    PropertyItem(
-        title = R.string.swap_price_impact,
-        info = InfoSheetEntity.PriceImpactInfo,
-        data = priceImpact.displayText,
-        dataColor = priceImpact.getColor(),
-        listPosition = listPosition,
-    )
-}
 
 @Composable
 private fun SwapPriceImpactUIModel?.getColor() = when (this?.type) {

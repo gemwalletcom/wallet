@@ -76,30 +76,19 @@ fn map_transfer(chain: Chain, transaction: Extrinsic, method: String, to_address
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::rpc::{ExtrinsicInfo, ExtrinsicMethod, ExtrinsicTimestamp};
+    use crate::models::rpc::ExtrinsicTimestamp;
     use primitives::Chain;
-
-    fn make_extrinsic(args: ExtrinsicArguments) -> Extrinsic {
-        Extrinsic {
-            hash: String::new(),
-            method: ExtrinsicMethod {
-                pallet: String::new(),
-                method: String::new(),
-            },
-            info: ExtrinsicInfo { partial_fee: None },
-            success: true,
-            args,
-            signature: None,
-        }
-    }
 
     #[test]
     fn map_transactions_finds_timestamp_at_any_index() {
         let block = Block {
             number: 12147467,
             extrinsics: vec![
-                make_extrinsic(ExtrinsicArguments::Other(serde_json::json!({"data": {}}))),
-                make_extrinsic(ExtrinsicArguments::Timestamp(ExtrinsicTimestamp { now: 1771126812000 })),
+                Extrinsic::mock(),
+                Extrinsic {
+                    args: ExtrinsicArguments::Timestamp(ExtrinsicTimestamp { now: 1771126812000 }),
+                    ..Extrinsic::mock()
+                },
             ],
         };
 
@@ -111,7 +100,7 @@ mod tests {
     fn map_transactions_returns_empty_without_timestamp() {
         let block = Block {
             number: 1,
-            extrinsics: vec![make_extrinsic(ExtrinsicArguments::Other(serde_json::json!({"data": {}})))],
+            extrinsics: vec![Extrinsic::mock()],
         };
 
         let result = map_transactions(Chain::Polkadot, block);

@@ -80,8 +80,7 @@ enum ConfirmInfoSheetBuilder {
 
     private static func acquireButton(_ asset: Asset, flow: GemAcquireAssetFlow, action: @escaping InfoSheetAction) -> InfoSheetButton {
         switch flow {
-        case .options: .action(title: Localized.Asset.getAsset(asset.symbol), action: action)
-        case .fiat: .action(title: Localized.Asset.buyAsset(asset.symbol), action: action)
+        case .options, .fiat: .action(title: flow.actionTitle(symbol: asset.symbol), action: action)
         }
     }
 }

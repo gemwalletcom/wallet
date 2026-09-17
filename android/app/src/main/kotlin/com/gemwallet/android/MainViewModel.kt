@@ -6,15 +6,17 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
 import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.data.services.gemstone.pricealerts.MigratePriceAlertsPreference
 import com.gemwallet.android.ext.userMessage
 import com.gemwallet.android.model.AuthState
 import android.util.Log
 import com.gemwallet.android.services.MigrateV3KeystoreService
+import kotlinx.coroutines.CoroutineDispatcher
 import uniffi.gemstone.GemWalletService
+import uniffi.gemstone.GemWalletServiceInterface
 import com.wallet.core.primitives.Appearance
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -39,10 +41,11 @@ class MainViewModel @Inject constructor(
     private val pairWalletConnect: PairWalletConnect,
     private val appStartService: GemAppStartServiceInterface,
     private val migrateV3KeystoreService: MigrateV3KeystoreService,
-    private val walletService: GemWalletService,
+    private val walletService: GemWalletServiceInterface,
     private val migratePriceAlertsPreference: MigratePriceAlertsPreference,
     private val lockTimer: LockTimer,
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val isInitialAuthRequired = userConfig.authRequired()
@@ -106,8 +109,8 @@ class MainViewModel @Inject constructor(
     fun isAuthRequired(): Boolean = userConfig.authRequired()
 
     internal fun maintain() {
-        viewModelScope.launch(Dispatchers.IO) { appStartService.run().forEach(::logAppStartFailure) }
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) { appStartService.run().forEach(::logAppStartFailure) }
+        viewModelScope.launch(ioDispatcher) {
             migratePriceAlertsPreference()
             migrateV3KeystoreService()
             runCatching { walletService.migrateToSharedPassword() }
@@ -167,7 +170,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun onActivityResumed() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             if (lockTimer.shouldRelock()) relock()
         }
     }
@@ -215,7 +218,7 @@ class MainViewModel @Inject constructor(
             return
         }
         showWalletConnectPairingToast()
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             pairWalletConnect.pair(
                 uri = uri,
                 onSuccess = {},

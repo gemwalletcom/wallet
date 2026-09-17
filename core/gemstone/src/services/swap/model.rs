@@ -36,6 +36,37 @@ pub struct GemSwapQuoteSummary {
     pub rate: Option<GemSwapRate>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemSwapDetailRow {
+    Provider,
+    Rate,
+    EstimatedTime,
+    PriceImpact,
+    MinimumReceive,
+    Slippage,
+}
+
+#[uniffi::export]
+impl GemSwapQuoteSummary {
+    pub fn slippage_percent(&self) -> f64 {
+        rules::slippage_percent(self.quote.slippage_bps)
+    }
+
+    pub fn rows(&self, shows_price_impact: bool) -> Vec<GemSwapDetailRow> {
+        [
+            Some(GemSwapDetailRow::Provider),
+            self.rate.is_some().then_some(GemSwapDetailRow::Rate),
+            self.quote.eta_in_seconds.is_some().then_some(GemSwapDetailRow::EstimatedTime),
+            shows_price_impact.then_some(GemSwapDetailRow::PriceImpact),
+            Some(GemSwapDetailRow::MinimumReceive),
+            Some(GemSwapDetailRow::Slippage),
+        ]
+        .into_iter()
+        .flatten()
+        .collect()
+    }
+}
+
 #[uniffi::export]
 pub fn swap_quote_summary(quote: SwapQuote, from_asset: Asset, to_asset: Asset) -> GemSwapQuoteSummary {
     GemSwapQuoteSummary {
@@ -112,7 +143,7 @@ pub struct GemSwapPairSuggestion {
     pub receive_asset_id: Option<AssetId>,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GemSwapButtonInput {
     pub value: GemBigInt,
     pub available_balance: GemBigInt,
@@ -131,7 +162,23 @@ pub enum GemSwapButtonAction {
 
 #[cfg(test)]
 mod tests {
-    use super::GemAssetRate;
+    use super::{GemAssetRate, GemSwapDetailRow, swap_quote_summary};
+    use primitives::{Asset, Chain, SwapProvider, SwapQuote};
+
+    #[test]
+    fn test_the_details_list_drops_the_rows_a_quote_cannot_fill() {
+        let quote = SwapQuote::mock_with_provider(SwapProvider::UniswapV3);
+        let summary = swap_quote_summary(quote, Asset::from_chain(Chain::Ethereum), Asset::from_chain(Chain::Solana));
+
+        let rows = summary.rows(false);
+        assert_eq!(rows.first(), Some(&GemSwapDetailRow::Provider));
+        assert!(
+            !rows.contains(&GemSwapDetailRow::PriceImpact),
+            "the impact row shows only when the screen has prices for it"
+        );
+        assert_eq!(rows.last(), Some(&GemSwapDetailRow::Slippage));
+        assert!(summary.rows(true).contains(&GemSwapDetailRow::PriceImpact));
+    }
 
     #[test]
     fn test_rate_text_names_the_base_and_keeps_the_formatted_value() {

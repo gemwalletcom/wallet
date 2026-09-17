@@ -1,0 +1,14 @@
+package com.gemwallet.android.features.settings.price_alerts.viewmodels.localization
+
+import androidx.annotation.StringRes
+import com.gemwallet.android.ui.R
+import uniffi.gemstone.GemPriceAlertPrompt
+
+@StringRes
+internal fun GemPriceAlertPrompt.stringRes(): Int = when (this) {
+    GemPriceAlertPrompt.TARGET_PRICE -> R.string.price_alerts_set_alert_set_target_price
+    GemPriceAlertPrompt.PRICE_OVER -> R.string.price_alerts_set_alert_price_over
+    GemPriceAlertPrompt.PRICE_UNDER -> R.string.price_alerts_set_alert_price_under
+    GemPriceAlertPrompt.INCREASES_BY -> R.string.price_alerts_set_alert_price_increases_by
+    GemPriceAlertPrompt.DECREASES_BY -> R.string.price_alerts_set_alert_price_decreases_by
+}

@@ -3,6 +3,9 @@ name = "gem_wallet_connect"
 edition = { workspace = true }
 version = { workspace = true }
 
+[features]
+testkit = []
+
 [dependencies]
 num-bigint = { workspace = true }
 primitives = { path = "../primitives" }

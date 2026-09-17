@@ -1,16 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
-import Components
-import Formatters
-import struct Gemstone.GemSwapQuoteSummary
-import func Gemstone.swapQuoteSummary
 import GemstonePrimitives
 import struct Gemstone.SwapperQuote
-import struct Gemstone.SwapQuote
 import Primitives
 import PrimitivesTestKit
 @testable import Swap
+import SwapTestKit
 import GemstoneServicesTestKit
 import Testing
 
@@ -19,7 +14,7 @@ struct SwapDetailsViewModelTests {
     @Test
     func swapEstimationField() throws {
         #expect(
-            try SwapDetailsViewModel
+            SwapDetailsViewModel
                 .mock(selectedQuote: SwapperQuote.mock(etaInSeconds: nil).swapQuote).swapEstimationField == nil,
         )
         #expect(SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(etaInSeconds: 30).swapQuote).swapEstimationField?.value.text == "≈ 30 sec")
@@ -42,23 +37,5 @@ struct SwapDetailsViewModelTests {
         let model = SwapDetailsViewModel.mock(selectedQuote: SwapperQuote.mock(toValue: 250_000_000_000).swapQuote)
 
         #expect(model.minReceiveField.value.text == "248,750 USDT")
-    }
-}
-
-extension SwapDetailsViewModel {
-    static func mock(selectedQuote: Gemstone.SwapQuote = SwapperQuote.mock().swapQuote) -> SwapDetailsViewModel {
-        let summary = swapQuoteSummary(quote: selectedQuote, fromAsset: Asset.mockEthereum().toGem(), toAsset: Asset.mockEthereumUSDT().toGem())
-        return SwapDetailsViewModel(
-            fromAssetPrice: AssetPriceValue(asset: .mockEthereum(), price: .mock()),
-            toAssetPrice: AssetPriceValue(asset: .mockEthereumUSDT(), price: .mock()),
-            selectedQuote: selectedQuote,
-            slippage: .auto,
-            rate: summary.rate,
-            currency: Currency.usd.rawValue,
-            swapPriceImpact: nil,
-            minReceiveValue: BigInt(summary.minReceiveValue),
-            etaSeconds: selectedQuote.etaInSeconds,
-            swapProviderSelectAction: nil,
-        )
     }
 }

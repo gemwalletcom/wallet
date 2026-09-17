@@ -14,15 +14,7 @@ public struct CollectionsPreviewView: View {
     public var body: some View {
         ForEach(content.items) { item in
             NavigationLink(value: item.destination) {
-                ListItemView(
-                    title: item.model.title,
-                    subtitle: item.model.count.map { String($0) },
-                    imageStyle: ListItemImageStyle(
-                        assetImage: item.model.assetImage,
-                        imageSize: .image.asset,
-                        cornerRadiusType: .custom(.small),
-                    ),
-                )
+                ListItemView(model: item.model.listItem)
             }
         }
     }

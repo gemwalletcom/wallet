@@ -13,6 +13,24 @@ pub struct GemDayBoundaries {
     pub yesterday: GemDay,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemDayLabel {
+    Today,
+    Yesterday,
+    Date,
+}
+
+#[uniffi::export]
+impl GemDayBoundaries {
+    pub fn label(&self, day: GemDay) -> GemDayLabel {
+        match day {
+            day if day == self.today => GemDayLabel::Today,
+            day if day == self.yesterday => GemDayLabel::Yesterday,
+            _ => GemDayLabel::Date,
+        }
+    }
+}
+
 #[uniffi::export]
 impl GemDay {
     pub fn boundaries(&self) -> GemDayBoundaries {
@@ -45,20 +63,30 @@ impl From<NaiveDate> for GemDay {
 mod tests {
     use super::*;
 
-    fn day(year: i32, month: u32, value: u32) -> GemDay {
-        GemDay { year, month, day: value }
+    #[test]
+    fn test_yesterday_steps_back_over_a_month_and_a_year_boundary() {
+        assert_eq!(GemDay { year: 2026, month: 3, day: 1 }.boundaries().yesterday, GemDay { year: 2026, month: 2, day: 28 });
+        assert_eq!(GemDay { year: 2026, month: 1, day: 1 }.boundaries().yesterday, GemDay { year: 2025, month: 12, day: 31 });
+        assert_eq!(GemDay { year: 2024, month: 3, day: 1 }.boundaries().yesterday, GemDay { year: 2024, month: 2, day: 29 });
     }
 
     #[test]
-    fn test_yesterday_steps_back_over_a_month_and_a_year_boundary() {
-        assert_eq!(day(2026, 3, 1).boundaries().yesterday, day(2026, 2, 28));
-        assert_eq!(day(2026, 1, 1).boundaries().yesterday, day(2025, 12, 31));
-        assert_eq!(day(2024, 3, 1).boundaries().yesterday, day(2024, 2, 29));
+    fn test_a_day_is_named_today_or_yesterday_before_it_is_dated() {
+        let boundaries = GemDay { year: 2026, month: 3, day: 1 }.boundaries();
+
+        assert_eq!(boundaries.label(GemDay { year: 2026, month: 3, day: 1 }), GemDayLabel::Today);
+        assert_eq!(boundaries.label(GemDay { year: 2026, month: 2, day: 28 }), GemDayLabel::Yesterday);
+        assert_eq!(boundaries.label(GemDay { year: 2026, month: 2, day: 27 }), GemDayLabel::Date);
+        assert_eq!(
+            boundaries.label(GemDay { year: 2026, month: 3, day: 2 }),
+            GemDayLabel::Date,
+            "a future day is dated, not named"
+        );
     }
 
     #[test]
     fn test_an_impossible_today_has_no_separate_yesterday() {
-        let boundaries = day(2026, 2, 30).boundaries();
+        let boundaries = GemDay { year: 2026, month: 2, day: 30 }.boundaries();
 
         assert_eq!(boundaries.today, boundaries.yesterday);
     }

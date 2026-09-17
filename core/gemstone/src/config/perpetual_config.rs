@@ -1,8 +1,6 @@
 pub const DEFAULT_LEVERAGE: u8 = 5;
 pub const LEVERAGE_OPTIONS: &[u8] = &[1, 2, 3, 5, 10, 20, 25, 30, 40, 50];
 
-pub const HYPERLIQUID_DEPOSIT_ADDRESS: &str = "0x2Df1c51E09aECF9cacB7bc98cB1742757f163dF7";
-
 pub const MIN_DEPOSIT_AMOUNT: u64 = 5_000_000;
 pub const MIN_WITHDRAW_AMOUNT: u64 = 2_000_000;
 

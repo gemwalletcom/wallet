@@ -1,5 +1,6 @@
 use crate::config::docs::DocsUrl;
 use crate::models::custom_types::GemBigInt;
+use crate::services::transfer::GemTransferData;
 use primitives::{Asset, AssetId, Banner, BannerEvent, BannerState, Chain, Wallet, WalletId};
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -147,12 +148,21 @@ pub enum GemBannerLink {
     External { url: String },
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
+pub enum GemBannerDestination {
+    Stake,
+    ActivateAsset { transfer: GemTransferData },
+    Perpetuals,
+    Url { link: GemBannerLink },
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
 pub struct GemBannerContent {
     pub icon: Option<GemBannerIcon>,
     pub title: Option<GemBannerTitle>,
     pub description: Option<GemBannerDescription>,
-    pub link: Option<GemBannerLink>,
+    pub destination: Option<GemBannerDestination>,
 }
 
 #[cfg(test)]
@@ -162,20 +172,42 @@ mod tests {
 
     #[test]
     fn test_banner_identifier() {
-        let key = |wallet_id: Option<&str>, asset_id: Option<AssetId>, event: BannerEvent| GemBannerKey {
-            wallet_id: wallet_id.map(|id| WalletId::Multicoin(id.to_string())),
-            asset_id,
-            event,
-        };
+        let wallet_id = WalletId::Multicoin("wallet-1".to_string());
 
         assert_eq!(
-            key(Some("wallet-1"), Some(AssetId::from_chain(Chain::Bitcoin)), BannerEvent::Stake).identifier(),
+            GemBannerKey {
+                wallet_id: Some(wallet_id.clone()),
+                asset_id: Some(AssetId::from_chain(Chain::Bitcoin)),
+                event: BannerEvent::Stake
+            }
+            .identifier(),
             "multicoin_wallet-1_bitcoin_stake"
         );
-        assert_eq!(key(None, None, BannerEvent::SuspiciousAsset).identifier(), "suspiciousAsset");
-        assert_eq!(key(Some("wallet-1"), None, BannerEvent::Onboarding).identifier(), "multicoin_wallet-1_onboarding");
         assert_eq!(
-            key(None, Some(AssetId::from_chain(Chain::Ethereum)), BannerEvent::ActivateAsset).identifier(),
+            GemBannerKey {
+                wallet_id: None,
+                asset_id: None,
+                event: BannerEvent::SuspiciousAsset
+            }
+            .identifier(),
+            "suspiciousAsset"
+        );
+        assert_eq!(
+            GemBannerKey {
+                wallet_id: Some(wallet_id),
+                asset_id: None,
+                event: BannerEvent::Onboarding
+            }
+            .identifier(),
+            "multicoin_wallet-1_onboarding"
+        );
+        assert_eq!(
+            GemBannerKey {
+                wallet_id: None,
+                asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
+                event: BannerEvent::ActivateAsset
+            }
+            .identifier(),
             "ethereum_activateAsset"
         );
     }

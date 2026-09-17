@@ -3,10 +3,10 @@ package com.gemwallet.android.ui.navigation.routes
 import androidx.compose.runtime.Composable
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.features.swap.views.SwapScreen
 import com.gemwallet.android.features.swap.views.SwapSelectScreen
-import uniffi.gemstone.GemTransferData
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.navigation.WalletNavigator
 import com.gemwallet.android.ui.navigation.fromAssetIdArgument
@@ -47,7 +47,7 @@ fun EntryProviderScope<NavKey>.swapSelect(navigator: WalletNavigator, onCancel: 
 
 fun EntryProviderScope<NavKey>.swap(
     navigator: WalletNavigator,
-    onConfirm: (GemTransferData) -> Unit,
+    onConfirm: (ConfirmTransferInput) -> Unit,
     onSelect: (select: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) -> Unit,
     onCancel: () -> Unit,
 ) {
@@ -73,7 +73,7 @@ private fun swapScreenContent(
     route: NavKey,
     from: AssetId?,
     to: AssetId?,
-    onConfirm: (GemTransferData) -> Unit,
+    onConfirm: (ConfirmTransferInput) -> Unit,
     onSelect: (select: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) -> Unit,
     onCancel: () -> Unit,
 ) {

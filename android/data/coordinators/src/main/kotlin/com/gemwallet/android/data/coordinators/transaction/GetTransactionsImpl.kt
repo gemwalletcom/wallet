@@ -63,7 +63,7 @@ internal class TransactionRows {
         val reused = previous
         val missing = items.filterNot(reused::containsKey).distinct()
         val built = missing.zip(transactionRows(missing.map { it.toGem() })) { data, row ->
-            data to TransactionDataAggregateImpl(data, row)
+            data to TransactionDataAggregateImpl(row)
         }.toMap()
         val aggregates = items.mapNotNull { reused[it] ?: built[it] }
         previous = items.zip(aggregates).toMap()
@@ -73,13 +73,12 @@ internal class TransactionRows {
 
 @Stable
 class TransactionDataAggregateImpl(
-    data: TransactionExtended,
     private val row: GemTransactionRow,
 ) : TransactionDataAggregate {
 
-    override val id: TransactionId = data.transaction.id
+    override val id: TransactionId = TransactionId(row.id)
 
-    override val asset: Asset = data.asset
+    override val asset: Asset = row.asset.toPrimitives()
 
     override val status: GemTransactionStatus = row.status
 
@@ -99,15 +98,15 @@ class TransactionDataAggregateImpl(
 
     override val nftImageUrl: String? = row.nftImageUrl
 
-    override val type: TransactionType = data.transaction.type
+    override val type: TransactionType = row.transactionType.toPrimitives()
 
-    override val direction: TransactionDirection = data.transaction.direction
+    override val direction: TransactionDirection = row.direction.toPrimitives()
 
     override val pnl: Double? = (coreValue as? GemTransactionRowValue.Pnl)?.value
 
-    override val state: TransactionState = data.transaction.state
+    override val state: TransactionState = row.state.toPrimitives()
 
-    override val createdAt: Long = data.transaction.createdAt
+    override val createdAt: Long = row.createdAt
 }
 
 private fun GemTransactionRowSubtitle.address(): String? = when (this) {

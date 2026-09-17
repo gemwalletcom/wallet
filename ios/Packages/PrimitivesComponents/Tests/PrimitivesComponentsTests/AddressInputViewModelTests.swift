@@ -2,12 +2,11 @@
 
 import Foundation
 import GemstonePrimitives
-import GemstonePrimitivesTestKit
 import Primitives
 @testable import PrimitivesComponents
+import PrimitivesComponentsTestKit
 import PrimitivesTestKit
 import Testing
-import Validators
 
 @MainActor
 struct AddressInputViewModelTests {
@@ -95,11 +94,5 @@ struct AddressInputViewModelTests {
 
         model.nameRecordViewModel.state = .complete(record: NameRecord.mock(address: address).toGem())
         #expect(model.resolvedAddress == checksummed)
-    }
-}
-
-extension AddressInputViewModel {
-    static func mock(chain: Chain = .ethereum) -> AddressInputViewModel {
-        AddressInputViewModel(chain: chain, nameService: GemNameServiceMock(nameRecord: .mock()), placeholder: "Address")
     }
 }

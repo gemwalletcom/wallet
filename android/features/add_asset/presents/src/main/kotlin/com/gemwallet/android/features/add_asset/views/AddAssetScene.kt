@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -13,6 +12,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -27,46 +27,42 @@ import androidx.compose.ui.unit.sp
 import com.gemwallet.android.AppUrl
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.components.DocsInfoButton
 import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.models.ButtonState
+import com.gemwallet.android.ui.components.fields.AddressChainField
 import com.gemwallet.android.ui.components.list_item.ChainItem
+import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
-import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
+import com.gemwallet.android.ui.components.list_item.property.LinkRowUIModel
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.Emoji
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.compactIconSize
-import com.gemwallet.android.ui.theme.space24
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.sceneContentPadding
-import com.gemwallet.android.features.add_asset.localization.stringRes
-import uniffi.gemstone.GemAddAssetPhase
-import uniffi.gemstone.GemAssetInfoKind
-import uniffi.gemstone.GemAssetInfoRow
-import com.gemwallet.android.ui.components.fields.AddressChainField
+import com.gemwallet.android.ui.theme.space24
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.BlockExplorerLink
-import androidx.compose.material3.SnackbarHostState
+import uniffi.gemstone.DocsUrl
 
 private val networkItemHeight = 64.dp
 
 @Composable
 internal fun AddAssetScene(
-    searchState: GemAddAssetPhase,
+    isSearching: Boolean,
+    searchFailed: Boolean,
     addressState: MutableState<String>,
     network: Asset?,
     token: Asset?,
-    assetRows: List<GemAssetInfoRow>,
-    explorerLink: BlockExplorerLink?,
+    assetRows: List<ListItemModel>,
+    explorerLink: LinkRowUIModel?,
     buttonState: ButtonState,
     canSelectChain: Boolean,
     snackbar: SnackbarHostState? = null,
@@ -79,7 +75,7 @@ internal fun AddAssetScene(
         title = stringResource(id = R.string.wallet_add_token_title),
         snackbar = snackbar,
         actions = {
-            DocsInfoButton(AppUrl.addCustomToken)
+            DocsInfoButton(AppUrl.docs(DocsUrl.AddCustomToken))
         },
         mainAction = {
             MainActionButton(
@@ -115,12 +111,12 @@ internal fun AddAssetScene(
                 onQrScanner = { onAction(AddAssetAction.Scan) },
             )
         }
-        if (searchState is GemAddAssetPhase.Loading) {
+        if (isSearching) {
             Box {
                 CircularProgressIndicator16(modifier = Modifier.align(Alignment.Center))
             }
         }
-        if (searchState is GemAddAssetPhase.Failed) {
+        if (searchFailed) {
             Card(
                 modifier = Modifier.padding(horizontal = sceneContentPadding()),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
@@ -144,11 +140,11 @@ internal fun AddAssetScene(
         }
         AssetInfoTable(token, assetRows)
         if (explorerLink != null && token != null) {
-            PropertyItem(
-                modifier = Modifier.clickable { uriHandler.open(context, explorerLink.link) },
-                title = { PropertyTitleText(stringResource(R.string.transaction_view_on, explorerLink.name)) },
-                data = { DataBadgeChevron() },
+            ListItem(
+                model = explorerLink.model,
                 listPosition = ListPosition.Single,
+                modifier = Modifier.clickable { uriHandler.open(context, explorerLink.url) },
+                accessory = { DataBadgeChevron() },
             )
         }
         if (token != null) {
@@ -192,21 +188,11 @@ internal fun AddAssetScene(
 }
 
 @Composable
-private fun ColumnScope.AssetInfoTable(asset: Asset?, rows: List<GemAssetInfoRow>) {
+private fun ColumnScope.AssetInfoTable(asset: Asset?, rows: List<ListItemModel>) {
     if (asset == null) {
         return
     }
     rows.forEachIndexed { index, row ->
-        PropertyItem(
-            title = { PropertyTitleText(row.kind.stringRes()) },
-            data = {
-                when (row.kind) {
-                    GemAssetInfoKind.NAME -> PropertyDataText(row.value, badge = { DataBadgeChevron(asset, false) })
-                    else -> PropertyDataText(row.value)
-                }
-            },
-            listPosition = ListPosition.getPosition(index, rows.size),
-        )
+        ListItem(model = row, listPosition = ListPosition.getPosition(index, rows.size))
     }
 }
-

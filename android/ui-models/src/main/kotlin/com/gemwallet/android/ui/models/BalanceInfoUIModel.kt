@@ -2,6 +2,7 @@ package com.gemwallet.android.ui.models
 
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.model.CryptoFiatConverter
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
@@ -11,7 +12,7 @@ import uniffi.gemstone.GemValueStyle
 
 open class BalanceInfoUIModel(
     override val asset: Asset,
-    balance: BigInteger,
+    private val balance: BigInteger,
     val price: Double?,
     override val currency: Currency
 ) : CryptoFormattedUIModel, FiatFormattedUIModel {
@@ -19,8 +20,8 @@ open class BalanceInfoUIModel(
     override val cryptoAmount: Double by lazy { Crypto(balance).value(asset.decimals).toDouble() }
 
     override val fiat: Double? by lazy {
-        val price = price ?: 0.0
-        if (price == 0.0) null else cryptoAmount * price
+        val price = price ?: return@lazy null
+        if (price == 0.0) null else CryptoFiatConverter.toFiat(Crypto(balance), asset.decimals, price).atomicValue.toDouble()
     }
 }
 

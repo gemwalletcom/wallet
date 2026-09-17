@@ -2,6 +2,7 @@
 
 import enum Gemstone.GemSwapProgressStep
 import enum Gemstone.GemTransactionFilter
+import enum Gemstone.GemTransactionParticipantRole
 import Localization
 
 extension GemSwapProgressStep {
@@ -23,9 +24,21 @@ extension GemTransactionFilter {
         case .transfers: Localized.Transfer.title
         case .smartContract: Localized.Transfer.SmartContract.title
         case .swaps: Localized.Wallet.swap
-        case .stake: Localized.Transfer.Stake.title
+        case .stake: Localized.Wallet.stake
         case .perpetuals: Localized.Perpetuals.title
         case .others: Localized.Transfer.Other.title
+        }
+    }
+}
+
+extension GemTransactionParticipantRole {
+    var title: String {
+        switch self {
+        case .sender: Localized.Transaction.sender
+        case .recipient: Localized.Transaction.recipient
+        case .contract: Localized.Asset.contract
+        case .validator: Localized.Stake.validator
+        case .provider: Localized.Common.provider
         }
     }
 }

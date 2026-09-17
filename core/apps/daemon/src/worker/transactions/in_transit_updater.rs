@@ -213,24 +213,6 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::{HOUR, MINUTE, TransactionState as PrimitiveTransactionState};
 
-    fn swap_result(status: SwapStatus, metadata: Option<TransactionSwapMetadata>) -> SwapResult {
-        SwapResult {
-            status,
-            metadata,
-            eta_in_seconds: None,
-        }
-    }
-
-    fn swap_metadata(provider: &str, from_value: &str, to_value: &str) -> TransactionSwapMetadata {
-        TransactionSwapMetadata {
-            from_asset: "bitcoin".into(),
-            from_value: from_value.parse().unwrap(),
-            to_asset: "ethereum".into(),
-            to_value: to_value.parse().unwrap(),
-            provider: Some(provider.to_string()),
-        }
-    }
-
     #[test]
     fn test_scan_limit_covers_check_interval_window() {
         let config = InTransitConfig {
@@ -250,7 +232,11 @@ mod tests {
     #[test]
     fn test_resolve_status_completed() {
         let now = Utc::now().naive_utc();
-        let Some((state, _)) = resolve_status(&swap_result(SwapStatus::Completed, None), now, now) else {
+        let result = SwapResult {
+            status: SwapStatus::Completed,
+            ..SwapResult::pending()
+        };
+        let Some((state, _)) = resolve_status(&result, now, now) else {
             panic!("completed status should resolve");
         };
         assert_eq!(*state, PrimitiveTransactionState::Confirmed);
@@ -259,7 +245,11 @@ mod tests {
     #[test]
     fn test_resolve_status_failed() {
         let now = Utc::now().naive_utc();
-        let Some((state, _)) = resolve_status(&swap_result(SwapStatus::Failed, None), now, now) else {
+        let result = SwapResult {
+            status: SwapStatus::Failed,
+            ..SwapResult::pending()
+        };
+        let Some((state, _)) = resolve_status(&result, now, now) else {
             panic!("failed status should resolve");
         };
         assert_eq!(*state, PrimitiveTransactionState::Failed);
@@ -268,7 +258,11 @@ mod tests {
     #[test]
     fn test_resolve_status_refunded() {
         let now = Utc::now().naive_utc();
-        let Some((state, _)) = resolve_status(&swap_result(SwapStatus::Refunded, None), now, now) else {
+        let result = SwapResult {
+            status: SwapStatus::Refunded,
+            ..SwapResult::pending()
+        };
+        let Some((state, _)) = resolve_status(&result, now, now) else {
             panic!("refunded status should resolve");
         };
         assert_eq!(*state, PrimitiveTransactionState::Refunded);
@@ -278,14 +272,14 @@ mod tests {
     fn test_resolve_status_pending_within_timeout() {
         let now = Utc::now().naive_utc();
         let cutoff = (Utc::now() - HOUR).naive_utc();
-        assert!(resolve_status(&swap_result(SwapStatus::Pending, None), now, cutoff).is_none());
+        assert!(resolve_status(&SwapResult::pending(), now, cutoff).is_none());
     }
 
     #[test]
     fn test_resolve_status_pending_past_timeout() {
         let cutoff = Utc::now().naive_utc();
         let created_at = (Utc::now() - HOUR * 2).naive_utc();
-        let Some((state, _)) = resolve_status(&swap_result(SwapStatus::Pending, None), created_at, cutoff) else {
+        let Some((state, _)) = resolve_status(&SwapResult::pending(), created_at, cutoff) else {
             panic!("timed out pending status should resolve");
         };
         assert_eq!(*state, PrimitiveTransactionState::Failed);
@@ -294,8 +288,18 @@ mod tests {
     #[test]
     fn test_resolve_status_metadata_from_result() {
         let now = Utc::now().naive_utc();
-        let metadata = swap_metadata("thorchain", "50000", "2500");
-        let Some((_, Some(resolved))) = resolve_status(&swap_result(SwapStatus::Completed, Some(metadata)), now, now) else {
+        let result = SwapResult {
+            status: SwapStatus::Completed,
+            metadata: Some(TransactionSwapMetadata {
+                from_asset: "bitcoin".into(),
+                from_value: BigUint::from(50_000u64),
+                to_asset: "ethereum".into(),
+                to_value: BigUint::from(2_500u64),
+                provider: Some("thorchain".to_string()),
+            }),
+            ..SwapResult::pending()
+        };
+        let Some((_, Some(resolved))) = resolve_status(&result, now, now) else {
             panic!("completed status should include metadata");
         };
         assert_eq!(resolved.from_value, BigUint::from(50_000u64));

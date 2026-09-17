@@ -7,7 +7,6 @@ pub use primitives::swap::{ApprovalData, SwapData, SwapPriceImpact, SwapPriceImp
 pub use swapper::SwapperProvider;
 
 pub type GemApprovalData = ApprovalData;
-pub type GemSwapData = SwapData;
 pub type GemSwapQuoteData = SwapQuoteData;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -45,10 +44,8 @@ impl GemSwapValue {
     pub fn price_impact(&self, receive: Arc<GemSwapValue>) -> Option<SwapPriceImpact> {
         calculate_swap_price_impact(self.fiat_value()?, receive.fiat_value()?)
     }
-}
 
-impl GemSwapValue {
-    fn fiat_value(&self) -> Option<f64> {
+    pub fn fiat_value(&self) -> Option<f64> {
         let price = self.price?;
         let amount = BigNumberFormatter::value_as_f64(&self.value.to_string(), self.decimals).ok()?;
         Some(amount * price)
@@ -97,12 +94,18 @@ mod tests {
 
     #[test]
     fn test_swap_price_impact_needs_a_price_on_both_sides() {
-        let priced = |value: u32, price: Option<f64>| Arc::new(GemSwapValue::new(value.into(), 2, price));
+        assert_eq!(
+            Arc::new(GemSwapValue::new(100u32.into(), 2, None)).price_impact(Arc::new(GemSwapValue::new(100u32.into(), 2, Some(1.0)))),
+            None
+        );
+        assert_eq!(
+            Arc::new(GemSwapValue::new(100u32.into(), 2, Some(1.0))).price_impact(Arc::new(GemSwapValue::new(100u32.into(), 2, None))),
+            None
+        );
 
-        assert_eq!(priced(100, None).price_impact(priced(100, Some(1.0))), None);
-        assert_eq!(priced(100, Some(1.0)).price_impact(priced(100, None)), None);
-
-        let impact = priced(200, Some(1.0)).price_impact(priced(100, Some(1.0))).expect("impact");
+        let impact = Arc::new(GemSwapValue::new(200u32.into(), 2, Some(1.0)))
+            .price_impact(Arc::new(GemSwapValue::new(100u32.into(), 2, Some(1.0))))
+            .expect("impact");
         assert_eq!(impact.percentage, -50.0);
     }
 

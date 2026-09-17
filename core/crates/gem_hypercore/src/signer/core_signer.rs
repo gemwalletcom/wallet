@@ -296,10 +296,10 @@ impl HyperCoreSigner {
     fn sign_serialized_action<T, F>(&self, value: T, timestamp: u64, private_key: &[u8], typed_data_fn: F, action_name: &'static str) -> SignerResult<String>
     where
         T: Serialize,
-        F: FnOnce(T) -> String,
+        F: FnOnce(T) -> Result<String, String>,
     {
         let action = serde_json::to_string(&value).map_err(|err| SignerError::InvalidInput(format!("Failed to serialize {action_name} action: {err}")))?;
-        let typed_data = typed_data_fn(value);
+        let typed_data = typed_data_fn(value).map_err(|err| SignerError::InvalidInput(format!("Failed to build {action_name} typed data: {err}")))?;
         self.sign_action(&typed_data, &action, timestamp, private_key)
     }
 
@@ -331,7 +331,7 @@ impl HyperCoreSigner {
     }
 
     fn timestamp_ms() -> u64 {
-        SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as u64
+        SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_millis() as u64
     }
 }
 
@@ -478,6 +478,7 @@ mod tests {
                 validator_id: "validator".into(),
             },
             validator: DelegationValidator::stake(Chain::HyperCore, "0x66be52ec79f829cc88e5778a255e2cb9492798fd".into(), "Validator".into(), true, 0.0, 0.0),
+            price: None,
         };
         let input = TransactionLoadInput {
             value: BigUint::from(60000000u64),

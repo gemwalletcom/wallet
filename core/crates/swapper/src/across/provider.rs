@@ -1,9 +1,4 @@
-use super::{
-    DEFAULT_FILL_TIMEOUT,
-    asset::{across_asset_id, parse_address},
-    config_store::TokenConfig,
-    hubpool::HubPoolClient,
-};
+use super::{DEFAULT_FILL_TIMEOUT, asset::parse_address, config_store::TokenConfig, hubpool::HubPoolClient};
 use crate::{
     SwapAmountMode, SwapResult, Swapper, SwapperError, SwapperProvider, SwapperQuoteData,
     across::{DEFAULT_DEPOSIT_GAS_LIMIT, DEFAULT_FILL_GAS_LIMIT},
@@ -22,6 +17,7 @@ use async_trait::async_trait;
 use gem_evm::u256::u256_to_biguint;
 use gem_evm::{
     across::{
+        asset::{AcrossAsset, Funding},
         contracts::{
             V3SpokePoolInterface::{self, V3RelayData},
             multicall_handler,
@@ -75,14 +71,13 @@ impl Across {
             return false;
         }
 
-        let Some(from) = across_asset_id(from_asset) else {
-            return false;
-        };
-        let Some(to) = across_asset_id(to_asset) else {
+        let (Some(from), Some(to)) = (AcrossAsset::from_asset(from_asset), AcrossAsset::from_asset(to_asset)) else {
             return false;
         };
 
-        AcrossDeployment::asset_mappings().into_iter().any(|x| x.set.contains(&from) && x.set.contains(&to))
+        AcrossDeployment::asset_mappings()
+            .into_iter()
+            .any(|x| x.set.contains(&from.asset_id) && x.set.contains(&to.asset_id))
     }
 
     fn multicall_request(chain: Chain, calls: Vec<IMulticall3::Call3>) -> Result<EthereumRpc, SwapperError> {
@@ -109,7 +104,7 @@ impl Across {
     fn message_for_multicall_handler(
         &self,
         amount: &U256,
-        original_output_asset: &AssetId,
+        output_funding: Funding,
         output_token: &Address,
         user_address: &Address,
         output_chain: Chain,
@@ -122,11 +117,9 @@ impl Across {
         let fee_amount = amount * U256::from(referral_fee.bps) / U256::from(10000);
         let user_amount = amount - fee_amount;
 
-        let calls = if original_output_asset.is_native() {
-            // output_token is WETH and we need to unwrap it
-            Self::unwrap_weth_calls(output_token, amount, user_address, &user_amount, &fee_address, &fee_amount)
-        } else {
-            Self::erc20_transfer_calls(output_token, user_address, &user_amount, &fee_address, &fee_amount)
+        let calls = match output_funding {
+            Funding::Value => Self::unwrap_weth_calls(output_token, amount, user_address, &user_amount, &fee_address, &fee_amount),
+            Funding::Token => Self::erc20_transfer_calls(output_token, user_address, &user_amount, &fee_address, &fee_amount),
         };
         let instructions = multicall_handler::Instructions {
             calls,
@@ -245,7 +238,7 @@ impl Across {
             None
         };
         let requests = vec![limit_request, EthereumRpc::GasPrice].into_iter().chain(gas_token_price_request).collect();
-        let mut results = create_client_with_chain(self.rpc_provider.clone(), chain)
+        let mut results = create_client_with_chain(self.rpc_provider.clone(), chain)?
             .batch_request::<String, _>(requests)
             .await?
             .into_iter();
@@ -317,12 +310,10 @@ impl Swapper for Across {
             return Err(SwapperError::NoQuoteAvailable);
         }
 
-        let input_is_native = request.from_asset.is_native();
         let from_chain = request.from_asset.chain();
-        if from_chain == Chain::Tron && input_is_native {
+        if from_chain == Chain::Tron && request.from_asset.is_native() {
             return Err(SwapperError::NotSupportedAsset);
         }
-        let from_amount = U256::from_str(&request.value.to_string()).map_err(SwapperError::from)?;
         let depositor_address = parse_address(from_chain, &request.wallet_address)?;
         let recipient_address = parse_address(request.to_asset.chain(), &request.destination_address)?;
 
@@ -332,14 +323,15 @@ impl Swapper for Across {
             return Err(SwapperError::NoQuoteAvailable);
         }
 
-        let input_asset = across_asset_id(&request.from_asset.asset_id()).ok_or(SwapperError::NotSupportedAsset)?;
-        let output_asset = across_asset_id(&request.to_asset.asset_id()).ok_or(SwapperError::NotSupportedAsset)?;
+        let input = AcrossAsset::from_asset(&request.from_asset.asset_id()).ok_or(SwapperError::NotSupportedAsset)?;
+        let output = AcrossAsset::from_asset(&request.to_asset.asset_id()).ok_or(SwapperError::NotSupportedAsset)?;
+        let from_amount = U256::from_str(&request.value.to_string()).map_err(SwapperError::from)? / input.scale;
         let original_output_asset = request.to_asset.asset_id();
-        let output_token = parse_address(output_asset.chain, output_asset.token_id.as_deref().ok_or(SwapperError::NotSupportedAsset)?)?;
+        let output_token = parse_address(output.asset_id.chain, output.asset_id.token_id.as_deref().ok_or(SwapperError::NotSupportedAsset)?)?;
 
         // Get L1 token address
         let mappings = AcrossDeployment::asset_mappings();
-        let asset_mapping = mappings.iter().find(|x| x.set.contains(&input_asset)).ok_or(SwapperError::NotSupportedAsset)?;
+        let asset_mapping = mappings.iter().find(|x| x.set.contains(&input.asset_id)).ok_or(SwapperError::NotSupportedAsset)?;
         let asset_mainnet = asset_mapping.set.iter().find(|x| x.chain == Chain::Ethereum).ok_or(SwapperError::NotSupportedAsset)?;
         let mainnet_token = eth_address::parse_asset_id(asset_mainnet)?;
 
@@ -358,7 +350,7 @@ impl Swapper for Across {
         .chain(token_price_call)
         .collect();
         let requests = vec![Self::multicall_request(Chain::Ethereum, calls)?, TokenConfig::request(&mainnet_token)];
-        let [multicall_response, config_response]: [String; 2] = create_client_with_chain(self.rpc_provider.clone(), Chain::Ethereum)
+        let [multicall_response, config_response]: [String; 2] = create_client_with_chain(self.rpc_provider.clone(), Chain::Ethereum)?
             .batch_request::<String, _>(requests)
             .await?
             .take_all()?
@@ -397,7 +389,7 @@ impl Swapper for Across {
         let util_after = hubpool_client.decoded_utilization_call3(utilization_after_result)?;
         let timestamp = hubpool_client.decoded_current_time(current_time_result)?;
 
-        let rate_model = token_config.rate_model(&input_asset, &output_asset)?;
+        let rate_model = token_config.rate_model(&input.asset_id, &output.asset_id)?;
         let cost_config = &asset_mapping.capital_cost;
 
         // Calculate lp fee
@@ -407,7 +399,7 @@ impl Swapper for Across {
 
         // Calculate relayer fee
         let relayer_calc = RelayerFeeCalculator::default();
-        let relayer_fee_percent = relayer_calc.capital_fee_percent(&BigInt::from_str(&request.value.to_string())?, cost_config);
+        let relayer_fee_percent = relayer_calc.capital_fee_percent(&BigInt::from_str(&from_amount.to_string())?, cost_config);
         let relayer_fee = fees::multiply(from_amount, relayer_fee_percent, cost_config.decimals);
 
         let referral_config = default_referral_fees().for_chain(request.to_asset.chain()).cloned().unwrap_or_default();
@@ -416,7 +408,7 @@ impl Swapper for Across {
         let remain_amount = from_amount - lpfee - relayer_fee;
         let (message, referral_fee) = self.message_for_multicall_handler(
             &remain_amount,
-            &original_output_asset,
+            output.funding,
             &output_token,
             &recipient_address,
             request.to_asset.chain(),
@@ -426,8 +418,8 @@ impl Swapper for Across {
         let destination_chain = request.to_asset.chain();
         let (gas_limit_request, v3_relay_data) = Self::fill_relay_gas_request(
             &from_amount,
-            input_is_native,
-            &input_asset,
+            input.funding == Funding::Value,
+            &input.asset_id,
             &output_token,
             &depositor_address,
             &recipient_address,
@@ -452,7 +444,7 @@ impl Swapper for Across {
         };
         let native_gas_fee = gas_limit * gas_price;
         let gas_fee = match gas_token_usd_price {
-            None => native_gas_fee,
+            None => native_gas_fee / output.scale,
             Some(price) => Self::calculate_fee_in_token(&native_gas_fee, &price, cost_config.decimals),
         };
 
@@ -462,12 +454,12 @@ impl Swapper for Across {
         }
 
         let output_amount = remain_amount - gas_fee;
-        let to_value = output_amount - referral_fee;
+        let to_value = (output_amount - referral_fee) * output.scale;
 
         // Update v3 relay data (was used to estimate gas limit) with final output amount, quote timestamp and referral fee.
         let (message, _) = self.message_for_multicall_handler(
             &output_amount,
-            &original_output_asset,
+            output.funding,
             &output_token,
             &recipient_address,
             request.to_asset.chain(),
@@ -489,8 +481,8 @@ impl Swapper for Across {
                 provider: self.provider().clone(),
                 slippage_bps: request.options.slippage.bps,
                 routes: vec![Route {
-                    input: input_asset.clone(),
-                    output: output_asset.clone(),
+                    input: input.asset_id,
+                    output: output.asset_id,
                     route_data,
                 }],
             },
@@ -524,11 +516,14 @@ impl Swapper for Across {
         }
         .abi_encode();
 
-        let input_is_native = quote.request.from_asset.is_native();
-        let value: &str = if input_is_native { &quote.from_value.to_string() } else { "0" };
+        let input = AcrossAsset::from_asset(&quote.request.from_asset.asset_id()).ok_or(SwapperError::NotSupportedAsset)?;
+        let value = match input.funding {
+            Funding::Value => quote.from_value.clone(),
+            Funding::Token => BigUint::ZERO,
+        };
 
         let approval: Option<ApprovalData> = {
-            if input_is_native {
+            if input.funding == Funding::Value {
                 None
             } else if from_chain == Chain::Tron {
                 check_approval_trc20(
@@ -564,14 +559,14 @@ impl Swapper for Across {
 
         let should_estimate_gas = matches!(data, FetchQuoteData::EstimateGas) && !is_tron;
         if should_estimate_gas {
-            let hex_value = format!("{:#x}", U256::from_str(value)?);
+            let hex_value = format!("{value:#x}");
             let tx = TransactionObject::new_call_to_value(&to, &hex_value, deposit_v3_call.clone());
             gas_limit = Some(self.estimate_gas_transaction(from_chain, tx).await?.to_string());
         }
 
         Ok(SwapperQuoteData::new_contract(
             deployment.spoke_pool.into(),
-            BigUint::from_str(value).map_err(SwapperError::compute_quote_error)?,
+            value,
             HexEncode(deposit_v3_call.clone()),
             approval,
             gas_limit,
@@ -591,13 +586,12 @@ impl Swapper for Across {
 
 #[cfg(test)]
 mod tests {
+    use super::super::testkit::{TEST_FILL_DEADLINE, mock_v3_relay_data};
     use super::*;
-    use crate::alien::mock::{MockFn, ProviderMock};
+    use crate::alien::mock::ProviderMock;
     use gem_evm::multicall3::IMulticall3;
     use num_bigint::BigUint;
-    use primitives::{asset_constants::*, swap::SwapQuoteDataType};
-
-    const TEST_FILL_DEADLINE: u32 = 1_700_000_000 + DEFAULT_FILL_TIMEOUT;
+    use primitives::{asset_constants::*, contract_constants::ARC_ACROSS_SPOKE_POOL_CONTRACT, swap::SwapQuoteDataType};
 
     #[test]
     fn test_is_supported_route() {
@@ -650,61 +644,17 @@ mod tests {
         assert!(Across::is_supported_route(&op, &arb));
         assert!(Across::is_supported_route(&eth, &AssetId::from(Chain::Robinhood, None)));
         assert!(Across::is_supported_route(&AssetId::from(Chain::Robinhood, None), &eth));
-    }
 
-    fn provider_with_tron_allowance(allowance: &str) -> Across {
-        let response = format!(r#"{{"constant_result":["{allowance}"]}}"#);
-        Across::new(Arc::new(ProviderMock {
-            response: MockFn(Box::new(move |_| response.clone())),
-        }))
-    }
-
-    fn tron_quote(provider: &Across) -> (Quote, V3RelayData) {
-        let relay_data = V3RelayData {
-            depositor: parse_address(Chain::Tron, "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC").unwrap(),
-            recipient: eth_address::parse_str("0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7").unwrap(),
-            exclusiveRelayer: Address::ZERO,
-            inputToken: parse_address(Chain::Tron, TRON_USDT_TOKEN_ID).unwrap(),
-            outputToken: eth_address::parse_str(ETHEREUM_USDT_TOKEN_ID).unwrap(),
-            inputAmount: U256::from(10_000_000),
-            outputAmount: U256::from(9_990_000),
-            originChainId: U256::from(AcrossDeployment::deployment_by_chain(&Chain::Tron).unwrap().chain_id),
-            depositId: u32::MAX,
-            fillDeadline: TEST_FILL_DEADLINE,
-            exclusivityDeadline: 0,
-            message: Bytes::new(),
-        };
-        let request = QuoteRequest {
-            from_asset: TRON_USDT_ASSET_ID.clone().into(),
-            to_asset: ETHEREUM_USDT_ASSET_ID.clone().into(),
-            wallet_address: "TJRyWwFs9wTFGZg3JbrVriFbNfCug5tDeC".to_string(),
-            destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
-            value: BigUint::from(10000000u64),
-            options: Options::default(),
-        };
-        let quote = Quote {
-            from_value: request.value.clone(),
-            min_from_value: None,
-            to_value: BigUint::from(9990000u64),
-            data: ProviderData {
-                provider: provider.provider().clone(),
-                slippage_bps: request.options.slippage.bps,
-                routes: vec![Route {
-                    input: TRON_USDT_ASSET_ID.clone(),
-                    output: ETHEREUM_USDT_ASSET_ID.clone(),
-                    route_data: HexEncode(relay_data.abi_encode()),
-                }],
-            },
-            request,
-            eta_in_seconds: Some(120),
-        };
-        (quote, relay_data)
+        let arc = AssetId::from_chain(Chain::Arc);
+        assert!(Across::is_supported_route(&arc, &usdc_eth));
+        assert!(!Across::is_supported_route(&arc, &eth));
     }
 
     #[tokio::test]
     async fn test_direct_quote_data_maps_tron_approval() {
-        let provider = provider_with_tron_allowance("0");
-        let (quote, relay_data) = tron_quote(&provider);
+        let provider = Across::new(Arc::new(ProviderMock::mock_tron_constant_result("0")));
+        let relay_data = mock_v3_relay_data();
+        let quote = Quote::mock_across_tron();
         let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
         let expected_data = V3SpokePoolInterface::depositV3Call {
             depositor: relay_data.depositor,
@@ -740,12 +690,30 @@ mod tests {
 
     #[tokio::test]
     async fn test_direct_quote_data_skips_tron_approval_when_allowance_covers_amount() {
-        let provider = provider_with_tron_allowance("989680");
-        let (quote, _) = tron_quote(&provider);
+        let provider = Across::new(Arc::new(ProviderMock::mock_tron_constant_result("989680")));
+        let quote = Quote::mock_across_tron();
         let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
 
         assert_eq!(quote_data.approval, None);
         assert_eq!(quote_data.gas_limit, None);
+    }
+
+    #[tokio::test]
+    async fn test_direct_quote_data_approves_the_token_behind_native_arc_usdc() {
+        let provider = Across::new(Arc::new(ProviderMock::mock_json_rpc_result(&HexEncode([0u8; 32]))));
+        let quote_data = provider.get_quote_data(&Quote::mock_across_arc(), FetchQuoteData::None).await.unwrap();
+
+        assert_eq!(quote_data.to, ARC_ACROSS_SPOKE_POOL_CONTRACT);
+        assert_eq!(quote_data.value, BigUint::ZERO);
+        assert_eq!(
+            quote_data.approval,
+            Some(ApprovalData {
+                token: ARC_USDC_TOKEN_ID.to_string(),
+                spender: ARC_ACROSS_SPOKE_POOL_CONTRACT.to_string(),
+                value: BigUint::from(5_000_000u64),
+                is_unlimited: true,
+            })
+        );
     }
 
     #[test]
@@ -886,6 +854,47 @@ mod tests {
             let quote = swap_provider.get_quote(&request).await?;
             assert!(quote.to_value > BigUint::ZERO);
             assert!(!quote.data.routes[0].route_data.is_empty());
+
+            Ok(())
+        }
+
+        #[tokio::test]
+        async fn test_across_quote_arc_usdc_to_base_usdc() -> Result<(), SwapperError> {
+            let swap_provider = Across::boxed(Arc::new(NativeProvider::default()));
+            let wallet = "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7";
+            let request = QuoteRequest {
+                from_asset: AssetId::from_chain(Chain::Arc).into(),
+                to_asset: BASE_USDC_ASSET_ID.clone().into(),
+                wallet_address: wallet.into(),
+                destination_address: wallet.into(),
+                value: BigUint::from(5_000_000_000_000_000_000u64),
+                options: Options::default(),
+            };
+
+            let quote = swap_provider.get_quote(&request).await?;
+            println!("<== quote: {:?}", quote);
+            assert!(quote.to_value > BigUint::from(4_900_000u64) && quote.to_value < BigUint::from(5_000_000u64));
+
+            let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+            println!("<== quote_data: {:?}", quote_data);
+            assert_eq!(quote_data.value, BigUint::ZERO);
+
+            Ok(())
+        }
+
+        #[tokio::test]
+        async fn test_get_swap_result_arc_usdc_to_ethereum_usdc() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+            let swap_provider = Across::new(Arc::new(NativeProvider::default()));
+            let tx_hash = "0x026d408d6f548824ccec8dd2fa1381a5b176a2dc357058ee501a062f9008b703";
+
+            let result = swap_provider.get_swap_result(Chain::Arc, tx_hash).await?;
+            let metadata = result.metadata.unwrap();
+
+            assert_eq!(result.status, SwapStatus::Completed);
+            assert_eq!(metadata.from_asset, AssetId::from_chain(Chain::Arc));
+            assert_eq!(metadata.from_value, BigUint::from(5_000_000_000_000_000_000u64));
+            assert_eq!(metadata.to_asset, ETHEREUM_USDC_ASSET_ID.clone());
+            assert_eq!(metadata.to_value, BigUint::from(4_984_358u64));
 
             Ok(())
         }

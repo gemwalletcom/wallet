@@ -28,9 +28,9 @@ fun DelegationBase.toGem(): uniffi.gemstone.DelegationBase = uniffi.gemstone.Del
     validatorId = validatorId,
 )
 
-fun uniffi.gemstone.Delegation.toPrimitives(): Delegation = Delegation(base = base.toPrimitives(), validator = validator.toPrimitives())
+fun uniffi.gemstone.Delegation.toPrimitives(): Delegation = Delegation(base = base.toPrimitives(), validator = validator.toPrimitives(), price = price?.toPrimitives())
 
-fun Delegation.toGem(): uniffi.gemstone.Delegation = uniffi.gemstone.Delegation(base = base.toGem(), validator = validator.toGem())
+fun Delegation.toGem(): uniffi.gemstone.Delegation = uniffi.gemstone.Delegation(base = base.toGem(), validator = validator.toGem(), price = price?.toGem())
 
 fun uniffi.gemstone.RedelegateData.toPrimitives(): RedelegateData = RedelegateData(delegation = delegation.toPrimitives(), toValidator = toValidator.toPrimitives())
 

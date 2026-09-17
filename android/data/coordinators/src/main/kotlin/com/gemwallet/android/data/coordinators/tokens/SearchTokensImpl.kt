@@ -8,9 +8,10 @@ import com.wallet.core.primitives.AssetId
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemAssetsServiceInterface
 
 class SearchTokensImpl(
-    private val assetsService: GemAssetsService,
+    private val assetsService: GemAssetsServiceInterface,
     private val ioDispatcher: CoroutineDispatcher,
 ) : SearchTokens {
 

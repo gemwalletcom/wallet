@@ -13,6 +13,10 @@ let package = Package(
             name: "NFT",
             targets: ["NFT"],
         ),
+        .library(
+            name: "NFTTestKit",
+            targets: ["NFTTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "Gemstone", path: "../../Packages/Gemstone"),
@@ -47,6 +51,17 @@ let package = Package(
             ],
             path: "Sources",
         ),
+        .target(
+            name: "NFTTestKit",
+            dependencies: [
+                "NFT",
+                "Gemstone",
+                "Primitives",
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
+            ],
+            path: "TestKit",
+        ),
         .testTarget(
             name: "NFTTests",
             dependencies: [
@@ -55,8 +70,7 @@ let package = Package(
                 .product(name: "StoreTestKit", package: "Store"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
                 "NFT",
-                "PrimitivesComponents",
-                "Formatters",
+                "NFTTestKit",
                 "Store",
                 "Gemstone",
                 "Primitives",

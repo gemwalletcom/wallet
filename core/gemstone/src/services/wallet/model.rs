@@ -1,5 +1,5 @@
 use crate::services::localization::GemLocalizedText;
-use primitives::{Chain, Wallet};
+use primitives::{Chain, ChainAddress, Wallet};
 
 use super::rules;
 
@@ -62,6 +62,17 @@ pub enum GemWalletSecret {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemSecretPhraseRow {
+    Pair { left: u32, right: u32 },
+    Single { index: u32 },
+}
+
+#[uniffi::export]
+pub fn secret_phrase_rows(word_count: u32) -> Vec<GemSecretPhraseRow> {
+    rules::secret_phrase_rows(word_count)
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemWalletSubtitle {
     Multicoin,
     Address { value: String },
@@ -95,13 +106,20 @@ pub fn wallet_rows(wallets: Vec<Wallet>) -> Vec<GemWalletRow> {
     rules::rows(&wallets)
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemWalletDetails {
+    pub row: GemWalletRow,
+    pub secret_kind: Option<GemWalletSecretKind>,
+    pub address: Option<ChainAddress>,
+}
+
+#[uniffi::export]
+pub fn wallet_details(wallet: Wallet) -> GemWalletDetails {
+    rules::details(&wallet)
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemWalletSecretKind {
     Phrase,
     PrivateKey,
-}
-
-#[uniffi::export]
-pub fn wallet_secret_kind(wallet: Wallet) -> Option<GemWalletSecretKind> {
-    rules::secret_kind(&wallet)
 }

@@ -6,7 +6,6 @@ import Localization
 import Primitives
 import Store
 import SwiftUI
-import struct Gemstone.GemWalletRow
 import func Gemstone.walletRow
 import protocol Gemstone.GemWalletServiceProtocol
 import PrimitivesComponents
@@ -60,8 +59,8 @@ public final class WalletsSceneViewModel {
         service.sorted(wallets: wallets)
     }
 
-    func row(for wallet: Wallet) -> GemWalletRow {
-        walletRow(wallet: wallet.toGem())
+    func listItem(for wallet: Wallet) -> ListItemModel {
+        walletRow(wallet: wallet.toGem()).listItem
     }
 }
 
@@ -81,10 +80,7 @@ extension WalletsSceneViewModel {
     }
 
     private func delete(_ wallet: Wallet) async throws {
-        switch try await service.delete(wallet) {
-        case .walletsRemaining: break
-        case .lastWalletDeleted: preferences.reload()
-        }
+        preferences.reload(after: try await service.delete(wallet))
     }
 
     private func pin(_ wallet: Wallet) async throws {

@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.confirm.viewmodels
 
+import android.content.Context
 import uniffi.gemstone.GemTransferAmount
 import uniffi.gemstone.GemTransferAmountResult
 import androidx.lifecycle.SavedStateHandle
@@ -10,24 +11,21 @@ import com.gemwallet.android.ext.toGem
 import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemConfirmData
 import uniffi.gemstone.GemConfirmPreload
-import uniffi.gemstone.GemConfirmLoad
 import uniffi.gemstone.GemFeeOptions
 import uniffi.gemstone.GasPriceType
 import uniffi.gemstone.GemTransactionLoadFee
 import uniffi.gemstone.GemTransactionLoadMetadata
 import uniffi.gemstone.GemConfirmPhase
-import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemConfirmation
 import uniffi.gemstone.GemConfirmTransferService
-import uniffi.gemstone.GemConfirmSimulationState
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.PerpetualType
-import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.TransactionInputType
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetHyperCoreUBTC
 import com.gemwallet.android.testkit.mockGemConfirmLoad
-import com.gemwallet.android.testkit.mockGemConfirmMetadata
+import com.gemwallet.android.testkit.mockGemConfirmScreen
+import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockPerpetualConfirmData
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
@@ -46,15 +44,13 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.job
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.math.BigInteger
@@ -81,23 +77,22 @@ class ConfirmViewModelRetryTest {
 
     @Test
     fun retryAfterPreloadFailureRunsThePreloaderAgain() = runTest(testDispatcher) {
-        val transfer = GemTransferData(
+        val transfer = mockGemTransferData(
             inputType = TransactionInputType.Perpetual(asset.toGem(), PerpetualType.Open(mockPerpetualConfirmData(direction = PerpetualDirection.Long))),
-            recipient = GemRecipient(address = ""),
             value = BigInteger.TEN,
         )
         val viewModel = viewModel(transfer).also { model = it }
-        runCurrent()
-        coVerify(timeout = 5_000, exactly = 1) { confirmation.load(any()) }
+        advanceUntilIdle()
 
-        assertEquals(GemConfirmPhase.FAILED, viewModel.screen.first { it.phase == GemConfirmPhase.FAILED }.phase)
+        coVerify(exactly = 1) { confirmation.load(any()) }
+        assertEquals(GemConfirmPhase.FAILED, viewModel.screen.value.phase)
 
         viewModel.send(FinishConfirmAction { _ -> })
-        runCurrent()
+        advanceUntilIdle()
 
-        coVerify(timeout = 5_000, exactly = 2) { confirmation.load(any()) }
-        assertEquals(GemConfirmPhase.READY, viewModel.screen.first { it.phase == GemConfirmPhase.READY }.phase)
-        assertEquals(asset, viewModel.feeAsset.first { it != null }?.asset)
+        coVerify(exactly = 2) { confirmation.load(any()) }
+        assertEquals(GemConfirmPhase.READY, viewModel.screen.value.phase)
+        assertEquals(asset, viewModel.feeAsset.value?.asset)
     }
 
     private fun viewModel(transfer: GemTransferData): ConfirmViewModel {
@@ -105,8 +100,8 @@ class ConfirmViewModelRetryTest {
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
         every { confirmation.insufficientNetworkFeeBuyAmount() } returns 10
         every { confirmService.confirmation(any(), transfer, any()) } returns confirmation
-        every { confirmation.screen() } returns GemConfirmScreen(GemConfirmPhase.LOADING, false, null)
-        coEvery { confirmation.state() } returns mockGemConfirmLoad(asset, preload = null)
+        every { confirmation.screen() } returns mockGemConfirmScreen()
+        coEvery { confirmation.state() } returns mockGemConfirmLoad(asset)
         var calls = 0
         coEvery { confirmation.load(any()) } answers {
             calls += 1
@@ -145,6 +140,8 @@ class ConfirmViewModelRetryTest {
             buildConfirmProperties = mockk(relaxed = true),
             confirmService = confirmService,
             savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transfer.pack()))),
+            ioDispatcher = testDispatcher,
+            context = mockk<Context> { every { getString(any()) } returns "Error"; every { getString(any(), *anyVararg()) } returns "Error" },
         )
     }
 }

@@ -11,7 +11,7 @@ import Primitives
 import Style
 import SwiftUI
 
-struct BannerViewModel {
+public struct BannerViewModel {
     enum BannerViewType {
         case list
         case banner
@@ -20,59 +20,25 @@ struct BannerViewModel {
     private let banner: Banner
     private let content: GemBannerContent
 
-    init(banner: Banner, content: GemBannerContent) {
+    public init(banner: Banner, content: GemBannerContent) {
         self.banner = banner
         self.content = content
     }
 
     var image: AssetImage? {
-        guard let icon = content.icon else {
-            return .none
-        }
-        switch icon {
-        case .moneyBag:
-            return AssetImage(type: .emoji(Emoji.WalletAvatar.moneyBag.rawValue))
-        case let .network(chain):
-            return Primitives.Chain(rawValue: chain).map { AssetImage.image(ChainImage(chain: $0).image) }
-        case .warning:
-            return AssetImage.image(Images.System.exclamationmarkTriangle)
-        case .suspicious:
-            return AssetImage.image(Images.TokenStatus.risk)
-        case .bitcoin:
-            return AssetImage.image(Images.System.bitcoin)
-        case .perpetuals:
-            return AssetImage.image(Images.Perpetuals.perpetuals)
-        }
+        content.icon?.image
+    }
+
+    var listItem: ListItemModel {
+        ListItemModel(title: title, titleExtra: description, imageStyle: imageStyle)
     }
 
     var title: String? {
-        guard let title = content.title else {
-            return .none
-        }
-        switch title {
-        case let .stake(assetName): return Localized.Banner.Stake.title(assetName)
-        case .accountActivation: return Localized.Banner.AccountActivation.title
-        case .warning: return Localized.Common.warning
-        case .activateAsset: return Localized.Transfer.ActivateAsset.title
-        case .suspiciousAsset: return Localized.Banner.AssetStatus.title
-        case .onboarding: return Localized.Banner.Onboarding.title
-        case .tradePerpetuals: return Localized.Banner.Perpetuals.title
-        }
+        content.title?.text
     }
 
     var description: String? {
-        guard let description = content.description else {
-            return .none
-        }
-        switch description {
-        case let .stake(assetSymbol): return Localized.Banner.Stake.description(assetSymbol)
-        case let .accountActivation(networkName, fee): return Localized.Banner.AccountActivation.description(networkName, formatted(fee))
-        case let .multiSignatureBlocked(networkName): return Localized.Warnings.multiSignatureBlocked(networkName)
-        case let .activateAsset(assetSymbol, networkName): return Localized.Banner.ActivateAsset.description(assetSymbol, networkName)
-        case .suspiciousAsset: return Localized.Banner.AssetStatus.description
-        case .onboarding: return Localized.Banner.Onboarding.description
-        case .tradePerpetuals: return Localized.Banner.Perpetuals.description
-        }
+        content.description?.text(amount: formatted)
     }
 
     var canClose: Bool {
@@ -103,20 +69,12 @@ struct BannerViewModel {
         }
     }
 
-    var action: BannerAction {
-        BannerAction(banner: banner, type: .event(banner.event), url: url)
+    var action: BannerAction? {
+        content.destination.map { BannerAction(banner: banner, type: .destination($0)) }
     }
 
     var closeAction: BannerAction {
-        BannerAction(banner: banner, type: .closeBanner, url: nil)
-    }
-
-    var url: URL? {
-        switch content.link {
-        case let .docs(item): AppUrl.docs(item)
-        case let .external(url): URL(string: url)
-        case .none: .none
-        }
+        BannerAction(banner: banner, type: .closeBanner)
     }
 
     var imageStyle: ListItemImageStyle? {
@@ -161,7 +119,7 @@ struct BannerViewModel {
 }
 
 extension BannerViewModel: Identifiable {
-    var id: String {
+    public var id: String {
         banner.id
     }
 }

@@ -15,38 +15,11 @@ public struct AboutUsScene: View {
 
     public var body: some View {
         List {
-            Section {
-                SafariNavigationLink(url: model.termsOfServiceURL) {
-                    ListItemView(title: model.termsOfServiceTitle)
-                }
-                SafariNavigationLink(url: model.privacyPolicyURL) {
-                    ListItemView(title: model.privacyPolicyTitle)
-                }
-                SafariNavigationLink(url: model.websiteURL) {
-                    ListItemView(title: model.websiteTitle)
-                }
-            }
-
-            Section(model.communityTitle) {
-                SocialLinksView(model: model.linksViewModel)
-            }
-
-            Section {
-                ListItemView(
-                    title: model.versionTextTitle,
-                    subtitle: model.versionTextValue,
-                )
-                .contextMenu(model.contextMenuItems)
-
-                if let version = model.releaseVersion {
-                    NavigationCustomLink(
-                        with: ListItemView(
-                            title: Localized.UpdateApp.title,
-                            subtitle: version,
-                            imageStyle: .settings(assetImage: model.releaseImage),
-                        ),
-                        action: model.onUpdate,
-                    )
+            ForEach(model.sections) { section in
+                Section {
+                    ForEach(section.values) { row in
+                        content(for: row)
+                    }
                 }
             }
         }
@@ -55,5 +28,23 @@ public struct AboutUsScene: View {
         .listSectionSpacing(.compact)
         .navigationTitle(model.title)
         .taskOnce { Task { await model.load() }}
+    }
+
+    @ViewBuilder
+    private func content(for row: AboutRowViewModel) -> some View {
+        switch row.kind {
+        case let .link(url):
+            SafariNavigationLink(url: url) {
+                ListItemView(model: row.model)
+            }
+        case .community:
+            SocialLinksView(model: model.linksViewModel)
+        case .version:
+            ListItemView(model: row.model)
+                .contextMenu(model.contextMenuItems)
+            if let item = model.updateListItem {
+                NavigationCustomLink(with: ListItemView(model: item), action: model.onUpdate)
+            }
+        }
     }
 }

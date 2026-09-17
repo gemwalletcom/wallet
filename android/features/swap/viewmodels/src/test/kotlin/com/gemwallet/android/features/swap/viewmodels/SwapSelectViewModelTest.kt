@@ -71,6 +71,8 @@ class SwapSelectViewModelTest {
         recentAssetsService = recentAssetsService,
         service = service,
         searchService = searchService,
+        ioDispatcher = testDispatcher,
+        context = mockk(relaxed = true),
         savedStateHandle = SavedStateHandle(
             mapOf(RouteArgument.SwapItemType.key to type)
         ),

@@ -7,7 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -15,15 +14,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.style.textStyle
 import com.gemwallet.android.ui.theme.compactIconSize
-import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.VerificationStatus
 
@@ -47,26 +47,20 @@ private fun VerificationStatusItem(
     val display = status.display() ?: return
     var showInfoSheet by remember { mutableStateOf(false) }
 
-    PropertyItem(
-        modifier = Modifier.clickable { showInfoSheet = true },
-        title = {
-            PropertyTitleText(
-                text = R.string.transaction_status,
-                info = display.infoSheetEntity,
-            )
-        },
-        data = {
-            PropertyDataText(
-                text = stringResource(display.labelRes),
-                color = status.color(),
-                badge = {
-                    DataBadgeChevron {
-                        VerificationBadgeIcon(display.badgeIconRes)
-                    }
-                },
-            )
-        },
+    ListItem(
+        model = ListItemModel(
+            title = stringResource(R.string.transaction_status),
+            subtitle = stringResource(display.labelRes),
+            subtitleStyle = status.textStyle(),
+            info = display.infoSheetEntity,
+        ),
         listPosition = listPosition,
+        modifier = Modifier.clickable { showInfoSheet = true },
+        accessory = {
+            DataBadgeChevron {
+                VerificationBadgeIcon(display.badgeIconRes)
+            }
+        },
     )
 
     if (showInfoSheet) {
@@ -108,10 +102,4 @@ private fun VerificationStatus.display(): VerificationStatusDisplay? = when (thi
         badgeIconRes = R.drawable.suspicious,
         infoSheetEntity = InfoSheetEntity.AssetStatusSuspiciousInfo,
     )
-}
-
-@Composable
-private fun VerificationStatus.color(): Color = when (this) {
-    VerificationStatus.Suspicious -> MaterialTheme.colorScheme.error
-    else -> pendingColor
 }

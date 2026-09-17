@@ -1,5 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.di
 
+import uniffi.gemstone.GemApplicationMetadataServiceInterface
+import uniffi.gemstone.GemApplicationMetadataService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -8,7 +10,9 @@ import uniffi.gemstone.GemAddressService
 import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemAssetConfigServiceInterface
 import uniffi.gemstone.GemConnectionService
+import uniffi.gemstone.GemConnectionServiceInterface
 import uniffi.gemstone.GemSecurityService
+import uniffi.gemstone.GemSecurityServiceInterface
 import uniffi.gemstone.GemSimulationFormatter
 import uniffi.gemstone.PriceAlertFormatter
 import javax.inject.Singleton
@@ -44,4 +48,20 @@ object RulesModule {
 
     @Provides
     fun provideGemAssetConfigServiceInterface(service: GemAssetConfigService): GemAssetConfigServiceInterface = service
+
+    @Provides
+    @Singleton
+    fun provideConnectionServiceInterface(service: GemConnectionService): GemConnectionServiceInterface = service
+
+    @Provides
+    @Singleton
+    fun provideSecurityServiceInterface(service: GemSecurityService): GemSecurityServiceInterface = service
+
+    @Provides
+    @Singleton
+    fun provideGemApplicationMetadataService(): GemApplicationMetadataService = GemApplicationMetadataService()
+
+    @Provides
+    @Singleton
+    fun provideApplicationMetadataServiceInterface(service: GemApplicationMetadataService): GemApplicationMetadataServiceInterface = service
 }

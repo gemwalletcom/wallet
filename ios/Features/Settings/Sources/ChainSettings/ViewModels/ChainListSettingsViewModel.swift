@@ -1,5 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Localization
+import Style
 import Components
 import Foundation
 import protocol Gemstone.GemChainServiceProtocol
@@ -23,4 +25,12 @@ public final class ChainListSettingsViewModel {
     func filterChains(for query: String) -> [Chain] {
         service.getChains(query: query).map { Chain(core: $0) }
     }
+
+    var serviceStatusListItem: ListItemModel {
+        ListItemModel(
+            title: Localized.Transaction.status,
+            imageStyle: .asset(assetImage: AssetImage.image(Images.Logo.logo)),
+        )
+    }
+
 }

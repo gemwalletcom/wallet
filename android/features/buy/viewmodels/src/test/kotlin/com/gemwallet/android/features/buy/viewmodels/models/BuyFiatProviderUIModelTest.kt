@@ -18,7 +18,7 @@ class BuyFiatProviderUIModelTest {
 
     @Test
     fun `the row's fiat amount is the one shown`() {
-        val model = mockFiatQuoteRow(fiatAmount = 48.8).toProviderUIModel(testAsset, Currency.USD)
+        val model = mockFiatQuoteRow(fiatAmount = 48.8).toProviderUIModel(testAsset)
 
         assertEquals(formatter.string(48.8), model.fiatFormatted)
     }
@@ -26,14 +26,14 @@ class BuyFiatProviderUIModelTest {
     @Test
     fun `a rate reads as one unit of the asset and is empty without one`() {
         val rate = GemAssetRate(baseSymbol = testAsset.symbol, quoteSymbol = Currency.USD.string, value = formattedCurrency(102500.0, Currency.USD.string, GemCurrencyStyle.CURRENCY))
-        assertEquals("1 ${testAsset.symbol} ≈ ${formatter.string(102500.0)}", mockFiatQuoteRow(rate = rate).toProviderUIModel(testAsset, Currency.USD).rate)
-        assertEquals("", mockFiatQuoteRow(rate = null).toProviderUIModel(testAsset, Currency.USD).rate)
+        assertEquals("1 ${testAsset.symbol} ≈ ${formatter.string(102500.0)}", mockFiatQuoteRow(rate = rate).toProviderUIModel(testAsset).rate)
+        assertEquals("", mockFiatQuoteRow(rate = null).toProviderUIModel(testAsset).rate)
     }
 
     @Test
     fun `cryptoText keeps significant digits for amounts sharing four decimals`() {
-        val first = mockFiatQuoteRow(cryptoAmount = 0.00077).toProviderUIModel(testAsset, Currency.USD)
-        val second = mockFiatQuoteRow(cryptoAmount = 0.0007578).toProviderUIModel(testAsset, Currency.USD)
+        val first = mockFiatQuoteRow(cryptoAmount = 0.00077).toProviderUIModel(testAsset)
+        val second = mockFiatQuoteRow(cryptoAmount = 0.0007578).toProviderUIModel(testAsset)
 
         assertNotEquals(first.cryptoText, second.cryptoText)
     }

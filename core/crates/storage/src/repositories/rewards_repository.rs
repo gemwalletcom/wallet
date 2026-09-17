@@ -675,20 +675,12 @@ mod tests {
     use crate::models::UsernameRow;
     use primitives::{DAY, HOUR};
 
-    fn username_row(username: &str, wallet_id: i32) -> UsernameRow {
-        UsernameRow {
-            username: username.to_string(),
-            wallet_id,
-            status: UsernameStatus::Unverified,
-        }
-    }
-
     #[test]
     fn test_has_custom_username() {
-        assert!(username_row("alice", 1).has_custom_username());
-        assert!(username_row("user1234", 1).has_custom_username());
-        assert!(!username_row("0x1234567890abcdef1234567890abcdef12345678", 1).has_custom_username());
-        assert!(!username_row("wallet_1", 1).has_custom_username());
+        assert!(UsernameRow::mock("alice").has_custom_username());
+        assert!(UsernameRow::mock("user1234").has_custom_username());
+        assert!(!UsernameRow::mock("0x1234567890abcdef1234567890abcdef12345678").has_custom_username());
+        assert!(!UsernameRow::mock("wallet_1").has_custom_username());
     }
 
     #[test]

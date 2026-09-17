@@ -2,6 +2,7 @@
 
 import Formatters
 import Foundation
+import Localization
 import GemstonePrimitives
 import Primitives
 import Store
@@ -29,6 +30,10 @@ final class PerpetualsPreviewViewModel {
             PerpetualWalletBalanceRequest(walletId: walletId, assetId: Chain.hyperCore.defaultAsset(type: .perpetual).id),
             initialValue: nil,
         )
+    }
+
+    var tradePerpetualsTitle: String {
+        Localized.Perpetuals.trade
     }
 
     var tradePerpetualsSubtitle: String {

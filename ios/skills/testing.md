@@ -29,9 +29,12 @@ A test target only runs if it is registered in all three places:
 
 ## Mocks
 
-- Prefer existing `TestKit` mocks over ad hoc mock services
-- Add reusable mocks in the appropriate `TestKit`; keep one-off input construction local to the test
-- Prefer `.mock()` style helpers and small deterministic fixtures
+A mock exists once, beside its type, so every test reuses it instead of rebuilding the value.
+
+- Models, view models, services, and doubles used by tests come from `static func mock(...)` in the `TestKit` of the package or feature that owns the type (`Type+PrimitivesTestKit.swift`, `Features/<Feature>/TestKit/<ViewModel>+TestKit.swift`). Defaults are the usual case; expose only the parameters current tests vary
+- A test file declares no fixture of its own: no `makeX()`, `private func wallet()`, local `extension Type { static func mock }`, or helper that assembles a value, even for one test. Search the owning `TestKit` first and extend an existing mock rather than adding a near-duplicate; merge near-duplicate mocks into one with sensible defaults and delete mocks nothing calls
+- An internal view model keeps an internal mock in its feature `TestKit`, imported with `@testable import <Feature>TestKit`; never copy the construction into the test
+- The test keeps literal inputs and one-off overrides passed at the call site
 
 ## Formatting
 

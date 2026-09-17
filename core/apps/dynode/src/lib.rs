@@ -13,6 +13,6 @@ pub mod node_service;
 pub mod proxy;
 pub mod response;
 pub mod server;
-#[cfg(any(test, feature = "testkit"))]
-pub mod testkit;
+#[cfg(test)]
+mod testkit;
 pub mod webhook;

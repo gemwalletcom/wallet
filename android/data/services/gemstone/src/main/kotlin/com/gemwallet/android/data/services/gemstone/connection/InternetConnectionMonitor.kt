@@ -13,11 +13,12 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.mapLatest
 import uniffi.gemstone.GemConnectionService
+import uniffi.gemstone.GemConnectionServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class InternetConnectionMonitor(
     private val context: Context,
-    private val connectionService: GemConnectionService,
+    private val connectionService: GemConnectionServiceInterface,
 ) : ConnectionComponentMonitor {
 
     override val component: ConnectionComponent = ConnectionComponent.Internet

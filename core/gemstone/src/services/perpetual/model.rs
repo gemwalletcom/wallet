@@ -142,14 +142,26 @@ pub struct GemPerpetualChartLayout {
     pub current_price: Option<GemFormattedNumber>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemCandleTooltipRow {
+    Open,
+    High,
+    Low,
+    Close,
+    Change,
+    Volume,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemCandleTooltipCell {
+    pub row: GemCandleTooltipRow,
+    pub value: GemFormattedNumber,
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemCandleTooltip {
-    pub open: GemFormattedNumber,
-    pub high: GemFormattedNumber,
-    pub low: GemFormattedNumber,
-    pub close: GemFormattedNumber,
-    pub change: GemFormattedNumber,
-    pub volume: GemFormattedNumber,
+    pub prices: Vec<GemCandleTooltipCell>,
+    pub summary: Vec<GemCandleTooltipCell>,
 }
 
 #[uniffi::export]
@@ -186,6 +198,40 @@ impl StepFailure for GemPerpetualRefreshFailure {
     fn new(step: GemPerpetualRefreshStep, message: String) -> Self {
         Self { step, message }
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualSection {
+    Position,
+    Info,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualPositionDetailRow {
+    Pnl,
+    Autoclose,
+    Size,
+    EntryPrice,
+    LiquidationPrice,
+    Margin,
+    FundingPayments,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualInfoRow {
+    DailyVolume,
+    OpenInterest,
+    FundingRate,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualButton {
+    Long,
+    Short,
+    Modify,
+    Close,
+    Increase,
+    Reduce,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, uniffi::Enum)]
@@ -247,6 +293,22 @@ pub struct GemPerpetualMarketSections {
     pub shows_empty: bool,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemPerpetualMarketSection {
+    Positions,
+    Recents,
+    Pinned,
+    Markets,
+    Empty,
+}
+
+#[uniffi::export]
+impl GemPerpetualMarketSections {
+    pub fn list(&self) -> Vec<GemPerpetualMarketSection> {
+        super::rules::market_section_list(self)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
 pub struct GemPerpetualMarketCounts {
     pub positions: u32,
@@ -268,16 +330,7 @@ mod tests {
 
     #[test]
     fn test_position_action_recipient_names_the_provider_without_an_address() {
-        let data = GemPerpetualTransferData {
-            provider: PerpetualProvider::Hypercore,
-            direction: PerpetualDirection::Long,
-            asset: Asset::mock(),
-            base_asset: Asset::mock(),
-            asset_index: 0,
-            price: 100.0,
-            leverage: 3,
-            margin_type: PerpetualMarginType::Cross,
-        };
+        let data = GemPerpetualTransferData::mock();
         let action = GemPerpetualPositionAction::Open { data };
 
         let recipient = action.recipient();
@@ -288,16 +341,7 @@ mod tests {
 
     #[test]
     fn test_only_opening_a_position_shows_autoclose() {
-        let data = GemPerpetualTransferData {
-            provider: PerpetualProvider::Hypercore,
-            direction: PerpetualDirection::Long,
-            asset: Asset::mock(),
-            base_asset: Asset::mock(),
-            asset_index: 0,
-            price: 100.0,
-            leverage: 3,
-            margin_type: PerpetualMarginType::Cross,
-        };
+        let data = GemPerpetualTransferData::mock();
 
         assert!(GemPerpetualPositionAction::Open { data: data.clone() }.shows_autoclose());
         assert!(!GemPerpetualPositionAction::Increase { data }.shows_autoclose());

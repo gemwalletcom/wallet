@@ -103,81 +103,133 @@ impl GemConfirmScreen {
 
 #[cfg(test)]
 mod tests {
-    use primitives::{Account, Asset, Chain, SimulationResult, SimulationWarning, TransactionInputType, TransferAmount};
+    use primitives::{Asset, Chain, SimulationResult, SimulationWarning, TransactionInputType, TransferAmount};
 
-    use super::super::model::{GemConfirmMetadata, GemConfirmPreload, GemConfirmSimulationState};
-    use super::super::testkit::confirm_data;
+    use super::super::model::{GemConfirmData, GemConfirmPreload};
     use super::*;
-    use crate::services::balance::GemAssetBalance;
 
     #[test]
     fn test_confirm_button_follows_the_phase_and_the_ready_checks() {
-        let screen = |phase, failed: bool, has_critical_warning| GemConfirmScreen {
-            phase,
-            has_critical_warning,
-            failure: failed.then(|| GemConfirmFailure {
-                stage: GemConfirmStage::Load,
-                error: GemConfirmError::Load { msg: "down".to_string() },
-            }),
+        let ready = GemConfirmScreen {
+            phase: GemConfirmPhase::Ready,
+            ..GemConfirmScreen::initial(None)
         };
-        let button = |kind, state| GemConfirmButton { kind, state };
 
         assert_eq!(
-            screen(GemConfirmPhase::Loading, false, false).button(),
-            button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Loading)
+            GemConfirmScreen::initial(None).button(),
+            GemConfirmButton {
+                kind: GemConfirmButtonKind::Confirm,
+                state: GemConfirmButtonState::Loading
+            }
         );
         assert_eq!(
-            screen(GemConfirmPhase::Confirming, false, false).button(),
-            button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Loading)
+            GemConfirmScreen {
+                phase: GemConfirmPhase::Confirming,
+                ..ready.clone()
+            }
+            .button(),
+            GemConfirmButton {
+                kind: GemConfirmButtonKind::Confirm,
+                state: GemConfirmButtonState::Loading
+            }
         );
         assert_eq!(
-            screen(GemConfirmPhase::Failed, false, true).button(),
-            button(GemConfirmButtonKind::Retry, GemConfirmButtonState::Enabled)
+            GemConfirmScreen {
+                phase: GemConfirmPhase::Failed,
+                has_critical_warning: true,
+                ..ready.clone()
+            }
+            .button(),
+            GemConfirmButton {
+                kind: GemConfirmButtonKind::Retry,
+                state: GemConfirmButtonState::Enabled
+            }
         );
         assert_eq!(
-            screen(GemConfirmPhase::Ready, true, false).button(),
-            button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Disabled)
+            GemConfirmScreen {
+                failure: Some(GemConfirmFailure {
+                    stage: GemConfirmStage::Load,
+                    error: GemConfirmError::Load { msg: "down".to_string() },
+                }),
+                ..ready.clone()
+            }
+            .button(),
+            GemConfirmButton {
+                kind: GemConfirmButtonKind::Confirm,
+                state: GemConfirmButtonState::Disabled
+            }
         );
         assert_eq!(
-            screen(GemConfirmPhase::Ready, false, true).button(),
-            button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Disabled)
+            GemConfirmScreen {
+                has_critical_warning: true,
+                ..ready.clone()
+            }
+            .button(),
+            GemConfirmButton {
+                kind: GemConfirmButtonKind::Confirm,
+                state: GemConfirmButtonState::Disabled
+            }
         );
         assert_eq!(
-            screen(GemConfirmPhase::Ready, false, false).button(),
-            button(GemConfirmButtonKind::Confirm, GemConfirmButtonState::Enabled)
+            ready.button(),
+            GemConfirmButton {
+                kind: GemConfirmButtonKind::Confirm,
+                state: GemConfirmButtonState::Enabled
+            }
         );
     }
 
     #[test]
     fn test_confirm_fee_row_waits_for_the_preload_and_gives_up_on_failure() {
-        let screen = |phase| GemConfirmScreen {
-            phase,
+        let loading = GemConfirmScreen {
             has_critical_warning: true,
-            failure: None,
+            ..GemConfirmScreen::initial(None)
         };
 
-        assert_eq!(screen(GemConfirmPhase::Loading).fee_row(), GemConfirmFeeRow::Loading);
-        assert_eq!(screen(GemConfirmPhase::Ready).fee_row(), GemConfirmFeeRow::Ready);
-        assert_eq!(screen(GemConfirmPhase::Confirming).fee_row(), GemConfirmFeeRow::Ready);
-        assert_eq!(screen(GemConfirmPhase::Failed).fee_row(), GemConfirmFeeRow::Unavailable);
+        assert_eq!(loading.fee_row(), GemConfirmFeeRow::Loading);
+        assert_eq!(
+            GemConfirmScreen {
+                phase: GemConfirmPhase::Ready,
+                ..loading.clone()
+            }
+            .fee_row(),
+            GemConfirmFeeRow::Ready
+        );
+        assert_eq!(
+            GemConfirmScreen {
+                phase: GemConfirmPhase::Confirming,
+                ..loading.clone()
+            }
+            .fee_row(),
+            GemConfirmFeeRow::Ready
+        );
+        assert_eq!(
+            GemConfirmScreen {
+                phase: GemConfirmPhase::Failed,
+                ..loading
+            }
+            .fee_row(),
+            GemConfirmFeeRow::Unavailable
+        );
     }
 
     #[test]
     fn test_confirm_screen_transitions_follow_the_load_and_execute_outcomes() {
-        let failed_load = || GemConfirmError::Load { msg: "down".to_string() };
         let started = GemConfirmScreen::initial(None).on_load_started();
         assert_eq!(started.phase, GemConfirmPhase::Loading);
         assert_eq!(started.action(), None);
 
-        let mut load = load_without_preload();
+        let mut load = GemConfirmLoad::mock();
         let ready = started.on_loaded(load.clone());
         assert_eq!(ready.phase, GemConfirmPhase::Ready);
         assert!(ready.failure.is_none());
         assert_eq!(ready.action(), Some(GemConfirmAction::Execute));
 
         load.preload = Some(GemConfirmPreload {
-            confirm_data: confirm_data(Chain::Ethereum, TransactionInputType::Transfer { asset: Asset::mock_eth() }, "sender"),
-            amount: GemTransferAmountResult::Error { error: failed_load() },
+            confirm_data: GemConfirmData::mock(Chain::Ethereum, TransactionInputType::Transfer { asset: Asset::mock_eth() }),
+            amount: GemTransferAmountResult::Error {
+                error: GemConfirmError::Load { msg: "down".to_string() },
+            },
         });
         let amount_failed = started.on_loaded(load);
         assert_eq!(amount_failed.phase, GemConfirmPhase::Ready);
@@ -191,7 +243,7 @@ mod tests {
         );
         assert_eq!(amount_failed.action(), None, "an amount the wallet cannot cover is not retried by pressing the button");
 
-        let load_failed = started.on_load_failed(failed_load());
+        let load_failed = started.on_load_failed(GemConfirmError::Load { msg: "down".to_string() });
         assert_eq!(load_failed.phase, GemConfirmPhase::Failed);
         assert_eq!(load_failed.failure.as_ref().map(|failure| failure.stage), Some(GemConfirmStage::Load));
         assert_eq!(load_failed.action(), Some(GemConfirmAction::Load));
@@ -216,9 +268,7 @@ mod tests {
     fn test_initial_screen_reads_the_critical_warning_off_the_request_simulation() {
         let critical = SimulationResult {
             warnings: vec![SimulationWarning::validation_error("bad")],
-            balance_changes: vec![],
-            payload: vec![],
-            header: None,
+            ..SimulationResult::default()
         };
         assert_eq!(GemConfirmScreen::initial(Some(&critical)).has_critical_warning, critical.has_critical_warning());
         assert!(!GemConfirmScreen::initial(None).has_critical_warning);
@@ -228,10 +278,10 @@ mod tests {
     #[test]
     fn test_retry_reloads_max_transfer_before_confirming() {
         let max_transfer = |fee: u64, value: u64| {
-            let mut load = load_without_preload();
+            let mut load = GemConfirmLoad::mock();
             load.metadata.asset_balance.available = 1_000_000u64.into();
             load.metadata.fee_asset_balance.available = 1_000_000u64.into();
-            let mut data = confirm_data(Chain::Ethereum, TransactionInputType::Transfer { asset: Asset::mock_eth() }, "sender");
+            let mut data = GemConfirmData::mock(Chain::Ethereum, TransactionInputType::Transfer { asset: Asset::mock_eth() });
             data.input.transfer.value = 1_000_000u64.into();
             data.fee.fee = fee.into();
             data.fee.fee_asset = load.fee_asset.id.clone();
@@ -287,29 +337,6 @@ mod tests {
         ];
         for error in errors {
             assert_eq!(GemConfirmScreen::initial(None).on_execute_failed(error).action(), Some(GemConfirmAction::Load));
-        }
-    }
-
-    fn load_without_preload() -> GemConfirmLoad {
-        let eth = Asset::mock_eth();
-        GemConfirmLoad {
-            sender: Account::mock(Chain::Ethereum, "sender"),
-            fee_asset: eth.clone(),
-            metadata: GemConfirmMetadata {
-                asset_balance: GemAssetBalance::mock(),
-                fee_asset_balance: GemAssetBalance::mock(),
-                prices: vec![],
-            },
-            fee_assets: vec![],
-            simulation: GemConfirmSimulationState {
-                chain: Chain::Ethereum,
-                result: None,
-                warnings: vec![],
-                simulation: None,
-                address_names: vec![],
-            },
-            address_name: None,
-            preload: None,
         }
     }
 }

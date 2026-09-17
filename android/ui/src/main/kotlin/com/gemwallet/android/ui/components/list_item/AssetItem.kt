@@ -20,18 +20,21 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.price.values.PriceValue
-import com.gemwallet.android.domains.price.ValueDirection
 import com.gemwallet.android.ui.components.image.AssetIcon
+import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
+import com.gemwallet.android.ui.components.list_item.color
 import com.gemwallet.android.ui.models.CryptoFormattedUIModel
 import com.gemwallet.android.ui.models.FiatFormattedUIModel
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.style.color
+import com.gemwallet.android.ui.style.textStyle
 import com.gemwallet.android.ui.theme.adaptivePadding
 import com.gemwallet.android.ui.theme.alpha10
-import com.gemwallet.android.ui.theme.paddingMiddle
+import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
+import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space6
-import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.Asset
 
 @Composable
@@ -110,7 +113,7 @@ fun assetPriceSupport(price: PriceValue?): (@Composable () -> Unit)? {
         PriceInfo(
             price.valueFormatted,
             price.changePercentageFormatted,
-            price.state,
+            price.state.textStyle(),
             style = MaterialTheme.typography.bodyMedium,
             internalPadding = paddingHalfSmall,
         )
@@ -121,13 +124,13 @@ fun assetPriceSupport(price: PriceValue?): (@Composable () -> Unit)? {
 fun PriceInfo(
     price: String,
     changes: String,
-    state: ValueDirection,
+    changeStyle: ListItemTextStyle,
     modifier: Modifier = Modifier,
     style: TextStyle = MaterialTheme.typography.bodyLarge,
     isHighlightPercentage: Boolean = false,
     internalPadding: Dp = paddingHalfSmall,
 ) {
-    val color = state.color()
+    val color = changeStyle.color()
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
@@ -219,14 +222,14 @@ private fun BalanceInfo(
 fun PriceInfo(
     priceValue: String,
     changedPercentages: String,
-    state: ValueDirection,
+    changeStyle: ListItemTextStyle,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.secondary,
     style: TextStyle = MaterialTheme.typography.bodyLarge,
     isHighlightPercentage: Boolean = false,
     internalPadding: Dp = paddingDefault,
 ) {
-    val highlightColor = state.color()
+    val highlightColor = changeStyle.color()
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,

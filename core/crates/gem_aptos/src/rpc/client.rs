@@ -138,7 +138,7 @@ impl<C: Client> AptosClient<C> {
     }
 
     pub async fn simulate_transaction(&self, sender: &str, sequence: u64, payload: TransactionPayload, gas_price: &str) -> Result<u64, Box<dyn Error + Send + Sync>> {
-        let expiration = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() + 1_000_000;
+        let expiration = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs() + 1_000_000;
         let query = SimulateTransactionQuery {
             estimate_max_gas_amount: true,
             estimate_gas_unit_price: false,
@@ -260,13 +260,6 @@ mod tests {
             Ok(br#"["1000","200","30"]"#.to_vec())
         }));
         let stake = client.get_delegation_pool_stake("0xpool", "0xdelegator").await.unwrap();
-        assert_eq!(
-            stake,
-            DelegationPoolStake {
-                active: BigUint::from(1000u32),
-                inactive: BigUint::from(200u32),
-                pending_inactive: BigUint::from(30u32),
-            }
-        );
+        assert_eq!(stake, DelegationPoolStake::mock(1000, 200, 30));
     }
 }

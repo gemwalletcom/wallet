@@ -11,7 +11,9 @@ import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemExplorerServiceInterface
 import uniffi.gemstone.GemTransactionDetailsService
+import uniffi.gemstone.GemTransactionDetailsServiceInterface
 import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemPreferencesServiceInterface
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -45,4 +47,12 @@ object PreferencesModule {
 
     @Provides
     fun provideGemExplorerServiceInterface(service: GemExplorerService): GemExplorerServiceInterface = service
+
+    @Provides
+    @Singleton
+    fun provideTransactionDetailsServiceInterface(service: GemTransactionDetailsService): GemTransactionDetailsServiceInterface = service
+
+    @Provides
+    @Singleton
+    fun providePreferencesServiceInterface(service: GemPreferencesService): GemPreferencesServiceInterface = service
 }

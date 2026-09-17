@@ -1,22 +1,26 @@
 package com.gemwallet.android.features.buy.views
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyListScope
-import com.gemwallet.android.ui.components.list_item.dateGroupedList
+import androidx.compose.ui.Modifier
+import com.gemwallet.android.features.buy.viewmodels.models.FiatTransactionRowUIModel
+import com.gemwallet.android.ui.components.list_item.DateSection
+import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.dateSectionedList
 import com.wallet.core.primitives.FiatTransactionAssetData
 
 fun LazyListScope.fiatTransactionsList(
-    items: List<FiatTransactionAssetData>,
+    sections: List<DateSection<FiatTransactionRowUIModel>>,
     onTransactionClick: (FiatTransactionAssetData) -> Unit,
 ) {
-    dateGroupedList(
-        items = items,
-        createdAt = { it.createdAt },
-        key = { _, item -> item.id },
+    dateSectionedList(
+        sections = sections,
+        key = { _, item -> item.data.id },
     ) { position, item ->
-        FiatTransactionItem(
-            info = item,
+        ListItem(
+            model = item.model,
             listPosition = position,
-            onClick = { onTransactionClick(item) }
+            modifier = Modifier.clickable { onTransactionClick(item.data) },
         )
     }
 }

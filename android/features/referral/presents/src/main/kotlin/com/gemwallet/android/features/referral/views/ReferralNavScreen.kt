@@ -18,18 +18,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.referral.values.ReferralError
+import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.features.referral.viewmodels.ReferralViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.WalletItem
+import com.gemwallet.android.ui.components.list_item.uiModel
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.showSnackbar
-import kotlinx.coroutines.launch
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ext.serviceMessage
+import kotlinx.coroutines.launch
 
 @Composable
 fun ReferralNavScreen(
@@ -50,7 +53,9 @@ fun ReferralNavScreen(
     val referralLink by viewModel.referralLink.collectAsStateWithLifecycle()
     val inSync by viewModel.inSync.collectAsStateWithLifecycle()
     val referralCode by viewModel.referralCode.collectAsStateWithLifecycle()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.referralState.collectAsStateWithLifecycle()
+    val infoRows by viewModel.infoRows.collectAsStateWithLifecycle()
+    val redemptions by viewModel.redemptions.collectAsStateWithLifecycle()
 
     ReferralScene(
         inSync = inSync,
@@ -58,6 +63,8 @@ fun ReferralNavScreen(
         referralCode = referralCode,
         referralLink = referralLink,
         uiState = uiState,
+        infoRows = infoRows,
+        redemptions = redemptions,
         currentWallet = currentWallet,
         onUsername = viewModel::createReferral,
         onCode = viewModel::useCode,
@@ -66,7 +73,7 @@ fun ReferralNavScreen(
         onWallet = { isShowSelectWallets = true },
         onRedeem = {
             scope.launch { snackbar.showSnackbar(loadingMessage, R.drawable.ic_refresh) }
-            viewModel.redeem(it) { err ->
+            viewModel.redeem(it.redemption) { err ->
                 if (err == null) {
                     scope.launch { snackbar.showSnackbar(doneMessage, R.drawable.ic_check_circle) }
                 } else {
@@ -86,7 +93,7 @@ fun ReferralNavScreen(
         LazyColumn {
             itemsIndexed(availableWalletRows) { index, item ->
                 WalletItem(
-                    row = item,
+                    model = item.uiModel(LocalContext.current),
                     isCurrent = item.id == currentWallet?.id?.id,
                     listPosition = ListPosition.getPosition(index, availableWalletRows.size),
                     modifier = Modifier.clickable {
@@ -101,7 +108,7 @@ fun ReferralNavScreen(
     if (showErrorDialog != null) {
         val message = when (showErrorDialog) {
             is ReferralError.InsufficientPoints -> stringResource(R.string.rewards_insufficient_points)
-            else -> showErrorDialog?.serviceMessage() ?: stringResource(R.string.transaction_status_failed)
+            else -> showErrorDialog?.errorText()?.text() ?: stringResource(R.string.transaction_status_failed)
         }
         AlertDialog(
             containerColor = MaterialTheme.colorScheme.background,

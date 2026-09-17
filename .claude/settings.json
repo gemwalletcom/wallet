@@ -1,0 +1,11 @@
+{
+  "env": {
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "false"
+  },
+  "includeCoAuthoredBy": false,
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
+  }
+}

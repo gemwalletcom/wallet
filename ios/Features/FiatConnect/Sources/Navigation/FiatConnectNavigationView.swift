@@ -20,18 +20,11 @@ public struct FiatConnectNavigationView: View {
         )
         .onChangeBindQuery(model.assetQuery, action: model.onAssetDataChange)
         .bindQuery(model.priceUsdQuery)
-        .ifElse(
-            model.showFiatTypePicker,
-            ifContent: {
-                $0.toolbar {
-                    FiatTypeToolbar(selectedType: $model.type)
-                }
-            },
-            elseContent: {
-                $0.navigationTitle(model.title)
-            },
-        )
+        .navigationTitle(model.title)
         .toolbar {
+            if model.showFiatTypePicker {
+                FiatTypeToolbar(selectedType: $model.type)
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 NavigationLink(value: Scenes.FiatTransactions()) {
                     Images.Tabs.activity

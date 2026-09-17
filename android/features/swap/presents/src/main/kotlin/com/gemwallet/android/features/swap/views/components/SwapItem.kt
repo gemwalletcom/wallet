@@ -223,7 +223,7 @@ private fun SwapItemInput(
             BasicTextField(
                 modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
                 state = state,
-                inputTransformation = AmountInputTransformation,
+                inputTransformation = AmountInputTransformation(),
                 textStyle = inputTextStyle,
                 lineLimits = TextFieldLineLimits.SingleLine,
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),

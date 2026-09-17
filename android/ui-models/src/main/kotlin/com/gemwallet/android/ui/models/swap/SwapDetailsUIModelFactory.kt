@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.models.swap
 
+import uniffi.gemstone.GemSwapDetailRow
 import uniffi.gemstone.GemPercentageStyle
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.swap.AssetRateFormatter
@@ -7,7 +8,7 @@ import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.model.ValueFormatter
 import uniffi.gemstone.SwapPriceImpact
 import java.math.BigInteger
-import uniffi.gemstone.GemSwapRate
+import uniffi.gemstone.GemSwapQuoteSummary
 import uniffi.gemstone.SwapProvider
 import uniffi.gemstone.SwapperProviderType
 import uniffi.gemstone.GemValueStyle
@@ -48,24 +49,22 @@ object SwapProviderUIModelFactory {
 data class SwapDetailsUIModelInput(
     val payAsset: AssetPriceValue,
     val receiveAsset: AssetPriceValue,
-    val rate: GemSwapRate?,
+    val summary: GemSwapQuoteSummary,
     val provider: SwapProviderUIModel,
     val providers: List<SwapProviderUIModel> = emptyList(),
     val slippageBps: UInt,
     val selectedSlippage: UInt?,
-    val etaInSeconds: UInt?,
     val isProviderSelectable: Boolean,
     val priceImpact: SwapPriceImpact? = null,
-    val minReceiveValue: BigInteger = BigInteger.ZERO,
 )
 
 object SwapDetailsUIModelFactory {
     private val rateFormatter = AssetRateFormatter()
 
     fun create(input: SwapDetailsUIModelInput): SwapDetailsUIModel? {
-        val rate = input.rate?.let(rateFormatter::format) ?: return null
+        val rate = input.summary.rate?.let(rateFormatter::format) ?: return null
 
-        val slippagePercent = input.slippageBps.toDouble() / 100.0
+        val slippagePercent = input.summary.slippagePercent()
         val priceImpact = input.priceImpact?.let {
             SwapPriceImpactUIModel(
                 type = it.impactType,
@@ -76,19 +75,31 @@ object SwapDetailsUIModelFactory {
             )
         }
 
-        val minReceiveAtomic = input.minReceiveValue
+        val minReceiveAtomic = input.summary.minReceiveValue
+        val minimumReceive = ValueFormatter(style = GemValueStyle.AUTO).string(minReceiveAtomic, input.receiveAsset.asset)
+        val slippageText = slippagePercent.formatAsPercentage(style = GemPercentageStyle.UNSIGNED)
+        val rows = input.summary.rows(priceImpact != null).mapNotNull { row ->
+            when (row) {
+                GemSwapDetailRow.PROVIDER -> null
+                GemSwapDetailRow.RATE -> SwapDetailRowUIModel.Rate(rate)
+                GemSwapDetailRow.ESTIMATED_TIME -> input.summary.quote.etaInSeconds?.let(SwapDetailRowUIModel::EstimatedTime)
+                GemSwapDetailRow.PRICE_IMPACT -> priceImpact?.let(SwapDetailRowUIModel::PriceImpact)
+                GemSwapDetailRow.MINIMUM_RECEIVE -> SwapDetailRowUIModel.MinimumReceive(minimumReceive)
+                GemSwapDetailRow.SLIPPAGE -> SwapDetailRowUIModel.Slippage(input.selectedSlippage?.let { slippageText })
+            }
+        }
 
         return SwapDetailsUIModel(
+            rows = rows,
             provider = input.provider,
             providers = input.providers,
             rate = rate,
             priceImpact = priceImpact,
-            minimumReceive = ValueFormatter(style = GemValueStyle.AUTO)
-                .string(minReceiveAtomic, input.receiveAsset.asset),
-            slippageText = slippagePercent.formatAsPercentage(style = GemPercentageStyle.UNSIGNED),
+            minimumReceive = minimumReceive,
+            slippageText = slippageText,
             slippageBps = input.slippageBps,
             selectedSlippage = input.selectedSlippage,
-            etaInSeconds = input.etaInSeconds,
+            etaInSeconds = input.summary.quote.etaInSeconds,
             isProviderSelectable = input.isProviderSelectable,
         )
     }

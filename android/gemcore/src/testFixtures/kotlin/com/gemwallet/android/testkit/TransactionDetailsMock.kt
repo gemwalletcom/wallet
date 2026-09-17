@@ -1,9 +1,11 @@
 package com.gemwallet.android.testkit
 
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toIdentifier
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetPrice
 import com.wallet.core.primitives.Currency
+import com.wallet.core.primitives.TransactionExtended
 import uniffi.gemstone.BlockExplorerLink
 import uniffi.gemstone.GemAmountSign
 import uniffi.gemstone.GemSwapAgain
@@ -36,8 +38,7 @@ fun mockGemTransactionAmount(
 )
 
 fun mockGemTransactionDetailRows(
-    status: GemTransactionStatus = mockGemTransactionStatus(),
-    title: GemTransactionTitle = GemTransactionTitle.Sent,
+    transaction: TransactionExtended = mockTransactionExtended(),
     header: GemTransactionHeader = GemTransactionHeader.Amount(mockGemTransactionAmount(), showsFiat = true),
     headerAction: GemTransactionHeaderAction? = null,
     swapProgress: GemSwapProgress? = null,
@@ -50,11 +51,16 @@ fun mockGemTransactionDetailRows(
     rate: GemSwapRate? = null,
     pnl: Double? = null,
     price: Double? = null,
-    currency: Currency = Currency.USD,
     fee: GemTransactionAmount = mockGemTransactionAmount(),
     explorer: BlockExplorerLink = BlockExplorerLink("Explorer", "https://example.com"),
 ) = GemTransactionDetailRows(
-    title = title,
+    id = transaction.transaction.id.toIdentifier(),
+    asset = transaction.asset.toGem(),
+    transactionType = transaction.transaction.type.toGem(),
+    direction = transaction.transaction.direction.toGem(),
+    state = transaction.transaction.state.toGem(),
+    createdAt = transaction.transaction.createdAt,
+    title = GemTransactionTitle.Sent,
     header = header,
     headerAction = headerAction,
     swapProgress = swapProgress,
@@ -65,19 +71,13 @@ fun mockGemTransactionDetailRows(
     memo = memo,
     resource = resource,
     rate = rate,
-    pnl = pnl?.let { formattedCurrency(it, currency.string, GemCurrencyStyle.CURRENCY).copy(notation = GemNumberNotation.SIGNED) },
-    price = price?.let { formattedCurrency(it, currency.string, GemCurrencyStyle.CURRENCY) },
+    pnl = pnl?.let { formattedCurrency(it, Currency.USD.string, GemCurrencyStyle.CURRENCY).copy(notation = GemNumberNotation.SIGNED) },
+    price = price?.let { formattedCurrency(it, Currency.USD.string, GemCurrencyStyle.CURRENCY) },
     fee = fee,
     explorer = explorer,
-    status = status,
-)
-
-fun mockGemTransactionStatus(
-    tone: GemTransactionStateTone = GemTransactionStateTone.SUCCESS,
-    showsBadge: Boolean = false,
-    showsProgress: Boolean = false,
-) = GemTransactionStatus(
-    tone = tone,
-    showsBadge = showsBadge,
-    showsProgress = showsProgress,
+    status = GemTransactionStatus(
+        tone = GemTransactionStateTone.SUCCESS,
+        showsBadge = false,
+        showsProgress = false,
+    ),
 )

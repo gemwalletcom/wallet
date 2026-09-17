@@ -8,11 +8,8 @@ import protocol Gemstone.GemAssetDetailsServiceProtocol
 import struct Gemstone.GemAssetDetails
 import struct Gemstone.GemAssetDetailsInput
 import enum Gemstone.GemBalanceRow
-import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerContext
 import typealias Gemstone.GemBigUint
-import struct Gemstone.GemRecipient
-import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -85,12 +82,31 @@ public final class AssetSceneViewModel: Sendable {
         input.wallet
     }
 
-    public var title: String {
-        details.title
+    var pinListItem: ListItemModel {
+        ListItemModel(title: pinText, imageStyle: .list(assetImage: AssetImage(placeholder: pinImage)))
     }
 
-    var priceAlertsTitle: String {
-        Localized.Settings.PriceAlerts.title
+    var enableListItem: ListItemModel {
+        ListItemModel(title: enableText, imageStyle: .list(assetImage: AssetImage(placeholder: enableImage)))
+    }
+
+    func priceAlertsListItem(_ details: GemAssetDetails) -> ListItemModel {
+        ListItemModel(title: Localized.Settings.PriceAlerts.title, subtitle: String(details.state.priceAlertsCount))
+    }
+
+    func balanceListItem(for row: GemBalanceRow) -> ListItemModel {
+        switch row {
+        case let .available(value): ListItemModel(title: row.title(stakeProvider: .stake), subtitle: balanceText(value))
+        case let .staked(value): ListItemModel(title: row.title(stakeProvider: .stake), subtitle: stakeBalanceText(value))
+        case let .earn(value): ListItemModel(title: row.title(stakeProvider: .earn), subtitle: balanceText(value))
+        case let .pendingUnconfirmed(value): ListItemModel(title: row.title(stakeProvider: .stake), subtitle: balanceText(value), infoAction: onSelectPendingUnconfirmedInfo)
+        case let .reserved(value, _): ListItemModel(title: row.title(stakeProvider: .stake), subtitle: balanceText(value))
+        }
+    }
+
+    var earnListItem: ListItemModel {
+        let apr = aprModel(for: .earn)
+        return ListItemModel(title: StakeProviderType.earn.title, subtitle: apr.text, subtitleStyle: apr.subtitle.style)
     }
 
     var balancesTitle: String {
@@ -117,7 +133,7 @@ public final class AssetSceneViewModel: Sendable {
         stakeBalance.detailRows(chain: asset.chain.rawValue, isStakeEnabled: assetData.metadata.isStakeEnabled)
     }
 
-    var details: GemAssetDetails {
+    public var details: GemAssetDetails {
         service.details(
             input: GemAssetDetailsInput(
                 walletType: wallet.type.toGem(),
@@ -160,10 +176,6 @@ public final class AssetSceneViewModel: Sendable {
         assetData.metadata.isBalanceEnabled ? SystemImage.minusCircle : SystemImage.plusCircle
     }
 
-    var showEarnButton: Bool {
-        details.state.showsEarn
-    }
-
     var priceItemViewModel: PriceListItemViewModel {
         PriceListItemViewModel(
             title: Localized.Asset.price,
@@ -175,7 +187,7 @@ public final class AssetSceneViewModel: Sendable {
         AssetIdViewModel(assetId: assetModel.asset.chain.assetId).networkAssetImage
     }
 
-    var emptyContentModel: EmptyContentTypeViewModel {
+    func emptyContentModel(_ details: GemAssetDetails) -> EmptyContentTypeViewModel {
         let state = details.state
         let buy: (() -> Void)? = state.emptyTransactionsAction == .buy ? { self.onSelectBuy() } : nil
         let swap: (() -> Void)? = state.emptyTransactionsAction == .swap ? { self.onSelectSwap() } : nil
@@ -196,8 +208,8 @@ public final class AssetSceneViewModel: Sendable {
         bannerContext.visibleBanners(stored: banners.map { $0.toGem() }).map { $0.toPrimitives() }
     }
 
-    func bannerContent(for banner: Banner) -> GemBannerContent {
-        service.bannerContent(event: banner.event.toGem(), asset: banner.asset?.toGem())
+    func bannerModel(for banner: Banner) -> BannerViewModel {
+        BannerViewModel(banner: banner, content: service.bannerContent(event: banner.event.toGem(), asset: banner.asset?.toGem()))
     }
 
     private var bannerContext: GemBannerContext {
@@ -213,11 +225,11 @@ public final class AssetSceneViewModel: Sendable {
         )
     }
 
-    var assetHeaderModel: AssetHeaderViewModel {
+    func assetHeaderModel(_ details: GemAssetDetails) -> AssetHeaderViewModel {
         AssetHeaderViewModel(assetDataModel: assetDataModel, state: details.state)
     }
 
-    public var shareAssetUrl: URL {
+    public func shareAssetUrl(_ details: GemAssetDetails) -> URL {
         details.shareUrl.asURL!
     }
 
@@ -229,15 +241,11 @@ public final class AssetSceneViewModel: Sendable {
         Images.System.ellipsis
     }
 
-    public var priceAlertsSystemImage: String {
-        details.state.priceAlertEnabled ? SystemImage.bellFill : SystemImage.bell
+    public func priceAlertsImage(_ details: GemAssetDetails) -> Image {
+        details.state.priceAlert.image
     }
 
-    public var priceAlertsImage: Image {
-        Image(systemName: priceAlertsSystemImage)
-    }
-
-    public var menuItems: [ActionMenuItemType] {
+    public func menuItems(_ details: GemAssetDetails) -> [ActionMenuItemType] {
         let links = details
         return [links.addressLink.map { link in
             .button(title: Localized.Asset.viewAddressOn(link.name), systemImage: SystemImage.globe, action: { self.onSelect(url: link.link.asURL) })
@@ -248,7 +256,7 @@ public final class AssetSceneViewModel: Sendable {
         .button(title: Localized.Common.share, systemImage: SystemImage.share, action: onSelectShareAsset)].compactMap(\.self)
     }
 
-    var statusViewModel: VerificationStatusViewModel? {
+    func statusViewModel(_ details: GemAssetDetails) -> VerificationStatusViewModel? {
         details.verificationStatus.map { VerificationStatusViewModel(status: $0.toPrimitives()) }
     }
 
@@ -263,13 +271,6 @@ public final class AssetSceneViewModel: Sendable {
 
     func stakeBalanceText(_ value: GemBigUint) -> String {
         value == GemBigUint(BigInt.zero.description) ? aprModel(for: .stake).text : balanceText(value)
-    }
-
-    func balanceTitle(for type: StakeProviderType) -> String {
-        switch type {
-        case .stake: Localized.Wallet.stake
-        case .earn: Localized.Common.earn
-        }
     }
 
     func aprModel(for type: StakeProviderType) -> AprViewModel {
@@ -320,25 +321,17 @@ public extension AssetSceneViewModel {
 
     internal func onSelectBanner(_ action: BannerAction) {
         switch action.type {
-        case let .event(event):
-            switch event {
+        case let .destination(destination):
+            switch destination {
             case .stake:
                 onSelectStake()
-            case .activateAsset:
-                isPresentingAssetSheet = .transfer(
-                    GemTransferData(
-                        inputType: .account(assetData.asset, .activate),
-                        recipient: GemRecipient(address: ""),
-                        value: BigInt.zero,
-                    ),
-                )
-            case .accountActivation,
-                 .accountBlockedMultiSignature,
-                 .onboarding,
-                 .suspiciousAsset: break
-            case .tradePerpetuals:
+            case let .activateAsset(transfer):
+                isPresentingAssetSheet = .transfer(transfer)
+            case .perpetuals:
                 UIApplication.shared.open(service.deeplinkGemUrl(deeplink: .perpetuals).asURL!)
                 preferences.isPerpetualEnabled = true
+            case let .url(link):
+                onSelect(url: link.url)
             }
         case let .button(bannerButton):
             switch bannerButton {
@@ -347,10 +340,13 @@ public extension AssetSceneViewModel {
             }
         case .closeBanner:
             Task {
-                try await service.closeBanner(key: action.banner.gemKey)
+                do {
+                    try await service.closeBanner(key: action.banner.gemKey)
+                } catch {
+                    isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
+                }
             }
         }
-        onSelect(url: action.url)
     }
 
     internal func onSelectEarn() {
@@ -379,10 +375,10 @@ public extension AssetSceneViewModel {
 
     func onTogglePriceAlert() {
         Task {
-            let enabled = !details.state.priceAlertEnabled
+            let toggled = details.state.priceAlert.toggled()
             do {
-                try await setPriceAlert(enabled: enabled)
-                isPresentingToastMessage = .priceAlert(for: assetData.asset.name, enabled: enabled)
+                try await setPriceAlert(enabled: toggled == .enabled)
+                isPresentingToastMessage = .priceAlert(for: assetData.asset.name, enabled: toggled == .enabled)
             } catch {
                 isPresentingToastMessage = .error(error.localizedDescription)
             }
@@ -390,7 +386,7 @@ public extension AssetSceneViewModel {
     }
 
     func onSelectTokenStatus() {
-        guard let status = statusViewModel?.status else { return }
+        guard let status = statusViewModel(details)?.status else { return }
         isPresentingAssetSheet = .info(.assetStatus(status))
     }
 

@@ -23,6 +23,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.PriceInfo
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.style.textStyle
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.wallet.core.primitives.Asset
@@ -91,7 +92,7 @@ fun PerpetualItem(
                 PriceInfo(
                     price = item.price.valueFormatted,
                     changes = item.price.changePercentageFormatted,
-                    state = item.price.state,
+                    changeStyle = item.price.state.textStyle(),
                     style = MaterialTheme.typography.bodyMedium,
                     internalPadding = paddingHalfSmall
                 )

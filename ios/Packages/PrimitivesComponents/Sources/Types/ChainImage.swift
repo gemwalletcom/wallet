@@ -73,6 +73,7 @@ public struct ChainImage: Sendable {
         case .xLayer: Images.Chains.xlayer
         case .stable: Images.Chains.stable
         case .tempo: Images.Chains.tempo
+        case .arc: Images.Chains.arc
         }
     }
 }

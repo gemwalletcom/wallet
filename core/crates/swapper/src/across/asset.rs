@@ -4,13 +4,6 @@ use gem_evm::across::deployment::AcrossDeployment;
 use gem_tron::address::TronAddress;
 use primitives::{AssetId, Chain};
 
-pub(in crate::across) fn across_asset_id(asset: &AssetId) -> Option<AssetId> {
-    match asset.chain {
-        Chain::Tron => Some(asset.clone()),
-        _ => eth_address::convert_native_to_weth(asset),
-    }
-}
-
 pub(in crate::across) fn parse_address(chain: Chain, address: &str) -> Result<Address, SwapperError> {
     match chain {
         Chain::Tron => {
@@ -65,6 +58,7 @@ mod tests {
             Some(AssetId::from_chain(Chain::Robinhood))
         );
         assert_eq!(supported_asset_for_token(Chain::Robinhood, ROBINHOOD_USDG_TOKEN_ID), Some(ROBINHOOD_USDG_ASSET_ID.clone()));
+        assert_eq!(supported_asset_for_token(Chain::Arc, ARC_USDC_TOKEN_ID), Some(AssetId::from_chain(Chain::Arc)));
         assert_eq!(supported_asset_for_token(Chain::Bitcoin, "0x123"), None);
     }
 }

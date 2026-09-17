@@ -25,15 +25,9 @@ public struct ConnectionProposalScene: View {
 
             Section {
                 NavigationLink(value: Scenes.SelectWallet()) {
-                    ListItemView(
-                        title: model.walletTitle,
-                        subtitle: model.walletName,
-                    )
+                    ListItemView(model: model.walletListItem)
                 }
-                ListItemView(
-                    title: model.connectionTitle,
-                    subtitle: model.connectionText,
-                )
+                ListItemView(model: model.connectionListItem)
                 ListItemImageView(
                     title: Localized.Transaction.status,
                     subtitle: model.statusText,

@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import javax.inject.Inject
 import javax.inject.Singleton
+import uniffi.gemstone.GemWalletConnectRejection
 
 @Singleton
 class NoopWalletConnectClient @Inject constructor() : WalletConnectClient {
@@ -41,7 +42,12 @@ class NoopWalletConnectClient @Inject constructor() : WalletConnectClient {
         onError: (String) -> Unit,
     ) = onError(UNAVAILABLE)
 
-    override fun rejectSession(proposal: WalletConnectSessionProposal, onSuccess: () -> Unit, onError: (String) -> Unit) = onSuccess()
+    override fun rejectSession(
+        proposal: WalletConnectSessionProposal,
+        rejection: GemWalletConnectRejection,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit,
+    ) = onSuccess()
 
     override fun approveAuthentication(
         request: WalletConnectAuthenticationRequest,

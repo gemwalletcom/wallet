@@ -23,7 +23,6 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemAssetConfigService
 import uniffi.gemstone.GemTransactionsService
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -40,9 +39,11 @@ class TransactionsViewModelSyncTest {
         every { this@mockk() } returns session
     }
 
+    private val dispatcher = UnconfinedTestDispatcher()
+
     @Before
     fun setUp() {
-        Dispatchers.setMain(UnconfinedTestDispatcher())
+        Dispatchers.setMain(dispatcher)
         mockkStatic(Log::class)
         every { Log.e(any(), any(), any()) } returns 0
     }
@@ -91,6 +92,8 @@ class TransactionsViewModelSyncTest {
         getSession = getSession,
         getTransactions = getTransactions,
         service = service,
-        assetConfig = GemAssetConfigService(),
+        connectionStatusObserver = mockk(relaxed = true),
+        ioDispatcher = dispatcher,
+        context = mockk(relaxed = true),
     )
 }

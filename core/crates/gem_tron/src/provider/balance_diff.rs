@@ -71,10 +71,6 @@ pub(super) fn decode_token_transfer(log: &TronLog) -> Option<(Option<TronAddress
 mod tests {
     use super::*;
 
-    fn mock_owner() -> TronAddress {
-        TronAddress::from_hex_or_base58("TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM").unwrap()
-    }
-
     #[test]
     fn test_decode_transfer_delta_ignores_uninvolved_transfer() {
         let log = TronLog::mock_transfer(
@@ -84,7 +80,7 @@ mod tests {
             "00000000000000000000000000000000000000000000000000000000000f4240",
         );
 
-        assert!(decode_transfer_delta(&log, &mock_owner()).is_none());
+        assert!(decode_transfer_delta(&log, &TronAddress::mock()).is_none());
     }
 
     #[test]
@@ -95,14 +91,14 @@ mod tests {
             data: Some("00".to_string()),
         };
 
-        assert!(decode_transfer_delta(&log, &mock_owner()).is_none());
+        assert!(decode_transfer_delta(&log, &TronAddress::mock()).is_none());
     }
 
     #[test]
     fn test_internal_transaction_deltas_credits_native_trx_received_by_owner() {
         let internal = InternalTransaction::mock("DVz9MDHhhhUv2XskVieSNVc4U4fN1Rbss", "TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM", 1_000_000, None, false);
 
-        let deltas = internal_transaction_deltas(&[internal], &mock_owner());
+        let deltas = internal_transaction_deltas(&[internal], &TronAddress::mock());
 
         assert_eq!(deltas.get(&None), Some(&BigInt::from(1_000_000)));
     }
@@ -113,7 +109,7 @@ mod tests {
         let uninvolved = InternalTransaction::mock("DVz9MDHhhhUv2XskVieSNVc4U4fN1Rbss", "TH7CfjAfb2WxLSSGX4w5iziCj42qK8S36Y", 1_000_000, None, false);
         let self_transfer = InternalTransaction::mock("TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM", "TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM", 1_000_000, None, false);
 
-        let deltas = internal_transaction_deltas(&[rejected, uninvolved, self_transfer], &mock_owner());
+        let deltas = internal_transaction_deltas(&[rejected, uninvolved, self_transfer], &TronAddress::mock());
 
         assert!(deltas.is_empty());
     }

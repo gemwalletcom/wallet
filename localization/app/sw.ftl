@@ -58,7 +58,6 @@ common_token = Tokeni
 common_expiration = Muda wa kuisha
 common_suspicious_address = Anwani ya kutiliwa shaka
 common_refresh = Onyesha upya
-common_no_thanks = Hapana, asante
 common_grant_permission = Toa ruhusa
 common_required_field = %@ inahitajika
 
@@ -165,7 +164,6 @@ transfer_freeze_title = Kuganda
 transfer_unfreeze_title = Ondoa kuganda
 transfer_review_request = Ombi la Uhakiki
 transfer_amount = Kiasi
-transfer_amount_title = Kiasi
 
 # Settings
 
@@ -209,7 +207,6 @@ support_message_placeholder = Ujumbe
 
 # Errors
 
-errors_transfer = Hitilafu ya Kuhamisha: %@
 errors_validation = Hitilafu ya Uthibitishaji: %@
 errors_create_wallet = Hitilafu ya kuunda Wallet: %@
 errors_invalid_address_name = Anwani au jina si sahihi
@@ -228,7 +225,6 @@ errors_cancelled = Imeghairiwa
 errors_connections_user_cancelled = Mtumiaji ameghairi
 errors_not_supported = Haitumiki
 errors_permissions_not_granted = Ruhusa Hazijatolewa
-errors_decoding = Hitilafu ya Kusimbua
 errors_unknown = Haijulikani
 errors_not_supported_qr = Kifaa hiki hakitumii uchanganuzi wa msimbo wa QR. Unaweza tu kuchagua picha ya msimbo wa QR kutoka maktaba.
 errors_camera_permissions_not_granted = Ruhusa ya kamera haijatolewa. Tafadhali washa ufikiaji wa kamera katika mipangilio ili kuchanganua msimbo wa QR.
@@ -239,11 +235,8 @@ errors_invalid_asset_address = Anwani %@ si sahihi
 errors_dust_threshold = Muamala haukufaulu kwa sababu kiasi hicho ni kidogo sana kutosheleza mahitaji ya chini ya mtandao %@ (kiwango cha juu cha vumbi). Kikomo hiki kinahakikisha thamani ya muamala inashughulikia ada na gharama za usindikaji.
 errors_swap_no_quote_available = Hakuna nukuu inayopatikana.
 errors_swap_not_supported_asset = Kipengee hakitumiki.
-errors_connections_invalid_send_parameters = Vigezo batili vimetolewa kwa ajili ya kutuma muamala.
-errors_connections_invalid_sign_parameters = Vigezo batili vimetolewa kwa ajili ya kusaini.
 errors_connections_no_supported_wallets = Hakuna pochi zinazotumika zinazopatikana.
 errors_connections_unsupported_chain = Msururu uliotolewa hautumiki.
-errors_connections_unsupported_method = Mbinu iliyoombwa haitumiki.
 errors_swap_amount_too_small = Kiasi kidogo sana
 errors_required = %@ inahitajika
 errors_scan_transaction_malicious_description = Muamala huu hauwezi kukamilika - anwani ya pochi lengwa imeunganishwa na shughuli za kutiliwa shaka au hatari.
@@ -255,7 +248,6 @@ errors_dust_threshold_short = Mtandao unazingatia kiasi hiki cha vumbi - ada ni 
 errors_swap_minimum_amount = Kiwango cha chini cha biashara ni %@. Tafadhali weka kiasi cha juu zaidi.
 errors_perpetual_trigger_price_lower = Bei ya kichochezi inapaswa kuwa chini ya bei ya soko
 errors_perpetual_trigger_price_higher = Bei ya kichochezi inapaswa kuwa juu ya bei ya soko
-errors_token_unable_fetch_token_information = Imeshindwa kuleta maelezo ya tokeni: %@
 errors_unknown_try_again = Hitilafu isiyojulikana imetokea. Tafadhali jaribu tena.
 errors_network_error = Hitilafu ya mtandao: %@
 errors_network_offline = Muunganisho wa intaneti unaonekana kuwa nje ya mtandao.
@@ -279,7 +271,6 @@ update_app_action = Sasisha
 update_app_permission_title = Ruhusu usakinishaji
 update_app_permission_description = Nenda kwa mipangilio na uruhusu usakinishaji kutoka kwa vyanzo vya nje
 update_app_permission_open_settings = Nenda kwa mipangilio
-update_app_downloading = Inapakua...
 
 # Transaction
 
@@ -483,8 +474,6 @@ banner_account_activation_title = Ada ya Kuanzisha Akaunti
 banner_account_activation_description = Mtandao wa %@ unahitaji ada ya mara moja ya %@.
 banner_stake_title = Anza kugoma %@
 banner_stake_description = Pata zawadi %@ kwenye hisa yako unapolala.
-banner_enable_notifications_title = Washa Arifa
-banner_enable_notifications_description = Endelea kufuatilia shughuli zako za pochi.
 banner_activate_asset_description = Ili kutumia kipengee %@, lazima kwanza uiwashe kwenye mtandao wa %@ kwa kutimiza mahitaji mahususi ya mtandao.
 banner_asset_status_title = Mali Inayotiliwa Shaka
 banner_asset_status_description = Ishara inaweza kuwa si salama au inapotosha. Endelea tu ikiwa unaiamini kikamilifu.
@@ -690,8 +679,9 @@ perpetual_margin_isolated = Imetengwa
 # Perpetuals
 
 perpetuals_title = Perpetuals
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = Fanya biashara ya Perpetuals
 perpetuals_markets = Masoko
-perpetuals_empty_state_no_markets = Hakuna masoko
 perpetuals_empty_state_no_markets_found = Hakuna masoko yaliyopatikana
 
 # Rewards
@@ -763,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = Ruhusa ya kamera inahitajika ili kuchanganua Msimbo wa QR.\nTafadhali toa ruhusa.
 
 # Notifications Permission
 
-notifications_permission_request_notification = Ruhusa ya Arifa za Machapisho inahitajika ili kupata arifa kuhusu miamala mipya.\nTafadhali toa ruhusa.
 
 # Confirm
 
-confirm_fee_error = Hitilafu ya kuhesabu ada
 
 # Rootcheck
 

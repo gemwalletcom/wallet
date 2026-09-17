@@ -2,6 +2,7 @@
 
 import Foundation
 import enum Gemstone.GemWalletDeletion
+import enum Gemstone.GemWalletImportResult
 import enum Gemstone.GemWalletImportType
 import protocol Gemstone.GemWalletServiceProtocol
 import Primitives
@@ -20,11 +21,8 @@ public extension GemWalletServiceProtocol {
         sortedWallets(wallets: wallets.map { $0.toGem() }).map { $0.toPrimitives() }
     }
 
-    func importWallet(name: String, type: GemWalletImportType, source: Primitives.WalletSource) async throws -> WalletImportResult {
-        return switch try await importWallet(name: name, import: type, source: source.toGem()) {
-        case let .new(wallet): .new(wallet.toPrimitives())
-        case let .existing(wallet): .existing(wallet.toPrimitives())
-        }
+    func importWallet(name: String, type: GemWalletImportType, source: Primitives.WalletSource) async throws -> GemWalletImportResult {
+        try await importWallet(name: name, import: type, source: source.toGem())
     }
 
     func delete(_ wallet: Wallet) async throws -> GemWalletDeletion {

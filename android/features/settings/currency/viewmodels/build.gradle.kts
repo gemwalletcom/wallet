@@ -48,6 +48,8 @@ android {
 
 dependencies {
     implementation(project(":gemcore"))
+    implementation(project(":ui"))
+    implementation(project(":ui-models"))
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 

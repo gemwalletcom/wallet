@@ -20,6 +20,7 @@ import uniffi.gemstone.GemBalanceService
 import uniffi.gemstone.GemNftService
 import uniffi.gemstone.GemStakeService
 import uniffi.gemstone.GemTransactionStateService
+import uniffi.gemstone.GemTransactionStateServiceInterface
 import uniffi.gemstone.GemTransactionsService
 import uniffi.gemstone.GemTransactionsServiceInterface
 import javax.inject.Singleton
@@ -92,4 +93,8 @@ object TransactionsModule {
 
     @Provides
     fun provideGemTransactionsServiceInterface(service: GemTransactionsService): GemTransactionsServiceInterface = service
+
+    @Provides
+    @Singleton
+    fun provideTransactionStateServiceInterface(service: GemTransactionStateService): GemTransactionStateServiceInterface = service
 }

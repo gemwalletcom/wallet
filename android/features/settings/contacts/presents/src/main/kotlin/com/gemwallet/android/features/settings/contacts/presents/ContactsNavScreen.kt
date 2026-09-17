@@ -13,28 +13,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.settings.contacts.viewmodels.ContactsViewModel
-import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAvatarState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.ActionIcon
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
-import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.SwipeableItemWithActions
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ext.toGem
-import com.wallet.core.primitives.Contact
-import uniffi.gemstone.contactRow
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
+import com.gemwallet.android.ui.icons.AppIcons
 
 @Composable
 fun ContactsNavScreen(
@@ -42,9 +35,9 @@ fun ContactsNavScreen(
     viewModel: ContactsViewModel = hiltViewModel(),
 ) {
     val contacts by viewModel.contacts.collectAsStateWithLifecycle()
-    val error by viewModel.error.collectAsStateWithLifecycle()
+    val errorText by viewModel.errorText.collectAsStateWithLifecycle()
     val revealed = remember { mutableStateOf<String?>(null) }
-    val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
+    val snackbar = rememberSnackbarState(message = errorText, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 
     Scene(
         title = stringResource(R.string.contacts_title),
@@ -80,42 +73,16 @@ fun ContactsNavScreen(
                         onCollapsed = { revealed.value = null },
                         listPosition = position,
                     ) { itemPosition ->
-                        ContactListItem(
-                            contact = item.contact,
+                        ListItem(
+                            model = remember(item) { viewModel.listItem(item) },
                             listPosition = itemPosition,
-                            onClick = { onAction(ContactsAction.OpenContact(item.contact.id)) },
+                            modifier = Modifier.clickable { onAction(ContactsAction.OpenContact(item.contact.id)) },
+                            minHeight = ListItemDefaults.defaultMinHeight,
+                            accessory = { DataBadgeChevron() },
                         )
                     }
                 }
             }
         }
     }
-}
-
-@Composable
-private fun ContactListItem(
-    contact: Contact,
-    listPosition: ListPosition,
-    onClick: () -> Unit,
-) {
-    val row = contactRow(contact.toGem())
-    ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
-        listPosition = listPosition,
-        minHeight = ListItemDefaults.defaultMinHeight,
-        leading = { ContactAvatar(name = row.title, avatar = ContactAvatarState.from(contact.imageUrl)) },
-        title = { ListItemTitleText(text = row.title) },
-        subtitle = row.subtitle?.let { description ->
-            {
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.secondary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        },
-        trailing = { DataBadgeChevron() },
-    )
 }

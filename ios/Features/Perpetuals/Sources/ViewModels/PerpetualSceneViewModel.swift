@@ -3,6 +3,10 @@
 import protocol Gemstone.GemPerpetualDetailsServiceProtocol
 import enum Gemstone.GemPerpetualPositionAction
 import enum Gemstone.GemPerpetualPositionKind
+import enum Gemstone.GemPerpetualButton
+import enum Gemstone.GemPerpetualInfoRow
+import enum Gemstone.GemPerpetualPositionDetailRow
+import enum Gemstone.GemPerpetualSection
 import Components
 import Foundation
 import func Gemstone.transactionsListLimit
@@ -91,36 +95,77 @@ public final class PerpetualSceneViewModel {
         !positionViewModels.isEmpty
     }
 
-    public var positionSectionTitle: String {
-        Localized.Perpetual.position
+    public var sections: [GemPerpetualSection] {
+        service.sections(hasPosition: hasOpenPosition)
     }
 
-    public var infoSectionTitle: String {
-        Localized.Common.info
+    public var buttons: [GemPerpetualButton] {
+        service.buttons(hasPosition: hasOpenPosition)
     }
 
-    public var closePositionTitle: String {
-        Localized.Perpetual.closePosition
+    public var modifyButtons: [GemPerpetualButton] {
+        service.modifyButtons()
     }
 
-    public var modifyPositionTitle: String {
-        Localized.Perpetual.modify
+    public var buttonModels: [PerpetualButtonViewModel] {
+        buttons.map { PerpetualButtonViewModel(button: $0) }
     }
 
-    public var increasePositionTitle: String {
-        Localized.Perpetual.increasePosition
+    public var modifyButtonModels: [PerpetualButtonViewModel] {
+        modifyButtons.map { PerpetualButtonViewModel(button: $0) }
     }
 
-    public var reducePositionTitle: String {
-        Localized.Perpetual.reducePosition
+    public var modifyTitle: String {
+        GemPerpetualButton.modify.title
     }
 
-    public var longButtonTitle: String {
-        Localized.Perpetual.long
+    public var infoRows: [GemPerpetualInfoRow] {
+        service.infoRows()
     }
 
-    public var shortButtonTitle: String {
-        Localized.Perpetual.short
+    public func positionRows(_ position: PerpetualPositionViewModel) -> [GemPerpetualPositionDetailRow] {
+        service.positionDetailRows(position: position.data.position.toGem())
+    }
+
+    public func infoAction(for row: GemPerpetualInfoRow) -> InfoSheetAction? {
+        switch row {
+        case .dailyVolume: nil
+        case .openInterest: onSelectOpenInterestInfo
+        case .fundingRate: onSelectFundingRateInfo
+        }
+    }
+
+    public func autocloseListItem(_ position: PerpetualPositionViewModel, row: GemPerpetualPositionDetailRow) -> ListItemModel {
+        ListItemModel(
+            title: row.title,
+            subtitle: position.autocloseText.subtitle,
+            subtitleExtra: position.autocloseText.subtitleExtra,
+            infoAction: infoAction(for: row),
+        )
+    }
+
+    public func infoAction(for row: GemPerpetualPositionDetailRow) -> InfoSheetAction? {
+        switch row {
+        case .autoclose: onSelectAutocloseInfo
+        case .liquidationPrice: onSelectLiquidationPriceInfo
+        case .fundingPayments: onSelectFundingPaymentsInfo
+        case .pnl, .size, .entryPrice, .margin: nil
+        }
+    }
+
+    public func onSelect(_ button: PerpetualButtonViewModel) {
+        onSelectButton(button.button)
+    }
+
+    public func onSelectButton(_ button: GemPerpetualButton) {
+        switch button {
+        case .long: onOpenLongPosition()
+        case .short: onOpenShortPosition()
+        case .modify: onModifyPosition()
+        case .close: onClosePosition()
+        case .increase: onIncreasePosition()
+        case .reduce: onReducePosition()
+        }
     }
 
     public var perpetual: Perpetual {

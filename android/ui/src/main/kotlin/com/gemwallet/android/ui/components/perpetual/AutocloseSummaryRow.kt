@@ -1,16 +1,12 @@
 package com.gemwallet.android.ui.components.perpetual
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.ListItemSupportText
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
+import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.theme.space2
 
 @Composable
 fun AutocloseSummaryRow(
@@ -18,21 +14,14 @@ fun AutocloseSummaryRow(
     stopLossText: String?,
     listPosition: ListPosition = ListPosition.Single,
 ) {
-    val lines = listOfNotNull(
-        takeProfitText?.let { "${stringResource(R.string.perpetual_take_profit)}: $it" },
-        stopLossText?.let { "${stringResource(R.string.perpetual_stop_loss)}: $it" },
-    )
+    val lines = autocloseSummaryLines(LocalContext.current, takeProfitText, stopLossText)
     if (lines.isEmpty()) return
-    PropertyItem(
-        title = { PropertyTitleText(stringResource(R.string.perpetual_auto_close)) },
-        data = {
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(space2),
-            ) {
-                lines.forEach { ListItemSupportText(it) }
-            }
-        },
+    ListItem(
+        model = ListItemModel(
+            title = stringResource(R.string.perpetual_auto_close),
+            subtitle = lines.first(),
+            subtitleExtra = lines.getOrNull(1),
+        ),
         listPosition = listPosition,
     )
 }

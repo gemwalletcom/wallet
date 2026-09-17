@@ -15,7 +15,7 @@ class ListSelectSearch(
 
     override fun items(filters: Flow<SelectAssetFilters?>): Flow<List<AssetInfo>> {
         return filters.flatMapLatest { filters ->
-            searchService.searchAssetsByKey(searchKey, filters?.limit ?: NO_QUERY_LIMIT)
+            searchService.searchAssetsByKey(searchKey, filters?.limit ?: NO_QUERY_LIMIT, filters?.queryFilters().orEmpty())
         }
     }
 }

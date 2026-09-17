@@ -83,6 +83,7 @@ impl ChainAsset {
             Chain::Robinhood => ChainAsset::with_network_name(chain, "Robinhood", "Robinhood ETH", "ETH", 18),
             Chain::Stable => ChainAsset::new(chain, "Stable", "USDT0", 18),
             Chain::Tempo => ChainAsset::new(chain, "Tempo", "USD", 6),
+            Chain::Arc => ChainAsset::with_network_name(chain, "Arc", "USDC", "USDC", 18),
         }
     }
 
@@ -131,6 +132,13 @@ impl Asset {
 
     pub fn full_name(&self) -> String {
         format!("{} ({})", self.name, self.symbol)
+    }
+
+    pub fn display_title(&self) -> String {
+        match self.name == self.symbol {
+            true => self.name.clone(),
+            false => self.full_name(),
+        }
     }
 
     pub fn as_basic_primitive(&self) -> AssetBasic {

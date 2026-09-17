@@ -22,7 +22,7 @@ impl<C: Client> ChainTransactionBroadcast for CardanoClient<C> {
 }
 
 impl ChainTransactionDecode for BroadcastProvider {
-    fn decode_transaction_broadcast(&self, response: &str) -> Option<String> {
-        map_transaction_broadcast_response_from_str(response).ok()
+    fn decode_transaction_broadcast(&self, _request: &[u8], response: &str) -> Result<String, Box<dyn Error + Sync + Send>> {
+        map_transaction_broadcast_response_from_str(response)
     }
 }

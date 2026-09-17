@@ -12,7 +12,7 @@ import Testing
 struct ConfirmBalanceChangeViewModelTests {
     @Test
     func balanceChange() {
-        let solana = Asset.mock(id: .mockSolana(), name: "Solana", symbol: "SOL", decimals: 9, type: .native)
+        let solana = Asset.mockSolana()
         let negative = ConfirmBalanceChangeViewModel(balanceChange: GemSimulationBalanceChange(asset: solana.toGem(), value: BigInt(-1_500_000_000), sign: .outgoing))
         let positive = ConfirmBalanceChangeViewModel(balanceChange: GemSimulationBalanceChange(asset: solana.toGem(), value: BigInt(1_500_000_000), sign: .incoming))
 

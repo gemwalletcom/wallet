@@ -4,6 +4,27 @@ use typeshare::typeshare;
 
 use crate::{AssetId, Chain, ChainAddress, TransactionType};
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, AsRefStr)]
+#[strum(serialize_all = "lowercase")]
+pub enum ScanSource {
+    Local,
+    Remote,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, AsRefStr, EnumIter)]
+#[strum(serialize_all = "lowercase")]
+pub enum ScanProvider {
+    GoPlus,
+    HashDit,
+    Tronscan,
+}
+
+impl ScanProvider {
+    pub fn all() -> Vec<Self> {
+        Self::iter().collect()
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ScanTransactionPayload {
@@ -30,6 +51,19 @@ pub struct ScanTransaction {
     pub malicious_assets: Option<Vec<AssetId>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub malicious_website: Option<String>,
+}
+
+impl ScanTransaction {
+    pub fn disabled() -> Self {
+        Self {
+            is_malicious: Some(false),
+            is_memo_required: None,
+            is_scan_complete: false,
+            malicious_addresses: None,
+            malicious_assets: None,
+            malicious_website: None,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

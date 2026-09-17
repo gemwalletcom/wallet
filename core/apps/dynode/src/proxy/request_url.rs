@@ -46,8 +46,8 @@ mod tests {
     #[test]
     fn test_from_uri() {
         let url = Url {
-            url: "https://example.com".to_string(),
             headers: Some(HashMap::new()),
+            ..Url::mock("https://example.com")
         };
         let request_url = RequestUrl::from_parts(url, "/path");
         assert_eq!(request_url.url.to_string(), "https://example.com/path");
@@ -58,8 +58,8 @@ mod tests {
     fn test_from_uri_with_headers() {
         let headers = HashMap::from([("x-api-key".to_string(), "secret".to_string())]);
         let url = Url {
-            url: "https://example.com".to_string(),
             headers: Some(headers),
+            ..Url::mock("https://example.com")
         };
         let request_url = RequestUrl::from_parts(url, "/path");
         assert_eq!(request_url.headers.get("x-api-key"), Some(&"secret".to_string()));
@@ -76,26 +76,18 @@ mod tests {
                 "https://example.com/rpc/blocks/%2F?before=one%2Btwo&before=three",
             ),
         ] {
-            let url = Url {
-                url: base.to_string(),
-                headers: None,
-            };
-            assert_eq!(RequestUrl::from_parts(url, path).url.as_str(), expected);
+            assert_eq!(RequestUrl::from_parts(Url::mock(base), path).url.as_str(), expected);
         }
     }
-    fn request_url(base: &str, path: &str, header: Option<(&str, &str)>) -> RequestUrl {
-        RequestUrl::from_parts(
-            Url {
-                url: base.to_string(),
-                headers: header.map(|(name, value)| HashMap::from([(name.to_string(), value.to_string())])),
-            },
-            path,
-        )
-    }
-
     #[test]
     fn test_build_with_headers() {
-        let req_url = request_url("https://example.com", "/rpc", Some(("x-api-key", "secret")));
+        let req_url = RequestUrl::from_parts(
+            Url {
+                headers: Some(HashMap::from([("x-api-key".to_string(), "secret".to_string())])),
+                ..Url::mock("https://example.com")
+            },
+            "/rpc",
+        );
         let mut headers = HeaderMap::new();
         headers.insert(CONTENT_TYPE, HeaderValue::from_static(JSON_CONTENT_TYPE));
 
@@ -111,7 +103,13 @@ mod tests {
 
     #[test]
     fn test_build_appends_configured_headers() {
-        let url = request_url("https://example.com", "/rpc", Some(("x-api-key", "configured")));
+        let url = RequestUrl::from_parts(
+            Url {
+                headers: Some(HashMap::from([("x-api-key".to_string(), "configured".to_string())])),
+                ..Url::mock("https://example.com")
+            },
+            "/rpc",
+        );
         let headers = HeaderMap::from_iter([(HeaderName::from_static("x-api-key"), HeaderValue::from_static("inbound"))]);
         let request = url.build_request(&Method::POST, Vec::new(), headers);
 

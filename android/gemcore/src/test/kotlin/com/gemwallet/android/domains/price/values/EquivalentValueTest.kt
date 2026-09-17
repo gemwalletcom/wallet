@@ -1,6 +1,7 @@
 package com.gemwallet.android.domains.price.values
 
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
+import com.gemwallet.android.testkit.mockEquivalentValue
 import com.wallet.core.primitives.Currency
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -10,35 +11,35 @@ class EquivalentValueTest {
 
     @Test
     fun testPriceableValue_stateUp() {
-        val price = createTestPriceableValue(dayChangePercentage = 2.5)
+        val price = mockEquivalentValue(changePercentage = 2.5)
 
-        assertEquals(ValueDirection.Up, price.state)
+        assertEquals(GemValueTone.POSITIVE, price.state)
     }
 
     @Test
     fun testPriceableValue_stateDown() {
-        val price = createTestPriceableValue(dayChangePercentage = -2.5)
+        val price = mockEquivalentValue(changePercentage = -2.5)
 
-        assertEquals(ValueDirection.Down, price.state)
+        assertEquals(GemValueTone.NEGATIVE, price.state)
     }
 
     @Test
     fun testPriceableValue_stateNone() {
-        val price = createTestPriceableValue(dayChangePercentage = 0.0)
+        val price = mockEquivalentValue(changePercentage = 0.0)
 
-        assertEquals(ValueDirection.None, price.state)
+        assertEquals(GemValueTone.NEUTRAL, price.state)
     }
 
     @Test
     fun testPriceableValue_stateNullPercentage() {
-        val price = createTestPriceableValue(dayChangePercentage = null)
+        val price = mockEquivalentValue(changePercentage = null)
 
-        assertEquals(ValueDirection.None, price.state)
+        assertEquals(GemValueTone.NEUTRAL, price.state)
     }
 
     @Test
     fun testPriceableValue_dayChangePercentageFormattedPositive() {
-        val price = createTestPriceableValue(dayChangePercentage = 2.5)
+        val price = mockEquivalentValue(changePercentage = 2.5)
         val formatted = price.changePercentageFormatted
 
         assertEquals("+2.50%", formatted)
@@ -46,7 +47,7 @@ class EquivalentValueTest {
 
     @Test
     fun testPriceableValue_dayChangePercentageFormattedNegative() {
-        val price = createTestPriceableValue(dayChangePercentage = -5.2)
+        val price = mockEquivalentValue(changePercentage = -5.2)
         val formatted = price.changePercentageFormatted
 
         assertEquals("-5.20%", formatted)
@@ -54,7 +55,7 @@ class EquivalentValueTest {
 
     @Test
     fun testPriceableValue_dayChangePercentageFormattedZero() {
-        val price = createTestPriceableValue(dayChangePercentage = 0.0)
+        val price = mockEquivalentValue(changePercentage = 0.0)
         val formatted = price.changePercentageFormatted
 
         assertEquals("+0.00%", formatted)
@@ -62,7 +63,7 @@ class EquivalentValueTest {
 
     @Test
     fun testPriceableValue_dayChangePercentageFormattedNull() {
-        val price = createTestPriceableValue(dayChangePercentage = null)
+        val price = mockEquivalentValue(changePercentage = null)
         val formatted = price.changePercentageFormatted
 
         assertEquals("", formatted)
@@ -70,7 +71,7 @@ class EquivalentValueTest {
 
     @Test
     fun testPriceableValue_priceValueFormattedWithNull() {
-        val price = createTestPriceableValue(priceValue = null)
+        val price = mockEquivalentValue(value = null)
         val formatted = price.valueFormatted
 
         assertEquals("", formatted)
@@ -78,7 +79,7 @@ class EquivalentValueTest {
 
     @Test
     fun testPriceableValue_priceValueFormattedWithNaN() {
-        val price = createTestPriceableValue(priceValue = Double.NaN)
+        val price = mockEquivalentValue(value = Double.NaN)
         val formatted = price.valueFormatted
 
         assertEquals("", formatted)
@@ -86,7 +87,7 @@ class EquivalentValueTest {
 
     @Test
     fun testPriceableValue_priceValueFormattedWithInfinity() {
-        val price = createTestPriceableValue(priceValue = Double.POSITIVE_INFINITY)
+        val price = mockEquivalentValue(value = Double.POSITIVE_INFINITY)
         val formatted = price.valueFormatted
 
         assertEquals("", formatted)
@@ -94,7 +95,7 @@ class EquivalentValueTest {
 
     @Test
     fun testPriceableValue_priceValueFormattedWithZero() {
-        val price = createTestPriceableValue(priceValue = 0.0)
+        val price = mockEquivalentValue(value = 0.0)
         val formatted = price.valueFormatted
 
         assertTrue("Formatted zero price should not be empty", formatted.isNotEmpty())
@@ -102,7 +103,7 @@ class EquivalentValueTest {
 
     @Test
     fun testPriceableValue_priceValueFormattedWithLowValue() {
-        val price = createTestPriceableValue(priceValue = 0.0025)
+        val price = mockEquivalentValue(value = 0.0025)
         val formatted = price.valueFormatted
 
         assertTrue("Formatted low price should not be empty", formatted.isNotEmpty())
@@ -110,7 +111,7 @@ class EquivalentValueTest {
 
     @Test
     fun testPriceableValue_priceValueFormattedWithNegative() {
-        val price = createTestPriceableValue(priceValue = -100.0)
+        val price = mockEquivalentValue(value = -100.0)
         val formatted = price.valueFormatted
 
         assertTrue("Formatted negative price should not be empty", formatted.isNotEmpty())
@@ -118,57 +119,45 @@ class EquivalentValueTest {
 
     @Test
     fun testPriceableValue_multiplePropertiesConsistency() {
-        val price = createTestPriceableValue(
-            priceValue = 50000.0,
-            dayChangePercentage = 3.5,
+        val price = mockEquivalentValue(
+            value = 50000.0,
+            changePercentage = 3.5,
             currency = Currency.USD
         )
 
         assertEquals(50000.0, price.value!!, 0.01)
         assertEquals(3.5, price.changePercentage!!, 0.01)
         assertEquals(Currency.USD, price.currency)
-        assertEquals(ValueDirection.Up, price.state)
+        assertEquals(GemValueTone.POSITIVE, price.state)
         assertEquals("+3.50%", price.changePercentageFormatted)
     }
 
     @Test
     fun testPriceableValue_stateTransitionFromPositiveToNegative() {
-        val priceUp = createTestPriceableValue(dayChangePercentage = 1.5)
-        assertEquals(ValueDirection.Up, priceUp.state)
+        val priceUp = mockEquivalentValue(changePercentage = 1.5)
+        assertEquals(GemValueTone.POSITIVE, priceUp.state)
 
-        val priceDown = createTestPriceableValue(dayChangePercentage = -1.5)
-        assertEquals(ValueDirection.Down, priceDown.state)
+        val priceDown = mockEquivalentValue(changePercentage = -1.5)
+        assertEquals(GemValueTone.NEGATIVE, priceDown.state)
     }
 
     @Test
     fun testPriceableValue_stateWithVerySmallChange() {
-        val priceSmallUp = createTestPriceableValue(dayChangePercentage = 0.001)
-        assertEquals(ValueDirection.Up, priceSmallUp.state)
+        val priceSmallUp = mockEquivalentValue(changePercentage = 0.001)
+        assertEquals(GemValueTone.POSITIVE, priceSmallUp.state)
         assertEquals("+0.00%", priceSmallUp.changePercentageFormatted)
 
-        val priceSmallDown = createTestPriceableValue(dayChangePercentage = -0.001)
-        assertEquals(ValueDirection.Down, priceSmallDown.state)
+        val priceSmallDown = mockEquivalentValue(changePercentage = -0.001)
+        assertEquals(GemValueTone.NEGATIVE, priceSmallDown.state)
         assertEquals("-0.00%", priceSmallDown.changePercentageFormatted)
     }
 
     @Test
     fun testPriceableValue_stateWithMinimumDetectableChange() {
-        val priceMinUp = createTestPriceableValue(dayChangePercentage = 0.01)
-        assertEquals(ValueDirection.Up, priceMinUp.state)
+        val priceMinUp = mockEquivalentValue(changePercentage = 0.01)
+        assertEquals(GemValueTone.POSITIVE, priceMinUp.state)
 
-        val priceMinDown = createTestPriceableValue(dayChangePercentage = -0.01)
-        assertEquals(ValueDirection.Down, priceMinDown.state)
-    }
-
-    private fun createTestPriceableValue(
-        currency: Currency = Currency.USD,
-        priceValue: Double? = 1000.0,
-        dayChangePercentage: Double? = 0.0
-    ): EquivalentValue {
-        return object : EquivalentValue {
-            override val currency: Currency = currency
-            override val value: Double? = priceValue
-            override val changePercentage: Double? = dayChangePercentage
-        }
+        val priceMinDown = mockEquivalentValue(changePercentage = -0.01)
+        assertEquals(GemValueTone.NEGATIVE, priceMinDown.state)
     }
 }

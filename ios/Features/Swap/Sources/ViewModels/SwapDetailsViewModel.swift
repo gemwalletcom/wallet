@@ -5,6 +5,8 @@ import Components
 import Formatters
 import GemstonePrimitives
 import Foundation
+import enum Gemstone.GemSwapDetailRow
+import struct Gemstone.GemSwapQuoteSummary
 import struct Gemstone.GemSwapRate
 import struct Gemstone.SwapperQuote
 import struct Gemstone.SwapPriceImpact
@@ -22,8 +24,9 @@ public final class SwapDetailsViewModel {
     private let fromAssetPrice: AssetPriceValue
     private let toAssetPrice: AssetPriceValue
     private let providerViewModel: SwapProviderViewModel
+    private let summary: GemSwapQuoteSummary
     private let selectedQuote: Gemstone.SwapQuote
-    private let slippage: SwapSlippage
+    private let slippagePercent: Double?
     private let rate: GemSwapRate?
     private var isRateInverse = false
     private let priceViewModel: PriceViewModel
@@ -37,29 +40,52 @@ public final class SwapDetailsViewModel {
         state: StateViewType<[SwapProviderItem]> = .data([]),
         fromAssetPrice: AssetPriceValue,
         toAssetPrice: AssetPriceValue,
-        selectedQuote: Gemstone.SwapQuote,
-        slippage: SwapSlippage,
-        rate: GemSwapRate?,
+        summary: GemSwapQuoteSummary,
+        slippagePercent: Double?,
         currency: String,
         isProviderSelectionEnabled: Bool = true,
         swapPriceImpact: SwapPriceImpact?,
-        minReceiveValue: BigInt,
-        etaSeconds: UInt32?,
         swapProviderSelectAction: ((SwapperQuote) -> Void)? = nil,
     ) {
         self.state = state
         self.fromAssetPrice = fromAssetPrice
         self.toAssetPrice = toAssetPrice
-        providerViewModel = SwapProviderViewModel(providerData: selectedQuote.providerData)
-        self.selectedQuote = selectedQuote
-        self.slippage = slippage
-        self.rate = rate
+        providerViewModel = SwapProviderViewModel(providerData: summary.quote.providerData)
+        self.summary = summary
+        selectedQuote = summary.quote
+        self.slippagePercent = slippagePercent
+        rate = summary.rate
         priceViewModel = PriceViewModel(price: toAssetPrice.price, currencyCode: currency)
         self.isProviderSelectionEnabled = isProviderSelectionEnabled
         self.swapPriceImpact = swapPriceImpact
-        self.minReceiveValue = minReceiveValue
-        self.etaSeconds = etaSeconds
+        minReceiveValue = BigInt(summary.minReceiveValue)
+        etaSeconds = summary.quote.etaInSeconds
         self.swapProviderSelectAction = swapProviderSelectAction
+    }
+
+    var detailsListItem: ListItemModel {
+        ListItemModel(title: Localized.Common.details)
+    }
+
+    var providerTitle: String {
+        GemSwapDetailRow.provider.title
+    }
+
+    var detailRowList: [SwapDetailRow] {
+        detailRows.map { row in
+            switch row {
+            case .provider: .provider
+            case .rate: .rate
+            case .estimatedTime: .estimatedTime
+            case .priceImpact: .priceImpact
+            case .minimumReceive: .minimumReceive
+            case .slippage: .slippage
+            }
+        }
+    }
+
+    var detailRows: [GemSwapDetailRow] {
+        summary.rows(showsPriceImpact: shouldShowPriceImpactInDetails)
     }
 
     // MARK: - Provider
@@ -96,13 +122,13 @@ public final class SwapDetailsViewModel {
         guard let etaSeconds else { return nil }
         let estimationTime = EstimatedConfirmationFormatter().string(seconds: etaSeconds)
         guard estimationTime.isEmpty == false else { return nil }
-        return ListItemField(title: Localized.Swap.EstimatedTime.title, value: estimationTime)
+        return ListItemField(title: GemSwapDetailRow.estimatedTime.title, value: estimationTime)
     }
 
     // MARK: - Rate
 
     var rateTitle: String {
-        Localized.Buy.rate
+        GemSwapDetailRow.rate.title
     }
 
     var rateText: String? {
@@ -130,18 +156,15 @@ public final class SwapDetailsViewModel {
     // MARK: - Slippage
 
     var slippageField: ListItemField {
-        let value: String = switch slippage {
-        case .auto: Localized.Swap.slippageAuto
-        case let .manual(bps): percentSignLessFormatter.string((Double(bps) / 100).rounded(toPlaces: 2))
-        }
-        return ListItemField(title: Localized.Swap.slippage, value: value)
+        let value = slippagePercent.map { percentSignLessFormatter.string($0) } ?? Localized.Swap.slippageAuto
+        return ListItemField(title: GemSwapDetailRow.slippage.title, value: value)
     }
 
     // MARK: - Min receive
 
     var minReceiveField: ListItemField {
         ListItemField(
-            title: Localized.Swap.minReceive,
+            title: GemSwapDetailRow.minimumReceive.title,
             value: valueFormatter.string(minReceiveValue, asset: toAssetPrice.asset),
         )
     }

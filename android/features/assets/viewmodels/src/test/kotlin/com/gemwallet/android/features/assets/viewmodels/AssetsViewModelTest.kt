@@ -6,13 +6,13 @@ import com.gemwallet.android.application.session.cases.GetSession
 import uniffi.gemstone.GemWalletHomeServiceInterface
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.model.Session
-import com.gemwallet.android.testkit.mockAsset
-import com.wallet.core.primitives.Chain
+import com.gemwallet.android.testkit.mockAssetEthereum
+import com.gemwallet.android.testkit.mockAssetInfoDataAggregate
+import com.gemwallet.android.testkit.mockAssetSolana
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -40,8 +40,8 @@ class AssetsViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val activeAssetsFlow = MutableStateFlow(
         listOf(
-            assetAggregate(chain = Chain.Solana, symbol = "SOL", pinned = true),
-            assetAggregate(chain = Chain.Ethereum, symbol = "ETH", pinned = false),
+            mockAssetInfoDataAggregate(asset = mockAssetSolana(), pinned = true),
+            mockAssetInfoDataAggregate(asset = mockAssetEthereum()),
         )
     )
 
@@ -123,25 +123,7 @@ class AssetsViewModelTest {
         getWalletSummary = getWalletSummary,
         getSession = getSession,
         userConfig = mockk(relaxed = true),
+        ioDispatcher = testDispatcher,
+        context = mockk(relaxed = true),
     )
-
-    private fun assetAggregate(
-        chain: Chain,
-        symbol: String,
-        pinned: Boolean,
-    ): AssetInfoDataAggregate {
-        val asset = mockAsset(chain = chain, name = symbol, symbol = symbol)
-        return AssetInfoDataAggregate(
-            id = asset.id,
-            asset = asset,
-            title = asset.name,
-            balance = "1.0 $symbol",
-            balanceEquivalent = "$1.00",
-            isZeroBalance = false,
-            price = null,
-            pinned = pinned,
-            balanceEnabled = true,
-            accountAddress = "address-$symbol",
-        )
-    }
 }

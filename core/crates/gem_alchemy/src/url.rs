@@ -35,6 +35,7 @@ pub fn alchemy_url(chain: Chain, base_url: &str, api: AlchemyApi, key: &str) -> 
         Chain::XLayer => "xlayer-mainnet",
         Chain::Robinhood => "robinhood-mainnet",
         Chain::Stable => "stable-mainnet",
+        Chain::Arc => "arc-mainnet",
         Chain::Fantom => "fantom-mainnet",
         Chain::Manta => "manta-mainnet",
         _ => panic!("Alchemy is not supported for {chain}"),

@@ -1,9 +1,7 @@
 package com.gemwallet.android.features.widgets
 
-import com.gemwallet.android.ui.components.image.iconModel
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -34,31 +32,17 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextDefaults.defaultTextStyle
 import androidx.glance.unit.ColorProvider
-import coil3.imageLoader
-import coil3.request.ImageRequest
-import coil3.request.SuccessResult
-import coil3.toBitmap
 import com.gemwallet.android.MainActivity
 import com.gemwallet.android.data.services.gemstone.di.WidgetEntryPoint
-import com.gemwallet.android.domains.percentage.formatAsPercentage
-import com.gemwallet.android.model.AssetInfo
-import com.gemwallet.android.model.CurrencyFormatter
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.wallet.core.primitives.Currency
 import dagger.hilt.android.EntryPointAccessors
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.withContext
 
 private val priceRowHeight = 72.dp
-
-private data class WidgetAsset(val info: AssetInfo, val icon: Bitmap?)
 
 class PricesWidget : GlanceAppWidget() {
 
@@ -66,10 +50,10 @@ class PricesWidget : GlanceAppWidget() {
         context: Context,
         id: GlanceId
     ) {
-        val getWidgetAssets = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java).getWidgetAssets()
+        val entryPoint = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java)
         val noData = context.getString(R.string.errors_no_data_available)
         val items = try {
-            loadItems(context, getWidgetAssets())
+            entryPoint.mediumWidgetCoins(context)
         } catch (_: Throwable) {
             emptyList()
         }
@@ -97,22 +81,8 @@ class PricesWidget : GlanceAppWidget() {
         }
     }
 
-    private suspend fun loadItems(context: Context, assets: List<AssetInfo>): List<WidgetAsset> = coroutineScope {
-        assets.map { asset ->
-            async { WidgetAsset(asset, loadIcon(context, asset.id().iconModel())) }
-        }.awaitAll()
-    }
-
-    private suspend fun loadIcon(context: Context, model: Any?): Bitmap? = withContext(Dispatchers.IO) {
-        model ?: return@withContext null
-        runCatching {
-            val request = ImageRequest.Builder(context).data(model).build()
-            (context.imageLoader.execute(request) as? SuccessResult)?.image?.toBitmap()
-        }.getOrNull()
-    }
-
     @Composable
-    private fun Assets(items: List<WidgetAsset>) {
+    private fun Assets(items: List<WidgetCoinUIModel>) {
         Column(
             modifier = GlanceModifier.fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically,
@@ -132,8 +102,7 @@ class PricesWidget : GlanceAppWidget() {
 }
 
 @Composable
-private fun AssetItem(item: WidgetAsset) {
-    val asset = item.info
+private fun AssetItem(item: WidgetCoinUIModel) {
     Row(
         modifier = GlanceModifier
             .fillMaxWidth()
@@ -154,26 +123,29 @@ private fun AssetItem(item: WidgetAsset) {
         Column(
             modifier = GlanceModifier.defaultWeight()
         ) {
-            WidgetTitleText(asset.asset.name)
+            WidgetTitleText(item.name)
             Spacer(GlanceModifier.size(paddingHalfSmall))
-            WidgetSubtitleText(asset.asset.symbol)
+            WidgetSubtitleText(item.symbol)
         }
-        asset.price?.let {
-            val percentageColor = when {
-                it.price.priceChangePercentage24h < 0 -> Color(0xFFF84E4E)
-                it.price.priceChangePercentage24h > 0 -> Color(0xFF06BE92)
-                else -> Color(0xFF808d99)
-            }
-            Column(
-                modifier = GlanceModifier.defaultWeight(),
-                horizontalAlignment = Alignment.End,
-            ) {
-                WidgetTitleText(CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = it.currency).string(it.price.price))
-                Spacer(GlanceModifier.size(paddingHalfSmall))
-                WidgetSubtitleText(it.price.priceChangePercentage24h.formatAsPercentage(), percentageColor)
-            }
+        Column(
+            modifier = GlanceModifier.defaultWeight(),
+            horizontalAlignment = Alignment.End,
+        ) {
+            WidgetTitleText(item.priceText)
+            Spacer(GlanceModifier.size(paddingHalfSmall))
+            WidgetSubtitleText(item.changeText, item.changeStyle.widgetColor())
         }
     }
+}
+
+private fun ListItemTextStyle.widgetColor(): Color = when (this) {
+    ListItemTextStyle.Positive -> Color(0xFF06BE92)
+    ListItemTextStyle.Negative -> Color(0xFFF84E4E)
+    ListItemTextStyle.Body,
+    ListItemTextStyle.Secondary,
+    ListItemTextStyle.Warning,
+    ListItemTextStyle.Primary,
+    ListItemTextStyle.Faded -> Color(0xFF808d99)
 }
 
 @Composable

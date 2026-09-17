@@ -15,47 +15,9 @@ public struct ChainSettingsScene: View {
 
     public var body: some View {
         List {
-            Section(model.nodesTitle) {
-                ForEach(model.nodesModels) { nodeModel in
-                    ListItemSelectionView(
-                        title: nodeModel.title,
-                        titleExtra: nodeModel.titleExtra,
-                        titleTag: nodeModel.titleTag,
-                        titleTagType: nodeModel.titleTagType,
-                        titleTagStyle: nodeModel.titleTagStyle,
-                        subtitle: .none,
-                        subtitleExtra: .none,
-                        value: nodeModel.url,
-                        selection: nodeModel.selection,
-                        action: model.onSelectNode,
-                    )
-                    .contextMenu(
-                        .copy(value: nodeModel.url),
-                    )
-                    .if(model.canDelete(url: nodeModel.url)) {
-                        $0.swipeActions(edge: .trailing) {
-                            Button(model.deleteButtonTitle, role: .destructive) {
-                                model.onSelectNodeForDeletion(nodeModel.node)
-                            }
-                            .tint(Colors.red)
-                        }
-                    }
-                }
-            }
-
-            Section(model.explorerTitle) {
-                ForEach(model.explorers, id: \.self) { explorer in
-                    ListItemSelectionView(
-                        title: explorer,
-                        titleExtra: .none,
-                        titleTag: .none,
-                        titleTagType: .none,
-                        subtitle: .none,
-                        subtitleExtra: .none,
-                        value: explorer,
-                        selection: model.selectedExplorer,
-                        action: model.onSelectExplorer(name:),
-                    )
+            ForEach(model.sections) { section in
+                Section(section.title) {
+                    content(for: section)
                 }
             }
         }
@@ -92,6 +54,52 @@ public struct ChainSettingsScene: View {
         .listSectionSpacing(.compact)
         .taskOnce {
             Task { await model.load() }
+        }
+    }
+
+    @ViewBuilder
+    private func content(for section: ChainSettingsSectionViewModel) -> some View {
+        switch section.kind {
+        case .nodes:
+            ForEach(model.nodesModels) { nodeModel in
+                ListItemSelectionView(
+                    title: nodeModel.title,
+                    titleExtra: nodeModel.titleExtra,
+                    titleTag: nodeModel.titleTag,
+                    titleTagType: nodeModel.titleTagType,
+                    titleTagStyle: nodeModel.titleTagStyle,
+                    subtitle: .none,
+                    subtitleExtra: .none,
+                    value: nodeModel.url,
+                    selection: nodeModel.selection,
+                    action: model.onSelectNode,
+                )
+                .contextMenu(
+                    .copy(value: nodeModel.url),
+                )
+                .if(nodeModel.canDelete) {
+                    $0.swipeActions(edge: .trailing) {
+                        Button(model.deleteButtonTitle, role: .destructive) {
+                            model.onSelectNodeForDeletion(nodeModel.node)
+                        }
+                        .tint(Colors.red)
+                    }
+                }
+            }
+        case .explorer:
+            ForEach(model.explorers, id: \.name) { explorer in
+                ListItemSelectionView(
+                    title: explorer.name,
+                    titleExtra: .none,
+                    titleTag: .none,
+                    titleTagType: .none,
+                    subtitle: .none,
+                    subtitleExtra: .none,
+                    value: explorer.name,
+                    selection: explorer.isSelected ? explorer.name : .none,
+                    action: model.onSelectExplorer(name:),
+                )
+            }
         }
     }
 }

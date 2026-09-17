@@ -18,69 +18,11 @@ public struct PreferencesScene: View {
     public var body: some View {
         List {
             Group {
-                Section {
-                    NavigationLink(value: Scenes.Currency()) {
-                        ListItemView(
-                            title: model.currencyTitle,
-                            subtitle: model.currencyValue,
-                            imageStyle: .settings(assetImage: model.currencyImage),
-                        )
-                    }
-
-                    NavigationCustomLink(
-                        with: ListItemView(
-                            title: model.languageTitle,
-                            subtitle: model.languageValue,
-                            imageStyle: .settings(assetImage: model.languageImage),
-                        ),
-                        action: onSelectLanguage,
-                    )
-
-                    NavigationLink(value: Scenes.Appearance()) {
-                        ListItemView(
-                            title: model.appearanceTitle,
-                            subtitle: model.appearanceValue,
-                            imageStyle: .settings(assetImage: model.appearanceImage),
-                        )
-                    }
-
-                    NavigationLink(value: Scenes.Chains()) {
-                        ListItemView(
-                            title: model.networksTitle,
-                            imageStyle: .settings(assetImage: model.networksImage),
-                        )
-                    }
-
-                    NavigationLink(value: Scenes.Contacts()) {
-                        ListItemView(
-                            title: model.contactsTitle,
-                            imageStyle: .settings(assetImage: model.contactsImage),
-                        )
-                    }
-                }
-                Section {
-                    ListItemToggleView(
-                        isOn: $model.isPerpetualEnabled,
-                        title: model.perpetualsTitle,
-                        imageStyle: .settings(assetImage: model.perpetualsImage),
-                    )
-
-                    if model.isPerpetualEnabled {
-                        perpetualLink(
-                            title: model.defaultLeverageTitle,
-                            value: model.defaultLeverageValue,
-                            action: model.onSelectLeverage,
-                        )
-                        perpetualLink(
-                            title: model.defaultTakeProfitTitle,
-                            value: model.defaultTakeProfitValue,
-                            action: model.onSelectTakeProfit,
-                        )
-                        perpetualLink(
-                            title: model.defaultStopLossTitle,
-                            value: model.defaultStopLossValue,
-                            action: model.onSelectStopLoss,
-                        )
+                ForEach(model.sections) { section in
+                    Section {
+                        ForEach(section.values) { row in
+                            content(for: row)
+                        }
                     }
                 }
             }
@@ -91,37 +33,69 @@ public struct PreferencesScene: View {
         .navigationTitle(model.title)
         .sheet(isPresented: $model.isPresentingLeveragePicker) {
             WheelPickerSheet(
-                title: model.defaultLeverageTitle,
+                title: model.leverageTitle,
                 options: model.leverageOptions,
                 selection: $model.perpetualLeverage,
             )
         }
         .sheet(isPresented: $model.isPresentingTakeProfitPicker) {
             WheelPickerSheet(
-                title: model.defaultTakeProfitTitle,
+                title: model.takeProfitTitle,
                 options: model.takeProfitOptions,
                 selection: $model.perpetualTakeProfit,
             )
         }
         .sheet(isPresented: $model.isPresentingStopLossPicker) {
             WheelPickerSheet(
-                title: model.defaultStopLossTitle,
+                title: model.stopLossTitle,
                 options: model.stopLossOptions,
                 selection: $model.perpetualStopLoss,
             )
         }
     }
 
-    private func perpetualLink(
-        title: String,
-        value: String,
-        action: @escaping @MainActor () -> Void,
-    ) -> some View {
-        NavigationCustomLink(
-            with: ListItemView(title: title, subtitle: value),
-            action: action,
-        )
-        .padding(.leading, Sizing.image.asset - .tiny)
+    @ViewBuilder
+    private func content(for row: PreferencesRowViewModel) -> some View {
+        switch row.kind {
+        case .currency:
+            NavigationLink(value: Scenes.Currency()) {
+                ListItemView(model: row.model)
+            }
+        case .language:
+            NavigationCustomLink(
+                with: ListItemView(model: row.model),
+                action: onSelectLanguage,
+            )
+        case .appearance:
+            NavigationLink(value: Scenes.Appearance()) {
+                ListItemView(model: row.model)
+            }
+        case .networks:
+            NavigationLink(value: Scenes.Chains()) {
+                ListItemView(model: row.model)
+            }
+        case .contacts:
+            NavigationLink(value: Scenes.Contacts()) {
+                ListItemView(model: row.model)
+            }
+        case .perpetuals:
+            ListItemToggleView(
+                isOn: $model.isPerpetualEnabled,
+                title: row.model.title ?? .empty,
+                imageStyle: row.model.imageStyle,
+            )
+        case .perpetualLeverage:
+            perpetualLink(row, action: model.onSelectLeverage)
+        case .perpetualTakeProfit:
+            perpetualLink(row, action: model.onSelectTakeProfit)
+        case .perpetualStopLoss:
+            perpetualLink(row, action: model.onSelectStopLoss)
+        }
+    }
+
+    private func perpetualLink(_ row: PreferencesRowViewModel, action: @escaping @MainActor () -> Void) -> some View {
+        NavigationCustomLink(with: ListItemView(model: row.model), action: action)
+            .padding(.leading, Sizing.image.asset - .tiny)
     }
 }
 

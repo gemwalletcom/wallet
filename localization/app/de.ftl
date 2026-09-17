@@ -58,7 +58,6 @@ common_token = Token
 common_expiration = Ablauf
 common_suspicious_address = Verdächtige Adresse
 common_refresh = Aktualisieren
-common_no_thanks = Nein danke
 common_grant_permission = Erlaubnis erteilen
 common_required_field = %@ ist erforderlich
 
@@ -165,7 +164,6 @@ transfer_freeze_title = Einfrieren
 transfer_unfreeze_title = Auftauen
 transfer_review_request = Überprüfungsanfrage
 transfer_amount = Betrag
-transfer_amount_title = Betrag
 
 # Settings
 
@@ -209,7 +207,6 @@ support_message_placeholder = Nachricht
 
 # Errors
 
-errors_transfer = Übertragungsfehler: %@
 errors_validation = Validierungsfehler: %@
 errors_create_wallet = Fehler beim Erstellen der Wallet: %@
 errors_invalid_address_name = Ungültige Adresse oder ungültiger Name
@@ -228,7 +225,6 @@ errors_cancelled = Abgebrochen
 errors_connections_user_cancelled = Benutzer hat abgebrochen
 errors_not_supported = Nicht unterstützt
 errors_permissions_not_granted = Berechtigungen nicht erteilt
-errors_decoding = Dekodierungsfehler
 errors_unknown = Unbekannt
 errors_not_supported_qr = Dieses Gerät unterstützt keine QR-Code-Scans. Sie können nur QR-Code-Bilder aus der Bibliothek auswählen.
 errors_camera_permissions_not_granted = Kameraerlaubnis nicht erteilt. Bitte aktivieren Sie den Kamerazugriff in den Einstellungen, um den QR-Code zu scannen.
@@ -239,11 +235,8 @@ errors_invalid_asset_address = Ungültige %@ Adresse
 errors_dust_threshold = Die Transaktion ist fehlgeschlagen, da der Betrag zu gering ist, um die Mindestanforderung des %@ -Netzwerks (Dust-Schwellenwert) zu erfüllen. Dieses Limit stellt sicher, dass der Transaktionswert die Gebühren und Bearbeitungskosten deckt.
 errors_swap_no_quote_available = Kein Angebot verfügbar.
 errors_swap_not_supported_asset = Nicht unterstütztes Asset.
-errors_connections_invalid_send_parameters = Zum Senden einer Transaktion wurden ungültige Parameter angegeben.
-errors_connections_invalid_sign_parameters = Für die Signierung wurden ungültige Parameter angegeben.
 errors_connections_no_supported_wallets = Es sind keine unterstützten Wallets verfügbar.
 errors_connections_unsupported_chain = Die bereitgestellte Kette wird nicht unterstützt.
-errors_connections_unsupported_method = Die angeforderte Methode wird nicht unterstützt.
 errors_swap_amount_too_small = Menge zu gering
 errors_required = %@ ist erforderlich
 errors_scan_transaction_malicious_description = Diese Transaktion kann nicht abgeschlossen werden – die Ziel-Wallet-Adresse ist mit verdächtigen oder schädlichen Aktivitäten verknüpft.
@@ -255,7 +248,6 @@ errors_dust_threshold_short = Das Netzwerk betrachtet diesen Betrag als Staub �
 errors_swap_minimum_amount = Der Mindesthandelsbetrag beträgt %@. Bitte geben Sie einen höheren Betrag ein.
 errors_perpetual_trigger_price_lower = Der Triggerpreis muss unter dem Marktpreis liegen
 errors_perpetual_trigger_price_higher = Der Triggerpreis muss über dem Marktpreis liegen
-errors_token_unable_fetch_token_information = Token-Informationen konnten nicht abgerufen werden: %@
 errors_unknown_try_again = Ein unbekannter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.
 errors_network_error = Netzwerkfehler: %@
 errors_network_offline = Die Internetverbindung scheint unterbrochen zu sein.
@@ -279,7 +271,6 @@ update_app_action = Aktualisieren
 update_app_permission_title = Installation zulassen
 update_app_permission_description = Gehen Sie zu den Einstellungen und erlauben Sie die Installation aus externen Quellen
 update_app_permission_open_settings = Zu den Einstellungen
-update_app_downloading = Herunterladen...
 
 # Transaction
 
@@ -483,8 +474,6 @@ banner_account_activation_title = Kontoaktivierungsgebühr
 banner_account_activation_description = Das %@ Netzwerk erfordert eine einmalige Gebühr von %@.
 banner_stake_title = Starten Sie mit %@ Staking
 banner_stake_description = Verdienen Sie %@ Prämien mit Ihrem Stake, während Sie schlafen
-banner_enable_notifications_title = Benachrichtigungen aktivieren
-banner_enable_notifications_description = Behalten Sie den Überblick über Ihre Wallet-Aktivitäten.
 banner_activate_asset_description = Um das %@ -Asset zu verwenden, müssen Sie es zuerst im %@ -Netzwerk aktivieren, indem Sie die spezifischen Anforderungen des Netzwerks erfüllen.
 banner_asset_status_title = Verdächtiger Vermögenswert
 banner_asset_status_description = Token kann unsicher oder irreführend sein. Fahren Sie nur fort, wenn Sie ihm voll und ganz vertrauen.
@@ -690,8 +679,9 @@ perpetual_margin_isolated = Isoliert
 # Perpetuals
 
 perpetuals_title = Perpetuals
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = Perpetuals handeln
 perpetuals_markets = Märkte
-perpetuals_empty_state_no_markets = Keine Märkte
 perpetuals_empty_state_no_markets_found = Keine Märkte gefunden
 
 # Rewards
@@ -763,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = Kameraberechtigung für QR-Code-Scan erforderlich.\nBitte erteilen Sie die Berechtigung.
 
 # Notifications Permission
 
-notifications_permission_request_notification = Berechtigung für Push-Benachrichtigungen erforderlich, um Benachrichtigungen über neue Transaktionen zu erhalten.\nBitte erteilen Sie die Berechtigung.
 
 # Confirm
 
-confirm_fee_error = Fehler bei der Gebührenberechnung
 
 # Rootcheck
 

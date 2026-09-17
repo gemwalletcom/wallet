@@ -30,7 +30,22 @@ chain_types:
         ttl: 1m
       - rpc_method: eth_getCode
         ttl: 1m
+  ton:
+    cache:
+      - path: /api/v3/runGetMethod
+        method: POST
+        ttl: 30d
+        params:
+          method: get_wallet_address
+      - path: /api/v3/runGetMethod
+        method: POST
+        ttl: 30d
+        params:
+          method: get_pool_address
 chains:
   - chain: ethereum
     urls:
       - url: __UPSTREAM__/node/base
+  - chain: ton
+    urls:
+      - url: __UPSTREAM__
