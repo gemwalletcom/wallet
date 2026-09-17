@@ -95,8 +95,12 @@ internal fun MainContent(
             message = R.string.errors_not_supported,
             onShown = onScanErrorShown,
         )
+        MessageToast(
+            message = state.navigationError?.text(),
+            onShown = onErrorDismiss,
+        )
         ErrorDialog(
-            error = state.navigationError?.text() ?: state.walletConnectError ?: unsupportedWalletConnectError,
+            error = state.walletConnectError ?: unsupportedWalletConnectError,
             onDismiss = onErrorDismiss,
         )
     }
