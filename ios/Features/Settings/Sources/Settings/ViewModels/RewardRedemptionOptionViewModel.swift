@@ -46,6 +46,10 @@ struct RewardRedemptionOptionViewModel: Identifiable {
         redemption.pointsText
     }
 
+    var canRedeem: Bool {
+        redemption.canRedeem
+    }
+
     var valueText: String {
         redemption.value.text()
     }

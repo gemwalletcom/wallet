@@ -95,6 +95,15 @@ public final class FiatSceneViewModel {
         }
     }
 
+    func providerModel(_ viewState: GemFiatViewState) -> FiatProviderViewModel {
+        FiatProviderViewModel(
+            quotesState: quotesState(viewState),
+            emptyTitle: emptyTitle(viewState),
+            selectedQuote: selectedQuote(viewState),
+            allowSelectProvider: allowSelectProvider(viewState),
+        )
+    }
+
     func quotesState(_ viewState: GemFiatViewState) -> StateViewType<[GemFiatQuoteRow]> {
         switch viewState.phase {
         case .noInput, .invalidInput, .invalid, .noQuotes: .noData

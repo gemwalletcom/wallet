@@ -2,7 +2,7 @@
 
 import Primitives
 import Components
-import struct Gemstone.GemSecuritySection
+import enum Gemstone.GemSecurityRow
 import protocol Gemstone.GemSettingsServiceProtocol
 import Foundation
 import GemstoneServices
@@ -53,8 +53,19 @@ public final class SecurityViewModel {
         isPrivacyLockEnabled = service.isPrivacyLockEnabled
     }
 
-    var sections: [GemSecuritySection] {
-        settings.securitySections(authenticationEnabled: isEnabled)
+    var sections: [ListSection<SecurityRow>] {
+        settings.securitySections(authenticationEnabled: isEnabled).enumerated().map { index, section in
+            ListSection(id: "\(index)", title: nil, image: nil, values: section.rows.map(securityRow))
+        }
+    }
+
+    private func securityRow(_ row: GemSecurityRow) -> SecurityRow {
+        switch row {
+        case .authentication: .authentication
+        case .lockPeriod: .lockPeriod
+        case .privacyLock: .privacyLock
+        case .hideBalance: .hideBalance
+        }
     }
 
     var title: String {

@@ -4,7 +4,6 @@ import enum Gemstone.GemHeaderButtonKind
 import Components
 import Formatters
 import Foundation
-import struct Gemstone.GemBannerContent
 import protocol Gemstone.GemWalletHomeServiceProtocol
 import func Gemstone.walletRow
 import GemstonePrimitives
@@ -12,7 +11,6 @@ import GemstoneServices
 import InfoSheet
 import Localization
 import NFT
-import struct Gemstone.GemAssetRow
 import Primitives
 import PrimitivesComponents
 import Store
@@ -141,8 +139,8 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         )
     }
 
-    func bannerContent(for banner: Banner) -> GemBannerContent {
-        service.content(for: banner)
+    func bannerModel(for banner: Banner) -> BannerViewModel {
+        BannerViewModel(banner: banner, content: service.content(for: banner))
     }
 }
 
@@ -264,8 +262,8 @@ extension WalletSceneViewModel {
     func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
         try await service.setAssetsEnabled(assetIds: assetIds, enabled: enabled)
     }
-    var assetRow: GemAssetRow {
-        service.assetRow()
+    var assetItems: ListAssetItemsViewModel {
+        ListAssetItemsViewModel(currency: observablePreferences.currency, row: service.assetRow())
     }
 
 }

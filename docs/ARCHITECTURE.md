@@ -865,6 +865,8 @@ private fun errorText(phase: GemFiatQuotePhase): String? = when (phase) {
 
 Naming a Core type is not the test; deciding from one is. A view that iterates a row key and hands each case to a component is doing what [§ 3](#3-return-one-record-that-answers-the-whole-question) asks — the key is the screen's contract, and the switch over it is exhaustive on purpose. Twelve of the seventy-five iOS scene files and just under half of the Android `presents/` files name a Core type for exactly that reason.
 
+Landed on 2026-09-17 (TODO ledger, B67): both apps are at zero. The shapes that carried it are a row model with an app kind or destination where a view switched on a Core row key, a model the view model vends where a Core record was passed through to a child view, and a closure typed by the view model where a view declared a Core-typed callback; navigation payloads are the app's `ConfirmTransferInput` and `WalletSecretInput`.
+
 What to grep for is a view that answers a question instead of asking one: a `switch`/`when` over a Core type whose arms produce `Localized.` or `stringResource` — the localized text belongs to the module's mapper, not the body — or a Core record passed into a child view's initializer. On Android:
 
 ```

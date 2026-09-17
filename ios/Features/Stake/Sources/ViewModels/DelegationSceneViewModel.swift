@@ -58,6 +58,23 @@ public struct DelegationSceneViewModel {
         rows.first { $0 == .rewards }
     }
 
+    public var detailRowModels: [DelegationRowViewModel] {
+        detailRows.map(rowViewModel)
+    }
+
+    public var rewardsRowModel: DelegationRowViewModel? {
+        rewardsRow.map(rowViewModel)
+    }
+
+    private func rowViewModel(_ row: GemDelegationRow) -> DelegationRowViewModel {
+        let action: DelegationRowViewModel.Action = switch row {
+        case .provider: providerUrl.map { .url($0) } ?? .plain
+        case .apr, .status, .completionDate: .plain
+        case .rewards: canClaimRewards ? .claimRewards : .plain
+        }
+        return DelegationRowViewModel(id: String(describing: row), action: action, model: listItem(for: row))
+    }
+
     public func listItem(for row: GemDelegationRow) -> ListItemModel {
         switch row {
         case .provider: ListItemModel(title: title(for: row), subtitle: model.validatorText)

@@ -36,8 +36,17 @@ public final class ChainSettingsSceneViewModel {
         chain.networkName
     }
 
-    var sections: [GemChainSettingsSection] {
-        service.sections()
+    var sections: [ChainSettingsSectionViewModel] {
+        service.sections().map { section in
+            ChainSettingsSectionViewModel(id: String(describing: section), title: section.title, kind: kind(for: section))
+        }
+    }
+
+    private func kind(for section: GemChainSettingsSection) -> ChainSettingsSectionViewModel.Kind {
+        switch section {
+        case .nodes: .nodes
+        case .explorer: .explorer
+        }
     }
 
     var nodesModels: [ChainNodeViewModel] {

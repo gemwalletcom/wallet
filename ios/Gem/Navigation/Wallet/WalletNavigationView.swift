@@ -1,8 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Assets
-import enum Gemstone.GemPerpetualPositionAction
-import enum Gemstone.GemTransactionHeaderAction
 import Components
 import InfoSheet
 import Localization
@@ -103,7 +101,20 @@ struct WalletNavigationView: View {
                 model: viewModelFactory.transactionScene(
                     transaction: $0.transaction,
                     walletId: model.wallet.id,
-                    onHeaderAction: onSelectTransactionHeaderAction,
+                    onHeaderAction: { action in
+                        Task {
+                            do {
+                                try await presenter.handleTransactionHeaderAction(
+                                    action,
+                                    wallet: model.wallet,
+                                    navigationState: navigationState,
+                                    nftDestination: navigationState.wallet,
+                                )
+                            } catch {
+                                model.isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
+                            }
+                        }
+                    },
                     onAddContact: { model.isPresentingSheet = .addContact($0) },
                 ),
             )
@@ -223,20 +234,5 @@ struct WalletNavigationView: View {
 extension WalletNavigationView {
     private func onScan(_ code: String) {
         Task { await navigationHandler.handle(code: code) }
-    }
-
-    private func onSelectTransactionHeaderAction(_ action: GemTransactionHeaderAction) {
-        Task {
-            do {
-                try await presenter.handleTransactionHeaderAction(
-                    action,
-                    wallet: model.wallet,
-                    navigationState: navigationState,
-                    nftDestination: navigationState.wallet,
-                )
-            } catch {
-                model.isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
-            }
-        }
     }
 }

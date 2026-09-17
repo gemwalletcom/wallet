@@ -60,9 +60,8 @@ public struct AssetsResultsScene: View {
 
     private func assetItems(for items: [AssetData]) -> some View {
         AssetItemsView(
-            items: items,            currency: model.currency,
-
-            row: model.assetRow,
+            items: items,
+            itemsModel: model.assetItems,
             contextMenuItems: model.contextMenuItems,
             onSelect: { model.onSelectAsset($0) },
         )

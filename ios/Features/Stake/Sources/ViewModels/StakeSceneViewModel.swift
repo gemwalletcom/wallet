@@ -86,6 +86,34 @@ public final class StakeSceneViewModel {
         stakeActions
     }
 
+    var sectionModels: [StakeSectionViewModel] {
+        sections.map { StakeSectionViewModel(section: stakeSection($0), title: $0.title) }
+    }
+
+    var showsDelegationsPlaceholder: Bool {
+        !sections.contains(.delegations)
+    }
+
+    var actionModels: [StakeActionViewModel] {
+        actions.map { item in
+            StakeActionViewModel(
+                id: String(describing: item.action),
+                model: actionListItem(item),
+                destination: destination(for: item.action),
+                infoAction: frozenBalanceInfoAction(for: item),
+                isEnabled: item.isEnabled,
+            )
+        }
+    }
+
+    private func stakeSection(_ section: GemStakeSection) -> StakeSection {
+        switch section {
+        case .manage: .manage
+        case .resources: .resources
+        case .delegations: .delegations
+        }
+    }
+
     var stakeAprModel: AprViewModel {
         AprViewModel(apr: assetData.metadata.stakingApr ?? .zero)
     }

@@ -1,43 +1,26 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import struct Gemstone.GemAssetRow
 import Primitives
 import PrimitivesComponents
 import SwiftUI
 
 struct ListAssetItemSelectionView: View {
     private let assetData: AssetData
-    private let currency: Currency
-    private let row: GemAssetRow
+    private let itemsModel: ListAssetItemsViewModel
     private let action: (ListAssetItemAction, AssetData) -> Void
 
     init(
         assetData: AssetData,
-        currency: Currency,
-        row: GemAssetRow,
+        itemsModel: ListAssetItemsViewModel,
         action: @escaping (ListAssetItemAction, AssetData) -> Void,
     ) {
         self.assetData = assetData
-        self.currency = currency
-        self.row = row
+        self.itemsModel = itemsModel
         self.action = action
     }
 
     var body: some View {
-        ListAssetItemView(
-            model: ListAssetItemViewModel(
-                showBalancePrivacy: .constant(false),
-                assetDataModel: AssetDataViewModel(
-                    assetData: assetData,
-                    formatter: .short,
-                    currency: currency,
-                ),
-                row: row,
-                action: {
-                    action($0, assetData)
-                },
-            ),
-        )
+        ListAssetItemView(model: itemsModel.item(assetData, action: { action($0, assetData) }))
     }
 }

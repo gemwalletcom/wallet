@@ -122,8 +122,8 @@ public final class RewardsViewModel: Sendable {
         rewardsState.referralLink
     }
 
-    var redemptions: [GemRewardsRedemption] {
-        rewardsState.redemptions
+    var redemptionOptions: [RewardRedemptionOptionViewModel] {
+        rewardsState.redemptions.map { RewardRedemptionOptionViewModel(redemption: $0) }
     }
 
     var rewardsState: GemRewardsState {
@@ -277,6 +277,14 @@ public final class RewardsViewModel: Sendable {
             await load()
         } catch {
             showError(error.localizedDescription)
+        }
+    }
+
+    func onSelectRedemption(_ option: RewardRedemptionOptionViewModel) {
+        if option.canRedeem {
+            showRedemptionAlert(for: option.redemption)
+        } else {
+            showError(Localized.Rewards.insufficientPoints)
         }
     }
 

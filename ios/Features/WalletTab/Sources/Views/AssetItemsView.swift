@@ -3,29 +3,19 @@
 import Components
 import Primitives
 import PrimitivesComponents
-import struct Gemstone.GemAssetRow
 import SwiftUI
 
 struct AssetItemsView: View {
     let items: [AssetData]
-    let currency: Currency
-    let row: GemAssetRow
+    let itemsModel: ListAssetItemsViewModel
     let contextMenuItems: (AssetData) -> [ContextMenuItemType]
     let onSelect: (Asset) -> Void
 
     var body: some View {
         ForEach(items) { assetData in
             NavigationCustomLink(
-                with: ListAssetItemView(
-                    model: ListAssetItemViewModel(
-                        showBalancePrivacy: .constant(false),
-                        assetData: assetData,
-                        formatter: .short,
-                        currency: currency,
-                        row: row,
-                    ),
-                )
-                .contextMenu(contextMenuItems(assetData)),
+                with: ListAssetItemView(model: itemsModel.item(assetData))
+                    .contextMenu(contextMenuItems(assetData)),
                 action: { onSelect(assetData.asset) },
             )
         }

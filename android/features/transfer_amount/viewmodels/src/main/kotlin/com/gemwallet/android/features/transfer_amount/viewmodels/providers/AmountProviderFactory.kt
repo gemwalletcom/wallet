@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
+import uniffi.gemstone.GemStakeServiceInterface
 import android.content.Context
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.perpetual.cases.GetPerpetual
@@ -25,6 +26,7 @@ class AmountProviderFactory @Inject constructor(
     private val getPerpetualBalance: GetPerpetualBalance,
     private val getSession: GetSession,
     private val service: GemAmountServiceInterface,
+    private val stakeService: GemStakeServiceInterface,
     @param:ApplicationContext private val context: Context,
 ) {
     fun create(params: AmountParams, scope: CoroutineScope): AmountDataProvider = when (params) {
@@ -44,6 +46,7 @@ class AmountProviderFactory @Inject constructor(
             getStakeValidator = getStakeValidator,
             getValidators = getValidators,
             service = service,
+            stakeService = stakeService,
             scope = scope,
         )
         is AmountParams.Earn -> AmountEarnProvider(

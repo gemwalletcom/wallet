@@ -68,7 +68,7 @@ struct PreferencesViewModelTests {
         let model = PreferencesViewModel.mock(settings: settings)
         model.isPerpetualEnabled = false
 
-        _ = model.state
+        _ = model.sections
 
         #expect(settings.perpetualsEnabledCalls.last == false)
     }
