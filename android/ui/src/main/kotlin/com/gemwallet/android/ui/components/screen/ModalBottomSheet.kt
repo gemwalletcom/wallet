@@ -3,6 +3,7 @@ package com.gemwallet.android.ui.components.screen
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.displayCutout
@@ -83,6 +84,7 @@ fun ModalBottomSheet(
     shape: Shape = RoundedCornerShape(topStart = SheetSizing.cornerSize, topEnd = SheetSizing.cornerSize),
     title: String? = null,
     dismissType: DialogBarDismissType = DialogBarDismissType.Close,
+    actions: @Composable RowScope.() -> Unit = {},
     dragHandle: (@Composable () -> Unit)? = { Box { Spacer16() } },
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -123,7 +125,7 @@ fun ModalBottomSheet(
                 else -> sheetWindowInsets(WindowInsets())
             }
         },
-        content = { SheetContent(sheetState, onDismissRequest, title, dismissType, content) },
+        content = { SheetContent(sheetState, onDismissRequest, title, dismissType, actions, content) },
     )
 }
 
@@ -141,6 +143,7 @@ private fun ColumnScope.SheetContent(
     onDismissRequest: () -> Unit,
     title: String?,
     dismissType: DialogBarDismissType,
+    actions: @Composable RowScope.() -> Unit,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
@@ -151,7 +154,7 @@ private fun ColumnScope.SheetContent(
         }
     }
     if (title != null) {
-        DialogBar(onDismissRequest = onDismissRequest, title = title, dismissType = dismissType)
+        DialogBar(onDismissRequest = onDismissRequest, title = title, dismissType = dismissType, actions = actions)
     }
     content()
 }

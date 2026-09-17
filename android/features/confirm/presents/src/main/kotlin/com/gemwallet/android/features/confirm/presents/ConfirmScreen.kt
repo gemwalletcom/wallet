@@ -14,6 +14,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,7 +46,10 @@ import com.gemwallet.android.ui.components.WebView
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_head.AmountListHead
+import com.gemwallet.android.ui.components.InfoBottomSheet
+import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.list_head.AssetValueListHead
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.components.list_head.NftHead
 import com.gemwallet.android.ui.components.list_head.SwapListHead
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -117,6 +122,7 @@ fun ConfirmScreen(
 
     var showSelectTxSpeed by remember { mutableStateOf(false) }
     var showSimulationDetails by remember { mutableStateOf(false) }
+    var isVerificationInfoVisible by remember { mutableStateOf(false) }
     var selectedDetailElement by remember(input) { mutableStateOf<ConfirmDetailElement?>(null) }
     var isShowedBroadcastError by remember(executeErrorText) { mutableStateOf(executeErrorText != null) }
     val isShowBottomSheetInfo by viewModel.isNetworkFeeSheetVisible.collectAsStateWithLifecycle()
@@ -309,6 +315,11 @@ fun ConfirmScreen(
             onDismissRequest = viewModel::dismissVerification,
             expansion = SheetExpansion.Full,
             title = stringResource(R.string.info_payment_verification_title),
+            actions = {
+                IconButton(onClick = { isVerificationInfoVisible = true }) {
+                    Icon(AppIcons.InfoOutlined, contentDescription = null)
+                }
+            },
         ) {
             verification?.let {
                 WebView(
@@ -318,6 +329,11 @@ fun ConfirmScreen(
                 )
             }
         }
+
+        InfoBottomSheet(
+            item = InfoSheetEntity.PaymentVerificationInfo.takeIf { isVerificationInfoVisible },
+            onClose = { isVerificationInfoVisible = false },
+        )
     }
 
     if (isShowedBroadcastError) {
