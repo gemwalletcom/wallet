@@ -39,10 +39,6 @@ impl GemSlippageSession {
 
 #[uniffi::export]
 impl GemSlippageSession {
-    pub fn on_auto(&self, is_auto: bool) -> Self {
-        Self { is_auto, ..self.clone() }
-    }
-
     pub fn view_state(&self) -> GemSlippageViewState {
         let config = get_swap_config();
         let check = rules::slippage_check(self.bps, &config);
@@ -77,8 +73,9 @@ mod tests {
         });
 
         assert!(!above_maximum.view_state().allows_confirm);
-        assert!(above_maximum.on_auto(true).view_state().allows_confirm, "auto does not read the input");
-        assert!(!above_maximum.on_auto(true).view_state().shows_warning);
+        let auto = GemSlippageSession::new(GemSlippageSelection::Auto);
+        assert!(auto.view_state().allows_confirm, "auto does not read the input");
+        assert!(!auto.view_state().shows_warning);
     }
 
     #[test]

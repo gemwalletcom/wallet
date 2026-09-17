@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
+import uniffi.gemstone.GemApplicationMetadataServiceInterface
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -47,6 +48,7 @@ import uniffi.gemstone.GemWalletConnectSessionRequest
 @HiltViewModel
 class WCRequestViewModel @Inject constructor(
     private val service: GemWalletConnectServiceInterface,
+    private val metadataService: GemApplicationMetadataServiceInterface,
     private val signMessageService: GemSignMessageServiceInterface,
     private val respondWalletConnectRequest: RespondWalletConnectRequest,
     private val pendingRequests: WalletConnectPendingRequests,
@@ -171,7 +173,7 @@ class WCRequestViewModel @Inject constructor(
     }
 
     private fun toRequest(pending: WalletConnectPendingRequest): WCRequest {
-        val row = service.connectionRow(pending.appMetadata.toGem())
+        val row = metadataService.connectionRow(pending.appMetadata.toGem())
         return when (pending) {
             is WalletConnectPendingRequest.SignMessage -> WCRequest.SignMessage(pending, row, signMessageService, ReviewTexts(context), context)
             is WalletConnectPendingRequest.Transaction -> WCRequest.Transaction(pending, row)

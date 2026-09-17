@@ -40,9 +40,6 @@ class PreferencesViewModelTest {
     private val userConfig = mockk<UserConfig>(relaxed = true) {
         every { isPerpetualEnabled() } returns perpetualEnabled
         every { appearance() } returns MutableStateFlow(Appearance.System)
-        every { perpetualLeverage() } returns MutableStateFlow(2)
-        every { perpetualTakeProfit() } returns MutableStateFlow(25)
-        every { perpetualStopLoss() } returns MutableStateFlow(10)
     }
     private val getCurrentCurrency = object : GetCurrentCurrency {
         override fun getCurrency() = currency

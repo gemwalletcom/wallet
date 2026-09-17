@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use primitives::{Account, AddressFormatStyle, BlockExplorerLink, Chain, NFTAssetData, NFTAttribute, NFTAttributeType, NFTData, VerificationStatus, Wallet, WalletType};
+use primitives::{AddressFormatStyle, BlockExplorerLink, Chain, NFTAssetData, NFTAttribute, NFTAttributeType, NFTData, VerificationStatus, WalletType};
 
 use super::model::{
     GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleIdentifier, GemCollectibleRow, GemCollectibleSection, GemNftItem, GemNftList,
@@ -7,7 +7,6 @@ use super::model::{
 };
 use crate::address_formatter::format_address;
 use crate::config::chain::supports_nft_transfer;
-use crate::services::chain::rules::chain_matches_query;
 
 const TOKEN_ID_ADDRESS_LENGTH: usize = 16;
 
@@ -106,15 +105,6 @@ fn sorted_collections(data: Vec<NFTData>) -> Vec<NFTData> {
 
 pub fn nft_chains() -> Vec<Chain> {
     Chain::all().into_iter().filter(Chain::is_nft_supported).collect()
-}
-
-pub fn receive_accounts(wallet: &Wallet, query: &str) -> Vec<Account> {
-    wallet
-        .accounts
-        .iter()
-        .filter(|account| account.chain.is_nft_supported() && chain_matches_query(account.chain, query))
-        .cloned()
-        .collect()
 }
 
 pub fn can_send(wallet_type: &WalletType, chain: Chain, is_owned: bool) -> bool {
@@ -230,14 +220,6 @@ mod tests {
         assert_eq!(asset.count, None, "one asset is not a count");
         assert_eq!(asset.image_url, data.assets[0].images.preview.url);
         assert!(asset.is_verified, "an asset takes the verification of its collection");
-    }
-
-    #[test]
-    fn test_receive_accounts_keeps_nft_chains_matching_the_query() {
-        let wallet = Wallet::mock_with_accounts(Account::mock_chains(&[Chain::Ethereum, Chain::Bitcoin, Chain::Solana], "address"));
-        let chains = |query: &str| receive_accounts(&wallet, query).into_iter().map(|account| account.chain).collect::<Vec<_>>();
-        assert_eq!(chains(""), vec![Chain::Ethereum, Chain::Solana]);
-        assert_eq!(chains("sol"), vec![Chain::Solana]);
     }
 
     #[test]

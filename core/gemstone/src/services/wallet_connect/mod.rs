@@ -16,7 +16,7 @@ use primitives::{
     Account, ApplicationMetadata, Chain, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus, WalletId,
 };
 
-use crate::application::{GemApplicationMetadataService, GemConnectionRow};
+use crate::application::GemApplicationMetadataService;
 use crate::message::sign_type::SignMessage;
 use crate::services::assets::GemAssetsService;
 use crate::services::error::GemServiceError;
@@ -152,10 +152,6 @@ impl GemWalletConnectService {
             },
             verification_status,
         })
-    }
-
-    pub fn connection_row(&self, metadata: ApplicationMetadata) -> GemConnectionRow {
-        self.metadata.connection_row(metadata)
     }
 
     pub fn connection_sections(&self, connections: Vec<WalletConnection>) -> Vec<GemConnectionSection> {

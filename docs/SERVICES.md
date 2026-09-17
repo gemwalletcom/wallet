@@ -51,7 +51,7 @@ Everything that decides belongs in a pure function or receiver method with a tes
 
 A constructible service is **not** a licence to hold one at file scope. `private let addressService = GemAddressService()` or `private val assetConfig = GemAssetConfigService()` above a value-type extension is a hidden global: nothing can substitute it, and the extension reaches outward instead of receiving what it needs. A mocked Core rule is a premise, not a check, so its real mutation-checked test remains with its owning Core implementation; app tests assert only mapping, wiring and state.
 
-The narrow exception is a dependency-free FFI transport adapter for a type whose receiver methods cannot cross the boundary. `GemSimulationFormatter`, `PriceAlertFormatter` and the config lookup `GemChainService` inside `NetworkSelectorViewModel` may be constructed locally; they have no state, I/O or substitutable dependency. Keep the adapter cohesive and do not create one object per method.
+The narrow exception is a dependency-free rule object: a constructor that takes no argument over a body with no state, I/O or substitutable dependency. `GemSimulationFormatter`, `PriceAlertFormatter`, `GemAddressService`, `GemAssetConfigService`, `GemChainService`, `GemConnectionService` and `GemApplicationMetadataService` are that shape; iOS holds each once as `.shared` and Android once as a Hilt singleton in the rules module, and a test substitutes nothing because there is nothing to substitute. Keep the object cohesive and do not create one per method.
 
 ### 2. Pick the store the value belongs in
 

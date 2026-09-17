@@ -178,7 +178,7 @@ fun GemAddressServiceInterface.formatShort(addresses: List<ChainAddress>): List<
 
 fun GemAmountInputType.amountSymbol(assetSymbol: String, currency: Currency): AmountSymbolUIModel = when (this) {
     GemAmountInputType.ASSET -> AmountSymbolUIModel(assetSymbol, AmountSymbolPlacement.Trailing)
-    GemAmountInputType.FIAT -> AmountSymbolUIModel(android.icu.util.Currency.getInstance(currency.string).symbol, AmountSymbolPlacement.Leading)
+    GemAmountInputType.FIAT -> AmountSymbolUIModel(java.util.Currency.getInstance(currency.string).symbol, AmountSymbolPlacement.Leading)
 }
 
 fun GemBannerIcon.image(): ListItemImage = when (this) {

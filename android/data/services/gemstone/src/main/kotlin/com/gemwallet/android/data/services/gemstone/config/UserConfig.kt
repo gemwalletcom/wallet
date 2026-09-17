@@ -88,40 +88,12 @@ class UserConfig(
         appearanceState.value = preferencesService.getAppearance().toPrimitives()
     }
 
-    private val perpetualLeverageState = MutableStateFlow(preferencesService.getPerpetualLeverage().toInt())
-    private val perpetualTakeProfitState = MutableStateFlow(preferencesService.getPerpetualTakeProfitPercent().toInt())
-    private val perpetualStopLossState = MutableStateFlow(preferencesService.getPerpetualStopLossPercent().toInt())
-
-    fun perpetualLeverage(): StateFlow<Int> = perpetualLeverageState
-
-    fun setPerpetualLeverage(value: Int) {
-        preferencesService.setPerpetualLeverage(value.toUByte())
-        perpetualLeverageState.value = preferencesService.getPerpetualLeverage().toInt()
-    }
-
-    fun perpetualTakeProfit(): StateFlow<Int> = perpetualTakeProfitState
-
-    fun setPerpetualTakeProfit(value: Int) {
-        preferencesService.setPerpetualTakeProfitPercent(value.toUByte())
-        perpetualTakeProfitState.value = preferencesService.getPerpetualTakeProfitPercent().toInt()
-    }
-
-    fun perpetualStopLoss(): StateFlow<Int> = perpetualStopLossState
-
-    fun setPerpetualStopLoss(value: Int) {
-        preferencesService.setPerpetualStopLossPercent(value.toUByte())
-        perpetualStopLossState.value = preferencesService.getPerpetualStopLossPercent().toInt()
-    }
-
     fun reload() {
         hideBalancesState.value = preferencesService.isHideBalanceEnabled()
         perpetualEnabledState.value = preferencesService.isPerpetualEnabled()
         appearanceState.value = preferencesService.getAppearance().toPrimitives()
         termsAcceptedState.value = preferencesService.isAcceptTermsCompleted()
         askNotificationsState.value = preferencesService.shouldAskNotifications()
-        perpetualLeverageState.value = preferencesService.getPerpetualLeverage().toInt()
-        perpetualTakeProfitState.value = preferencesService.getPerpetualTakeProfitPercent().toInt()
-        perpetualStopLossState.value = preferencesService.getPerpetualStopLossPercent().toInt()
     }
 
     fun getLockInterval(): Flow<Int> = lockIntervalState.onStart { migrateLockInterval() }

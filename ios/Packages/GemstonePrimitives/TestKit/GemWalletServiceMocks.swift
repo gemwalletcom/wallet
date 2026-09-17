@@ -116,24 +116,6 @@ public final class GemPreferencesServiceMock: GemPreferencesServiceProtocol, @un
         self.appearance = appearance
     }
 
-    public func getPerpetualLeverage() -> UInt8 {
-        5
-    }
-
-    public func setPerpetualLeverage(leverage _: UInt8) throws {}
-
-    public func getPerpetualTakeProfitPercent() -> UInt8 {
-        0
-    }
-
-    public func setPerpetualTakeProfitPercent(percent _: UInt8) throws {}
-
-    public func getPerpetualStopLossPercent() -> UInt8 {
-        0
-    }
-
-    public func setPerpetualStopLossPercent(percent _: UInt8) throws {}
-
     public func incrementLaunchesCount() throws -> UInt32 {
         1
     }

@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
+import uniffi.gemstone.GemApplicationMetadataServiceInterface
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -53,6 +54,7 @@ class ProposalSceneViewModel @Inject constructor(
     private val prepareSessionProposal: PrepareSessionProposal,
     private val activeRequest: ActiveWalletConnectRequest,
     private val walletConnectService: GemWalletConnectServiceInterface,
+    private val metadataService: GemApplicationMetadataServiceInterface,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
@@ -62,7 +64,7 @@ class ProposalSceneViewModel @Inject constructor(
     private val _proposal = MutableStateFlow<WalletConnectSessionProposal?>(null)
     private val _sessionProposal = MutableStateFlow<WalletConnectionSessionProposal?>(null)
 
-    val proposal = _sessionProposal.map { proposal -> proposal?.metadata?.let { walletConnectService.connectionRow(it.toGem()) } }
+    val proposal = _sessionProposal.map { proposal -> proposal?.metadata?.let { metadataService.connectionRow(it.toGem()) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val peerHead: StateFlow<ConnectionHeadUIModel?> = proposal.map { it?.headUIModel() }

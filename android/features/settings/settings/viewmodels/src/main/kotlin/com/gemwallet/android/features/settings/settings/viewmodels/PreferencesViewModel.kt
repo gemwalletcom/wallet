@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.settings.settings.viewmodels
 
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.MutableStateFlow
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -40,7 +42,9 @@ class PreferencesViewModel @Inject constructor(
 
     private val currency = getCurrentCurrency.getCurrency()
 
-    private val state = combine(currency, isPerpetualEnabled) { currency, perpetualEnabled ->
+    private val refresh = MutableStateFlow(0)
+
+    private val state = combine(currency, isPerpetualEnabled, refresh) { currency, perpetualEnabled, _ ->
         settingsService.preferences(currency.toGem(), perpetualEnabled)
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, settingsService.preferences(currency.value.toGem(), false))
@@ -52,27 +56,12 @@ class PreferencesViewModel @Inject constructor(
         userConfig.setAppearance(appearance)
     }
 
-    private val perpetualLeverage = userConfig.perpetualLeverage()
 
     fun setPerpetualEnabled(enabled: Boolean) = viewModelScope.launch(Dispatchers.IO) {
         userConfig.setPerpetualEnabled(enabled)
     }
 
-    private fun setPerpetualLeverage(value: Int) = viewModelScope.launch(Dispatchers.IO) {
-        userConfig.setPerpetualLeverage(value)
-    }
 
-    private val perpetualTakeProfit = userConfig.perpetualTakeProfit()
-
-    private fun setPerpetualTakeProfit(value: Int) = viewModelScope.launch(Dispatchers.IO) {
-        userConfig.setPerpetualTakeProfit(value)
-    }
-
-    private val perpetualStopLoss = userConfig.perpetualStopLoss()
-
-    private fun setPerpetualStopLoss(value: Int) = viewModelScope.launch(Dispatchers.IO) {
-        userConfig.setPerpetualStopLoss(value)
-    }
 
     private val perpetualOptions = GemPerpetual(PerpetualProvider.HYPERCORE).use { perpetual ->
         PerpetualOptions(
@@ -82,18 +71,29 @@ class PreferencesViewModel @Inject constructor(
         )
     }
 
-    private val perpetualValues = combine(isPerpetualEnabled, perpetualLeverage, perpetualTakeProfit, perpetualStopLoss) { enabled, leverage, takeProfit, stopLoss ->
-        PerpetualValues(enabled, leverage, takeProfit, stopLoss)
+    private val perpetualValues = combine(isPerpetualEnabled, state) { enabled, state ->
+        PerpetualValues(
+            enabled,
+            state.perpetualDefaults.leverage.toInt(),
+            state.perpetualDefaults.takeProfitPercent.toInt(),
+            state.perpetualDefaults.stopLossPercent.toInt(),
+        )
     }
 
     val rows = combine(state, appearance, perpetualValues) { state, appearance, perpetual ->
         state.sections.map { section -> section.rows.map { it.uiModel(context, state, appearance, perpetual, perpetualOptions) } }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    fun setPerpetualOption(setting: PerpetualSetting, value: Int) = when (setting) {
-        PerpetualSetting.Leverage -> setPerpetualLeverage(value)
-        PerpetualSetting.TakeProfit -> setPerpetualTakeProfit(value)
-        PerpetualSetting.StopLoss -> setPerpetualStopLoss(value)
+    fun setPerpetualOption(setting: PerpetualSetting, value: Int) = viewModelScope.launch(Dispatchers.IO) {
+        val defaults = state.value.perpetualDefaults
+        settingsService.setPerpetualDefaults(
+            when (setting) {
+                PerpetualSetting.Leverage -> defaults.copy(leverage = value.toUByte())
+                PerpetualSetting.TakeProfit -> defaults.copy(takeProfitPercent = value.toUByte())
+                PerpetualSetting.StopLoss -> defaults.copy(stopLossPercent = value.toUByte())
+            },
+        )
+        refresh.update { it + 1 }
     }
 
     private fun autocloseLabel(percent: UByte?): String = percent?.let { "$it%" } ?: context.getString(R.string.common_none)

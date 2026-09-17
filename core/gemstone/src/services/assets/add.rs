@@ -6,7 +6,6 @@ use super::rules;
 use crate::address::checksum_address;
 use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
-use crate::services::chain::rules::matching_chains;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use primitives::BlockExplorerLink;
@@ -163,10 +162,6 @@ impl GemAddAssetService {
 
     pub fn default_chain(&self, chains: Vec<Chain>) -> Option<Chain> {
         rules::default_token_chain(&chains)
-    }
-
-    pub fn matching_chains(&self, chains: Vec<Chain>, query: String) -> Vec<Chain> {
-        matching_chains(chains, &query)
     }
 
     pub fn token_url(&self, chain: Chain, token_id: String) -> Option<BlockExplorerLink> {

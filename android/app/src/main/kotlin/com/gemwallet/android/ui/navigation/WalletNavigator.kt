@@ -61,7 +61,7 @@ import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
 import com.gemwallet.android.ui.navigation.routes.PortfolioChartRoute
 import com.gemwallet.android.ui.navigation.routes.PreferencesRoute
 import com.gemwallet.android.ui.navigation.routes.PriceAlertsRoute
-import com.gemwallet.android.ui.navigation.routes.ReceiveNftChainsRoute
+import com.gemwallet.android.ui.navigation.routes.ReceiveCollectionRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveSelectRoute
 import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute
@@ -238,7 +238,7 @@ class WalletNavigator(
     fun openDelegation(validatorId: String, delegationId: String) = push(DelegationRoute(validatorId, delegationId))
     fun openReceive() = push(ReceiveSelectRoute)
     fun openReceive(assetId: AssetId) = push(ReceiveRoute(assetId))
-    fun openReceiveNftChains() = push(ReceiveNftChainsRoute)
+    fun openReceiveCollection() = push(ReceiveCollectionRoute)
     fun openRecipient(payment: GemPaymentRecipient? = null, chains: List<Chain> = emptyList()) = push(SendSelectRoute(payment, chains))
     fun openRecipient(assetId: AssetId, payment: GemPaymentRecipient? = null) = push(RecipientInputRoute(assetId, nftAssetId = null, payment = payment))
     fun openNftRecipient(assetId: AssetId, nftAssetId: NFTAssetId) = push(RecipientInputRoute(assetId, nftAssetId.toIdentifier()))
