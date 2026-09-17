@@ -3888,7 +3888,7 @@ dependencies = [
  "serde_serializers",
  "settings",
  "signer",
- "sui-sdk-types",
+ "sui-sdk-types 0.3.2",
  "sui-transaction-builder",
  "tokio",
 ]
@@ -4066,7 +4066,7 @@ dependencies = [
  "signer",
  "simulation",
  "strum",
- "sui-sdk-types",
+ "sui-sdk-types 0.3.2",
  "support",
  "swapper",
  "tempfile",
@@ -8265,14 +8265,36 @@ dependencies = [
 ]
 
 [[package]]
-name = "sui-transaction-builder"
-version = "0.3.2"
+name = "sui-sdk-types"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "39697547ef9a6c03725dca449c33c3b47619b0a76ca5df827e4501944ebdaebb"
+checksum = "24c4cf4b8ba51ccb8c8f77405e6b50025ccfe174e06e09b0a542ccbc3f224af5"
+dependencies = [
+ "base64ct",
+ "bcs 0.1.6",
+ "blake2 0.10.6",
+ "bnum",
+ "bs58",
+ "bytes",
+ "bytestring",
+ "itertools 0.14.0",
+ "roaring",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "serde_with",
+ "winnow 0.7.15",
+]
+
+[[package]]
+name = "sui-transaction-builder"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "42f8aaa36f902d9db2ac5c1324333f04af3ba0ce101a0c8686864e6c7c2b8ccc"
 dependencies = [
  "bcs 0.1.6",
  "serde",
- "sui-sdk-types",
+ "sui-sdk-types 0.4.0",
  "thiserror 2.0.19",
 ]
 
@@ -8345,7 +8367,7 @@ dependencies = [
  "settings",
  "sha2 0.11.0",
  "strum",
- "sui-sdk-types",
+ "sui-sdk-types 0.3.2",
  "sui-transaction-builder",
  "tokio",
 ]
