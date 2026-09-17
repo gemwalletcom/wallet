@@ -45,6 +45,7 @@ Cross-platform subsystem references live in [docs/](docs). Read the relevant one
 - [Deep links](docs/DEEPLINKS.md) — deep link URL contract, support-chat links, and the web association requirements
 - [Device and subscriptions](docs/DEVICE_SUBSCRIPTIONS.md) — device registration, subscription sync, and the iOS/Android contract
 - [Payments](docs/PAYMENTS.md) — payment decoding flow, implementation map, and QR test cases
+- [WalletConnect Pay](docs/WALLETCONNECT_PAY.md) — payment links: gateway protocol, actions, identity verification, on-chain settlement, activity record and tracking
 - [Swapper](docs/SWAPPER.md) — quote flow, route preloading, and the shared route cache
 - [Dynode](docs/DYNODE.md) — local proxy usage and configuration
 
