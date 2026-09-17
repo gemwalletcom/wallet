@@ -73,17 +73,6 @@ mod tests {
 
     use super::*;
     use crate::services::transfer::testkit::MemoryRecentActivityStore;
-    use crate::services::wallet::testkit::MemoryWalletStore;
-    use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
-
-    fn service(store: Arc<MemoryRecentActivityStore>, wallet_id: Option<WalletId>) -> GemRecentActivityService {
-        let session = Arc::new(GemWalletSessionService::new(
-            Arc::new(MemoryWalletSessionStore::default()),
-            Arc::new(MemoryWalletStore::default()),
-        ));
-        session.set_current_wallet_id(wallet_id).unwrap();
-        GemRecentActivityService::new(store, session)
-    }
 
     #[test]
     fn test_add_recent_records_for_the_current_wallet_only() {
@@ -91,17 +80,17 @@ mod tests {
         let asset = Asset::from_chain(Chain::Ethereum);
         let wallet_id = WalletId::Multicoin("address".to_string());
 
-        block_on(service(store.clone(), Some(wallet_id.clone())).add_recent(GemAssetAction::Receive, asset.clone())).unwrap();
+        block_on(GemRecentActivityService::mock(store.clone(), Some(wallet_id.clone())).add_recent(GemAssetAction::Receive, asset.clone())).unwrap();
         assert_eq!(store.added.lock().unwrap()[0].1, wallet_id.clone());
-        block_on(service(store.clone(), Some(wallet_id)).add_recent(GemAssetAction::Send, asset.clone())).unwrap();
+        block_on(GemRecentActivityService::mock(store.clone(), Some(wallet_id)).add_recent(GemAssetAction::Send, asset.clone())).unwrap();
         assert_eq!(store.added.lock().unwrap().len(), 1);
-        assert!(block_on(service(store.clone(), None).add_recent(GemAssetAction::Receive, asset)).is_err());
+        assert!(block_on(GemRecentActivityService::mock(store.clone(), None).add_recent(GemAssetAction::Receive, asset)).is_err());
         assert_eq!(store.added.lock().unwrap().len(), 1);
     }
 
     #[test]
     fn test_a_view_state_matches_the_query_and_names_the_sections() {
-        let service = service(Arc::new(MemoryRecentActivityStore::default()), None);
+        let service = GemRecentActivityService::mock(Arc::new(MemoryRecentActivityStore::default()), None);
         let assets = vec![Asset::from_chain(Chain::Ethereum), Asset::from_chain(Chain::Bitcoin)];
 
         let listed = service.view_state(assets.clone(), String::new());
@@ -121,7 +110,7 @@ mod tests {
     #[test]
     fn test_an_input_type_without_recent_activity_writes_nothing() {
         let store = Arc::new(MemoryRecentActivityStore::default());
-        let service = service(store.clone(), None);
+        let service = GemRecentActivityService::mock(store.clone(), None);
         let asset = Asset::from_chain(Chain::Ethereum);
         let wallet_id = WalletId::Multicoin("address".to_string());
 
@@ -177,23 +166,19 @@ impl GemRecentsCounts {
 mod section_tests {
     use super::*;
 
-    fn sections(recents: u32, matching: u32, is_searching: bool) -> GemRecentsSections {
-        GemRecentsCounts { recents, matching }.sections(is_searching)
-    }
-
     #[test]
     fn test_a_search_that_matches_nothing_is_not_the_same_as_having_no_recents() {
-        let searched = sections(5, 0, true);
+        let searched = GemRecentsCounts { recents: 5, matching: 0 }.sections(true);
         assert!(searched.shows_no_results);
         assert!(!searched.shows_empty);
         assert!(!searched.shows_clear);
 
-        let none = sections(0, 0, false);
+        let none = GemRecentsCounts { recents: 0, matching: 0 }.sections(false);
         assert!(none.shows_empty);
         assert!(!none.shows_no_results);
         assert!(!none.shows_clear);
 
-        let listed = sections(5, 5, false);
+        let listed = GemRecentsCounts { recents: 5, matching: 5 }.sections(false);
         assert!(listed.shows_items);
         assert!(!listed.shows_empty);
     }

@@ -119,8 +119,8 @@ impl TryFrom<&Route> for PathKey {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::uniswap::routed_asset::{Protocol, base_pair};
     use crate::uniswap::swap_route::get_intermediaries;
-    use gem_evm::uniswap::path::get_base_pair;
     use primitives::EVMChain;
     use primitives::asset_constants::{ETHEREUM_UNI_TOKEN_ID, ETHEREUM_USDS_TOKEN_ID};
     use std::str::FromStr;
@@ -129,7 +129,7 @@ mod tests {
     fn test_get_intermediary_token() {
         let token_in = Address::from_str(ETHEREUM_UNI_TOKEN_ID).unwrap();
         let token_out = Address::from_str(ETHEREUM_USDS_TOKEN_ID).unwrap();
-        let base_pair = get_base_pair(&EVMChain::Ethereum, EVMChain::Ethereum.weth_contract()).unwrap();
+        let base_pair = base_pair(EVMChain::Ethereum, Protocol::V4).unwrap();
         let intermediaries = get_intermediaries(&token_in, &token_out, &base_pair);
         let fee_tiers = vec![FeeTier::FiveHundred, FeeTier::ThreeThousand];
         let quote_exact_params = build_quote_exact_params(1_000_000, &token_in, &token_out, &fee_tiers, &intermediaries);

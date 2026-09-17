@@ -58,7 +58,6 @@ common_token = رمز مميز
 common_expiration = انتهاء الصلاحية
 common_suspicious_address = عنوان مشبوه
 common_refresh = ينعش
-common_no_thanks = ًلا شكرا
 common_grant_permission = يعطي الأذن
 common_required_field = %@ مطلوب
 
@@ -165,7 +164,6 @@ transfer_freeze_title = تجميد
 transfer_unfreeze_title = إزالة التجميد
 transfer_review_request = طلب مراجعة
 transfer_amount = كمية
-transfer_amount_title = كمية
 
 # Settings
 
@@ -209,7 +207,6 @@ support_message_placeholder = رسالة
 
 # Errors
 
-errors_transfer = خطأ النقل: %@
 errors_validation = خطأ التحقق: %@
 errors_create_wallet = خطأ إنشاء المحفظة: %@
 errors_invalid_address_name = العنوان أو الاسم غير صالح
@@ -228,7 +225,6 @@ errors_cancelled = ملغى
 errors_connections_user_cancelled = تم إلغاء المستخدم
 errors_not_supported = غير مدعوم
 errors_permissions_not_granted = لم يتم منح الأذونات
-errors_decoding = خطأ في فك التشفير
 errors_unknown = مجهول
 errors_not_supported_qr = هذا الجهاز لا يدعم مسح رمز الاستجابة السريعة. يمكنك فقط تحديد صورة رمز الاستجابة السريعة من المكتبة.
 errors_camera_permissions_not_granted = لم يتم منح إذن الكاميرا. يرجى تمكين الوصول إلى الكاميرا في الإعدادات لمسح رمز الاستجابة السريعة.
@@ -239,11 +235,8 @@ errors_invalid_asset_address = عنوان %@ غير صالح
 errors_dust_threshold = فشلت المعاملة لأن المبلغ صغير جدًا بحيث لا يلبي الحد الأدنى لمتطلبات شبكة %@ (حد الغبار). يضمن هذا الحد أن قيمة المعاملة تغطي الرسوم وتكاليف المعالجة. زد المبلغ أو قلل الرسوم للمتابعة.
 errors_swap_no_quote_available = لا يوجد عرض سعر متاح.
 errors_swap_not_supported_asset = أصل غير مدعوم.
-errors_connections_invalid_send_parameters = تم توفير معلمات غير صالحة لإرسال المعاملة.
-errors_connections_invalid_sign_parameters = تم توفير معلمات غير صالحة للتوقيع.
 errors_connections_no_supported_wallets = لا تتوفر محافظ مدعومة.
 errors_connections_unsupported_chain = السلسلة المقدمة غير مدعومة.
-errors_connections_unsupported_method = الطريقة المطلوبة غير مدعومة.
 errors_swap_amount_too_small = المبلغ صغير جدًا
 errors_required = %@ مطلوب
 errors_scan_transaction_malicious_description = لا يمكن إكمال هذه المعاملة - عنوان المحفظة الوجهة مرتبط بنشاط مشبوه أو ضار.
@@ -255,7 +248,6 @@ errors_dust_threshold_short = تعتبر الشبكة هذه الكمية مجر
 errors_swap_minimum_amount = الحد الأدنى لمبلغ التداول هو %@. يرجى إدخال مبلغ أعلى.
 errors_perpetual_trigger_price_lower = يجب أن يكون سعر التفعيل أقل من سعر السوق
 errors_perpetual_trigger_price_higher = يجب أن يكون سعر التفعيل أعلى من سعر السوق
-errors_token_unable_fetch_token_information = غير قادر على جلب معلومات الرمز المميز: %@
 errors_unknown_try_again = حدث خطأ غير معروف. يرجى المحاولة مرة أخرى.
 errors_network_error = خطأ في الشبكة: %@
 errors_network_offline = يبدو أن الاتصال بالإنترنت غير متاح.
@@ -279,7 +271,6 @@ update_app_action = تحديث
 update_app_permission_title = السماح بالتثبيت
 update_app_permission_description = انتقل إلى الإعدادات واسمح بالتثبيت من مصادر خارجية
 update_app_permission_open_settings = انتقل إلى الإعدادات
-update_app_downloading = جارٍ التنزيل...
 
 # Transaction
 
@@ -483,8 +474,6 @@ banner_account_activation_title = رسوم تفعيل الحساب
 banner_account_activation_description = تتطلب شبكة %@ رسومًا لمرة واحدة قدرها %@.
 banner_stake_title = ابدأ تخزين %@
 banner_stake_description = احصل على مكافآت %@ على حصتك أثناء نومك.
-banner_enable_notifications_title = تمكين الإشعارات
-banner_enable_notifications_description = ابق على اطلاع بنشاط محفظتك.
 banner_activate_asset_description = لاستخدام الأصل %@ ، يجب عليك أولاً تمكينه على شبكة %@ من خلال استيفاء المتطلبات المحددة للشبكة.
 banner_asset_status_title = الأصول المشبوهة
 banner_asset_status_description = قد يكون الرمز غير آمن أو مضللاً. تابع فقط إذا كنت تثق به تمامًا.
@@ -690,8 +679,9 @@ perpetual_margin_isolated = معزول
 # Perpetuals
 
 perpetuals_title = العقود الدائمة
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = تداول العقود الدائمة
 perpetuals_markets = الأسواق
-perpetuals_empty_state_no_markets = لا أسواق
 perpetuals_empty_state_no_markets_found = لم يتم العثور على الأسواق
 
 # Rewards
@@ -763,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = مطلوب إذن الكاميرا لمسح رمز الاستجابة السريعة.\nيرجى منح الإذن.
 
 # Notifications Permission
 
-notifications_permission_request_notification = مطلوب إذن نشر الإشعارات للحصول على إشعارات حول المعاملات الجديدة.\nيرجى منح الإذن.
 
 # Confirm
 
-confirm_fee_error = خطأ في حساب الرسوم
 
 # Rootcheck
 

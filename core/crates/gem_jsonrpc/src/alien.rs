@@ -49,9 +49,13 @@ impl RpcClientError for AlienError {
 
 pub type RpcClient = GenericRpcClient<AlienError>;
 
-pub trait RpcProvider: GenericRpcProvider<Error = AlienError> {}
+pub trait RpcTransport: GenericRpcProvider<Error = AlienError> {}
 
-impl<T> RpcProvider for T where T: GenericRpcProvider<Error = AlienError> {}
+impl<T> RpcTransport for T where T: GenericRpcProvider<Error = AlienError> {}
+
+pub trait RpcProvider: RpcTransport {
+    fn get_endpoint(&self, chain: Chain) -> Result<String, AlienError>;
+}
 
 pub fn create_client(provider: Arc<dyn RpcProvider>, chain: Chain) -> Result<JsonRpcClient<RpcClient>, AlienError> {
     let endpoint = provider.get_endpoint(chain)?;

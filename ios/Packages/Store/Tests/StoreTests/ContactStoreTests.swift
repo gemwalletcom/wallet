@@ -10,98 +10,73 @@ import Testing
 struct ContactStoreTests {
     @Test
     func deleteAddressNamesRemovesContactName() throws {
-        let test = try setupTest(
-            chain: .bitcoin,
-            address: "bc1qml9s2f9k8wc0882x63lyplzp97srzg2c39fyaw",
-            addressType: .contact,
-        )
-        try test.addressStore.deleteAddressNames([test.addressName])
-        #expect(try test.addressStore.getAddressName(chain: test.chain, address: test.address) == nil)
+        let addressStore = AddressStore.mock(db: .mockWithChains([.bitcoin]))
+        let addressName = AddressName.mock(chain: .bitcoin, address: "bc1qml9s2f9k8wc0882x63lyplzp97srzg2c39fyaw", type: .contact)
+        try addressStore.addAddressNames([addressName])
+
+        try addressStore.deleteAddressNames([addressName])
+
+        #expect(try addressStore.getAddressName(chain: addressName.chain, address: addressName.address) == nil)
     }
 
     @Test
     func deleteAddressNamesPreservesOtherTypes() throws {
-        let test = try setupTest(
-            chain: .ethereum,
-            address: "0x2Df1c51E09aECF9cacB7bc98cB1742757f163dF7",
-            addressType: .contract,
-        )
-        try test.addressStore.deleteAddressNames([AddressName.mock(chain: test.chain, address: test.address, name: test.contact.name, type: .contact)])
-        #expect(try test.addressStore.getAddressName(chain: test.chain, address: test.address) == test.addressName)
+        let addressStore = AddressStore.mock(db: .mockWithChains([.ethereum]))
+        let addressName = AddressName.mock(chain: .ethereum, address: "0x2Df1c51E09aECF9cacB7bc98cB1742757f163dF7", type: .contract)
+        try addressStore.addAddressNames([addressName])
+
+        try addressStore.deleteAddressNames([.mock(chain: addressName.chain, address: addressName.address, type: .contact)])
+
+        #expect(try addressStore.getAddressName(chain: addressName.chain, address: addressName.address) == addressName)
     }
 
     @Test
     func updateAddressNamesRenamesContactName() throws {
-        let test = try setupTest(
-            chain: .bitcoin,
-            address: "bc1qml9s2f9k8wc0882x63lyplzp97srzg2c39fyaw",
-            addressType: .contact,
-        )
-        let renamed = AddressName.mock(chain: test.chain, address: test.address, name: "Bob", type: .contact)
+        let addressStore = AddressStore.mock(db: .mockWithChains([.bitcoin]))
+        let addressName = AddressName.mock(chain: .bitcoin, address: "bc1qml9s2f9k8wc0882x63lyplzp97srzg2c39fyaw", type: .contact)
+        try addressStore.addAddressNames([addressName])
+        let renamed = AddressName.mock(chain: addressName.chain, address: addressName.address, name: "Bob", type: .contact)
 
-        try test.addressStore.updateAddressNames([renamed])
+        try addressStore.updateAddressNames([renamed])
 
-        #expect(try test.addressStore.getAddressName(chain: test.chain, address: test.address) == renamed)
+        #expect(try addressStore.getAddressName(chain: addressName.chain, address: addressName.address) == renamed)
     }
 
     @Test
     func updateAddressNamesKeepsRemoteNamesFromRenamingContacts() throws {
-        let test = try setupTest(
-            chain: .bitcoin,
-            address: "bc1qml9s2f9k8wc0882x63lyplzp97srzg2c39fyaw",
-            addressType: .contact,
-        )
-        let remote = AddressName.mock(chain: test.chain, address: test.address, name: "Binance", type: .address)
+        let addressStore = AddressStore.mock(db: .mockWithChains([.bitcoin]))
+        let addressName = AddressName.mock(chain: .bitcoin, address: "bc1qml9s2f9k8wc0882x63lyplzp97srzg2c39fyaw", type: .contact)
+        try addressStore.addAddressNames([addressName])
+        let remote = AddressName.mock(chain: addressName.chain, address: addressName.address, name: "Binance", type: .address)
 
-        try test.addressStore.updateAddressNames([remote])
+        try addressStore.updateAddressNames([remote])
 
-        #expect(try test.addressStore.getAddressName(chain: test.chain, address: test.address) == test.addressName)
+        #expect(try addressStore.getAddressName(chain: addressName.chain, address: addressName.address) == addressName)
     }
 
     @Test
     func updateAddressNamesKeepsNamesReservedByAnotherLocalType() throws {
-        let test = try setupTest(
-            chain: .bitcoin,
-            address: "bc1qml9s2f9k8wc0882x63lyplzp97srzg2c39fyaw",
-            addressType: .internalWallet,
-        )
-        let contact = AddressName.mock(chain: test.chain, address: test.address, name: "Bob", type: .contact)
+        let addressStore = AddressStore.mock(db: .mockWithChains([.bitcoin]))
+        let addressName = AddressName.mock(chain: .bitcoin, address: "bc1qml9s2f9k8wc0882x63lyplzp97srzg2c39fyaw", type: .internalWallet)
+        try addressStore.addAddressNames([addressName])
+        let contact = AddressName.mock(chain: addressName.chain, address: addressName.address, name: "Bob", type: .contact)
 
-        try test.addressStore.updateAddressNames([contact])
+        try addressStore.updateAddressNames([contact])
 
-        #expect(try test.addressStore.getAddressName(chain: test.chain, address: test.address) == test.addressName)
+        #expect(try addressStore.getAddressName(chain: addressName.chain, address: addressName.address) == addressName)
     }
 
     @Test
     func updateContactDropsRemovedAddresses() throws {
-        let test = try setupTest(
-            chain: .bitcoin,
-            address: "bc1qml9s2f9k8wc0882x63lyplzp97srzg2c39fyaw",
-            addressType: .contact,
-        )
-        let addresses = try test.contactStore.getAddresses(contactId: test.contact.id)
-        #expect(addresses.map(\.address) == [test.address])
-
-        try test.contactStore.updateContact(test.contact, deleteAddressIds: addresses.map(\.id), addresses: [])
-        #expect(try test.contactStore.getAddresses(contactId: test.contact.id).isEmpty)
-    }
-
-    private func setupTest(
-        chain: Chain,
-        address: String,
-        addressType: AddressType,
-    ) throws -> (contactStore: ContactStore, addressStore: AddressStore, contact: Contact, chain: Chain, address: String, addressName: AddressName) {
-        let db = DB.mockWithChains([chain])
-        let contactStore = ContactStore(db: db)
-        let addressStore = AddressStore(db: db)
+        let contactStore = ContactStore.mock(db: .mockWithChains([.bitcoin]))
         let contact = Contact.mock()
-        let addressName = AddressName.mock(chain: chain, address: address, name: contact.name, type: addressType)
+        let address = ContactAddress.mock(contactId: contact.id, address: "bc1qml9s2f9k8wc0882x63lyplzp97srzg2c39fyaw", chain: .bitcoin)
+        try contactStore.addContact(contact, addresses: [address])
 
-        try contactStore.addContact(contact, addresses: [
-            .mock(contactId: contact.id, address: address, chain: chain),
-        ])
-        try addressStore.addAddressNames([addressName])
+        let addresses = try contactStore.getAddresses(contactId: contact.id)
+        #expect(addresses.map(\.address) == [address.address])
 
-        return (contactStore, addressStore, contact, chain, address, addressName)
+        try contactStore.updateContact(contact, deleteAddressIds: addresses.map(\.id), addresses: [])
+        #expect(try contactStore.getAddresses(contactId: contact.id).isEmpty)
     }
 }

@@ -2,6 +2,8 @@ pub mod keys;
 pub mod platform;
 pub mod rules;
 pub mod signer;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
@@ -74,10 +76,6 @@ impl GemDeviceService {
     pub async fn synchronize(&self) -> Result<Device, GemServiceError> {
         let _guard = self.sync_lock.lock().await;
         self.sync(self.current_device().await?).await
-    }
-
-    pub async fn is_registered(&self) -> Result<bool, GemServiceError> {
-        Ok(self.preferences.is_device_registered())
     }
 }
 

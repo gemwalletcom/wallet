@@ -31,7 +31,7 @@ enum WalletIdMigration {
         try deleteUnmappedInvalidWallets(db: db, mappedOldIds: Set(mappings.map(\.oldId)))
 
         if mappings.isEmpty {
-            cleanupOrphanedRecords(db: db)
+            try cleanupOrphanedRecords(db: db)
             return
         }
 
@@ -48,17 +48,18 @@ enum WalletIdMigration {
         for mapping in remainingMappings where mapping.oldId != mapping.newId {
             try db.execute(sql: "UPDATE \(WalletRecord.databaseTableName) SET externalId = id, id = ? WHERE id = ?", arguments: [mapping.newId, mapping.oldId])
 
-            for table in childTables {
-                try? db.execute(sql: "UPDATE \(table) SET walletId = ? WHERE walletId = ?", arguments: [mapping.newId, mapping.oldId])
+            for table in childTables where try db.tableExists(table) {
+                try db.execute(sql: "UPDATE \(table) SET walletId = ? WHERE walletId = ?", arguments: [mapping.newId, mapping.oldId])
             }
 
-            // Delete banners with old wallet IDs (their computed id won't match the stored id)
-            try? db.execute(sql: "DELETE FROM \(BannerRecord.databaseTableName) WHERE walletId = ?", arguments: [mapping.newId])
+            if try db.tableExists(BannerRecord.databaseTableName) {
+                try db.execute(sql: "DELETE FROM \(BannerRecord.databaseTableName) WHERE walletId = ?", arguments: [mapping.newId])
+            }
 
             migrateWalletPreferences(oldId: mapping.oldId, newId: mapping.newId)
         }
 
-        cleanupOrphanedRecords(db: db)
+        try cleanupOrphanedRecords(db: db)
 
         migrateCurrentWalletPreference(mappings: remainingMappings, userDefaults: userDefaults)
     }
@@ -72,24 +73,21 @@ enum WalletIdMigration {
     }
 
     private static func deleteWallet(db: Database, walletId: String) throws {
-        for table in childTables {
-            try? db.execute(sql: "DELETE FROM \(table) WHERE walletId = ?", arguments: [walletId])
+        for table in childTables where try db.tableExists(table) {
+            try db.execute(sql: "DELETE FROM \(table) WHERE walletId = ?", arguments: [walletId])
         }
         try db.execute(sql: "DELETE FROM \(WalletRecord.databaseTableName) WHERE id = ?", arguments: [walletId])
     }
 
-    private static func cleanupOrphanedRecords(db: Database) {
-        do {
-            let violations = try Row.fetchAll(db, sql: "PRAGMA foreign_key_check")
-            for violation in violations {
-                if let table = violation["table"] as? String,
-                   let rowid = violation["rowid"] as? Int64
-                {
-                    try? db.execute(sql: "DELETE FROM \(table) WHERE rowid = ?", arguments: [rowid])
-                }
+    private static func cleanupOrphanedRecords(db: Database) throws {
+        let violations = try Row.fetchAll(db, sql: "PRAGMA foreign_key_check")
+        for violation in violations {
+            guard let table = violation["table"] as? String,
+                  let rowid = violation["rowid"] as? Int64
+            else {
+                continue
             }
-        } catch {
-            // Silently continue if check fails
+            try db.execute(sql: "DELETE FROM \(table) WHERE rowid = ?", arguments: [rowid])
         }
     }
 

@@ -18,19 +18,20 @@ struct StakeSceneViewModelTests {
     func testLockTimeField() {
         let model = StakeSceneViewModel.mock(chain: .tron, stakeService: GemStakeServiceMock(lockTime: 1_209_600))
 
-        #expect(model.lockTimeField.value.text == "14 days")
+        #expect(model.infoField(for: .lockTime).value.text == "14 days")
     }
 
     @Test
     func minimumStakeAmount() {
         let model = StakeSceneViewModel.mock(chain: .tron, stakeService: GemStakeServiceMock(minStake: 1_000_000))
 
-        #expect(model.minAmountField?.value.text == "1 TRX")
+        #expect(model.infoField(for: .minimumAmount).value.text == "1 TRX")
+        #expect(model.infoRows.contains(.minimumAmount))
     }
 
     @Test
     func chainWithoutAMinimumHasNoField() {
-        #expect(StakeSceneViewModel.mock(chain: .tron).minAmountField == nil)
+        #expect(StakeSceneViewModel.mock(chain: .tron).infoRows.contains(.minimumAmount) == false)
     }
 
     @Test
@@ -38,8 +39,9 @@ struct StakeSceneViewModelTests {
         let tron = StakeSceneViewModel.mock(chain: .tron)
         tron.assetQuery.value = .mock(asset: Chain.tron.asset, balance: .mock(frozen: 1))
 
-        #expect(tron.isStakeEnabled == false)
-        #expect(tron.stakeInfoAction == nil)
+        let stake = tron.actions.first { $0.action == .stake }
+        #expect(stake?.isEnabled == false)
+        #expect(stake?.requiresFrozenBalance == false)
     }
 
 }

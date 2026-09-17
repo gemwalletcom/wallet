@@ -421,6 +421,15 @@ public extension Gemstone.Currency {
         case .myr: .myr
         case .aed: .aed
         case .sek: .sek
+        case .byn: .byn
+        case .kzt: .kzt
+        case .uzs: .uzs
+        case .egp: .egp
+        case .kes: .kes
+        case .cop: .cop
+        case .mad: .mad
+        case .ghs: .ghs
+        case .pen: .pen
         }
     }
 }
@@ -474,6 +483,15 @@ public extension Primitives.Currency {
         case .myr: .myr
         case .aed: .aed
         case .sek: .sek
+        case .byn: .byn
+        case .kzt: .kzt
+        case .uzs: .uzs
+        case .egp: .egp
+        case .kes: .kes
+        case .cop: .cop
+        case .mad: .mad
+        case .ghs: .ghs
+        case .pen: .pen
         }
     }
 }
@@ -1218,7 +1236,6 @@ public extension Gemstone.SwapProvider {
         case .mayan: .mayan
         case .chainflip: .chainflip
         case .nearIntents: .nearIntents
-        case .cetusAggregator: .cetusAggregator
         case .cetusClmm: .cetusClmm
         case .relay: .relay
         case .hyperliquid: .hyperliquid
@@ -1248,7 +1265,6 @@ public extension Primitives.SwapProvider {
         case .mayan: .mayan
         case .chainflip: .chainflip
         case .nearIntents: .nearIntents
-        case .cetusAggregator: .cetusAggregator
         case .cetusClmm: .cetusClmm
         case .relay: .relay
         case .hyperliquid: .hyperliquid

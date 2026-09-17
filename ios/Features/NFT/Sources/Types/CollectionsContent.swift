@@ -1,10 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Localization
+import Components
 import Foundation
 
 public struct CollectionsContent: Sendable {
     public let items: [GridPosterViewItem]
     public let unverifiedCount: String?
+
+    public var unverifiedListItem: ListItemModel? {
+        unverifiedCount.map { ListItemModel(title: Localized.Asset.Verification.unverified, subtitle: $0) }
+    }
 
     public var isEmpty: Bool {
         items.isEmpty && unverifiedCount == nil

@@ -289,6 +289,15 @@ fun uniffi.gemstone.Currency.toPrimitives(): com.wallet.core.primitives.Currency
     uniffi.gemstone.Currency.MYR -> com.wallet.core.primitives.Currency.MYR
     uniffi.gemstone.Currency.AED -> com.wallet.core.primitives.Currency.AED
     uniffi.gemstone.Currency.SEK -> com.wallet.core.primitives.Currency.SEK
+    uniffi.gemstone.Currency.BYN -> com.wallet.core.primitives.Currency.BYN
+    uniffi.gemstone.Currency.KZT -> com.wallet.core.primitives.Currency.KZT
+    uniffi.gemstone.Currency.UZS -> com.wallet.core.primitives.Currency.UZS
+    uniffi.gemstone.Currency.EGP -> com.wallet.core.primitives.Currency.EGP
+    uniffi.gemstone.Currency.KES -> com.wallet.core.primitives.Currency.KES
+    uniffi.gemstone.Currency.COP -> com.wallet.core.primitives.Currency.COP
+    uniffi.gemstone.Currency.MAD -> com.wallet.core.primitives.Currency.MAD
+    uniffi.gemstone.Currency.GHS -> com.wallet.core.primitives.Currency.GHS
+    uniffi.gemstone.Currency.PEN -> com.wallet.core.primitives.Currency.PEN
 }
 
 fun com.wallet.core.primitives.Currency.toGem(): uniffi.gemstone.Currency = when (this) {
@@ -338,6 +347,15 @@ fun com.wallet.core.primitives.Currency.toGem(): uniffi.gemstone.Currency = when
     com.wallet.core.primitives.Currency.MYR -> uniffi.gemstone.Currency.MYR
     com.wallet.core.primitives.Currency.AED -> uniffi.gemstone.Currency.AED
     com.wallet.core.primitives.Currency.SEK -> uniffi.gemstone.Currency.SEK
+    com.wallet.core.primitives.Currency.BYN -> uniffi.gemstone.Currency.BYN
+    com.wallet.core.primitives.Currency.KZT -> uniffi.gemstone.Currency.KZT
+    com.wallet.core.primitives.Currency.UZS -> uniffi.gemstone.Currency.UZS
+    com.wallet.core.primitives.Currency.EGP -> uniffi.gemstone.Currency.EGP
+    com.wallet.core.primitives.Currency.KES -> uniffi.gemstone.Currency.KES
+    com.wallet.core.primitives.Currency.COP -> uniffi.gemstone.Currency.COP
+    com.wallet.core.primitives.Currency.MAD -> uniffi.gemstone.Currency.MAD
+    com.wallet.core.primitives.Currency.GHS -> uniffi.gemstone.Currency.GHS
+    com.wallet.core.primitives.Currency.PEN -> uniffi.gemstone.Currency.PEN
 }
 
 fun uniffi.gemstone.DelegationState.toPrimitives(): com.wallet.core.primitives.DelegationState = when (this) {
@@ -830,7 +848,6 @@ fun uniffi.gemstone.SwapProvider.toPrimitives(): com.wallet.core.primitives.Swap
     uniffi.gemstone.SwapProvider.MAYAN -> com.wallet.core.primitives.SwapProvider.Mayan
     uniffi.gemstone.SwapProvider.CHAINFLIP -> com.wallet.core.primitives.SwapProvider.Chainflip
     uniffi.gemstone.SwapProvider.NEAR_INTENTS -> com.wallet.core.primitives.SwapProvider.NearIntents
-    uniffi.gemstone.SwapProvider.CETUS_AGGREGATOR -> com.wallet.core.primitives.SwapProvider.CetusAggregator
     uniffi.gemstone.SwapProvider.CETUS_CLMM -> com.wallet.core.primitives.SwapProvider.CetusClmm
     uniffi.gemstone.SwapProvider.RELAY -> com.wallet.core.primitives.SwapProvider.Relay
     uniffi.gemstone.SwapProvider.HYPERLIQUID -> com.wallet.core.primitives.SwapProvider.Hyperliquid
@@ -856,7 +873,6 @@ fun com.wallet.core.primitives.SwapProvider.toGem(): uniffi.gemstone.SwapProvide
     com.wallet.core.primitives.SwapProvider.Mayan -> uniffi.gemstone.SwapProvider.MAYAN
     com.wallet.core.primitives.SwapProvider.Chainflip -> uniffi.gemstone.SwapProvider.CHAINFLIP
     com.wallet.core.primitives.SwapProvider.NearIntents -> uniffi.gemstone.SwapProvider.NEAR_INTENTS
-    com.wallet.core.primitives.SwapProvider.CetusAggregator -> uniffi.gemstone.SwapProvider.CETUS_AGGREGATOR
     com.wallet.core.primitives.SwapProvider.CetusClmm -> uniffi.gemstone.SwapProvider.CETUS_CLMM
     com.wallet.core.primitives.SwapProvider.Relay -> uniffi.gemstone.SwapProvider.RELAY
     com.wallet.core.primitives.SwapProvider.Hyperliquid -> uniffi.gemstone.SwapProvider.HYPERLIQUID

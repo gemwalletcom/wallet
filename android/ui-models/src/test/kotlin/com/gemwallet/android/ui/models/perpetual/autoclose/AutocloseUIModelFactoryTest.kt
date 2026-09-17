@@ -4,7 +4,6 @@ import uniffi.gemstone.AutocloseValidation
 import com.gemwallet.android.testkit.mockAutocloseField
 import com.gemwallet.android.testkit.mockPerpetualPosition
 import com.gemwallet.android.testkit.mockPerpetualPositionData
-import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.TpslType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -24,9 +23,7 @@ class AutocloseUIModelFactoryTest {
     fun pnlSuppressedWhenFieldHasError() {
         val invalid = mockAutocloseField(TpslType.TakeProfit, price = 50.0, validation = AutocloseValidation.TRIGGER_MUST_BE_HIGHER)
         val model = AutocloseUIModelFactory.create(
-            position = mockPerpetualPositionData(
-                position = mockPerpetualPosition(direction = PerpetualDirection.Long, entryPrice = 100.0, leverage = 5u),
-            ),
+            position = mockPerpetualPositionData(),
             takeProfit = invalid,
             stopLoss = mockAutocloseField(TpslType.StopLoss),
             confirmEnabled = false,
@@ -38,18 +35,14 @@ class AutocloseUIModelFactoryTest {
     fun errorSuppressedUntilShowErrorsSet() {
         val invalidTakeProfit = mockAutocloseField(TpslType.TakeProfit, price = 50.0, validation = AutocloseValidation.TRIGGER_MUST_BE_HIGHER)
         val hidden = AutocloseUIModelFactory.create(
-            position = mockPerpetualPositionData(
-                position = mockPerpetualPosition(direction = PerpetualDirection.Long, entryPrice = 100.0, leverage = 5u),
-            ),
+            position = mockPerpetualPositionData(),
             takeProfit = invalidTakeProfit,
             stopLoss = mockAutocloseField(TpslType.StopLoss),
             confirmEnabled = false,
             showErrors = false,
         )
         val shown = AutocloseUIModelFactory.create(
-            position = mockPerpetualPositionData(
-                position = mockPerpetualPosition(direction = PerpetualDirection.Long, entryPrice = 100.0, leverage = 5u),
-            ),
+            position = mockPerpetualPositionData(),
             takeProfit = invalidTakeProfit,
             stopLoss = mockAutocloseField(TpslType.StopLoss),
             confirmEnabled = false,

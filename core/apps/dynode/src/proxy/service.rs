@@ -4,9 +4,11 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use gem_tracing::{DurationMs, info_with_fields};
+use primitives::{Chain, ValueAccess};
 use reqwest::Client;
 use reqwest::StatusCode;
 use reqwest::header::{CONTENT_TYPE, HeaderMap, HeaderName, HeaderValue};
+use serde_json::Value;
 use settings_chain::BroadcastProviders;
 
 use crate::BoxError;
@@ -69,7 +71,13 @@ impl ProxyRequestService {
         headers
     }
 
-    pub async fn handle_request(&self, request: &ProxyRequest, active_url: &Url, chain_config: &ChainConfig) -> Result<ProxyResponse, BoxError> {
+    pub async fn handle_request(
+        &self,
+        request: &ProxyRequest,
+        active_url: &Url,
+        chain_config: &ChainConfig,
+        broadcast_host: &mut Option<String>,
+    ) -> Result<ProxyResponse, BoxError> {
         let chain = request.chain;
         let request_type = request.request_type();
 
@@ -80,6 +88,9 @@ impl ProxyRequestService {
 
         let resolved_url = chain_config.resolve_url(active_url, rpc_method, Some(&request.path));
         let url = RequestUrl::from_parts(resolved_url, &request.path_with_query);
+        if request.is_broadcast(&self.broadcast_providers) {
+            *broadcast_host = url.url.host_str().map(str::to_owned);
+        }
         let headers = self.build_headers(&request.headers);
 
         let methods_for_metrics = request_type.get_methods_for_metrics();
@@ -145,9 +156,8 @@ impl ProxyRequestService {
             latency = DurationMs(request.elapsed()),
         );
 
-        if status == StatusCode::OK.as_u16()
-            && !body.is_empty()
-            && let (Some(ttl), Some(key)) = (cache_ttl, cache_key)
+        if let (Some(ttl), Some(key)) = (cache_ttl, cache_key)
+            && cacheable_response(chain, &request.path, status, &body)
         {
             let cache = self.cache.clone();
             let content_type = response_headers.get(CONTENT_TYPE).and_then(|value| value.to_str().ok()).unwrap_or(JSON_CONTENT_TYPE);
@@ -201,36 +211,62 @@ impl ProxyRequestService {
     }
 }
 
+fn cacheable_response(chain: Chain, path: &str, status: u16, body: &[u8]) -> bool {
+    if status != StatusCode::OK.as_u16() || body.is_empty() {
+        return false;
+    }
+    // TODO(2027-01-01): Remove v2 cache validation with Dynode legacy wallet routes.
+    if chain == Chain::Ton && path == "/api/v2/runGetMethod" {
+        return serde_json::from_slice::<Value>(body)
+            .is_ok_and(|response| response.get("ok") == Some(&Value::Bool(true)) && response.get_value("result").and_then(|result| result.get_i64("exit_code")) == Ok(0));
+    }
+    if chain == Chain::Ton && path == "/api/v3/runGetMethod" {
+        return serde_json::from_slice::<Value>(body).is_ok_and(|response| response.get_i64("exit_code") == Ok(0));
+    }
+    true
+}
+
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
-
     use primitives::Chain;
     use reqwest::header;
-    use settings_chain::BroadcastProviders;
 
     use super::*;
-    use crate::cache::RequestCache;
     use crate::config::HeadersConfig;
-    use crate::metrics::Metrics;
     use crate::proxy::constants::JSON_CONTENT_TYPE;
-    use crate::testkit::config::metrics_config;
 
-    fn create_service(headers_config: HeadersConfig) -> ProxyRequestService {
-        let metrics = Metrics::new(metrics_config());
-        ProxyRequestService::new(
-            metrics.clone(),
-            RequestCache::default(),
-            gem_client::reqwest_client(),
-            headers_config,
-            DynodeBroadcastWebhookClient::disabled(),
-            Arc::new(BroadcastProviders::from_chains([Chain::Ethereum])),
-        )
+    #[test]
+    fn test_cacheable_ton_get_method_requires_success() {
+        for (status, body, expected) in [
+            (200, r#"{"exit_code":0,"stack":[{"type":"cell","value":"result"}]}"#, true),
+            (200, r#"{"exit_code":-13,"stack":[]}"#, false),
+            (200, r#"{"exit_code":"0","stack":[]}"#, false),
+            (200, r#"{"error":"upstream error"}"#, false),
+            (200, "invalid JSON", false),
+            (200, "", false),
+            (429, r#"{"exit_code":0,"stack":[]}"#, false),
+        ] {
+            assert_eq!(cacheable_response(Chain::Ton, "/api/v3/runGetMethod", status, body.as_bytes()), expected);
+        }
+        assert!(cacheable_response(Chain::Tron, "/wallet/getchainparameters", 200, b"{}"));
+    }
+
+    #[test]
+    fn test_cacheable_ton_v2_get_method_requires_success() {
+        for (body, expected) in [
+            (r#"{"ok":true,"result":{"exit_code":0,"stack":[]}}"#, true),
+            (r#"{"ok":true,"result":{"exit_code":-13,"stack":[]}}"#, false),
+            (r#"{"ok":false,"result":{"exit_code":0,"stack":[]}}"#, false),
+            (r#"{"ok":false,"error":"upstream error"}"#, false),
+            (r#"{"exit_code":0,"stack":[]}"#, false),
+        ] {
+            assert_eq!(cacheable_response(Chain::Ton, "/api/v2/runGetMethod", 200, body.as_bytes()), expected);
+        }
     }
 
     #[test]
     fn test_build_headers_forwards_configured_headers() {
-        let service = create_service(HeadersConfig {
+        let service = ProxyRequestService::mock(HeadersConfig {
             forward: vec![header::CONTENT_TYPE.to_string(), header::USER_AGENT.to_string()],
         });
 
@@ -248,7 +284,7 @@ mod tests {
 
     #[test]
     fn test_build_headers_drops_unconfigured_headers() {
-        let service = create_service(HeadersConfig {
+        let service = ProxyRequestService::mock(HeadersConfig {
             forward: vec![header::CONTENT_TYPE.to_string()],
         });
 
@@ -264,7 +300,7 @@ mod tests {
 
     #[test]
     fn test_build_headers_forces_grpc_identity_encoding() {
-        let service = create_service(HeadersConfig {
+        let service = ProxyRequestService::mock(HeadersConfig {
             forward: vec![header::CONTENT_TYPE.to_string(), GRPC_ACCEPT_ENCODING.to_string()],
         });
 

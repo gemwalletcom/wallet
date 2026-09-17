@@ -5,7 +5,6 @@ import GemstoneServices
 import Components
 import Foundation
 import Localization
-import struct Gemstone.GemAssetRow
 import struct Gemstone.GemNetworkAssetCounts
 import struct Gemstone.GemNetworkAssetSections
 import Primitives
@@ -66,11 +65,15 @@ public final class NetworkAssetsSceneViewModel: AssetActions {
     }
 
     var pinned: [AssetData] {
-        active.filter { $0.metadata.isPinned }
+        activeSections.pinned
     }
 
     var unpinned: [AssetData] {
-        active.filter { !$0.metadata.isPinned }
+        activeSections.assets
+    }
+
+    private var activeSections: AssetsSections {
+        AssetsSections.from(active)
     }
 
     var hidden: [AssetData] {
@@ -134,8 +137,8 @@ extension NetworkAssetsSceneViewModel {
     func setAssetsEnabled(_ assetIds: [AssetId], enabled: Bool) async throws {
         try await service.setAssetsEnabled(assetIds: assetIds, enabled: enabled)
     }
-    var assetRow: GemAssetRow {
-        service.assetRow()
+    var assetItems: ListAssetItemsViewModel {
+        ListAssetItemsViewModel(currency: currency, row: service.assetRow())
     }
 
 }

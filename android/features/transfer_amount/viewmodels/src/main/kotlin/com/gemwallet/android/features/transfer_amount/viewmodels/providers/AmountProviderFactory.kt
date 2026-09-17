@@ -1,17 +1,19 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
+import android.content.Context
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.perpetual.cases.GetPerpetual
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
+import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegation
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
-import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.model.AmountParams
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import uniffi.gemstone.GemAmountServiceInterface
-import javax.inject.Inject
 
 class AmountProviderFactory @Inject constructor(
     private val getAssetInfo: GetAssetInfo,
@@ -23,6 +25,7 @@ class AmountProviderFactory @Inject constructor(
     private val getPerpetualBalance: GetPerpetualBalance,
     private val getSession: GetSession,
     private val service: GemAmountServiceInterface,
+    @param:ApplicationContext private val context: Context,
 ) {
     fun create(params: AmountParams, scope: CoroutineScope): AmountDataProvider = when (params) {
         is AmountParams.Transfer,
@@ -54,6 +57,7 @@ class AmountProviderFactory @Inject constructor(
         )
         is AmountParams.Perpetual -> AmountPerpetualProvider(
             params = params,
+            context = context,
             service = service,
             getAssetInfo = getAssetInfo,
             getPerpetual = getPerpetual,

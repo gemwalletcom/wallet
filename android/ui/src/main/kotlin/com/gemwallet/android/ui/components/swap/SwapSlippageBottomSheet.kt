@@ -1,6 +1,5 @@
 package com.gemwallet.android.ui.components.swap
 
-import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -30,18 +29,18 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.SuffixTextField
 import com.gemwallet.android.ui.components.SuggestionsBar
+import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
 import com.gemwallet.android.ui.components.list_item.SwitchProperty
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.swap.SwapSlippage
-import uniffi.gemstone.GemSlippageCheck
 import com.gemwallet.android.ui.theme.adaptivePadding
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.paddingSmall
-import uniffi.gemstone.GemSlippageSession
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,7 +48,7 @@ fun SwapSlippageBottomSheet(
     isVisible: Boolean,
     currentBps: UInt?,
     defaultBps: UInt?,
-    newSession: (UInt?) -> GemSlippageSession,
+    slippageState: (UInt?, Boolean) -> SlippageStateUIModel,
     slippageBps: (Double) -> UInt?,
     slippagePercent: (UInt) -> Double,
     onConfirm: (UInt?) -> Unit,
@@ -68,8 +67,7 @@ fun SwapSlippageBottomSheet(
         val focusRequester = remember { FocusRequester() }
 
         val bps = SwapSlippage.parseBps(input, slippageBps)
-        val state = remember(currentBps, isAuto, bps) { newSession(bps).onAuto(isAuto).viewState() }
-        val check = if (isAuto) null else state.check
+        val state = remember(currentBps, isAuto, bps) { slippageState(bps, isAuto) }
         val isConfirmEnabled = state.allowsConfirm
 
         val commit by rememberUpdatedState {
@@ -112,41 +110,25 @@ fun SwapSlippageBottomSheet(
                             .padding(start = paddingSmall),
                         value = input,
                         placeholder = defaultBps?.let { SwapSlippage.format(it, slippagePercent) }.orEmpty(),
-                        onValueChange = { input = SwapSlippage.sanitize(it, state) },
+                        onValueChange = { input = SwapSlippage.sanitize(it, state.maximumFractionDigits, state.maximumIntegerDigits) },
                         suffix = "%",
                         focusRequester = focusRequester,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     )
                 }
-                when (check) {
-                    GemSlippageCheck.ABOVE_MAXIMUM -> FooterText(
-                        text = stringResource(R.string.common_maximum_value, SwapSlippage.percentLabel(state.maximumBps, slippagePercent)),
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                    GemSlippageCheck.BELOW_MINIMUM -> FooterText(
-                        text = stringResource(R.string.common_minimum_value, SwapSlippage.percentLabel(state.minimumBps, slippagePercent)),
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                    GemSlippageCheck.HIGH -> FooterText(
-                        text = stringResource(R.string.swap_slippage_warning),
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                    GemSlippageCheck.VALID, null -> Unit
-                }
+                state.footerText?.let { FooterText(text = it, color = MaterialTheme.colorScheme.error) }
                 Spacer(modifier = Modifier.weight(1f))
                 SuggestionsBar(
-                    labels = state.suggestionsBps.map { SwapSlippage.percentLabel(it, slippagePercent) },
+                    labels = state.suggestions.map { it.label },
                     modifier = Modifier.padding(horizontal = paddingDefault, vertical = paddingSmall),
-                    onSelected = { index -> input = SwapSlippage.format(state.suggestionsBps[index], slippagePercent) },
+                    onSelected = { index -> input = SwapSlippage.format(state.suggestions[index].bps, slippagePercent) },
                 )
             }
         }
 
         LaunchedEffect(isAuto) {
             if (!isAuto) {
-                try {
-                    focusRequester.requestFocus()
-                } catch (_: Throwable) {}
+                focusRequester.requestFocusIfAttached()
             }
         }
     }

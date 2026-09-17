@@ -21,7 +21,8 @@ public struct AmountScene: View {
         @Bindable var model = model
         List {
             CurrencyInputValidationView(
-                model: $model.amountInputModel,
+                text: $model.amountInputModel.text,
+                error: model.amountInputModel.error,
                 config: model.inputConfig,
                 infoAction: model.infoAction(for:),
             )
@@ -83,21 +84,17 @@ public struct AmountScene: View {
                             }
                         }
                         .pickerStyle(.segmented)
-                        .frame(width: 200)
+                        .frame(width: Sizing.picker.segmentedWidth)
                         .onChange(of: resourceSelection.selected, model.onChangeResource)
                     }
                     .cleanListRow()
                 }
 
             case let .perpetual(perpetual):
-                if let leverageSelection = perpetual.leverageSelection {
+                if let leverageListItem = perpetual.leverageListItem {
                     Section {
                         NavigationCustomLink(
-                            with: ListItemView(
-                                title: leverageSelection.title,
-                                subtitle: leverageSelection.selected.displayText,
-                                subtitleStyle: perpetual.leverageTextStyle,
-                            ),
+                            with: ListItemView(model: leverageListItem),
                             action: model.onSelectLeverage,
                         )
                     }
@@ -106,11 +103,7 @@ public struct AmountScene: View {
                 if perpetual.isAutocloseEnabled {
                     Section {
                         NavigationCustomLink(
-                            with: ListItemView(
-                                title: perpetual.autocloseTitle,
-                                subtitle: perpetual.autocloseText.subtitle,
-                                subtitleExtra: perpetual.autocloseText.subtitleExtra,
-                            ),
+                            with: ListItemView(model: perpetual.autocloseListItem),
                             action: model.onSelectAutoclose,
                         )
                     }

@@ -59,20 +59,7 @@ impl StoreTransactionsConsumerConfig {
 mod tests {
     use super::*;
     use num_bigint::BigUint;
-    use primitives::{AssetId, Chain, DAY, HOUR, MINUTE, TransactionType, transaction_metadata_types::TransactionAssetTransfer};
-
-    impl StoreTransactionsConsumerConfig {
-        fn mock() -> Self {
-            Self {
-                swap_outdated_timeout: HOUR * 2,
-                outdated_block_count: 12,
-                outdated_min_timeout: MINUTE * 15,
-                max_asset_transfer_count: 10,
-                min_amount_usd: 0.01,
-                primary_price_max_age: DAY,
-            }
-        }
-    }
+    use primitives::{AssetId, Chain, TransactionType, transaction_metadata_types::TransactionAssetTransfer};
 
     #[test]
     fn test_is_transaction_outdated_positive() {
@@ -154,18 +141,9 @@ mod tests {
             to: "0xto".to_string(),
             value: BigUint::from(1u8),
         };
-        let transaction = |count| Transaction {
-            metadata: Some(
-                serde_json::to_value(TransactionAssetTransfersMetadata {
-                    asset_transfers: vec![transfer.clone(); count],
-                })
-                .unwrap(),
-            ),
-            ..Transaction::mock()
-        };
 
-        assert!(config.is_transaction_within_asset_transfer_limit(&transaction(10)));
-        assert!(!config.is_transaction_within_asset_transfer_limit(&transaction(11)));
+        assert!(config.is_transaction_within_asset_transfer_limit(&Transaction::mock_with_asset_transfers(vec![transfer.clone(); 10])));
+        assert!(!config.is_transaction_within_asset_transfer_limit(&Transaction::mock_with_asset_transfers(vec![transfer; 11])));
         assert!(config.is_transaction_within_asset_transfer_limit(&Transaction::mock()));
     }
 

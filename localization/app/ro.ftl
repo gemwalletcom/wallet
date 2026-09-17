@@ -58,7 +58,6 @@ common_token = Token
 common_expiration = Expirare
 common_suspicious_address = Adresă suspectă
 common_refresh = Reîmprospăta
-common_no_thanks = Nu, mulțumesc
 common_grant_permission = Acordați permisiunea
 common_required_field = %@ este necesar
 
@@ -165,7 +164,6 @@ transfer_freeze_title = Îngheață
 transfer_unfreeze_title = Dezghețare
 transfer_review_request = Cerere de revizuire
 transfer_amount = Suma
-transfer_amount_title = Suma
 
 # Settings
 
@@ -209,7 +207,6 @@ support_message_placeholder = Mesaj
 
 # Errors
 
-errors_transfer = Eroare de transfer: %@
 errors_validation = Eroare de validare: %@
 errors_create_wallet = Eroare la crearea portofelului: %@
 errors_invalid_address_name = Adresă sau nume nevalide
@@ -228,7 +225,6 @@ errors_cancelled = Anulat
 errors_connections_user_cancelled = Anulat de utilizator
 errors_not_supported = Nu este acceptat
 errors_permissions_not_granted = Permisiunile nu sunt acordate
-errors_decoding = Eroare de decodare
 errors_unknown = Necunoscut
 errors_not_supported_qr = Acest dispozitiv nu acceptă scanarea codurilor QR. Puteți selecta doar imaginea codului QR din bibliotecă.
 errors_camera_permissions_not_granted = Permisiunea camerei nu a fost acordată. Vă rugăm să activați accesul la cameră în setări pentru a scana codul QR.
@@ -239,11 +235,8 @@ errors_invalid_asset_address = Adresă %@ nevalidă
 errors_dust_threshold = Tranzacția a eșuat deoarece suma este prea mică pentru a îndeplini cerințele minime ale rețelei %@ (pragul de praf). Această limită asigură că valoarea tranzacției acoperă taxele și costurile de procesare.
 errors_swap_no_quote_available = Nu există nicio cotație disponibilă.
 errors_swap_not_supported_asset = Activ neacceptat.
-errors_connections_invalid_send_parameters = Parametri nevalidi furnizați pentru trimiterea unei tranzacții.
-errors_connections_invalid_sign_parameters = Parametrii nevalidi furnizați pentru semnare.
 errors_connections_no_supported_wallets = Nu sunt disponibile portofele acceptate.
 errors_connections_unsupported_chain = Lanțul furnizat nu este acceptat.
-errors_connections_unsupported_method = Metoda solicitată nu este acceptată.
 errors_swap_amount_too_small = Cantitate prea mică
 errors_required = %@ este obligatoriu
 errors_scan_transaction_malicious_description = Această tranzacție nu poate fi finalizată — adresa portofelului de destinație este legată de o activitate suspectă sau dăunătoare.
@@ -255,7 +248,6 @@ errors_dust_threshold_short = Rețeaua consideră această cantitate drept praf 
 errors_swap_minimum_amount = Suma minimă a tranzacției este %@. Vă rugăm să introduceți o sumă mai mare.
 errors_perpetual_trigger_price_lower = Prețul de declanșare trebuie să fie mai mic decât prețul pieței
 errors_perpetual_trigger_price_higher = Prețul de declanșare trebuie să fie mai mare decât prețul pieței
-errors_token_unable_fetch_token_information = Nu se pot prelua informații despre token: %@
 errors_unknown_try_again = A apărut o eroare necunoscută. Vă rugăm să încercați din nou.
 errors_network_error = Eroare de rețea: %@
 errors_network_offline = Conexiunea la internet pare să fie offline.
@@ -279,7 +271,6 @@ update_app_action = Actualizare
 update_app_permission_title = Permite instalarea
 update_app_permission_description = Accesați setările și permiteți instalarea din surse externe
 update_app_permission_open_settings = Accesați setările
-update_app_downloading = Se descarcă...
 
 # Transaction
 
@@ -483,8 +474,6 @@ banner_account_activation_title = Taxa de activare a contului
 banner_account_activation_description = Rețeaua %@ necesită o taxă unică de %@.
 banner_stake_title = Începeți miza %@
 banner_stake_description = Câștigă %@ recompense pe miza ta în timp ce dormi.
-banner_enable_notifications_title = Activați notificările
-banner_enable_notifications_description = Rămâneți la curent cu activitatea din portofel.
 banner_activate_asset_description = Pentru a utiliza activul %@, trebuie mai întâi să îl activați în rețeaua %@ îndeplinind cerințele specifice ale rețelei.
 banner_asset_status_title = Activ suspect
 banner_asset_status_description = Tokenul poate fi nesigur sau înșelător. Continuați doar dacă aveți deplină încredere în el.
@@ -690,8 +679,9 @@ perpetual_margin_isolated = Izolat
 # Perpetuals
 
 perpetuals_title = Perpetue
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = Tranzacționează perpetue
 perpetuals_markets = Piețele
-perpetuals_empty_state_no_markets = Fara piete
 perpetuals_empty_state_no_markets_found = Nu s-au găsit piețe
 
 # Rewards
@@ -763,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = Este necesară permisiunea camerei pentru scanarea codului QR.\nVă rugăm să acordați permisiunea.
 
 # Notifications Permission
 
-notifications_permission_request_notification = Este necesară permisiunea de a posta notificări pentru a primi notificări despre tranzacții noi.\nVă rugăm să acordați permisiunea.
 
 # Confirm
 
-confirm_fee_error = Eroare de calcul a taxei
 
 # Rootcheck
 

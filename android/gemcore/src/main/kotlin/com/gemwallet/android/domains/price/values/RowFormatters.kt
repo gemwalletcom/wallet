@@ -1,7 +1,7 @@
 package com.gemwallet.android.domains.price.values
 
 import com.gemwallet.android.domains.percentage.formatAsPercentage
-import com.gemwallet.android.domains.price.toValueDirection
+import com.gemwallet.android.domains.price.tone
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.Currency
@@ -22,7 +22,7 @@ class RowFormatters {
             changePercentage = change,
             valueFormatted = priceValue?.let { currency(currency).string(it) }.orEmpty(),
             changePercentageFormatted = change.formatAsPercentage(),
-            state = change.toValueDirection(),
+            state = change.tone(),
         )
     }
 }

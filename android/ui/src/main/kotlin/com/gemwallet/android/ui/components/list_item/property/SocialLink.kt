@@ -1,30 +1,25 @@
 package com.gemwallet.android.ui.components.list_item.property
 
+import android.content.Context
 import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.ListItemImage
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.stringRes
 import uniffi.gemstone.GemSocialLink
 import uniffi.gemstone.LinkType
 
-class SocialLinkUIModel(
-    val url: String,
-    @get:StringRes val label: Int,
-    @get:DrawableRes val icon: Int,
-    val host: String? = null,
-)
+data class LinkRowUIModel(val url: String, val model: ListItemModel)
 
-fun List<GemSocialLink>.toSocialLinks(): List<SocialLinkUIModel> = map { link ->
-    SocialLinkUIModel(
+fun List<GemSocialLink>.linkRows(context: Context): List<LinkRowUIModel> = map { link ->
+    LinkRowUIModel(
         url = link.url,
-        label = link.linkType.stringRes(),
-        icon = link.linkType.icon,
-        host = link.host,
+        model = ListItemModel(title = context.getString(link.linkType.stringRes()), subtitle = link.host, image = ListItemImage.Drawable(link.linkType.icon)),
     )
 }
 
 @get:DrawableRes
-private val LinkType.icon: Int
+val LinkType.icon: Int
     get() = when (this) {
         LinkType.X -> R.drawable.twitter
         LinkType.DISCORD -> R.drawable.discord

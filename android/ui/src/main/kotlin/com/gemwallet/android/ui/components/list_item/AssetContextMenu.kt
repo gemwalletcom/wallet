@@ -1,7 +1,5 @@
 package com.gemwallet.android.ui.components.list_item
 
-import com.gemwallet.android.ui.localization.stringRes
-import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material3.DropdownMenuItem
@@ -15,14 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.clipboard.setPlainText
-import com.gemwallet.android.ui.icons.AppIcons
 import com.wallet.core.primitives.AssetId
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import uniffi.gemstone.GemAssetMenuAction
-import uniffi.gemstone.GemAssetMenuInput
-import uniffi.gemstone.assetMenuActions
 
 @Immutable
 data class AssetContextActions(
@@ -38,13 +29,6 @@ data class AssetContextActions(
     }
 }
 
-@Immutable
-class AssetContextMenuItem(
-    @get:StringRes val titleRes: Int,
-    val icon: @Composable () -> Unit,
-    val onClick: () -> Unit,
-)
-
 @Composable
 fun rememberAssetContextMenuItems(
     assetId: AssetId,
@@ -54,50 +38,8 @@ fun rememberAssetContextMenuItems(
     actions: AssetContextActions,
 ): List<AssetContextMenuItem> {
     val context = LocalContext.current
-    val clipboard = LocalContext.current.clipboardManager()
     return remember(assetId, address, isPinned, isBalanceEnabled, actions) {
-        if (actions.isEmpty) return@remember emptyList()
-        assetMenuActions(
-            GemAssetMenuInput(
-                isPinned = isPinned,
-                isBalanceEnabled = isBalanceEnabled,
-                address = address.orEmpty(),
-                offersHide = actions.onHide != null,
-                offersAddToWallet = actions.onAddToWallet != null,
-            )
-        ).mapNotNull { action ->
-            when (action) {
-                is GemAssetMenuAction.Pin -> actions.onTogglePin?.let { cb ->
-                    AssetContextMenuItem(
-                        titleRes = action.stringRes(),
-                        icon = {
-                            if (action.isPinned) Icon(painterResource(R.drawable.keep_off), null)
-                            else Icon(AppIcons.PushPin, null)
-                        },
-                        onClick = { cb(assetId) },
-                    )
-                }
-                GemAssetMenuAction.Hide -> actions.onHide?.let { cb ->
-                    AssetContextMenuItem(
-                        titleRes = action.stringRes(),
-                        icon = { Icon(AppIcons.VisibilityOff, null) },
-                        onClick = { cb(assetId) },
-                    )
-                }
-                GemAssetMenuAction.AddToWallet -> actions.onAddToWallet?.let { cb ->
-                    AssetContextMenuItem(
-                        titleRes = action.stringRes(),
-                        icon = { Icon(AppIcons.AddCircleOutlined, null) },
-                        onClick = { cb(assetId) },
-                    )
-                }
-                is GemAssetMenuAction.CopyAddress -> AssetContextMenuItem(
-                    titleRes = action.stringRes(),
-                    icon = { Icon(AppIcons.ContentCopy, null) },
-                    onClick = { clipboard.setPlainText(context, action.address) },
-                )
-            }
-        }
+        assetContextMenuItems(context, assetId, address, isPinned, isBalanceEnabled, actions)
     }
 }
 
@@ -109,7 +51,7 @@ private fun ColumnScope.AssetContextMenuItems(
     items.forEach { item ->
         DropdownMenuItem(
             text = { Text(stringResource(item.titleRes)) },
-            trailingIcon = item.icon,
+            trailingIcon = { Icon(painterResource(item.iconRes), null) },
             onClick = {
                 item.onClick()
                 onDismiss()

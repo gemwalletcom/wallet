@@ -1,15 +1,17 @@
 package com.gemwallet.android.ext
 
+import uniffi.gemstone.GemAddNodeException
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemServiceException
+import uniffi.gemstone.GemWalletConnectException
+import uniffi.gemstone.GemstoneException
+import uniffi.gemstone.GatewayException
 
-fun Throwable.serviceMessage(): String = when (this) {
-    is GemServiceException.Api -> msg
-    is GemServiceException.Gateway -> msg
-    is GemServiceException.Store -> msg
-    is GemServiceException.Core -> msg
-    is GemServiceException.Platform -> msg
-    is GemServiceException.InvalidInput -> msg
-    is GemServiceException.NotFound -> msg
-    is GemServiceException.Unsupported -> msg
-    else -> message ?: toString()
+fun Throwable.errorText(): GemErrorText = when (this) {
+    is GemServiceException -> text()
+    is GatewayException -> text()
+    is GemAddNodeException -> text()
+    is GemWalletConnectException -> text()
+    is GemstoneException -> text()
+    else -> GemErrorText.Message(message ?: toString())
 }

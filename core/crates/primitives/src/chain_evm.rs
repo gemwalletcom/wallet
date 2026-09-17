@@ -9,6 +9,14 @@ use crate::chain_config::EvmChainConfig;
 
 pub use crate::chain_config::ChainStack;
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum EvmNativeCurrency {
+    Wrapped(&'static str),
+    Token(&'static str),
+    Mirrored { token: &'static str, decimals: u32 },
+    None,
+}
+
 #[derive(Copy, Clone, Debug, Serialize, Deserialize, EnumIter, AsRefStr, EnumString, PartialEq, Eq, Hash)]
 #[typeshare(swift = "Equatable, Hashable, CaseIterable, Sendable")]
 #[serde(rename_all = "lowercase")]
@@ -44,6 +52,7 @@ pub enum EVMChain {
     Robinhood,
     Stable,
     Tempo,
+    Arc,
 }
 
 impl EVMChain {
@@ -83,14 +92,14 @@ impl EVMChain {
         self.chain_stack() == ChainStack::ZkSync
     }
 
-    pub fn weth_contract(&self) -> Option<&'static str> {
-        self.config().weth_contract
+    pub fn native_currency(&self) -> EvmNativeCurrency {
+        self.config().native_currency
     }
 
-    pub fn native_asset_contract(&self) -> Option<&'static str> {
-        match self {
-            EVMChain::Celo => self.weth_contract(),
-            _ => None,
+    pub fn weth_contract(&self) -> Option<&'static str> {
+        match self.native_currency() {
+            EvmNativeCurrency::Wrapped(contract) | EvmNativeCurrency::Token(contract) => Some(contract),
+            EvmNativeCurrency::Mirrored { .. } | EvmNativeCurrency::None => None,
         }
     }
 
@@ -120,5 +129,7 @@ mod tests {
         assert_eq!(Chain::from_chain_id(1329), Some(Chain::SeiEvm));
         assert_eq!(EVMChain::Robinhood.chain_id(), 4663);
         assert_eq!(Chain::from_chain_id(4663), Some(Chain::Robinhood));
+        assert_eq!(EVMChain::Arc.chain_id(), 5042);
+        assert_eq!(Chain::from_chain_id(5042), Some(Chain::Arc));
     }
 }

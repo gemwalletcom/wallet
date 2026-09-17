@@ -16,7 +16,8 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
-import com.gemwallet.android.ui.components.list_item.ListItemTitleText
+import com.gemwallet.android.ui.components.list_item.ListItemImage
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.SelectChain
 import com.gemwallet.android.ui.models.ListPosition
@@ -49,32 +50,15 @@ internal fun NetworksListScene(
 private fun StatusItem(
     onClick: () -> Unit,
 ) {
+    val model = ListItemModel(
+        title = stringResource(R.string.transaction_status),
+        image = ListItemImage.Drawable(R.drawable.brandmark, isRounded = true),
+    )
     ListItem(
+        model = model,
+        listPosition = ListPosition.Single,
         modifier = Modifier.clickable(onClick = onClick),
         minHeight = ListItemDefaults.iconMinHeight,
-        leading = {
-            GemLogoIcon()
-        },
-        title = {
-            ListItemTitleText(
-                text = stringResource(R.string.transaction_status),
-                style = MaterialTheme.typography.bodyLarge,
-            )
-        },
-        trailing = {
-            DataBadgeChevron()
-        },
-        listPosition = ListPosition.Single,
-    )
-}
-
-@Composable
-private fun GemLogoIcon() {
-    Image(
-        modifier = Modifier
-            .size(listItemIconSize)
-            .clip(CircleShape),
-        painter = painterResource(R.drawable.brandmark),
-        contentDescription = null,
+        accessory = { DataBadgeChevron() },
     )
 }

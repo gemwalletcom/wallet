@@ -4,7 +4,6 @@ import Components
 import struct Gemstone.GemConfirmButton
 import enum Gemstone.GemKeystoreAuthentication
 import GemstoneServices
-import Localization
 import Primitives
 import Style
 import SwiftUI
@@ -25,10 +24,7 @@ struct ConfirmButtonViewModel: StateButtonViewable {
     }
 
     var title: String {
-        switch button.kind {
-        case .confirm: Localized.Transfer.confirm
-        case .retry: Localized.Common.tryAgain
-        }
+        button.kind.title
     }
 
     var icon: Image? {

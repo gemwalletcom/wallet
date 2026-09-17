@@ -107,8 +107,7 @@ impl AlienProvider for CoalescingAlienProvider {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::alien::AlienHttpMethod;
-    use gem_client::{CONTENT_TYPE, ContentType};
+    use crate::testkit::mock_alien_target;
     use std::{
         future::Future,
         sync::{
@@ -151,19 +150,10 @@ mod tests {
         }
     }
 
-    fn target(request_type: &str) -> AlienTarget {
-        AlienTarget {
-            url: "https://example.com/info".to_string(),
-            method: AlienHttpMethod::Post,
-            headers: Some(HashMap::from([(CONTENT_TYPE.to_string(), ContentType::ApplicationJson.as_str().to_string())])),
-            body: Some(serde_json::to_vec(&serde_json::json!({ "type": request_type })).unwrap()),
-        }
-    }
-
     fn spawn_request(provider: Arc<CoalescingAlienProvider>, barrier: Arc<Barrier>, request_type: &'static str) -> thread::JoinHandle<Arc<AlienResponse>> {
         thread::spawn(move || {
             barrier.wait();
-            futures::executor::block_on(provider.request(target(request_type))).unwrap()
+            futures::executor::block_on(provider.request(mock_alien_target(request_type))).unwrap()
         })
     }
 
@@ -191,14 +181,14 @@ mod tests {
     fn test_canceled_leader_clears_request() {
         let mock = Arc::new(CancelProvider { count: AtomicUsize::new(0) });
         let provider = Arc::new(CoalescingAlienProvider::new(mock.clone()));
-        let mut request = provider.request(target("spotClearinghouseState"));
+        let mut request = provider.request(mock_alien_target("spotClearinghouseState"));
         let waker = futures::task::noop_waker();
         let mut context = Context::from_waker(&waker);
 
         assert!(matches!(Future::poll(request.as_mut(), &mut context), Poll::Pending));
         drop(request);
 
-        futures::executor::block_on(provider.request(target("spotClearinghouseState"))).unwrap();
+        futures::executor::block_on(provider.request(mock_alien_target("spotClearinghouseState"))).unwrap();
 
         assert_eq!(mock.count.load(Ordering::SeqCst), 2);
     }

@@ -14,8 +14,8 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::{GemContractCallData, GemEarnType};
 
 pub use model::{
-    GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationCompletion, GemDelegationDestination, GemDelegationStatus, GemDelegationTone, GemStakeAction,
-    GemStakeActionItem, GemStakeAmountInput, GemStakeValidatorSelection, GemValidatorRow,
+    GemClaimRewards, GemClaimRewardsDestination, GemDelegationAction, GemDelegationAmountInput, GemDelegationCompletion, GemDelegationDestination, GemDelegationRow,
+    GemDelegationStatus, GemDelegationTone, GemStakeAction, GemStakeActionItem, GemStakeAmountInput, GemStakeInfoRow, GemStakeSection, GemStakeValidatorSelection, GemValidatorRow,
 };
 pub use store::GemStakeStore;
 
@@ -105,12 +105,26 @@ impl GemStakeService {
         rules::delegation_destination(wallet_type, asset, delegation)
     }
 
+    pub fn delegation_action_destination(
+        &self,
+        asset: Asset,
+        delegation: Delegation,
+        action: GemDelegationAction,
+        validators: Vec<DelegationValidator>,
+    ) -> GemDelegationDestination {
+        rules::delegation_action_destination(asset, delegation, action, validators)
+    }
+
     pub fn can_claim_delegation_rewards(&self, wallet_type: WalletType, delegation: Delegation) -> bool {
         rules::can_claim_rewards(wallet_type, &delegation)
     }
 
     pub fn shows_rewards(&self, delegation: DelegationBase) -> bool {
         rules::shows_rewards(&delegation)
+    }
+
+    pub fn sorted_delegations(&self, delegations: Vec<Delegation>) -> Vec<Delegation> {
+        rules::sorted_delegations(delegations)
     }
 
     pub fn lock_time_seconds(&self, chain: Chain) -> u64 {
@@ -121,16 +135,20 @@ impl GemStakeService {
         rules::min_stake_amount(chain)
     }
 
-    pub fn can_change_amount_on_unstake(&self, chain: Chain) -> bool {
-        rules::can_change_amount_on_unstake(chain)
-    }
-
-    pub fn uses_freeze(&self, chain: Chain) -> bool {
-        rules::uses_freeze(chain)
-    }
-
     pub fn stake_actions(&self, wallet_type: WalletType, chain: Chain, has_validators: bool, balance: GemAssetBalance, delegations: Vec<Delegation>) -> Vec<GemStakeActionItem> {
         rules::stake_actions(wallet_type, chain, has_validators, &balance, &delegations)
+    }
+
+    pub fn stake_sections(&self, chain: Chain, has_actions: bool, has_delegations: bool) -> Vec<GemStakeSection> {
+        rules::stake_sections(rules::uses_freeze(chain), has_actions, has_delegations)
+    }
+
+    pub fn stake_info_rows(&self, chain: Chain, staking_apr: Option<f64>) -> Vec<GemStakeInfoRow> {
+        rules::stake_info_rows(chain, staking_apr)
+    }
+
+    pub fn delegation_rows(&self, delegation: Delegation) -> Vec<GemDelegationRow> {
+        rules::delegation_rows(&delegation)
     }
 
     pub fn claim_rewards(&self, chain: Chain, delegations: Vec<Delegation>) -> GemClaimRewards {
@@ -208,7 +226,7 @@ impl GemStakeService {
             validators.extend(missing.into_iter().map(|validator| (validator.id.clone(), validator)));
         }
 
-        let incoming = rules::apply_validator_state(delegations, &validators);
+        let incoming = rules::delegations_with_state(delegations, &validators);
         let existing_ids = self.store.get_delegation_ids(wallet_id.clone(), asset_id, StakeProviderType::Stake).await?;
         let delete_ids = rules::stale_delegation_ids(existing_ids, &incoming);
         self.store.update_delegations(wallet_id, incoming, delete_ids).await
@@ -218,42 +236,16 @@ impl GemStakeService {
 #[cfg(test)]
 mod tests {
     use super::rules::*;
-    use num_bigint::BigUint;
-    use primitives::{AssetId, Chain, DelegationBase, DelegationState, DelegationValidator, StakeProviderType};
+    use primitives::{Chain, DelegationBase, DelegationState, DelegationValidator, StakeProviderType};
     use std::collections::HashMap;
-
-    fn validator(id: &str, is_active: bool) -> DelegationValidator {
-        DelegationValidator {
-            chain: Chain::Cosmos,
-            id: id.to_string(),
-            name: id.to_string(),
-            is_active,
-            commission: 0.0,
-            apr: 1.0,
-            provider_type: StakeProviderType::Stake,
-        }
-    }
-
-    fn delegation(validator_id: &str, state: DelegationState) -> DelegationBase {
-        DelegationBase {
-            asset_id: AssetId::from_chain(Chain::Cosmos),
-            state,
-            balance: BigUint::from(1u32),
-            shares: BigUint::from(0u32),
-            rewards: BigUint::from(0u32),
-            completion_date: None,
-            delegation_id: "d".to_string(),
-            validator_id: validator_id.to_string(),
-        }
-    }
 
     #[test]
     fn test_missing_validators_only_for_unknown_ids() {
-        let existing: HashMap<_, _> = [("known".to_string(), validator("known", true))].into();
+        let existing: HashMap<_, _> = [("known".to_string(), DelegationValidator::mock_cosmos("known"))].into();
         let delegations = vec![
-            delegation("known", DelegationState::Active),
-            delegation("gone", DelegationState::Active),
-            delegation("gone", DelegationState::Active),
+            DelegationBase::mock_with_validator("known"),
+            DelegationBase::mock_with_validator("gone"),
+            DelegationBase::mock_with_validator("gone"),
         ];
         let names: HashMap<_, _> = [("gone".to_string(), "Gone".to_string())].into();
 
@@ -267,25 +259,41 @@ mod tests {
 
     #[test]
     fn test_stale_validator_ids_returns_only_ids_missing_from_the_response() {
-        let existing = vec![validator("kept", true), validator("gone", true)];
-        let incoming = vec![validator("kept", true), validator("fresh", true)];
+        let existing = vec![DelegationValidator::mock_cosmos("kept"), DelegationValidator::mock_cosmos("gone")];
+        let incoming = vec![DelegationValidator::mock_cosmos("kept"), DelegationValidator::mock_cosmos("fresh")];
 
         assert_eq!(stale_validator_ids(existing, &incoming), vec!["gone".to_string()]);
-        assert!(stale_validator_ids(vec![validator("kept", true)], &[validator("kept", true)]).is_empty());
-        assert!(stale_validator_ids(vec![validator("gone", false)], &[validator("kept", true)]).is_empty());
+        assert!(stale_validator_ids(vec![DelegationValidator::mock_cosmos("kept")], &[DelegationValidator::mock_cosmos("kept")]).is_empty());
+        assert!(
+            stale_validator_ids(
+                vec![DelegationValidator {
+                    is_active: false,
+                    ..DelegationValidator::mock_cosmos("gone")
+                }],
+                &[DelegationValidator::mock_cosmos("kept")]
+            )
+            .is_empty()
+        );
     }
 
     #[test]
     fn test_delegations_on_inactive_validators_become_inactive() {
-        let validators: HashMap<_, _> = [("v".to_string(), validator("v", false))].into();
-        let delegations = apply_validator_state(vec![delegation("v", DelegationState::Active), delegation("other", DelegationState::Active)], &validators);
+        let validators: HashMap<_, _> = [(
+            "v".to_string(),
+            DelegationValidator {
+                is_active: false,
+                ..DelegationValidator::mock_cosmos("v")
+            },
+        )]
+        .into();
+        let delegations = delegations_with_state(vec![DelegationBase::mock_with_validator("v"), DelegationBase::mock_with_validator("other")], &validators);
         assert_eq!(delegations[0].state, DelegationState::Inactive);
         assert_eq!(delegations[1].state, DelegationState::Active);
     }
 
     #[test]
     fn test_stale_delegation_ids() {
-        let incoming = vec![delegation("v", DelegationState::Active)];
+        let incoming = vec![DelegationBase::mock_with_validator("v")];
         let stale = stale_delegation_ids(vec![incoming[0].id(), "old".to_string()], &incoming);
         assert_eq!(stale, vec!["old".to_string()]);
         assert!(stale_delegation_ids(vec!["a".to_string()], &[]).contains(&"a".to_string()));
@@ -294,9 +302,19 @@ mod tests {
     #[test]
     fn test_merge_validators_fills_names_and_dedupes() {
         let names: HashMap<_, _> = [("b".to_string(), "Bee".to_string())].into();
-        let mut unnamed = validator("b", true);
+        let mut unnamed = DelegationValidator::mock_cosmos("b");
         unnamed.name = String::new();
-        let merged = merge_validators(vec![validator("a", true)], vec![validator("a", false), unnamed], &names);
+        let merged = merge_validators(
+            vec![DelegationValidator::mock_cosmos("a")],
+            vec![
+                DelegationValidator {
+                    is_active: false,
+                    ..DelegationValidator::mock_cosmos("a")
+                },
+                unnamed,
+            ],
+            &names,
+        );
         assert_eq!(merged.len(), 2);
         assert!(merged[0].is_active);
         assert_eq!(merged[1].name, "Bee");

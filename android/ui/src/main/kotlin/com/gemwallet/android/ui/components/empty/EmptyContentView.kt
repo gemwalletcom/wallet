@@ -1,122 +1,30 @@
 package com.gemwallet.android.ui.components.empty
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.icons.AppIcons
+import androidx.compose.ui.res.vectorResource
 
 @Composable
 fun EmptyContentView(
     type: EmptyContentType,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+    val model = remember(type) { type.uiModel(context) }
+    val (icon, iconVector) = when (val image = model.image) {
+        is EmptyStateImage.Drawable -> painterResource(image.id) to null
+        is EmptyStateImage.Vector -> null to ImageVector.vectorResource(image.id)
+    }
     EmptyStateView(
-        title = type.title(),
-        description = type.description(),
-        icon = type.icon(),
-        iconVector = type.iconVector(),
-        buttons = type.buttons(),
+        title = model.title,
+        description = model.description,
+        icon = icon,
+        iconVector = iconVector,
+        buttons = model.buttons,
         modifier = modifier,
     )
-}
-
-@Composable
-private fun EmptyContentType.title(): String = when (this) {
-    is EmptyContentType.Nft -> stringResource(R.string.nft_state_empty_title)
-    is EmptyContentType.PriceAlerts -> stringResource(R.string.price_alerts_state_empty_title)
-    is EmptyContentType.Contacts -> stringResource(R.string.contacts_state_empty_title)
-    is EmptyContentType.Asset -> if (isViewOnly) {
-        stringResource(R.string.wallet_watch_empty_state_title)
-    } else {
-        stringResource(R.string.asset_state_empty_title)
-    }
-    is EmptyContentType.Activity -> if (isViewOnly) {
-        stringResource(R.string.wallet_watch_empty_state_title)
-    } else {
-        stringResource(R.string.activity_state_empty_title)
-    }
-    is EmptyContentType.Stake -> stringResource(R.string.stake_state_empty_title)
-    is EmptyContentType.Earn -> stringResource(R.string.earn_state_empty_title)
-    is EmptyContentType.WalletConnect -> stringResource(R.string.wallet_connect_no_active_connections)
-    is EmptyContentType.Recents -> stringResource(R.string.recent_activity_state_empty_title)
-    is EmptyContentType.Notifications -> stringResource(R.string.notifications_inapp_state_empty_title)
-    is EmptyContentType.SearchAssets -> stringResource(R.string.assets_no_assets_found)
-    is EmptyContentType.NetworkAssets -> stringResource(R.string.assets_no_assets_found)
-    is EmptyContentType.SearchActivity -> stringResource(R.string.activity_state_empty_search_title)
-    is EmptyContentType.SearchNetworks -> stringResource(R.string.networks_state_empty_search_title)
-    is EmptyContentType.SearchPerpetuals -> stringResource(R.string.perpetuals_empty_state_no_markets_found)
-}
-
-@Composable
-private fun EmptyContentType.description(): String? = when (this) {
-    is EmptyContentType.Nft -> if (onReceive != null) stringResource(R.string.nft_state_empty_description) else null
-    is EmptyContentType.PriceAlerts -> stringResource(R.string.price_alerts_state_empty_description)
-    is EmptyContentType.Contacts -> stringResource(R.string.contacts_state_empty_description)
-    is EmptyContentType.Asset -> if (isViewOnly) null else stringResource(R.string.asset_state_empty_description, symbol)
-    is EmptyContentType.Activity -> if (isViewOnly) null else stringResource(R.string.activity_state_empty_description)
-    is EmptyContentType.Stake -> stringResource(R.string.stake_state_empty_description, symbol)
-    is EmptyContentType.Earn -> stringResource(R.string.earn_state_empty_description, symbol)
-    is EmptyContentType.WalletConnect -> stringResource(R.string.wallet_connect_state_empty_description)
-    is EmptyContentType.Recents -> stringResource(R.string.recent_activity_state_empty_description)
-    is EmptyContentType.Notifications -> stringResource(R.string.notifications_inapp_state_empty_description)
-    is EmptyContentType.SearchAssets -> if (onAddCustomToken != null) {
-        stringResource(R.string.assets_state_empty_search_description)
-    } else {
-        stringResource(R.string.search_state_empty_description)
-    }
-    is EmptyContentType.NetworkAssets -> null
-    is EmptyContentType.SearchActivity -> stringResource(R.string.activity_state_empty_search_description)
-    is EmptyContentType.SearchNetworks -> stringResource(R.string.search_state_empty_description)
-    is EmptyContentType.SearchPerpetuals -> stringResource(R.string.search_state_empty_description)
-}
-
-@Composable
-private fun EmptyContentType.icon() = when (this) {
-    is EmptyContentType.SearchAssets, is EmptyContentType.SearchActivity,
-    is EmptyContentType.SearchNetworks, is EmptyContentType.SearchPerpetuals,
-    is EmptyContentType.NetworkAssets -> null
-    is EmptyContentType.Nft -> painterResource(R.drawable.empty_nfts)
-    is EmptyContentType.PriceAlerts -> painterResource(R.drawable.empty_notifications)
-    is EmptyContentType.Contacts -> painterResource(R.drawable.empty_contacts)
-    is EmptyContentType.Asset, is EmptyContentType.Activity -> painterResource(R.drawable.empty_activity)
-    is EmptyContentType.Stake, is EmptyContentType.Earn -> painterResource(R.drawable.empty_stake)
-    is EmptyContentType.WalletConnect -> painterResource(R.drawable.empty_dapps)
-    is EmptyContentType.Recents -> painterResource(R.drawable.empty_activity)
-    is EmptyContentType.Notifications -> painterResource(R.drawable.empty_notifications)
-}
-
-@Composable
-private fun EmptyContentType.iconVector(): ImageVector? = when (this) {
-    is EmptyContentType.SearchAssets, is EmptyContentType.SearchActivity,
-    is EmptyContentType.SearchNetworks, is EmptyContentType.SearchPerpetuals -> AppIcons.Search
-    is EmptyContentType.NetworkAssets -> AppIcons.Wallet
-    else -> null
-}
-
-@Composable
-private fun EmptyContentType.buttons(): List<EmptyAction> = when (this) {
-    is EmptyContentType.Nft -> listOfNotNull(
-        onReceive?.let { EmptyAction(stringResource(R.string.wallet_receive), it, EmptyActionStyle.Secondary) },
-    )
-    is EmptyContentType.Asset -> if (isViewOnly) emptyList() else listOfNotNull(
-        onBuy?.let { EmptyAction(stringResource(R.string.wallet_buy), it) },
-        onSwap?.let { EmptyAction(stringResource(R.string.wallet_swap), it, EmptyActionStyle.Secondary) },
-    )
-    is EmptyContentType.Activity -> if (isViewOnly) emptyList() else listOfNotNull(
-        onBuy?.let { EmptyAction(stringResource(R.string.wallet_buy), it) },
-        onReceive?.let { EmptyAction(stringResource(R.string.wallet_receive), it, EmptyActionStyle.Secondary) },
-    )
-    is EmptyContentType.SearchAssets -> listOfNotNull(
-        onAddCustomToken?.let { EmptyAction(stringResource(R.string.assets_add_custom_token), it) },
-    )
-    is EmptyContentType.NetworkAssets -> listOfNotNull(
-        onManageAssets?.let { EmptyAction(stringResource(R.string.wallet_manage_token_list), it) },
-    )
-    is EmptyContentType.SearchActivity -> listOfNotNull(
-        onClearFilters?.let { EmptyAction(stringResource(R.string.filter_clear), it) },
-    )
-    else -> emptyList()
 }

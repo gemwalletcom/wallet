@@ -1,6 +1,6 @@
 package com.gemwallet.android.ui.models.perpetual
 
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.testkit.mockPerpetualConfirmData
 import com.gemwallet.android.testkit.mockPerpetualDetails
 import com.wallet.core.primitives.PerpetualDirection
@@ -42,7 +42,7 @@ class PerpetualConfirmDetailsUIModelFactoryTest {
 
         val pnl = model.pnl
         assertNotNull(pnl)
-        assertEquals(ValueDirection.Up, pnl!!.direction)
+        assertEquals(GemValueTone.POSITIVE, pnl!!.direction)
         assertTrue(pnl.text.startsWith("+\$25.00"))
         assertTrue(pnl.text.contains("(+25"))
         assertEquals("$99.00", model.entryPriceText)

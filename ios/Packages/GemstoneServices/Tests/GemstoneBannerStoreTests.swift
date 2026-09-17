@@ -13,11 +13,9 @@ import Testing
 struct GemstoneBannerStoreTests {
     @Test
     func writesAndReadsBackTheStateCoreAsksFor() async throws {
-        let db = DB.mockWithChains([.xrp, .cosmos])
-        let store = BannerStore.mock(db: db)
-        let adapter = GemstoneBannerStore(store: store)
         let wallet = Wallet.mock(id: .multicoin(address: "0xtest"), accounts: [.mock(chain: .xrp)])
-        try WalletStore.mock(db: db).addWallet(wallet)
+        let store = try BannerStore.mock(db: .mockWithWallets([wallet]))
+        let adapter = GemstoneBannerStore(store: store)
         let walletId = wallet.id
         let key = GemBannerKey(walletId: walletId.id, assetId: AssetId(chain: .xrp).identifier, event: Primitives.BannerEvent.accountActivation.toGem())
 
@@ -33,7 +31,8 @@ struct GemstoneBannerStoreTests {
 
     @Test
     func setStateCreatesTheRowWhenCoreHasNotSeededIt() async throws {
-        let (store, adapter) = makeStore()
+        let store = BannerStore.mock(db: .mockWithChains([.cosmos]))
+        let adapter = GemstoneBannerStore(store: store)
         let key = GemBannerKey(walletId: nil, assetId: AssetId(chain: .cosmos).identifier, event: Primitives.BannerEvent.stake.toGem())
 
         try await adapter.setState(key: key, state: Primitives.BannerState.cancelled.toGem())
@@ -43,17 +42,13 @@ struct GemstoneBannerStoreTests {
 
     @Test
     func addBannersLeavesAnExistingStateAlone() async throws {
-        let (store, adapter) = makeStore()
+        let store = BannerStore.mock(db: .mockWithChains([.cosmos]))
+        let adapter = GemstoneBannerStore(store: store)
         let key = GemBannerKey(walletId: nil, assetId: AssetId(chain: .cosmos).identifier, event: Primitives.BannerEvent.stake.toGem())
         try await adapter.setState(key: key, state: Primitives.BannerState.cancelled.toGem())
 
         try await adapter.addBanners(keys: [key], state: Primitives.BannerState.active.toGem())
 
         #expect(try store.getBanner(id: key.identifier())?.state == .cancelled)
-    }
-
-    private func makeStore() -> (BannerStore, GemstoneBannerStore) {
-        let store = BannerStore.mock(db: .mockWithChains([.xrp, .cosmos]))
-        return (store, GemstoneBannerStore(store: store))
     }
 }

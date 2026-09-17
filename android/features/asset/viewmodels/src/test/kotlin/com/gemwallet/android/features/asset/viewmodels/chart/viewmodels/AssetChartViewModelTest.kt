@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetAssetLinks
@@ -150,7 +151,7 @@ class AssetChartViewModelTest {
         chartService = chartService,
         getPriceAlerts = getPriceAlerts,
         getCurrentCurrency = getCurrentCurrency,
-        marketUIModelFactory = AssetMarketUIModelFactory(),
+        marketUIModelFactory = AssetMarketUIModelFactory(mockk<Context> { every { getString(any()) } answers { firstArg<Int>().toString() } }),
         ioDispatcher = testDispatcher,
         assetId = asset.id,
     ).also(viewModels::add)

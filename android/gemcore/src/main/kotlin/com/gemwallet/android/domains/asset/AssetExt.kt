@@ -2,13 +2,14 @@ package com.gemwallet.android.domains.asset
 
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.byChain
-import com.gemwallet.android.ext.networkName
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.type
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetSubtype
-import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.StakeChain
+import uniffi.gemstone.GemAssetText
+import uniffi.gemstone.assetText
 
 val Asset.chain: Chain
     get() = id.chain
@@ -22,18 +23,11 @@ val Asset.stakeChain: StakeChain?
 val Asset.subtype: AssetSubtype
     get() = id.type()
 
-internal fun formatNetworkFullName(
-    networkName: String,
-    subtype: AssetSubtype,
-    type: AssetType,
-): String = when (subtype) {
-    AssetSubtype.NATIVE -> networkName
-    AssetSubtype.TOKEN -> "$networkName (${type.string})"
-}
+private val Asset.text: GemAssetText
+    get() = assetText(toGem())
 
 val Asset.networkFullName: String
-    get() = formatNetworkFullName(
-        networkName = chain.networkName(),
-        subtype = subtype,
-        type = type,
-    )
+    get() = text.networkFullName
+
+val Asset.subtitleSymbol: String?
+    get() = text.subtitleSymbol

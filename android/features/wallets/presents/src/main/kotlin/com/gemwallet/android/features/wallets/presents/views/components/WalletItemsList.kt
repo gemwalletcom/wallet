@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.wallets.presents.views.components
 
+import com.gemwallet.android.ui.components.list_item.uiModel
+import androidx.compose.ui.platform.LocalContext
 import androidx.annotation.StringRes
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -41,7 +43,7 @@ internal fun LazyListScope.wallets(
             onDismiss = { longPressedWallet.value = "" },
             content = {
                 WalletItem(
-                    row = item.row,
+                    model = item.row.uiModel(LocalContext.current),
                     isCurrent = item.isCurrent,
                     listPosition = ListPosition.getPosition(index, wallets.size),
                     onEdit = { onEdit(walletId) },

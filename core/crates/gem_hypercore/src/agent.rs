@@ -76,38 +76,11 @@ impl Agent {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::HashMap;
-    use std::sync::Mutex;
-
-    struct MockPreferences {
-        data: Mutex<HashMap<String, String>>,
-    }
-
-    impl MockPreferences {
-        fn new() -> Self {
-            Self { data: Mutex::new(HashMap::new()) }
-        }
-    }
-
-    impl Preferences for MockPreferences {
-        fn get(&self, key: String) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
-            Ok(self.data.lock().unwrap().get(&key).cloned())
-        }
-
-        fn set(&self, key: String, value: String) -> Result<(), Box<dyn Error + Send + Sync>> {
-            self.data.lock().unwrap().insert(key, value);
-            Ok(())
-        }
-
-        fn remove(&self, key: String) -> Result<(), Box<dyn Error + Send + Sync>> {
-            self.data.lock().unwrap().remove(&key);
-            Ok(())
-        }
-    }
+    use primitives::InMemoryPreferences;
 
     #[test]
     fn test_derive_address_known_key() {
-        let preferences = Arc::new(MockPreferences::new());
+        let preferences = Arc::new(InMemoryPreferences::new());
         let agent = Agent::new(preferences);
         let private_key = "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
         let address = agent.derive_address(private_key).unwrap();
@@ -117,7 +90,7 @@ mod tests {
 
     #[test]
     fn test_derive_address_another_known_key() {
-        let preferences = Arc::new(MockPreferences::new());
+        let preferences = Arc::new(InMemoryPreferences::new());
         let agent = Agent::new(preferences);
         let private_key = "0000000000000000000000000000000000000000000000000000000000000001";
         let address = agent.derive_address(private_key).unwrap();
@@ -127,7 +100,7 @@ mod tests {
 
     #[test]
     fn test_generate_private_key() {
-        let preferences = Arc::new(MockPreferences::new());
+        let preferences = Arc::new(InMemoryPreferences::new());
         let agent = Agent::new(preferences);
         let private_key = agent.generate_private_key().unwrap();
 
@@ -137,7 +110,7 @@ mod tests {
 
     #[test]
     fn test_address_derivation_consistency() {
-        let preferences = Arc::new(MockPreferences::new());
+        let preferences = Arc::new(InMemoryPreferences::new());
         let agent = Agent::new(preferences);
         let private_key = agent.generate_private_key().unwrap();
 
@@ -148,7 +121,7 @@ mod tests {
 
     #[test]
     fn test_get_or_create_credentials() {
-        let preferences = Arc::new(MockPreferences::new());
+        let preferences = Arc::new(InMemoryPreferences::new());
         let agent = Agent::new(preferences);
 
         let (addr1, key1) = agent.get_or_create_credentials("test_wallet").unwrap();
@@ -162,7 +135,7 @@ mod tests {
 
     #[test]
     fn test_regenerate_credentials() {
-        let preferences = Arc::new(MockPreferences::new());
+        let preferences = Arc::new(InMemoryPreferences::new());
         let agent = Agent::new(preferences);
 
         let (addr1, key1) = agent.get_or_create_credentials("test_wallet").unwrap();

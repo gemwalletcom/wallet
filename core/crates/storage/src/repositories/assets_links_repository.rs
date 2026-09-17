@@ -13,7 +13,7 @@ impl AssetsLinksRepository for DatabaseClient {
     fn add_assets_links(&mut self, asset_id: &AssetId, values: Vec<PrimitiveAssetLink>) -> Result<usize, DatabaseError> {
         Ok(AssetsLinksStore::add_assets_links(
             self,
-            values.into_iter().map(|x| AssetLinkRow::from_primitive(asset_id, x)).collect(),
+            values.into_iter().filter_map(|x| AssetLinkRow::from_primitive(asset_id, x)).collect(),
         )?)
     }
 

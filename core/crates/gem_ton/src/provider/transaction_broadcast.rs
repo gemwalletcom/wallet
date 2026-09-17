@@ -14,12 +14,12 @@ use crate::{
 impl<C: Client> ChainTransactionBroadcast for TonClient<C> {
     async fn transaction_broadcast(&self, data: String, _options: BroadcastOptions) -> Result<String, Box<dyn Error + Sync + Send>> {
         let response = self.broadcast_transaction(data).await?;
-        map_transaction_broadcast(response.result)
+        map_transaction_broadcast(response)
     }
 }
 
 impl ChainTransactionDecode for BroadcastProvider {
-    fn decode_transaction_broadcast(&self, response: &str) -> Option<String> {
-        map_transaction_broadcast_response_from_str(response).ok()
+    fn decode_transaction_broadcast(&self, _request: &[u8], response: &str) -> Result<String, Box<dyn Error + Sync + Send>> {
+        map_transaction_broadcast_response_from_str(response)
     }
 }

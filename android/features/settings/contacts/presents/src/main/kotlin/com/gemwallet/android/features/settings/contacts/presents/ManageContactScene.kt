@@ -1,7 +1,5 @@
 package com.gemwallet.android.features.settings.contacts.presents
 
-import com.gemwallet.android.ui.components.image.iconModel
-import com.gemwallet.android.ui.LocalAddressService
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,23 +9,19 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.ui.format.rememberFormattedAddress
-import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAvatarState
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ManageContactUIState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
-import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.ActionIcon
 import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.ListItemTitleText
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.SwipeableItemWithActions
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -36,8 +30,6 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.wallet.core.primitives.ContactAddress
-import androidx.compose.material3.SnackbarHostState
 
 @Composable
 fun ManageContactScene(
@@ -68,7 +60,7 @@ fun ManageContactScene(
                     contentAlignment = Alignment.Center,
                 ) {
                     ContactAvatar(
-                        name = state.name,
+                        initials = state.initials,
                         avatar = state.avatar,
                         size = extraLargeIconSize,
                         modifier = Modifier.clickable { onAction(ManageContactAction.SelectAvatar) },
@@ -99,84 +91,41 @@ fun ManageContactScene(
 
             item { SubheaderItem(title = stringResource(R.string.contacts_addresses)) }
 
-            itemsIndexed(state.addresses, key = { _, item -> item.id }) { index, address ->
+            itemsIndexed(state.addressRows, key = { _, item -> item.address.id }) { index, row ->
                 SwipeableItemWithActions(
-                    isRevealed = revealed.value == address.id,
+                    isRevealed = revealed.value == row.address.id,
                     actions = {
                         ActionIcon(
                             onClick = {
-                                onAction(ManageContactAction.DeleteAddress(address))
+                                onAction(ManageContactAction.DeleteAddress(row.address))
                                 revealed.value = null
                             },
                             backgroundColor = MaterialTheme.colorScheme.error,
                             icon = AppIcons.Delete,
                         )
                     },
-                    onExpanded = { revealed.value = address.id },
+                    onExpanded = { revealed.value = row.address.id },
                     onCollapsed = { revealed.value = null },
                     listPosition = if (index == 0) ListPosition.First else ListPosition.Middle,
                 ) { position ->
-                    ContactAddressItem(
-                        address = address,
+                    ListItem(
+                        model = row.model,
                         listPosition = position,
-                        onClick = { onAction(ManageContactAction.EditAddress(address)) },
+                        modifier = Modifier.clickable { onAction(ManageContactAction.EditAddress(row.address)) },
+                        accessory = { DataBadgeChevron() },
                     )
                 }
             }
 
             item {
-                AddAddressItem(
-                    listPosition = if (state.addresses.isEmpty()) ListPosition.Single else ListPosition.Last,
-                    onClick = { onAction(ManageContactAction.AddAddress) },
-                )
+                state.addAddressListItem?.let {
+                    ListItem(
+                        model = it,
+                        listPosition = if (state.addressRows.isEmpty()) ListPosition.Single else ListPosition.Last,
+                        modifier = Modifier.clickable { onAction(ManageContactAction.AddAddress) },
+                    )
+                }
             }
         }
     }
-}
-
-@Composable
-private fun ContactAddressItem(
-    address: ContactAddress,
-    listPosition: ListPosition,
-    onClick: () -> Unit,
-) {
-    ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
-        listPosition = listPosition,
-        leading = { IconWithBadge(icon = address.chain.iconModel()) },
-        title = { ListItemTitleText(text = address.chain.networkName()) },
-        subtitle = {
-            Text(
-                text = rememberFormattedAddress(address.address, address.chain),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.secondary,
-            )
-        },
-        trailing = { DataBadgeChevron() },
-    )
-}
-
-@Composable
-private fun AddAddressItem(
-    listPosition: ListPosition,
-    onClick: () -> Unit,
-) {
-    ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
-        listPosition = listPosition,
-        leading = {
-            Icon(
-                imageVector = AppIcons.Add,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-            )
-        },
-        title = {
-            Text(
-                text = stringResource(R.string.common_address),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.primary,
-            )
-        },
-    )
 }

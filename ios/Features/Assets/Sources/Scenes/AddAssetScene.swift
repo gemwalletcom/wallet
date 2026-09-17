@@ -98,26 +98,20 @@ extension AddAssetScene {
             case let .data(asset):
                 Section {
                     ForEach(asset.rows, id: \.kind) { row in
-                        ListItemView(title: row.kind.title, subtitle: row.value)
+                        ListItemView(model: asset.listItem(for: row))
                     }
                 }
-                if let url = asset.explorerUrl, let text = asset.explorerText {
+                if let url = asset.explorerUrl, let item = asset.explorerListItem {
                     Section {
                         SafariNavigationLink(url: url) {
-                            ListItemView(title: text)
+                            ListItemView(model: item)
                         }
                     }
                 }
                 Section {
-                    ListItemView(
-                        title: Localized.Asset.Verification.warningTitle,
-                        titleStyle: .headline,
-                        titleExtra: Localized.Asset.Verification.warningMessage,
-                        titleStyleExtra: .bodySecondary,
-                        imageStyle: model.warningImageStyle,
-                    ) {
+                    ListItemView(model: model.warningListItem {
                         isPresentingUrl = model.tokenVerificationUrl
-                    }
+                    })
                 }
             case let .error(error):
                 ListItemErrorView(

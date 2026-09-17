@@ -1,6 +1,6 @@
 use crate::{
     Asset, AssetId, AssetType, Chain,
-    asset_constants::{ETHEREUM_USDC_ASSET_ID, SOLANA_USDC_ASSET_ID, TON_USDT_ASSET_ID},
+    asset_constants::{ETHEREUM_USDC_ASSET_ID, SOLANA_USDC_ASSET_ID, TON_USDT_ASSET_ID, XRP_RLUSD_TOKEN_ID},
 };
 
 impl Asset {
@@ -20,8 +20,22 @@ impl Asset {
         Asset::new(ETHEREUM_USDC_ASSET_ID.clone(), "USD Coin".to_string(), "USDC".to_string(), 6, AssetType::ERC20)
     }
 
+    pub fn mock_hypercore_usdc() -> Self {
+        Asset::new(AssetId::from_token(Chain::HyperCore, "usdc"), "USDC".to_string(), "USDC".to_string(), 6, AssetType::TOKEN)
+    }
+
     pub fn mock_ton_usdt() -> Self {
         Asset::new(TON_USDT_ASSET_ID.clone(), "Tether USD".to_string(), "USDT".to_string(), 6, AssetType::JETTON)
+    }
+
+    pub fn mock_xrp_rlusd() -> Self {
+        Asset::new(
+            AssetId::from_token(Chain::Xrp, XRP_RLUSD_TOKEN_ID),
+            "RLUSD".to_string(),
+            "RLUSD".to_string(),
+            15,
+            AssetType::TOKEN,
+        )
     }
 
     pub fn mock_eth() -> Self {

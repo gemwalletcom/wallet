@@ -4,6 +4,7 @@ import BigInt
 import Components
 import protocol Gemstone.GemTransactionDetailsServiceProtocol
 import enum Gemstone.GemTransactionDetailRow
+import enum Gemstone.GemTransactionHeaderAction
 import struct Gemstone.GemTransactionDetailRows
 import func Gemstone.transactionDetailSections
 import GemstonePrimitives
@@ -19,7 +20,7 @@ import SwiftUI
 @MainActor
 public final class TransactionSceneViewModel {
     private let service: any GemTransactionDetailsServiceProtocol
-    private let onHeaderAction: ((TransactionHeaderAction) -> Void)?
+    private let onHeaderAction: ((GemTransactionHeaderAction) -> Void)?
     private let onAddContact: ((AddContactType) -> Void)?
 
     public let query: ObservableQuery<TransactionRequest>
@@ -34,7 +35,7 @@ public final class TransactionSceneViewModel {
         transaction: TransactionExtended,
         walletId: WalletId,
         service: any GemTransactionDetailsServiceProtocol,
-        onHeaderAction: ((TransactionHeaderAction) -> Void)? = nil,
+        onHeaderAction: ((GemTransactionHeaderAction) -> Void)? = nil,
         onAddContact: ((AddContactType) -> Void)? = nil,
     ) {
         self.service = service
@@ -52,7 +53,7 @@ public final class TransactionSceneViewModel {
     }
 
     var onTransactionHeaderTap: TransactionHeaderActionHandler? {
-        guard onHeaderAction != nil, headerAction != nil else { return nil }
+        guard onHeaderAction != nil, rows.headerAction != nil else { return nil }
         return { [weak self] tap in self?.handleHeaderTap(tap) }
     }
 }
@@ -95,17 +96,17 @@ extension TransactionSceneViewModel: ListSectionProvideable {
 
 extension TransactionSceneViewModel {
     private func handleHeaderTap(_ tap: TransactionHeaderTap) {
-        guard let onHeaderAction, let headerAction else { return }
+        guard let onHeaderAction, let headerAction = rows.headerAction else { return }
         switch tap {
         case .header:
             onHeaderAction(headerAction)
         case let .asset(assetId):
-            onHeaderAction(.asset(assetId: assetId))
+            onHeaderAction(.asset(assetId: assetId.identifier))
         }
     }
 
     func onSelectSwapAgain() {
-        guard let onHeaderAction, case let .swap(fromAssetId, toAssetId) = headerAction else {
+        guard let onHeaderAction, case let .swap(fromAssetId, toAssetId) = rows.headerAction else {
             return
         }
         onHeaderAction(.swap(fromAssetId: fromAssetId, toAssetId: toAssetId))
@@ -150,16 +151,6 @@ extension TransactionSceneViewModel {
 
     private var explorerViewModel: TransactionExplorerViewModel {
         TransactionExplorerViewModel(transactionLink: rows.explorer.toPrimitives())
-    }
-
-    private var headerAction: TransactionHeaderAction? {
-        switch rows.headerAction {
-        case let .asset(assetId): .asset(assetId: Primitives.AssetId(core: assetId))
-        case let .nft(assetId): .nft(assetId: Primitives.NFTAssetId(core: assetId))
-        case let .swap(fromAssetId, toAssetId): .swap(fromAssetId: Primitives.AssetId(core: fromAssetId), toAssetId: Primitives.AssetId(core: toAssetId))
-        case let .perpetual(assetId): .perpetual(assetId: Primitives.AssetId(core: assetId))
-        case .none: nil
-        }
     }
 
     var feeDetailsViewModel: NetworkFeeSceneViewModel {

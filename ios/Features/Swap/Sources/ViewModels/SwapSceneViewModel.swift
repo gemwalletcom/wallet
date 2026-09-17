@@ -128,15 +128,12 @@ public final class SwapSceneViewModel {
             state: quotesState.map { providerItems($0, selectedQuote: selectedQuote, toAssetPrice: toAssetPrice) },
             fromAssetPrice: fromAssetPrice,
             toAssetPrice: toAssetPrice,
-            selectedQuote: selectedQuote,
-            slippage: selectedSlippage,
-            rate: summary.rate,
+            summary: summary,
+            slippagePercent: selectedSlippage.bps.map { service.slippagePercent(bps: $0) },
             currency: service.currency.rawValue,
             isProviderSelectionEnabled: isQuoteInteractionEnabled,
             swapPriceImpact: fromAssetPrice.swapValue(selectedQuote.fromValue)
                 .priceImpact(receive: toAssetPrice.swapValue(selectedQuote.toValue)),
-            minReceiveValue: BigInt(summary.minReceiveValue),
-            etaSeconds: selectedQuote.etaInSeconds,
             swapProviderSelectAction: { [weak self] quote in
                 self?.onFinishSwapProviderSelection(quote)
             },
@@ -276,7 +273,7 @@ extension SwapSceneViewModel {
 
     func onChangeSwapQuote(_ _: SwapperQuote?, _ newQuote: SwapperQuote?) {
         guard !isTransferDataLoading, let newQuote, let toAsset else { return }
-        applyQuote(newQuote, asset: toAsset.asset)
+        setToValue(quote: newQuote, asset: toAsset.asset)
     }
 
     func onChangeFromValue(_: String, _: String) {
@@ -306,7 +303,7 @@ extension SwapSceneViewModel {
 
     func onSelectPercent(_ percent: Int) {
         guard let fromAsset else { return }
-        applyPercentToFromValue(percent: percent, assetData: fromAsset)
+        setFromValue(percent: percent, assetData: fromAsset)
         setLoadTrigger(isImmediate: true)
     }
 
@@ -315,7 +312,10 @@ extension SwapSceneViewModel {
     }
 
     func onAssetIdsChange(assetIds: Set<AssetId>) async {
-        await performUpdate(for: Array(assetIds))
+        let assetIds = Array(assetIds)
+        async let balances: () = performUpdate(for: assetIds)
+        async let prices: () = subscribePrices(for: assetIds)
+        _ = await (balances, prices)
     }
 
     func onSelectAssetPay() {
@@ -360,8 +360,8 @@ extension SwapSceneViewModel {
             side: side,
             assetId: asset.id.identifier,
         )
-        pairSelectorModel.fromAssetId = selection.payAssetId.flatMap { try? AssetId(id: $0) }
-        pairSelectorModel.toAssetId = selection.receiveAssetId.flatMap { try? AssetId(id: $0) }
+        pairSelectorModel.fromAssetId = selection.payAssetId.map { AssetId(core: $0) }
+        pairSelectorModel.toAssetId = selection.receiveAssetId.map { AssetId(core: $0) }
         isPresentingInfoSheet = nil
     }
 }
@@ -401,20 +401,19 @@ extension SwapSceneViewModel {
         toValue = ""
     }
 
-    private func applyQuote(_ quote: SwapperQuote, asset: Asset) {
+    private func setToValue(quote: SwapperQuote, asset: Asset) {
         toValue = toValueFormatter.format(value: BigInt(quote.toValue), decimals: asset.decimals.asInt)
     }
 
-    private func applyPercentToFromValue(percent: Int, assetData: AssetData) {
-        amountInputModel.text = formatter.format(
-            value: assetData.balance.available.multiply(byPercent: percent),
-            decimals: assetData.asset.decimals.asInt,
-        )
+    private func setFromValue(percent: Int, assetData: AssetData) {
+        let value = service.amountForPercent(available: assetData.balance.available, percent: UInt32(percent))
+        guard let text = NumberInput.format().inputText(value: value.description, decimals: UInt32(assetData.asset.decimals)) else { return }
+        amountInputModel.text = text
     }
 
-    private func applyMinAmount(_ value: BigInt) {
-        guard let fromAsset else { return }
-        amountInputModel.text = formatter.format(value: value, decimals: fromAsset.asset.decimals.asInt)
+    private func setFromValue(minimum value: BigInt) {
+        guard let fromAsset, let text = NumberInput.format().inputText(value: value.description, decimals: UInt32(fromAsset.asset.decimals)) else { return }
+        amountInputModel.text = text
         setLoadTrigger(isImmediate: true)
     }
 
@@ -429,11 +428,6 @@ extension SwapSceneViewModel {
         session = session.onRequestChanged(request: input.request)
         resetToValue()
         loadTrigger = SwapLoadTrigger(input: input, isImmediate: isImmediate)
-
-        Task {
-            let assetIds = [fromAsset?.asset.id, toAsset?.asset.id].compactMap(\.self)
-            try await service.addPrices(assetIds: assetIds)
-        }
     }
 
     private func swap() {
@@ -476,7 +470,7 @@ extension SwapSceneViewModel {
             guard currentInput == input else { return }
             session = session.onQuoteResults(results: GemSwapQuotesResult(request: input.request, quotes: swapQuotes, error: nil))
             if let selectedSwapQuote, let asset = toAsset?.asset {
-                applyQuote(selectedSwapQuote, asset: asset)
+                setToValue(quote: selectedSwapQuote, asset: asset)
             }
         } catch {
             if !error.isCancelled, !Task.isCancelled {
@@ -496,12 +490,20 @@ extension SwapSceneViewModel {
         }
     }
 
+    private func subscribePrices(for assetIds: [AssetId]) async {
+        do {
+            try await service.addPrices(assetIds: assetIds)
+        } catch {
+            debugLog("SwapScene price subscription error: \(error)")
+        }
+    }
+
     private func onSelectActionButton() {
         switch viewState.buttonAction {
         case .retryQuote: setLoadTrigger(isImmediate: true)
         case .retryTransfer: swap()
         case .insufficientBalance: break
-        case let .useMinimumAmount(value): applyMinAmount(value)
+        case let .useMinimumAmount(value): setFromValue(minimum: value)
         case .swap:
             if let priceImpactModel = swapDetailsViewModel?.priceImpactModel,
                let warningText = priceImpactModel.highImpactWarningDescription,

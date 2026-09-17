@@ -24,10 +24,11 @@ final class VerifyPhraseViewModel {
 
     init(
         words: [String],
+        shuffledWords: [String],
         onComplete: @escaping ([String]) async throws -> Void,
     ) {
         self.words = words
-        shuffledWords = words.shuffleInGroups(groupSize: 4)
+        self.shuffledWords = shuffledWords
         wordsVerified = Array(repeating: "", count: words.count)
         self.onComplete = onComplete
     }
@@ -40,13 +41,8 @@ final class VerifyPhraseViewModel {
         AppUrl.docs(.howToSecureSecretPhrase)
     }
 
-    var rows: [[WordIndex]] {
-        wordsVerified
-            .enumerated()
-            .map {
-                WordIndex(index: $0.offset, word: $0.element)
-            }
-            .splitInSubArrays(into: wordsVerified.count / 2)
+    var rows: [SecretPhraseRow] {
+        SecretPhraseRow.rows(for: wordsVerified)
     }
 
     var rowsSections: [[WordIndex]] {

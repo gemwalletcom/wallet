@@ -1,5 +1,5 @@
 use diesel::prelude::*;
-use primitives::{AddressName, ScanAddress, VerificationStatus};
+use primitives::{AddressName, Chain, ScanAddress, VerificationStatus};
 use serde::{Deserialize, Serialize};
 
 use crate::sql_types::{AddressType, ChainRow};
@@ -22,6 +22,10 @@ pub struct ScanAddressRow {
 }
 
 impl ScanAddressRow {
+    pub fn is_verified_for(&self, chain: Chain, address: &str) -> bool {
+        self.chain.0 == chain && self.address == address && self.is_verified && !self.is_fraudulent
+    }
+
     pub fn as_primitive(self) -> Option<AddressName> {
         Some(AddressName {
             chain: self.chain.0,
@@ -78,5 +82,26 @@ mod tests {
         let row = ScanAddressRow::mock(1, Chain::Ethereum, "0x0000000000000000000000000000000000000001", None);
 
         assert_eq!(row.as_primitive(), None);
+    }
+
+    #[test]
+    fn test_is_verified_for() {
+        let mut row = ScanAddressRow::mock(1, Chain::Arbitrum, "0xAbC", None);
+        assert!(!row.is_verified_for(Chain::Arbitrum, "0xAbC"));
+
+        row.is_verified = true;
+        assert!(row.is_verified_for(Chain::Arbitrum, "0xAbC"));
+        assert!(!row.is_verified_for(Chain::Arbitrum, "0xabc"));
+        assert!(!row.is_verified_for(Chain::Arbitrum, "0xABC"));
+        assert!(!row.is_verified_for(Chain::Ethereum, "0xAbC"));
+        assert!(!row.is_verified_for(Chain::Arbitrum, "0x456"));
+
+        row.chain = Chain::Solana.into();
+        assert!(!row.is_verified_for(Chain::Solana, "0xabc"));
+        assert!(row.is_verified_for(Chain::Solana, "0xAbC"));
+        row.chain = Chain::Arbitrum.into();
+
+        row.is_fraudulent = true;
+        assert!(!row.is_verified_for(Chain::Arbitrum, "0xAbC"));
     }
 }

@@ -5,10 +5,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.features.asset_select.viewmodels.ManageSelectViewModel
 import com.wallet.core.primitives.AssetId
@@ -29,7 +27,6 @@ fun AssetsManageScreen(
     val isAddAssetAvailable by viewModel.isAddAssetAvailable.collectAsStateWithLifecycle()
 
     AssetSelectScreen(
-        title = stringResource(id = R.string.wallet_manage_token_list),
         onCancel = onCancel,
         onAddAsset = onAddAsset,
         actions = {

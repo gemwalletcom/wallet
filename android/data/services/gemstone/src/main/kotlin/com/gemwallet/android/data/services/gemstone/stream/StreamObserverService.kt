@@ -69,7 +69,7 @@ class StreamObserverService(
                             health.report(isHealthy = true)
                             service.connected()
                         }
-                        is WebSocketEvent.Message -> Log.d(TAG, "Stream event: ${service.handle(event.text)}")
+                        is WebSocketEvent.Message -> service.handle(event.text)
                         WebSocketEvent.Disconnected -> {
                             health.report(isHealthy = false)
                             service.disconnected()

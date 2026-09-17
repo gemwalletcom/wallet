@@ -83,7 +83,7 @@ pub fn map_staking_delegations(stake_accounts: Vec<TokenAccountInfo>, epoch: Epo
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::{EpochInfo, Info, Parsed, StakeDelegation, StakeInfo, TokenAccountData, TokenAccountInfo, TokenAccountInfoData, VoteAccount};
+    use crate::models::{EpochInfo, TokenAccountInfo, VoteAccount};
     use primitives::{AssetId, Chain, DelegationState};
 
     #[test]
@@ -110,37 +110,16 @@ mod tests {
         assert_eq!(apy, 50.0);
     }
 
-    fn stake_account(activation_epoch: u64, deactivation_epoch: u64) -> TokenAccountInfo {
-        TokenAccountInfo {
-            pubkey: "stake1".to_string(),
-            account: TokenAccountData {
-                data: Parsed {
-                    parsed: Info {
-                        info: TokenAccountInfoData {
-                            mint: None,
-                            token_amount: None,
-                            stake: Some(StakeInfo {
-                                delegation: StakeDelegation {
-                                    activation_epoch,
-                                    deactivation_epoch,
-                                    stake: "1000000".to_string(),
-                                    voter: "validator1".to_string(),
-                                },
-                            }),
-                        },
-                    },
-                },
-                owner: "owner1".to_string(),
-                lamports: 1000000,
-            },
-        }
-    }
-
     #[test]
     fn test_map_staking_delegations() {
         let now = DateTime::from_timestamp(1_757_000_000, 0).unwrap();
 
-        let result = map_staking_delegations(vec![stake_account(100, u64::MAX)], EpochInfo::mock(0), AssetId::from_chain(Chain::Solana), now);
+        let result = map_staking_delegations(
+            vec![TokenAccountInfo::mock_stake(100, u64::MAX)],
+            EpochInfo::mock(0),
+            AssetId::from_chain(Chain::Solana),
+            now,
+        );
 
         assert_eq!(result.len(), 1);
         assert_eq!(result[0].validator_id, "validator1");
@@ -152,8 +131,15 @@ mod tests {
     #[test]
     fn test_map_staking_delegations_completion_date() {
         let now = DateTime::from_timestamp(1_757_000_000, 0).unwrap();
-        let deactivating =
-            |slot_index: u64| map_staking_delegations(vec![stake_account(100, 200)], EpochInfo::mock(slot_index), AssetId::from_chain(Chain::Solana), now)[0].clone();
+        let deactivating = |slot_index: u64| {
+            map_staking_delegations(
+                vec![TokenAccountInfo::mock_stake(100, 200)],
+                EpochInfo::mock(slot_index),
+                AssetId::from_chain(Chain::Solana),
+                now,
+            )[0]
+            .clone()
+        };
 
         assert_eq!(deactivating(0).state, DelegationState::Deactivating);
 

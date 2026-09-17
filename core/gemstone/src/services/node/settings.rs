@@ -1,10 +1,11 @@
+use std::collections::HashMap;
 use std::sync::Arc;
 
-use primitives::{Chain, Latency};
+use primitives::Chain;
 
-use super::model::{GemAddNodeError, GemNodeCheck, GemNodeSelection, GemNodeStatusState};
+use super::model::{GemAddNodeError, GemChainSettingsSection, GemExplorerRow, GemNodeCheck, GemNodeRow, GemNodeSelection, GemNodeStatusState};
 use super::rules;
-use super::session::GemAddNodeSession;
+use super::session::{GemAddNodeSession, GemNodeListSession};
 use crate::gateway::GemGateway;
 use crate::services::chain::rules as chain_rules;
 use crate::services::error::GemServiceError;
@@ -29,12 +30,36 @@ impl GemChainSettingsService {
         chain_rules::matching_chains(chain_rules::chains_by_rank(), &query)
     }
 
-    pub fn explorers(&self, chain: Chain) -> Vec<String> {
-        self.explorer.get_explorers(chain)
+    pub fn sections(&self) -> Vec<GemChainSettingsSection> {
+        vec![GemChainSettingsSection::Nodes, GemChainSettingsSection::Explorer]
     }
 
-    pub fn explorer_name(&self, chain: Chain) -> String {
-        self.explorer.get_explorer_name(chain)
+    pub fn explorer_rows(&self, chain: Chain) -> Vec<GemExplorerRow> {
+        let selected = self.explorer.get_explorer_name(chain);
+        self.explorer
+            .get_explorers(chain)
+            .into_iter()
+            .map(|name| GemExplorerRow {
+                is_selected: name == selected,
+                name,
+            })
+            .collect()
+    }
+
+    pub fn node_rows(&self, chain: Chain, nodes: Vec<GemNodeSelection>, statuses: HashMap<String, GemNodeStatusState>) -> Vec<GemNodeRow> {
+        nodes
+            .into_iter()
+            .map(|node| {
+                let status = statuses.get(&node.url).cloned().unwrap_or(GemNodeStatusState::Loading);
+                GemNodeRow {
+                    title: node.title(),
+                    subtitle: status.subtitle(),
+                    latency_status: status.latency_status(),
+                    can_delete: rules::can_delete_node(chain, &node.url),
+                    node,
+                }
+            })
+            .collect()
     }
 
     pub fn set_explorer_name(&self, chain: Chain, name: String) -> Result<(), GemServiceError> {
@@ -51,10 +76,6 @@ impl GemChainSettingsService {
         self.nodes.select_node(chain, url).await
     }
 
-    pub fn can_delete_node(&self, chain: Chain, url: String) -> bool {
-        self.nodes.can_delete_node(chain, url)
-    }
-
     pub async fn delete_node(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {
         self.nodes.delete_node(chain, url).await
     }
@@ -65,13 +86,11 @@ impl GemChainSettingsService {
     }
 
     pub async fn node_status(&self, chain: Chain, url: String) -> GemNodeStatusState {
-        match self.gateway.get_node_status(chain, &url).await {
-            Ok(status) if status.latest_block_number > 0 => GemNodeStatusState::Result {
-                latest_block_number: status.latest_block_number,
-                latency: Latency::from_milliseconds(status.latency_ms),
-            },
-            Ok(_) | Err(_) => GemNodeStatusState::Error,
-        }
+        rules::node_status_state(self.gateway.get_node_status(chain, &url).await.ok())
+    }
+
+    pub fn new_node_list_session(&self, chain: Chain) -> GemNodeListSession {
+        GemNodeListSession::new(chain)
     }
 
     pub fn new_add_node_session(&self, chain: Chain) -> GemAddNodeSession {
@@ -85,5 +104,60 @@ impl GemChainSettingsService {
     pub async fn check_node(&self, chain: Chain, url: String) -> Result<GemNodeCheck, GemAddNodeError> {
         let url = rules::node_url(&url).ok_or(GemAddNodeError::InvalidUrl)?;
         Ok(self.gateway.check_node(chain, &url).await?)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use primitives::node_config::NodeRegion;
+
+    use super::super::model::GemNodeSubtitle;
+    use super::*;
+    use crate::services::node::rules;
+
+    #[test]
+    fn test_exactly_one_explorer_row_is_selected_and_it_follows_the_stored_name() {
+        let service = GemChainSettingsService::mock();
+        let rows = service.explorer_rows(Chain::Ethereum);
+        let names: Vec<String> = rows.iter().map(|row| row.name.clone()).collect();
+
+        assert_eq!(names, service.explorer.get_explorers(Chain::Ethereum));
+        assert_eq!(rows.iter().filter(|row| row.is_selected).count(), 1);
+
+        let other = names.last().unwrap().clone();
+        service.set_explorer_name(Chain::Ethereum, other.clone()).unwrap();
+        let selected: Vec<String> = service
+            .explorer_rows(Chain::Ethereum)
+            .into_iter()
+            .filter(|row| row.is_selected)
+            .map(|row| row.name)
+            .collect();
+
+        assert_eq!(selected, vec![other]);
+    }
+
+    #[test]
+    fn test_node_rows_pair_each_node_with_its_own_status_and_defaults_the_rest_to_loading() {
+        let service = GemChainSettingsService::mock();
+        let default_url = rules::region_node(Chain::Ethereum, NodeRegion::Us).url;
+        let selections = rules::node_selections(vec![rules::region_node(Chain::Ethereum, NodeRegion::Us)], &default_url);
+        let added = GemNodeSelection {
+            host: "node.example.com".to_string(),
+            ..GemNodeSelection::mock("https://node.example.com")
+        };
+        let nodes = vec![selections[0].clone(), added.clone()];
+        let statuses = HashMap::from([(added.url.clone(), GemNodeStatusState::mock_result(21_000_000))]);
+
+        let rows = service.node_rows(Chain::Ethereum, nodes, statuses);
+
+        assert_eq!(rows.len(), 2);
+        assert_eq!(
+            rows[0].subtitle,
+            GemNodeSubtitle::LatestBlock { value: "-".to_string() },
+            "a node with no status yet is still loading"
+        );
+        assert_eq!(rows[1].subtitle, GemNodeSubtitle::LatestBlock { value: "21,000,000".to_string() });
+        assert!(!rows[0].can_delete);
+        assert!(rows[1].can_delete);
     }
 }

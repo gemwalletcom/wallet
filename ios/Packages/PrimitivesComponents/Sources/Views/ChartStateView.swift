@@ -39,7 +39,7 @@ public struct ChartStateView: View {
                     )
                 }
             }
-            .frame(height: 320)
+            .frame(height: Sizing.chart.height)
 
             PeriodSelectorView(selectedPeriod: $selectedPeriod, periods: periods)
                 .padding(.horizontal, Spacing.medium)

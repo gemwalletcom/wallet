@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use async_trait::async_trait;
 use gem_client::{Client, ClientExt};
-use primitives::Chain;
+use primitives::{Chain, ScanProvider};
 use serde::Serialize;
 
 use crate::providers::hashdit::{
@@ -59,8 +59,8 @@ impl<C: Client> HashDitProvider<C> {
 
 #[async_trait]
 impl<C: Client> AddressPoisoningProvider for HashDitProvider<C> {
-    fn name(&self) -> &'static str {
-        PROVIDER_NAME
+    fn provider(&self) -> ScanProvider {
+        ScanProvider::HashDit
     }
 
     fn supports_chain(&self, chain: Chain) -> bool {
@@ -86,8 +86,8 @@ impl<C: Client> AddressPoisoningProvider for HashDitProvider<C> {
 
 #[async_trait]
 impl<C: Client> AddressScanProvider for HashDitProvider<C> {
-    fn name(&self) -> &'static str {
-        PROVIDER_NAME
+    fn provider(&self) -> ScanProvider {
+        ScanProvider::HashDit
     }
 
     fn supports_chain(&self, chain: Chain) -> bool {
@@ -140,8 +140,8 @@ impl<C: Client> TokenScanProvider for HashDitProvider<C> {
 
 #[async_trait]
 impl<C: Client> WebsiteScanProvider for HashDitProvider<C> {
-    fn name(&self) -> &'static str {
-        PROVIDER_NAME
+    fn provider(&self) -> ScanProvider {
+        ScanProvider::HashDit
     }
 
     async fn scan_website(&self, target: &WebsiteTarget) -> Result<ScanResult<WebsiteTarget>, Box<dyn std::error::Error + Send + Sync>> {
@@ -189,6 +189,12 @@ mod tests {
     #[tokio::test]
     async fn test_scan_bsc_address_verdicts() {
         let cases = [
+            (
+                "0x123",
+                include_str!("../../../testdata/hashdit/address_security_medium_risk_response.json"),
+                false,
+                "Medium Risk",
+            ),
             (
                 "0x0f9adaaccd7caecc5019194e15ad19624fed95fa",
                 include_str!("../../../testdata/hashdit/address_security_significant_risk_response.json"),
@@ -266,7 +272,7 @@ mod tests {
         };
         let result = HashDitProvider::new(client, "api-key").scan_token(&target).await.unwrap();
 
-        assert!(result.is_malicious);
+        assert!(!result.is_malicious);
         assert_eq!(result.reason.as_deref(), Some("Medium Risk"));
     }
 

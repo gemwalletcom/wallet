@@ -1,9 +1,9 @@
 package com.gemwallet.android.domains.confirm
 
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetPriceInfo
+import com.gemwallet.android.testkit.mockAssetPriceValue
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.wallet.core.primitives.FeePriority
 import org.junit.Assert.assertEquals
@@ -15,7 +15,7 @@ class FeeRateUIModelTest {
 
     @Test
     fun gweiRateShowsTheUnitValueAndTheScaledFeeInFiat() {
-        val assetInfo = AssetPriceValue(mockAssetEthereum(), mockAssetPriceInfo(price = 1.0))
+        val assetInfo = mockAssetPriceValue(mockAssetEthereum(), mockAssetPriceInfo(price = 1.0))
         val model = FeeRateUIModel(
             row = GemFeeRateRow(
                 priority = FeePriority.Fast.toGem(),
@@ -35,7 +35,7 @@ class FeeRateUIModelTest {
 
     @Test
     fun nativeRateShowsTheScaledFeeInTheFeeAsset() {
-        val assetInfo = AssetPriceValue(mockAssetSolana(), null)
+        val assetInfo = mockAssetPriceValue(mockAssetSolana())
         fun model(priority: FeePriority, fee: String) = FeeRateUIModel(
             row = GemFeeRateRow(
                 priority = priority.toGem(),
@@ -61,7 +61,7 @@ class FeeRateUIModelTest {
                 fee = null,
                 displayValue = BigInteger.ONE,
             ),
-            feeAsset = AssetPriceValue(mockAssetEthereum(), null),
+            feeAsset = mockAssetPriceValue(mockAssetEthereum()),
             feeRateDecimals = mockAssetEthereum().decimals,
             unitSymbol = "ETH",
         )

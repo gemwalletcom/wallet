@@ -1,17 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Formatters
 import Foundation
+import struct Gemstone.GemConnectionDetails
+import enum Gemstone.GemConnectionDetailRow
 import Localization
-import Primitives
 
 public struct ConnectionSceneViewModel: Sendable {
     private static let dateFormatter = RelativeDateFormatter()
 
-    let model: WalletConnectionViewModel
+    let details: GemConnectionDetails
 
-    init(model: WalletConnectionViewModel) {
-        self.model = model
+    init(details: GemConnectionDetails) {
+        self.details = details
     }
 
     var title: String {
@@ -22,19 +24,14 @@ public struct ConnectionSceneViewModel: Sendable {
         Localized.WalletConnect.disconnect
     }
 
-    var walletField: String {
-        Localized.Common.wallet
+    func listItem(for row: GemConnectionDetailRow) -> ListItemModel {
+        ListItemModel(title: row.title, subtitle: value(for: row))
     }
 
-    var walletText: String {
-        model.connection.wallet.name
-    }
-
-    var dateField: String {
-        Localized.Transaction.date
-    }
-
-    var dateText: String {
-        Self.dateFormatter.string(from: model.connection.session.createdAt)
+    func value(for row: GemConnectionDetailRow) -> String {
+        switch row {
+        case .wallet: details.wallet
+        case .date: Self.dateFormatter.string(from: details.date)
+        }
     }
 }

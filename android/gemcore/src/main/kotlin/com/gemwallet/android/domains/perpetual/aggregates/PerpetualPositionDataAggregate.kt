@@ -1,6 +1,6 @@
 package com.gemwallet.android.domains.perpetual.aggregates
 
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualId
@@ -13,5 +13,5 @@ interface PerpetualPositionDataAggregate {
     val leverage: String
     val marginAmount: String
     val pnlWithPercentage: String
-    val pnlState: ValueDirection
+    val pnlState: GemValueTone
 }

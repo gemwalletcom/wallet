@@ -13,6 +13,10 @@ let package = Package(
             name: "Onboarding",
             targets: ["Onboarding"],
         ),
+        .library(
+            name: "OnboardingTestKit",
+            targets: ["OnboardingTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "Gemstone", path: "../../Packages/Gemstone"),
@@ -47,11 +51,24 @@ let package = Package(
             ],
             path: "Sources",
         ),
+        .target(
+            name: "OnboardingTestKit",
+            dependencies: [
+                "Onboarding",
+                "Gemstone",
+                "Primitives",
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
+                .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
+            ],
+            path: "TestKit",
+        ),
         .testTarget(
             name: "OnboardingTest",
             dependencies: [
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "Onboarding",
+                "OnboardingTestKit",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
@@ -60,6 +77,7 @@ let package = Package(
                 "GemstonePrimitives",
                 "Primitives",
                 "Store",
+                "Components",
             ],
             path: "Tests",
         ),

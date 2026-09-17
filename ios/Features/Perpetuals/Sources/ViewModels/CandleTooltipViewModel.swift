@@ -2,18 +2,17 @@
 
 import GemstonePrimitives
 import struct Gemstone.GemCandleTooltip
-import struct Gemstone.GemFormattedNumber
+import struct Gemstone.GemCandleTooltipCell
 import func Gemstone.candleTooltip
 import Components
 import Formatters
-import Localization
 import Primitives
+import PrimitivesComponents
 import Style
 import SwiftUI
 
 public struct CandleTooltipViewModel {
     private static let titleStyle = TextStyle(font: .caption2, color: Colors.secondaryText, fontWeight: .medium)
-    private static let subtitleStyle = TextStyle(font: .caption2.monospacedDigit(), color: Colors.black, fontWeight: .semibold)
 
     private let tooltip: GemCandleTooltip
 
@@ -21,41 +20,22 @@ public struct CandleTooltipViewModel {
         tooltip = candleTooltip(candle: candle.toGem())
     }
 
-    var openField: ListItemField {
-        field(title: Localized.Charts.Price.open, value: tooltip.open)
+    var priceCells: [GemCandleTooltipCell] {
+        tooltip.prices
     }
 
-    var closeField: ListItemField {
-        field(title: Localized.Charts.Price.close, value: tooltip.close)
+    var summaryCells: [GemCandleTooltipCell] {
+        tooltip.summary
     }
 
-    var highField: ListItemField {
-        field(title: Localized.Charts.Price.high, value: tooltip.high)
-    }
-
-    var lowField: ListItemField {
-        field(title: Localized.Charts.Price.low, value: tooltip.low)
-    }
-
-    var changeField: ListItemField {
+    func field(for cell: GemCandleTooltipCell) -> ListItemField {
         ListItemField(
-            title: TextValue(text: Localized.Charts.Price.change, style: Self.titleStyle, lineLimit: 1),
+            title: TextValue(text: cell.row.title, style: Self.titleStyle, lineLimit: 1),
             value: TextValue(
-                text: tooltip.change.text(),
-                style: TextStyle(font: .caption2.monospacedDigit(), color: tooltip.change.tone.color, fontWeight: .semibold),
+                text: cell.value.text(),
+                style: TextStyle(font: .caption2.monospacedDigit(), color: cell.value.tone.color, fontWeight: .semibold),
                 lineLimit: 1,
             ),
-        )
-    }
-
-    var volumeField: ListItemField {
-        field(title: Localized.Perpetual.volume, value: tooltip.volume)
-    }
-
-    private func field(title: String, value: GemFormattedNumber) -> ListItemField {
-        ListItemField(
-            title: TextValue(text: title, style: Self.titleStyle, lineLimit: 1),
-            value: TextValue(text: value.text(), style: Self.subtitleStyle, lineLimit: 1),
         )
     }
 }

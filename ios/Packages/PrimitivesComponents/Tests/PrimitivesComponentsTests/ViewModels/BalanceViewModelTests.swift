@@ -26,7 +26,7 @@ struct BalanceViewModelTests {
                 bandwidthTotal: .zero,
             ),
         )
-        let tronModel = BalanceViewModel(asset: .mockTron(), balance: tronBalance, formatter: .auto)
+        let tronModel = BalanceViewModel.mock(asset: .mockTron(), balance: tronBalance)
 
         let bnbBalance = Balance(
             available: BigInt(1_000_000),
@@ -36,7 +36,7 @@ struct BalanceViewModelTests {
             pending: BigInt(0),
             rewards: BigInt(100_000),
         )
-        let bnbModel = BalanceViewModel(asset: .mockBNB(), balance: bnbBalance, formatter: .auto)
+        let bnbModel = BalanceViewModel.mock(asset: .mockBNB(), balance: bnbBalance)
 
         #expect(tronModel.total == BigInt(1_005_497))
         #expect(bnbModel.total == BigInt(6_100_000))

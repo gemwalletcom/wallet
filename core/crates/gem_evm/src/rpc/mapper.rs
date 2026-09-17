@@ -467,12 +467,7 @@ mod tests {
         let receipt = TransactionReceipt {
             gas_used: BigUint::from(21442u64),
             effective_gas_price: BigUint::from(5_000_000_000u64),
-            l1_fee: None,
-            logs: vec![],
-            status: "0x1".to_string(),
-            block_hash: "0x1111111111111111111111111111111111111111111111111111111111111111".to_string(),
-            block_number: 1000,
-            fee_token: None,
+            ..TransactionReceipt::mock()
         };
 
         assert_eq!(
@@ -560,12 +555,7 @@ mod tests {
         let receipt = TransactionReceipt {
             gas_used: BigUint::from(22496u32),
             effective_gas_price: BigUint::from(5_000_000_000u64),
-            l1_fee: None,
-            logs: vec![],
-            status: "0x1".to_string(),
-            block_hash: "0x1111111111111111111111111111111111111111111111111111111111111111".to_string(),
-            block_number: 1000,
-            fee_token: None,
+            ..TransactionReceipt::mock()
         };
 
         let tx = EthereumMapper::map_transaction(Chain::SmartChain, &transaction, &receipt, &BigUint::from(1735671600u64)).unwrap();

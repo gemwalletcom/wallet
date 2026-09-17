@@ -26,6 +26,10 @@ pub mod sql_types {
     pub struct DeviceLocale;
 
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "fiat_rate_provider"))]
+    pub struct FiatRateProvider;
+
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "fiat_transaction_status"))]
     pub struct FiatTransactionStatus;
 
@@ -368,11 +372,14 @@ diesel::table! {
 diesel::table! {
     use diesel::sql_types::*;
     use super::sql_types::Currency;
+    use super::sql_types::FiatRateProvider;
 
     fiat_rates (id) {
         id -> Currency,
         name -> Varchar,
         rate -> Float8,
+        provider -> FiatRateProvider,
+        is_enabled -> Bool,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }

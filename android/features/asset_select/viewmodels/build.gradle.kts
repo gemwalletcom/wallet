@@ -36,6 +36,9 @@ android {
             freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
         }
     }
+    testFixtures {
+        enable = true
+    }
     packaging {
         resources {
             excludes += "META-INF/*"

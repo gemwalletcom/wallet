@@ -62,7 +62,7 @@ class Migration_63_64(context: Context, private val passwordStore: PasswordStore
                         File(keysDir, oldWalletId).delete()
                         passwordStore.removePassword(oldWalletId)
                     } catch (err: Throwable) {
-                        Log.d("MIGRATE_WALLET_ID", "Error on delete duplicates", err)
+                        Log.e("MIGRATE_WALLET_ID", "Error on delete duplicates", err)
                     }
                 }
             } else {
@@ -72,7 +72,7 @@ class Migration_63_64(context: Context, private val passwordStore: PasswordStore
                     File(keysDir, oldWalletId)
                         .copyTo(File(keysDir, newWalletId))
                 } catch (err: Throwable) {
-                    Log.d("MIGRATE_WALLET_ID", "Error on copy keys", err)
+                    Log.e("MIGRATE_WALLET_ID", "Error on copy keys", err)
                 }
             }
         }

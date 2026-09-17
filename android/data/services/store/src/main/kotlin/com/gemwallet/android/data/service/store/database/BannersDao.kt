@@ -8,6 +8,7 @@ import androidx.room.Transaction
 import com.gemwallet.android.data.service.store.database.entities.DbBanner
 import com.gemwallet.android.data.service.store.database.entities.DbBannerWithAsset
 import com.wallet.core.primitives.BannerEvent
+import com.wallet.core.primitives.BannerState
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -43,4 +44,10 @@ interface BannersDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun addBanners(banners: List<DbBanner>)
+
+    @Query("DELETE FROM banners")
+    suspend fun deleteAll()
+
+    @Query("UPDATE banners SET state = :to WHERE state = :from")
+    suspend fun updateStates(from: BannerState, to: BannerState)
 }

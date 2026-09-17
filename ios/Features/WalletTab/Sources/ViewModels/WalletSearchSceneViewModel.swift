@@ -9,7 +9,6 @@ import GemstonePrimitives
 import GemstoneServices
 import Localization
 import NFT
-import struct Gemstone.GemAssetRow
 import Primitives
 import PrimitivesComponents
 import Recents
@@ -319,8 +318,8 @@ extension WalletSearchSceneViewModel {
     func setPerpetualPinned(_ perpetualId: PerpetualId, pinned: Bool) async throws {
         try await service.setPerpetualPinned(perpetualId: perpetualId.identifier, pinned: pinned)
     }
-    var assetRow: GemAssetRow {
-        service.flow(selectType: .walletSearch).row
+    var assetItems: ListAssetItemsViewModel {
+        ListAssetItemsViewModel(currency: currency, row: service.flow(selectType: .walletSearch).row)
     }
 
 }

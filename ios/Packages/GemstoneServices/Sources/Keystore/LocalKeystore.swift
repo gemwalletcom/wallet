@@ -13,8 +13,6 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         keystorePassword: KeystorePassword = LocalKeystorePassword(),
     ) {
         do {
-            // migrate keystore from documents directory to application support directory
-            // TODO: delete in 2026
             let fileMigrator = FileMigrator()
             let keystoreURL = try fileMigrator.migrate(
                 name: directory,
@@ -74,16 +72,6 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         return try await queue.asyncTask { [gemKeystore] in
             try withV4Password(keystore: gemKeystore, password) { passwordBytes in
                 try gemKeystore.sign(keystoreId: keystoreId, chain: chain, input: input, password: passwordBytes)
-            }
-        }
-    }
-
-    public func signMessage(signer: MessageSigner, wallet: Primitives.Wallet) async throws -> String {
-        let password = try await getPassword()
-        let keystoreId = gemKeystore.keystoreId(walletId: wallet.id.id)
-        return try await queue.asyncTask { [gemKeystore] in
-            try withV4Password(keystore: gemKeystore, password) { passwordBytes in
-                try signer.signWithKeystore(keystore: gemKeystore, keystoreId: keystoreId, password: passwordBytes)
             }
         }
     }

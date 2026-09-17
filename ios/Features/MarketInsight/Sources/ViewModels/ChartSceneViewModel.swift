@@ -34,7 +34,11 @@ public final class ChartSceneViewModel: ChartListViewable {
         get { session.period.toPrimitives() }
         set {
             session = session.onSelectPeriod(period: newValue.toGem())
-            try? service.setChartPeriod(period: newValue.toGem())
+            do {
+                try service.setChartPeriod(period: newValue.toGem())
+            } catch {
+                debugLog("ChartSceneViewModel chart period error: \(error)")
+            }
         }
     }
 
@@ -92,6 +96,13 @@ public final class ChartSceneViewModel: ChartListViewable {
 
     func socialLinksModel(_ links: [Gemstone.AssetLink]) -> SocialLinksViewModel {
         SocialLinksViewModel(links: socialLinks(links: links))
+    }
+
+    func listItem(for section: GemChartSection) -> ListItemModel {
+        switch section {
+        case let .priceAlerts(count): ListItemModel(title: section.title ?? "", subtitle: "\(count)")
+        case .setPriceAlert, .market, .links: ListItemModel(title: section.title ?? "")
+        }
     }
 
     func marketValues(_ rows: [GemAssetMarketRow]) -> [MarketValueViewModel] {

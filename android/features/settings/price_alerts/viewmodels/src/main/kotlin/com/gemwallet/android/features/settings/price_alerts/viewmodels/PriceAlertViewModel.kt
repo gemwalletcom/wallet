@@ -1,37 +1,47 @@
 package com.gemwallet.android.features.settings.price_alerts.viewmodels
 
-import com.gemwallet.android.ext.toGem
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
 import com.gemwallet.android.application.pricealerts.cases.GetAssetPriceAlertState
 import com.gemwallet.android.application.pricealerts.cases.GetPriceAlerts
-import com.gemwallet.android.application.assets.cases.GetAssetTokenInfo
+import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
+import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
+import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toAssetId
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.models.ListSection
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-import android.util.Log
-import com.gemwallet.android.ext.runCatchingCancellable
+import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemAssetRowTitle
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemPriceAlertServiceInterface
-import com.gemwallet.android.ext.serviceMessage
-import kotlinx.coroutines.flow.StateFlow
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -40,7 +50,8 @@ class PriceAlertViewModel @Inject constructor(
     private val getAssetPriceAlertState: GetAssetPriceAlertState,
     private val getAssetTokenInfo: GetAssetTokenInfo,
     private val service: GemPriceAlertServiceInterface,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val refreshState = MutableStateFlow(false)
@@ -50,13 +61,32 @@ class PriceAlertViewModel @Inject constructor(
         .mapLatest { it?.toAssetId() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val assetInfo = assetId.flatMapLatest { id ->
+    val asset = assetId.flatMapLatest { id ->
         if (id != null) getAssetTokenInfo(id) else flowOf(null)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    }
+        .mapLatest { it?.toAssetInfoDataAggregate(GemAssetRowTitle.CANONICAL_ASSET) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val data = assetId.flatMapLatest { getPriceAlerts(it) }
-        .mapLatest { getPriceAlerts.groupByTargetAndAsset(it) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
+    private val alerts = assetId.flatMapLatest { getPriceAlerts(it) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    private val grouped = alerts.map { getPriceAlerts.groupByTargetAndAsset(it) }
+
+    val isAutoAlertEnabled = grouped.map { it[null].orEmpty().isNotEmpty() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val sections: StateFlow<List<ListSection<PriceAlertDataAggregate>>> = combine(grouped, assetId) { grouped, assetId ->
+        grouped.entries.mapNotNull { (key, items) ->
+            val id = key ?: return@mapNotNull null
+            if (items.isEmpty()) return@mapNotNull null
+            ListSection(
+                id = id.toIdentifier(),
+                title = if (assetId != null) context.getString(R.string.stake_active) else items.first().title,
+                items = items,
+            )
+        }
+    }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val priceAlertEnabled = assetId.flatMapLatest { id ->
         if (id == null) {
@@ -69,8 +99,8 @@ class PriceAlertViewModel @Inject constructor(
 
     val isRefreshing = refreshState.asStateFlow()
 
-    private val errorState = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = errorState.asStateFlow()
+    private val errorState = MutableStateFlow<GemErrorText?>(null)
+    val error: StateFlow<GemErrorText?> = errorState.asStateFlow()
 
     init {
         val initialAssetId = savedStateHandle.get<String?>(RouteArgument.AssetId.key)?.toAssetId()
@@ -106,9 +136,9 @@ class PriceAlertViewModel @Inject constructor(
     }
 
     fun excludeAsset(priceAlertId: String) = viewModelScope.launch(Dispatchers.IO) {
-        val alert = data.value.values.flatten().firstOrNull { it.id == priceAlertId } ?: return@launch
+        val alert = alerts.value.firstOrNull { it.id == priceAlertId } ?: return@launch
         runCatchingCancellable { service.deletePriceAlerts(listOf(alert.priceAlert.toGem())) }
-            .onFailure { errorState.value = it.serviceMessage() }
+            .onFailure { errorState.value = it.errorText() }
     }
 
     fun includeAsset(assetId: AssetId, callback: (Asset) -> Unit) = viewModelScope.launch(Dispatchers.IO) {
@@ -120,7 +150,7 @@ class PriceAlertViewModel @Inject constructor(
 
     private suspend fun setAutoAlert(assetId: AssetId, enabled: Boolean) {
         runCatchingCancellable { service.setAutoAlert(assetId.toIdentifier(), enabled) }
-            .onFailure { errorState.value = it.serviceMessage() }
+            .onFailure { errorState.value = it.errorText() }
     }
 
     fun clearError() = errorState.update { null }

@@ -1,4 +1,6 @@
 pub mod model;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use std::future::Future;
 use std::sync::Arc;
@@ -119,4 +121,38 @@ where
     let mut failures = Vec::new();
     record(&mut failures, step, future).await;
     failures
+}
+
+#[cfg(test)]
+mod tests {
+    use futures::executor::block_on;
+
+    use super::testkit::AppStartTestkit;
+    use super::*;
+
+    #[test]
+    fn test_a_wallet_whose_keystore_cannot_be_read_does_not_stop_the_others() {
+        block_on(async {
+            let testkit = AppStartTestkit::new().await;
+            testkit.wallets.lock_out(&testkit.first);
+
+            let failures = testkit.service.setup_wallets().await;
+
+            let chain_failures: Vec<&GemAppStartFailure> = failures.iter().filter(|failure| failure.step == GemAppStartStep::SetupChains).collect();
+            assert_eq!(chain_failures.len(), 1, "{failures:?}");
+            assert!(chain_failures[0].message.contains(&testkit.first.id.id()));
+            assert!(!chain_failures[0].message.contains(&testkit.second.id.id()));
+        })
+    }
+
+    #[test]
+    fn test_every_wallet_is_set_up_when_the_keystores_open() {
+        block_on(async {
+            let testkit = AppStartTestkit::new().await;
+
+            let failures = testkit.service.setup_wallets().await;
+
+            assert!(!failures.iter().any(|failure| failure.step == GemAppStartStep::SetupChains), "{failures:?}");
+        })
+    }
 }

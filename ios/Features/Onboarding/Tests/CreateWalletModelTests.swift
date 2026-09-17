@@ -5,6 +5,7 @@ import GemstonePrimitivesTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
 @testable import Onboarding
+import OnboardingTestKit
 import Primitives
 import Store
 import StoreTestKit
@@ -14,11 +15,7 @@ import Testing
 struct CreateWalletModelTests {
     @Test
     func createWalletSetsWalletConfiguration() async throws {
-        let model = CreateWalletModel(
-            service: GemWalletService.mock(db: .mockWithChains(AssetConfiguration.allChains)),
-            preferences: .mock(),
-            onComplete: nil,
-        )
+        let model = CreateWalletModel.mock(service: GemWalletService.mock(db: .mockWithChains(AssetConfiguration.allChains)))
 
         let created = try await model.createWallet(words: LocalKeystore.words)
         #expect(created.wallet.source == .create)
@@ -27,11 +24,7 @@ struct CreateWalletModelTests {
 
     @Test
     func generateSecretPhraseReturnsGeneratedWords() {
-        let model = CreateWalletModel(
-            service: GemWalletService.mock(),
-            preferences: .mock(),
-            onComplete: nil,
-        )
+        let model = CreateWalletModel.mock()
 
         let words = model.generateSecretPhrase()
 

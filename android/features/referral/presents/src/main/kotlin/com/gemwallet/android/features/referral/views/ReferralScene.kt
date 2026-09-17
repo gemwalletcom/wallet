@@ -30,36 +30,38 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.features.referral.viewmodels.SyncType
+import com.gemwallet.android.features.referral.viewmodels.models.ReferralUIModel
+import com.gemwallet.android.features.referral.viewmodels.models.RewardRedemptionUIModel
+import com.gemwallet.android.features.referral.views.components.referralConfirmCode
+import com.gemwallet.android.features.referral.views.components.referralError
+import com.gemwallet.android.features.referral.views.components.referralHead
+import com.gemwallet.android.features.referral.views.components.referralInfo
+import com.gemwallet.android.features.referral.views.components.referralUnverified
+import com.gemwallet.android.features.referral.views.dialogs.GetStartedDialog
+import com.gemwallet.android.features.referral.views.dialogs.ReferralCodeDialog
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.buttons.mainActionButtonColors
 import com.gemwallet.android.ui.components.clickable
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.showSnackbar
-import com.gemwallet.android.ui.shareText
-import kotlinx.coroutines.launch
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.shareText
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
-import uniffi.gemstone.GemRewardsState
-import com.gemwallet.android.features.referral.viewmodels.SyncType
-import com.gemwallet.android.features.referral.views.components.referralConfirmCode
-import com.gemwallet.android.features.referral.views.components.referralError
-import com.gemwallet.android.features.referral.views.components.referralHead
-import com.gemwallet.android.features.referral.views.components.referralUnverified
-import com.gemwallet.android.features.referral.views.components.referralInfo
-import com.gemwallet.android.features.referral.views.dialogs.GetStartedDialog
-import com.gemwallet.android.features.referral.views.dialogs.ReferralCodeDialog
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
-import uniffi.gemstone.GemRewardsRedemption
-import com.gemwallet.android.ext.serviceMessage
+import kotlinx.coroutines.launch
 
 private val referralCodeMaxWidth = 250.dp
 
@@ -68,7 +70,9 @@ fun ReferralScene(
     inSync: SyncType,
     isAvailableWalletSelect: Boolean,
     referralLink: String?,
-    uiState: GemRewardsState,
+    uiState: ReferralUIModel,
+    infoRows: List<ListItemModel>,
+    redemptions: List<RewardRedemptionUIModel>,
     currentWallet: Wallet?,
     referralCode: String? = null,
     onUsername: (String, (Exception?) -> Unit) -> Unit,
@@ -76,7 +80,7 @@ fun ReferralScene(
     onCancelCode: () -> Unit,
     onRefresh: () -> Unit,
     onWallet: () -> Unit,
-    onRedeem: (GemRewardsRedemption) -> Unit,
+    onRedeem: (RewardRedemptionUIModel) -> Unit,
     onClose: () -> Unit,
     snackbar: SnackbarHostState = remember { SnackbarHostState() },
 ) {
@@ -140,7 +144,7 @@ fun ReferralScene(
             isRefreshing = inSync != SyncType.None,
             onRefresh = onRefresh,
         ) {
-            LazyColumn {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
                 referralHead(
                     joinPointsCost = uiState.inviteRewardPoints,
                     canInvite = uiState.canInvite,
@@ -175,18 +179,19 @@ fun ReferralScene(
                 referralUnverified(uiState)
                 referralConfirmCode(uiState) {
                     onCode(it) { error ->
+                        val message = error?.errorText()?.text(context)
                         scope.launch {
-                            if (error == null) {
+                            if (message == null) {
                                 snackbar.showSnackbar(successStr, R.drawable.ic_check_circle)
                             } else {
-                                snackbar.showSnackbar(error.serviceMessage(), R.drawable.ic_error)
+                                snackbar.showSnackbar(message, R.drawable.ic_error)
                             }
                         }
                         onRefresh()
                     }
                 }
                 if (uiState.showsInfo) {
-                    referralInfo(uiState, onRedeem)
+                    referralInfo(infoRows, redemptions, onRedeem)
                 }
             }
         }
@@ -222,6 +227,8 @@ private fun ReferralScenePreview() {
                 referralCountText = "5",
                 pointsText = "1000 \uD83D\uDC8E",
             ),
+            infoRows = emptyList(),
+            redemptions = emptyList(),
             currentWallet = previewWallet(),
             onUsername = { _, _ -> },
             onCode = { _, _ -> },
@@ -243,6 +250,8 @@ private fun ReferralSceneNoRewardsPreview() {
             isAvailableWalletSelect = false,
             referralLink = null,
             uiState = previewRewardsState(canUseReferralCode = true),
+            infoRows = emptyList(),
+            redemptions = emptyList(),
             currentWallet = previewWallet(),
             onUsername = { _, _ -> },
             onCode = { _, _ -> },

@@ -1,7 +1,5 @@
 #[cfg(test)]
 mod tests {
-    use std::env;
-
     use gem_client::{ReqwestClient, reqwest_client};
     use name_resolver::providers::{
         alldomains::AllDomainsProvider, aptos::AptosProvider, basenames::BasenamesProvider, ens::EnsProvider, hyperliquid::HyperliquidProvider, icns::IcnsProvider,
@@ -9,37 +7,31 @@ mod tests {
     };
     use name_resolver::{NameClient, NameConfig, NameQuery, NameResolver};
     use primitives::{Chain, NameProvider, node_config::get_nodes_for_chain};
-    use settings::Settings;
-
-    fn node_client(chain: Chain) -> ReqwestClient {
-        ReqwestClient::new(get_nodes_for_chain(chain)[0].url.clone(), reqwest_client())
-    }
-
-    fn settings() -> Settings {
-        Settings::new_setting_path(env::current_dir().unwrap().join("../../Settings.yaml")).unwrap()
-    }
-
-    fn settings_client(url: String) -> ReqwestClient {
-        ReqwestClient::new(url, reqwest_client())
-    }
+    use settings::testkit::get_test_settings;
 
     #[tokio::test]
     async fn test_resolve_ens() {
-        let provider = EnsProvider::new(node_client(Chain::Ethereum));
+        let provider = EnsProvider::new(ReqwestClient::new(get_nodes_for_chain(Chain::Ethereum)[0].url.clone(), reqwest_client()));
         let address = provider.resolve(&NameQuery::new("vitalik.eth"), Chain::Ethereum).await.unwrap().unwrap();
         assert_eq!(address, "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045");
     }
 
     #[tokio::test]
     async fn test_resolve_ens_imported_name() {
-        let client = NameClient::new(vec![Box::new(EnsProvider::new(node_client(Chain::Ethereum)))], NameConfig { max_name_length: 20 });
+        let client = NameClient::new(
+            vec![Box::new(EnsProvider::new(ReqwestClient::new(
+                get_nodes_for_chain(Chain::Ethereum)[0].url.clone(),
+                reqwest_client(),
+            )))],
+            NameConfig { max_name_length: 20 },
+        );
         let record = client.resolve("farcaster.xyz", Chain::Ethereum).await.unwrap().unwrap();
         assert_eq!(record.address, "0xF12E89805E10d96c0CDf22da88aED361eD9329cA");
     }
 
     #[tokio::test]
     async fn test_resolve_basenames() {
-        let provider = BasenamesProvider::new(node_client(Chain::Base));
+        let provider = BasenamesProvider::new(ReqwestClient::new(get_nodes_for_chain(Chain::Base)[0].url.clone(), reqwest_client()));
         let address = provider.resolve(&NameQuery::new("h3rman.base.eth"), Chain::Base).await.unwrap().unwrap();
         assert_eq!(address, "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7");
     }
@@ -47,7 +39,7 @@ mod tests {
     #[tokio::test]
     async fn test_resolve_sns() {
         let client = NameClient::new(
-            vec![Box::new(SnsProvider::new(settings_client(settings().name.sns.url)))],
+            vec![Box::new(SnsProvider::new(ReqwestClient::new(get_test_settings().name.sns.url, reqwest_client())))],
             NameConfig { max_name_length: 20 },
         );
         for name in ["bonfida.sol", "bonfida.sns"] {
@@ -61,7 +53,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_resolve_injective() {
-        let provider = InjectiveProvider::new(node_client(Chain::Injective));
+        let provider = InjectiveProvider::new(ReqwestClient::new(get_nodes_for_chain(Chain::Injective)[0].url.clone(), reqwest_client()));
         let address = provider.resolve(&NameQuery::new("test.inj"), Chain::Injective).await.unwrap().unwrap();
         assert_eq!(address, "inj14apqz6u2nprsly3j0mqa6jwpxnmnphq3pp0q9g");
     }
@@ -69,7 +61,7 @@ mod tests {
     #[tokio::test]
     async fn test_resolve_icns() {
         let client = NameClient::new(
-            vec![Box::new(IcnsProvider::new(settings_client(settings().name.icns.url)))],
+            vec![Box::new(IcnsProvider::new(ReqwestClient::new(get_test_settings().name.icns.url, reqwest_client())))],
             NameConfig { max_name_length: 20 },
         );
         let record = client.resolve("dogemos.osmo", Chain::Osmosis).await.unwrap().unwrap();
@@ -78,7 +70,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_resolve_lens() {
-        let provider = LensProvider::new(settings_client(settings().name.lens.url));
+        let provider = LensProvider::new(ReqwestClient::new(get_test_settings().name.lens.url, reqwest_client()));
         let address = provider.resolve(&NameQuery::new("stani.lens"), Chain::Ethereum).await.unwrap().unwrap();
         assert_eq!(address, "0xAd2c0BEAdE60fb9f7ec5C87bDE8e4c126145F6E7");
     }
@@ -92,14 +84,14 @@ mod tests {
 
     #[tokio::test]
     async fn test_resolve_aptos() {
-        let provider = AptosProvider::new(settings_client(settings().name.aptos.url));
+        let provider = AptosProvider::new(ReqwestClient::new(get_test_settings().name.aptos.url, reqwest_client()));
         let address = provider.resolve(&NameQuery::new("petra.apt"), Chain::Aptos).await.unwrap().unwrap();
         assert_eq!(address, "0xfe2ffdb3a74307f7314a1c8ab3762b6b5869a3c1278cdd5d230249453e15a1db");
     }
 
     #[tokio::test]
     async fn test_resolve_hyperliquid() {
-        let provider = HyperliquidProvider::new(settings_client(settings().name.hyperliquid.url));
+        let provider = HyperliquidProvider::new(ReqwestClient::new(get_test_settings().name.hyperliquid.url, reqwest_client()));
         let query = NameQuery::new("TESTOOOR.HL");
 
         assert_eq!(
@@ -118,14 +110,14 @@ mod tests {
 
     #[tokio::test]
     async fn test_resolve_alldomains() {
-        let provider = AllDomainsProvider::new(node_client(Chain::Solana));
+        let provider = AllDomainsProvider::new(ReqwestClient::new(get_nodes_for_chain(Chain::Solana)[0].url.clone(), reqwest_client()));
         let address = provider.resolve(&NameQuery::new("miester.poor"), Chain::Solana).await.unwrap().unwrap();
         assert_eq!(address, "2EGGxj2qbNAJNgLCPKca8sxZYetyTjnoRspTPjzN2D67");
     }
 
     #[tokio::test]
     async fn test_resolve_near() {
-        let provider = NearProvider::new(node_client(Chain::Near));
+        let provider = NearProvider::new(ReqwestClient::new(get_nodes_for_chain(Chain::Near)[0].url.clone(), reqwest_client()));
         let address = provider.resolve(&NameQuery::new("wrap.near"), Chain::Near).await.unwrap().unwrap();
         assert_eq!(address, "wrap.near");
     }

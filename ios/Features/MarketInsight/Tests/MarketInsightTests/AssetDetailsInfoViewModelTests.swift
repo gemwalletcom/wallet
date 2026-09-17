@@ -4,6 +4,7 @@ import Foundation
 import GemstonePrimitives
 import Localization
 @testable import MarketInsight
+@testable import MarketInsightTestKit
 import Primitives
 import PrimitivesTestKit
 import Testing
@@ -61,11 +62,5 @@ struct AssetDetailsInfoViewModelTests {
             Issue.record("expected no action")
             return
         }
-    }
-}
-
-private extension AssetDetailsInfoViewModel {
-    static func mock(asset: Asset = .mockEthereumUSDT(), currency: Currency = .usd) -> AssetDetailsInfoViewModel {
-        AssetDetailsInfoViewModel(asset: asset, currency: currency)
     }
 }

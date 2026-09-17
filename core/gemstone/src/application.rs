@@ -73,19 +73,18 @@ fn public_url(url: &str) -> Option<Url> {
 
 #[cfg(test)]
 mod tests {
-    use primitives::ApplicationMetadataSource;
+    use super::*;
+
     #[test]
     fn test_a_connection_without_a_host_has_no_subtitle_and_takes_its_initial_from_the_name() {
         let service = GemApplicationMetadataService::new();
-        let metadata = |url: &str, name: &str| ApplicationMetadata {
-            name: name.to_string(),
-            description: String::new(),
-            url: url.to_string(),
-            icon: String::new(),
-            source: ApplicationMetadataSource::WalletConnect,
-        };
 
-        let hosted = service.connection_row(metadata("https://app.uniswap.org", "Uniswap"));
+        let hosted = service.connection_row(ApplicationMetadata {
+            name: "Uniswap".to_string(),
+            url: "https://app.uniswap.org".to_string(),
+            icon: String::new(),
+            ..ApplicationMetadata::mock()
+        });
         assert_eq!(hosted.host.as_deref(), Some("app.uniswap.org"));
         assert_eq!(hosted.initial.as_deref(), Some("U"));
 
@@ -94,45 +93,81 @@ mod tests {
             Some("https://assets.gemwallet.com/proxy/icon?url=https%3A%2F%2Fapp.uniswap.org&size=256")
         );
 
-        assert_eq!(service.connection_row(metadata("", "Uniswap")).host, None);
-        assert_eq!(service.connection_row(metadata("", "")).initial, None);
-        assert_eq!(service.connection_row(metadata("", "Uniswap")).icon_url, None);
-    }
-
-    use super::*;
-
-    fn icon_url(url: &str, icon: &str) -> Option<String> {
-        GemApplicationMetadataService::new().icon_url(ApplicationMetadata {
-            url: url.into(),
-            icon: icon.into(),
+        let unhosted = ApplicationMetadata {
+            name: "Uniswap".to_string(),
+            url: String::new(),
             ..ApplicationMetadata::mock()
-        })
+        };
+        assert_eq!(service.connection_row(unhosted.clone()).host, None);
+        assert_eq!(
+            service
+                .connection_row(ApplicationMetadata {
+                    name: String::new(),
+                    ..unhosted.clone()
+                })
+                .initial,
+            None
+        );
+        assert_eq!(service.connection_row(unhosted).icon_url, None);
     }
 
     #[test]
     fn test_host_drops_the_scheme_path_and_www_prefix() {
-        let host = |url: &str| {
-            GemApplicationMetadataService::new().host(ApplicationMetadata {
-                url: url.into(),
-                ..ApplicationMetadata::mock()
-            })
-        };
+        let service = GemApplicationMetadataService::new();
 
-        assert_eq!(host("https://www.venice.ai/path?query=1#fragment"), "venice.ai");
-        assert_eq!(host("http://www.venice.ai"), "venice.ai");
-        assert_eq!(host("www.venice.ai/path"), "venice.ai");
-        assert_eq!(host("app.uniswap.org"), "app.uniswap.org");
-        assert_eq!(host(" "), "");
+        assert_eq!(
+            service.host(ApplicationMetadata {
+                url: "https://www.venice.ai/path?query=1#fragment".into(),
+                ..ApplicationMetadata::mock()
+            }),
+            "venice.ai"
+        );
+        assert_eq!(
+            service.host(ApplicationMetadata {
+                url: "http://www.venice.ai".into(),
+                ..ApplicationMetadata::mock()
+            }),
+            "venice.ai"
+        );
+        assert_eq!(
+            service.host(ApplicationMetadata {
+                url: "www.venice.ai/path".into(),
+                ..ApplicationMetadata::mock()
+            }),
+            "venice.ai"
+        );
+        assert_eq!(
+            service.host(ApplicationMetadata {
+                url: "app.uniswap.org".into(),
+                ..ApplicationMetadata::mock()
+            }),
+            "app.uniswap.org"
+        );
+        assert_eq!(
+            service.host(ApplicationMetadata {
+                url: " ".into(),
+                ..ApplicationMetadata::mock()
+            }),
+            ""
+        );
     }
 
     #[test]
     fn test_icon_url_requests_the_application_icon() {
         assert_eq!(
-            icon_url("https://login.xyz/some/page?query=value#section", "https://login.xyz/favicon.png"),
+            GemApplicationMetadataService::new().icon_url(ApplicationMetadata {
+                url: "https://login.xyz/some/page?query=value#section".into(),
+                icon: "https://login.xyz/favicon.png".into(),
+                ..ApplicationMetadata::mock()
+            }),
             Some("https://assets.gemwallet.com/proxy/icon?url=https%3A%2F%2Flogin.xyz%2Ffavicon.png&size=256".into())
         );
         assert_eq!(
-            icon_url("https://tronscan.org", "https://cdn.example.com/logo.svg?v=2"),
+            GemApplicationMetadataService::new().icon_url(ApplicationMetadata {
+                url: "https://tronscan.org".into(),
+                icon: "https://cdn.example.com/logo.svg?v=2".into(),
+                ..ApplicationMetadata::mock()
+            }),
             Some("https://assets.gemwallet.com/proxy/icon?url=https%3A%2F%2Fcdn.example.com%2Flogo.svg%3Fv%3D2&size=256".into())
         );
     }
@@ -153,7 +188,11 @@ mod tests {
             "https://assets.gemwallet.com/logo.png",
         ] {
             assert_eq!(
-                icon_url("https://tronscan.org/some/page?query=value#section", icon),
+                GemApplicationMetadataService::new().icon_url(ApplicationMetadata {
+                    url: "https://tronscan.org/some/page?query=value#section".into(),
+                    icon: icon.into(),
+                    ..ApplicationMetadata::mock()
+                }),
                 Some("https://assets.gemwallet.com/proxy/icon?url=https%3A%2F%2Ftronscan.org&size=256".into()),
                 "icon: {icon}"
             );
@@ -171,7 +210,15 @@ mod tests {
             "https://app.example.com:8443",
             "https://[",
         ] {
-            assert_eq!(icon_url(url, "https://cdn.example.com/icon.png"), None, "url: {url}");
+            assert_eq!(
+                GemApplicationMetadataService::new().icon_url(ApplicationMetadata {
+                    url: url.into(),
+                    icon: "https://cdn.example.com/icon.png".into(),
+                    ..ApplicationMetadata::mock()
+                }),
+                None,
+                "url: {url}"
+            );
         }
     }
 }

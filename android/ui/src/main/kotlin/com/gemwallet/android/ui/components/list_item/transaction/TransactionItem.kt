@@ -1,5 +1,8 @@
 package com.gemwallet.android.ui.components.list_item.transaction
 
+import com.gemwallet.android.ui.style.color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.remember
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -58,6 +61,8 @@ fun TransactionItem(
     listPosition: ListPosition,
     onClick: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val row = remember(data) { data.uiModel(context) }
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         minHeight = ListItemDefaults.iconMinHeight,
@@ -65,19 +70,19 @@ fun TransactionItem(
         leading = { TransactionIcon(data) },
         title = {
             ListItemTitleText(
-                text = data.getTitle(),
-                titleBadge = { TransactionStatusBadge(data) }
+                text = row.title,
+                titleBadge = { TransactionStatusBadge(row) }
             )
         },
-        subtitle = data.formatAddress()?.let { { ListItemSupportText(it) } },
+        subtitle = row.subtitle?.let { { ListItemSupportText(it) } },
         listPosition = listPosition,
         trailing = {
             Column(horizontalAlignment = Alignment.End) {
                 ListItemTitleText(
-                    text = data.value,
-                    color = data.getValueColor(),
+                    text = row.value,
+                    color = row.valueTone.color(),
                 )
-                data.equivalentValue?.let {
+                row.equivalentValue?.let {
                     ListItemSupportText(it)
                 }
             }
@@ -123,12 +128,9 @@ private fun DirectionBadgedIcon(data: TransactionDataAggregate) {
 }
 
 @Composable
-private fun TransactionStatusBadge(data: TransactionDataAggregate) {
-    val text = data.getBadgeText()
-    val color = data.getBadgeColor()
-    if (text.isEmpty()) {
-        return
-    }
+private fun TransactionStatusBadge(row: TransactionRowUIModel) {
+    val text = row.badgeText ?: return
+    val color = row.badgeTone.color()
     Row(
         Modifier
             .padding(start = badgeStartPadding)
@@ -151,7 +153,7 @@ private fun TransactionStatusBadge(data: TransactionDataAggregate) {
             overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.labelMedium,
         )
-        if (data.status.showsProgress) {
+        if (row.showsProgress) {
             CircularProgressIndicator10(color = color)
             Spacer8()
         }

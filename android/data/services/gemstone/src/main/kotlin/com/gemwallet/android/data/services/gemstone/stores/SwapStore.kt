@@ -37,6 +37,13 @@ class GemstoneSwapStore(
     }
 
     override suspend fun getReceiveAssetIds(walletId: String, chains: List<String>, assetIds: List<String>): List<String> = withContext(Dispatchers.IO) {
-        assetsDao.swapSearch(walletId, "", chains.map { it.requireChain() }, assetIds).firstOrNull().orEmpty().map { it.id }
+        assetsDao.search(
+            walletId = walletId,
+            query = "",
+            swappable = true,
+            byChainsOrAssetIds = true,
+            chains = chains.map { it.requireChain() },
+            assetIds = assetIds,
+        ).firstOrNull().orEmpty().map { it.id }
     }
 }

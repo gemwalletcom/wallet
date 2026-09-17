@@ -4,6 +4,7 @@ import com.gemwallet.android.application.update.cases.ObserveAppUpdateOffer
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.model.AppUpdateChannel
 import com.gemwallet.android.model.AppUpdateOffer
+import com.gemwallet.android.testkit.mockAppUpdateOffer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -43,7 +44,7 @@ class InAppUpdateViewModelTest {
 
     @Test
     fun `in app apk offer is available`() = runTest(testDispatcher) {
-        offer.value = AppUpdateOffer("2.0.0", isRequired = true, channel = AppUpdateChannel.InAppApk)
+        offer.value = mockAppUpdateOffer(isRequired = true, channel = AppUpdateChannel.InAppApk)
 
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -56,7 +57,7 @@ class InAppUpdateViewModelTest {
 
     @Test
     fun `store offer is not shown as an in app update`() = runTest(testDispatcher) {
-        offer.value = AppUpdateOffer("2.0.0", isRequired = false, channel = AppUpdateChannel.Store)
+        offer.value = mockAppUpdateOffer()
 
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -66,7 +67,7 @@ class InAppUpdateViewModelTest {
 
     @Test
     fun `skip ignores required update`() = runTest(testDispatcher) {
-        offer.value = AppUpdateOffer("2.0.0", isRequired = true, channel = AppUpdateChannel.InAppApk)
+        offer.value = mockAppUpdateOffer(isRequired = true, channel = AppUpdateChannel.InAppApk)
 
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -79,7 +80,7 @@ class InAppUpdateViewModelTest {
 
     @Test
     fun `skip stores the optional update version`() = runTest(testDispatcher) {
-        offer.value = AppUpdateOffer("2.0.0", isRequired = false, channel = AppUpdateChannel.InAppApk)
+        offer.value = mockAppUpdateOffer(channel = AppUpdateChannel.InAppApk)
 
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -92,7 +93,7 @@ class InAppUpdateViewModelTest {
 
     @Test
     fun `update does not launch overlapping downloads and cancel marks canceled`() = runTest(testDispatcher) {
-        offer.value = AppUpdateOffer("2.0.0", isRequired = false, channel = AppUpdateChannel.InAppApk)
+        offer.value = mockAppUpdateOffer(channel = AppUpdateChannel.InAppApk)
 
         val viewModel = createViewModel()
         advanceUntilIdle()

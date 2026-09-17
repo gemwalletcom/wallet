@@ -2,6 +2,7 @@
 
 package com.gemwallet.android.features.stake.presents
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -15,8 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import uniffi.gemstone.GemPercentageStyle
-import com.gemwallet.android.domains.percentage.formatAsPercentage
+import com.gemwallet.android.domains.asset.subtitleSymbol
 import com.gemwallet.android.features.stake.viewmodels.EarnViewModel
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.R
@@ -25,14 +25,15 @@ import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.HeaderIcon
 import com.gemwallet.android.ui.components.list_item.DelegationItem
+import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
+import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
+import com.gemwallet.android.ui.components.list_item.uiModel
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
-import com.gemwallet.android.ui.models.subtitleSymbol
 import com.gemwallet.android.ui.theme.paddingLarge
 
 @Composable
@@ -45,7 +46,7 @@ fun EarnScreen(
     val assetInfo by viewModel.assetInfo.collectAsStateWithLifecycle()
     val positions by viewModel.positions.collectAsStateWithLifecycle()
     val validatorRows by viewModel.validatorRows.collectAsStateWithLifecycle()
-    val apr by viewModel.apr.collectAsStateWithLifecycle()
+    val aprListItem by viewModel.aprListItem.collectAsStateWithLifecycle()
     val depositParams by viewModel.depositParams.collectAsStateWithLifecycle()
     val inSync by viewModel.isSync.collectAsStateWithLifecycle()
 
@@ -72,21 +73,15 @@ fun EarnScreen(
                     )
                 }
 
-                item {
-                    PropertyItem(
-                        title = stringResource(R.string.stake_apr, ""),
-                        data = apr.formatAsPercentage(style = GemPercentageStyle.UNSIGNED),
-                        dataColor = MaterialTheme.colorScheme.tertiary,
-                        listPosition = ListPosition.Single,
-                    )
-                }
+                item { ListItem(model = aprListItem, listPosition = ListPosition.Single) }
 
                 depositParams?.let { params ->
                     item {
-                        PropertyItem(
-                            action = R.string.wallet_deposit,
+                        ListItem(
+                            model = viewModel.depositListItem,
                             listPosition = ListPosition.Single,
-                            onClick = { amountAction(params) },
+                            modifier = Modifier.clickable { amountAction(params) },
+                            accessory = { DataBadgeChevron() },
                         )
                     }
                 }
@@ -102,7 +97,7 @@ fun EarnScreen(
                         DelegationItem(
                             assetInfo = earnAssetInfo,
                             delegation = item,
-                            validator = validatorRows[item.validator.id] ?: return@itemsIndexed,
+                            validator = (validatorRows[item.validator.id] ?: return@itemsIndexed).uiModel(),
                             listPosition = ListPosition.getPosition(index, positions.size),
                             onClick = { onDelegation(item.validator.id, item.base.delegationId) },
                         )

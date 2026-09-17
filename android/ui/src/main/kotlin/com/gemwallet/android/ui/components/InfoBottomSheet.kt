@@ -1,23 +1,19 @@
 package com.gemwallet.android.ui.components
 
-import com.gemwallet.android.ui.localization.infoDescriptionRes
-import com.gemwallet.android.ui.localization.statusLabelRes
-import com.gemwallet.android.ui.components.screen.SheetExpansion
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,8 +22,8 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import uniffi.gemstone.SwapProvider
+import com.gemwallet.android.AppUrl
+import com.gemwallet.android.domains.asset.title
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ui.R
@@ -35,19 +31,21 @@ import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
+import com.gemwallet.android.ui.components.screen.SheetExpansion
+import com.gemwallet.android.ui.localization.statusLabelRes
 import com.gemwallet.android.ui.open
+import com.gemwallet.android.ui.theme.Spacer16
+import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.gemwallet.android.ui.theme.Spacer16
-import com.gemwallet.android.domains.asset.title
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.TransactionState
-import uniffi.gemstone.GemTransactionStateTone
-import com.gemwallet.android.AppUrl
 import com.wallet.core.primitives.StakeChain
+import com.wallet.core.primitives.TransactionState
+import uniffi.gemstone.DocsUrl
+import uniffi.gemstone.SwapProvider
 
-internal val infoSheetIconSize = 120.dp
+internal val infoSheetIconSize = extraLargeIconSize
 
 sealed class InfoSheetEntity(
     val icon: Any?,
@@ -124,7 +122,7 @@ sealed class InfoSheetEntity(
         icon = asset.iconModel(),
         title = R.string.info_account_minimum_balance_title,
         description = R.string.transfer_minimum_account_balance,
-        infoUrl = { AppUrl.accountMinimalBalance },
+        infoUrl = { AppUrl.docs(DocsUrl.AccountMinimalBalance) },
         titleArgs = listOf(asset.symbol),
         descriptionArgs = listOf("**$value**"),
     )
@@ -150,7 +148,7 @@ sealed class InfoSheetEntity(
         icon = chain.asset().iconModel(),
         title = R.string.errors_transfer_error,
         description = R.string.errors_dust_threshold,
-        infoUrl = { AppUrl.dust },
+        infoUrl = { AppUrl.docs(DocsUrl.Dust) },
         descriptionArgs = listOf("**${chain.networkName()}**"),
     )
 
@@ -164,7 +162,7 @@ sealed class InfoSheetEntity(
         icon = icon,
         title = R.string.stake_lock_time,
         description = R.string.info_lock_time_description,
-        infoUrl = { AppUrl.stakingLockTime },
+        infoUrl = { AppUrl.docs(DocsUrl.StakingLockTime) },
     )
 
     class StakeAprInfo(icon: Any?) : InfoSheetEntity(
@@ -172,7 +170,7 @@ sealed class InfoSheetEntity(
         title = R.string.stake_apr,
         titleArgs = listOf(""),
         description = R.string.info_stake_apr_description,
-        infoUrl = { AppUrl.stakingApr },
+        infoUrl = { AppUrl.docs(DocsUrl.StakingApr) },
     )
 
     class StakeFrozenRequired(icon: Any?) : InfoSheetEntity(
@@ -182,12 +180,12 @@ sealed class InfoSheetEntity(
         infoUrl = { AppUrl.staking(StakeChain.Tron.string) },
     )
 
-    class TransactionInfo(icon: Any?, state: TransactionState, tone: GemTransactionStateTone) : InfoSheetEntity(
+    class TransactionInfo(icon: Any?, state: TransactionState, @DrawableRes badgeIcon: Int, @StringRes description: Int) : InfoSheetEntity(
         icon = icon,
-        badgeIcon = tone.badgeIconRes(),
+        badgeIcon = badgeIcon,
         title = state.statusLabelRes(),
-        description = tone.infoDescriptionRes(),
-        infoUrl = { AppUrl.transactionStatus },
+        description = description,
+        infoUrl = { AppUrl.docs(DocsUrl.TransactionStatus) },
     )
 
     object PendingUnconfirmedBalanceInfo : InfoSheetEntity(
@@ -207,28 +205,41 @@ sealed class InfoSheetEntity(
         icon = R.drawable.watch_badge,
         title = R.string.info_watch_wallet_title,
         description = R.string.info_watch_wallet_description,
-        infoUrl = { AppUrl.whatIsWatchWallet },
+        infoUrl = { AppUrl.docs(DocsUrl.WhatIsWatchWallet) },
     )
 
     object PriceImpactInfo : InfoSheetEntity(
         icon = R.drawable.ic_splash,
         title = R.string.swap_price_impact,
         description = R.string.info_price_impact_description,
-        infoUrl = { AppUrl.priceImpact },
+        infoUrl = { AppUrl.docs(DocsUrl.PriceImpact) },
     )
 
     object Slippage : InfoSheetEntity(
         icon = R.drawable.ic_splash,
         title = R.string.swap_slippage,
         description = R.string.info_slippage_description,
-        infoUrl = { AppUrl.slippage },
+        infoUrl = { AppUrl.docs(DocsUrl.Slippage) },
     )
 
     object NoQuoteInfo : InfoSheetEntity(
         icon = R.drawable.ic_splash,
         title = R.string.errors_swap_no_quote_available,
         description = R.string.info_no_quote_description,
-        infoUrl = { AppUrl.noQuotes },
+        infoUrl = { AppUrl.docs(DocsUrl.NoQuotes) },
+    )
+
+    object MaliciousTransactionInfo : InfoSheetEntity(
+        icon = R.drawable.ic_splash,
+        title = R.string.errors_scan_transaction_malicious_title,
+        description = R.string.errors_scan_transaction_malicious_description,
+    )
+
+    class MemoRequiredInfo(symbol: String) : InfoSheetEntity(
+        icon = R.drawable.ic_splash,
+        title = R.string.common_warning,
+        description = R.string.errors_scan_transaction_memo_required,
+        descriptionArgs = listOf("**$symbol**"),
     )
 
     object AssetStatusSuspiciousInfo : InfoSheetEntity(
@@ -249,35 +260,35 @@ sealed class InfoSheetEntity(
         icon = R.drawable.ic_splash,
         title = R.string.info_perpetual_open_interest_title,
         description = R.string.info_perpetual_open_interest_description,
-        infoUrl = { AppUrl.perpetualsOpenInterest },
+        infoUrl = { AppUrl.docs(DocsUrl.PerpetualsOpenInterest) },
     )
 
     object AutoCloseInfo : InfoSheetEntity(
         icon = R.drawable.ic_splash,
         title = R.string.perpetual_auto_close,
         description = R.string.info_perpetual_auto_close_description,
-        infoUrl = { AppUrl.perpetualsAutoclose },
+        infoUrl = { AppUrl.docs(DocsUrl.PerpetualsAutoclose) },
     )
 
     object LiquidationPriceInfo : InfoSheetEntity(
         icon = R.drawable.ic_splash,
         title = R.string.info_perpetual_liquidation_price_title,
         description = R.string.info_perpetual_liquidation_price_description,
-        infoUrl = { AppUrl.perpetualsLiquidationPrice },
+        infoUrl = { AppUrl.docs(DocsUrl.PerpetualsLiquidationPrice) },
     )
 
     object FundingPayments : InfoSheetEntity(
         icon = R.drawable.ic_splash,
         title = R.string.info_perpetual_funding_payments_title,
         description = R.string.info_perpetual_funding_payments_description,
-        infoUrl = { AppUrl.perpetualsFundingPayments },
+        infoUrl = { AppUrl.docs(DocsUrl.PerpetualsFundingPayments) },
     )
 
     object FundingAprInfo : InfoSheetEntity(
         icon = R.drawable.ic_splash,
         title = R.string.info_perpetual_funding_apr_title,
         description = R.string.info_perpetual_funding_apr_description,
-        infoUrl = { AppUrl.perpetualsFundingRate },
+        infoUrl = { AppUrl.docs(DocsUrl.PerpetualsFundingRate) },
     )
 
     object FullyDilutedValuation : InfoSheetEntity(

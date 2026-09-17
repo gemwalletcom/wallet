@@ -69,7 +69,7 @@ impl HyperCoreSpot {
         Ok(meta)
     }
 
-    fn resolve_token<'a>(&self, meta: &'a SpotMeta, asset: &'a SwapperQuoteAsset) -> Result<&'a SpotToken, SwapperError> {
+    fn spot_token<'a>(&self, meta: &'a SpotMeta, asset: &'a SwapperQuoteAsset) -> Result<&'a SpotToken, SwapperError> {
         let asset_id = asset.asset_id();
         let components = asset_id.token_components().or_else(|| {
             if asset_id == HYPERCORE_HYPE.id {
@@ -134,8 +134,8 @@ impl Swapper for HyperCoreSpot {
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let client = self.client()?;
         let meta = self.get_spot_meta(&client).await?;
-        let from_token = self.resolve_token(&meta, &request.from_asset)?;
-        let to_token = self.resolve_token(&meta, &request.to_asset)?;
+        let from_token = self.spot_token(&meta, &request.from_asset)?;
+        let to_token = self.spot_token(&meta, &request.to_asset)?;
 
         let amount_in = BigNumberFormatter::big_decimal_value(&request.value.to_string(), request.from_asset.decimals)?;
         if amount_in <= BigDecimal::zero() {
@@ -301,19 +301,13 @@ mod tests {
     use primitives::swap::SwapQuoteDataType;
     use std::str::FromStr;
 
-    fn quote_asset(asset: &primitives::Asset) -> SwapperQuoteAsset {
-        SwapperQuoteAsset {
-            id: asset.id.to_string(),
-            symbol: asset.symbol.clone(),
-            decimals: asset.decimals as u32,
-            asset_type: asset.asset_type.clone(),
-        }
-    }
-
-    async fn assert_spot_quote(from_asset: SwapperQuoteAsset, to_asset: SwapperQuoteAsset) {
+    async fn assert_spot_quote(from_asset: &primitives::Asset, to_asset: &primitives::Asset) {
         let spot = HyperCoreSpot::new(Arc::new(crate::NativeProvider::new()));
 
-        let mut request = mock_quote(from_asset, to_asset);
+        let mut request = mock_quote(
+            SwapperQuoteAsset::mock_with_asset_id(from_asset.id.clone(), &from_asset.symbol, from_asset.decimals as u32),
+            SwapperQuoteAsset::mock_with_asset_id(to_asset.id.clone(), &to_asset.symbol, to_asset.decimals as u32),
+        );
         request.value = BigUint::from(2000000000u64);
 
         let quote = spot.get_quote(&request).await.unwrap();
@@ -345,13 +339,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_spot_quote_hype_usdc() {
-        assert_spot_quote(quote_asset(&HYPERCORE_SPOT_HYPE), quote_asset(&HYPERCORE_SPOT_USDC)).await;
-        assert_spot_quote(quote_asset(&HYPERCORE_SPOT_USDC), quote_asset(&HYPERCORE_SPOT_HYPE)).await;
+        assert_spot_quote(&HYPERCORE_SPOT_HYPE, &HYPERCORE_SPOT_USDC).await;
+        assert_spot_quote(&HYPERCORE_SPOT_USDC, &HYPERCORE_SPOT_HYPE).await;
     }
 
     #[tokio::test]
     async fn test_spot_quote_ubtc_usdc() {
-        assert_spot_quote(quote_asset(&HYPERCORE_SPOT_UBTC), quote_asset(&HYPERCORE_SPOT_USDC)).await;
-        assert_spot_quote(quote_asset(&HYPERCORE_SPOT_USDC), quote_asset(&HYPERCORE_SPOT_UBTC)).await;
+        assert_spot_quote(&HYPERCORE_SPOT_UBTC, &HYPERCORE_SPOT_USDC).await;
+        assert_spot_quote(&HYPERCORE_SPOT_USDC, &HYPERCORE_SPOT_UBTC).await;
     }
 }

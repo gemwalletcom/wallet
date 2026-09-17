@@ -58,7 +58,6 @@ common_token = Token
 common_expiration = Tamat tempoh
 common_suspicious_address = Alamat yang mencurigakan
 common_refresh = Segarkan semula
-common_no_thanks = Tidak terima kasih
 common_grant_permission = Berikan kebenaran
 common_required_field = %@ diperlukan
 
@@ -165,7 +164,6 @@ transfer_freeze_title = Bekukan
 transfer_unfreeze_title = Nyahbekukan
 transfer_review_request = Semak Permintaan
 transfer_amount = Jumlah
-transfer_amount_title = Jumlah
 
 # Settings
 
@@ -209,7 +207,6 @@ support_message_placeholder = Mesej
 
 # Errors
 
-errors_transfer = Ralat Pemindahan: %@
 errors_validation = Ralat Pengesahan: %@
 errors_create_wallet = Ralat Cipta Wallet: %@
 errors_invalid_address_name = Alamat atau nama tidak sah
@@ -228,7 +225,6 @@ errors_cancelled = Dibatalkan
 errors_connections_user_cancelled = Dibatalkan oleh pengguna
 errors_not_supported = Tidak Disokong
 errors_permissions_not_granted = Kebenaran Tidak Diberikan
-errors_decoding = Ralat Penyahkodan
 errors_unknown = Tidak diketahui
 errors_not_supported_qr = Peranti ini tidak menyokong pengimbasan kod QR. Anda hanya boleh memilih imej kod QR daripada pustaka.
 errors_camera_permissions_not_granted = Kebenaran kamera tidak diberikan. Sila dayakan akses kamera dalam tetapan untuk mengimbas kod QR.
@@ -239,11 +235,8 @@ errors_invalid_asset_address = Alamat %@ tidak sah
 errors_dust_threshold = Urus niaga gagal kerana jumlahnya terlalu kecil untuk memenuhi keperluan minimum rangkaian %@ (ambang habuk). Had ini memastikan nilai transaksi meliputi yuran dan kos pemprosesan.
 errors_swap_no_quote_available = Tiada sebut harga tersedia.
 errors_swap_not_supported_asset = Aset tidak disokong.
-errors_connections_invalid_send_parameters = Parameter tidak sah disediakan untuk menghantar transaksi.
-errors_connections_invalid_sign_parameters = Parameter tidak sah disediakan untuk menandatangani.
 errors_connections_no_supported_wallets = Tiada dompet yang disokong tersedia.
 errors_connections_unsupported_chain = Rantaian yang disediakan tidak disokong.
-errors_connections_unsupported_method = Kaedah yang diminta tidak disokong.
 errors_swap_amount_too_small = Jumlah terlalu kecil
 errors_required = %@ diperlukan
 errors_scan_transaction_malicious_description = Urus niaga ini tidak dapat diselesaikan — alamat dompet destinasi dipautkan kepada aktiviti yang mencurigakan atau berbahaya.
@@ -255,7 +248,6 @@ errors_dust_threshold_short = Rangkaian menganggap jumlah habuk ini - bayarannya
 errors_swap_minimum_amount = Jumlah dagangan minimum ialah %@. Sila masukkan jumlah yang lebih tinggi.
 errors_perpetual_trigger_price_lower = Harga pencetus perlu lebih rendah daripada harga pasaran
 errors_perpetual_trigger_price_higher = Harga pencetus perlu lebih tinggi daripada harga pasaran
-errors_token_unable_fetch_token_information = Tidak dapat mengambil maklumat token: %@
 errors_unknown_try_again = Ralat tidak diketahui berlaku. Sila cuba lagi.
 errors_network_error = Ralat rangkaian: %@
 errors_network_offline = Sambungan Internet nampaknya di luar talian.
@@ -279,7 +271,6 @@ update_app_action = Kemas kini
 update_app_permission_title = Benarkan pemasangan
 update_app_permission_description = Pergi ke tetapan dan benarkan pemasangan daripada sumber luaran
 update_app_permission_open_settings = Pergi ke tetapan
-update_app_downloading = Memuat turun...
 
 # Transaction
 
@@ -483,8 +474,6 @@ banner_account_activation_title = Yuran Pengaktifan Akaun
 banner_account_activation_description = Rangkaian %@ memerlukan bayaran sekali sebanyak %@.
 banner_stake_title = Mula mempertaruhkan %@
 banner_stake_description = Peroleh %@ ganjaran pada pertaruhan anda semasa anda tidur.
-banner_enable_notifications_title = Dayakan Pemberitahuan
-banner_enable_notifications_description = Ikuti aktiviti dompet anda.
 banner_activate_asset_description = Untuk menggunakan aset %@, anda mesti mendayakannya pada rangkaian %@ terlebih dahulu dengan memenuhi keperluan khusus rangkaian.
 banner_asset_status_title = Aset Meragukan
 banner_asset_status_description = Token mungkin tidak selamat atau mengelirukan. Teruskan hanya jika anda mempercayainya sepenuhnya.
@@ -690,8 +679,9 @@ perpetual_margin_isolated = Terpencil
 # Perpetuals
 
 perpetuals_title = Kekal
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = Dagangkan Kekal
 perpetuals_markets = Pasaran
-perpetuals_empty_state_no_markets = Tiada pasaran
 perpetuals_empty_state_no_markets_found = Tiada pasaran ditemui
 
 # Rewards
@@ -763,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = Kebenaran kamera diperlukan untuk imbasan Kod QR.\nSila berikan kebenaran.
 
 # Notifications Permission
 
-notifications_permission_request_notification = Kebenaran Siar Pemberitahuan diperlukan untuk mendapatkan pemberitahuan tentang transaksi baharu.\nSila berikan kebenaran.
 
 # Confirm
 
-confirm_fee_error = Ralat pengiraan yuran
 
 # Rootcheck
 

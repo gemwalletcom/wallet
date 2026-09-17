@@ -2,7 +2,6 @@
 
 import enum Gemstone.GemAssetAction
 import protocol Gemstone.GemRecentActivityServiceProtocol
-import class Gemstone.GemRecentActivityService
 import GemstoneServices
 import Foundation
 import GemstonePrimitives

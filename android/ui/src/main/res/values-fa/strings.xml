@@ -58,7 +58,6 @@
   <string name="common_expiration">انقضا</string>
   <string name="common_suspicious_address">آدرس مشکوک</string>
   <string name="common_refresh">تازه کردن</string>
-  <string name="common_no_thanks">خیر. سپاس.</string>
   <string name="common_grant_permission">اجازه بدهید</string>
   <string name="common_required_field">%1$s مورد نیاز است.</string>
   <string name="welcome_title">به خانواده Gem خوش آمدید.</string>
@@ -144,7 +143,6 @@
   <string name="transfer_unfreeze_title">یخ‌زدایی</string>
   <string name="transfer_review_request">درخواست بررسی</string>
   <string name="transfer_amount">مبلغ</string>
-  <string name="transfer_amount_title">مبلغ</string>
   <string name="settings_terms_of_services">شرایط استفاده از خدمات</string>
   <string name="settings_privacy_policy">سیاست حفظ حریم خصوصی</string>
   <string name="settings_title">تنظیمات</string>
@@ -179,7 +177,6 @@
   <string name="support_state_empty_title">چطور می‌توانیم کمک کنیم؟</string>
   <string name="support_state_empty_description">هر سوالی دارید از ما بپرسید. ما اینجا هستیم تا کمک کنیم.</string>
   <string name="support_message_placeholder">پیام</string>
-  <string name="errors_transfer">خطای انتقال: %1$s</string>
   <string name="errors_validation">خطای اعتبارسنجی: %1$s</string>
   <string name="errors_create_wallet">خطای ایجاد کیف پول: %1$s</string>
   <string name="errors_invalid_address_name">نام یا آدرس نامعتبر.</string>
@@ -198,7 +195,6 @@
   <string name="errors_connections_user_cancelled">توسط کاربر لغو شد.</string>
   <string name="errors_not_supported">پشتیبانی نمی شود.</string>
   <string name="errors_permissions_not_granted">دسترسی داده نشده.</string>
-  <string name="errors_decoding">خطای رمزگشایی</string>
   <string name="errors_unknown">ناشناخته</string>
   <string name="errors_not_supported_qr">این دستگاه اسکن بارکد را پشتیبانی نمیکند. شما فقط میتوانید تصویر بارکد را از گالری انتخاب کنید.</string>
   <string name="errors_camera_permissions_not_granted">دسترسی به دوربین داده نشده. لطفا در تنظیمات خود دسارسی دوربین را فعال کنید و سپس برای اسکن امتحان کنید.</string>
@@ -209,11 +205,8 @@
   <string name="errors_dust_threshold">تراکنش به دلیل کم بودن مبلغ برای برآورده کردن حداقل لازم شبکه %1$s (آستانه گرد و غبار) انجام نشد. این محدودیت تضمین می‌کند که ارزش تراکنش، کارمزدها و هزینه‌های پردازش را پوشش می‌دهد.</string>
   <string name="errors_swap_no_quote_available">هیچ قیمتی در دسترس نیست.</string>
   <string name="errors_swap_not_supported_asset">دارایی پشتیبانی نمی شود.</string>
-  <string name="errors_connections_invalid_send_parameters">پارامترهای نامعتبر برای ارسال تراکنش ارائه شده است.</string>
-  <string name="errors_connections_invalid_sign_parameters">پارامترهای نامعتبر برای امضا ارائه شده است.</string>
   <string name="errors_connections_no_supported_wallets">هیچ کیف پول پشتیبانی شده ای در دسترس نیست.</string>
   <string name="errors_connections_unsupported_chain">زنجیره ارائه شده پشتیبانی نمی‌شود.</string>
-  <string name="errors_connections_unsupported_method">روش درخواستی پشتیبانی نمی شود.</string>
   <string name="errors_swap_amount_too_small">مقدار خیلی کم</string>
   <string name="errors_required">%1$s الزامی است</string>
   <string name="errors_scan_transaction_malicious_description">این تراکنش قابل انجام نیست — آدرس کیف پول مقصد به فعالیت مشکوک یا مضر مرتبط است.</string>
@@ -225,7 +218,6 @@
   <string name="errors_swap_minimum_amount">حداقل مبلغ معامله %1$s است. لطفاً مبلغ بیشتری وارد کنید.</string>
   <string name="errors_perpetual_trigger_price_lower">قیمت فعالسازی باید کمتر از قیمت بازار باشد</string>
   <string name="errors_perpetual_trigger_price_higher">قیمت فعالسازی باید بیشتر از قیمت بازار باشد</string>
-  <string name="errors_token_unable_fetch_token_information">خطا در واکشی اطلاعات توکن: %1$s</string>
   <string name="errors_unknown_try_again">خطای ناشناخته ای رخ داد. لطفا دوباره امتحان کنید.</string>
   <string name="errors_network_error">خطای شبکه: %1$s</string>
   <string name="errors_network_offline">به نظر می‌رسد اتصال اینترنت آفلاین است.</string>
@@ -243,7 +235,6 @@
   <string name="update_app_permission_title">اجازه نصب</string>
   <string name="update_app_permission_description">به تنظیمات بروید و نصب را از منابع خارجی مجاز کنید</string>
   <string name="update_app_permission_open_settings">به تنظیمات بروید</string>
-  <string name="update_app_downloading">در حال دانلود...</string>
   <string name="transaction_recipient">گیرنده</string>
   <string name="transaction_sender">فرستنده</string>
   <string name="transaction_date">تاریخ</string>
@@ -399,8 +390,6 @@
   <string name="banner_account_activation_description">شبکه %1$s نیاز به کارمزد اولیه %2$s ای دارد.</string>
   <string name="banner_stake_title">شروع به استیک کردن %1$s.</string>
   <string name="banner_stake_description">هنگامی که خواب هستید پاداش %1$s کسب کنید.</string>
-  <string name="banner_enable_notifications_title">فعال کردن اعلان ها.</string>
-  <string name="banner_enable_notifications_description">از فعالیت های کیف پول خود با خبر شوید.</string>
   <string name="banner_activate_asset_description">برای استفاده از دارایی %1$s ، ابتدا باید آن را در شبکه %2$s با انجام الزامات خاص شبکه فعال کنید.</string>
   <string name="banner_asset_status_title">دارایی مشکوک</string>
   <string name="banner_asset_status_description">رمز ممکن است ناامن یا گمراه کننده باشد. فقط در صورت اعتماد کامل به آن ادامه دهید.</string>
@@ -555,8 +544,8 @@
   <string name="perpetual_margin_cross">کراس</string>
   <string name="perpetual_margin_isolated">جدا شده</string>
   <string name="perpetuals_title">دائمی‌ها</string>
+  <string name="perpetuals_trade">معامله دائمی‌ها</string>
   <string name="perpetuals_markets">بازارها</string>
-  <string name="perpetuals_empty_state_no_markets">بدون بازار</string>
   <string name="perpetuals_empty_state_no_markets_found">هیچ بازاری یافت نشد</string>
   <string name="rewards_title">پاداش‌ها</string>
   <string name="rewards_share_text">عضویت Gem Wallet با لینک معرفی من و کسب جوایز: %1$s</string>
@@ -604,9 +593,6 @@
   <string name="simulation_warning_nft_collection_approval_title">دسترسی کامل به مجموعه NFT درخواست شد</string>
   <string name="simulation_warning_unlimited_token_approval_title">تایید نامحدود توکن</string>
   <string name="application_name">Gem</string>
-  <string name="camera_permission_request_camera">مجوز دوربین برای اسکن کد QR مورد نیاز است.\nلطفا اجازه بدهید.</string>
-  <string name="notifications_permission_request_notification">برای دریافت اعلان‌های مربوط به تراکنش‌های جدید، مجوز ارسال اعلان‌ها مورد نیاز است.\nلطفا اجازه بدهید.</string>
-  <string name="confirm_fee_error">خطا در محاسبه کارمزد.</string>
   <string name="rootcheck_security_alert">هشدار امنیتی</string>
   <string name="rootcheck_body">به نظر می رسد دستگاه شما دسترسی ریشه دارد که می تواند خطرات امنیتی را به میزان قابل توجهی افزایش دهد. استفاده از این برنامه در یک دستگاه روت شده ممکن است دارایی های شما را در معرض دسترسی غیرمجاز و از دست دادن احتمالی قرار دهد. برای ایمنی سرمایه خود، ما قویاً توصیه می کنیم از یک دستگاه غیر روت استفاده کنید.</string>
   <string name="rootcheck_ignore">نادیده گرفتن</string>

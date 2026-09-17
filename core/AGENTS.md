@@ -38,7 +38,7 @@ Subsystem references live in [docs/](../docs). Read the relevant one before chan
 - When working with multiple providers, follow [Provider and Mapper](skills/architecture.md#provider-and-mapper) and compare sibling implementations before editing. Use fiat providers, price providers, and chain providers as the structural references.
 - Resolve conflicting patterns with the shared [Engineering Principles](../skills/engineering-principles.md#clean-code-principles)
 - Use single-word names for Core settings keys; `_` is reserved for separating the settings hierarchy in environment variables
-- Keep `docs/FEATURES.md` (repo root) focused on high-level capabilities and provider coverage, including per-chain and supported-method coverage tables. Update it when supported chains, assets, features, providers, provider modes, or deployments change. Routine bug fixes, amount-validation details, formatting, and internal refactors do not need entries. Recheck dynamic provider coverage weekly; update the reviewed date only after rechecking the linked provider sources
+- Keep `docs/FEATURES.md` (repo root) focused on supported chains, providers, and public capabilities. Update it only when that coverage changes. Small config changes, internal flags, bug fixes, and refactors do not need documentation unless the user asks. Keep required updates brief; do not add implementation or deployment walkthroughs. Recheck dynamic provider coverage weekly; update the reviewed date only after rechecking the linked provider sources
 
 ## Task Completion
 

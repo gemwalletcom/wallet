@@ -1,8 +1,6 @@
 use num_bigint::BigInt;
 use number_formatter::CryptoFiatConverter as Converter;
 
-use crate::GemstoneError;
-
 #[derive(Debug, uniffi::Object)]
 pub struct CryptoFiatConverter {}
 
@@ -19,7 +17,7 @@ impl CryptoFiatConverter {
         Self {}
     }
 
-    pub fn to_fiat(&self, value: BigInt, decimals: u32, price: f64) -> Result<String, GemstoneError> {
-        Ok(Converter::to_fiat(&value.to_string(), decimals, price)?)
+    pub fn to_fiat(&self, value: BigInt, decimals: u32, price: f64) -> String {
+        Converter::fiat_amount(&value.to_string(), decimals, price).normalized().to_string()
     }
 }

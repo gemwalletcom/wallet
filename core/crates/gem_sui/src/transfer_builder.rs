@@ -70,7 +70,7 @@ fn build_tx_output(
                 amount,
                 tokens: tokens.clone(),
                 gas,
-                gas_coin: sui_coins.coins.first().unwrap().clone(),
+                gas_coin: sui_coins.coins.first().ok_or("No SUI coins available for gas")?.clone(),
             };
             encode_token_transfer(&token_transfer_input)
         }

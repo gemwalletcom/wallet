@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemAddAssetPhase
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
@@ -62,7 +63,7 @@ class AddAssetViewModelTest {
 
     @Test
     fun `typed address resolves the token through the service`() = runTest {
-        val viewModel = AddAssetViewModel(getSession, service)
+        val viewModel = AddAssetViewModel(getSession, service, mockk(relaxed = true))
         try {
             withContext(Dispatchers.Main) {
                 viewModel.addressState.value = "0x1"
@@ -78,7 +79,7 @@ class AddAssetViewModelTest {
 
     @Test
     fun `addAsset adds the found token to the current wallet`() = runTest {
-        val viewModel = AddAssetViewModel(getSession, service)
+        val viewModel = AddAssetViewModel(getSession, service, mockk(relaxed = true))
         try {
             withContext(Dispatchers.Main) {
                 viewModel.addressState.value = "0x1"
@@ -99,7 +100,7 @@ class AddAssetViewModelTest {
     @Test
     fun `a failed add stays on the screen and reports the Core message`() = runTest {
         coEvery { service.add(any(), any()) } throws GemServiceException.Store("disk full")
-        val viewModel = AddAssetViewModel(getSession, service)
+        val viewModel = AddAssetViewModel(getSession, service, mockk(relaxed = true))
         try {
             withContext(Dispatchers.Main) {
                 viewModel.addressState.value = "0x1"
@@ -112,7 +113,7 @@ class AddAssetViewModelTest {
 
             assertEquals(false, finished)
             val failed = viewModel.uiState.first { it.error != null }
-            assertEquals("disk full", failed.error)
+            assertEquals(GemErrorText.Message("disk full"), failed.error)
             assertEquals(false, failed.isLoading)
 
             viewModel.clearError()

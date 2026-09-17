@@ -2,6 +2,7 @@
 
 import SwiftUI
 import WidgetKit
+import WidgetLocalization
 
 @Observable
 @MainActor
@@ -17,24 +18,13 @@ final class PriceWidgetViewModel {
     }
 
     var prices: [CoinPrice] {
-        switch widgetFamily {
-        case .systemSmall:
-            Array(entry.coinPrices.prefix(1))
-        case .systemMedium:
-            Array(entry.coinPrices.prefix(3))
-        case .systemLarge:
-            entry.coinPrices
-        default:
-            entry.coinPrices
-        }
+        entry.coinPrices
     }
 
     var emptyMessage: String {
         switch widgetFamily {
-        case .systemSmall:
-            "No data"
-        default:
-            "No price data available"
+        case .systemSmall: WidgetLocalized.Widget.emptyShort
+        default: WidgetLocalized.Widget.empty
         }
     }
 }

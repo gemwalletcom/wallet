@@ -2,7 +2,6 @@
 
 import Components
 import Foundation
-import struct Gemstone.GemWalletRow
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -11,7 +10,8 @@ import SwiftUI
 
 struct WalletListItemView: View {
     let wallet: Wallet
-    let row: GemWalletRow
+    let listItem: ListItemModel
+    let isPinned: Bool
     let currentWalletId: WalletId?
 
     let onSelect: (Wallet) -> Void
@@ -21,7 +21,8 @@ struct WalletListItemView: View {
 
     init(
         wallet: Wallet,
-        row: GemWalletRow,
+        listItem: ListItemModel,
+        isPinned: Bool,
         currentWalletId: WalletId?,
         onSelect: @escaping (Wallet) -> Void,
         onEdit: @escaping (Wallet) -> Void,
@@ -29,7 +30,8 @@ struct WalletListItemView: View {
         onDelete: @escaping (Wallet) -> Void,
     ) {
         self.wallet = wallet
-        self.row = row
+        self.listItem = listItem
+        self.isPinned = isPinned
         self.currentWalletId = currentWalletId
         self.onSelect = onSelect
         self.onEdit = onEdit
@@ -48,11 +50,7 @@ struct WalletListItemView: View {
             .opacity(0)
 
             HStack {
-                ListItemView(
-                    title: row.name,
-                    titleExtra: row.subtitle.text,
-                    imageStyle: .asset(assetImage: row.avatarImage),
-                )
+                ListItemView(model: listItem)
 
                 Spacer()
 
@@ -79,7 +77,7 @@ struct WalletListItemView: View {
                     action: { onEdit(wallet) },
                 ),
                 .pin(
-                    isPinned: row.isPinned,
+                    isPinned: isPinned,
                     onPin: { onPin(wallet) },
                 ),
                 .delete { onDelete(wallet) },

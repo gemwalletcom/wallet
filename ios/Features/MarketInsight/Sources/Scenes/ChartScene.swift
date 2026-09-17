@@ -25,13 +25,13 @@ public struct ChartScene: View {
                         NavigationLink(
                             value: Scenes.AssetPriceAlert(asset: model.asset),
                             label: {
-                                ListItemView(title: section.title ?? "", subtitle: "\(count)")
+                                ListItemView(model: model.listItem(for: section))
                             },
                         )
                     }
                 case .setPriceAlert:
                     Section {
-                        NavigationCustomLink(with: ListItemView(title: section.title ?? "")) {
+                        NavigationCustomLink(with: ListItemView(model: model.listItem(for: section))) {
                             model.onSelectSetPriceAlerts()
                         }
                     }
@@ -57,7 +57,7 @@ public struct ChartScene: View {
                 switch item.action {
                 case let .explorer(explorerContext):
                     SafariNavigationLink(url: explorerContext.explorerLink.url) {
-                        ListItemView(title: item.title, subtitle: item.subtitle)
+                        ListItemView(model: item.listItem())
                     }
                     .explorerContext(explorerContext)
                 case let .info(type):
@@ -70,15 +70,6 @@ public struct ChartScene: View {
     }
 
     private func marketItemView(_ item: MarketValueViewModel, infoAction: (() -> Void)? = nil) -> some View {
-        ListItemView(
-            title: item.title,
-            titleTag: item.titleTag,
-            titleTagStyle: item.titleTagStyle ?? .body,
-            titleExtra: item.titleExtra,
-            subtitle: item.subtitle,
-            subtitleExtra: item.subtitleExtra,
-            subtitleStyleExtra: item.subtitleExtraStyle ?? .calloutSecondary,
-            infoAction: infoAction,
-        )
+        ListItemView(model: item.listItem(infoAction: infoAction))
     }
 }

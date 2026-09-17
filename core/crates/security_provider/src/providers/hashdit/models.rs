@@ -126,7 +126,10 @@ pub(super) enum RiskLevel {
 
 impl RiskLevel {
     pub(super) fn is_malicious(&self) -> bool {
-        matches!(self, Self::Medium | Self::High | Self::Significant)
+        match self {
+            Self::NoObvious | Self::Low | Self::Medium => false,
+            Self::High | Self::Significant => true,
+        }
     }
 
     pub(super) fn as_str(&self) -> &'static str {
@@ -148,7 +151,7 @@ mod tests {
     fn test_risk_levels() {
         assert!(!RiskLevel::NoObvious.is_malicious());
         assert!(!RiskLevel::Low.is_malicious());
-        assert!(RiskLevel::Medium.is_malicious());
+        assert!(!RiskLevel::Medium.is_malicious());
         assert!(RiskLevel::High.is_malicious());
         assert!(RiskLevel::Significant.is_malicious());
     }

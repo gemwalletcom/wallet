@@ -8,9 +8,6 @@ import com.gemwallet.android.ui.localization.stringRes
 import com.wallet.core.primitives.PerpetualDirection
 
 @Composable
-fun PerpetualDirection.text(leverage: String): String = "${title().uppercase()} $leverage"
-
-@Composable
 fun PerpetualDirection.title(): String = stringResource(stringRes())
 
 @Composable

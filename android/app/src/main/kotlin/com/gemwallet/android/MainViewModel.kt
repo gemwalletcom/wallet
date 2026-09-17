@@ -12,6 +12,7 @@ import com.gemwallet.android.model.AuthState
 import android.util.Log
 import com.gemwallet.android.services.MigrateV3KeystoreService
 import uniffi.gemstone.GemWalletService
+import uniffi.gemstone.GemWalletServiceInterface
 import com.wallet.core.primitives.Appearance
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -39,7 +40,7 @@ class MainViewModel @Inject constructor(
     private val pairWalletConnect: PairWalletConnect,
     private val appStartService: GemAppStartServiceInterface,
     private val migrateV3KeystoreService: MigrateV3KeystoreService,
-    private val walletService: GemWalletService,
+    private val walletService: GemWalletServiceInterface,
     private val migratePriceAlertsPreference: MigratePriceAlertsPreference,
     private val lockTimer: LockTimer,
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,

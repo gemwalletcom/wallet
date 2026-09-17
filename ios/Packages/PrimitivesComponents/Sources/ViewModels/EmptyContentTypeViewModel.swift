@@ -2,6 +2,11 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemEmptyState
+import enum Gemstone.GemEmptyStateAction
+import struct Gemstone.GemEmptyStateInput
+import enum Gemstone.GemEmptyStateKind
+import func Gemstone.emptyState
 import Localization
 import Primitives
 import Style
@@ -9,126 +14,98 @@ import SwiftUI
 
 public struct EmptyContentTypeViewModel: EmptyContentViewable {
     public let type: EmptyContentType
+    private let state: GemEmptyState
 
     public init(type: EmptyContentType) {
         self.type = type
+        state = emptyState(
+            input: GemEmptyStateInput(
+                kind: type.kind,
+                isViewOnly: type.isViewOnly,
+                offeredActions: Array(type.actions.keys),
+            ),
+        )
     }
 
     public var title: String {
-        switch type {
-        case .nfts: Localized.Nft.State.Empty.title
-        case .priceAlerts: Localized.PriceAlerts.State.Empty.title
-        case let .asset(_, _, _, isViewOnly):
-            switch isViewOnly {
-            case true: Localized.Wallet.watchEmptyStateTitle
-            case false: Localized.Asset.State.Empty.title
-            }
-        case let .activity(_, _, isViewOnly):
-            switch isViewOnly {
-            case true: Localized.Wallet.watchEmptyStateTitle
-            case false: Localized.Activity.State.Empty.title
-            }
-        case .stake: Localized.Stake.State.Empty.title
-        case .earn: Localized.Earn.State.Empty.title
-        case .walletConnect: Localized.WalletConnect.noActiveConnections
-        case .notifications: Localized.Notifications.Inapp.State.Empty.title
-        case let .search(searchType, _):
-            switch searchType {
-            case .assets: Localized.Assets.noAssetsFound
-            case .networks: Localized.Networks.State.Empty.searchTitle
-            case .activity: Localized.Activity.State.Empty.searchTitle
-            case .perpetuals: Localized.Perpetuals.EmptyState.noMarketsFound
-            }
-        case .networkAssets: Localized.Assets.noAssetsFound
-        case .recents: Localized.RecentActivity.State.Empty.title
-        case .contacts: Localized.Contacts.State.Empty.title
-        }
+        state.title.text(symbol: type.symbol)
     }
 
     public var description: String? {
-        switch type {
-        case let .nfts(action): action != nil ? Localized.Nft.State.Empty.description : nil
-        case .priceAlerts: Localized.PriceAlerts.State.Empty.description
-        case let .asset(symbol, _, _, isViewOnly):
-            switch isViewOnly {
-            case true: Localized.Info.WatchWallet.description
-            case false: Localized.Asset.State.Empty.description(symbol)
-            }
-        case let .activity(_, _, isViewOnly):
-            switch isViewOnly {
-            case true: Localized.Info.WatchWallet.description
-            case false: Localized.Activity.State.Empty.description
-            }
-        case let .stake(symbol): Localized.Stake.State.Empty.description(symbol)
-        case let .earn(symbol): Localized.Earn.State.Empty.description(symbol)
-        case .walletConnect: Localized.WalletConnect.State.Empty.description
-        case let .search(searchType, action):
-            switch searchType {
-            case .assets: action != nil ? Localized.Assets.State.Empty.searchDescription : Localized.Search.State.Empty.description
-            case .networks, .perpetuals: Localized.Search.State.Empty.description
-            case .activity: Localized.Activity.State.Empty.searchDescription
-            }
-        case .networkAssets: .none
-        case .recents: Localized.RecentActivity.State.Empty.description
-        case .notifications: Localized.Notifications.Inapp.State.Empty.description
-        case .contacts: Localized.Contacts.State.Empty.description
-        }
+        state.description?.text(symbol: type.symbol)
     }
 
     public var image: Image? {
-        switch type {
-        case .nfts: Images.EmptyContent.nft
-        case .priceAlerts: Images.EmptyContent.priceAlerts
-        case .asset, .activity, .networkAssets: Images.EmptyContent.activity
-        case .stake: Images.EmptyContent.stake
-        case .earn: Images.EmptyContent.stake
-        case .walletConnect: Images.EmptyContent.walletConnect
-        case .search: Images.EmptyContent.search
-        case .recents: Images.EmptyContent.activity
-        case .notifications: Images.System.bell
-        case .contacts: Images.EmptyContent.contacts
-        }
+        state.image.image
     }
 
     public var buttons: [EmptyAction] {
-        let actions: [EmptyAction] = switch type {
-        case .priceAlerts, .stake, .earn, .walletConnect, .notifications, .recents, .contacts:
-            []
-        case let .networkAssets(action):
-            [EmptyAction(title: Localized.Wallet.manageTokenList, action: action)]
-        case let .asset(_, buy, swap, isViewOnly):
-            switch isViewOnly {
-            case true: []
-            case false:
-                if let buy {
-                    [EmptyAction(title: Localized.Wallet.buy, action: buy)]
-                } else if let swap {
-                    [EmptyAction(title: Localized.Wallet.swap, action: swap)]
-                } else {
-                    []
-                }
-            }
-        case let .nfts(action):
-            [EmptyAction(title: Localized.Wallet.receive, action: action)]
-        case let .activity(receive, buy, isViewOnly):
-            switch isViewOnly {
-            case true: []
-            case false: [
-                    EmptyAction(title: Localized.Wallet.buy, action: buy),
-                    EmptyAction(title: Localized.Wallet.receive, action: receive),
-                ]
-            }
-        case let .search(searchType, action):
+        let actions = type.actions
+        return state.actions.compactMap { action in
+            actions[action].map { EmptyAction(title: action.title, action: $0) }
+        }
+    }
+}
+
+private extension EmptyContentType {
+    var kind: GemEmptyStateKind {
+        switch self {
+        case .nfts: .nfts
+        case .priceAlerts: .priceAlerts
+        case .asset: .asset
+        case .activity: .activity
+        case .stake: .stake
+        case .earn: .earn
+        case .walletConnect: .walletConnect
+        case .notifications: .notifications
+        case .recents: .recents
+        case .contacts: .contacts
+        case .networkAssets: .networkAssets
+        case let .search(searchType, _):
             switch searchType {
-            case .assets:
-                [EmptyAction(title: Localized.Assets.addCustomToken, action: action)]
-            case .networks, .perpetuals:
-                []
-            case .activity:
-                [EmptyAction(title: Localized.Filter.clear, action: action)]
+            case .assets: .searchAssets
+            case .networks: .searchNetworks
+            case .activity: .searchActivity
+            case .perpetuals: .searchPerpetuals
             }
         }
+    }
 
-        return actions.filter { $0.action != nil }
+    var isViewOnly: Bool {
+        switch self {
+        case let .asset(_, _, _, isViewOnly): isViewOnly
+        case let .activity(_, _, isViewOnly): isViewOnly
+        case .nfts, .priceAlerts, .stake, .earn, .walletConnect, .notifications, .recents, .contacts, .networkAssets, .search: false
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case let .asset(symbol, _, _, _): symbol
+        case let .stake(symbol): symbol
+        case let .earn(symbol): symbol
+        case .nfts, .priceAlerts, .activity, .walletConnect, .notifications, .recents, .contacts, .networkAssets, .search: .empty
+        }
+    }
+
+    var actions: [GemEmptyStateAction: () -> Void] {
+        switch self {
+        case let .nfts(receive):
+            [GemEmptyStateAction.receive: receive].compactMapValues { $0 }
+        case let .asset(_, buy, swap, _):
+            [GemEmptyStateAction.buy: buy, .swap: swap].compactMapValues { $0 }
+        case let .activity(receive, buy, _):
+            [GemEmptyStateAction.buy: buy, .receive: receive].compactMapValues { $0 }
+        case let .networkAssets(manage):
+            [GemEmptyStateAction.manageTokenList: manage].compactMapValues { $0 }
+        case let .search(searchType, action):
+            switch searchType {
+            case .assets: [GemEmptyStateAction.addCustomToken: action].compactMapValues { $0 }
+            case .activity: [GemEmptyStateAction.clearFilters: action].compactMapValues { $0 }
+            case .networks, .perpetuals: [:]
+            }
+        case .priceAlerts, .stake, .earn, .walletConnect, .notifications, .recents, .contacts:
+            [:]
+        }
     }
 }

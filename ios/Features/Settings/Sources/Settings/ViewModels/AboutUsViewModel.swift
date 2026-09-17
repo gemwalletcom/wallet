@@ -1,7 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemAboutRow
 import protocol Gemstone.GemAppUpdateServiceProtocol
 import Components
+import func Gemstone.aboutSections
 import func Gemstone.communityLinks
 import GemstonePrimitives
 import Localization
@@ -16,7 +18,6 @@ import SwiftUI
 public final class AboutUsViewModel: Sendable {
     private let preferences: ObservablePreferences
     private let service: any GemAppUpdateServiceProtocol
-
     public init(
         preferences: ObservablePreferences,
         service: any GemAppUpdateServiceProtocol,
@@ -25,37 +26,52 @@ public final class AboutUsViewModel: Sendable {
         self.service = service
     }
 
+    var sections: [ListSection<AboutRowViewModel>] {
+        aboutSections().enumerated().map { index, section in
+            ListSection(id: "\(index)", title: nil, image: nil, values: section.rows.map(rowViewModel))
+        }
+    }
+
     var title: String {
         Localized.Settings.aboutus
     }
 
-    var termsOfServiceTitle: String {
-        Localized.Settings.termsOfServices
+    private func rowViewModel(_ row: GemAboutRow) -> AboutRowViewModel {
+        switch row {
+        case .termsOfService: AboutRowViewModel(id: String(describing: row), kind: .link(termsOfServiceURL), model: listItem(for: row))
+        case .privacyPolicy: AboutRowViewModel(id: String(describing: row), kind: .link(privacyPolicyURL), model: listItem(for: row))
+        case .website: AboutRowViewModel(id: String(describing: row), kind: .link(websiteURL), model: listItem(for: row))
+        case .community: AboutRowViewModel(id: String(describing: row), kind: .community, model: listItem(for: row))
+        case .version: AboutRowViewModel(id: String(describing: row), kind: .version, model: listItem(for: row))
+        }
     }
+
+    private func listItem(for row: GemAboutRow) -> ListItemModel {
+        switch row {
+        case .termsOfService, .privacyPolicy, .website, .community: ListItemModel(title: row.title)
+        case .version: ListItemModel(title: row.title, subtitle: versionTextValue)
+        }
+    }
+
+    var updateListItem: ListItemModel? {
+        releaseVersion.map { ListItemModel(title: Localized.UpdateApp.title, subtitle: $0, imageStyle: .settings(assetImage: releaseImage)) }
+    }
+
 
     var termsOfServiceURL: URL {
         AppUrl.page(.termsOfService)
     }
 
-    var privacyPolicyTitle: String {
-        Localized.Settings.privacyPolicy
-    }
 
     var privacyPolicyURL: URL {
         AppUrl.page(.privacyPolicy)
     }
 
-    var websiteTitle: String {
-        Localized.Settings.website
-    }
 
     var websiteURL: URL {
         AppUrl.page(.website)
     }
 
-    var versionTextTitle: String {
-        Localized.Settings.version
-    }
 
     var versionTextValue: String {
         let version = Bundle.main.releaseVersionNumber
@@ -99,9 +115,6 @@ public final class AboutUsViewModel: Sendable {
         SocialLinksViewModel(links: communityLinks())
     }
 
-    var communityTitle: String {
-        Localized.Settings.community
-    }
 }
 
 extension AboutUsViewModel {

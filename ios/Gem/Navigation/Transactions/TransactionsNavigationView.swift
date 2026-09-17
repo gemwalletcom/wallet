@@ -40,7 +40,20 @@ struct TransactionsNavigationView: View {
                     model: viewModelFactory.transactionScene(
                         transaction: $0.transaction,
                         walletId: model.wallet.id,
-                        onHeaderAction: onSelectTransactionHeaderAction,
+                        onHeaderAction: { action in
+                            Task {
+                                do {
+                                    try await presenter.handleTransactionHeaderAction(
+                                        action,
+                                        wallet: model.wallet,
+                                        navigationState: navigationState,
+                                        nftDestination: navigationState.activity,
+                                    )
+                                } catch {
+                                    model.isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
+                                }
+                            }
+                        },
                         onAddContact: { model.isPresentingSheet = .addContact($0) },
                     ),
                 )
@@ -72,21 +85,3 @@ struct TransactionsNavigationView: View {
     }
 }
 
-// MARK: - Actions
-
-extension TransactionsNavigationView {
-    private func onSelectTransactionHeaderAction(_ action: TransactionHeaderAction) {
-        Task {
-            do {
-                try await presenter.handleTransactionHeaderAction(
-                    action,
-                    wallet: model.wallet,
-                    navigationState: navigationState,
-                    nftDestination: navigationState.activity,
-                )
-            } catch {
-                model.isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
-            }
-        }
-    }
-}

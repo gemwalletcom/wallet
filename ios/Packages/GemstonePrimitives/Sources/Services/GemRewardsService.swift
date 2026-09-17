@@ -23,11 +23,4 @@ public extension GemRewardsServiceProtocol {
     func redeem(wallet: Primitives.Wallet, redemptionId: String) async throws -> RedemptionResult {
         try await redeem(wallet: wallet.toGem(), redemptionId: redemptionId)
     }
-
-    func referralLink(code: String) throws -> URL {
-        guard let url = URL(string: referralLink(code: code)) else {
-            throw AnyError("invalid referral link")
-        }
-        return url
-    }
 }

@@ -19,10 +19,12 @@ public enum HeaderButtonViewType: Identifiable {
     }
 }
 
+public typealias HeaderButtonAction = @MainActor @Sendable (GemHeaderButtonKind) -> Void
+
 public struct HeaderButton: Identifiable {
-    let type: GemHeaderButtonKind
+    public let type: GemHeaderButtonKind
     let viewType: HeaderButtonViewType
-    let isEnabled: Bool
+    public let isEnabled: Bool
 
     public init(
         type: GemHeaderButtonKind,

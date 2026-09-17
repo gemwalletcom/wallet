@@ -7,6 +7,7 @@ import java.time.format.FormatStyle
 import java.util.Locale
 import uniffi.gemstone.GemDay
 import uniffi.gemstone.GemDayBoundaries
+import uniffi.gemstone.GemDayLabel
 
 class SectionDateFormatter(
     private val todayLabel: String,
@@ -19,10 +20,10 @@ class SectionDateFormatter(
         boundaries = LocalDate.now(clock).gemDay().boundaries(),
     )
 
-    fun format(date: LocalDate, locale: Locale): String = when (date.gemDay()) {
-        boundaries.today -> todayLabel
-        boundaries.yesterday -> yesterdayLabel
-        else -> DateTimeFormatter
+    fun format(date: LocalDate, locale: Locale): String = when (boundaries.label(date.gemDay())) {
+        GemDayLabel.TODAY -> todayLabel
+        GemDayLabel.YESTERDAY -> yesterdayLabel
+        GemDayLabel.DATE -> DateTimeFormatter
             .ofLocalizedDate(FormatStyle.LONG)
             .withLocale(locale)
             .format(date)

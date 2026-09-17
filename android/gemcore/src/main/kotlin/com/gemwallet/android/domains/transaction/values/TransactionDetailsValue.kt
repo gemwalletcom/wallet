@@ -1,9 +1,10 @@
 package com.gemwallet.android.domains.transaction.values
 
-import com.gemwallet.android.domains.price.ValueDirection
-import uniffi.gemstone.GemSwapProgressState
 import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.model.AssetPriceValue
+import com.gemwallet.android.model.Crypto
+import com.gemwallet.android.model.CryptoFiatConverter
+import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.AddressType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
@@ -13,8 +14,11 @@ import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.TransactionNFTTransferMetadata
 import com.wallet.core.primitives.TransactionState
-import uniffi.gemstone.GemTransactionStatus
 import java.math.BigInteger
+import uniffi.gemstone.GemSwapProgressState
+import uniffi.gemstone.GemTransactionStatus
+import uniffi.gemstone.GemValueStyle
+import uniffi.gemstone.GemValueTone
 
 sealed interface TransactionDetailsValue {
 
@@ -25,7 +29,12 @@ sealed interface TransactionDetailsValue {
             val toAsset: AssetPriceValue,
             val toValue: BigInteger,
             val currency: Currency,
-        ) : Amount
+        ) : Amount {
+            val fromValueText: String get() = ValueFormatter(style = GemValueStyle.AUTO).string(fromValue, fromAsset.asset)
+            val toValueText: String get() = ValueFormatter(style = GemValueStyle.AUTO).string(toValue, toAsset.asset)
+            val fromEquivalentText: String? get() = fromAsset.price?.price?.price?.let { CryptoFiatConverter.toFiatString(Crypto(fromValue), fromAsset.asset.decimals, it, currency) }
+            val toEquivalentText: String? get() = toAsset.price?.price?.price?.let { CryptoFiatConverter.toFiatString(Crypto(toValue), toAsset.asset.decimals, it, currency) }
+        }
 
         class NFT(val metadata: TransactionNFTTransferMetadata) : Amount
 
@@ -112,7 +121,7 @@ sealed interface TransactionDetailsValue {
 
     class Network(val data: Asset) : TransactionDetailsValue
 
-    class Pnl(val value: String, val direction: ValueDirection) : TransactionDetailsValue
+    class Pnl(val value: String, val direction: GemValueTone) : TransactionDetailsValue
 
     class Price(val data: String) : TransactionDetailsValue
 

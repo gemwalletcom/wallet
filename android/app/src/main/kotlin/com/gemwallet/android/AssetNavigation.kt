@@ -12,10 +12,11 @@ import com.wallet.core.primitives.FiatQuoteType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetsService
+import uniffi.gemstone.GemAssetsServiceInterface
 import javax.inject.Inject
 
 class AssetNavigation @Inject constructor(
-    private val assetsService: GemAssetsService,
+    private val assetsService: GemAssetsServiceInterface,
 ) {
     suspend fun assetRoute(assetId: AssetId?): AssetRoute? = openAsset(assetId)?.let { AssetRoute(it.id) }
 

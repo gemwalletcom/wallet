@@ -19,10 +19,7 @@ public struct ChainListSettingsScene: View {
         List {
             Section {
                 NavigationLink(value: Scenes.ServiceStatus()) {
-                    ListItemView(
-                        title: Localized.Transaction.status,
-                        imageStyle: .asset(assetImage: AssetImage.image(Images.Logo.logo)),
-                    )
+                    ListItemView(model: model.serviceStatusListItem)
                 }
             }
 

@@ -14,7 +14,6 @@ public struct DB: Sendable {
         configuration: GRDB.Configuration = DB.defaultConfiguration,
     ) {
         do {
-            // TODO: - remove the logic FileMigrator in 2026
             let fileMigrator = FileMigrator()
             let databaseURL = try fileMigrator.migrate(
                 name: fileName,

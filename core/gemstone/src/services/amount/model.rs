@@ -24,6 +24,29 @@ pub enum GemAmountType {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemAmountTitle {
+    Send,
+    Deposit,
+    Withdraw,
+    Stake,
+    Unstake,
+    Redelegate,
+    Rewards,
+    Freeze,
+    Unfreeze,
+    PerpetualOpen { direction: PerpetualDirection },
+    PerpetualIncrease { direction: PerpetualDirection },
+    PerpetualReduce { direction: PerpetualDirection },
+}
+
+#[uniffi::export]
+impl GemAmountType {
+    pub fn title(&self) -> GemAmountTitle {
+        super::rules::amount_title(self)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemAmountTransfer {
     Send { payment: GemPaymentRecipient },
     Deposit,
@@ -192,6 +215,10 @@ pub struct GemNumberFormat {
 impl GemNumberFormat {
     pub fn sanitize(&self, input: String, maximum_fraction_digits: Option<u32>, maximum_integer_digits: Option<u32>) -> String {
         super::rules::sanitize_number_input(&self.decimal_separator, &input, maximum_fraction_digits, maximum_integer_digits)
+    }
+
+    pub fn input_text(&self, value: String, decimals: u32) -> Option<String> {
+        super::rules::input_text(&self.decimal_separator, &value, decimals)
     }
 
     pub fn plain(&self, input: String) -> String {

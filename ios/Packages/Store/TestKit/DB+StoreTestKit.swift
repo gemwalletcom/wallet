@@ -17,6 +17,15 @@ public extension DB {
         return db
     }
 
+    static func mockWithWallets(_ wallets: [Wallet]) throws -> DB {
+        let db = Self.mockWithChains(wallets.flatMap { $0.accounts.map(\.chain) }.asSet().asArray())
+        let walletStore = WalletStore(db: db)
+        for wallet in wallets {
+            try walletStore.addWallet(wallet)
+        }
+        return db
+    }
+
     static func mockAssets(assets: [AssetBasic] = .mock()) -> DB {
         let db = Self.mock()
         let assetStore = AssetStore(db: db)

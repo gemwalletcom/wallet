@@ -178,13 +178,11 @@ extension ImportWalletSceneViewModel {
     private func importWallet(name: String, type: GemWalletImportType) async throws {
         let result = try await service.importWallet(name: name, type: type, source: .import)
 
+        let wallet = result.wallet
+        await activateWallet(wallet)
         switch result {
-        case let .new(wallet):
-            await activateWallet(wallet)
-            onComplete?(.new(wallet))
-        case let .existing(wallet):
-            await activateWallet(wallet)
-            isPresentingExistingWalletName = wallet.name
+        case .new: onComplete?(.new(wallet))
+        case .existing: isPresentingExistingWalletName = wallet.name
         }
     }
 

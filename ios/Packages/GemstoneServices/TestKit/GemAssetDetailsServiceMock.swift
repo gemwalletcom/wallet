@@ -54,7 +54,7 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
                 showsResources: false,
                 showsPriceAlerts: false,
                 priceAlertsCount: 0,
-                priceAlertEnabled: false,
+                priceAlert: .disabled,
                 showsEarn: false,
                 emptyTransactionsAction: nil,
             ),

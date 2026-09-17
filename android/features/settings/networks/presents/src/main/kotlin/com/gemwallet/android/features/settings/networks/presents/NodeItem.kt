@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.settings.networks.presents
 
-import android.icu.text.DecimalFormat
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -8,28 +7,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeRowUiModel
+import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeRowUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ActionIcon
 import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.ListItemSupportText
-import com.gemwallet.android.ui.components.list_item.ListItemTitleText
+import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.list_item.SwipeableItemWithActions
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.gemwallet.android.features.settings.networks.presents.localization.string
-import uniffi.gemstone.GemNodeSelection
-import uniffi.gemstone.GemNodeStatusState
-import uniffi.gemstone.Latency
-import uniffi.gemstone.LatencyType
-import com.gemwallet.android.ui.theme.Placeholder
 
 @Composable
 internal fun NodeItem(
-    model: NodeRowUiModel,
+    model: NodeRowUIModel,
     listPosition: ListPosition,
     isDeleteRevealed: Boolean,
     onDeleteReveal: () -> Unit,
@@ -39,27 +32,14 @@ internal fun NodeItem(
 ) {
     val content: @Composable (ListPosition) -> Unit = { position ->
         ListItem(
-            modifier = Modifier.clickable(onClick = { onSelect(model.url) }),
-            title = {
-                ListItemTitleText(
-                    text = model.node.title().string(),
-                    titleBadge = {
-                        LatencyStatusBadge(status = model.statusState.latencyStatus())
-                    },
-                )
-            },
-            subtitle = {
-                ListItemSupportText(
-                    text = model.latestBlockText(),
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-            },
+            model = model.model,
             listPosition = position,
-            trailing = if (model.selected) {
-                @Composable {
-                    SelectionCheckmark(modifier = Modifier.padding(end = paddingSmall))
-                }
-            } else null
+            modifier = Modifier.clickable(onClick = { onSelect(model.url) }),
+            accessory = if (model.isSelected) {
+                { SelectionCheckmark(modifier = Modifier.padding(end = paddingSmall)) }
+            } else {
+                null
+            },
         )
     }
 
@@ -85,30 +65,17 @@ internal fun NodeItem(
     )
 }
 
-@Composable
-private fun NodeRowUiModel.latestBlockText(): String {
-    val blockValue = statusState.latestBlock()?.let { DecimalFormat.getInstance().format(it.toLong()) } ?: Placeholder.empty
-
-    return "${stringResource(R.string.nodes_import_node_latest_block)}: $blockValue"
-}
-
 @Preview
 @Composable
 fun NodeItemPreview() {
     WalletTheme {
         NodeItem(
-            model = NodeRowUiModel(
-                node = GemNodeSelection(
-                    url = "https://some.url.eth",
-                    host = "some.url.eth",
-                    isSelected = true,
-                    gemNodeFlag = null,
-                ),
+            model = NodeRowUIModel(
+                url = "https://some.url.eth",
+                host = "some.url.eth",
+                isSelected = true,
                 canDelete = true,
-                statusState = GemNodeStatusState.Result(
-                    latestBlockNumber = 123902302938UL,
-                    latency = Latency(LatencyType.FAST, 440.0),
-                ),
+                model = ListItemModel(title = "some.url.eth", titleTag = "440 ms", titleTagStyle = ListItemTextStyle.Positive, titleExtra = "Latest block: 123902302938", titleExtraStyle = ListItemTextStyle.Body),
             ),
             listPosition = ListPosition.Middle,
             isDeleteRevealed = false,

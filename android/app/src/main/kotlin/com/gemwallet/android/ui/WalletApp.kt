@@ -16,7 +16,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
@@ -24,23 +23,21 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.BuildConfig
+import com.gemwallet.android.WalletConnectRequestContent
+import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.ext.updateUrl
+import com.gemwallet.android.features.onboarding.AcceptTermsDestination
 import com.gemwallet.android.features.onboarding.OnboardScreen
 import com.gemwallet.android.flavors.ReviewManager
 import com.gemwallet.android.ui.components.PushRequest
-import com.gemwallet.android.features.onboarding.AcceptTermsDestination
 import com.gemwallet.android.ui.navigation.WalletNavGraph
 import com.gemwallet.android.ui.navigation.WalletRootRoute
 import com.gemwallet.android.ui.navigation.rememberWalletNavigationState
 import com.gemwallet.android.ui.navigation.routes.assetsRoute
 import com.gemwallet.android.ui.theme.Spacer16
-import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
-import com.gemwallet.android.WalletConnectRequestContent
-import uniffi.gemstone.GemDeeplinkService
 
 @Composable
 fun WalletApp(
-    deeplinkService: GemDeeplinkService,
     pendingRoutes: List<NavKey> = emptyList(),
     onPendingNavigationConsumed: () -> Unit = {},
     onContentReady: () -> Unit = {},
@@ -58,22 +55,15 @@ fun WalletApp(
     val navigator = rememberWalletNavigationState(
         startDestination = start,
         currentTab = currentTab,
-        deeplinkService = deeplinkService,
     )
-    var confirmPendingNavigation by remember(pendingRoutes) { mutableStateOf(false) }
     val currentOnContentReady by rememberUpdatedState(onContentReady)
     val isWalletRootActive = navigator.backStack.lastOrNull() == WalletRootRoute
     val shouldWaitForWalletRootContent = isWalletRootActive && pendingRoutes.isEmpty()
 
-    LaunchedEffect(pendingRoutes, navigator, confirmPendingNavigation) {
+    LaunchedEffect(pendingRoutes, navigator) {
         if (pendingRoutes.isEmpty()) return@LaunchedEffect
-        if (confirmPendingNavigation) {
-            return@LaunchedEffect
-        }
         if (navigator.openPendingNavigation(pendingRoutes)) {
             onPendingNavigationConsumed()
-        } else if (navigator.needsPendingNavigationConfirmation()) {
-            confirmPendingNavigation = true
         }
     }
 
@@ -149,44 +139,6 @@ fun WalletApp(
             onDismiss = viewModel::laterAskNotifications,
         )
     }
-
-    if (confirmPendingNavigation && pendingRoutes.isNotEmpty()) {
-        OpenPendingNavigationDialog(
-            onOpen = {
-                confirmPendingNavigation = false
-                if (navigator.openPendingNavigation(pendingRoutes, confirmed = true)) {
-                    onPendingNavigationConsumed()
-                }
-            },
-            onCancel = {
-                confirmPendingNavigation = false
-                onPendingNavigationConsumed()
-            },
-        )
-    }
-}
-
-@Composable
-private fun OpenPendingNavigationDialog(
-    onOpen: () -> Unit,
-    onCancel: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onCancel,
-        confirmButton = {
-            TextButton(onClick = onOpen) {
-                Text(text = stringResource(id = R.string.common_continue))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onCancel) {
-                Text(text = stringResource(id = R.string.common_cancel))
-            }
-        },
-        title = {
-            Text(text = stringResource(id = R.string.common_warning))
-        },
-    )
 }
 
 @Composable

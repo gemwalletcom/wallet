@@ -1,51 +1,45 @@
 package com.gemwallet.android.features.assets.viewmodels
 
-import com.gemwallet.android.ext.chainIds
-import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.domains.search.toGem
-import com.gemwallet.android.ext.runCatchingCancellable
-import uniffi.gemstone.GemSearchScope
-import uniffi.gemstone.GemAssetSelectionServiceInterface
-import uniffi.gemstone.GemSelectAssetType
 import android.content.Context
-import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import android.util.Log
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
-import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.domains.search.WalletSearchTag
+import com.gemwallet.android.domains.search.toGem
 import com.gemwallet.android.domains.search.walletSearchTagOf
+import com.gemwallet.android.ext.chainIds
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.ListSelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.models.AssetToast
+import com.gemwallet.android.ui.components.screen.assetPinnedToast
 import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import uniffi.gemstone.GemAssetSelectionServiceInterface
+import uniffi.gemstone.GemSelectAssetType
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -63,6 +57,7 @@ class AssetsResultsViewModel @Inject constructor(
     service,
     selectSearchOf(savedStateHandle, searchService, service),
     GemSelectAssetType.WalletSearchResults,
+    context,
 ) {
 
     private val scope: WalletSearchTag = walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))
@@ -74,10 +69,6 @@ class AssetsResultsViewModel @Inject constructor(
     private val isPullRefreshing = MutableStateFlow(false)
     val refreshing: StateFlow<Boolean> = isPullRefreshing
 
-    val cappedAssets: StateFlow<List<AssetInfoDataAggregate>> = combine(pinned, unpinned) { pinned, unpinned ->
-        unpinned.take((resultsLimit() - pinned.size).coerceAtLeast(0))
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val previewPerpetuals: StateFlow<List<PerpetualDataAggregate>> = when (scope) {
         is WalletSearchTag.List ->
@@ -95,7 +86,7 @@ class AssetsResultsViewModel @Inject constructor(
     }
 
     val state: StateFlow<UIState> = combine(
-        pinned, cappedAssets, previewPerpetuals, isFetching,
+        pinned, unpinned, previewPerpetuals, isFetching,
     ) { pinned, assets, perpetuals, fetching ->
         when {
             pinned.isNotEmpty() || assets.isNotEmpty() || perpetuals.isNotEmpty() -> UIState.Idle
@@ -133,7 +124,7 @@ class AssetsResultsViewModel @Inject constructor(
     fun onTogglePerpetualPin(perpetualId: PerpetualId) = viewModelScope.launch {
         val item = previewPerpetuals.value.firstOrNull { it.id == perpetualId } ?: return@launch
         setPerpetualPinned(perpetualId, !item.isPinned)
-        emitToast(AssetToast.Pin(item.title, !item.isPinned))
+        emitToast(assetPinnedToast(context, item.title, !item.isPinned))
     }
 
 }

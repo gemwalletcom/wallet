@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import Contacts
+import ContactsTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
 import Primitives
@@ -12,7 +13,7 @@ import Testing
 struct ManageContactViewModelTests {
     @Test
     func buttonStateAddMode() {
-        let model = ManageContactViewModel.mock(mode: .add())
+        let model = ManageContactViewModel.mock()
 
         #expect(model.buttonState == .disabled)
 
@@ -30,13 +31,5 @@ struct ManageContactViewModelTests {
         model.nameInputModel.text = ""
 
         #expect(model.buttonState == .disabled)
-    }
-}
-
-// MARK: - Mock
-
-extension ManageContactViewModel {
-    static func mock(mode: Mode) -> ManageContactViewModel {
-        ManageContactViewModel(service: GemManageContactServiceMock(), nameService: GemNameServiceMock(), mode: mode)
     }
 }

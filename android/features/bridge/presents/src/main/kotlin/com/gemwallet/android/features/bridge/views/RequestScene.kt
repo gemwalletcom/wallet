@@ -1,9 +1,10 @@
 package com.gemwallet.android.features.bridge.views
 
 import android.widget.Toast
-import androidx.compose.runtime.getValue
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -15,13 +16,11 @@ import com.gemwallet.android.features.bridge.viewmodels.WCRequestViewModel
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.WCRequest
 import com.gemwallet.android.features.confirm.presents.ConfirmScreen
+import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
+import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.screen.LoadingScene
-import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
 import com.wallet.core.primitives.AssetId
-import androidx.activity.compose.BackHandler
 
 @Composable
 fun RequestScene(
@@ -73,12 +72,12 @@ fun RequestScene(
                 is WCRequest.SignMessage -> WalletConnectReviewScene(
                     model = request,
                     buttonState = buttonState,
-                    walletRow = { position -> PropertyItem(R.string.common_wallet, sceneState.walletName, listPosition = position) },
+                    walletRow = { position -> ListItem(model = sceneState.walletListItem, listPosition = position) },
                     onApprove = { viewModel.onSign(reportError) },
                     onReject = viewModel::onReject,
                 )
                 is WCRequest.Transaction -> ConfirmScreen(
-                    input = request.transfer,
+                    input = request.input,
                     simulationResult = request.simulation,
                     finishAction = { hash -> viewModel.onTransactionResult(hash) },
                     onAcquireAsset = onAcquireAsset,

@@ -39,7 +39,7 @@ public struct PnLViewModel {
 
     public var text: String? {
         guard let amountText = valueChange.text else { return nil }
-        return "\(amountText) (\(percentFormatter.string(percent)))"
+        return priceChangeCalculator.pnlText(formattedAmount: amountText, formattedPercentage: percentFormatter.string(percent))
     }
 
     public var percent: Double {

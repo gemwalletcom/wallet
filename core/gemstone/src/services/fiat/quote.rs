@@ -3,11 +3,9 @@ use std::sync::Arc;
 use primitives::currency::Currency;
 use primitives::{AssetId, FiatQuote, FiatQuoteType, FiatQuoteUrl};
 
-use super::model::GemFiatAmountCheck;
 use super::session::GemFiatSession;
 use super::{GemFiatService, rules};
 use crate::config::fiat_config::get_fiat_config;
-use crate::models::custom_types::GemBigUint;
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
 use crate::services::wallet_session::GemWalletSessionService;
@@ -44,10 +42,6 @@ impl GemFiatQuoteService {
         rules::random_amount(&get_fiat_config())
     }
 
-    pub fn amount_check(&self, quote_type: FiatQuoteType, amount: f64, quote: Option<FiatQuote>, available: GemBigUint) -> GemFiatAmountCheck {
-        rules::amount_check(&get_fiat_config(), quote_type, amount, quote.as_ref(), &available, CURRENCY)
-    }
-
     pub fn quote_debounce_milliseconds(&self) -> u64 {
         self.fiat.quote_debounce_milliseconds()
     }
@@ -69,5 +63,28 @@ impl GemFiatQuoteService {
         let url = self.fiat.get_quote_url(wallet_id.clone(), quote_id).await?;
         self.balances.set_assets_enabled(wallet_id, vec![asset_id], true).await?;
         Ok(url)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use futures::executor::block_on;
+    use primitives::{Asset, Chain};
+
+    use super::super::testkit::FiatQuoteTestkit;
+
+    #[test]
+    fn test_opening_a_quote_enables_the_asset_the_user_is_buying() {
+        let asset = Asset::from_chain(Chain::Ethereum);
+        let testkit = FiatQuoteTestkit::new(&asset);
+
+        let url = block_on(testkit.service.quote_url(asset.id.clone(), "quote-1".to_string())).unwrap();
+
+        assert_eq!(url.redirect_url, "https://provider.example/checkout");
+        assert_eq!(
+            testkit.balances.enable_writes.lock().unwrap().clone(),
+            vec![(vec![asset.id], true)],
+            "a bought asset has to be visible in the wallet when the provider sends the user back"
+        );
     }
 }

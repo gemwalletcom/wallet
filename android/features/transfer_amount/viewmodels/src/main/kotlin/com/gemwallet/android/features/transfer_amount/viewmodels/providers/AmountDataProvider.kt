@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.toGem
@@ -14,14 +13,20 @@ import kotlinx.coroutines.flow.stateIn
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.GemAssetBalance
 import uniffi.gemstone.GemAmountInput
+import uniffi.gemstone.GemAmountTitle
 import uniffi.gemstone.GemAmountType
 
 abstract class AmountDataProvider(
     private val scope: CoroutineScope,
 ) {
-    abstract val title: AmountTitle
     abstract val assetInfo: StateFlow<AssetInfo?>
     abstract val amountType: StateFlow<GemAmountType?>
+
+    open val prefilledAmount: String? get() = null
+
+    val title: StateFlow<GemAmountTitle?> by lazy {
+        amountType.map { it?.title() }.stateIn(scope, SharingStarted.Eagerly, null)
+    }
 
     open val balance: StateFlow<GemAssetBalance?> by lazy {
         assetInfo.map { it?.balance?.toGem() }.stateIn(scope, SharingStarted.Eagerly, null)

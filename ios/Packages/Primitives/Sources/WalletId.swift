@@ -92,20 +92,6 @@ public enum WalletId: Equatable, Hashable, Sendable {
         }
     }
 
-    public static func from(type: WalletType, accounts: [Account]) throws -> WalletId {
-        switch type {
-        case .multicoin:
-            guard let address = accounts.first(where: { $0.chain == .ethereum })?.address else {
-                throw AnyError("multicoin wallet requires an ethereum account")
-            }
-            return .multicoin(address: address)
-        case .single, .privateKey, .view:
-            guard let account = accounts.first else {
-                throw AnyError("\(type) wallet requires at least one account")
-            }
-            return make(walletType: type, chain: account.chain, address: account.address)
-        }
-    }
 }
 
 extension WalletId: Codable {

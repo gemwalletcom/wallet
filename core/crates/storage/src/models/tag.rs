@@ -1,5 +1,5 @@
 use diesel::prelude::*;
-use primitives::{AssetList, AssetTag, ListId};
+use primitives::{AssetTag, ListId};
 use serde::{Deserialize, Serialize};
 
 use crate::sql_types::{AssetId, ListIdRow, PerpetualIdRow, TagVisibility};
@@ -50,14 +50,6 @@ impl TagRow {
             name,
             visibility: TagVisibility::Public,
             list_id: None,
-        }
-    }
-
-    pub fn as_primitive(&self, count: u32) -> AssetList {
-        AssetList {
-            id: self.id.clone(),
-            name: self.name.clone(),
-            count,
         }
     }
 }

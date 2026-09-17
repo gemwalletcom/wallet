@@ -1,9 +1,11 @@
 package com.gemwallet.android.features.settings.contacts.viewmodels.models
 
-import com.gemwallet.android.ext.isMemoSupport
-import uniffi.gemstone.GemNameRecordState
+import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ContactAddress
+import uniffi.gemstone.GemContactAddressField
+import uniffi.gemstone.contactAddressFields
 
 enum class ManageContactPage {
     Form,
@@ -15,14 +17,17 @@ enum class ManageContactPage {
 data class ManageContactUIState(
     val isEdit: Boolean = false,
     val name: String = "",
+    val initials: String = "",
     val description: String = "",
     val avatar: ContactAvatarState = ContactAvatarState.Empty,
     val addresses: List<ContactAddress> = emptyList(),
+    val addressRows: List<ContactAddressRowUIModel> = emptyList(),
+    val addAddressListItem: ListItemModel? = null,
     val page: ManageContactPage = ManageContactPage.Form,
     val addressInput: ContactAddressInput? = null,
     val isSaving: Boolean = false,
     val saved: Boolean = false,
-    val error: String? = null,
+    val errorText: String? = null,
     val isSaveEnabled: Boolean = false,
 )
 
@@ -36,7 +41,7 @@ data class ManageContactState(
     val form: ContactAddressForm? = null,
     val isSaving: Boolean = false,
     val saved: Boolean = false,
-    val error: String? = null,
+    val errorText: String? = null,
 )
 
 data class ContactAddressForm(
@@ -50,12 +55,12 @@ data class ContactAddressInput(
     val chain: Chain,
     val address: String = "",
     val memo: String = "",
-    val nameResolveState: GemNameRecordState = GemNameRecordState.None,
+    val nameResolveIndicator: NameResolveIndicatorUIModel? = null,
     val isAddressValid: Boolean = false,
     val showAddressError: Boolean = false,
 ) {
-    val showMemo: Boolean
-        get() = chain.isMemoSupport()
+    val showsMemo: Boolean
+        get() = GemContactAddressField.MEMO in contactAddressFields(chain.string)
 
     val isConfirmEnabled: Boolean
         get() = isAddressValid

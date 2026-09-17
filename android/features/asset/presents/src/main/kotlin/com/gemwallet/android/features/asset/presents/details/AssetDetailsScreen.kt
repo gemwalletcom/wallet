@@ -5,13 +5,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.features.asset.viewmodels.details.viewmodels.AssetDetailsViewModel
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.components.rememberNotificationPermissionGate
 import com.gemwallet.android.ui.components.screen.LoadingScene
-import com.gemwallet.android.features.asset.viewmodels.details.viewmodels.AssetDetailsViewModel
-import com.gemwallet.android.ui.components.RefreshOnTimer
-import uniffi.gemstone.GemRefreshKind
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
+import com.gemwallet.android.ui.localization.text
 
 @Composable
 fun AssetDetailsScreen(
@@ -21,11 +21,12 @@ fun AssetDetailsScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
     val priceAlertError by viewModel.error.collectAsStateWithLifecycle()
-    val snackBar = rememberSnackbarState(message = priceAlertError, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
+    val snackBar = rememberSnackbarState(message = priceAlertError?.text(), iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
     val uiModel by viewModel.uiModel.collectAsStateWithLifecycle()
     val requestNotificationPermission = rememberNotificationPermissionGate()
 
-    RefreshOnTimer(GemRefreshKind.WALLET, viewModel::refresh)
+    val refreshIntervalMillis by viewModel.refreshIntervalMillis.collectAsStateWithLifecycle()
+    RefreshOnTimer(refreshIntervalMillis, viewModel::refresh)
 
     if (uiModel != null) {
         AssetDetailsScene(
@@ -40,6 +41,11 @@ fun AssetDetailsScreen(
                     AssetDetailsAction.Pin -> viewModel.pin()
                     AssetDetailsAction.Add -> viewModel.add()
                     is AssetDetailsAction.TogglePriceAlert -> viewModel.togglePriceAlert(action.assetId)
+                    is AssetDetailsAction.CloseBanner -> viewModel.closeBanner(action.banner)
+                    AssetDetailsAction.OpenPerpetuals -> {
+                        viewModel.enablePerpetuals()
+                        onAction(AssetDetailsAction.OpenPerpetuals)
+                    }
                     is AssetDetailsAction.Navigation -> onAction(action)
                 }
             },

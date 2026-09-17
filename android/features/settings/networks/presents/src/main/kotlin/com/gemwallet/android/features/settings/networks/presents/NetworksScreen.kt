@@ -21,7 +21,7 @@ fun NetworksScreen(
     viewModel: NetworksViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbar = rememberSnackbarState(message = state.error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
+    val snackbar = rememberSnackbarState(message = state.errorText, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 
     val selectListState = rememberLazyListState()
     var showStatus by remember { mutableStateOf(false) }

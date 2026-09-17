@@ -2,13 +2,13 @@ package com.gemwallet.android.data.coordinators.pricealerts
 
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetPriceInfo
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.testkit.mockAssetPriceInfo
+import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockPriceAlert
 import uniffi.gemstone.PriceAlertFormatter
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetType
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.gemwallet.android.domains.pricealerts.aggregates.PriceAlertDataAggregate
 import com.wallet.core.primitives.Price
@@ -22,29 +22,11 @@ import org.junit.Test
 
 class PriceAlertDataAggregateImplTest {
 
-    private val btcAsset = Asset(
-        id = AssetId(Chain.Bitcoin),
-        name = "Bitcoin",
-        symbol = "BTC",
-        decimals = 8,
-        type = AssetType.NATIVE,
-    )
+    private val btcAsset = mockAsset()
 
-    private val ethAsset = Asset(
-        id = AssetId(Chain.Ethereum),
-        name = "Ethereum",
-        symbol = "ETH",
-        decimals = 18,
-        type = AssetType.NATIVE,
-    )
+    private val ethAsset = mockAssetEthereum()
 
-    private val solAsset = Asset(
-        id = AssetId(Chain.Solana),
-        name = "Solana",
-        symbol = "sol",
-        decimals = 9,
-        type = AssetType.NATIVE,
-    )
+    private val solAsset = mockAssetSolana().copy(symbol = "sol")
 
     private fun createAggregate(
         id: String = "1",

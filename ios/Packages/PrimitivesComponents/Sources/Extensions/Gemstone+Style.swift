@@ -1,5 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemBannerIcon
+import enum Gemstone.GemEmptyStateImage
+import enum Gemstone.GemPriceAlertToggle
+import enum Gemstone.GemFiatTransactionBadge
 import enum Gemstone.GemHeaderButtonKind
 import enum Gemstone.GemTransactionStateTone
 import enum Gemstone.LinkType
@@ -16,6 +20,30 @@ extension PriceAlertDirection {
         switch self {
         case .up: Colors.green
         case .down: Colors.red
+        }
+    }
+}
+
+extension GemEmptyStateImage {
+    public var image: Image {
+        switch self {
+        case .nfts: Images.EmptyContent.nft
+        case .priceAlerts: Images.EmptyContent.priceAlerts
+        case .contacts: Images.EmptyContent.contacts
+        case .activity, .wallet: Images.EmptyContent.activity
+        case .stake: Images.EmptyContent.stake
+        case .walletConnect: Images.EmptyContent.walletConnect
+        case .notifications: Images.System.bell
+        case .search: Images.EmptyContent.search
+        }
+    }
+}
+
+extension GemPriceAlertToggle {
+    public var image: Image {
+        switch self {
+        case .enabled: Image(systemName: SystemImage.bellFill)
+        case .disabled: Image(systemName: SystemImage.bell)
         }
     }
 }
@@ -113,6 +141,32 @@ extension VerificationStatus {
         case .verified: AssetImage()
         case .unverified: AssetImage(placeholder: Images.TokenStatus.warning)
         case .suspicious: AssetImage(placeholder: Images.TokenStatus.risk)
+        }
+    }
+}
+
+extension GemFiatTransactionBadge {
+    public var color: Color {
+        switch self {
+        case .pending: Colors.orange
+        case .failed: Colors.red
+        }
+    }
+
+    public var textStyle: TextStyle {
+        TextStyle(font: Font.system(.footnote, weight: .medium), color: color, background: color.opacity(.light))
+    }
+}
+
+public extension GemBannerIcon {
+    var image: AssetImage? {
+        switch self {
+        case .moneyBag: AssetImage(type: .emoji(Emoji.WalletAvatar.moneyBag.rawValue))
+        case let .network(chain): Primitives.Chain(rawValue: chain).map { AssetImage.image(ChainImage(chain: $0).image) }
+        case .warning: AssetImage.image(Images.System.exclamationmarkTriangle)
+        case .suspicious: AssetImage.image(Images.TokenStatus.risk)
+        case .bitcoin: AssetImage.image(Images.System.bitcoin)
+        case .perpetuals: AssetImage.image(Images.Perpetuals.perpetuals)
         }
     }
 }

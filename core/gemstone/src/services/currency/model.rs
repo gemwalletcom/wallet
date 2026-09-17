@@ -6,6 +6,13 @@ pub struct GemCurrencyRow {
     pub flag: String,
 }
 
+#[uniffi::export]
+impl GemCurrencyRow {
+    pub fn text(&self) -> String {
+        format!("{} {}", self.flag, self.currency.as_ref())
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemCurrencies {
     pub selected: GemCurrencyRow,

@@ -53,6 +53,8 @@ fun FiatNavScreen(
     val amount by viewModel.amount.collectAsStateWithLifecycle()
     val providers by viewModel.providers.collectAsStateWithLifecycle()
     val selectedProvider by viewModel.selectedProvider.collectAsStateWithLifecycle()
+    val providerListItem by viewModel.providerListItem.collectAsStateWithLifecycle()
+    val rateListItem by viewModel.rateListItem.collectAsStateWithLifecycle()
     val showFiatTypePicker by viewModel.showFiatTypePicker.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
@@ -72,6 +74,8 @@ fun FiatNavScreen(
         type = type,
         providers = providers,
         selectedProvider = selectedProvider,
+        providerListItem = providerListItem,
+        rateListItem = rateListItem,
         cancelAction = cancelAction,
         fiatAmount = amount,
         suggestedAmounts = suggestedAmounts,

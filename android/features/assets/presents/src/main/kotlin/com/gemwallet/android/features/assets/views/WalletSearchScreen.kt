@@ -1,12 +1,8 @@
 package com.gemwallet.android.features.assets.views
 
 import androidx.compose.foundation.clickable
-import uniffi.gemstone.GemAssetAction
-import com.wallet.core.primitives.AssetType
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,7 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.domains.asset.getListIconUrl
+import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset_select.presents.views.AssetSelectAction
 import com.gemwallet.android.features.asset_select.presents.views.AssetSelectScene
@@ -22,12 +18,11 @@ import com.gemwallet.android.features.asset_select.presents.views.RecentsSheetHo
 import com.gemwallet.android.features.asset_select.presents.views.getAssetBadge
 import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
 import com.gemwallet.android.features.assets.viewmodels.WalletSearchViewModel
+import com.gemwallet.android.features.assets.viewmodels.models.AssetListRowUIModel
 import com.gemwallet.android.features.perpetual.views.components.PerpetualItem
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.SearchBar
-import com.gemwallet.android.ui.components.image.AsyncImage
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
-import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.NftListItem
@@ -37,11 +32,10 @@ import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
-import com.gemwallet.android.ui.components.screen.AssetToastEffect
+import com.gemwallet.android.ui.components.screen.ToastEffect
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.theme.iconSize
 import com.gemwallet.android.ui.theme.space0
-import com.wallet.core.primitives.AssetList
+import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.PerpetualId
 import kotlinx.collections.immutable.toImmutableList
 
@@ -66,7 +60,7 @@ fun WalletSearchScreen(
 
     val longPressedPerpetual = remember { mutableStateOf<PerpetualId?>(null) }
     val snackbar = remember { SnackbarHostState() }
-    AssetToastEffect(viewModel.toastEvents, snackbar)
+    ToastEffect(viewModel.toastEvents, snackbar)
 
     val handleAction: (WalletSearchAction) -> Unit = { action ->
         when (action) {
@@ -82,11 +76,11 @@ fun WalletSearchScreen(
                 }
             )
             is WalletSearchAction.OpenAsset -> {
-                viewModel.updateRecent(action.asset, GemAssetAction.OPEN)
+                viewModel.openRecent(action.asset)
                 onAction(action)
             }
             is WalletSearchAction.OpenPerpetual -> {
-                viewModel.updateRecent(action.asset, GemAssetAction.OPEN)
+                viewModel.openRecent(action.asset)
                 onAction(action)
             }
             WalletSearchAction.AddAsset,
@@ -225,30 +219,15 @@ fun WalletSearchScreen(
 
 @Composable
 private fun SearchListItem(
-    list: AssetList,
+    list: AssetListRowUIModel,
     listPosition: ListPosition,
     onClick: () -> Unit,
 ) {
     ListItem(
-        modifier = Modifier.clickable(onClick = onClick),
+        model = list.model,
         listPosition = listPosition,
+        modifier = Modifier.clickable(onClick = onClick),
         minHeight = ListItemDefaults.plainMinHeight,
-        leading = {
-            AsyncImage(
-                model = getListIconUrl(list.id),
-                size = iconSize,
-                placeholderText = list.name,
-            )
-        },
-        title = { Text(text = list.name) },
-        trailing = {
-            DataBadgeChevron {
-                Text(
-                    text = list.count.toString(),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.secondary,
-                )
-            }
-        },
+        accessory = { DataBadgeChevron() },
     )
 }

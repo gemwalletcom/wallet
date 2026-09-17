@@ -44,20 +44,16 @@ mod tests {
     use super::*;
     use jsonwebtoken::{EncodingKey, Header, encode};
 
-    fn encode_claims(claims: Value, access_token: &str) -> String {
-        encode(&Header::default(), &claims, &EncodingKey::from_secret(access_token.as_bytes())).unwrap()
-    }
-
     #[test]
     fn test_decode_webhook_order() {
-        let claims = serde_json::from_str(include_str!("../../../testdata/transak/webhook_transaction_completed.json")).unwrap();
-        let jwt = encode_claims(claims, "access_token");
+        let claims: Value = serde_json::from_str(include_str!("../../../testdata/transak/webhook_transaction_completed.json")).unwrap();
+        let jwt = encode(&Header::default(), &claims, &EncodingKey::from_secret(b"access_token")).unwrap();
 
         assert_eq!(decode_webhook_order(&jwt, "access_token").unwrap().unwrap().id, "order-id");
         assert!(decode_webhook_order(&jwt, "wrong_access_token").is_err());
 
-        let claims = serde_json::from_str(include_str!("../../../testdata/transak/webhook_kyc_approved.json")).unwrap();
-        let jwt = encode_claims(claims, "access_token");
+        let claims: Value = serde_json::from_str(include_str!("../../../testdata/transak/webhook_kyc_approved.json")).unwrap();
+        let jwt = encode(&Header::default(), &claims, &EncodingKey::from_secret(b"access_token")).unwrap();
         assert!(decode_webhook_order(&jwt, "access_token").unwrap().is_none());
     }
 }

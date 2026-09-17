@@ -793,23 +793,13 @@ fn uniffi_type_name(name: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::PathBuf;
 
     /// `testdata/` holds a `remote_types.yml`, one primitives source per generator feature under
     /// `primitives/` and, under `expected/`, the exact files the generator must
     /// write for them. Run with `UPDATE_GOLDEN=1` to rewrite the expected files after a deliberate
     /// change, and read the diff before committing it.
-    fn testdata() -> PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("testdata")
-    }
-
-    fn generator() -> Generator {
-        let yaml = fs::read_to_string(testdata().join("remote_types.yml")).unwrap();
-        Generator::parse(Config::from_yaml(&yaml), &testdata().join("primitives"))
-    }
-
     fn expect_generated(name: &str, actual: String) {
-        let path = testdata().join("expected").join(name);
+        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("testdata").join("expected").join(name);
         if std::env::var_os("UPDATE_GOLDEN").is_some() {
             fs::write(&path, &actual).unwrap();
             return;
@@ -823,17 +813,17 @@ mod tests {
 
     #[test]
     fn test_remote_declarations_match_the_expected_file() {
-        expect_generated("remote_types.rs", generator().remote_types());
+        expect_generated("remote_types.rs", Generator::mock().remote_types());
     }
 
     #[test]
     fn test_swift_mappers_match_the_expected_file() {
-        expect_generated("RemoteTypeMappers.swift", generator().swift());
+        expect_generated("RemoteTypeMappers.swift", Generator::mock().swift());
     }
 
     #[test]
     fn test_kotlin_mappers_match_the_expected_file() {
-        expect_generated("RemoteTypeMappers.kt", generator().kotlin());
+        expect_generated("RemoteTypeMappers.kt", Generator::mock().kotlin());
     }
 
     #[test]
@@ -848,7 +838,7 @@ mod tests {
 
     #[test]
     fn test_a_typeshare_declaration_wins_over_a_plain_one_with_the_same_name() {
-        let generator = generator();
+        let generator = Generator::mock();
         let stake = generator.types.iter().find(|remote| remote.name() == "GasPriceType").unwrap();
         assert!(!stake.typeshared());
         assert_eq!(generator.types.iter().filter(|remote| remote.typeshared()).count(), 8);

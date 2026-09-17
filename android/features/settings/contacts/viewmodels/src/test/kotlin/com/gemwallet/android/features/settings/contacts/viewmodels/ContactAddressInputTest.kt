@@ -10,7 +10,7 @@ class ContactAddressInputTest {
 
     @Test
     fun memoIsOfferedOnlyForChainsThatSupportIt() {
-        assertFalse(ContactAddressInput(chain = Chain.Ethereum).showMemo)
-        assertTrue(ContactAddressInput(chain = Chain.Cosmos).showMemo)
+        assertFalse(ContactAddressInput(chain = Chain.Ethereum).showsMemo)
+        assertTrue(ContactAddressInput(chain = Chain.Cosmos).showsMemo)
     }
 }

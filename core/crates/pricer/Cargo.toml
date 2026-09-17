@@ -3,6 +3,9 @@ name = "pricer"
 edition = { workspace = true }
 version = { workspace = true }
 
+[features]
+testkit = []
+
 [dependencies]
 serde_json = { workspace = true }
 chrono = { workspace = true }

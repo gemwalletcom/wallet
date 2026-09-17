@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.transfer_amount.viewmodels.providers
 
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
-import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
@@ -41,13 +40,9 @@ class AmountTransferProvider(
         else -> error("AmountTransferProvider requires Transfer, Deposit or Withdraw params")
     }
 
-    override val title: AmountTitle = when (transfer) {
-        is GemAmountTransfer.Send -> AmountTitle.Send
-        GemAmountTransfer.Deposit -> AmountTitle.Deposit
-        GemAmountTransfer.Withdraw -> AmountTitle.Withdraw
-    }
-
     override val amountType: StateFlow<GemAmountType?> = MutableStateFlow(transfer.amountType())
+
+    override val prefilledAmount: String? get() = transfer.prefilledAmount()
 
     override val assetInfo: StateFlow<AssetInfo?> =
         getAssetInfo(params.assetId)

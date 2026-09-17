@@ -10,6 +10,8 @@ mod quote_data_mapper;
 mod quote_mapper;
 mod swap_mapper;
 mod target;
+#[cfg(test)]
+mod testkit;
 
 pub use provider::ThorChain;
 

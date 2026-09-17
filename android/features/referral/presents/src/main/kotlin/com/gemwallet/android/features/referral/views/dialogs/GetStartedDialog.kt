@@ -28,7 +28,8 @@ import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.gemwallet.android.ext.serviceMessage
+import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.ui.localization.text
 
 @Composable
 internal fun GetStartedDialog(
@@ -113,7 +114,7 @@ internal fun GetStartedDialog(
                 }
             },
             text = {
-                Text(showError?.serviceMessage() ?: return@AlertDialog)
+                Text(showError?.errorText()?.text() ?: return@AlertDialog)
             }
         )
     }

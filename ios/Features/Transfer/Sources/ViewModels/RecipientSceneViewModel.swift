@@ -3,6 +3,7 @@
 import enum Gemstone.GemImage
 import struct Gemstone.GemPaymentRecipient
 import struct Gemstone.GemRecipient
+import enum Gemstone.GemRecipientSection
 import protocol Gemstone.GemNameServiceProtocol
 import protocol Gemstone.GemRecipientServiceProtocol
 import enum Gemstone.GemRecipientType
@@ -106,16 +107,19 @@ public final class RecipientSceneViewModel {
         asset.chain
     }
 
+    func listItem(for item: ListItemValue<GemRecipient>) -> ListItemModel {
+        ListItemModel(title: item.title ?? item.value.name, subtitle: item.subtitle)
+    }
+
     var recipientSections: [ListItemValueSection<GemRecipient>] {
-        RecipientAddressType.allCases
+        service.recipientSections(wallets: walletsQuery.value, chain: asset.chain, hasContacts: contacts.isNotEmpty)
             .map {
                 ListItemValueSection(
-                    section: sectionTitle(for: $0),
-                    image: sectionImage(for: $0),
+                    section: $0.title,
+                    image: $0.image,
                     values: sectionRecipients(for: $0),
                 )
             }
-            .filter(\.values.isNotEmpty)
     }
 
     public func scanType(for field: RecipientScene.Field) -> QRScanType {
@@ -188,36 +192,15 @@ extension RecipientSceneViewModel {
 // MARK: - Private
 
 extension RecipientSceneViewModel {
-    private func sectionRecipients(for section: RecipientAddressType) -> [ListItemValue<GemRecipient>] {
+    private func sectionRecipients(for section: GemRecipientSection) -> [ListItemValue<GemRecipient>] {
         switch section {
         case .contacts:
             ContactRecipientSectionViewModel(contacts: contacts).listItems
-        case .pinned, .wallets, .view:
-            WalletRecipientSectionViewModel(
-                wallets: service.recipientWallets(wallets: walletsQuery.value),
-                section: section,
-                chain: asset.chain,
-            ).listItems
+        case let .pinned(wallets), let .wallets(wallets), let .viewWallets(wallets):
+            WalletRecipientSectionViewModel(wallets: wallets.map { $0.toPrimitives() }, chain: asset.chain).listItems
         }
     }
 
-    private func sectionTitle(for type: RecipientAddressType) -> String {
-        switch type {
-        case .pinned: Localized.Common.pinned
-        case .contacts: Localized.Contacts.title
-        case .wallets: Localized.Transfer.Recipient.myWallets
-        case .view: Localized.Transfer.Recipient.viewWallets
-        }
-    }
-
-    private func sectionImage(for type: RecipientAddressType) -> Image {
-        switch type {
-        case .pinned: Images.System.pin
-        case .contacts: Images.System.person
-        case .wallets: Images.System.wallet
-        case .view: Images.System.eye
-        }
-    }
 
     private func handleAddressScan(_ string: String) throws {
         switch try service.scan(url: string, recipientType: type) {

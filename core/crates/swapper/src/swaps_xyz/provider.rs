@@ -46,15 +46,15 @@ where
 }
 
 impl SwapsXyz<RpcClient> {
-    pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Self {
-        let sui_client = create_sui_client(rpc_provider.clone()).expect("failed to create Sui gRPC client");
-        Self::with_client(
+    pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Option<Self> {
+        let sui_client = create_sui_client(rpc_provider.clone()).ok()?;
+        Some(Self::with_client(
             SwapsXyzClient::new(
                 RpcClient::new(super::base_url(), rpc_provider.clone()),
                 RpcClient::new(format!("{API_BASE_URL}/v1/swaps/{}", SwapperProvider::SwapsXyz.as_ref()), rpc_provider),
             ),
             sui_client,
-        )
+        ))
     }
 }
 
@@ -239,27 +239,11 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Options, SwapperQuoteAsset};
     use gem_client::{ClientError, testkit::MockClient};
-
-    fn request() -> QuoteRequest {
-        QuoteRequest {
-            from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Cosmos)),
-            to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Stellar)),
-            wallet_address: "COSMOS_ADDRESS".into(),
-            destination_address: "STELLAR_ADDRESS".into(),
-            value: BigUint::from(1000000u64),
-            options: Options::default(),
-        }
-    }
-
-    fn response() -> ActionResponse {
-        serde_json::from_str(include_str!("testdata/action_response.json")).unwrap()
-    }
 
     #[test]
     fn test_build_action_request_includes_referral_fee() {
-        let request = request();
+        let request = QuoteRequest::mock_cosmos_to_stellar();
         let action = SwapsXyz::<MockClient>::build_action_request(
             &request,
             SwapsXyzChain::from_chain(request.from_asset.chain()).unwrap(),
@@ -315,10 +299,10 @@ mod tests {
 
     #[test]
     fn test_validate_response() {
-        let request = request();
+        let request = QuoteRequest::mock_cosmos_to_stellar();
         let source = SwapsXyzChain::from_chain(request.from_asset.chain()).unwrap();
         let destination = SwapsXyzChain::from_chain(request.to_asset.chain()).unwrap();
-        let response = response();
+        let response = ActionResponse::mock();
         assert_eq!(SwapsXyz::<MockClient>::validate_response(&response, &request, source, destination), Ok(()));
 
         let mut wrong_fee = response;
@@ -340,8 +324,8 @@ mod tests {
     #[tokio::test]
     async fn test_quote_data_preserves_deposit_memo() {
         let provider = SwapsXyz::with_client(SwapsXyzClient::new(MockClient::new(), MockClient::new()), SuiClient::new("https://example.com"));
-        let request = request();
-        let response = response();
+        let request = QuoteRequest::mock_cosmos_to_stellar();
+        let response = ActionResponse::mock();
         let quote = Quote {
             from_value: response.amount_in.amount.clone(),
             min_from_value: None,

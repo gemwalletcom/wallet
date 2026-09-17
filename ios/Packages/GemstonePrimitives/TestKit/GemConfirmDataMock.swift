@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import struct Gemstone.ApprovalData
+public import struct Gemstone.AssetPrice
 public import struct Gemstone.SimulationResult
 public import struct Gemstone.GemSimulationWarningRow
 import struct Gemstone.GemConfirmInput
@@ -24,7 +25,6 @@ public import struct Gemstone.TransferDataExtra
 public import enum Gemstone.GemTransactionLoadMetadata
 public import struct Gemstone.GemTransactionLoadFee
 import Foundation
-import GemstonePrimitivesTestKit
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
@@ -99,11 +99,14 @@ public extension GemAssetBalance {
 }
 
 public extension GemConfirmMetadata {
-    static func mock(assetId: String = Primitives.Asset.mock().id.identifier) -> GemConfirmMetadata {
+    static func mock(
+        assetId: String = Primitives.Asset.mock().id.identifier,
+        prices: [Gemstone.AssetPrice] = [],
+    ) -> GemConfirmMetadata {
         GemConfirmMetadata(
             assetBalance: .mock(assetId: assetId),
             feeAssetBalance: .mock(assetId: assetId),
-            prices: [],
+            prices: prices,
         )
     }
 }

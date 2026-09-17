@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet.cases.GetWallet
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemWalletRow
 import uniffi.gemstone.walletRow
 import dagger.assisted.Assisted
@@ -21,7 +22,7 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import kotlinx.coroutines.Dispatchers
 import uniffi.gemstone.GemWalletServiceInterface
 import kotlinx.coroutines.launch
-import com.gemwallet.android.ext.serviceMessage
+import com.gemwallet.android.ext.errorText
 
 @HiltViewModel(assistedFactory = SetupWalletViewModel.Factory::class)
 class SetupWalletViewModel @AssistedInject constructor(
@@ -54,7 +55,7 @@ class SetupWalletViewModel @AssistedInject constructor(
         state.update { it.copy(walletName = name) }
         viewModelScope.launch(Dispatchers.IO) {
             runCatchingCancellable { service.rename(walletId.id, name) }
-                .onFailure { error -> state.update { it.copy(error = error.serviceMessage()) } }
+                .onFailure { error -> state.update { it.copy(error = error.errorText()) } }
         }
     }
 
@@ -71,5 +72,5 @@ data class SetupWalletViewModelState(
     val walletName: String = "",
     val walletSource: WalletSource = WalletSource.Create,
     val row: GemWalletRow? = null,
-    val error: String? = null,
+    val error: GemErrorText? = null,
 )

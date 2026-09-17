@@ -101,5 +101,23 @@ enum class Currency(val string: String) {
 	AED("AED"),
 	@SerialName("SEK")
 	SEK("SEK"),
+	@SerialName("BYN")
+	BYN("BYN"),
+	@SerialName("KZT")
+	KZT("KZT"),
+	@SerialName("UZS")
+	UZS("UZS"),
+	@SerialName("EGP")
+	EGP("EGP"),
+	@SerialName("KES")
+	KES("KES"),
+	@SerialName("COP")
+	COP("COP"),
+	@SerialName("MAD")
+	MAD("MAD"),
+	@SerialName("GHS")
+	GHS("GHS"),
+	@SerialName("PEN")
+	PEN("PEN"),
 }
 

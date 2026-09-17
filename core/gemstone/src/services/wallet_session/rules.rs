@@ -16,38 +16,37 @@ pub fn rewards_wallet(current: Option<Wallet>, wallets: &[Wallet]) -> Option<Wal
 mod tests {
     use super::*;
 
-    fn wallet(wallet_type: WalletType) -> Wallet {
-        Wallet {
-            wallet_type,
-            ..Wallet::mock_with_accounts(vec![])
-        }
-    }
-
     #[test]
     fn test_rewards_wallet_prefers_the_current_multicoin_wallet() {
         let current = Wallet {
             id: primitives::WalletId::Multicoin("current".to_string()),
-            ..wallet(WalletType::Multicoin)
+            ..Wallet::mock_with_type(WalletType::Multicoin, &[])
         };
         let other = Wallet {
             id: primitives::WalletId::Multicoin("other".to_string()),
-            ..wallet(WalletType::Multicoin)
+            ..Wallet::mock_with_type(WalletType::Multicoin, &[])
         };
-        let wallets = rewards_wallets(vec![wallet(WalletType::Single), other.clone(), current.clone()]);
+        let wallets = rewards_wallets(vec![Wallet::mock_with_type(WalletType::Single, &[]), other.clone(), current.clone()]);
 
         assert_eq!(
             wallets.iter().map(|wallet| wallet.id.clone()).collect::<Vec<_>>(),
             vec![other.id.clone(), current.id.clone()]
         );
         assert_eq!(rewards_wallet(Some(current.clone()), &wallets).map(|wallet| wallet.id), Some(current.id));
-        assert_eq!(rewards_wallet(Some(wallet(WalletType::Single)), &wallets).map(|wallet| wallet.id), Some(other.id));
+        assert_eq!(
+            rewards_wallet(Some(Wallet::mock_with_type(WalletType::Single, &[])), &wallets).map(|wallet| wallet.id),
+            Some(other.id)
+        );
         assert!(rewards_wallet(None, &[]).is_none());
     }
 
     #[test]
     fn test_rewards_need_a_multicoin_wallet_but_stay_visible_before_wallets_load() {
         assert!(shows_rewards(&[]));
-        assert!(!shows_rewards(&[wallet(WalletType::Single)]));
-        assert!(shows_rewards(&[wallet(WalletType::Single), wallet(WalletType::Multicoin)]));
+        assert!(!shows_rewards(&[Wallet::mock_with_type(WalletType::Single, &[])]));
+        assert!(shows_rewards(&[
+            Wallet::mock_with_type(WalletType::Single, &[]),
+            Wallet::mock_with_type(WalletType::Multicoin, &[])
+        ]));
     }
 }

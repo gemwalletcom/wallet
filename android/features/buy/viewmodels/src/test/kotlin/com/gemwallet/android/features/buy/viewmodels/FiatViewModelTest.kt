@@ -13,11 +13,11 @@ import com.gemwallet.android.model.AssetBalance
 import com.gemwallet.android.model.AssetData
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockGemFiatSession
 import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetMetaData
 import com.gemwallet.android.testkit.mockAssetPriceInfo
 import com.gemwallet.android.testkit.mockFiatQuote
-import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -49,11 +49,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.FiatQuoteUrl
-import uniffi.gemstone.GemFiatButtonAction
-import uniffi.gemstone.GemFiatOperation
-import uniffi.gemstone.GemFiatQuotePhase
 import uniffi.gemstone.GemFiatQuoteServiceInterface
-import uniffi.gemstone.GemFiatSession
 import uniffi.gemstone.GemServiceException
 import java.math.BigInteger
 
@@ -62,8 +58,7 @@ class FiatViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private val asset = mockAsset()
-    private val wallet = mockWallet(id = "wallet-id")
-    private val assetDataFlow = MutableStateFlow<AssetData?>(assetData(price = 100.0))
+    private val assetDataFlow = MutableStateFlow<AssetData?>(mockAssetData(price = mockAssetPriceInfo(price = 100.0)))
 
     private val getBuyAssetInfo = object : GetBuyAssetInfo {
         override fun invoke(assetId: AssetId): Flow<AssetData?> = assetDataFlow
@@ -80,7 +75,7 @@ class FiatViewModelTest {
     private val service = mockk<GemFiatQuoteServiceInterface> {
         every { getCurrency() } returns Currency.USD.toGem()
         every { suggestedAmounts() } returns listOf(100, 250)
-        every { newSession(any(), any()) } answers { session(firstArg(), secondArg()) }
+        every { newSession(any(), any()) } answers { mockGemFiatSession(firstArg(), secondArg()) }
         every { randomAmount() } returns 500u
         every { quoteDebounceMilliseconds() } returns 250uL
         every { quoteRefreshIntervalMilliseconds() } returns 300_000uL
@@ -108,7 +103,7 @@ class FiatViewModelTest {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
-            assetDataFlow.value = assetData(price = 125.0)
+            assetDataFlow.value = mockAssetData(price = mockAssetPriceInfo(price = 125.0))
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
@@ -131,7 +126,7 @@ class FiatViewModelTest {
             runCurrent()
             coVerify(exactly = 0) { service.quotes(any(), any(), any()) }
 
-            assetDataFlow.value = assetData(price = 100.0)
+            assetDataFlow.value = mockAssetData(price = mockAssetPriceInfo(price = 100.0))
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
@@ -162,7 +157,7 @@ class FiatViewModelTest {
 
     @Test
     fun `type change requests target operation amount`() = runTest(testDispatcher) {
-        assetDataFlow.value = assetData(price = 100.0, isSellEnabled = true, available = OneBitcoin)
+        assetDataFlow.value = mockAssetData(balance = AssetBalance.create(asset, available = OneBitcoin), price = mockAssetPriceInfo(price = 100.0), metadata = mockAssetMetaData(isSellEnabled = true))
         val viewModel = createViewModel()
 
         try {
@@ -253,7 +248,7 @@ class FiatViewModelTest {
 
     @Test
     fun `fiat type picker requires sell enabled metadata`() = runTest(testDispatcher) {
-        assetDataFlow.value = assetData(price = 100.0, isSellEnabled = false, available = OneBitcoin)
+        assetDataFlow.value = mockAssetData(balance = AssetBalance.create(asset, available = OneBitcoin), price = mockAssetPriceInfo(price = 100.0), metadata = mockAssetMetaData(isSellEnabled = false))
         val viewModel = createViewModel()
 
         try {
@@ -261,7 +256,7 @@ class FiatViewModelTest {
             runCurrent()
             assertFalse(viewModel.showFiatTypePicker.value)
 
-            assetDataFlow.value = assetData(price = 100.0, isSellEnabled = true, available = BigInteger("0"))
+            assetDataFlow.value = mockAssetData(balance = AssetBalance.create(asset, available = BigInteger("0")), price = mockAssetPriceInfo(price = 100.0), metadata = mockAssetMetaData(isSellEnabled = true))
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
             assertTrue(viewModel.showFiatTypePicker.value)
@@ -306,7 +301,7 @@ class FiatViewModelTest {
 
     @Test
     fun `asset info balance includes symbol`() = runTest(testDispatcher) {
-        assetDataFlow.value = assetData(price = 100.0, available = OneBitcoin)
+        assetDataFlow.value = mockAssetData(balance = AssetBalance.create(asset, available = OneBitcoin), price = mockAssetPriceInfo(price = 100.0))
         val viewModel = createViewModel()
 
         try {
@@ -330,7 +325,7 @@ class FiatViewModelTest {
             assertEquals(FiatQuoteType.Sell, viewModel.type.value)
             assertEquals("25", viewModel.amount.value)
 
-            assetDataFlow.value = assetData(price = 100.0, isSellEnabled = false, available = OneBitcoin)
+            assetDataFlow.value = mockAssetData(balance = AssetBalance.create(asset, available = OneBitcoin), price = mockAssetPriceInfo(price = 100.0), metadata = mockAssetMetaData(isSellEnabled = false))
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
             assertFalse(viewModel.showFiatTypePicker.value)
@@ -362,7 +357,7 @@ class FiatViewModelTest {
 
     @Test
     fun `provider fiat uses usd price source not session price`() = runTest(testDispatcher) {
-        assetDataFlow.value = assetData(price = 100.0)
+        assetDataFlow.value = mockAssetData(price = mockAssetPriceInfo(price = 100.0))
         assetPriceUsdFlow.value = 200.0
         val viewModel = createViewModel()
 
@@ -388,33 +383,10 @@ class FiatViewModelTest {
             getAssetPriceUsd = getAssetPriceUsd,
             service = service,
             context = context,
+            ioDispatcher = testDispatcher,
             savedStateHandle = SavedStateHandle(arguments),
         )
     }
-
-    private fun session(quoteType: uniffi.gemstone.FiatQuoteType, amount: UInt?): GemFiatSession {
-        val operation = { type: uniffi.gemstone.FiatQuoteType, default: UInt ->
-            val value = amount?.takeIf { type == quoteType } ?: default
-            GemFiatOperation(type, value.toString(), emptyList(), null, GemFiatQuotePhase.Loading(value.toDouble()))
-        }
-        return GemFiatSession(
-            quoteType = quoteType,
-            buy = operation(uniffi.gemstone.FiatQuoteType.BUY, 50u),
-            sell = operation(uniffi.gemstone.FiatQuoteType.SELL, 100u),
-            available = BigInteger.ZERO,
-        )
-    }
-
-    private fun assetData(
-        price: Double,
-        isSellEnabled: Boolean = false,
-        available: BigInteger = BigInteger("0"),
-    ) = mockAssetData(
-        asset = asset,
-        wallet = wallet,
-        balance = AssetBalance.create(asset, available = available),
-        metadata = mockAssetMetaData(isSellEnabled = isSellEnabled),
-    ).copy(price = mockAssetPriceInfo(price = price))
 
     private companion object {
         val OneBitcoin: BigInteger = BigInteger("100000000")

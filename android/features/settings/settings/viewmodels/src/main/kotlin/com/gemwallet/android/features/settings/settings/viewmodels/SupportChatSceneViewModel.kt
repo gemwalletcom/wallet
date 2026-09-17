@@ -13,6 +13,7 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.SupportMessage
 import com.wallet.core.primitives.SupportMessageSender
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemSupportServiceInterface
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +27,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import com.gemwallet.android.ext.serviceMessage
+import com.gemwallet.android.ext.errorText
 
 @HiltViewModel
 class SupportChatSceneViewModel @Inject constructor(
@@ -53,16 +54,14 @@ class SupportChatSceneViewModel @Inject constructor(
         .map { it?.name }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val errorState = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = errorState.asStateFlow()
+    private val errorState = MutableStateFlow<GemErrorText?>(null)
+    val error: StateFlow<GemErrorText?> = errorState.asStateFlow()
 
     fun fetch() = viewModelScope.launch(Dispatchers.IO) {
         runCatchingCancellable {
             failPendingSupportMessages()
-            val fromTimestamp = messages.first()
-                .lastOrNull { it.sender is SupportMessageSender.Agent }
-                ?.let { it.createdAt.millisToSeconds() } ?: 0L
-            supportService.syncMessages(fromTimestamp.toULong())
+            val fromTimestamp = supportService.syncFromTimestamp(messages.first().map { it.toGem() })
+            supportService.syncMessages(fromTimestamp)
         }.onFailure { Log.e(TAG, "fetch error", it) }
     }
 
@@ -88,7 +87,7 @@ class SupportChatSceneViewModel @Inject constructor(
     }
 
     private suspend fun perform(block: suspend () -> Unit) {
-        runCatchingCancellable(block).onFailure { errorState.value = it.serviceMessage() }
+        runCatchingCancellable(block).onFailure { errorState.value = it.errorText() }
     }
 
     fun clearError() = errorState.update { null }

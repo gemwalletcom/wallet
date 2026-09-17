@@ -42,7 +42,6 @@ impl ProviderType {
             | SwapperProvider::Jupiter
             | SwapperProvider::Oku
             | SwapperProvider::Wagmi
-            | SwapperProvider::CetusAggregator
             | SwapperProvider::CetusClmm
             | SwapperProvider::StonfiV2
             | SwapperProvider::Aerodrome
@@ -68,7 +67,6 @@ impl ProviderType {
             | SwapperProvider::Jupiter
             | SwapperProvider::Oku
             | SwapperProvider::Wagmi
-            | SwapperProvider::CetusAggregator
             | SwapperProvider::CetusClmm
             | SwapperProvider::StonfiV2
             | SwapperProvider::Aerodrome

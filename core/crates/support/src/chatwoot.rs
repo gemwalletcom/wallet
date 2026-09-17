@@ -149,26 +149,14 @@ fn messages_from_timestamp(messages: Vec<SupportMessage>, from_timestamp: Option
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{SupportMessageSender, SupportMessageStatus};
 
     #[test]
     fn test_messages_from_timestamp() {
-        let messages = vec![message("1", 10), message("2", 20)];
+        let messages = vec![SupportMessage::mock("1", 10), SupportMessage::mock("2", 20)];
 
         let filtered = messages_from_timestamp(messages.clone(), Some(10));
 
-        assert_eq!(filtered, vec![message("2", 20)]);
+        assert_eq!(filtered, vec![SupportMessage::mock("2", 20)]);
         assert_eq!(messages_from_timestamp(messages, Some(u64::MAX)), Vec::<SupportMessage>::new());
-    }
-
-    fn message(id: &str, timestamp: i64) -> SupportMessage {
-        SupportMessage {
-            id: id.to_string(),
-            content: id.to_string(),
-            sender: SupportMessageSender::User,
-            status: SupportMessageStatus::Sent,
-            created_at: chrono::DateTime::from_timestamp(timestamp, 0).unwrap(),
-            images: vec![],
-        }
     }
 }

@@ -16,7 +16,7 @@ pub fn currencies(current: Currency, locale: Option<Currency>) -> GemCurrencies 
     }
 }
 
-fn row(currency: Currency) -> GemCurrencyRow {
+pub(crate) fn row(currency: Currency) -> GemCurrencyRow {
     GemCurrencyRow {
         flag: currency.flag().to_string(),
         currency,

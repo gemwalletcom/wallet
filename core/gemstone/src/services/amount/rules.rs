@@ -5,7 +5,7 @@ use primitives::{Asset, AutocloseEstimator, Chain, EarnType, PerpetualDirection,
 
 use super::model::{
     GemAmountEarnType, GemAmountEntry, GemAmountEquivalent, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType,
-    GemAmountTransfer, GemAmountType, GemPerpetualAutoclose,
+    GemAmountTitle, GemAmountTransfer, GemAmountType, GemPerpetualAutoclose,
 };
 use crate::config::perpetual_config::{MIN_DEPOSIT_AMOUNT, MIN_WITHDRAW_AMOUNT};
 use crate::config::stake::get_stake_config;
@@ -164,6 +164,32 @@ pub fn earn_amount_type(earn_type: EarnType) -> GemAmountType {
         earn_type: match earn_type {
             EarnType::Deposit(_) => GemAmountEarnType::Deposit,
             EarnType::Withdraw(delegation) => GemAmountEarnType::Withdraw { delegation },
+        },
+    }
+}
+
+pub fn amount_title(amount_type: &GemAmountType) -> GemAmountTitle {
+    match amount_type {
+        GemAmountType::Transfer => GemAmountTitle::Send,
+        GemAmountType::Deposit => GemAmountTitle::Deposit,
+        GemAmountType::Withdraw => GemAmountTitle::Withdraw,
+        GemAmountType::Stake { stake_type } => match stake_type {
+            GemAmountStakeType::Stake => GemAmountTitle::Stake,
+            GemAmountStakeType::Unstake { .. } => GemAmountTitle::Unstake,
+            GemAmountStakeType::Redelegate { .. } => GemAmountTitle::Redelegate,
+            GemAmountStakeType::Withdraw { .. } => GemAmountTitle::Withdraw,
+            GemAmountStakeType::Rewards { .. } => GemAmountTitle::Rewards,
+            GemAmountStakeType::Freeze { .. } => GemAmountTitle::Freeze,
+            GemAmountStakeType::Unfreeze { .. } => GemAmountTitle::Unfreeze,
+        },
+        GemAmountType::Earn { earn_type } => match earn_type {
+            GemAmountEarnType::Deposit => GemAmountTitle::Deposit,
+            GemAmountEarnType::Withdraw { .. } => GemAmountTitle::Withdraw,
+        },
+        GemAmountType::Perpetual { position, direction, .. } => match position {
+            GemAmountPerpetualPosition::Open => GemAmountTitle::PerpetualOpen { direction: direction.clone() },
+            GemAmountPerpetualPosition::Increase => GemAmountTitle::PerpetualIncrease { direction: direction.clone() },
+            GemAmountPerpetualPosition::Reduce { .. } => GemAmountTitle::PerpetualReduce { direction: direction.clone() },
         },
     }
 }
@@ -358,7 +384,11 @@ const ARABIC_GROUPING: char = '\u{066C}';
 
 pub fn sanitize_number_input(decimal_separator: &str, text: &str, maximum_fraction_digits: Option<u32>, maximum_integer_digits: Option<u32>) -> String {
     let is_separator = |character: &char| SEPARATORS.contains(character) || decimal_separator.contains(*character);
-    let typed: String = text.chars().filter(|character| character.is_numeric() || is_separator(character)).collect();
+    let allows_fraction = maximum_fraction_digits != Some(0);
+    let typed: String = text
+        .chars()
+        .filter(|character| character.is_numeric() || allows_fraction && is_separator(character))
+        .collect();
     let limit = |value: &str, maximum: Option<u32>| match maximum {
         Some(maximum) => value.chars().take(maximum as usize).collect::<String>(),
         None => value.to_string(),
@@ -383,6 +413,11 @@ pub fn value_from_input(decimal_separator: &str, text: &str, decimals: u32) -> R
     let value = BigNumberFormatter::value_from_amount_truncated(&plain, decimals).map_err(invalid_number)?;
 
     BigInt::from_str(&value).map_err(invalid_number)
+}
+
+pub fn input_text(decimal_separator: &str, value: &str, decimals: u32) -> Option<String> {
+    let plain = BigNumberFormatter::big_decimal_value(value, decimals).ok()?.normalized().to_plain_string();
+    Some(plain.replace('.', decimal_separator))
 }
 
 pub fn plain_number(decimal_separator: &str, text: &str) -> String {
@@ -465,31 +500,88 @@ fn without_leading_zeros(text: &str) -> String {
 mod tests {
 
     #[test]
+    fn test_the_amount_screen_title_follows_the_amount_type() {
+        assert_eq!(amount_title(&GemAmountType::Transfer), GemAmountTitle::Send);
+        assert_eq!(
+            amount_title(&GemAmountType::Earn {
+                earn_type: GemAmountEarnType::Withdraw {
+                    delegation: primitives::Delegation::mock()
+                }
+            }),
+            GemAmountTitle::Withdraw,
+            "earning and staking withdrawals share the wallet's withdraw title"
+        );
+        assert_eq!(
+            amount_title(&GemAmountType::Stake {
+                stake_type: GemAmountStakeType::Rewards { delegations: vec![] }
+            }),
+            GemAmountTitle::Rewards
+        );
+        assert_eq!(
+            amount_title(&GemAmountType::Perpetual {
+                position: GemAmountPerpetualPosition::Increase,
+                direction: primitives::PerpetualDirection::Short,
+                price: 1.0,
+                leverage: 1,
+                size_decimals: 2,
+            }),
+            GemAmountTitle::PerpetualIncrease {
+                direction: primitives::PerpetualDirection::Short
+            }
+        );
+    }
+
+    #[test]
     fn test_an_amount_confirms_only_when_it_is_positive_and_has_no_error() {
-        let entry = |value: Option<i32>, error: Option<GemAmountError>| GemAmountEntry {
-            value: value.map(num_bigint::BigInt::from),
-            error,
+        let entry = GemAmountEntry {
+            value: Some(BigInt::from(1)),
+            error: None,
             equivalent: None,
             is_max: false,
             reserved_fee: None,
         };
 
-        assert!(entry(Some(1), None).allows_confirm());
-        assert!(!entry(None, None).allows_confirm(), "nothing typed is nothing to send");
-        assert!(!entry(Some(0), None).allows_confirm(), "zero is not an amount");
-        assert!(!entry(Some(1), Some(GemAmountError::Zero)).allows_confirm());
+        assert!(entry.allows_confirm());
+        assert!(!GemAmountEntry { value: None, ..entry.clone() }.allows_confirm(), "nothing typed is nothing to send");
+        assert!(
+            !GemAmountEntry {
+                value: Some(BigInt::ZERO),
+                ..entry.clone()
+            }
+            .allows_confirm(),
+            "zero is not an amount"
+        );
+        assert!(
+            !GemAmountEntry {
+                error: Some(GemAmountError::Zero),
+                ..entry
+            }
+            .allows_confirm()
+        );
     }
     use super::*;
-    use crate::config::perpetual_config::HYPERLIQUID_DEPOSIT_ADDRESS;
     use crate::models::custom_types::GemBigUint;
     use crate::payment::GemPaymentRecipient;
     use primitives::Resource;
     use primitives::asset_balance::BalanceMetadata;
-    use primitives::{AssetId, AssetType, Delegation, DelegationBase, DelegationState, DelegationValidator, StakeProviderType};
+    use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
+    use primitives::{Delegation, DelegationBase, DelegationValidator};
+
+    #[test]
+    fn test_input_text_is_plain_digits_with_the_callers_separator() {
+        assert_eq!(input_text(",", "9649000000000000", 18), Some("0,009649".to_string()));
+        assert_eq!(input_text(".", "123456789012", 4), Some("12345678.9012".to_string()));
+        assert_eq!(input_text(".", "100000", 3), Some("100".to_string()));
+        assert_eq!(input_text(".", "1", 18), Some("0.000000000000000001".to_string()));
+        assert_eq!(input_text(".", "0", 8), Some("0".to_string()));
+        assert_eq!(input_text(".", "abc", 8), None);
+    }
 
     #[test]
     fn test_sanitize_number_input_keeps_digits_and_the_first_separator() {
         assert_eq!(sanitize_number_input(".", "abc123.45xyz", None, None), "123.45");
+        assert_eq!(sanitize_number_input(".", "12.", Some(0), None), "12");
+        assert_eq!(sanitize_number_input(".", ".50", Some(0), None), "50");
         assert_eq!(sanitize_number_input(".", "123.45.67", None, None), "123.4567");
         assert_eq!(sanitize_number_input(".", " 1 000 ", None, None), "1000");
         assert_eq!(sanitize_number_input(".", "12", None, None), "12");
@@ -623,152 +715,216 @@ mod tests {
         }
     }
 
-    fn asset(chain: Chain) -> Asset {
-        Asset::from_chain(chain)
-    }
-
-    fn usdc() -> Asset {
-        Asset::new(AssetId::from(Chain::HyperCore, Some("usdc".into())), "USDC".into(), "USDC".into(), 6, AssetType::TOKEN)
-    }
-
-    fn balance(available: u64, frozen: u64, locked: u64, votes: u32) -> GemAssetBalance {
-        GemAssetBalance {
-            available: BigUint::from(available),
-            frozen: BigUint::from(frozen),
-            locked: BigUint::from(locked),
-            withdrawable: BigUint::from(7u32),
-            metadata: Some(BalanceMetadata {
-                votes,
-                ..BalanceMetadata::default()
-            }),
-            ..GemAssetBalance::mock()
-        }
-    }
-
-    fn delegation(balance: u64, rewards: u64) -> Delegation {
-        Delegation {
-            base: DelegationBase {
-                asset_id: AssetId::from_chain(Chain::Cosmos),
-                state: DelegationState::Active,
-                balance: BigUint::from(balance),
-                shares: BigUint::default(),
-                rewards: BigUint::from(rewards),
-                completion_date: None,
-                delegation_id: "delegation".into(),
-                validator_id: "validator".into(),
-            },
-            validator: DelegationValidator {
-                chain: Chain::Cosmos,
-                id: "validator".into(),
-                name: "validator".into(),
-                is_active: true,
-                commission: 0.0,
-                apr: 0.0,
-                provider_type: StakeProviderType::Stake,
-            },
-        }
-    }
-
-    fn stake(stake_type: GemAmountStakeType) -> GemAmountType {
-        GemAmountType::Stake { stake_type }
-    }
-
     #[test]
     fn test_stake_rules_reserve_fees_and_minimums() {
-        let cosmos = asset(Chain::Cosmos);
+        let cosmos = Asset::from_chain(Chain::Cosmos);
         let config = get_stake_config(StakeChain::Cosmos);
-        assert_eq!(minimum_value(&stake(GemAmountStakeType::Stake), &cosmos), BigInt::from(config.min_amount));
+        assert_eq!(
+            minimum_value(
+                &GemAmountType::Stake {
+                    stake_type: GemAmountStakeType::Stake
+                },
+                &cosmos
+            ),
+            BigInt::from(config.min_amount)
+        );
 
-        let stake_input = stake(GemAmountStakeType::Stake).input(&cosmos, &balance(config.reserved_for_fees * 10 + config.min_amount * 10, 0, 0, 0));
+        let stake_input = GemAmountType::Stake {
+            stake_type: GemAmountStakeType::Stake,
+        }
+        .input(&cosmos, &GemAssetBalance::mock_with_available(config.reserved_for_fees * 10 + config.min_amount * 10));
         assert_eq!(stake_input.reserved_fee, Some(BigInt::from(config.reserved_for_fees)));
         assert!(stake_input.can_change_value);
         assert_eq!(stake_input.max_value, BigInt::from(config.reserved_for_fees * 9 + config.min_amount * 10));
 
-        let tron = asset(Chain::Tron);
+        let tron = Asset::from_chain(Chain::Tron);
         let tron_config = get_stake_config(StakeChain::Tron);
-        assert_eq!(reserve_for_fee(&stake(GemAmountStakeType::Stake), &tron), BigInt::ZERO);
         assert_eq!(
-            stake(GemAmountStakeType::Stake).available_value(&tron, &balance(1, 5_000_000, 3_000_000, 2)),
+            reserve_for_fee(
+                &GemAmountType::Stake {
+                    stake_type: GemAmountStakeType::Stake
+                },
+                &tron
+            ),
+            BigInt::ZERO
+        );
+        assert_eq!(
+            GemAmountType::Stake {
+                stake_type: GemAmountStakeType::Stake
+            }
+            .available_value(
+                &tron,
+                &GemAssetBalance {
+                    frozen: BigUint::from(5000000u64),
+                    locked: BigUint::from(3000000u64),
+                    metadata: Some(BalanceMetadata {
+                        votes: 2,
+                        ..BalanceMetadata::default()
+                    }),
+                    ..GemAssetBalance::mock_with_available(1)
+                }
+            ),
             BigInt::from(6_000_000)
         );
-        let freeze = stake(GemAmountStakeType::Freeze { resource: Resource::Bandwidth });
+        let freeze = GemAmountType::Stake {
+            stake_type: GemAmountStakeType::Freeze { resource: Resource::Bandwidth },
+        };
         assert!(tron_config.reserved_for_fees > 0);
-        let freeze_input = freeze.input(&tron, &balance(tron_config.reserved_for_fees + tron_config.min_amount + 1, 99, 98, 0));
+        let freeze_input = freeze.input(
+            &tron,
+            &GemAssetBalance {
+                frozen: BigUint::from(99u64),
+                locked: BigUint::from(98u64),
+                ..GemAssetBalance::mock_with_available(tron_config.reserved_for_fees + tron_config.min_amount + 1)
+            },
+        );
         assert_eq!(freeze_input.available_value, BigInt::from(tron_config.reserved_for_fees + tron_config.min_amount + 1));
         assert_eq!(freeze_input.reserved_fee, Some(BigInt::from(tron_config.reserved_for_fees)));
         assert_eq!(freeze_input.max_value, BigInt::from(tron_config.min_amount + 1));
 
-        let smart_chain = asset(Chain::SmartChain);
-        let redelegate = stake(GemAmountStakeType::Redelegate { delegation: delegation(50, 0) });
+        let smart_chain = Asset::from_chain(Chain::SmartChain);
+        let redelegate = GemAmountType::Stake {
+            stake_type: GemAmountStakeType::Redelegate {
+                delegation: Delegation::mock_base(DelegationBase::mock_with_balance(50, 0)),
+            },
+        };
         let smart_chain_minimum = get_stake_config(StakeChain::SmartChain).min_amount;
         assert!(smart_chain_minimum > 0);
         assert_eq!(minimum_value(&redelegate, &smart_chain), BigInt::from(smart_chain_minimum));
         assert_eq!(minimum_value(&redelegate, &cosmos), BigInt::ZERO);
 
-        let unstake = stake(GemAmountStakeType::Unstake { delegation: delegation(50, 0) });
-        let solana_unstake = unstake.input(&asset(Chain::Solana), &balance(1, 0, 0, 0));
+        let unstake = GemAmountType::Stake {
+            stake_type: GemAmountStakeType::Unstake {
+                delegation: Delegation::mock_base(DelegationBase::mock_with_balance(50, 0)),
+            },
+        };
+        let solana_unstake = unstake.input(&Asset::from_chain(Chain::Solana), &GemAssetBalance::mock_with_available(1));
         assert!(!solana_unstake.can_change_value);
         assert!(!solana_unstake.shows_asset_balance);
-        let cosmos_unstake = unstake.input(&cosmos, &balance(1, 0, 0, 0));
+        let cosmos_unstake = unstake.input(&cosmos, &GemAssetBalance::mock_with_available(1));
         assert!(cosmos_unstake.can_change_value);
         assert!(cosmos_unstake.shows_asset_balance);
 
-        let rewards = stake(GemAmountStakeType::Rewards { delegations: vec![] }).input(&cosmos, &balance(1, 0, 0, 0));
+        let rewards = GemAmountType::Stake {
+            stake_type: GemAmountStakeType::Rewards { delegations: vec![] },
+        }
+        .input(&cosmos, &GemAssetBalance::mock_with_available(1));
         assert!(!rewards.can_change_value);
         assert!(rewards.shows_asset_balance);
         assert_eq!(
-            stake(GemAmountStakeType::Rewards {
-                delegations: vec![delegation(10, 3), delegation(20, 4)]
-            })
-            .available_value(&cosmos, &balance(1, 0, 0, 0)),
+            GemAmountType::Stake {
+                stake_type: GemAmountStakeType::Rewards {
+                    delegations: vec![
+                        Delegation::mock_base(DelegationBase::mock_with_balance(10, 3)),
+                        Delegation::mock_base(DelegationBase::mock_with_balance(20, 4))
+                    ]
+                }
+            }
+            .available_value(&cosmos, &GemAssetBalance::mock_with_available(1)),
             BigInt::from(7)
         );
         assert_eq!(
-            stake(GemAmountStakeType::Unstake { delegation: delegation(50, 0) }).available_value(&cosmos, &balance(1, 0, 0, 0)),
+            GemAmountType::Stake {
+                stake_type: GemAmountStakeType::Unstake {
+                    delegation: Delegation::mock_base(DelegationBase::mock_with_balance(50, 0))
+                }
+            }
+            .available_value(&cosmos, &GemAssetBalance::mock_with_available(1)),
             BigInt::from(50)
         );
         assert_eq!(
-            stake(GemAmountStakeType::Unfreeze { resource: Resource::Energy }).available_value(&tron, &balance(1, 2, 3, 0)),
+            GemAmountType::Stake {
+                stake_type: GemAmountStakeType::Unfreeze { resource: Resource::Energy }
+            }
+            .available_value(
+                &tron,
+                &GemAssetBalance {
+                    frozen: BigUint::from(2u64),
+                    locked: BigUint::from(3u64),
+                    ..GemAssetBalance::mock_with_available(1)
+                }
+            ),
             BigInt::from(3)
         );
         assert_eq!(
-            stake(GemAmountStakeType::Unfreeze { resource: Resource::Bandwidth }).available_value(&tron, &balance(1, 2, 3, 0)),
+            GemAmountType::Stake {
+                stake_type: GemAmountStakeType::Unfreeze { resource: Resource::Bandwidth }
+            }
+            .available_value(
+                &tron,
+                &GemAssetBalance {
+                    frozen: BigUint::from(2u64),
+                    locked: BigUint::from(3u64),
+                    ..GemAssetBalance::mock_with_available(1)
+                }
+            ),
             BigInt::from(2)
         );
     }
 
     #[test]
     fn test_only_a_stake_or_unstake_on_a_whole_unit_chain_uses_whole_amounts() {
-        let tron = asset(Chain::Tron);
-        let funded = balance(10_000_000, 0, 0, 0);
-        assert!(stake(GemAmountStakeType::Stake).input(&tron, &funded).uses_whole_amounts);
+        let tron = Asset::from_chain(Chain::Tron);
+        let funded = GemAssetBalance::mock_with_available(10_000_000);
         assert!(
-            stake(GemAmountStakeType::Unstake { delegation: delegation(50, 0) })
-                .input(&tron, &funded)
-                .uses_whole_amounts
+            GemAmountType::Stake {
+                stake_type: GemAmountStakeType::Stake
+            }
+            .input(&tron, &funded)
+            .uses_whole_amounts
         );
-        assert!(!stake(GemAmountStakeType::Rewards { delegations: vec![] }).input(&tron, &funded).uses_whole_amounts);
+        assert!(
+            GemAmountType::Stake {
+                stake_type: GemAmountStakeType::Unstake {
+                    delegation: Delegation::mock_base(DelegationBase::mock_with_balance(50, 0))
+                }
+            }
+            .input(&tron, &funded)
+            .uses_whole_amounts
+        );
+        assert!(
+            !GemAmountType::Stake {
+                stake_type: GemAmountStakeType::Rewards { delegations: vec![] }
+            }
+            .input(&tron, &funded)
+            .uses_whole_amounts
+        );
         assert!(!GemAmountType::Transfer.input(&tron, &funded).uses_whole_amounts);
-        assert!(!stake(GemAmountStakeType::Stake).input(&asset(Chain::Cosmos), &funded).uses_whole_amounts);
+        assert!(
+            !GemAmountType::Stake {
+                stake_type: GemAmountStakeType::Stake
+            }
+            .input(&Asset::from_chain(Chain::Cosmos), &funded)
+            .uses_whole_amounts
+        );
     }
 
     #[test]
     fn test_limits_reserve_boundary() {
-        let solana = asset(Chain::Solana);
+        let solana = Asset::from_chain(Chain::Solana);
         let config = get_stake_config(StakeChain::Solana);
         let reserve = config.reserved_for_fees;
         let minimum = config.min_amount;
         assert!(reserve > 0 && minimum > 0);
 
-        let at_boundary = stake(GemAmountStakeType::Stake).input(&solana, &balance(reserve + minimum, 0, 0, 0));
+        let at_boundary = GemAmountType::Stake {
+            stake_type: GemAmountStakeType::Stake,
+        }
+        .input(&solana, &GemAssetBalance::mock_with_available(reserve + minimum));
         assert_eq!(at_boundary.reserved_fee, None);
         assert_eq!(at_boundary.max_value, BigInt::from(reserve + minimum));
 
-        let above_boundary = stake(GemAmountStakeType::Stake).input(&solana, &balance(reserve + minimum + 1, 0, 0, 0));
+        let above_boundary = GemAmountType::Stake {
+            stake_type: GemAmountStakeType::Stake,
+        }
+        .input(&solana, &GemAssetBalance::mock_with_available(reserve + minimum + 1));
         assert_eq!(above_boundary.reserved_fee, Some(BigInt::from(reserve)));
         assert_eq!(above_boundary.max_value, BigInt::from(minimum + 1));
 
-        let below_reserve = stake(GemAmountStakeType::Stake).input(&solana, &balance(reserve - 1, 0, 0, 0));
+        let below_reserve = GemAmountType::Stake {
+            stake_type: GemAmountStakeType::Stake,
+        }
+        .input(&solana, &GemAssetBalance::mock_with_available(reserve - 1));
         assert_eq!(below_reserve.reserved_fee, None);
         assert_eq!(below_reserve.max_value, BigInt::from(reserve - 1));
         assert_eq!(below_reserve.available_value, BigInt::from(reserve - 1));
@@ -776,53 +932,108 @@ mod tests {
 
     #[test]
     fn test_earn_perpetual_and_deposit_sources() {
-        let ethereum = asset(Chain::Ethereum);
+        let ethereum = Asset::from_chain(Chain::Ethereum);
         assert_eq!(
             GemAmountType::Earn {
                 earn_type: GemAmountEarnType::Deposit
             }
-            .available_value(&ethereum, &balance(11, 0, 0, 0)),
+            .available_value(&ethereum, &GemAssetBalance::mock_with_available(11)),
             BigInt::from(11)
         );
         assert_eq!(
             GemAmountType::Earn {
-                earn_type: GemAmountEarnType::Withdraw { delegation: delegation(33, 0) }
+                earn_type: GemAmountEarnType::Withdraw {
+                    delegation: Delegation::mock_base(DelegationBase::mock_with_balance(33, 0))
+                }
             }
-            .available_value(&ethereum, &balance(11, 0, 0, 0)),
+            .available_value(&ethereum, &GemAssetBalance::mock_with_available(11)),
             BigInt::from(33)
         );
-        assert_eq!(GemAmountType::Deposit.available_value(&usdc(), &balance(5, 0, 0, 0)), BigInt::from(5));
-        assert_eq!(GemAmountType::Withdraw.available_value(&usdc(), &balance(5, 0, 0, 0)), BigInt::from(7));
+        assert_eq!(
+            GemAmountType::Deposit.available_value(&Asset::mock_hypercore_usdc(), &GemAssetBalance::mock_with_available(5)),
+            BigInt::from(5)
+        );
+        assert_eq!(
+            GemAmountType::Withdraw.available_value(
+                &Asset::mock_hypercore_usdc(),
+                &GemAssetBalance {
+                    withdrawable: BigUint::from(7u32),
+                    ..GemAssetBalance::mock_with_available(5)
+                }
+            ),
+            BigInt::from(7)
+        );
 
-        let perpetual = |leverage: u8, size_decimals: i32| GemAmountType::Perpetual {
-            position: GemAmountPerpetualPosition::Open,
-            direction: PerpetualDirection::Long,
-            price: 4.0,
-            leverage,
-            size_decimals,
-        };
-        assert_eq!(minimum_value(&perpetual(1, 0), &usdc()), BigInt::from(12_000_000));
-        assert_eq!(minimum_value(&perpetual(1, 1), &usdc()), BigInt::from(10_000_000));
-        assert_eq!(minimum_value(&perpetual(2, 0), &usdc()), BigInt::from(6_000_000));
-        assert_eq!(perpetual(1, 0).available_value(&usdc(), &balance(9, 0, 0, 0)), BigInt::from(9));
-    }
-
-    fn transfer_entry(asset: &Asset, available: u64, price: Option<f64>, input_type: GemAmountInputType, text: &str) -> GemAmountEntry {
-        let input = GemAmountType::Transfer.input(asset, &balance(available, 0, 0, 0));
-        GemAmountType::Transfer.entry(asset, &input, price, input_type, text.to_string())
+        assert_eq!(
+            minimum_value(
+                &GemAmountType::Perpetual {
+                    position: GemAmountPerpetualPosition::Open,
+                    direction: PerpetualDirection::Long,
+                    price: 4.0,
+                    leverage: 1,
+                    size_decimals: 0,
+                },
+                &Asset::mock_hypercore_usdc()
+            ),
+            BigInt::from(12_000_000)
+        );
+        assert_eq!(
+            minimum_value(
+                &GemAmountType::Perpetual {
+                    position: GemAmountPerpetualPosition::Open,
+                    direction: PerpetualDirection::Long,
+                    price: 4.0,
+                    leverage: 1,
+                    size_decimals: 1,
+                },
+                &Asset::mock_hypercore_usdc()
+            ),
+            BigInt::from(10_000_000)
+        );
+        assert_eq!(
+            minimum_value(
+                &GemAmountType::Perpetual {
+                    position: GemAmountPerpetualPosition::Open,
+                    direction: PerpetualDirection::Long,
+                    price: 4.0,
+                    leverage: 2,
+                    size_decimals: 0,
+                },
+                &Asset::mock_hypercore_usdc()
+            ),
+            BigInt::from(6_000_000)
+        );
+        assert_eq!(
+            GemAmountType::Perpetual {
+                position: GemAmountPerpetualPosition::Open,
+                direction: PerpetualDirection::Long,
+                price: 4.0,
+                leverage: 1,
+                size_decimals: 0,
+            }
+            .available_value(&Asset::mock_hypercore_usdc(), &GemAssetBalance::mock_with_available(9)),
+            BigInt::from(9)
+        );
     }
 
     #[test]
     fn test_entry_reads_the_text_in_the_input_units() {
-        let usdc = usdc();
-        let typed = transfer_entry(&usdc, 100_000_000_000, Some(2.0), GemAmountInputType::Asset, "1000.123456");
+        let usdc = Asset::mock_hypercore_usdc();
+        let funded = GemAmountType::Transfer.input(&usdc, &GemAssetBalance::mock_with_available(100_000_000_000));
+        let hundred = GemAmountType::Transfer.input(&usdc, &GemAssetBalance::mock_with_available(100_000_000));
+        let typed = GemAmountType::Transfer.entry(&usdc, &funded, Some(2.0), GemAmountInputType::Asset, "1000.123456".to_string());
         assert_eq!(typed.value, Some(BigInt::from(1_000_123_456)));
         assert_eq!(typed.error, None);
         assert_eq!(typed.equivalent, Some(GemAmountEquivalent::Fiat { amount: 2000.246912 }));
         assert!(!typed.is_max);
-        assert_eq!(transfer_entry(&usdc, 100_000_000, None, GemAmountInputType::Asset, "1.5").equivalent, None);
+        assert_eq!(
+            GemAmountType::Transfer
+                .entry(&usdc, &hundred, None, GemAmountInputType::Asset, "1.5".to_string())
+                .equivalent,
+            None
+        );
 
-        let fiat = transfer_entry(&usdc, 100_000_000_000, Some(1.0), GemAmountInputType::Fiat, "1000.123456");
+        let fiat = GemAmountType::Transfer.entry(&usdc, &funded, Some(1.0), GemAmountInputType::Fiat, "1000.123456".to_string());
         assert_eq!(fiat.value, Some(BigInt::from(1_000_120_000)));
         assert_eq!(
             fiat.equivalent,
@@ -831,31 +1042,33 @@ mod tests {
             })
         );
         assert_eq!(
-            transfer_entry(&usdc, 100_000_000_000, Some(1.0), GemAmountInputType::Fiat, "1000").value,
+            GemAmountType::Transfer.entry(&usdc, &funded, Some(1.0), GemAmountInputType::Fiat, "1000".to_string()).value,
             Some(BigInt::from(1_000_000_000))
         );
         assert_eq!(
-            transfer_entry(&usdc, 100_000_000, None, GemAmountInputType::Fiat, "10").error,
+            GemAmountType::Transfer.entry(&usdc, &hundred, None, GemAmountInputType::Fiat, "10".to_string()).error,
             Some(GemAmountError::PriceMissing)
         );
         assert_eq!(
-            transfer_entry(&usdc, 100_000_000, Some(0.0), GemAmountInputType::Fiat, "10").error,
+            GemAmountType::Transfer.entry(&usdc, &hundred, Some(0.0), GemAmountInputType::Fiat, "10".to_string()).error,
             Some(GemAmountError::PriceMissing)
         );
 
-        let ether = asset(Chain::Ethereum);
-        let whole = transfer_entry(&ether, 1_000_000_000_000_000_000, Some(2.0), GemAmountInputType::Asset, "1");
+        let ether = Asset::from_chain(Chain::Ethereum);
+        let one_ether = GemAmountType::Transfer.input(&ether, &GemAssetBalance::mock_with_available(1_000_000_000_000_000_000));
+        let whole = GemAmountType::Transfer.entry(&ether, &one_ether, Some(2.0), GemAmountInputType::Asset, "1".to_string());
         assert_eq!(whole.value, Some(BigInt::from(1_000_000_000_000_000_000u64)));
         assert!(whole.is_max);
-        let tiny = transfer_entry(&ether, 1_000_000_000_000_000_000, Some(4000.0), GemAmountInputType::Fiat, "0.0000001");
+        let tiny = GemAmountType::Transfer.entry(&ether, &one_ether, Some(4000.0), GemAmountInputType::Fiat, "0.0000001".to_string());
         assert_eq!(tiny.value, Some(BigInt::from(25_000_000u64)));
         assert_eq!(tiny.error, None);
     }
 
     #[test]
     fn test_entry_rejects_empty_zero_and_invalid_text() {
-        let usdc = usdc();
-        let entry = |input_type, text| transfer_entry(&usdc, 100_000_000, Some(1.0), input_type, text);
+        let usdc = Asset::mock_hypercore_usdc();
+        let input = GemAmountType::Transfer.input(&usdc, &GemAssetBalance::mock_with_available(100_000_000));
+        let entry = |input_type, text: &str| GemAmountType::Transfer.entry(&usdc, &input, Some(1.0), input_type, text.to_string());
 
         let empty = entry(GemAmountInputType::Asset, " ");
         assert_eq!(empty.value, None);
@@ -875,9 +1088,11 @@ mod tests {
             })
         );
 
-        let bnb = asset(Chain::SmartChain);
-        let stake = stake(GemAmountStakeType::Stake);
-        let input = stake.input(&bnb, &balance(5_000_000_000_000_000_000, 0, 0, 0));
+        let bnb = Asset::from_chain(Chain::SmartChain);
+        let stake = GemAmountType::Stake {
+            stake_type: GemAmountStakeType::Stake,
+        };
+        let input = stake.input(&bnb, &GemAssetBalance::mock_with_available(5_000_000_000_000_000_000));
         assert_eq!(
             stake.entry(&bnb, &input, Some(1.0), GemAmountInputType::Asset, "0.99".to_string()).error,
             Some(GemAmountError::BelowMinimum {
@@ -889,11 +1104,13 @@ mod tests {
 
     #[test]
     fn test_entry_max_carries_the_reserved_fee() {
-        let cosmos = asset(Chain::Cosmos);
+        let cosmos = Asset::from_chain(Chain::Cosmos);
         let config = get_stake_config(StakeChain::Cosmos);
         let available = config.reserved_for_fees * 10 + config.min_amount * 10;
-        let stake = stake(GemAmountStakeType::Stake);
-        let input = stake.input(&cosmos, &balance(available, 0, 0, 0));
+        let stake = GemAmountType::Stake {
+            stake_type: GemAmountStakeType::Stake,
+        };
+        let input = stake.input(&cosmos, &GemAssetBalance::mock_with_available(available));
         let max = input.max_entry();
         assert_eq!(max.input_type, GemAmountInputType::Asset);
         assert_eq!(max.value, BigInt::from(available - config.reserved_for_fees));
@@ -914,30 +1131,36 @@ mod tests {
             for leverage in [1, 3] {
                 let minimum = 10_170_000 / u64::from(leverage);
                 let available = 6_000_000 / u64::from(leverage);
-                let amount_type = |position| GemAmountType::Perpetual {
-                    position,
+                let balance = GemAssetBalance::mock_with_available(100_000_000);
+                let check = |amount: &GemAmountType, value: BigInt| {
+                    validate(
+                        &Asset::mock_hypercore_usdc(),
+                        &value,
+                        &amount.available_value(&Asset::mock_hypercore_usdc(), &balance),
+                        &minimum_value(amount, &Asset::mock_hypercore_usdc()),
+                    )
+                };
+                let reduce = GemAmountType::Perpetual {
+                    position: GemAmountPerpetualPosition::Reduce { available: available.into() },
                     direction: direction.clone(),
                     price: 3390.0,
                     leverage,
                     size_decimals: 4,
                 };
-                let balance = balance(100_000_000, 0, 0, 0);
-                let check = |amount: &GemAmountType, value: BigInt| validate(&usdc(), &value, &amount.available_value(&usdc(), &balance), &minimum_value(amount, &usdc()));
-                let reduce = amount_type(GemAmountPerpetualPosition::Reduce { available: available.into() });
                 assert_eq!(check(&reduce, available.into()), Ok(()));
                 assert_eq!(check(&reduce, BigInt::ZERO), Err(GemAmountError::Zero));
                 assert_eq!(check(&reduce, (-1).into()), Err(GemAmountError::Zero));
                 assert_eq!(
                     check(&reduce, (available - 1).into()),
                     Err(GemAmountError::BelowMinimum {
-                        asset: usdc(),
+                        asset: Asset::mock_hypercore_usdc(),
                         minimum: available.into()
                     })
                 );
                 assert_eq!(
                     check(&reduce, (available + 1).into()),
                     Err(GemAmountError::InsufficientBalance {
-                        asset: usdc(),
+                        asset: Asset::mock_hypercore_usdc(),
                         requirement: GemBalanceRequirement::new((available + 1).into(), available.into())
                     })
                 );
@@ -946,12 +1169,18 @@ mod tests {
                     GemAmountPerpetualPosition::Increase,
                     GemAmountPerpetualPosition::Reduce { available: 20_000_000u64.into() },
                 ] {
-                    let amount = amount_type(position);
+                    let amount = GemAmountType::Perpetual {
+                        position,
+                        direction: direction.clone(),
+                        price: 3390.0,
+                        leverage,
+                        size_decimals: 4,
+                    };
                     assert_eq!(check(&amount, minimum.into()), Ok(()));
                     assert_eq!(
                         check(&amount, (minimum - 1).into()),
                         Err(GemAmountError::BelowMinimum {
-                            asset: usdc(),
+                            asset: Asset::mock_hypercore_usdc(),
                             minimum: minimum.into()
                         })
                     );
@@ -963,19 +1192,30 @@ mod tests {
     #[test]
     fn test_stake_withdraw_has_no_minimum() {
         let withdraw = GemAmountType::Stake {
-            stake_type: GemAmountStakeType::Withdraw { delegation: delegation(700, 0) },
+            stake_type: GemAmountStakeType::Withdraw {
+                delegation: Delegation::mock_base(DelegationBase::mock_with_balance(700, 0)),
+            },
         };
-        assert_eq!(minimum_value(&withdraw, &usdc()), BigInt::ZERO);
-        assert!(!withdraw.input(&usdc(), &balance(1, 0, 0, 0)).can_change_value);
+        assert_eq!(minimum_value(&withdraw, &Asset::mock_hypercore_usdc()), BigInt::ZERO);
+        assert!(!withdraw.input(&Asset::mock_hypercore_usdc(), &GemAssetBalance::mock_with_available(1)).can_change_value);
     }
 
     #[test]
     fn test_transfer_deposit_withdraw_rules() {
-        assert_eq!(minimum_value(&GemAmountType::Transfer, &asset(Chain::Ethereum)), BigInt::ZERO);
-        assert_eq!(minimum_value(&GemAmountType::Deposit, &usdc()), BigInt::from(MIN_DEPOSIT_AMOUNT));
-        assert_eq!(minimum_value(&GemAmountType::Withdraw, &usdc()), BigInt::from(MIN_WITHDRAW_AMOUNT));
-        assert_eq!(minimum_value(&GemAmountType::Deposit, &asset(Chain::Ethereum)), BigInt::ZERO);
-        assert_eq!(GemAmountType::Withdraw.available_value(&usdc(), &balance(1, 0, 0, 0)), BigInt::from(7));
+        assert_eq!(minimum_value(&GemAmountType::Transfer, &Asset::from_chain(Chain::Ethereum)), BigInt::ZERO);
+        assert_eq!(minimum_value(&GemAmountType::Deposit, &Asset::mock_hypercore_usdc()), BigInt::from(MIN_DEPOSIT_AMOUNT));
+        assert_eq!(minimum_value(&GemAmountType::Withdraw, &Asset::mock_hypercore_usdc()), BigInt::from(MIN_WITHDRAW_AMOUNT));
+        assert_eq!(minimum_value(&GemAmountType::Deposit, &Asset::from_chain(Chain::Ethereum)), BigInt::ZERO);
+        assert_eq!(
+            GemAmountType::Withdraw.available_value(
+                &Asset::mock_hypercore_usdc(),
+                &GemAssetBalance {
+                    withdrawable: BigUint::from(7u32),
+                    ..GemAssetBalance::mock_with_available(1)
+                }
+            ),
+            BigInt::from(7)
+        );
         assert_eq!(
             GemAmountType::Perpetual {
                 position: GemAmountPerpetualPosition::Reduce { available: BigUint::from(42u32) },
@@ -984,7 +1224,7 @@ mod tests {
                 leverage: 1,
                 size_decimals: 0
             }
-            .available_value(&usdc(), &balance(1, 0, 0, 0)),
+            .available_value(&Asset::mock_hypercore_usdc(), &GemAssetBalance::mock_with_available(1)),
             BigInt::from(42)
         );
     }
@@ -1013,7 +1253,7 @@ mod tests {
 
     #[test]
     fn test_validate() {
-        let bnb = asset(Chain::SmartChain);
+        let bnb = Asset::from_chain(Chain::SmartChain);
         assert_eq!(validate(&bnb, &BigInt::from(0), &BigInt::from(10), &BigInt::from(0)), Err(GemAmountError::Zero));
         assert_eq!(
             validate(&bnb, &BigInt::from(1), &BigInt::from(10), &BigInt::from(2)),
@@ -1037,7 +1277,10 @@ mod tests {
     #[test]
     fn test_transfer_balance_carries_big_integers_so_a_malformed_value_cannot_read_as_zero() {
         let _: fn(GemAssetBalance) -> (GemBigUint, GemBigUint, GemBigUint, GemBigUint) = |balance| (balance.available, balance.frozen, balance.locked, balance.withdrawable);
-        assert_eq!(GemAmountType::Transfer.available_value(&asset(Chain::Ethereum), &balance(500, 0, 0, 0)), BigInt::from(500));
+        assert_eq!(
+            GemAmountType::Transfer.available_value(&Asset::from_chain(Chain::Ethereum), &GemAssetBalance::mock_with_available(500)),
+            BigInt::from(500)
+        );
     }
 
     #[test]
@@ -1045,7 +1288,12 @@ mod tests {
         assert!(GemAmountType::Transfer.can_switch_input_type());
         assert!(!GemAmountType::Deposit.can_switch_input_type());
         assert!(!GemAmountType::Withdraw.can_switch_input_type());
-        assert!(!stake(GemAmountStakeType::Stake).can_switch_input_type());
+        assert!(
+            !GemAmountType::Stake {
+                stake_type: GemAmountStakeType::Stake
+            }
+            .can_switch_input_type()
+        );
     }
 
     #[test]
@@ -1053,8 +1301,8 @@ mod tests {
         let data = crate::services::perpetual::GemPerpetualTransferData {
             provider: PerpetualProvider::Hypercore,
             direction: PerpetualDirection::Short,
-            asset: usdc(),
-            base_asset: usdc(),
+            asset: Asset::mock_hypercore_usdc(),
+            base_asset: Asset::mock_hypercore_usdc(),
             asset_index: 1,
             price: 120.5,
             leverage: 3,
@@ -1076,7 +1324,7 @@ mod tests {
 
     #[test]
     fn test_stake_amount_type_mirrors_the_input_and_keeps_only_the_confirmed_validator_rewards() {
-        let delegation = delegation(100, 5);
+        let delegation = Delegation::mock_base(DelegationBase::mock_with_balance(100, 5));
         let other = Delegation {
             base: DelegationBase {
                 validator_id: "other".into(),
@@ -1086,6 +1334,7 @@ mod tests {
                 id: "other".into(),
                 ..delegation.validator.clone()
             },
+            price: None,
         };
         let validators = vec![delegation.validator.clone(), other.validator.clone()];
 
@@ -1094,11 +1343,15 @@ mod tests {
                 validators: validators.clone(),
                 validator: None
             }),
-            stake(GemAmountStakeType::Stake)
+            GemAmountType::Stake {
+                stake_type: GemAmountStakeType::Stake
+            }
         );
         assert_eq!(
             stake_amount_type(&GemStakeAmountInput::Unstake { delegation: delegation.clone() }),
-            stake(GemAmountStakeType::Unstake { delegation: delegation.clone() })
+            GemAmountType::Stake {
+                stake_type: GemAmountStakeType::Unstake { delegation: delegation.clone() }
+            }
         );
         assert_eq!(
             stake_amount_type(&GemStakeAmountInput::Redelegate {
@@ -1106,26 +1359,39 @@ mod tests {
                 delegation: delegation.clone(),
                 validator: Some(other.validator.clone()),
             }),
-            stake(GemAmountStakeType::Redelegate { delegation: delegation.clone() })
+            GemAmountType::Stake {
+                stake_type: GemAmountStakeType::Redelegate { delegation: delegation.clone() }
+            }
         );
-        let rewards = |validator| GemStakeAmountInput::Rewards {
-            delegations: vec![other.clone(), delegation.clone()],
-            validator,
-        };
-        assert_eq!(stake_amount_type(&rewards(None)), stake(GemAmountStakeType::Rewards { delegations: vec![other.clone()] }));
         assert_eq!(
-            stake_amount_type(&rewards(Some(delegation.validator.clone()))),
-            stake(GemAmountStakeType::Rewards { delegations: vec![delegation] })
+            stake_amount_type(&GemStakeAmountInput::Rewards {
+                delegations: vec![other.clone(), delegation.clone()],
+                validator: None,
+            }),
+            GemAmountType::Stake {
+                stake_type: GemAmountStakeType::Rewards { delegations: vec![other.clone()] }
+            }
+        );
+        assert_eq!(
+            stake_amount_type(&GemStakeAmountInput::Rewards {
+                delegations: vec![other.clone(), delegation.clone()],
+                validator: Some(delegation.validator.clone()),
+            }),
+            GemAmountType::Stake {
+                stake_type: GemAmountStakeType::Rewards { delegations: vec![delegation] }
+            }
         );
         assert_eq!(
             stake_amount_type(&GemStakeAmountInput::Freeze { resource: Resource::Energy }),
-            stake(GemAmountStakeType::Freeze { resource: Resource::Energy })
+            GemAmountType::Stake {
+                stake_type: GemAmountStakeType::Freeze { resource: Resource::Energy }
+            }
         );
     }
 
     #[test]
     fn test_earn_amount_type_keeps_the_withdrawn_delegation() {
-        let delegation = delegation(100, 0);
+        let delegation = Delegation::mock_base(DelegationBase::mock_with_balance(100, 0));
 
         assert_eq!(
             earn_amount_type(EarnType::Deposit(delegation.validator.clone())),
@@ -1150,20 +1416,27 @@ mod tests {
             recipient: recipient.clone(),
             amount: Some("1.5".into()),
         };
-        let send = transfer_data(usdc(), GemAmountTransfer::Send { payment: payment.clone() }, None, GemBigInt::from(1), false).unwrap();
+        let send = transfer_data(
+            Asset::mock_hypercore_usdc(),
+            GemAmountTransfer::Send { payment: payment.clone() },
+            None,
+            GemBigInt::from(1),
+            false,
+        )
+        .unwrap();
         assert!(matches!(send.input_type, TransactionInputType::Transfer { .. }));
         assert_eq!(send.recipient, recipient);
 
-        let deposit = transfer_data(usdc(), GemAmountTransfer::Deposit, None, GemBigInt::from(2), true).unwrap();
+        let deposit = transfer_data(Asset::mock_hypercore_usdc(), GemAmountTransfer::Deposit, None, GemBigInt::from(2), true).unwrap();
         assert!(matches!(deposit.input_type, TransactionInputType::Deposit { .. }));
-        assert_eq!(deposit.recipient.address, HYPERLIQUID_DEPOSIT_ADDRESS);
+        assert_eq!(deposit.recipient.address, HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS);
         assert!(deposit.use_max_amount);
 
-        let withdraw = transfer_data(usdc(), GemAmountTransfer::Withdraw, Some(owner.clone()), GemBigInt::from(3), false).unwrap();
+        let withdraw = transfer_data(Asset::mock_hypercore_usdc(), GemAmountTransfer::Withdraw, Some(owner.clone()), GemBigInt::from(3), false).unwrap();
         assert!(matches!(withdraw.input_type, TransactionInputType::Withdrawal { .. }));
         assert_eq!(withdraw.recipient, owner);
 
-        assert!(transfer_data(usdc(), GemAmountTransfer::Withdraw, None, GemBigInt::from(3), false).is_err());
+        assert!(transfer_data(Asset::mock_hypercore_usdc(), GemAmountTransfer::Withdraw, None, GemBigInt::from(3), false).is_err());
     }
 
     #[test]
@@ -1179,10 +1452,13 @@ mod tests {
         assert_eq!(transfer_amount_type(&GemAmountTransfer::Deposit), GemAmountType::Deposit);
         assert_eq!(transfer_amount_type(&GemAmountTransfer::Withdraw), GemAmountType::Withdraw);
 
-        assert_eq!(transfer_display_asset(&send, usdc()), usdc());
-        assert_eq!(transfer_display_asset(&GemAmountTransfer::Deposit, usdc()), usdc());
+        assert_eq!(transfer_display_asset(&send, Asset::mock_hypercore_usdc()), Asset::mock_hypercore_usdc());
         assert_eq!(
-            transfer_display_asset(&GemAmountTransfer::Withdraw, usdc()),
+            transfer_display_asset(&GemAmountTransfer::Deposit, Asset::mock_hypercore_usdc()),
+            Asset::mock_hypercore_usdc()
+        );
+        assert_eq!(
+            transfer_display_asset(&GemAmountTransfer::Withdraw, Asset::mock_hypercore_usdc()),
             GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset()
         );
 

@@ -31,14 +31,16 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import uniffi.gemstone.Config
 import uniffi.gemstone.GemWalletConnectService
+import uniffi.gemstone.GemWalletConnectServiceInterface
 import javax.inject.Inject
 import javax.inject.Singleton
 import com.gemwallet.android.ext.toPrimitives
+import uniffi.gemstone.GemWalletConnectRejection
 
 @Singleton
 class ReownWalletConnectClient @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    private val walletConnectService: GemWalletConnectService,
+    private val walletConnectService: GemWalletConnectServiceInterface,
 ) : WalletConnectClient, WalletKit.WalletDelegate, CoreClient.CoreDelegate {
 
     override val isEnabled: Boolean = true
@@ -144,7 +146,7 @@ class ReownWalletConnectClient @Inject constructor(
         )
     }
 
-    override fun rejectSession(proposal: WalletConnectSessionProposal, onSuccess: () -> Unit, onError: (String) -> Unit) {
+    override fun rejectSession(proposal: WalletConnectSessionProposal, rejection: GemWalletConnectRejection, onSuccess: () -> Unit, onError: (String) -> Unit) {
         val sessionProposal = proposal.pendingReownProposal()
         if (sessionProposal == null) {
             onSuccess()
@@ -153,7 +155,7 @@ class ReownWalletConnectClient @Inject constructor(
         WalletKit.rejectSession(
             params = Wallet.Params.SessionReject(
                 proposerPublicKey = sessionProposal.proposerPublicKey,
-                reason = "Reject Session",
+                reason = rejection.message,
             ),
             onSuccess = { onSuccess() },
             onError = { onError(it.throwable.message.orEmpty()) },
@@ -272,7 +274,6 @@ class ReownWalletConnectClient @Inject constructor(
     }
 
     override fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest, verifyContext: Wallet.Model.VerifyContext) {
-        Log.d(TAG, "Session request received method=${sessionRequest.request.method} chainId=${sessionRequest.chainId} id=${sessionRequest.request.id}")
         walletEvents.tryEmit(WalletConnectEvent.SessionRequest(sessionRequest.toWalletConnectSessionRequest(), verifyContext.toWalletConnectVerifyContext()))
     }
 
@@ -348,6 +349,7 @@ private fun Wallet.Model.SessionProposal.toWalletConnectSessionProposal(): Walle
         requiredNamespaces = requiredNamespaces.mapValues { it.value.toWalletConnectProposalNamespace() },
         optionalNamespaces = optionalNamespaces.mapValues { it.value.toWalletConnectProposalNamespace() },
         proposerPublicKey = proposerPublicKey,
+        pairingTopic = pairingTopic,
         properties = properties,
     )
 }

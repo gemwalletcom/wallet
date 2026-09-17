@@ -1,7 +1,9 @@
+use tempfile::TempDir;
+
 use super::{
     constants::{ARGON2_SALT_LEN, DEFAULT_ARGON2_ITERATIONS, DEFAULT_ARGON2_MEMORY_KIB, DEFAULT_ARGON2_OUTPUT_LEN, DEFAULT_ARGON2_PARALLELISM},
     format::{CipherV4, CryptoV4, FileV4, KdfV4},
-    types::KdfParams,
+    types::{FileKeystore, KdfParams},
 };
 
 const MOCK_ARGON2_MEMORY_KIB: u32 = 64;
@@ -44,5 +46,13 @@ impl FileV4 {
                 ciphertext: "00000000000000000000000000000000".to_string(),
             },
         }
+    }
+}
+
+impl FileKeystore {
+    pub(super) fn mock() -> (TempDir, Self) {
+        let dir = TempDir::new().unwrap();
+        let keystore = Self::open_with_kdf(dir.path().to_path_buf(), KdfParams::mock()).unwrap();
+        (dir, keystore)
     }
 }

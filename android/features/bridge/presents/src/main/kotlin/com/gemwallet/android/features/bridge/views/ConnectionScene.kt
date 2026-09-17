@@ -13,20 +13,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.features.bridge.viewmodels.ConnectionViewModel
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
+import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.features.bridge.viewmodels.ConnectionViewModel
-import java.text.DateFormat
-import java.util.Date
 
 @Composable
 fun ConnectionScene(
     onCancel: () -> Unit,
     viewModel: ConnectionViewModel = hiltViewModel(),
 ) {
-    val connection by viewModel.connection.collectAsStateWithLifecycle()
+    val connectionListItem by viewModel.connectionListItem.collectAsStateWithLifecycle()
+    val rows by viewModel.rows.collectAsStateWithLifecycle()
 
     Scene(
         title = stringResource(id = R.string.wallet_connect_title),
@@ -42,17 +42,8 @@ fun ConnectionScene(
         onClose = onCancel,
     ) {
         LazyColumn {
-            connection?.let {
-                item { ConnectionItem(it, ListPosition.Single) }
-                item { PropertyItem(R.string.common_wallet, it.connection.wallet.name, listPosition = ListPosition.First) }
-                item {
-                    PropertyItem(
-                        title = R.string.transaction_date,
-                        data = DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(it.connection.session.expireAt)),
-                        listPosition = ListPosition.Last,
-                    )
-                }
-            }
+            connectionListItem?.let { item { ListItem(model = it, listPosition = ListPosition.Single) } }
+            itemsPositioned(rows) { position, row -> ListItem(model = row, listPosition = position) }
         }
     }
 }

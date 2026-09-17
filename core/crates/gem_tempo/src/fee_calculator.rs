@@ -83,23 +83,18 @@ impl<C: Client + Clone> TempoFeeCalculator<C> {
 mod tests {
     use alloy_primitives::{Address, hex::encode_prefixed};
     use alloy_sol_types::SolCall;
-    use gem_client::ClientError;
-    use gem_client::testkit::MockClient;
     use gem_evm::constants::TOKEN_TRANSFER_GAS_LIMIT;
     use gem_evm::provider::preload_mapper::get_transaction_params;
-    use gem_jsonrpc::testkit::mock_jsonrpc_client;
     use primitives::{
-        Asset, EVMChain, GasPriceType, SwapProvider, TransactionInputType, TransactionLoadInput,
+        EVMChain, GasPriceType, TransactionInputType, TransactionLoadInput,
         asset_constants::{TEMPO_PATHUSD_TOKEN_ID, TEMPO_USDT0_TOKEN_ID},
         known_assets::TEMPO_BRIDGED_USDC,
-        swap::SwapData,
     };
-    use serde_json::Value;
 
     use super::*;
     use crate::contracts::{ITIP20, ITempoFeeManager};
     use crate::fee::FEE_MANAGER_ADDRESS;
-    use crate::testkit::mock_tempo_generic_input;
+    use crate::testkit::{mock_tempo_generic_input, mock_tempo_swap_input};
 
     fn encode_currency(currency: &str) -> serde_json::Value {
         serde_json::json!(encode_prefixed(ITIP20::currencyCall::abi_encode_returns(&currency.to_string())))
@@ -109,27 +104,9 @@ mod tests {
         serde_json::json!(encode_prefixed(ITempoFeeManager::userTokensCall::abi_encode_returns(&token)))
     }
 
-    fn new_calculator<F>(handler: F) -> TempoFeeCalculator<MockClient>
-    where
-        F: Fn(&str, &Value) -> Result<Value, ClientError> + Send + Sync + 'static,
-    {
-        TempoFeeCalculator::new(EthereumClient::new(mock_jsonrpc_client(handler), EVMChain::Tempo))
-    }
-
-    fn swap_input(from_asset: Asset) -> TransactionLoadInput {
-        TransactionLoadInput::mock_evm(
-            TransactionInputType::Swap {
-                from_asset,
-                to_asset: TEMPO_BRIDGED_USDC.clone(),
-                swap_data: SwapData::mock_with_provider_data(SwapProvider::UniswapV4, "abcd", None),
-            },
-            "0",
-        )
-    }
-
     #[tokio::test]
     async fn test_calculate_fee() -> Result<(), Box<dyn Error + Sync + Send>> {
-        let calculator = new_calculator(|_, params| {
+        let calculator = TempoFeeCalculator::mock(|_, params| {
             if params[0]["to"].as_str().unwrap().eq_ignore_ascii_case(FEE_MANAGER_ADDRESS) {
                 Ok(user_token_response(Address::ZERO))
             } else {
@@ -169,7 +146,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_set_user_token_overrides_account_preference() {
-        let calculator = new_calculator(|method, _| {
+        let calculator = TempoFeeCalculator::mock(|method, _| {
             assert_eq!(method, "eth_call");
             Ok(encode_currency(USD_CURRENCY))
         });
@@ -183,14 +160,14 @@ mod tests {
 
         assert_eq!(fee_asset, TEMPO_PATHUSD_ASSET_ID.clone());
 
-        let invalid_calculator = new_calculator(|_, _| Ok(encode_currency("BTC")));
+        let invalid_calculator = TempoFeeCalculator::mock(|_, _| Ok(encode_currency("BTC")));
         assert!(invalid_calculator.fee_asset(&input).await.is_err());
     }
 
     #[tokio::test]
     async fn test_account_fee_token_requires_usd_currency() {
         let account_token = TEMPO_USDT0_TOKEN_ID.parse().unwrap();
-        let calculator = new_calculator(move |_, params| {
+        let calculator = TempoFeeCalculator::mock(move |_, params| {
             if params[0]["to"].as_str().unwrap().eq_ignore_ascii_case(FEE_MANAGER_ADDRESS) {
                 Ok(user_token_response(account_token))
             } else {
@@ -209,11 +186,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_swap_fee_asset_requires_usd_currency() {
-        let usd_calculator = new_calculator(|_, _| Ok(encode_currency(USD_CURRENCY)));
         let usdc = TEMPO_BRIDGED_USDC.clone();
-        assert_eq!(usd_calculator.fee_asset(&swap_input(usdc.clone())).await.unwrap(), usdc.id);
+        let input = mock_tempo_swap_input(usdc.clone(), usdc.id.clone(), None);
 
-        let btc_calculator = new_calculator(|_, _| Ok(encode_currency("BTC")));
-        assert_eq!(btc_calculator.fee_asset(&swap_input(usdc)).await.unwrap(), TEMPO_PATHUSD_ASSET_ID.clone());
+        let usd_calculator = TempoFeeCalculator::mock(|_, _| Ok(encode_currency(USD_CURRENCY)));
+        assert_eq!(usd_calculator.fee_asset(&input).await.unwrap(), usdc.id);
+
+        let btc_calculator = TempoFeeCalculator::mock(|_, _| Ok(encode_currency("BTC")));
+        assert_eq!(btc_calculator.fee_asset(&input).await.unwrap(), TEMPO_PATHUSD_ASSET_ID.clone());
     }
 }

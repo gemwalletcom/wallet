@@ -6,8 +6,9 @@ import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetStakeValidator
 import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.domains.stake.hasRewards
-import com.gemwallet.android.features.transfer_amount.models.AmountError
-import com.gemwallet.android.features.transfer_amount.viewmodels.AmountTitle
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.features.transfer_amount.viewmodels.models.ValidatorsUIModel
+import com.gemwallet.android.features.transfer_amount.viewmodels.models.uiModel
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.model.Crypto
@@ -34,10 +35,8 @@ import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemStakeAmountInput
 import uniffi.gemstone.GemStakeValidatorSelection
-import uniffi.gemstone.GemValidatorRow
 import uniffi.gemstone.GemTransferData
-import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.toPrimitives
+import uniffi.gemstone.GemValidatorRow
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AmountStakeProvider(
@@ -50,8 +49,6 @@ class AmountStakeProvider(
     private val service: GemAmountServiceInterface,
     scope: CoroutineScope,
 ) : AmountDataProvider(scope) {
-
-    override val title: AmountTitle = AmountTitle.Stake(params)
 
     override val assetInfo: StateFlow<AssetInfo?> =
         getAssetInfo(params.assetId)
@@ -133,6 +130,10 @@ class AmountStakeProvider(
         .map { it?.validators }
         .stateIn(scope, SharingStarted.Eagerly, null)
 
+    val validatorRows: StateFlow<ValidatorsUIModel?> = validatorSelection
+        .map { it?.uiModel() }
+        .stateIn(scope, SharingStarted.Eagerly, null)
+
     val validatorState: StateFlow<GemValidatorRow?> = selected
         .map { it?.validators?.validator }
         .stateIn(scope, SharingStarted.Eagerly, null)
@@ -175,10 +176,8 @@ class AmountStakeProvider(
 
     override suspend fun buildTransfer(amount: Crypto, isMax: Boolean): GemTransferData {
         val current = assetInfo.filterNotNull().first()
-        val confirmed = selected.value?.confirmed(selectedResource.value) ?: throw missingSelection()
+        val confirmed = checkNotNull(selected.value?.confirmed(selectedResource.value)) { "stake action requires a selection" }
         return service.stakeTransferData(current.asset.toGem(), confirmed.stakeType(), amount.atomicValue, isMax)
     }
 
-    private fun missingSelection(): AmountError =
-        if (delegationIdentity != null) AmountError.NoDelegationSelected else AmountError.NoValidatorSelected
 }

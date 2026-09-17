@@ -83,11 +83,11 @@ where
 }
 
 impl NearIntents<RpcClient> {
-    pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Self {
+    pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Option<Self> {
         let client = NearIntentsClient::new(RpcClient::new(base_url(), rpc_provider.clone()), None);
         let explorer = NearIntentsExplorer::new(RpcClient::new(explorer_url(), rpc_provider.clone()));
-        let sui_client = create_sui_client(rpc_provider.clone()).expect("failed to create Sui gRPC client");
-        Self::with_client(client, explorer, sui_client)
+        let sui_client = create_sui_client(rpc_provider.clone()).ok()?;
+        Some(Self::with_client(client, explorer, sui_client))
     }
 }
 
@@ -118,10 +118,10 @@ where
     fn build_quote_request(request: &QuoteRequest, mode: SwapType, dry: bool) -> Result<NearQuoteRequest, SwapperError> {
         let origin_asset = get_near_asset_id(&request.from_asset)?;
         let destination_asset = get_near_asset_id(&request.to_asset)?;
-        let deposit_mode = Self::resolve_deposit_mode(&request.from_asset);
+        let deposit_mode = Self::deposit_mode(&request.from_asset);
         let from_chain = request.from_asset.asset_id().chain;
         let to_chain = request.to_asset.asset_id().chain;
-        let quote_waiting_time_ms = Some(Self::resolve_quote_waiting_time(from_chain, to_chain));
+        let quote_waiting_time_ms = Some(Self::quote_waiting_time(from_chain, to_chain));
 
         let deadline_minutes = Self::get_deadline_by_chain(from_chain).max(Self::get_deadline_by_chain(to_chain));
         let deadline = (Utc::now() + Duration::minutes(deadline_minutes)).to_rfc3339();
@@ -167,7 +167,7 @@ where
         })
     }
 
-    fn resolve_deposit_mode(asset: &SwapperQuoteAsset) -> DepositMode {
+    fn deposit_mode(asset: &SwapperQuoteAsset) -> DepositMode {
         if deposit_memo_chains().contains(&asset.asset_id().chain) {
             DepositMode::Memo
         } else {
@@ -175,7 +175,7 @@ where
         }
     }
 
-    fn resolve_quote_waiting_time(from_chain: Chain, to_chain: Chain) -> u32 {
+    fn quote_waiting_time(from_chain: Chain, to_chain: Chain) -> u32 {
         if auto_quote_time_chains().contains(&from_chain) || auto_quote_time_chains().contains(&to_chain) {
             0
         } else {
@@ -577,7 +577,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_near_intents_quote() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::new().set_debug(true));
-        let provider = NearIntents::new(rpc_provider);
+        let provider = NearIntents::new(rpc_provider).unwrap();
 
         let options = Options::mock_exact(100);
 
@@ -602,7 +602,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_near_intents_near_to_usdt_quote() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::new().set_debug(true));
-        let provider = NearIntents::new(rpc_provider);
+        let provider = NearIntents::new(rpc_provider).unwrap();
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Near)),
             to_asset: SwapperQuoteAsset::from(NEAR_USDT_ASSET_ID.clone()),
@@ -621,7 +621,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_near_intents_bitcoin_quotes() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::new().set_debug(true));
-        let provider = NearIntents::new(rpc_provider);
+        let provider = NearIntents::new(rpc_provider).unwrap();
 
         let from_bitcoin_request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Bitcoin)),
@@ -673,7 +673,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_near_intents_stellar_requires_memo() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::new().set_debug(true));
-        let provider = NearIntents::new(rpc_provider);
+        let provider = NearIntents::new(rpc_provider).unwrap();
 
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Stellar)),
@@ -703,7 +703,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_near_intents_status() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::new().set_debug(true));
-        let provider = NearIntents::new(rpc_provider);
+        let provider = NearIntents::new(rpc_provider).unwrap();
         let deposit_address = "18gB9wZz1Q4CzniurLye1KdUUqjWjo3ePr";
 
         let swap_result = provider.get_swap_result(Chain::Bitcoin, deposit_address).await?;

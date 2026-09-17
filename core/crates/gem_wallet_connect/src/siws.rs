@@ -50,12 +50,7 @@ mod tests {
     fn test_validate_sign_message() {
         let data = bs58::encode(include_str!("../../gem_solana/testdata/siws_sign_in.txt")).into_string();
         assert_eq!(
-            validate_sign_message(&SignMessageValidation {
-                chain: Chain::Solana,
-                sign_type: &SignDigestType::Base58,
-                data: &data,
-                session_domain: "https://example.com",
-            }),
+            validate_sign_message(&SignMessageValidation::mock(Chain::Solana, &SignDigestType::Base58, &data, "https://example.com")),
             Ok(())
         );
         assert_eq!(validate_sign_message_account(&SignDigestType::Base58, &data, TEST_PRIVATE_KEY_SOLANA_ADDRESS), Ok(()));

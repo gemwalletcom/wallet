@@ -24,7 +24,7 @@ impl<C: Client + Clone> JsonRpcClient<C> {
     }
 
     pub async fn request<U: DeserializeOwned + Send, T: ToJsonRpcRequest>(&self, request: T) -> Result<U, JsonRpcError> {
-        let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
+        let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap_or_default().as_secs();
         let result: JsonRpcResult<U> = self.send_request(request.to_jsonrpc_request(timestamp)).await?;
         result.take()
     }

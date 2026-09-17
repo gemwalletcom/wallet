@@ -43,7 +43,7 @@ public struct ChartHeaderView: View {
                         .font(.footnote)
                         .foregroundStyle(Colors.gray)
                 }
-            }.frame(height: 16)
+            }.frame(height: .space16)
         }
     }
 }

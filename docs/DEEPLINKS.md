@@ -45,7 +45,7 @@ Support chat messages are parsed in Core, and a link whose URL is a deep link is
 - [UniFFI bridge](../core/gemstone/src/deeplink.rs)
 - [Support message links](../core/crates/support/src/text.rs)
 - iOS: [`NavigationHandler`](../ios/Gem/Navigation/NavigationHandler.swift), schemes and associated domains in `ios/Gem/Resources/Info.plist` and `ios/Gem/Resources/Gem.entitlements`
-- Android: [`WebDeepLinks`](../android/app/src/main/kotlin/com/gemwallet/android/WebDeepLinks.kt), intent filters in `android/app/src/main/AndroidManifest.xml`
+- Android: [`toRoute`](../android/app/src/main/kotlin/com/gemwallet/android/WebDeepLinks.kt), intent filters in `android/app/src/main/AndroidManifest.xml`
 
 ## Web requirements
 

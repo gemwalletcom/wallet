@@ -58,7 +58,6 @@ common_token = ٹوکن
 common_expiration = میعاد ختم
 common_suspicious_address = مشکوک پتہ
 common_refresh = ریفریش کریں۔
-common_no_thanks = نہیں شکریہ
 common_grant_permission = اجازت دیں۔
 common_required_field = %@ درکار ہے۔
 
@@ -165,7 +164,6 @@ transfer_freeze_title = منجمد کریں۔
 transfer_unfreeze_title = غیر منجمد کریں۔
 transfer_review_request = درخواست کا جائزہ لیں
 transfer_amount = رقم
-transfer_amount_title = رقم
 
 # Settings
 
@@ -209,7 +207,6 @@ support_message_placeholder = پیغام
 
 # Errors
 
-errors_transfer = منتقلی کی خرابی: %@
 errors_validation = توثیق کی خرابی: %@
 errors_create_wallet = والیٹ کی خرابی بنائیں: %@
 errors_invalid_address_name = غلط پتہ یا نام
@@ -228,7 +225,6 @@ errors_cancelled = منسوخ کر دیا گیا
 errors_connections_user_cancelled = صارف نے منسوخ کر دیا۔
 errors_not_supported = تعاون یافتہ نہیں۔
 errors_permissions_not_granted = اجازت نہیں دی گئی۔
-errors_decoding = ضابطہ کشائی کی خرابی۔
 errors_unknown = نامعلوم
 errors_not_supported_qr = یہ آلہ QR کوڈ اسکیننگ کو سپورٹ نہیں کرتا ہے۔ آپ لائبریری سے صرف QR کوڈ کی تصویر منتخب کر سکتے ہیں۔
 errors_camera_permissions_not_granted = کیمرے کی اجازت نہیں دی گئی۔ QR کوڈ اسکین کرنے کے لیے براہ کرم سیٹنگز میں کیمرے تک رسائی کو فعال کریں۔
@@ -239,11 +235,8 @@ errors_invalid_asset_address = غلط %@ پتہ
 errors_dust_threshold = لین دین ناکام ہو گیا کیونکہ رقم %@ نیٹ ورک کی کم از کم ضرورت (دھول کی حد) کو پورا کرنے کے لیے بہت کم ہے۔ یہ حد یقینی بناتی ہے کہ لین دین کی قیمت فیسوں اور پروسیسنگ کے اخراجات کا احاطہ کرتی ہے۔
 errors_swap_no_quote_available = کوئی کوٹ دستیاب نہیں ہے۔
 errors_swap_not_supported_asset = تعاون یافتہ اثاثہ نہیں ہے۔
-errors_connections_invalid_send_parameters = ٹرانزیکشن بھیجنے کے لیے فراہم کردہ غلط پیرامیٹرز۔
-errors_connections_invalid_sign_parameters = دستخط کرنے کے لیے فراہم کردہ غلط پیرامیٹرز۔
 errors_connections_no_supported_wallets = کوئی تعاون یافتہ بٹوے دستیاب نہیں ہیں۔
 errors_connections_unsupported_chain = فراہم کردہ سلسلہ تعاون یافتہ نہیں ہے۔
-errors_connections_unsupported_method = درخواست کردہ طریقہ تعاون یافتہ نہیں ہے۔
 errors_swap_amount_too_small = رقم بہت چھوٹی ہے۔
 errors_required = %@ درکار ہے۔
 errors_scan_transaction_malicious_description = یہ لین دین مکمل نہیں کیا جا سکتا — منزل مقصود والیٹ کا پتہ مشکوک یا نقصان دہ سرگرمی سے منسلک ہے۔
@@ -255,7 +248,6 @@ errors_dust_threshold_short = نیٹ ورک اس رقم کو دھول سمجھت
 errors_swap_minimum_amount = کم از کم تجارتی رقم %@ ہے۔ براہ کرم زیادہ رقم درج کریں۔
 errors_perpetual_trigger_price_lower = ٹرگر قیمت مارکیٹ قیمت سے کم ہونی چاہیے
 errors_perpetual_trigger_price_higher = ٹرگر قیمت مارکیٹ قیمت سے زیادہ ہونی چاہیے
-errors_token_unable_fetch_token_information = ٹوکن کی معلومات حاصل کرنے سے قاصر: %@
 errors_unknown_try_again = ایک نامعلوم خرابی پیش آگئی۔ براہ کرم دوبارہ کوشش کریں۔
 errors_network_error = نیٹ ورک کی خرابی: %@
 errors_network_offline = انٹرنیٹ کنکشن آف لائن معلوم ہوتا ہے۔
@@ -279,7 +271,6 @@ update_app_action = اپ ڈیٹ کریں۔
 update_app_permission_title = تنصیب کی اجازت دیں۔
 update_app_permission_description = ترتیبات پر جائیں اور بیرونی ذرائع سے انسٹالیشن کی اجازت دیں۔
 update_app_permission_open_settings = ترتیبات پر جائیں۔
-update_app_downloading = ڈاؤن لوڈ ہو رہا ہے...
 
 # Transaction
 
@@ -483,8 +474,6 @@ banner_account_activation_title = اکاؤنٹ ایکٹیویشن فیس
 banner_account_activation_description = %@ نیٹ ورک کو %@ کی ایک بار کی فیس درکار ہے۔
 banner_stake_title = %@ اسٹیکنگ شروع کریں
 banner_stake_description = سوتے وقت اپنے اسٹیک پر %@ انعامات حاصل کریں۔
-banner_enable_notifications_title = اطلاعات کو فعال کریں۔
-banner_enable_notifications_description = اپنی بٹوے کی سرگرمی پر سب سے اوپر رہیں۔
 banner_activate_asset_description = %@ اثاثہ استعمال کرنے کے لیے، آپ کو پہلے نیٹ ورک کی مخصوص ضروریات کو پورا کرتے ہوئے اسے %@ نیٹ ورک پر فعال کرنا ہوگا۔
 banner_asset_status_title = مشکوک اثاثہ
 banner_asset_status_description = ٹوکن غیر محفوظ یا گمراہ کن ہو سکتا ہے۔ صرف اس صورت میں آگے بڑھیں جب آپ کو اس پر مکمل اعتماد ہو۔
@@ -690,8 +679,9 @@ perpetual_margin_isolated = الگ تھلگ
 # Perpetuals
 
 perpetuals_title = دائمی
+# Used in the wallet screen row that opens Perpetuals when the wallet holds no positions.
+perpetuals_trade = دائمی ٹریڈ کریں
 perpetuals_markets = منڈیاں
-perpetuals_empty_state_no_markets = کوئی بازار نہیں۔
 perpetuals_empty_state_no_markets_found = کوئی بازار نہیں ملا
 
 # Rewards
@@ -763,15 +753,12 @@ application_name = Gem
 
 # Camera Permission
 
-camera_permission_request_camera = QR کوڈ اسکین کے لیے کیمرے کی اجازت درکار ہے۔\nبراہ کرم اجازت دیں۔
 
 # Notifications Permission
 
-notifications_permission_request_notification = نئی لین دین کے بارے میں اطلاعات حاصل کرنے کے لیے اطلاعات پوسٹ کرنے کی اجازت درکار ہے۔\nبراہ کرم اجازت دیں۔
 
 # Confirm
 
-confirm_fee_error = فیس کے حساب میں غلطی
 
 # Rootcheck
 

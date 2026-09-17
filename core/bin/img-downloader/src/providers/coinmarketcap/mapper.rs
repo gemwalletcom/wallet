@@ -28,7 +28,7 @@ pub(super) fn map_info(info: Info) -> Vec<AssetImage> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use coinmarketcap::{ContractAddress, Platform, PlatformCoin};
+    use coinmarketcap::ContractAddress;
 
     #[test]
     fn test_map_info_skips_native_placeholders() {
@@ -36,23 +36,13 @@ mod tests {
             logo: "https://s2.coinmarketcap.com/static/img/coins/256x256/825.png".to_string(),
             platform: Some(Default::default()),
             contract_address: vec![
-                contract("Ethereum", "ethereum", "0x0000000000000000000000000000000000000000"),
-                contract("Ethereum", "ethereum", "0xdAC17F958D2ee523a2206206994597C13D831ec7"),
+                ContractAddress::mock_with_address("0x0000000000000000000000000000000000000000"),
+                ContractAddress::mock_with_address("0xdAC17F958D2ee523a2206206994597C13D831ec7"),
             ],
         };
         let images = map_info(token);
 
         assert_eq!(images.len(), 1);
         assert_eq!(images[0].token_id, "0xdAC17F958D2ee523a2206206994597C13D831ec7");
-    }
-
-    fn contract(name: &str, slug: &str, contract_address: &str) -> ContractAddress {
-        ContractAddress {
-            contract_address: contract_address.to_string(),
-            platform: Platform {
-                name: name.to_string(),
-                coin: PlatformCoin { slug: slug.to_string() },
-            },
-        }
     }
 }

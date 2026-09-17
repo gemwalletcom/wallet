@@ -95,14 +95,14 @@ extension AmountDisplay {
         .symbol(SymbolViewModel(asset: asset))
     }
 
-    static func numeric(
+    public static func numeric(
         data: AssetValuePrice,
         style: AmountDisplayStyle,
     ) -> AmountDisplay {
         .numeric(NumericViewModel(data: data, style: style))
     }
 
-    static func numeric(
+    public static func numeric(
         asset: Asset,
         price: Price? = nil,
         value: BigInt,

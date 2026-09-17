@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import ConnectionStatusService
+import ConnectionStatusServiceTestKit
 import ConnectivityService
-import class Gemstone.GemConnectionService
 import Primitives
 import Testing
 
@@ -17,7 +17,7 @@ struct ConnectionStatusServiceTests {
     @Test
     @MainActor
     func updateComponent() {
-        let observer = ConnectionStatusObserver(connectionService: GemConnectionService(), monitors: [])
+        let observer = ConnectionStatusObserver.mock()
 
         #expect(observer.status == .online)
 
@@ -35,7 +35,7 @@ struct ConnectionStatusServiceTests {
     @Test
     @MainActor
     func internetRecoveryResetsComponents() {
-        let observer = ConnectionStatusObserver(connectionService: GemConnectionService(), monitors: [])
+        let observer = ConnectionStatusObserver.mock()
 
         observer.update(component: .internet, isHealthy: false)
         observer.update(component: .stream, isHealthy: false)
@@ -49,7 +49,7 @@ struct ConnectionStatusServiceTests {
     @Test
     @MainActor
     func internetHealthyDoesNotResetComponents() {
-        let observer = ConnectionStatusObserver(connectionService: GemConnectionService(), monitors: [])
+        let observer = ConnectionStatusObserver.mock()
 
         observer.update(component: .internet, isHealthy: true)
         observer.update(component: .stream, isHealthy: false)

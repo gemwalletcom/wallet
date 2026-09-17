@@ -15,8 +15,16 @@ impl MoonPayWidget {
         Self { api_key, secret_key }
     }
 
-    pub fn redirect_url(&self, quote_type: FiatQuoteType, amount: f64, symbol: &str, wallet_address: &str, external_transaction_id: &str, ip_address: &str) -> String {
-        let mut url = Url::parse(Self::base_url(&quote_type)).unwrap();
+    pub fn redirect_url(
+        &self,
+        quote_type: FiatQuoteType,
+        amount: f64,
+        symbol: &str,
+        wallet_address: &str,
+        external_transaction_id: &str,
+        ip_address: &str,
+    ) -> Result<String, url::ParseError> {
+        let mut url = Url::parse(Self::base_url(&quote_type))?;
         url.query_pairs_mut()
             .append_pair("apiKey", &self.api_key)
             .append_pair("externalTransactionId", external_transaction_id);
@@ -37,7 +45,7 @@ impl MoonPayWidget {
             }
         };
 
-        self.sign_url(url)
+        Ok(self.sign_url(url))
     }
 
     fn base_url(quote_type: &FiatQuoteType) -> &'static str {
@@ -48,7 +56,7 @@ impl MoonPayWidget {
     }
 
     fn sign_url(&self, mut url: Url) -> String {
-        let query = url.query().unwrap();
+        let query = url.query().unwrap_or_default();
         let signature = self.sign(&format!("?{query}"));
         url.query_pairs_mut().append_pair("signature", &signature);
         url.as_str().to_string()
@@ -67,7 +75,9 @@ mod tests {
     fn test_redirect_url_includes_allowed_ip_address_for_buy() {
         let ip_address = "203.0.113.1";
         let secret_key = "test_secret_key";
-        let url = MoonPayWidget::new("test_api_key".to_string(), secret_key.to_string()).redirect_url(FiatQuoteType::Buy, 100.0, "eth", "0x123", "quote_id", ip_address);
+        let url = MoonPayWidget::new("test_api_key".to_string(), secret_key.to_string())
+            .redirect_url(FiatQuoteType::Buy, 100.0, "eth", "0x123", "quote_id", ip_address)
+            .unwrap();
         let url = Url::parse(&url).unwrap();
         let query = url.query().unwrap();
         let (unsigned_query, _) = query.rsplit_once("&signature=").unwrap();
@@ -87,8 +97,8 @@ mod tests {
     #[test]
     fn test_redirect_url_allowed_ip_address_depends_on_ip_address() {
         let widget = MoonPayWidget::new("test_api_key".to_string(), "test_secret_key".to_string());
-        let first_url = widget.redirect_url(FiatQuoteType::Buy, 100.0, "eth", "0x123", "quote_id", "203.0.113.1");
-        let second_url = widget.redirect_url(FiatQuoteType::Buy, 100.0, "eth", "0x123", "quote_id", "198.51.100.7");
+        let first_url = widget.redirect_url(FiatQuoteType::Buy, 100.0, "eth", "0x123", "quote_id", "203.0.113.1").unwrap();
+        let second_url = widget.redirect_url(FiatQuoteType::Buy, 100.0, "eth", "0x123", "quote_id", "198.51.100.7").unwrap();
         let first_url = Url::parse(&first_url).unwrap();
         let second_url = Url::parse(&second_url).unwrap();
         let first_allowed_ip_address = first_url.query_pairs().find(|(key, _)| key == "allowedIpAddress").map(|(_, value)| value.to_string());
@@ -99,7 +109,9 @@ mod tests {
 
     #[test]
     fn test_redirect_url_skips_allowed_ip_address_for_sell() {
-        let url = MoonPayWidget::new("test_api_key".to_string(), "test_secret_key".to_string()).redirect_url(FiatQuoteType::Sell, 0.5, "eth", "0x123", "quote_id", "203.0.113.1");
+        let url = MoonPayWidget::new("test_api_key".to_string(), "test_secret_key".to_string())
+            .redirect_url(FiatQuoteType::Sell, 0.5, "eth", "0x123", "quote_id", "203.0.113.1")
+            .unwrap();
         let url = Url::parse(&url).unwrap();
         let allowed_ip_address = url.query_pairs().find(|(key, _)| key == "allowedIpAddress").map(|(_, value)| value.to_string());
 

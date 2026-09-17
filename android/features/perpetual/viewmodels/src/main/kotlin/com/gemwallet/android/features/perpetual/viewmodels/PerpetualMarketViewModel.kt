@@ -1,32 +1,37 @@
 package com.gemwallet.android.features.perpetual.viewmodels
 
-import androidx.lifecycle.ViewModel
-import uniffi.gemstone.GemAssetAction
-import androidx.lifecycle.viewModelScope
+import android.content.Context
 import android.util.Log
-import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
+import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
+import com.gemwallet.android.domains.connection.refreshInterval
+import com.gemwallet.android.domains.perpetual.values.PerpetualBalance
 import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.domains.perpetual.values.PerpetualBalance
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualMarketSceneState
+import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualMarketSectionUIModel
+import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualPositionRowUIModel
+import com.gemwallet.android.features.perpetual.viewmodels.models.uiModel
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.RecentAssetsRequest
-import com.wallet.core.primitives.RecentActivityType
+import com.gemwallet.android.ui.components.perpetual.listItem
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
+import com.wallet.core.primitives.RecentActivityType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
-import uniffi.gemstone.GemMarketsRefreshTrigger
-import uniffi.gemstone.GemPerpetualServiceInterface
-import uniffi.gemstone.GemPerpetualSubscription
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -36,7 +41,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import uniffi.gemstone.GemAssetAction
+import uniffi.gemstone.GemMarketsRefreshTrigger
+import uniffi.gemstone.GemPerpetual
+import uniffi.gemstone.GemPerpetualMarketCounts
+import uniffi.gemstone.GemPerpetualServiceInterface
+import uniffi.gemstone.GemPerpetualSubscription
+import uniffi.gemstone.GemRefreshKind
+import uniffi.gemstone.PerpetualProvider
 
 @HiltViewModel
 class PerpetualMarketViewModel @Inject constructor(
@@ -46,7 +58,22 @@ class PerpetualMarketViewModel @Inject constructor(
     private val recentAssetsService: RecentAssetsService,
     private val service: GemPerpetualServiceInterface,
     private val perpetualObserver: PerpetualObserver,
+    @param:ApplicationContext private val context: Context,
+    private val connectionStatusObserver: ConnectionStatusObserver,
 ) : ViewModel() {
+
+    val isSearching = MutableStateFlow(false)
+
+    val depositAssetId: AssetId = GemPerpetual(PerpetualProvider.HYPERCORE).use { it.depositAsset() }.id.toAssetId()!!
+
+    fun setSearching(searching: Boolean) {
+        isSearching.value = searching
+    }
+
+    val refreshIntervalMillis: StateFlow<Long> = connectionStatusObserver.status
+        .map { it.refreshInterval(GemRefreshKind.MARKET).toMillis() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
+
 
     val query = MutableStateFlow<String?>(null)
 
@@ -63,16 +90,36 @@ class PerpetualMarketViewModel @Inject constructor(
         val needle = q?.trim().orEmpty()
         if (needle.isEmpty()) items else items.filter {
             it.title.contains(needle, ignoreCase = true) ||
+                it.perpetualId.symbol.contains(needle, ignoreCase = true) ||
                 it.asset.symbol.contains(needle, ignoreCase = true) ||
                 it.asset.name.contains(needle, ignoreCase = true)
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val positionRows: StateFlow<List<PerpetualPositionRowUIModel>> = positions
+        .map { items -> items.map { PerpetualPositionRowUIModel(it.asset, it.listItem(context)) } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val balance = getBalance.getDisplayBalance()
         .stateIn(viewModelScope, SharingStarted.Eagerly, EmptyPerpetualBalance)
     val recent: StateFlow<List<Asset>> =
         recentAssetsService.getRecentAssets(RecentAssetsRequest(types = listOf(RecentActivityType.Perpetual)))
             .map { items -> items.map { it.asset } }
             .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val sections: StateFlow<List<PerpetualMarketSectionUIModel>> = combine(positions, pinnedPerpetuals, unpinnedPerpetuals, recent, query, isSearching) { values ->
+        val positions = values[0] as List<*>
+        val pinned = values[1] as List<*>
+        val markets = values[2] as List<*>
+        val recents = values[3] as List<*>
+        val query = values[4] as String?
+        val isSearching = values[5] as Boolean
+        GemPerpetualMarketCounts(
+            positions = positions.size.toUInt(),
+            pinned = pinned.size.toUInt(),
+            markets = markets.size.toUInt(),
+            recents = recents.size.toUInt(),
+        ).sections(isSearching, query.isNullOrEmpty()).list().map { it.uiModel(context) }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun onRefresh() {
         sceneState.update { PerpetualMarketSceneState.Refreshing }

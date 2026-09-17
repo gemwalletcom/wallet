@@ -25,7 +25,7 @@ public final class ReceiveViewModel: Sendable {
     private let wallet: Wallet
     private let service: any GemReceiveServiceProtocol
     private let generator = QRCodeGenerator()
-    let networkAssetIds: [AssetId]
+    private(set) var networkAssetIds: [AssetId]
 
     private init(
         asset: Asset,
@@ -78,17 +78,9 @@ public final class ReceiveViewModel: Sendable {
     }
 
     var warningMessage: String {
-        [Localized.Receive.warning(assetModel.symbol.boldMarkdown(), assetModel.networkFullName.boldMarkdown()), memoWarningText]
-            .compactMap(\.self)
+        service.warnings(chain: assetModel.asset.chain.rawValue)
+            .map { $0.text(asset: assetModel) }
             .joined(separator: " ")
-    }
-
-    private var memoWarningText: String? {
-        switch service.memoWarning(chain: assetModel.asset.chain.rawValue) {
-        case .destinationTag: Localized.Wallet.Receive.noDestinationTagRequired
-        case .memo: Localized.Wallet.Receive.noMemoRequired
-        case .notSupported: nil
-        }
     }
 
     var copyModel: CopyTypeViewModel {
@@ -147,11 +139,14 @@ public final class ReceiveViewModel: Sendable {
         }
     }
 
-    private func prefetchAssociations() async {
+    private func syncNetworkAssetIds() async {
         do {
-            _ = try await service.syncMissingAssets(assetIds: networkAssetIds.filter { $0 != assetModel.asset.id }.ids)
+            networkAssetIds = try await service.syncNetworkAssetIds(
+                assetId: assetModel.asset.id.identifier,
+                wallet: wallet.toGem(),
+            ).map { AssetId(core: $0) }
         } catch {
-            debugLog("ReceiveViewModel prefetchAssociations error: \(error)")
+            debugLog("ReceiveViewModel syncNetworkAssetIds error: \(error)")
         }
     }
 
@@ -173,8 +168,8 @@ extension ReceiveViewModel {
     func onTaskOnce() {
         Task {
             async let enabled: Void = enableAsset()
-            async let prefetched: Void = prefetchAssociations()
-            _ = await (enabled, prefetched)
+            async let synced: Void = syncNetworkAssetIds()
+            _ = await (enabled, synced)
         }
     }
 
@@ -192,7 +187,6 @@ extension ReceiveViewModel {
                 let account = try wallet.account(for: asset.chain)
                 assetModel = AssetViewModel(asset: asset)
                 address = account.address
-                renderedImage = await generateQRCode()
                 await enableAsset()
             } catch {
                 isPresentingAlertMessage = AlertMessage(error: error)
@@ -209,6 +203,7 @@ extension ReceiveViewModel {
     }
 
     func onLoadImage() async {
+        renderedImage = nil
         renderedImage = await generateQRCode()
     }
 }

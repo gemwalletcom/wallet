@@ -1,35 +1,37 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.walletChartPeriods
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWallet
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.asset.viewmodels.chart.models.ChartUIModel
 import com.gemwallet.android.features.asset.viewmodels.chart.models.PortfolioState
 import com.gemwallet.android.features.asset.viewmodels.chart.models.StopTimeoutMillis
+import com.gemwallet.android.features.asset.viewmodels.chart.models.listItem
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.PriceChangeFormatter
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.dataOrNull
 import com.gemwallet.android.ui.models.flatMap
-import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PortfolioType
 import dagger.hilt.android.lifecycle.HiltViewModel
-import uniffi.gemstone.GemPortfolioServiceInterface
-import uniffi.gemstone.PortfolioChartType
-import uniffi.gemstone.portfolioChartData
-import uniffi.gemstone.PortfolioData
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -38,7 +40,10 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
-import javax.inject.Inject
+import uniffi.gemstone.GemPortfolioServiceInterface
+import uniffi.gemstone.PortfolioChartType
+import uniffi.gemstone.PortfolioData
+import uniffi.gemstone.portfolioChartData
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -47,6 +52,7 @@ class PortfolioChartViewModel internal constructor(
     getSession: GetSession,
     observePerpetualWallet: ObservePerpetualWallet,
     initialType: PortfolioType,
+    private val context: Context,
 ) : ViewModel() {
     private val _selectedType = MutableStateFlow(initialType)
     val selectedType = _selectedType.asStateFlow()
@@ -106,8 +112,11 @@ class PortfolioChartViewModel internal constructor(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), ChartUIModel.State())
 
-    val statistics = portfolio
-        .map { it.data.dataOrNull?.statistics.orEmpty() }
+    val statistics: StateFlow<List<ListItemModel>> = portfolio
+        .map { state ->
+            val currency = service.currency(state.type.toGem()).toPrimitives()
+            state.data.dataOrNull?.statistics.orEmpty().map { it.listItem(context, currency) }
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), emptyList())
 
     val currency = portfolio
@@ -140,11 +149,13 @@ class PortfolioChartViewModel internal constructor(
         getSession: GetSession,
         observePerpetualWallet: ObservePerpetualWallet,
         savedStateHandle: SavedStateHandle,
+        @ApplicationContext context: Context,
     ) : this(
         service = service,
         getSession = getSession,
         observePerpetualWallet = observePerpetualWallet,
         initialType = savedStateHandle.portfolioType(),
+        context = context,
     )
 }
 

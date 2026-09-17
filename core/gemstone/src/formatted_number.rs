@@ -154,6 +154,11 @@ fn unit(symbol: Option<String>) -> GemNumberUnit {
 }
 
 #[uniffi::export]
+pub fn value_tone(value: f64) -> GemValueTone {
+    GemValueTone::of(value)
+}
+
+#[uniffi::export]
 pub fn formatted_adaptive(value: f64, symbol: Option<String>) -> GemFormattedNumber {
     GemFormattedNumber::adaptive(value, symbol)
 }
@@ -234,6 +239,10 @@ mod tests {
     fn test_only_a_signed_number_carries_a_direction() {
         assert_eq!(GemFormattedNumber::usd(-5.0).tone, GemValueTone::Plain, "a price is not up or down");
         assert_eq!(GemFormattedNumber::signed_usd(-5.0).tone, GemValueTone::Negative);
+        assert_eq!(value_tone(1.0), GemValueTone::Positive);
+        assert_eq!(value_tone(-1.0), GemValueTone::Negative);
+        assert_eq!(value_tone(0.0), GemValueTone::Neutral);
+        assert_eq!(value_tone(f64::NAN), GemValueTone::Neutral, "a value that is not a number is neither up nor down");
         assert_eq!(GemFormattedNumber::signed_usd(5.0).tone, GemValueTone::Positive);
         assert_eq!(GemFormattedNumber::signed_usd(0.0).tone, GemValueTone::Neutral);
         assert_eq!(GemFormattedNumber::percentage(-2.0, GemPercentageStyle::Signed).tone, GemValueTone::Negative);

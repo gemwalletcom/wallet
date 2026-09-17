@@ -18,22 +18,17 @@ import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space2
-import com.gemwallet.android.features.import_wallet.localization.tabStringRes
-import uniffi.gemstone.GemWalletImportKind
+import com.gemwallet.android.features.import_wallet.viewmodels.ImportTabUIModel
+import com.gemwallet.android.model.ImportType
 
 private val tabHeight = 32.dp
 
-internal fun importTypeTabIndex(kind: GemWalletImportKind, tabs: List<GemWalletImportKind>): Int {
-    return tabs.indexOf(kind).takeIf { it >= 0 } ?: 0
-}
-
 @Composable
 internal fun ImportKindTab(
-    type: GemWalletImportKind,
-    selectedType: GemWalletImportKind,
-    onTypeChange: (GemWalletImportKind) -> Unit,
+    tab: ImportTabUIModel,
+    onSelect: (ImportType) -> Unit,
 ) {
-    val isSelected = type == selectedType
+    val isSelected = tab.isSelected
     Tab(
         modifier = Modifier
             .padding(horizontal = if (isSelected) space2 else space0, vertical = space2)
@@ -47,10 +42,10 @@ internal fun ImportKindTab(
                 }
             ),
         selected = isSelected,
-        onClick = { onTypeChange(type) },
+        onClick = { onSelect(tab.type) },
         text = {
             Text(
-                text = stringResource(type.tabStringRes()),
+                text = stringResource(tab.title),
                 maxLines = 1,
                 color = MaterialTheme.colorScheme.onSurface,
             )

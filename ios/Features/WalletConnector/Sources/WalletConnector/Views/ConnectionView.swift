@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import Foundation
 import Localization
 import PrimitivesComponents
 import Style
@@ -8,21 +9,17 @@ import SwiftUI
 
 struct ConnectionView: View {
     @State private var isPresentingUrl: URL? = nil
-    let model: WalletConnectionViewModel
-
-    init(model: WalletConnectionViewModel) {
-        self.model = model
-    }
+    let model: ConnectionViewModel
 
     var body: some View {
         HStack(spacing: .space12) {
-            AsyncImageView(url: model.imageUrl, size: Sizing.image.app)
+            AsyncImageView(url: model.iconUrl, size: Sizing.image.app)
             VStack(alignment: .leading) {
-                Text(model.nameText)
+                Text(model.title)
                     .font(.body)
                     .foregroundStyle(.primary)
                     .lineLimit(2)
-                if let host = model.hostText {
+                if let host = model.host {
                     Text(host)
                         .font(.callout)
                         .foregroundStyle(.secondary)
@@ -31,7 +28,7 @@ struct ConnectionView: View {
             }
         }
         .contextMenu {
-            if let url = model.url {
+            if let url = model.websiteUrl {
                 ContextMenuItem(
                     title: Localized.Settings.website,
                     systemImage: SystemImage.globe,

@@ -2,10 +2,10 @@ use cacher::{CacheError, CacheKey, CacherClient};
 use gem_tracing::error_with_fields;
 use prices::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProviders};
 use primitives::currency::Currency;
-use primitives::{AssetId, AssetMarketPrice, AssetPriceInfo, AssetPrices, ChartTimeframe, FiatRate, PriceData, PriceId, PriceProvider};
+use primitives::{AssetId, AssetMarketPrice, AssetPriceInfo, AssetPrices, ChartTimeframe, FiatRate, FiatRateProvider, PriceData, PriceId, PriceProvider};
 use std::collections::HashSet;
 use std::error::Error;
-use storage::models::{NewPriceRow, PriceAssetRow};
+use storage::models::{FiatRateRow, NewPriceRow, PriceAssetRow};
 use storage::{AssetsRepository, ChartsRepository, Database, PricesRepository};
 
 #[derive(Clone)]
@@ -19,19 +19,17 @@ impl PriceClient {
         Self { database, cacher_client }
     }
 
-    pub async fn set_fiat_rates(&self, rates: Vec<FiatRate>) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let count = self
-            .database
-            .fiat()?
-            .set_fiat_rates(rates.clone().into_iter().map(storage::models::FiatRateRow::from_primitive).collect())?;
+    pub async fn set_fiat_rates(&self, provider: FiatRateProvider, rates: Vec<FiatRate>) -> Result<usize, Box<dyn Error + Send + Sync>> {
+        let rows = rates.into_iter().map(|rate| FiatRateRow::from_primitive(rate, provider)).collect();
+        let count = self.database.fiat()?.set_fiat_rates(rows)?;
 
-        self.set_cache_fiat_rates(rates).await?;
+        self.set_cache_fiat_rates(self.get_fiat_rates()?).await?;
 
         Ok(count)
     }
 
     pub fn get_fiat_rates(&self) -> Result<Vec<FiatRate>, Box<dyn Error + Send + Sync>> {
-        Ok(self.database.fiat()?.get_fiat_rates()?.into_iter().map(|r| r.as_primitive()).collect())
+        Ok(self.database.fiat()?.get_fiat_rates()?.into_iter().map(|row| row.as_primitive()).collect())
     }
 
     pub fn get_fiat_rate(&self, currency: &Currency) -> Result<FiatRate, Box<dyn Error + Send + Sync>> {
@@ -69,7 +67,7 @@ impl PriceClient {
     pub async fn set_cache_prices(&self, prices: Vec<AssetPriceInfo>, ttl_seconds: i64) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let values: Vec<(String, String)> = prices
             .iter()
-            .map(|x| (CacheKey::Price(&x.asset_id.to_string()).key(), serde_json::to_string(&x).unwrap()))
+            .filter_map(|x| serde_json::to_string(&x).ok().map(|value| (CacheKey::Price(&x.asset_id.to_string()).key(), value)))
             .collect();
 
         self.cacher_client.set_values_with_publish(values, ttl_seconds).await

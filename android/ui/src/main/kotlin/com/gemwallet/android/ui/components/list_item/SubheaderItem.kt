@@ -22,12 +22,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.compactIconSize
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space4
+import com.gemwallet.android.ui.theme.space0
+import com.gemwallet.android.ui.theme.space2
 
 @Composable
 fun SubheaderItem(@StringRes title: Int, vararg formatArgs: Any) {
@@ -90,9 +91,9 @@ fun SubheaderItem(title: String, onClick: (() -> Unit)?) {
 }
 
 object ChevronIconDefaults {
-    val horizontalPaddingTrim: Dp = 2.dp
-    val horizontalNudge: Dp = 4.dp
-    val leadingSpacing: Dp = 0.dp
+    val horizontalPaddingTrim: Dp = space2
+    val horizontalNudge: Dp = space4
+    val leadingSpacing: Dp = space0
     val size: Dp = compactIconSize + space4
 }
 

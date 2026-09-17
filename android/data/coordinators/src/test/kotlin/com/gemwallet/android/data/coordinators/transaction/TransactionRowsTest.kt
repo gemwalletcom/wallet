@@ -1,6 +1,5 @@
 package com.gemwallet.android.data.coordinators.transaction
 
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockTransaction
 import com.gemwallet.android.testkit.mockTransactionExtended
 import com.gemwallet.android.testkit.mockTransactionId
@@ -14,12 +13,12 @@ class TransactionRowsTest {
 
     private val subject = TransactionRows()
 
-    private fun transaction(hash: String, state: TransactionState = TransactionState.Confirmed) =
-        mockTransactionExtended(transaction = mockTransaction(id = mockTransactionId(hash = hash), state = state))
+    private val first = mockTransactionExtended(mockTransaction(id = mockTransactionId(hash = "first")))
+    private val second = mockTransactionExtended(mockTransaction(id = mockTransactionId(hash = "second")))
 
     @Test
     fun unchangedTransactionsKeepTheirRow() {
-        val items = listOf(transaction("first"), transaction("second"))
+        val items = listOf(first, second)
 
         val rows = subject.aggregates(items)
 
@@ -29,10 +28,10 @@ class TransactionRowsTest {
 
     @Test
     fun changedTransactionGetsANewRow() {
-        val pending = transaction("first", TransactionState.Pending)
-        val rows = subject.aggregates(listOf(pending, transaction("second")))
+        val pending = first.copy(transaction = first.transaction.copy(state = TransactionState.Pending))
+        val rows = subject.aggregates(listOf(pending, second))
 
-        val updated = subject.aggregates(listOf(transaction("first", TransactionState.Confirmed), transaction("second")))
+        val updated = subject.aggregates(listOf(first, second))
 
         assertNotSame(rows.first(), updated.first())
         assertEquals(TransactionState.Confirmed, updated.first().state)
@@ -41,10 +40,9 @@ class TransactionRowsTest {
 
     @Test
     fun droppedTransactionIsNotKeptAlive() {
-        val first = transaction("first")
-        subject.aggregates(listOf(first, transaction("second")))
+        subject.aggregates(listOf(first, second))
 
-        val remaining = subject.aggregates(listOf(transaction("second")))
+        val remaining = subject.aggregates(listOf(second))
 
         assertEquals(1, remaining.size)
     }

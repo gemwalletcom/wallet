@@ -195,27 +195,15 @@ mod tests {
     use super::*;
     use primitives::InMemoryPreferences;
 
-    fn cache() -> HyperCoreCache {
-        HyperCoreCache::new(Arc::new(InMemoryPreferences::new()), HypercoreConfig::default())
-    }
-
-    fn agent_session(name: &str, address: &str, valid_until: u64) -> AgentSession {
-        AgentSession {
-            name: name.to_string(),
-            address: address.to_string(),
-            valid_until,
-        }
-    }
-
     #[tokio::test]
     async fn test_manage_agent_replaces_oldest_named_session_at_limit() {
-        let cache = cache();
+        let cache = HyperCoreCache::mock();
         let secure_preferences = Arc::new(InMemoryPreferences::new());
         let agents = vec![
-            agent_session("", "0x0000000000000000000000000000000000000000", 500),
-            agent_session("newest", "0x1111111111111111111111111111111111111111", 3_000),
-            agent_session("oldest", "0x2222222222222222222222222222222222222222", 1_000),
-            agent_session("middle", "0x3333333333333333333333333333333333333333", 2_000),
+            AgentSession::mock("", "0x0000000000000000000000000000000000000000", 500),
+            AgentSession::mock("newest", "0x1111111111111111111111111111111111111111", 3_000),
+            AgentSession::mock("oldest", "0x2222222222222222222222222222222222222222", 1_000),
+            AgentSession::mock("middle", "0x3333333333333333333333333333333333333333", 2_000),
         ];
 
         let approval = cache.manage_agent("0xsender", secure_preferences, async { Ok(agents) }).await.unwrap();
@@ -226,12 +214,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_manage_agent_uses_new_agent_name_below_limit() {
-        let cache = cache();
+        let cache = HyperCoreCache::mock();
         let secure_preferences = Arc::new(InMemoryPreferences::new());
         let agents = vec![
-            agent_session("newest", "0x1111111111111111111111111111111111111111", 3_000),
-            agent_session("oldest", "0x2222222222222222222222222222222222222222", 1_000),
-            agent_session("", "0x0000000000000000000000000000000000000000", 500),
+            AgentSession::mock("newest", "0x1111111111111111111111111111111111111111", 3_000),
+            AgentSession::mock("oldest", "0x2222222222222222222222222222222222222222", 1_000),
+            AgentSession::mock("", "0x0000000000000000000000000000000000000000", 500),
         ];
 
         let approval = cache.manage_agent("0xsender", secure_preferences, async { Ok(agents) }).await.unwrap();

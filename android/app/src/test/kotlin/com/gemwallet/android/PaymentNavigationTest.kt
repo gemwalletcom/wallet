@@ -8,37 +8,30 @@ import com.gemwallet.android.domains.confirm.asset
 import uniffi.gemstone.TransactionInputType
 import com.wallet.core.primitives.TransferDataOutputAction
 import com.wallet.core.primitives.TransferDataOutputType
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.testkit.mockAccount
 import com.wallet.core.primitives.Chain
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockAssetSolanaUSDC
+import com.gemwallet.android.testkit.mockGemPaymentTransaction
+import com.gemwallet.android.testkit.mockPaymentRequest
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
-import com.wallet.core.primitives.Account
-import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.ApplicationMetadataSource
-import com.wallet.core.primitives.TransactionType
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import com.wallet.core.primitives.ChainAddress
-import uniffi.gemstone.GemPaymentTransaction
 import uniffi.gemstone.AlienProvider
 import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Asset
 import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.Payment
-import uniffi.gemstone.PaymentAmount
 import uniffi.gemstone.PaymentLink
-import uniffi.gemstone.PaymentRequest
 import java.math.BigInteger
 import com.gemwallet.android.domains.confirm.unpackTransferData
 
@@ -54,19 +47,10 @@ class PaymentNavigationTest {
         val getWalletAssets = mockk<GetWalletAssets>()
         val paymentService = spyk(GemPaymentService(mockk<AlienProvider>()))
         val account = requireNotNull(assetInfo.owner)
-        val request = PaymentRequest(
-            address = account.address,
-            amount = PaymentAmount.AtomicValue(BigInteger("19000000")),
-            memo = "payment-memo",
-            label = null,
-            references = null,
-            assetId = assetInfo.asset.id.toIdentifier(),
-        )
         every { getWalletAssets() } returns MutableStateFlow(listOf(assetInfo))
-        coEvery { paymentService.load(any(), any()) } returns paymentTransaction(
+        coEvery { paymentService.load(any(), any()) } returns mockGemPaymentTransaction(
             account = account,
-            memo = "payment-memo",
-            request = request,
+            request = mockPaymentRequest(address = account.address, assetId = assetInfo.asset.id, memo = "payment-memo"),
         )
         val navigation = PaymentNavigation(getWalletAssets, paymentService, assetsService(assetInfo.asset))
 
@@ -96,19 +80,10 @@ class PaymentNavigationTest {
         val paymentService = spyk(GemPaymentService(mockk<AlienProvider>()))
         val account = requireNotNull(assetInfo.owner)
         val recipient = SOLANA_ADDRESS
-        val request = PaymentRequest(
-            address = recipient,
-            amount = PaymentAmount.AtomicValue(BigInteger("19000000")),
-            memo = null,
-            references = null,
-            label = null,
-            assetId = assetInfo.asset.id.toIdentifier(),
-        )
         every { getWalletAssets() } returns MutableStateFlow(listOf(assetInfo))
-        coEvery { paymentService.load(any(), any()) } returns paymentTransaction(
+        coEvery { paymentService.load(any(), any()) } returns mockGemPaymentTransaction(
             account = account,
-            memo = null,
-            request = request,
+            request = mockPaymentRequest(address = recipient, assetId = assetInfo.asset.id),
         )
         val navigation = PaymentNavigation(getWalletAssets, paymentService, assetsService(assetInfo.asset))
 
@@ -138,17 +113,9 @@ class PaymentNavigationTest {
         val account = requireNotNull(assetInfo.owner)
         val requestedAsset = mockAssetSolanaUSDC()
         every { getWalletAssets() } returns MutableStateFlow(listOf(assetInfo))
-        coEvery { paymentService.load(any(), any()) } returns paymentTransaction(
+        coEvery { paymentService.load(any(), any()) } returns mockGemPaymentTransaction(
             account = account,
-            memo = "payment-memo",
-            request = PaymentRequest(
-                address = account.address,
-                amount = PaymentAmount.AtomicValue(BigInteger("19000000")),
-                memo = "payment-memo",
-                references = null,
-                label = null,
-                assetId = requestedAsset.id.toIdentifier(),
-            ),
+            request = mockPaymentRequest(address = account.address, assetId = requestedAsset.id, memo = "payment-memo"),
         )
         val navigation = PaymentNavigation(getWalletAssets, paymentService, assetsService(requestedAsset))
 
@@ -165,25 +132,6 @@ class PaymentNavigationTest {
     private fun assetsService(asset: Asset) = mockk<GemAssetsServiceInterface> {
         coEvery { ensureTokenAsset(asset.id.toIdentifier()) } returns asset.toGem()
     }
-
-    private fun paymentTransaction(
-        account: Account,
-        memo: String?,
-        request: PaymentRequest?,
-    ) = GemPaymentTransaction(
-        merchant = ApplicationMetadata(
-            name = "Merchant",
-            description = "Payment",
-            url = "https://example.com",
-            icon = "https://example.com/icon.png",
-            source = ApplicationMetadataSource.Payment,
-        ).toGem(),
-        account = ChainAddress(account.chain, account.address).toGem(),
-        transaction = "encoded-transaction",
-        transactionType = TransactionType.Transfer.toGem(),
-        memo = memo,
-        request = request,
-    )
 
     private companion object {
         const val SOLANA_ADDRESS = "2kT9W3q7oXg6aPvFTN6DdK3FDZEqUigw6fmNc16YwL5n"

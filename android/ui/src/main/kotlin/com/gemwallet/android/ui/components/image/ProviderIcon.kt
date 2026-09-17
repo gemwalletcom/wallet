@@ -18,7 +18,6 @@ fun SwapProvider.iconResource(): Int = when (this) {
     SwapProvider.ACROSS -> R.drawable.swap_provider_across
     SwapProvider.OKU -> R.drawable.swap_provider_oku
     SwapProvider.WAGMI -> R.drawable.swap_provider_wagmi
-    SwapProvider.CETUS_AGGREGATOR,
     SwapProvider.CETUS_CLMM -> R.drawable.swap_provider_cetus
     SwapProvider.STONFI_V2 -> R.drawable.swap_provider_stonfi
     SwapProvider.MAYAN -> R.drawable.swap_provider_mayan

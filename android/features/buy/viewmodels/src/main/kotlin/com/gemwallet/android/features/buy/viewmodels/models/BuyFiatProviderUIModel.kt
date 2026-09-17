@@ -2,11 +2,12 @@ package com.gemwallet.android.features.buy.viewmodels.models
 
 import androidx.compose.runtime.Stable
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.text
+import com.gemwallet.android.ui.components.image.iconResource
+import com.gemwallet.android.ui.components.list_item.ListItemImage
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.CryptoFormattedUIModel
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FiatProviderName
 import uniffi.gemstone.GemFiatQuoteRow
 
@@ -14,7 +15,6 @@ import uniffi.gemstone.GemFiatQuoteRow
 data class BuyFiatProviderUIModel(
     val row: GemFiatQuoteRow,
     override val asset: Asset,
-    val currency: Currency,
 ) : CryptoFormattedUIModel {
 
     val provider: FiatProviderName by lazy { row.provider.toPrimitives() }
@@ -34,10 +34,14 @@ data class BuyFiatProviderUIModel(
     val rate: String by lazy {
         row.rate?.let { it.text(it.value.text()) }.orEmpty()
     }
-
-    private val fiatFormatter: CurrencyFormatter
-        get() = CurrencyFormatter(type = CurrencyFormatter.Type.Fiat, currency = currency)
 }
 
-fun GemFiatQuoteRow.toProviderUIModel(asset: Asset, currency: Currency): BuyFiatProviderUIModel =
-    BuyFiatProviderUIModel(row = this, asset = asset, currency = currency)
+fun BuyFiatProviderUIModel.listItem(): ListItemModel = ListItemModel(
+    title = providerName,
+    subtitle = cryptoText,
+    subtitleExtra = fiatFormatted,
+    image = ListItemImage.Drawable(provider.iconResource()),
+)
+
+fun GemFiatQuoteRow.toProviderUIModel(asset: Asset): BuyFiatProviderUIModel =
+    BuyFiatProviderUIModel(row = this, asset = asset)

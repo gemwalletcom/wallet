@@ -213,22 +213,23 @@ impl FiatStore for DatabaseClient {
 
     fn set_fiat_rates(&mut self, rates: Vec<FiatRateRow>) -> Result<usize, diesel::result::Error> {
         use crate::schema::fiat_rates::dsl::*;
-        diesel::insert_into(fiat_rates)
-            .values(&rates)
-            .on_conflict(id)
-            .do_update()
-            .set(rate.eq(excluded(rate)))
-            .execute(&mut self.connection)
+        use diesel::query_dsl::methods::FilterDsl;
+        let query = diesel::insert_into(fiat_rates).values(&rates).on_conflict(id).do_update().set(rate.eq(excluded(rate)));
+        query.filter(provider.eq(excluded(provider))).execute(&mut self.connection)
     }
 
     fn get_fiat_rates(&mut self) -> Result<Vec<FiatRateRow>, diesel::result::Error> {
         use crate::schema::fiat_rates::dsl::*;
-        fiat_rates.select(FiatRateRow::as_select()).load(&mut self.connection)
+        fiat_rates.filter(is_enabled.eq(true)).select(FiatRateRow::as_select()).load(&mut self.connection)
     }
 
     fn get_fiat_rate(&mut self, currency: &PrimitiveCurrency) -> Result<FiatRateRow, diesel::result::Error> {
         use crate::schema::fiat_rates::dsl::*;
-        fiat_rates.find(Currency(currency.clone())).select(FiatRateRow::as_select()).first(&mut self.connection)
+        fiat_rates
+            .find(Currency(currency.clone()))
+            .filter(is_enabled.eq(true))
+            .select(FiatRateRow::as_select())
+            .first(&mut self.connection)
     }
 
     fn get_fiat_providers(&mut self) -> Result<Vec<FiatProviderRow>, diesel::result::Error> {

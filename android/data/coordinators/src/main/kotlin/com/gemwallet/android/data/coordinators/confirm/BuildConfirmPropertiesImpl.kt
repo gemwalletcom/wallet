@@ -1,21 +1,17 @@
 package com.gemwallet.android.data.coordinators.confirm
 
-import com.gemwallet.android.ext.toGem
-import uniffi.gemstone.walletRow
-import uniffi.gemstone.GemConfirmTransferServiceInterface
 import com.gemwallet.android.application.confirm.cases.BuildConfirmProperties
-import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.confirm.ConfirmProperty
-import com.gemwallet.android.domains.confirm.asset
-import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.toChain
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.AddressName
-import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Wallet
-import uniffi.gemstone.TransactionInputType
-import uniffi.gemstone.GemTransferData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemConfirmRowContent
+import uniffi.gemstone.GemConfirmTransferServiceInterface
+import uniffi.gemstone.GemTransferData
 
 class BuildConfirmPropertiesImpl(
     private val confirmService: GemConfirmTransferServiceInterface,
@@ -25,43 +21,21 @@ class BuildConfirmPropertiesImpl(
         transfer: GemTransferData,
         wallet: Wallet,
         addressName: AddressName?,
-    ): List<ConfirmProperty> {
-        val chain = transfer.asset.id.chain
-        return withContext(Dispatchers.IO) {
-            mutableListOf<ConfirmProperty?>().apply {
-                add(ConfirmProperty.Source(walletRow(wallet.toGem())))
-                (transfer.inputType as? TransactionInputType.Generic)?.let { add(ConfirmProperty.Destination.Generic(it.metadata.name)) }
-                add(
-                    when (val destination = ConfirmProperty.Destination.map(transfer.destination()?.withAddressName(addressName?.toGem()), chain, addressName)) {
-                        is ConfirmProperty.Destination.Transfer -> ConfirmProperty.Destination.Transfer(
-                            domain = destination.domain,
-                            address = destination.address,
-                            chain = destination.chain,
-                            addressType = destination.addressType,
-                            imageUrl = destination.imageUrl,
-                            explorerLink = explorerLink(chain, destination.address),
-                        )
-                        is ConfirmProperty.Destination.Contract -> ConfirmProperty.Destination.Contract(
-                            address = destination.address,
-                            chain = destination.chain,
-                            explorerLink = explorerLink(chain, destination.address),
-                        )
-                        is ConfirmProperty.Destination.Stake -> destination.address?.let { address ->
-                            ConfirmProperty.Destination.Stake(
-                                data = destination.data,
-                                address = address,
-                                explorerLink = explorerLink(chain, address),
-                            )
-                        } ?: destination
-                        else -> destination
-                    }
+    ): List<ConfirmProperty> = withContext(Dispatchers.IO) {
+        confirmService.rowContents(transfer, wallet.toGem(), addressName?.toGem()).mapNotNull { content ->
+            when (content) {
+                is GemConfirmRowContent.App -> ConfirmProperty.Destination.Generic(content.name)
+                is GemConfirmRowContent.Sender -> ConfirmProperty.Source(content.wallet)
+                is GemConfirmRowContent.Recipient -> ConfirmProperty.Destination.map(
+                    destination = content.destination,
+                    chain = content.chain.toChain(),
+                    addressName = content.addressName?.toPrimitives(),
+                    explorerLink = content.link.toPrimitives(),
                 )
-                add(ConfirmProperty.Network(chain.asset()))
-                add(ConfirmProperty.Memo(transfer.recipient.memo.orEmpty()).takeIf { transfer.showsMemo() })
-            }.filterNotNull()
+                is GemConfirmRowContent.Network -> ConfirmProperty.Network(content.chain.toChain(), content.name)
+                is GemConfirmRowContent.Memo -> ConfirmProperty.Memo(content.memo.orEmpty())
+                is GemConfirmRowContent.Details -> null
+            }
         }
     }
-
-    private fun explorerLink(chain: Chain, address: String): BlockExplorerLink =
-        confirmService.addressUrl(chain.string, address).let { BlockExplorerLink(it.name, it.link) }
 }

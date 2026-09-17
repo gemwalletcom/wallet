@@ -21,8 +21,8 @@ public struct SignMessageScene: View {
 
     public var body: some View {
         List {
-            if let headerData = model.headerData {
-                TransactionHeaderListItemView(headerType: .assetValue(headerData), showClearHeader: true)
+            if let headerModel = model.headerModel {
+                TransactionHeaderListItemView(headerType: .assetValue(headerModel), showClearHeader: true)
             } else {
                 ListAssetHeaderView(model: model.appPreview, subtitleLayout: .vertical)
             }
@@ -57,7 +57,7 @@ public struct SignMessageScene: View {
                 Section {
                     SimulationPayloadFieldsContent(models: model.fieldModels(for: model.payloadModel.primaryFields))
 
-                    NavigationCustomLink(with: ListItemView(title: Localized.Common.details)) {
+                    NavigationCustomLink(with: ListItemView(model: model.payloadDetailsListItem)) {
                         model.onViewPayloadDetails()
                     }
                 }
@@ -86,7 +86,7 @@ public struct SignMessageScene: View {
                     SimulationPayloadDetailsScene(
                         primaryModels: model.fieldModels(for: model.payloadModel.primaryFields),
                         secondaryModels: model.fieldModels(for: model.payloadModel.secondaryFields),
-                        actionTitle: Localized.SignMessage.viewFullMessage,
+                        actionListItem: model.viewFullMessageListItem,
                         actionDestination: AnyView(TextMessageScene(model: model.textMessageViewModel)),
                     )
                     .presentationDetents([.large])

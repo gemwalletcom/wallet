@@ -7,8 +7,8 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AssetFilter
 import com.gemwallet.android.model.RecentAsset
 import com.wallet.core.primitives.RecentActivityType
-import com.gemwallet.android.testkit.mockAsset
-import com.wallet.core.primitives.Chain
+import com.gemwallet.android.testkit.mockAssetEthereum
+import com.gemwallet.android.testkit.mockAssetSolana
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -41,8 +41,8 @@ class RecentsSheetViewModelTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
 
-    private val solAsset = mockAsset(chain = Chain.Solana, name = "Solana", symbol = "SOL")
-    private val ethAsset = mockAsset(chain = Chain.Ethereum, name = "Ethereum", symbol = "ETH")
+    private val solAsset = mockAssetSolana()
+    private val ethAsset = mockAssetEthereum()
     private val recentItems = listOf(
         RecentAsset(asset = solAsset, addedAt = 1000L),
         RecentAsset(asset = ethAsset, addedAt = 2000L),

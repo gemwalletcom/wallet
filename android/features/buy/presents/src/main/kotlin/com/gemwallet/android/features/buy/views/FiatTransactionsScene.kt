@@ -7,17 +7,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.features.buy.viewmodels.models.FiatTransactionRowUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
+import com.gemwallet.android.ui.components.list_item.rememberDateSections
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.open
-import com.wallet.core.primitives.FiatTransactionAssetData
 
 @Composable
 fun FiatTransactionsScene(
-    transactions: List<FiatTransactionAssetData>,
+    transactions: List<FiatTransactionRowUIModel>,
     isRefreshing: Boolean,
     onClose: () -> Unit,
     onRefresh: () -> Unit,
@@ -28,6 +29,7 @@ fun FiatTransactionsScene(
     ) {
         val uriHandler = LocalUriHandler.current
         val context = LocalContext.current
+        val sections = rememberDateSections(transactions) { it.data.createdAt }
         PullToRefreshBox(
             isRefreshing = isRefreshing,
             onRefresh = onRefresh,
@@ -41,7 +43,7 @@ fun FiatTransactionsScene(
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     fiatTransactionsList(
-                        items = transactions,
+                        sections = sections,
                         onTransactionClick = { info ->
                             info.detailsUrl?.let { url ->
                                 uriHandler.open(context, url)

@@ -25,6 +25,7 @@ import uniffi.gemstone.GemBalanceService
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
 import uniffi.gemstone.GemKeystore
+import uniffi.gemstone.GemNodeService
 import uniffi.gemstone.GemDeviceApiClient as GemstoneDeviceApiClient
 import uniffi.gemstone.GemFiatQuoteService
 import uniffi.gemstone.GemFiatQuoteServiceInterface
@@ -61,7 +62,9 @@ import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPreferencesStore
 import uniffi.gemstone.GemSecureStore
 import uniffi.gemstone.GemPaymentService
+import uniffi.gemstone.GemPaymentServiceInterface
 import uniffi.gemstone.GemServiceStatus
+import uniffi.gemstone.GemServiceStatusInterface
 import uniffi.gemstone.serviceStatusTimeout
 import uniffi.gemstone.GemSimulationService
 import uniffi.gemstone.GemSimulationServiceInterface
@@ -94,11 +97,13 @@ object GatewayModule {
     @Singleton
     fun provideGateway(
         alienProvider: AlienProvider,
+        nodes: GemNodeService,
         securePreferences: GemSecureStore,
         @ApplicationContext context: Context,
     ): GemGateway {
         return GemGateway(
             alienProvider,
+            nodes = nodes,
             preferences = GemstonePreferencesStore(
                 sharedPreferences = context.getSharedPreferences("gateway_preferences", Context.MODE_PRIVATE)
             ),
@@ -280,7 +285,7 @@ object GatewayModule {
     @Singleton
     fun provideGemServiceStatus(
         okHttpClient: OkHttpClient,
-    ): GemServiceStatus {
+    ): GemServiceStatusInterface {
         val httpClient = okHttpClient.newBuilder()
             .callTimeout(serviceStatusTimeout())
             .build()
@@ -291,8 +296,8 @@ object GatewayModule {
     @Singleton
     fun provideGemGemSimulationService(
         alienProvider: AlienProvider,
-        preferences: GemstonePreferencesStore,
-    ): GemSimulationService = GemSimulationService(alienProvider, preferences)
+        nodes: GemNodeService,
+    ): GemSimulationService = GemSimulationService(alienProvider, nodes)
 
     @Provides
     @Singleton
@@ -305,4 +310,8 @@ object GatewayModule {
 
     @Provides
     fun provideGemChartServiceInterface(service: GemChartService): GemChartServiceInterface = service
+
+    @Provides
+    @Singleton
+    fun providePaymentServiceInterface(service: GemPaymentService): GemPaymentServiceInterface = service
 }

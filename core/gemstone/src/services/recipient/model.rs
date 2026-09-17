@@ -1,4 +1,4 @@
-use primitives::{Asset, NFTAsset};
+use primitives::{Asset, NFTAsset, Wallet};
 
 use crate::payment::GemPaymentRecipient;
 use crate::services::transfer::GemTransferData;
@@ -65,4 +65,12 @@ pub enum GemRecipientScan {
 pub enum GemRecipientNext {
     Amount { payment: GemPaymentRecipient },
     Confirm { transfer: GemTransferData },
+}
+
+#[derive(Debug, Clone, uniffi::Enum)]
+pub enum GemRecipientSection {
+    Pinned { wallets: Vec<Wallet> },
+    Contacts,
+    Wallets { wallets: Vec<Wallet> },
+    ViewWallets { wallets: Vec<Wallet> },
 }

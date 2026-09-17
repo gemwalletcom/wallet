@@ -26,15 +26,15 @@ pub struct HyperLiquidEIP712Message {
     pub types: BTreeMap<String, Vec<EIP712Type>>,
 }
 
-pub fn create_l1_eip712_json(phantom_agent: &PhantomAgent) -> String {
+pub fn create_l1_eip712_json(phantom_agent: &PhantomAgent) -> Result<String, String> {
     let domain = HyperLiquidEIP712Domain {
-        chain_id: Chain::HyperCore.network_id().parse().unwrap(),
+        chain_id: chain_id(Chain::HyperCore)?,
         name: "Exchange".to_string(),
         verifying_contract: Some(Address::ZERO.to_string()),
         version: Some("1".to_string()),
     };
 
-    let message = serde_json::to_value(phantom_agent).unwrap();
+    let message = serde_json::to_value(phantom_agent).map_err(|error| error.to_string())?;
 
     let mut types = BTreeMap::new();
     types.insert("EIP712Domain".to_string(), eip712_domain_types());
@@ -47,11 +47,11 @@ pub fn create_l1_eip712_json(phantom_agent: &PhantomAgent) -> String {
         types,
     };
 
-    serde_json::to_string_pretty(&eip712_message).unwrap()
+    serde_json::to_string_pretty(&eip712_message).map_err(|error| error.to_string())
 }
 
-pub fn create_user_signed_eip712_json(action: &Value, primary_type: &str, action_types: Vec<EIP712Type>) -> String {
-    let arbitrum_chain_id: u64 = Chain::Arbitrum.network_id().parse().unwrap();
+pub fn create_user_signed_eip712_json(action: &Value, primary_type: &str, action_types: Vec<EIP712Type>) -> Result<String, String> {
+    let arbitrum_chain_id = chain_id(Chain::Arbitrum)?;
     let chain_id = if let Some(sig_chain_id) = action.get("signatureChainId").and_then(|v| v.as_str()) {
         u64::from_str_radix(sig_chain_id.trim_start_matches("0x"), 16).unwrap_or(arbitrum_chain_id)
     } else {
@@ -76,7 +76,11 @@ pub fn create_user_signed_eip712_json(action: &Value, primary_type: &str, action
         types,
     };
 
-    serde_json::to_string_pretty(&eip712_message).unwrap()
+    serde_json::to_string_pretty(&eip712_message).map_err(|error| error.to_string())
+}
+
+fn chain_id(chain: Chain) -> Result<u64, String> {
+    chain.network_id_value().ok_or_else(|| format!("{chain} has no numeric network id"))
 }
 
 // Helper functions for HyperLiquid-specific EIP712 type definitions

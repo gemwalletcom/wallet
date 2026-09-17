@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.bridge.views
 
-import com.gemwallet.android.features.bridge.viewmodels.model.ConnectionRowModel
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -21,10 +20,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.AppUrl
+import com.gemwallet.android.features.bridge.viewmodels.ConnectionsViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DocsInfoButton
 import com.gemwallet.android.ui.components.QrCodeScannerModal
-import com.wallet.core.primitives.QRScanType
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
@@ -32,14 +33,16 @@ import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.ListItemTitleText
+import com.gemwallet.android.ui.components.list_item.SubheaderItem
+import com.gemwallet.android.ui.components.list_item.listSections
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.features.bridge.viewmodels.ConnectionsViewModel
+import com.wallet.core.primitives.QRScanType
 import kotlinx.coroutines.launch
-import com.gemwallet.android.AppUrl
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
+import uniffi.gemstone.DocsUrl
+import uniffi.gemstone.GemConnection
 
 @Composable
 fun ConnectionsScene(
@@ -50,7 +53,7 @@ fun ConnectionsScene(
     val clipboardManager = LocalContext.current.clipboardManager()
     var scannerShowed by remember { mutableStateOf(false) }
 
-    val connections by viewModel.connections.collectAsStateWithLifecycle()
+    val sections by viewModel.sections.collectAsStateWithLifecycle()
 
     var pairError by remember { mutableStateOf("") }
 
@@ -62,13 +65,15 @@ fun ConnectionsScene(
         title = stringResource(id = R.string.wallet_connect_title),
         snackbar = snackbar,
         actions = {
-            DocsInfoButton(AppUrl.walletConnect)
+            DocsInfoButton(AppUrl.docs(DocsUrl.WalletConnect))
         },
         onClose = onCancel,
     ) {
         LazyColumn {
             item {
                 ListItem(
+                    model = viewModel.pasteListItem,
+                    listPosition = ListPosition.First,
                     modifier = Modifier.clickable {
                         viewModel.addPairing(
                             clipboardManager.getPlainText() ?: return@clickable,
@@ -76,38 +81,26 @@ fun ConnectionsScene(
                             { pairError = it }
                         )
                     },
-                    leading = {
-                        Icon(
-                            imageVector = AppIcons.ContentPaste,
-                            contentDescription = "paste_uri",
-                            tint = MaterialTheme.colorScheme.onSurface,
-                        )
-                    },
-                    title = { ListItemTitleText(stringResource(id = R.string.common_paste)) },
-                    listPosition = ListPosition.First,
                 )
             }
             item {
                 ListItem(
-                    modifier = Modifier.clickable { scannerShowed = true },
-                    leading = {
-                        Icon(
-                            imageVector = AppIcons.QrCodeScanner,
-                            contentDescription = "scan_qr",
-                            tint = MaterialTheme.colorScheme.onSurface,
-                        )
-                    },
-                    title = { ListItemTitleText(stringResource(id = R.string.wallet_scan_qr_code)) },
+                    model = viewModel.scanListItem,
                     listPosition = ListPosition.Last,
+                    modifier = Modifier.clickable { scannerShowed = true },
                 )
             }
-            if (connections.isEmpty()) {
+            if (sections.isEmpty()) {
                 item {
                     EmptyContentView(type = EmptyContentType.WalletConnect, modifier = Modifier.fillParentMaxHeight(0.7f))
                 }
             } else {
-                itemsIndexed(connections) { index, item ->
-                    ConnectionItem(item, ListPosition.getPosition(index, connections.size), onConnection)
+                listSections(sections) { position, item ->
+                    ListItem(
+                        model = item.model,
+                        listPosition = position,
+                        modifier = Modifier.clickable { onConnection(item.id) },
+                    )
                 }
             }
         }
@@ -132,25 +125,4 @@ fun ConnectionsScene(
             text = { Text(text = pairError) }
         )
     }
-}
-
-@Composable
-fun ConnectionItem(
-    model: ConnectionRowModel,
-    listPosition: ListPosition,
-    onClick: ((String) -> Unit)? = null,
-) {
-    val row = model.row
-    ListItem(
-        modifier = if (onClick == null) Modifier else Modifier.clickable { onClick(model.connection.session.id) },
-        leading = {
-            IconWithBadge(
-                row.iconUrl,
-                placeholder = row.initial ?: "WC",
-            )
-        },
-        title = { ListItemTitleText(row.title) },
-        subtitle = row.host?.let { host -> { ListItemSupportText(host) } },
-        listPosition = listPosition
-    )
 }

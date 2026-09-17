@@ -448,19 +448,13 @@ impl NodeMonitorMetrics {
 mod tests {
     use super::*;
     use crate::config::MetricsConfig;
-    use crate::testkit::config::metrics_config;
-
-    fn create_test_metrics() -> Metrics {
-        let config = MetricsConfig {
-            prefix: "test".to_string(),
-            ..metrics_config()
-        };
-        Metrics::new(config)
-    }
 
     #[test]
     fn test_truncate_method() {
-        let m = create_test_metrics();
+        let m = Metrics::new(MetricsConfig {
+            prefix: "test".to_string(),
+            ..MetricsConfig::mock()
+        });
 
         assert_eq!(m.truncate_method("eth_getBlockByNumber"), "eth_getBlockByNumber");
         assert_eq!(m.truncate_method("eth_getBalance"), "eth_getBalance");
@@ -470,7 +464,10 @@ mod tests {
 
     #[test]
     fn test_records_response_once_and_retries_separately() {
-        let metrics = create_test_metrics();
+        let metrics = Metrics::new(MetricsConfig {
+            prefix: "test".to_string(),
+            ..MetricsConfig::mock()
+        });
 
         metrics.add_proxy_response("tron", "POST", "/wallet/getaccount?visible=true", 200, 123);
         metrics.add_proxy_retry("tron", "api.trongrid.io", "status=429");
@@ -490,7 +487,10 @@ mod tests {
 
     #[test]
     fn test_moves_current_node_host() {
-        let metrics = create_test_metrics();
+        let metrics = Metrics::new(MetricsConfig {
+            prefix: "test".to_string(),
+            ..MetricsConfig::mock()
+        });
 
         metrics.set_node_host_current("thorchain", "thornode.ninerealms.com");
         metrics.move_node_host_current("thorchain", "thornode.ninerealms.com", "gateway.liquify.com");

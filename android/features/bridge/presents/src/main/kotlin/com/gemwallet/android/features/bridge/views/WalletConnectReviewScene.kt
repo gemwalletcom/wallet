@@ -11,6 +11,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.features.bridge.localization.string
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectReviewModel
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
@@ -18,7 +19,7 @@ import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.AssetValueListHead
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.CenteredListHeadSubtitleLayout
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
+import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsContent
@@ -27,7 +28,6 @@ import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.gemwallet.android.features.bridge.localization.string
 
 @Composable
 internal fun WalletConnectReviewScene(
@@ -74,7 +74,7 @@ internal fun WalletConnectReviewScene(
                 item { walletRow(ListPosition.First) }
             } else {
                 item { AssetValueListHead(header) }
-                item { PropertyItem(R.string.wallet_connect_app, model.name, listPosition = ListPosition.First) }
+                item { ListItem(model = model.appListItem, listPosition = ListPosition.First) }
                 item { walletRow(ListPosition.Middle) }
             }
             item {
@@ -100,6 +100,7 @@ internal fun WalletConnectReviewScene(
         addressNames = model.addressNames,
         onViewFullMessage = { sheetType = WalletConnectReviewSheetType.FullMessage },
         onDismissRequest = { sheetType = null },
+        viewFullMessageListItem = model.viewFullMessageListItem,
     )
     WalletConnectFullMessageSheet(
         isVisible = sheetType == WalletConnectReviewSheetType.FullMessage,

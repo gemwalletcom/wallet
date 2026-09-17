@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,27 +15,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.ImeAction
 import com.gemwallet.android.ui.components.GemTextField
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.getPlainText
-import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
-import com.gemwallet.android.ui.icons.AppIcons
-import uniffi.gemstone.GemNameRecordState
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
-import com.gemwallet.android.ui.theme.smallIconSize
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 @Composable
 fun ColumnScope.AddressChainField(
     value: String,
     label: String,
     onValueChange: (String) -> Unit,
-    state: GemNameRecordState = GemNameRecordState.None,
+    indicator: NameResolveIndicatorUIModel? = null,
     error: String = "",
     editable: Boolean = true,
     onPaste: ((String) -> Unit)? = null,
@@ -63,7 +57,7 @@ fun ColumnScope.AddressChainField(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(paddingSmall),
             ) {
-                NameResolveIndicator(state)
+                NameResolveIndicator(indicator)
                 TransferTextFieldActions(
                     value = value,
                     paste = { (onPaste ?: onValueChange)(clipboardManager.getPlainText() ?: "") },

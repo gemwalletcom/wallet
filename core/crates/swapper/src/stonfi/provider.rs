@@ -30,9 +30,9 @@ where
 }
 
 impl Stonfi<RpcClient> {
-    pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Self {
-        let endpoint = rpc_provider.get_endpoint(Chain::Ton).expect("failed to get TON endpoint for STON.fi");
-        Self::new_with_client(TonClient::new(RpcClient::new(endpoint, rpc_provider)))
+    pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Option<Self> {
+        let endpoint = rpc_provider.get_endpoint(Chain::Ton).ok()?;
+        Some(Self::new_with_client(TonClient::new(RpcClient::new(endpoint, rpc_provider))))
     }
 }
 
@@ -559,7 +559,10 @@ fn eligible_probes(require_v2: bool) -> Vec<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::super::constants::STATIC_POOLS;
+    use super::super::{
+        constants::STATIC_POOLS,
+        testkit::{TEST_PTON_WALLET, TEST_USDT_WALLET, mock_cell_response, mock_pool_data_response, mock_v1_pool_data_response},
+    };
     use super::*;
     use crate::Options;
     use gem_ton::constants::TON_PROXY_JETTON_ADDRESS;
@@ -569,109 +572,20 @@ mod tests {
         atomic::{AtomicUsize, Ordering},
     };
 
-    const PTON_WALLET: &str = "EQCSIMGBps_qzRG3uPYhON8bucyCtu0mYdL1-u4gSz77IBa3";
-    const USDT_WALLET: &str = "EQCSLWJ9fY7b0A5OI72wxUp27l4fRlc6GvRBeFf6PiPpH4p3";
     const GRAM_TOKEN_ID: &str = "EQC47093oX5Xhb0xuk2lCr2RhS8rj-vul61u4W2UH5ORmG_O";
     const DISCOVERED_POOL: &str = "EQCGScrZe1xbyWqWDvdI6mzP-GAcAWFv6ZXuaJOuSqemxku4";
     const V1_POOL: &str = "EQD8TJ8xEWB1SpnRE4d89YO3jl0W0EiBnNS4IBaHaUmdfizE";
-
-    fn discovered_pool(pool_address: &str) -> DiscoveredPool {
-        DiscoveredPool {
-            pool_address: pool_address.to_string(),
-            router: router_model(&FALLBACK_ROUTERS[0]),
-            asset0: TON_PROXY_JETTON_ADDRESS.to_string(),
-            asset1: TON_USDT_TOKEN_ID.to_string(),
-            wallet0: PTON_WALLET.to_string(),
-            wallet1: USDT_WALLET.to_string(),
-            lp_fee_bps: None,
-        }
-    }
-
-    fn get_method_response(stack: serde_json::Value) -> Vec<u8> {
-        serde_json::to_vec(&serde_json::json!({
-            "ok": true,
-            "result": {
-                "exit_code": 0,
-                "stack": stack
-            }
-        }))
-        .unwrap()
-    }
-
-    fn cell_response(address: &str) -> Vec<u8> {
-        let bytes = Address::parse(address).unwrap().to_boc_base64().unwrap();
-        get_method_response(serde_json::json!([["cell", { "bytes": bytes }]]))
-    }
-
-    fn get_pool_data_response(is_locked: bool, reserve0: u64, reserve1: u64, token0_wallet: &str, token1_wallet: &str, lp_fee_bps: u32) -> Vec<u8> {
-        let token0 = Address::parse(token0_wallet).unwrap().to_boc_base64().unwrap();
-        let token1 = Address::parse(token1_wallet).unwrap().to_boc_base64().unwrap();
-        get_method_response(serde_json::json!([
-            ["num", if is_locked { "0x1" } else { "0x0" }],
-            ["num", "0x0"],
-            ["num", "0x0"],
-            ["num", reserve0.to_string()],
-            ["num", reserve1.to_string()],
-            ["cell", { "bytes": token0 }],
-            ["cell", { "bytes": token1 }],
-            ["num", lp_fee_bps.to_string()],
-            ["num", "0x3"],
-            ["num", "0x0"],
-            ["num", "0x0"],
-            ["cell", { "bytes": token1 }]
-        ]))
-    }
-
-    fn get_v1_pool_data_response(reserve0: u64, reserve1: u64, token0_wallet: &str, token1_wallet: &str, lp_fee_bps: u32) -> Vec<u8> {
-        let token0 = Address::parse(token0_wallet).unwrap().to_boc_base64().unwrap();
-        let token1 = Address::parse(token1_wallet).unwrap().to_boc_base64().unwrap();
-        get_method_response(serde_json::json!([
-            ["num", reserve0.to_string()],
-            ["num", reserve1.to_string()],
-            ["cell", { "bytes": token0 }],
-            ["cell", { "bytes": token1 }],
-            ["num", lp_fee_bps.to_string()],
-            ["num", "0xa"],
-            ["num", "0xa"],
-            ["cell", { "bytes": token1 }],
-            ["num", "0x0"],
-            ["num", "0x0"]
-        ]))
-    }
-
-    fn v1_ton_usdt_pool() -> &'static super::super::constants::StaticPool {
-        STATIC_POOLS.iter().find(|pool| pool.pool_address == V1_POOL).unwrap()
-    }
-
-    fn provider_with_get_method<F>(handler: F) -> Stonfi<gem_client::testkit::MockClient>
-    where
-        F: Fn(&str, &str) -> Vec<u8> + Send + Sync + 'static,
-    {
-        Stonfi::new_with_client(TonClient::new(gem_client::testkit::MockClient::new().with_post(move |_, body| {
-            let request: serde_json::Value = serde_json::from_slice(body).unwrap();
-            let address = request["address"].as_str().unwrap();
-            let method = request["method"].as_str().unwrap();
-            Ok(handler(method, address))
-        })))
-    }
-
-    fn provider_with_pool_data<F>(handler: F) -> Stonfi<gem_client::testkit::MockClient>
-    where
-        F: Fn(&str) -> Vec<u8> + Send + Sync + 'static,
-    {
-        provider_with_get_method(move |_, address| handler(address))
-    }
 
     #[tokio::test]
     async fn test_preload_discovers_once() {
         let calls = Arc::new(Mutex::new(Vec::<String>::new()));
         let calls_ref = calls.clone();
-        let provider = provider_with_get_method(move |method, _| {
+        let provider = Stonfi::mock(move |method, _| {
             calls_ref.lock().unwrap().push(method.to_string());
             match method {
-                "get_wallet_address" => cell_response(USDT_WALLET),
-                "get_pool_address" => cell_response(DISCOVERED_POOL),
-                "get_pool_data" => get_pool_data_response(false, 1, 1, USDT_WALLET, PTON_WALLET, 7),
+                "get_wallet_address" => mock_cell_response(TEST_USDT_WALLET),
+                "get_pool_address" => mock_cell_response(DISCOVERED_POOL),
+                "get_pool_data" => mock_pool_data_response(false, 1, 1, TEST_USDT_WALLET, TEST_PTON_WALLET, 7),
                 _ => unreachable!("{method}"),
             }
         });
@@ -688,12 +602,12 @@ mod tests {
     async fn test_failed_pool_validation_is_retried() {
         let calls = Arc::new(AtomicUsize::new(0));
         let calls_ref = calls.clone();
-        let provider = provider_with_get_method(move |method, _| {
+        let provider = Stonfi::mock(move |method, _| {
             calls_ref.fetch_add(1, Ordering::Relaxed);
             match method {
-                "get_wallet_address" => cell_response(USDT_WALLET),
-                "get_pool_address" => cell_response(DISCOVERED_POOL),
-                "get_pool_data" => serde_json::to_vec(&serde_json::json!({ "ok": false, "result": "node unavailable" })).unwrap(),
+                "get_wallet_address" => mock_cell_response(TEST_USDT_WALLET),
+                "get_pool_address" => mock_cell_response(DISCOVERED_POOL),
+                "get_pool_data" => br#"{"error":"node unavailable"}"#.to_vec(),
                 _ => unreachable!("{method}"),
             }
         });
@@ -712,12 +626,12 @@ mod tests {
     async fn test_native_preload_discovers_direct_pair_only() {
         let calls = Arc::new(Mutex::new(Vec::<String>::new()));
         let calls_ref = calls.clone();
-        let provider = provider_with_get_method(move |method, address| {
+        let provider = Stonfi::mock(move |method, address| {
             calls_ref.lock().unwrap().push(method.to_string());
             match method {
-                "get_wallet_address" => cell_response(USDT_WALLET),
-                "get_pool_address" => cell_response(DISCOVERED_POOL),
-                "get_pool_data" => get_pool_data_response(false, 1, 1, USDT_WALLET, PTON_WALLET, 7),
+                "get_wallet_address" => mock_cell_response(TEST_USDT_WALLET),
+                "get_pool_address" => mock_cell_response(DISCOVERED_POOL),
+                "get_pool_data" => mock_pool_data_response(false, 1, 1, TEST_USDT_WALLET, TEST_PTON_WALLET, 7),
                 _ => unreachable!("{method} {address}"),
             }
         });
@@ -739,16 +653,14 @@ mod tests {
         let calls_ref = calls.clone();
         let v1_attempts = Arc::new(AtomicUsize::new(0));
         let v1_attempts_ref = v1_attempts.clone();
-        let provider = provider_with_get_method(move |method, address| {
+        let provider = Stonfi::mock(move |method, address| {
             calls_ref.lock().unwrap().push((method.to_string(), address.to_string()));
             match method {
-                "get_wallet_address" => cell_response(USDT_WALLET),
-                "get_pool_address" if address == FALLBACK_ROUTERS[0].address => cell_response(DISCOVERED_POOL),
-                "get_pool_address" if address == FALLBACK_ROUTERS[1].address && v1_attempts_ref.fetch_add(1, Ordering::Relaxed) == 0 => {
-                    serde_json::to_vec(&serde_json::json!({ "ok": true, "result": { "exit_code": 1, "stack": [] } })).unwrap()
-                }
-                "get_pool_address" if address == FALLBACK_ROUTERS[1].address => cell_response(V1_POOL),
-                "get_pool_data" => get_pool_data_response(false, 1, 1, USDT_WALLET, PTON_WALLET, 7),
+                "get_wallet_address" => mock_cell_response(TEST_USDT_WALLET),
+                "get_pool_address" if address == FALLBACK_ROUTERS[0].address => mock_cell_response(DISCOVERED_POOL),
+                "get_pool_address" if address == FALLBACK_ROUTERS[1].address && v1_attempts_ref.fetch_add(1, Ordering::Relaxed) == 0 => br#"{"exit_code":1,"stack":[]}"#.to_vec(),
+                "get_pool_address" if address == FALLBACK_ROUTERS[1].address => mock_cell_response(V1_POOL),
+                "get_pool_data" => mock_pool_data_response(false, 1, 1, TEST_USDT_WALLET, TEST_PTON_WALLET, 7),
                 _ => unreachable!("{method} {address}"),
             }
         });
@@ -777,12 +689,12 @@ mod tests {
     async fn test_preload_caches_definitive_missing_pool() {
         let calls = Arc::new(AtomicUsize::new(0));
         let calls_ref = calls.clone();
-        let provider = provider_with_get_method(move |method, _| {
+        let provider = Stonfi::mock(move |method, _| {
             calls_ref.fetch_add(1, Ordering::Relaxed);
             match method {
-                "get_wallet_address" => cell_response(USDT_WALLET),
-                "get_pool_address" => cell_response(DISCOVERED_POOL),
-                "get_pool_data" => serde_json::to_vec(&serde_json::json!({ "ok": true, "result": { "exit_code": 1, "stack": [] } })).unwrap(),
+                "get_wallet_address" => mock_cell_response(TEST_USDT_WALLET),
+                "get_pool_address" => mock_cell_response(DISCOVERED_POOL),
+                "get_pool_data" => br#"{"exit_code":1,"stack":[]}"#.to_vec(),
                 _ => unreachable!("{method}"),
             }
         });
@@ -798,12 +710,12 @@ mod tests {
 
     #[tokio::test]
     async fn test_quote_candidate_rejects_locked_pool() {
-        let provider = provider_with_pool_data(|_| get_pool_data_response(true, 3_809_436_784_065, 1_784_561_670_122_756, USDT_WALLET, PTON_WALLET, 7));
+        let provider = Stonfi::mock(|_, _| mock_pool_data_response(true, 3_809_436_784_065, 1_784_561_670_122_756, TEST_USDT_WALLET, TEST_PTON_WALLET, 7));
         let amount = BigUint::from(1_000_000_000u64);
 
         assert_eq!(
             provider
-                .quote_candidate(discovered_pool("pool-a"), None, TON_PROXY_JETTON_ADDRESS, TON_USDT_TOKEN_ID, &amount, 100)
+                .quote_candidate(DiscoveredPool::mock("pool-a"), None, TON_PROXY_JETTON_ADDRESS, TON_USDT_TOKEN_ID, &amount, 100)
                 .await
                 .unwrap_err(),
             SwapperError::NoQuoteAvailable
@@ -844,10 +756,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_direct_quote_can_select_v1_static_pool() {
-        let v1_pool = v1_ton_usdt_pool();
-        let provider = provider_with_pool_data(move |address| match address {
-            DISCOVERED_POOL => get_pool_data_response(false, 1_000_000_000_000, 1, PTON_WALLET, USDT_WALLET, 7),
-            V1_POOL => get_v1_pool_data_response(1_000_000_000, 10_000_000_000, v1_pool.token0_wallet, v1_pool.token1_wallet, 20),
+        let v1_pool = STATIC_POOLS.iter().find(|pool| pool.pool_address == V1_POOL).unwrap();
+        let provider = Stonfi::mock(move |_, address| match address {
+            DISCOVERED_POOL => mock_pool_data_response(false, 1_000_000_000_000, 1, TEST_PTON_WALLET, TEST_USDT_WALLET, 7),
+            V1_POOL => mock_v1_pool_data_response(1_000_000_000, 10_000_000_000, v1_pool.token0_wallet, v1_pool.token1_wallet, 20),
             _ => unreachable!("{address}"),
         });
         let request = QuoteRequest {
@@ -872,15 +784,15 @@ mod tests {
     async fn test_discovered_direct_quote_selects_best_router_pool() {
         let calls = Arc::new(Mutex::new(Vec::<String>::new()));
         let calls_ref = calls.clone();
-        let provider = provider_with_get_method(move |method, address| {
+        let provider = Stonfi::mock(move |method, address| {
             calls_ref.lock().unwrap().push(format!("{method} {address}"));
             match method {
-                "get_wallet_address" if address == TON_USDT_TOKEN_ID => cell_response(USDT_WALLET),
-                "get_wallet_address" if address == GRAM_TOKEN_ID => cell_response(PTON_WALLET),
-                "get_pool_address" if address == FALLBACK_ROUTERS[0].address => cell_response(DISCOVERED_POOL),
-                "get_pool_address" if address == FALLBACK_ROUTERS[1].address => cell_response(V1_POOL),
-                "get_pool_data" if address == DISCOVERED_POOL => get_pool_data_response(false, 1, 19_811_277, USDT_WALLET, PTON_WALLET, 20),
-                "get_pool_data" if address == V1_POOL => get_v1_pool_data_response(226_348_366, 194_933_327_038_860, USDT_WALLET, PTON_WALLET, 20),
+                "get_wallet_address" if address == TON_USDT_TOKEN_ID => mock_cell_response(TEST_USDT_WALLET),
+                "get_wallet_address" if address == GRAM_TOKEN_ID => mock_cell_response(TEST_PTON_WALLET),
+                "get_pool_address" if address == FALLBACK_ROUTERS[0].address => mock_cell_response(DISCOVERED_POOL),
+                "get_pool_address" if address == FALLBACK_ROUTERS[1].address => mock_cell_response(V1_POOL),
+                "get_pool_data" if address == DISCOVERED_POOL => mock_pool_data_response(false, 1, 19_811_277, TEST_USDT_WALLET, TEST_PTON_WALLET, 20),
+                "get_pool_data" if address == V1_POOL => mock_v1_pool_data_response(226_348_366, 194_933_327_038_860, TEST_USDT_WALLET, TEST_PTON_WALLET, 20),
                 _ => unreachable!("{method} {address}"),
             }
         });
@@ -917,15 +829,15 @@ mod tests {
 
     #[tokio::test]
     async fn test_quote_best_candidate_selects_largest_output() {
-        let provider = provider_with_pool_data(|address| match address {
-            "pool-a" => get_pool_data_response(false, 3_000_000_000_000, 1_800_000_000_000_000, USDT_WALLET, PTON_WALLET, 7),
-            "pool-b" => get_pool_data_response(false, 4_000_000_000_000, 1_800_000_000_000_000, USDT_WALLET, PTON_WALLET, 7),
+        let provider = Stonfi::mock(|_, address| match address {
+            "pool-a" => mock_pool_data_response(false, 3_000_000_000_000, 1_800_000_000_000_000, TEST_USDT_WALLET, TEST_PTON_WALLET, 7),
+            "pool-b" => mock_pool_data_response(false, 4_000_000_000_000, 1_800_000_000_000_000, TEST_USDT_WALLET, TEST_PTON_WALLET, 7),
             _ => unreachable!(),
         });
         let amount = BigUint::from(1_000_000_000u64);
         let (pool, simulation) = provider
             .quote_best_candidate(
-                vec![discovered_pool("pool-a"), discovered_pool("pool-b")],
+                vec![DiscoveredPool::mock("pool-a"), DiscoveredPool::mock("pool-b")],
                 &[],
                 TON_PROXY_JETTON_ADDRESS,
                 TON_USDT_TOKEN_ID,
@@ -941,7 +853,7 @@ mod tests {
 
     #[test]
     fn test_intermediary_discovery_policy() {
-        let provider = provider_with_pool_data(|_| unreachable!());
+        let provider = Stonfi::mock(|_, _| unreachable!());
         let unknown_a = SwapperQuoteAsset::from(AssetId::from_token(Chain::Ton, "unknown-a"));
         let unknown_b = SwapperQuoteAsset::from(AssetId::from_token(Chain::Ton, "unknown-b"));
         let ton = SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ton));
@@ -962,7 +874,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_stonfi_quote_and_quote_data_ton_to_usdt() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::default());
-        let provider = Stonfi::new(rpc_provider);
+        let provider = Stonfi::new(rpc_provider).unwrap();
         let request = mock_ton(TEST_TON_SENDER.to_string());
 
         let quote = provider.get_quote(&request).await?;
@@ -984,7 +896,7 @@ mod swap_integration_tests {
     #[tokio::test]
     async fn test_stonfi_quote_and_quote_data_not_to_usdt() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::default());
-        let provider = Stonfi::new(rpc_provider);
+        let provider = Stonfi::new(rpc_provider).unwrap();
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_token(Chain::Ton, NOT_TOKEN_ID)),
             to_asset: SwapperQuoteAsset::from(TON_USDT_ASSET_ID.clone()),

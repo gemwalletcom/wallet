@@ -23,10 +23,10 @@ extension TransactionPnlViewModel: ItemModelProvidable {
         guard let pnl else {
             return .empty
         }
-        return .pnl(
+        return .pnl(ListItemModel(
             title: Localized.Perpetual.pnl,
-            value: pnl.text(),
-            color: pnl.tone.color,
-        )
+            subtitle: pnl.text(),
+            subtitleStyle: TextStyle(font: .callout, color: pnl.tone.color),
+        ))
     }
 }

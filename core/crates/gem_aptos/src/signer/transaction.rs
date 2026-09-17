@@ -89,35 +89,11 @@ fn ensure_length(input: Vec<u8>, expected: usize, label: &str) -> Result<Vec<u8>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::signer::EntryFunctionPayload;
     use ed25519_dalek::{Signature, SigningKey, Verifier};
-    use serde_json::Value;
-
-    fn sample_raw_tx() -> RawTransaction {
-        let payload = EntryFunctionPayload {
-            payload_type: "entry_function_payload".to_string(),
-            function: "0x1::aptos_account::transfer".to_string(),
-            type_arguments: Vec::new(),
-            arguments: vec![
-                Value::String("0x4eb20e735591a85bb58921ef2e6b55c385bba10e817ffe1e02e50deb6c594aef".to_string()),
-                Value::String("100".to_string()),
-            ],
-        };
-        let entry_function = payload.to_entry_function(Some(&["address", "u64"])).expect("entry function");
-        build_raw_transaction(
-            AccountAddress::from_hex("0x4eb20e735591a85bb58921ef2e6b55c385bba10e817ffe1e02e50deb6c594aef").unwrap(),
-            1,
-            entry_function,
-            1500,
-            100,
-            1700000000,
-            1,
-        )
-    }
 
     #[test]
     fn sign_raw_transaction_verifies_against_signing_message() {
-        let raw_tx = sample_raw_tx();
+        let raw_tx = RawTransaction::mock();
         let private_key = hex::decode("1e9d38b5274152a78dff1a86fa464ceadc1f4238ca2c17060c3c507349424a34").unwrap();
         let (signature, public_key) = sign_raw_transaction(&raw_tx, &private_key).expect("signature");
 
@@ -135,7 +111,7 @@ mod tests {
 
     #[test]
     fn build_submit_transaction_bcs_roundtrip() {
-        let raw_tx = sample_raw_tx();
+        let raw_tx = RawTransaction::mock();
         let private_key = hex::decode("1e9d38b5274152a78dff1a86fa464ceadc1f4238ca2c17060c3c507349424a34").unwrap();
         let (signature, public_key) = sign_raw_transaction(&raw_tx, &private_key).expect("signature");
 

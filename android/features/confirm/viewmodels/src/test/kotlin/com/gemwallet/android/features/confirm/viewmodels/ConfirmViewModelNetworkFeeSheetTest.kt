@@ -1,5 +1,9 @@
 package com.gemwallet.android.features.confirm.viewmodels
 
+import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetRequest
+import uniffi.gemstone.GemAcquireAssetFlow
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.confirm.pack
@@ -7,6 +11,8 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAssetSolana
 import com.gemwallet.android.testkit.mockGemConfirmLoad
+import com.gemwallet.android.testkit.mockGemConfirmScreen
+import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
@@ -32,14 +38,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemConfirmException
-import uniffi.gemstone.GemConfirmInput
 import uniffi.gemstone.GemConfirmPhase
-import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemConfirmation
 import uniffi.gemstone.GemConfirmTransferService
-import uniffi.gemstone.GemRecipient
-import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.TransactionInputType
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -76,18 +77,29 @@ class ConfirmViewModelNetworkFeeSheetTest {
         assertTrue(viewModel.isNetworkFeeSheetVisible.first { it })
     }
 
+    @Test
+    fun loadErrorCarriesItsTextAndInfoSheet() = runTest(testDispatcher) {
+        val viewModel = viewModel()
+        runCurrent()
+
+        val error = requireNotNull(viewModel.loadError.first { it != null })
+        assertEquals("Error", error.text)
+        assertTrue(error.info is InfoSheetEntity.NetworkFeeRequiredInfo)
+
+        viewModel.acquire(asset, 10)
+        assertEquals(AcquireAssetRequest(asset = asset, buyAmount = 10, offersOptions = false), viewModel.acquireRequest.value)
+        viewModel.dismissAcquire()
+        assertEquals(null, viewModel.acquireRequest.value)
+    }
+
     private fun viewModel(): ConfirmViewModel {
-        val transfer = GemTransferData(
-            inputType = TransactionInputType.Transfer(asset.toGem()),
-            recipient = GemRecipient(address = "recipient"),
-            value = BigInteger.TEN,
-        )
-        val input = GemConfirmInput(from = account.toGem(), transfer = transfer)
+        val transfer = mockGemTransferData(asset = asset, value = BigInteger.TEN)
         every { confirmation.getCurrency() } returns Currency.USD.toGem()
         every { confirmation.insufficientNetworkFeeBuyAmount() } returns 10
+        every { confirmation.acquireAssetFlow(any()) } returns GemAcquireAssetFlow.FIAT
         every { confirmService.confirmation(any(), transfer, any()) } returns confirmation
-        every { confirmation.screen() } returns GemConfirmScreen(GemConfirmPhase.LOADING, false, null)
-        coEvery { confirmation.state() } returns mockGemConfirmLoad(asset, preload = null)
+        every { confirmation.screen() } returns mockGemConfirmScreen()
+        coEvery { confirmation.state() } returns mockGemConfirmLoad(asset)
         coEvery { confirmation.load(any()) } answers {
             throw GemConfirmException.InsufficientNetworkFee(asset = asset.toGem(), requirement = null)
         }
@@ -100,6 +112,7 @@ class ConfirmViewModelNetworkFeeSheetTest {
             buildConfirmProperties = mockk(relaxed = true),
             confirmService = confirmService,
             savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transfer.pack()))),
+            context = mockk<Context> { every { getString(any()) } returns "Error"; every { getString(any(), *anyVararg()) } returns "Error" },
         )
     }
 }

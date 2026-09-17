@@ -1,10 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemRecipientSection
 import protocol Gemstone.GemRecipientServiceProtocol
 import Primitives
 
 public extension GemRecipientServiceProtocol {
-    func recipientWallets(wallets: [Wallet]) -> [Wallet] {
-        recipientWallets(wallets: wallets.map { $0.toGem() }).map { $0.toPrimitives() }
+    func recipientSections(wallets: [Wallet], chain: Chain, hasContacts: Bool) -> [GemRecipientSection] {
+        recipientSections(wallets: wallets.map { $0.toGem() }, chain: chain.rawValue, hasContacts: hasContacts)
     }
 }

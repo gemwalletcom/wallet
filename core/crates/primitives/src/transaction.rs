@@ -176,16 +176,19 @@ impl Transaction {
             return self.project_asset_transfer(metadata, &addresses).unwrap_or_else(|| self.clone());
         }
 
-        let inputs_addresses = self.input_addresses();
-        let outputs_addresses = self.output_addresses();
-
-        if addresses.is_empty() || inputs_addresses.is_empty() || outputs_addresses.is_empty() {
+        let (Some(utxo_inputs), Some(utxo_outputs)) = (self.utxo_inputs.as_deref(), self.utxo_outputs.as_deref()) else {
+            return self.clone();
+        };
+        let Some(first_input) = utxo_inputs.first() else {
+            return self.clone();
+        };
+        if addresses.is_empty() || utxo_outputs.is_empty() {
             return self.clone();
         }
 
         let user_set: HashSet<String> = HashSet::from_iter(addresses);
-        let input_set: HashSet<String> = HashSet::from_iter(inputs_addresses);
-        let output_set: HashSet<String> = HashSet::from_iter(outputs_addresses.clone());
+        let input_set: HashSet<String> = utxo_inputs.iter().map(|input| input.address.clone()).collect();
+        let output_set: HashSet<String> = utxo_outputs.iter().map(|output| output.address.clone()).collect();
 
         if user_set.is_disjoint(&input_set) && user_set.is_disjoint(&output_set) {
             return self.clone();
@@ -201,27 +204,23 @@ impl Transaction {
             TransactionDirection::Incoming
         };
 
-        let utxo_inputs = self.utxo_inputs.as_ref().unwrap();
-        let utxo_outputs = self.utxo_outputs.as_ref().unwrap();
-
-        let from = utxo_inputs.first().unwrap().address.clone();
-        let (to, value) = match direction {
-            TransactionDirection::Incoming => {
-                let to = outputs_addresses.iter().find(|x| user_set.contains(*x)).unwrap().clone();
-                let value = Self::utxo_calculate_value(utxo_outputs, &user_set);
-                (to, value)
-            }
-            TransactionDirection::Outgoing => {
-                let to = outputs_addresses.iter().find(|x| !user_set.contains(*x)).unwrap().clone();
-                let value = utxo_outputs.iter().find(|x| x.address == to).unwrap().value.clone();
-                (to, value)
-            }
-            TransactionDirection::SelfTransfer => {
-                let to = utxo_outputs.first().unwrap().address.clone();
-                let value = Self::utxo_calculate_value(utxo_outputs, &user_set);
-                (to, value)
-            }
+        let recipient = match direction {
+            TransactionDirection::Incoming => utxo_outputs
+                .iter()
+                .find(|output| user_set.contains(&output.address))
+                .map(|output| (output.address.clone(), Self::utxo_calculate_value(utxo_outputs, &user_set))),
+            TransactionDirection::Outgoing => utxo_outputs
+                .iter()
+                .find(|output| !user_set.contains(&output.address))
+                .map(|output| (output.address.clone(), output.value.clone())),
+            TransactionDirection::SelfTransfer => utxo_outputs
+                .first()
+                .map(|output| (output.address.clone(), Self::utxo_calculate_value(utxo_outputs, &user_set))),
         };
+        let Some((to, value)) = recipient else {
+            return self.clone();
+        };
+        let from = first_input.address.clone();
         Self {
             from,
             to,
@@ -537,14 +536,16 @@ mod tests {
         assert_eq!(addresses, vec![AssetAddress::new(Asset::mock_ethereum_usdc().id, "0xowner".to_string(), None)]);
     }
 
-    fn utxo_input(address: &str, value: u64) -> TransactionUtxoInput {
-        TransactionUtxoInput::new(address.to_string(), value.into())
-    }
-
     #[test]
     fn test_finalize_incoming_utxo() {
-        let transaction =
-            Transaction::mock_utxo(vec![utxo_input("sender", 50_000)], vec![utxo_input("user", 40_000), utxo_input("change", 9_000)]).finalize(vec!["user".to_string()]);
+        let transaction = Transaction::mock_utxo(
+            vec![TransactionUtxoInput::new("sender".into(), 50_000u32.into())],
+            vec![
+                TransactionUtxoInput::new("user".into(), 40_000u32.into()),
+                TransactionUtxoInput::new("change".into(), 9_000u32.into()),
+            ],
+        )
+        .finalize(vec!["user".to_string()]);
 
         assert_eq!(
             (transaction.from.as_str(), transaction.to.as_str(), transaction.value.to_string().as_str()),
@@ -555,8 +556,14 @@ mod tests {
 
     #[test]
     fn test_finalize_outgoing_utxo() {
-        let transaction =
-            Transaction::mock_utxo(vec![utxo_input("user", 50_000)], vec![utxo_input("recipient", 40_000), utxo_input("user", 9_000)]).finalize(vec!["user".to_string()]);
+        let transaction = Transaction::mock_utxo(
+            vec![TransactionUtxoInput::new("user".into(), 50_000u32.into())],
+            vec![
+                TransactionUtxoInput::new("recipient".into(), 40_000u32.into()),
+                TransactionUtxoInput::new("user".into(), 9_000u32.into()),
+            ],
+        )
+        .finalize(vec!["user".to_string()]);
 
         assert_eq!(
             (transaction.from.as_str(), transaction.to.as_str(), transaction.value.to_string().as_str()),
@@ -567,7 +574,14 @@ mod tests {
 
     #[test]
     fn test_finalize_self_transfer_utxo() {
-        let transaction = Transaction::mock_utxo(vec![utxo_input("user", 50_000)], vec![utxo_input("user", 40_000), utxo_input("user", 9_000)]).finalize(vec!["user".to_string()]);
+        let transaction = Transaction::mock_utxo(
+            vec![TransactionUtxoInput::new("user".into(), 50_000u32.into())],
+            vec![
+                TransactionUtxoInput::new("user".into(), 40_000u32.into()),
+                TransactionUtxoInput::new("user".into(), 9_000u32.into()),
+            ],
+        )
+        .finalize(vec!["user".to_string()]);
 
         assert_eq!(
             (transaction.from.as_str(), transaction.to.as_str(), transaction.value.to_string().as_str()),
@@ -589,26 +603,20 @@ mod tests {
         let usdc = Asset::mock_ethereum_usdc().id;
         let original = Transaction {
             transaction_type: TransactionType::SmartContractCall,
-            metadata: Some(
-                serde_json::to_value(TransactionAssetTransfersMetadata {
-                    asset_transfers: vec![
-                        TransactionAssetTransfer {
-                            asset_id: usdc.clone(),
-                            from: "0xContract".to_string(),
-                            to: "0xUser".to_string(),
-                            value: BigUint::from(10u8),
-                        },
-                        TransactionAssetTransfer {
-                            asset_id: usdc.clone(),
-                            from: "0xContract".to_string(),
-                            to: "0xOther".to_string(),
-                            value: BigUint::from(20u8),
-                        },
-                    ],
-                })
-                .unwrap(),
-            ),
-            ..Transaction::mock()
+            ..Transaction::mock_with_asset_transfers(vec![
+                TransactionAssetTransfer {
+                    asset_id: usdc.clone(),
+                    from: "0xContract".to_string(),
+                    to: "0xUser".to_string(),
+                    value: BigUint::from(10u8),
+                },
+                TransactionAssetTransfer {
+                    asset_id: usdc.clone(),
+                    from: "0xContract".to_string(),
+                    to: "0xOther".to_string(),
+                    value: BigUint::from(20u8),
+                },
+            ])
         };
 
         assert_eq!(original.asset_ids().into_iter().collect::<HashSet<_>>(), HashSet::from([Asset::mock().id, usdc.clone()]));

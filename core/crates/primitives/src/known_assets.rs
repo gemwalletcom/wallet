@@ -121,6 +121,9 @@ pub static THORCHAIN_TCY: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::
 
 pub static TRON_USDT: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Tron, TRON_USDT_TOKEN_ID, USDT_NAME, USDT_SYMBOL, 6, AssetType::TRC20));
 
+pub static ARC_USDC: LazyLock<Asset> = LazyLock::new(|| Asset::from_chain(Chain::Arc));
+pub static ARC_EURC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Arc, ARC_EURC_TOKEN_ID, "EURC", "EURC", 6, AssetType::ERC20));
+
 pub static TEMPO_BRIDGED_USDC: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Tempo, TEMPO_BRIDGED_USDC_TOKEN_ID, "Bridged USDC", "USDC.e", 6, AssetType::TIP20));
 pub static TEMPO_USDT0: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Tempo, TEMPO_USDT0_TOKEN_ID, "USDT0", "USDT0", 6, AssetType::TIP20));
 pub static TEMPO_PATHUSD: LazyLock<Asset> = LazyLock::new(|| token_asset(Chain::Tempo, TEMPO_PATHUSD_TOKEN_ID, "pathUSD", "pathUSD", 6, AssetType::TIP20));
@@ -132,6 +135,7 @@ pub struct WalletDefaultAsset {
 
 pub static WALLET_DEFAULT_ASSETS: LazyLock<Vec<WalletDefaultAsset>> = LazyLock::new(|| {
     vec![
+        WalletDefaultAsset { asset: &ARC_EURC, rank: 16 },
         WalletDefaultAsset {
             asset: &HYPERCORE_PERPETUAL_USDC,
             rank: AssetScore::default().rank,
@@ -188,6 +192,7 @@ pub static USDC_ASSETS: LazyLock<Vec<&'static Asset>> = LazyLock::new(|| {
         &HYPEREVM_USDC,
         &SOLANA_USDC,
         &SUI_USDC,
+        &ARC_USDC,
     ]
 });
 

@@ -65,7 +65,7 @@ public struct StateEmptyView<Content: View>: View {
             }
 
             VStack(spacing: description == nil ? 0 : .tiny) {
-                HStack(spacing: 0.0) {
+                HStack(spacing: .zero) {
                     Text(title.text)
                         .textStyle(title.style)
                         .multilineTextAlignment(.center)

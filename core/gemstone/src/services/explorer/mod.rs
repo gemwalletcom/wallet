@@ -1,4 +1,6 @@
 mod rules;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use std::sync::Arc;
 
@@ -76,5 +78,44 @@ fn link(name: &str, url: String) -> BlockExplorerLink {
     BlockExplorerLink {
         name: name.to_string(),
         link: url,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_a_transaction_link_without_a_provider_uses_the_selected_explorer() {
+        let service = GemExplorerService::mock();
+        let selected = service.get_explorer_name(Chain::Ethereum);
+        let link = service.get_transaction_link(Chain::Ethereum, "0xhash".to_string(), None, None, None);
+
+        assert_eq!(link.name, selected);
+        assert!(link.link.contains("0xhash"), "{}", link.link);
+    }
+
+    #[test]
+    fn test_a_swap_provider_names_its_own_explorer_and_an_unknown_one_falls_back() {
+        let service = GemExplorerService::mock();
+        let selected = service.get_explorer_name(Chain::Ethereum);
+
+        let across = service.get_transaction_link(Chain::Ethereum, "0xhash".to_string(), Some("across".to_string()), None, None);
+        let unknown = service.get_transaction_link(Chain::Ethereum, "0xhash".to_string(), Some("not-a-provider".to_string()), None, None);
+
+        assert_ne!(across.name, selected, "a cross-chain swap is followed on the provider's explorer");
+        assert_eq!(unknown.name, selected, "an unreadable provider falls back to the selected explorer");
+        assert!(unknown.link.contains("0xhash"), "{}", unknown.link);
+    }
+
+    #[test]
+    fn test_the_transaction_link_follows_the_explorer_the_user_picked() {
+        let service = GemExplorerService::mock();
+        let explorers = service.get_explorers(Chain::Ethereum);
+        let other = explorers.last().unwrap().clone();
+        service.set_explorer_name(Chain::Ethereum, other.clone()).unwrap();
+
+        assert_eq!(service.get_transaction_link(Chain::Ethereum, "0xhash".to_string(), None, None, None).name, other);
+        assert_eq!(service.get_address_url(Chain::Ethereum, "0xaddress".to_string()).name, other);
     }
 }

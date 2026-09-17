@@ -3,6 +3,8 @@ mod client;
 mod model;
 mod provider;
 mod target;
+#[cfg(test)]
+mod testkit;
 
 pub use model::{ActionRequest, ActionResponse};
 pub use provider::SwapsXyz;

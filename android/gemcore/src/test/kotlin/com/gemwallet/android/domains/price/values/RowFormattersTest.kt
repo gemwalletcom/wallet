@@ -1,6 +1,6 @@
 package com.gemwallet.android.domains.price.values
 
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
 import com.wallet.core.primitives.Currency
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -28,7 +28,7 @@ class RowFormattersTest {
 
         assertEquals("$50,000.00", price.valueFormatted)
         assertEquals("+2.50%", price.changePercentageFormatted)
-        assertEquals(ValueDirection.Up, price.state)
+        assertEquals(GemValueTone.POSITIVE, price.state)
         assertEquals(50000.0, price.value)
     }
 
@@ -40,7 +40,7 @@ class RowFormattersTest {
         assertEquals(null, price.changePercentage)
         assertEquals("", price.valueFormatted)
         assertEquals("", price.changePercentageFormatted)
-        assertEquals(ValueDirection.None, price.state)
+        assertEquals(GemValueTone.NEUTRAL, price.state)
     }
 
     @Test

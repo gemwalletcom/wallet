@@ -13,12 +13,12 @@ public struct NameRecordView: View {
     }
 
     public var body: some View {
-        VStack(alignment: .center, spacing: 0) {
+        VStack(alignment: .center, spacing: .zero) {
             if model.isResolving {
                 LoadingView()
             } else if let image = model.resolveImage {
                 image
             }
-        }.frame(width: 16, height: 16)
+        }.frame(width: .space16, height: .space16)
     }
 }

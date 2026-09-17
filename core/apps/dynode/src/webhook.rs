@@ -53,7 +53,7 @@ impl DynodeBroadcastWebhookClient {
     }
 
     fn extract_payload(&self, request: &ProxyRequest, response_body: &[u8], broadcast_providers: &BroadcastProviders) -> Option<TransactionId> {
-        let identifier = broadcast_providers.decode_transaction_broadcast(request.chain, response_body)?;
+        let identifier = broadcast_providers.decode_transaction_broadcast(request.chain, &request.body, response_body).ok()?;
         Some(TransactionId::new(request.chain, identifier))
     }
 
@@ -108,5 +108,25 @@ impl Target for WebhookTarget {
         match self {
             Self::Broadcast => String::new(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use primitives::Chain;
+    use reqwest::Method;
+
+    use super::*;
+
+    #[test]
+    fn test_extract_payload() {
+        let client = DynodeBroadcastWebhookClient::disabled();
+        let providers = BroadcastProviders::from_chains([Chain::HyperCore]);
+        let request = ProxyRequest::mock(Chain::HyperCore, Method::POST, "/exchange", br#"{"action":{"type":"updateLeverage"},"nonce":123}"#);
+        let response = br#"{"status":"ok","response":{"type":"default"}}"#;
+        assert_eq!(
+            client.extract_payload(&request, response, &providers),
+            Some(TransactionId::new(Chain::HyperCore, "action:123".into()))
+        );
     }
 }

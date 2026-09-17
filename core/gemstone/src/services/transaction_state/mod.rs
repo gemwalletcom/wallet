@@ -212,38 +212,6 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::{AssetId, Chain, TransactionChange, TransactionMetadata, TransactionSwapMetadata, TransactionType};
 
-    fn swap_metadata(to_value: BigUint) -> TransactionSwapMetadata {
-        TransactionSwapMetadata {
-            from_asset: AssetId::from_chain(Chain::Ethereum),
-            from_value: BigUint::parse_bytes(b"1000000000000000000", 10).unwrap(),
-            to_asset: AssetId::from_chain(Chain::Bitcoin),
-            to_value,
-            provider: Some("thorchain".into()),
-        }
-    }
-
-    fn transaction(hash: &str, state: TransactionState, created_at: DateTime<Utc>) -> Transaction {
-        Transaction::new(
-            hash.into(),
-            AssetId::from_chain(Chain::Ethereum),
-            "from".into(),
-            "to".into(),
-            None,
-            TransactionType::Swap,
-            state,
-            BigUint::from(1u64),
-            AssetId::from_chain(Chain::Ethereum),
-            BigUint::from(1000000000000000000u64),
-            None,
-            serde_json::to_value(swap_metadata(BigUint::parse_bytes(b"10000000000000000000", 10).unwrap())).ok(),
-            created_at,
-        )
-    }
-
-    fn update(state: TransactionState, changes: Vec<TransactionChange>) -> Result<TransactionUpdate, String> {
-        Ok(TransactionUpdate::new(state, changes))
-    }
-
     fn apply_update(
         store: &MemoryTransactionStateStore,
         transaction: Transaction,
@@ -253,24 +221,24 @@ mod tests {
         futures::executor::block_on(apply(store, WalletId::Multicoin("wallet".into()), transaction, update, now))
     }
 
-    fn id(hash: &str) -> TransactionId {
-        TransactionId::new(Chain::Ethereum, hash.into())
-    }
-
     #[test]
     fn test_in_transit_saves_metadata_and_keeps_polling() {
         let now = Utc::now();
-        let store = MemoryTransactionStateStore::with(vec![(id("hash"), TransactionState::Pending)]);
+        let store = MemoryTransactionStateStore::with(vec![(TransactionId::mock("hash"), TransactionState::Pending)]);
 
         let result = apply_update(
             &store,
-            transaction("hash", TransactionState::Pending, now),
-            update(
+            Transaction {
+                created_at: now,
+                ..Transaction::mock_swap()
+            },
+            Ok(TransactionUpdate::new(
                 TransactionState::InTransit,
-                vec![TransactionChange::Metadata(TransactionMetadata::Swap(swap_metadata(
-                    BigUint::parse_bytes(b"9900000000000000000", 10).unwrap(),
-                )))],
-            ),
+                vec![TransactionChange::Metadata(TransactionMetadata::Swap(TransactionSwapMetadata {
+                    to_value: BigUint::parse_bytes(b"9900000000000000000", 10).unwrap(),
+                    ..TransactionSwapMetadata::mock()
+                }))],
+            )),
             now,
         )
         .unwrap()
@@ -285,85 +253,96 @@ mod tests {
     #[test]
     fn test_hash_change_renames_when_no_existing_row() {
         let now = Utc::now();
-        let store = MemoryTransactionStateStore::with(vec![(id("hash"), TransactionState::Pending)]);
+        let store = MemoryTransactionStateStore::with(vec![(TransactionId::mock("hash"), TransactionState::Pending)]);
 
         let result = apply_update(
             &store,
-            transaction("hash", TransactionState::Pending, now),
-            update(
+            Transaction {
+                created_at: now,
+                ..Transaction::mock_swap()
+            },
+            Ok(TransactionUpdate::new(
                 TransactionState::InTransit,
                 vec![TransactionChange::HashChange {
                     old: "hash".into(),
                     new: "new-hash".into(),
                 }],
-            ),
+            )),
             now,
         )
         .unwrap()
         .unwrap();
 
-        assert_eq!(result.transaction_id, id("new-hash"));
-        assert_eq!(store.hash_updates.lock().unwrap().as_slice(), &[(id("hash"), id("new-hash"))]);
-        assert_eq!(store.updates.lock().unwrap()[0].0, id("new-hash"));
+        assert_eq!(result.transaction_id, TransactionId::mock("new-hash"));
+        assert_eq!(
+            store.hash_updates.lock().unwrap().as_slice(),
+            &[(TransactionId::mock("hash"), TransactionId::mock("new-hash"))]
+        );
+        assert_eq!(store.updates.lock().unwrap()[0].0, TransactionId::mock("new-hash"));
     }
 
     #[test]
     fn test_hash_change_merges_into_existing_row_without_downgrade() {
         let now = Utc::now();
-        let store = MemoryTransactionStateStore::with(vec![(id("hash"), TransactionState::Pending), (id("new-hash"), TransactionState::Confirmed)]);
+        let store = MemoryTransactionStateStore::with(vec![
+            (TransactionId::mock("hash"), TransactionState::Pending),
+            (TransactionId::mock("new-hash"), TransactionState::Confirmed),
+        ]);
 
         let result = apply_update(
             &store,
-            transaction("hash", TransactionState::Pending, now),
-            update(
+            Transaction {
+                created_at: now,
+                ..Transaction::mock_swap()
+            },
+            Ok(TransactionUpdate::new(
                 TransactionState::InTransit,
                 vec![TransactionChange::HashChange {
                     old: "hash".into(),
                     new: "new-hash".into(),
                 }],
-            ),
+            )),
             now,
         )
         .unwrap()
         .unwrap();
 
-        assert_eq!(
-            result,
-            GemTransactionStateResult {
-                transaction_id: id("new-hash"),
-                state: TransactionState::Confirmed,
-                failures: Vec::new(),
-            }
-        );
+        assert_eq!(result, GemTransactionStateResult::mock(TransactionId::mock("new-hash"), TransactionState::Confirmed));
         assert_eq!(store.deleted.lock().unwrap().as_slice(), &[]);
-        assert_eq!(store.hash_updates.lock().unwrap().as_slice(), &[(id("hash"), id("new-hash"))]);
-        assert_eq!(store.states.lock().unwrap().as_slice(), &[(id("new-hash"), TransactionState::Confirmed)]);
+        assert_eq!(
+            store.hash_updates.lock().unwrap().as_slice(),
+            &[(TransactionId::mock("hash"), TransactionId::mock("new-hash"))]
+        );
+        assert_eq!(store.states.lock().unwrap().as_slice(), &[(TransactionId::mock("new-hash"), TransactionState::Confirmed)]);
         assert!(store.updates.lock().unwrap().is_empty());
     }
 
     #[test]
     fn test_hash_change_is_idempotent() {
         let now = Utc::now();
-        let store = MemoryTransactionStateStore::with(vec![(id("hash"), TransactionState::Pending)]);
+        let store = MemoryTransactionStateStore::with(vec![(TransactionId::mock("hash"), TransactionState::Pending)]);
         for hash in ["hash", "new-hash", "new-hash"] {
             let result = apply_update(
                 &store,
-                transaction("hash", TransactionState::Pending, now),
-                update(
+                Transaction {
+                    created_at: now,
+                    ..Transaction::mock_swap()
+                },
+                Ok(TransactionUpdate::new(
                     TransactionState::Confirmed,
                     vec![TransactionChange::HashChange {
                         old: "hash".into(),
                         new: hash.into(),
                     }],
-                ),
+                )),
                 now,
             )
             .unwrap()
             .unwrap();
 
-            assert_eq!(result.transaction_id, id(hash));
+            assert_eq!(result.transaction_id, TransactionId::mock(hash));
             assert_eq!(result.state, TransactionState::Confirmed);
-            assert_eq!(store.states.lock().unwrap().as_slice(), &[(id(hash), TransactionState::Confirmed)]);
+            assert_eq!(store.states.lock().unwrap().as_slice(), &[(TransactionId::mock(hash), TransactionState::Confirmed)]);
             assert_eq!(store.deleted.lock().unwrap().as_slice(), &[]);
         }
     }
@@ -371,12 +350,16 @@ mod tests {
     #[test]
     fn test_in_transit_is_not_downgraded_to_pending() {
         let now = Utc::now();
-        let store = MemoryTransactionStateStore::with(vec![(id("hash"), TransactionState::InTransit)]);
+        let store = MemoryTransactionStateStore::with(vec![(TransactionId::mock("hash"), TransactionState::InTransit)]);
 
         let result = apply_update(
             &store,
-            transaction("hash", TransactionState::InTransit, now),
-            update(TransactionState::Pending, vec![]),
+            Transaction {
+                state: TransactionState::InTransit,
+                created_at: now,
+                ..Transaction::mock_swap()
+            },
+            Ok(TransactionUpdate::new(TransactionState::Pending, vec![])),
             now,
         )
         .unwrap()
@@ -400,8 +383,11 @@ mod tests {
         ] {
             let result = apply_update(
                 &store,
-                transaction("hash", TransactionState::Pending, now),
-                update(TransactionState::Confirmed, changes),
+                Transaction {
+                    created_at: now,
+                    ..Transaction::mock_swap()
+                },
+                Ok(TransactionUpdate::new(TransactionState::Confirmed, changes)),
                 now,
             )
             .unwrap();
@@ -413,14 +399,25 @@ mod tests {
     #[test]
     fn test_status_failure_fails_only_after_timeout() {
         let now = Utc::now();
-        let store = MemoryTransactionStateStore::with(vec![(id("hash"), TransactionState::Pending)]);
+        let store = MemoryTransactionStateStore::with(vec![(TransactionId::mock("hash"), TransactionState::Pending)]);
 
-        let fresh = apply_update(&store, transaction("hash", TransactionState::Pending, now), Err("offline".into()), now);
+        let fresh = apply_update(
+            &store,
+            Transaction {
+                created_at: now,
+                ..Transaction::mock_swap()
+            },
+            Err("offline".into()),
+            now,
+        );
         assert!(matches!(fresh, Err(GemServiceError::Gateway { .. })));
 
         let stale = apply_update(
             &store,
-            transaction("hash", TransactionState::Pending, now - chrono::Duration::hours(2)),
+            Transaction {
+                created_at: now - chrono::Duration::hours(2),
+                ..Transaction::mock_swap()
+            },
             Err("offline".into()),
             now,
         )
@@ -432,7 +429,10 @@ mod tests {
     #[test]
     fn test_post_processing_by_state_transition() {
         let now = Utc::now();
-        let swap = transaction("hash", TransactionState::Pending, now);
+        let swap = Transaction {
+            created_at: now,
+            ..Transaction::mock_swap()
+        };
 
         assert_eq!(rules::post_processing(&swap, TransactionState::Pending, TransactionState::Pending), None);
         assert_eq!(rules::post_processing(&swap, TransactionState::InTransit, TransactionState::InTransit), None);
@@ -441,7 +441,10 @@ mod tests {
         assert_eq!(in_transit.balance_asset_ids.len(), 2);
         assert!(in_transit.stake_chains.is_empty() && in_transit.earn_asset_ids.is_empty() && !in_transit.sync_nfts);
 
-        let mut stake = transaction("hash", TransactionState::Pending, now);
+        let mut stake = Transaction {
+            created_at: now,
+            ..Transaction::mock_swap()
+        };
         stake.transaction_type = TransactionType::StakeFreeze;
         stake.metadata = None;
         let completed = rules::post_processing(&stake, TransactionState::Pending, TransactionState::Confirmed).unwrap();
@@ -463,35 +466,39 @@ mod tests {
     fn test_in_transit_timeout_uses_destination_chain() {
         let now = Utc::now();
         let created_at = now - chrono::Duration::hours(2);
-        let in_transit = transaction("hash", TransactionState::InTransit, created_at);
+        let in_transit = Transaction {
+            state: TransactionState::InTransit,
+            created_at,
+            ..Transaction::mock_swap()
+        };
 
         assert_eq!(rules::destination_chain(&in_transit), Some(Chain::Bitcoin));
         assert!(!rules::has_timed_out(&in_transit, now));
-        assert!(rules::has_timed_out(&transaction("hash", TransactionState::Pending, created_at), now));
+        assert!(rules::has_timed_out(
+            &Transaction {
+                created_at,
+                ..Transaction::mock_swap()
+            },
+            now
+        ));
         assert!(!rules::has_timed_out(
-            &transaction("hash", TransactionState::Confirmed, now - chrono::Duration::days(30)),
+            &Transaction {
+                state: TransactionState::Confirmed,
+                created_at: now - chrono::Duration::days(30),
+                ..Transaction::mock_swap()
+            },
             now
         ));
     }
 
     #[test]
     fn test_assets_to_enable_skips_hypercore_and_duplicates() {
-        let swap = transaction("swap", TransactionState::Pending, Utc::now());
-        let hypercore = Transaction::new(
-            "perpetual".into(),
-            AssetId::from_chain(Chain::HyperCore),
-            "from".into(),
-            "to".into(),
-            None,
-            TransactionType::Transfer,
-            TransactionState::Pending,
-            BigUint::from(1u64),
-            AssetId::from_chain(Chain::HyperCore),
-            BigUint::from(1u64),
-            None,
-            None,
-            Utc::now(),
-        );
+        let swap = Transaction {
+            id: TransactionId::mock("swap"),
+            created_at: Utc::now(),
+            ..Transaction::mock_swap()
+        };
+        let hypercore = Transaction::mock_with_params(AssetId::from_chain(Chain::HyperCore), TransactionType::Transfer, BigUint::from(1u64));
         let asset_ids = rules::assets_to_enable(&[swap.clone(), swap, hypercore]);
         assert_eq!(asset_ids.len(), 2);
         assert!(asset_ids.contains(&AssetId::from_chain(Chain::Ethereum)));

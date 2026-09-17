@@ -28,7 +28,7 @@ public extension PortfolioMarginUsage {
         accountValue: Double = 10000,
         usage: Double = 0.15,
     ) -> PortfolioMarginUsage {
-        PortfolioMarginUsage(accountValue: accountValue, usage: usage)
+        PortfolioMarginUsage(accountValue: accountValue, usage: usage, usedValue: accountValue * usage, usagePercent: usage * 100)
     }
 }
 

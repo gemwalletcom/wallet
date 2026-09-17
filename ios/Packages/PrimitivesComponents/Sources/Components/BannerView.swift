@@ -2,7 +2,6 @@
 
 import Components
 import Foundation
-import struct Gemstone.GemBannerContent
 import Primitives
 import Style
 import SwiftUI
@@ -12,11 +11,10 @@ public struct BannerView: View {
     private let action: (BannerAction) -> Void
 
     public init(
-        banner: Banner,
-        content: GemBannerContent,
+        model: BannerViewModel,
         action: @escaping (BannerAction) -> Void,
     ) {
-        model = BannerViewModel(banner: banner, content: content)
+        self.model = model
         self.action = action
     }
 
@@ -42,12 +40,8 @@ private extension BannerView {
         Button(
             action: { action(model.action) },
             label: {
-                HStack(spacing: 0) {
-                    ListItemView(
-                        title: model.title,
-                        titleExtra: model.description,
-                        imageStyle: model.imageStyle,
-                    )
+                HStack(spacing: .zero) {
+                    ListItemView(model: model.listItem)
 
                     Spacer(minLength: model.canClose ? .extraLarge : .zero)
                 }

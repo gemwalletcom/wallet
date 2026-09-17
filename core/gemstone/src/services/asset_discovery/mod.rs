@@ -1,4 +1,6 @@
 pub mod rules;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use crate::services::error::GemServiceError;
 use std::future::Future;
@@ -90,5 +92,61 @@ impl GemAssetDiscoveryService {
         }
         sync.await?;
         self.preferences.set_initial_load_completed(wallet_id, step)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use futures::executor::block_on;
+
+    use super::testkit::DiscoveryTestkit;
+    use crate::testkit::TestAlienProvider;
+
+    #[test]
+    fn test_discover_runs_all_three_steps_and_reports_the_first_failure() {
+        block_on(async {
+            let testkit = DiscoveryTestkit::with_status(503);
+
+            assert!(testkit.discovery.discover(testkit.wallet_id.clone()).await.is_err());
+
+            let paths = testkit.provider.requested_paths();
+            for expected in ["devices/assets", "devices/transactions", "devices/nft_assets"] {
+                assert!(paths.iter().any(|path| path.contains(expected)), "{expected} never ran: {paths:?}");
+            }
+        })
+    }
+
+    #[test]
+    fn test_a_completed_step_is_not_loaded_again() {
+        block_on(async {
+            let testkit = DiscoveryTestkit::with_response(TestAlienProvider::with_json_by_path(
+                200,
+                &[("devices/transactions", r#"{"transactions":[],"addressNames":[]}"#), ("devices/", "[]")],
+            ));
+
+            testkit.discovery.discover(testkit.wallet_id.clone()).await.unwrap();
+            let first = testkit.provider.requested_paths().len();
+            testkit.discovery.discover(testkit.wallet_id.clone()).await.unwrap();
+            let second = testkit.provider.requested_paths();
+
+            assert_eq!(second.len(), first + 1, "a completed step loaded again: {second:?}");
+            assert!(second.last().unwrap().contains("devices/assets"));
+        })
+    }
+
+    #[test]
+    fn test_the_assets_step_records_its_timestamp_once_the_list_arrives() {
+        block_on(async {
+            let testkit = DiscoveryTestkit::with_response(TestAlienProvider::with_json_by_path(
+                200,
+                &[("devices/transactions", r#"{"transactions":[],"addressNames":[]}"#), ("devices/", "[]")],
+            ));
+
+            assert_eq!(testkit.wallet_preferences.get_assets_timestamp(testkit.wallet_id.clone()), 0);
+
+            testkit.discovery.discover(testkit.wallet_id.clone()).await.unwrap();
+
+            assert!(testkit.wallet_preferences.get_assets_timestamp(testkit.wallet_id.clone()) > 0);
+        })
     }
 }

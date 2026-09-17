@@ -21,6 +21,7 @@ data class SwapPriceImpactUIModel(
 )
 
 data class SwapDetailsUIModel(
+    val rows: List<SwapDetailRowUIModel>,
     val provider: SwapProviderUIModel,
     val providers: List<SwapProviderUIModel> = emptyList(),
     val rate: AssetRatePair,
@@ -40,4 +41,12 @@ data class SwapDetailsUIModel(
 
     val shouldShowPriceImpactWarning: Boolean
         get() = priceImpact?.isHigh == true
+}
+
+sealed interface SwapDetailRowUIModel {
+    data class Rate(val rate: AssetRatePair) : SwapDetailRowUIModel
+    data class EstimatedTime(val seconds: UInt) : SwapDetailRowUIModel
+    data class PriceImpact(val model: SwapPriceImpactUIModel) : SwapDetailRowUIModel
+    data class MinimumReceive(val text: String) : SwapDetailRowUIModel
+    data class Slippage(val text: String?) : SwapDetailRowUIModel
 }

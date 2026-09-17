@@ -11,6 +11,7 @@ import Primitives
 import PrimitivesTestKit
 import Style
 @testable import Swap
+@testable import SwapTestKit
 import Testing
 
 struct SwapButtonViewModelTests {
@@ -63,20 +64,5 @@ struct SwapButtonViewModelTests {
     @Test
     func hiddenWhenNoQuotes() {
         #expect(SwapButtonViewModel.mock(session: .mock()).isVisible == false)
-    }
-}
-
-extension SwapButtonViewModel {
-    static func mock(
-        session: GemSwapSession = .mock(),
-        value: BigInt = 1,
-        availableBalance: BigInt = 2,
-        fromAsset: AssetData? = .mock(),
-    ) -> SwapButtonViewModel {
-        SwapButtonViewModel(
-            state: session.viewState(value: value, availableBalance: availableBalance, payAsset: nil),
-            fromAsset: fromAsset,
-            onAction: {},
-        )
     }
 }

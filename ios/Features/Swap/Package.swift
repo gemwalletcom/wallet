@@ -13,6 +13,10 @@ let package = Package(
             name: "Swap",
             targets: ["Swap"],
         ),
+        .library(
+            name: "SwapTestKit",
+            targets: ["SwapTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "Primitives", path: "../../Packages/Primitives"),
@@ -48,6 +52,20 @@ let package = Package(
             ],
             path: "Sources",
         ),
+        .target(
+            name: "SwapTestKit",
+            dependencies: [
+                "Swap",
+                .product(name: "BigInt", package: "BigInt"),
+                "Gemstone",
+                "GemstonePrimitives",
+                .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
+                "Primitives",
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+                "Store",
+            ],
+            path: "TestKit",
+        ),
         .testTarget(
             name: "SwapTests",
             dependencies: [
@@ -57,6 +75,7 @@ let package = Package(
                 .product(name: "StoreTestKit", package: "Store"),
                 "PrimitivesComponents",
                 "Swap",
+                "SwapTestKit",
                 .product(name: "BigInt", package: "BigInt"),
                 "Components",
                 "Formatters",

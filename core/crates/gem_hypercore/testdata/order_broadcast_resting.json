@@ -1,6 +1,7 @@
 {
   "status": "ok",
   "response": {
+    "type": "order",
     "data": {
       "statuses": [
         {

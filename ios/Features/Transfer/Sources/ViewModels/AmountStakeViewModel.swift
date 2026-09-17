@@ -52,7 +52,7 @@ public final class AmountStakeViewModel: AmountDataProvidable {
     }
 
     var title: String {
-        action.title
+        gemAmountType.title().title
     }
 
     var gemAmountType: GemAmountType {

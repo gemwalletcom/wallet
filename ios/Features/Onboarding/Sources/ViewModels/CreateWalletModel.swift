@@ -14,6 +14,14 @@ import PrimitivesComponents
 @MainActor
 public final class CreateWalletModel {
     private let service: any GemWalletServiceProtocol
+
+    func verifyPhraseModel(words: [String], onComplete: @escaping ([String]) async throws -> Void) -> VerifyPhraseViewModel {
+        VerifyPhraseViewModel(
+            words: words,
+            shuffledWords: service.phraseVerificationWords(words: words),
+            onComplete: onComplete,
+        )
+    }
     private let preferences: ObservablePreferences
     let onComplete: VoidAction
 

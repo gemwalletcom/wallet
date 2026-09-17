@@ -77,7 +77,7 @@ class GemstonePerpetualStore(
 
     private suspend fun putPositions(walletId: WalletId, positions: List<PerpetualPosition>, deleteIds: List<String>) {
         if (deleteIds.isEmpty() && positions.isEmpty()) return
-        perpetualPositionDao.applyDiff(walletId.id, deleteIds, positions.map { it.toDB(walletId.id) })
+        perpetualPositionDao.deleteAndUpsert(walletId.id, deleteIds, positions.map { it.toDB(walletId.id) })
     }
 
 

@@ -1,8 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemPreferencesRow
 import Components
+import struct Gemstone.GemPreferencesState
+import protocol Gemstone.GemSettingsServiceProtocol
 import Foundation
-import protocol Gemstone.GemPreferencesServiceProtocol
+import struct Gemstone.GemPerpetualDefaults
 import GemstonePrimitives
 import Localization
 import GemstoneServices
@@ -15,44 +18,78 @@ import SwiftUI
 @MainActor
 public final class PreferencesViewModel {
     private let preferences: ObservablePreferences
-    private let service: any GemPreferencesServiceProtocol
-    private let currencyModel: CurrencySceneViewModel
+    private let settings: any GemSettingsServiceProtocol
 
     var isPresentingLeveragePicker = false
     var isPresentingTakeProfitPicker = false
     var isPresentingStopLossPicker = false
 
     public init(
-        currencyModel: CurrencySceneViewModel,
-        service: any GemPreferencesServiceProtocol,
+        settings: any GemSettingsServiceProtocol,
         preferences: ObservablePreferences,
     ) {
-        self.currencyModel = currencyModel
-        self.service = service
+        self.settings = settings
         self.preferences = preferences
-        perpetualLeverage = LeverageOption(value: service.getPerpetualLeverage())
-        perpetualTakeProfit = AutocloseOption(value: service.getPerpetualTakeProfitPercent())
-        perpetualStopLoss = AutocloseOption(value: service.getPerpetualStopLossPercent())
+        let defaults = settings.preferences(currency: preferences.currency.toGem(), perpetualsEnabled: preferences.isPerpetualEnabled).perpetualDefaults
+        perpetualLeverage = LeverageOption(value: defaults.leverage)
+        perpetualTakeProfit = AutocloseOption(value: defaults.takeProfitPercent)
+        perpetualStopLoss = AutocloseOption(value: defaults.stopLossPercent)
+    }
+
+    private var state: GemPreferencesState {
+        settings.preferences(currency: preferences.currency.toGem(), perpetualsEnabled: isPerpetualEnabled)
     }
 
     var title: String {
         Localized.Settings.Preferences.title
     }
 
-    var currencyTitle: String {
-        Localized.Settings.currency
+    var leverageTitle: String {
+        GemPreferencesRow.perpetualLeverage.title
     }
 
-    var currencyValue: String {
-        currencyModel.selectedCurrencyValue
+    var takeProfitTitle: String {
+        GemPreferencesRow.perpetualTakeProfit.title
     }
 
-    var currencyImage: AssetImage {
-        AssetImage.image(Images.Settings.currency)
+    var stopLossTitle: String {
+        GemPreferencesRow.perpetualStopLoss.title
     }
 
-    var languageTitle: String {
-        Localized.Settings.language
+    var sections: [ListSection<PreferencesRowViewModel>] {
+        state.sections.enumerated().map { index, section in
+            ListSection(id: "\(index)", title: nil, image: nil, values: section.rows.map(rowViewModel))
+        }
+    }
+
+    private func rowViewModel(_ row: GemPreferencesRow) -> PreferencesRowViewModel {
+        PreferencesRowViewModel(id: String(describing: row), kind: kind(for: row), model: listItem(for: row))
+    }
+
+    private func kind(for row: GemPreferencesRow) -> PreferencesRowKind {
+        switch row {
+        case .currency: .currency
+        case .language: .language
+        case .appearance: .appearance
+        case .networks: .networks
+        case .contacts: .contacts
+        case .perpetuals: .perpetuals
+        case .perpetualLeverage: .perpetualLeverage
+        case .perpetualTakeProfit: .perpetualTakeProfit
+        case .perpetualStopLoss: .perpetualStopLoss
+        }
+    }
+
+    private func listItem(for row: GemPreferencesRow) -> ListItemModel {
+        switch row {
+        case .currency: ListItemModel(title: row.title, subtitle: state.currency.text(), imageStyle: .settings(assetImage: row.assetImage))
+        case .language: ListItemModel(title: row.title, subtitle: languageValue, imageStyle: .settings(assetImage: row.assetImage))
+        case .appearance: ListItemModel(title: row.title, subtitle: appearanceValue, imageStyle: .settings(assetImage: row.assetImage))
+        case .networks, .contacts, .perpetuals: ListItemModel(title: row.title, imageStyle: .settings(assetImage: row.assetImage))
+        case .perpetualLeverage: ListItemModel(title: row.title, subtitle: defaultLeverageValue)
+        case .perpetualTakeProfit: ListItemModel(title: row.title, subtitle: defaultTakeProfitValue)
+        case .perpetualStopLoss: ListItemModel(title: row.title, subtitle: defaultStopLossValue)
+        }
     }
 
     var languageValue: String {
@@ -60,34 +97,6 @@ public final class PreferencesViewModel {
             return ""
         }
         return Locale.current.localizedString(forLanguageCode: code)?.capitalized ?? ""
-    }
-
-    var languageImage: AssetImage {
-        AssetImage.image(Images.Settings.language)
-    }
-
-    var networksTitle: String {
-        Localized.Settings.Networks.title
-    }
-
-    var networksImage: AssetImage {
-        AssetImage.image(Images.Settings.networks)
-    }
-
-    var contactsTitle: String {
-        Localized.Contacts.title
-    }
-
-    var contactsImage: AssetImage {
-        AssetImage.image(Images.Settings.contacts)
-    }
-
-    var appearanceTitle: String {
-        Localized.Settings.appearanceTitle
-    }
-
-    var appearanceImage: AssetImage {
-        AssetImage.image(Images.Settings.appearance)
     }
 
     var appearanceValue: String {
@@ -99,20 +108,8 @@ public final class PreferencesViewModel {
         set { preferences.isPerpetualEnabled = newValue }
     }
 
-    var perpetualsTitle: String {
-        Localized.Perpetuals.title
-    }
-
-    var perpetualsImage: AssetImage {
-        AssetImage.image(Images.Settings.perpetuals)
-    }
-
     var perpetualLeverage: LeverageOption {
-        didSet { persist { try service.setPerpetualLeverage(leverage: perpetualLeverage.value) } }
-    }
-
-    var defaultLeverageTitle: String {
-        Localized.Settings.Preferences.Perpetual.defaultLeverage
+        didSet { persistPerpetualDefaults() }
     }
 
     var defaultLeverageValue: String {
@@ -124,27 +121,25 @@ public final class PreferencesViewModel {
     }
 
     var perpetualTakeProfit: AutocloseOption {
-        didSet { persist { try service.setPerpetualTakeProfitPercent(percent: perpetualTakeProfit.value) } }
+        didSet { persistPerpetualDefaults() }
     }
 
     var perpetualStopLoss: AutocloseOption {
-        didSet { persist { try service.setPerpetualStopLossPercent(percent: perpetualStopLoss.value) } }
+        didSet { persistPerpetualDefaults() }
     }
 
-    private func persist(_ write: () throws -> Void) {
+    private func persistPerpetualDefaults() {
         do {
-            try write()
+            try settings.setPerpetualDefaults(
+                defaults: GemPerpetualDefaults(
+                    leverage: perpetualLeverage.value,
+                    takeProfitPercent: perpetualTakeProfit.value,
+                    stopLossPercent: perpetualStopLoss.value,
+                ),
+            )
         } catch {
             debugLog("preferences write error: \(error)")
         }
-    }
-
-    var defaultTakeProfitTitle: String {
-        Localized.Settings.Preferences.Perpetual.defaultTakeProfit
-    }
-
-    var defaultStopLossTitle: String {
-        Localized.Settings.Preferences.Perpetual.defaultStopLoss
     }
 
     var defaultTakeProfitValue: String {

@@ -25,6 +25,10 @@ public final class ReportNftViewModel {
         self.onComplete = onComplete
     }
 
+    func listItem(for reason: ReportReason) -> ListItemModel {
+        ListItemModel(title: reason.title)
+    }
+
     var title: String {
         Localized.Nft.Report.reportButtonTitle
     }

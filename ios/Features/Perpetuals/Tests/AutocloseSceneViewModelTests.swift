@@ -9,7 +9,7 @@ import Testing
 struct AutocloseSceneViewModelTests {
     @Test
     func isEditing() {
-        let model = AutocloseSceneViewModel(type: .mockOpen())
+        let model = AutocloseSceneViewModel(type: .mock())
         model.input.takeProfit.text = ""
         model.input.stopLoss.text = ""
 

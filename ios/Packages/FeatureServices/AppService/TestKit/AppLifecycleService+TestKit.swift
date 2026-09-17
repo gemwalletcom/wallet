@@ -2,8 +2,8 @@
 
 @testable import AppService
 import ConnectionStatusService
+import ConnectionStatusServiceTestKit
 import Foundation
-import class Gemstone.GemConnectionService
 import protocol Gemstone.GemDeviceServiceProtocol
 import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
@@ -21,7 +21,7 @@ import WalletConnectorServiceTestKit
 public extension AppLifecycleService {
     static func mock(
         walletConnector: any WalletConnectorServiceable = WalletConnectorServiceMock(),
-        connectionStatusObserver: ConnectionStatusObserver = ConnectionStatusObserver(connectionService: GemConnectionService(), monitors: []),
+        connectionStatusObserver: ConnectionStatusObserver = .mock(),
         deviceService: any GemDeviceServiceProtocol = GemDeviceServiceMock(),
         subscriptionsObserver: SubscriptionsObserver = .mock(),
         streamObserverService: StreamObserverService = .mock(),

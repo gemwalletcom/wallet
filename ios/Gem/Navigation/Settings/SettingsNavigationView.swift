@@ -12,11 +12,11 @@ import Store
 import Support
 import SwiftUI
 import WalletConnector
+import WalletConnectorService
 
 struct SettingsNavigationView: View {
     @Environment(\.navigationHandler) private var navigationHandler
     @Environment(\.walletConnector) private var walletConnector
-    @Environment(\.observablePreferences) private var observablePreferences
     @Environment(\.walletConnectorPresenter) private var walletConnectorPresenter
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.navigationPresenter) private var presenter
@@ -83,7 +83,7 @@ struct SettingsNavigationView: View {
         }
         .navigationDestination(for: Scenes.WalletConnect.self) { _ in
             ConnectionsScene(
-                model: ConnectionsViewModel(
+                model: viewModelFactory.connectionsScene(
                     connector: walletConnector,
                     walletConnectorPresenter: walletConnectorPresenter,
                 ),
@@ -106,10 +106,10 @@ struct SettingsNavigationView: View {
             CurrencyScene(model: currencyModel)
         }
         .navigationDestination(for: Scenes.Preferences.self) { _ in
-            PreferencesScene(model: viewModelFactory.preferencesScene(currencyModel: currencyModel))
+            PreferencesScene(model: viewModelFactory.preferencesScene())
         }
         .navigationDestination(for: Scenes.Appearance.self) { _ in
-            AppearanceScene(model: AppearanceViewModel(preferences: observablePreferences))
+            AppearanceScene(model: viewModelFactory.appearanceScene())
         }
         .navigationDestination(for: Scenes.Referral.self) { scene in
             if let model = viewModelFactory.rewardsScene(activateCode: scene.code) {

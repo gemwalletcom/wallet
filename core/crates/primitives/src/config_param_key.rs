@@ -1,5 +1,5 @@
 use crate::duration::{DAY, HOUR, MINUTE, WEEK};
-use crate::{Chain, ListProviderName, PriceProvider, SwapProvider};
+use crate::{Chain, ListProviderName, PriceProvider, ScanProvider, SwapProvider};
 use std::time::Duration;
 use strum::{AsRefStr, EnumIter, IntoEnumIterator};
 
@@ -132,6 +132,7 @@ pub enum ConfigParamKey {
     PriceProviderMetricsDuration(PriceProvider),
     PriceProviderCleanOutdatedDuration(PriceProvider),
     ListProviderUpdateDuration(ListProviderName),
+    ScanProviderEnable(ScanProvider),
     RateLimit(RateLimitKey, RateLimitWindow),
 }
 
@@ -148,6 +149,7 @@ impl ConfigParamKey {
         let charts_hourly = PriceProvider::all().into_iter().map(Self::PriceProviderChartsHourlyDuration);
         let metrics = PriceProvider::all().into_iter().map(Self::PriceProviderMetricsDuration);
         let clean_outdated = PriceProvider::all().into_iter().map(Self::PriceProviderCleanOutdatedDuration);
+        let scan_providers = ScanProvider::all().into_iter().map(Self::ScanProviderEnable);
         let lists = ListProviderName::all().into_iter().map(Self::ListProviderUpdateDuration);
         let rate_limits = RateLimitKey::iter().flat_map(|key| RateLimitWindow::ALL.into_iter().map(move |window| Self::RateLimit(key, window)));
         transactions
@@ -162,6 +164,7 @@ impl ConfigParamKey {
             .chain(metrics)
             .chain(clean_outdated)
             .chain(lists)
+            .chain(scan_providers)
             .chain(rate_limits)
             .collect()
     }
@@ -180,6 +183,7 @@ impl ConfigParamKey {
             Self::PriceProviderMetricsDuration(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
             Self::PriceProviderCleanOutdatedDuration(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
             Self::ListProviderUpdateDuration(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
+            Self::ScanProviderEnable(provider) => format!("{}.{}", self.as_ref(), provider.as_ref()),
             Self::RateLimit(key, window) => format!("{}.{}", key.as_ref(), window.as_ref()),
         }
     }
@@ -199,6 +203,7 @@ impl ConfigParamKey {
             Self::PriceProviderMetricsDuration(_) => "5m".to_string(),
             Self::PriceProviderCleanOutdatedDuration(_) => "1d".to_string(),
             Self::ListProviderUpdateDuration(_) => "1d".to_string(),
+            Self::ScanProviderEnable(_) => "true".to_string(),
             Self::RateLimit(key, window) => key.default_limit().get(*window).to_string(),
         }
     }

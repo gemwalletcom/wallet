@@ -20,13 +20,17 @@ Core owns domain logic and orchestration; apps own rendering, observation, and n
 
 ## Primary screen checks
 
-| Screen | What to verify |
-|---|---|
-| Wallet | Show cached assets promptly. Refresh balances and discovery concurrently. Scroll during price updates and switch wallets during refresh without showing stale data. |
-| Asset | Load independent chart, history, and metadata work concurrently. Keep the header usable and scrolling stable while results arrive. Test rapid chart-range changes. |
-| Transactions | Load bounded pages, preserve row position during status updates, and avoid rebuilding the full history. Test pagination, filters, and repeated detail navigation. |
-| Confirmation | Overlap independent state, fee, and simulation work while respecting their dependencies. Keep controls responsive. Test slow preload, fee changes, errors, authentication cancellation, and repeated send taps. |
-| Swap | Update typing immediately and debounce quote requests through the existing policy. Run eligible provider requests concurrently. Test amount edits, Max, pair reversal, slippage, failed providers, cold/warm routes, and swap-to-confirm navigation. Only current, valid quotes may be selected. |
+The owner column is where the work actually happens now: a journey that misses a target is fixed there, not in the view model that reads it, and a fix lands for both apps at once.
+
+| Screen | Owner | What to verify |
+|---|---|---|
+| Wallet | [`GemWalletHomeService`](../core/gemstone/src/services/wallet_home/mod.rs) — `refresh` joins balances and discovery | Show cached assets promptly. Refresh balances and discovery concurrently. Scroll during price updates and switch wallets during refresh without showing stale data. |
+| Asset | [`GemAssetDetailsService`](../core/gemstone/src/services/assets/details.rs) — `refresh` joins the per-step loads and records each failure | Load independent chart, history, and metadata work concurrently. Keep the header usable and scrolling stable while results arrive. Test rapid chart-range changes. |
+| Transactions | [`GemTransactionsService`](../core/gemstone/src/services/transactions/mod.rs) with the app's observed store read | Load bounded pages, preserve row position during status updates, and avoid rebuilding the full history. Test pagination, filters, and repeated detail navigation. |
+| Confirmation | [`GemConfirmTransferService`](../core/gemstone/src/services/confirm/mod.rs) and its `GemConfirmation` | Overlap independent state, fee, and simulation work while respecting their dependencies. Keep controls responsive. Test slow preload, fee changes, errors, authentication cancellation, and repeated send taps. |
+| Swap | [`GemSwapSession`](../core/gemstone/src/services/swap/session.rs) — it owns the debounce, the refresh interval and which quote is selectable | Update typing immediately and debounce quote requests through the existing policy. Run eligible provider requests concurrently. Test amount edits, Max, pair reversal, slippage, failed providers, cold/warm routes, and swap-to-confirm navigation. Only current, valid quotes may be selected. |
+
+Every number below is a target, not a measurement: nothing in this repository has been profiled against them on a physical device, and no automated gate enforces them. Treat a journey as unverified until someone records a baseline under **How to test**.
 
 ## Initial targets
 
