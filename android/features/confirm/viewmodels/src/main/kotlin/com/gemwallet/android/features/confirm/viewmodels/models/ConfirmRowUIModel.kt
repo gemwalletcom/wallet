@@ -10,7 +10,6 @@ import uniffi.gemstone.contactInitials
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemTagType
-import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.components.list_item.listItemImage
 import com.gemwallet.android.ui.localization.stringRes
 import com.wallet.core.primitives.AddressType
@@ -96,7 +95,6 @@ fun FeeUIModel.listItem(context: Context, feeAsset: Asset?): ListItemModel {
 
 internal fun verificationListItem(context: Context): ListItemModel = ListItemModel(
     title = context.getString(R.string.info_payment_verification_title),
-    subtitleStyle = ListItemTextStyle.Warning,
     subtitleTagType = ListItemTagType.Pending,
     info = InfoSheetEntity.PaymentVerificationInfo,
 )
