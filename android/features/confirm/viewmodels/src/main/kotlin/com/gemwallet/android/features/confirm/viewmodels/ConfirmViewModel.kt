@@ -205,6 +205,9 @@ class ConfirmViewModel @Inject constructor(
     val verification = transfer.map { it?.verification() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    private val isPaymentPlaceholder = transfer.map { it?.inputType is TransactionInputType.Payment && it.value == BigInteger.ZERO }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     val paymentAssetIds = transfer.map { it?.inputType?.paymentInvoice?.quotes?.mapNotNull { quote -> quote.assetId.toAssetId() }.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -393,8 +396,8 @@ class ConfirmViewModel @Inject constructor(
     val buttonState: StateFlow<ButtonState> = button.map { it.state.buttonState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Loading)
 
-    val header: StateFlow<ConfirmHeaderUIModel?> = combine(amountUIModel, simulation, isPaymentRequest, isLoading, headerAsset) { amount, simulation, isPayment, isLoading, headerAsset ->
-        confirmHeader(amount, simulation.header, isPayment, isLoading, headerAsset)
+    val header: StateFlow<ConfirmHeaderUIModel?> = combine(amountUIModel, simulation, isPaymentPlaceholder, isLoading, headerAsset) { amount, simulation, isPlaceholder, isLoading, headerAsset ->
+        confirmHeader(amount, simulation.header, isPlaceholder, isLoading, headerAsset)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val feeSelectionUIModel: StateFlow<FeeSelectionUIModel> = feeSelection.map { FeeSelectionUIModel(it.selectedPriority()?.toPrimitives(), it.customGasPrice()) }

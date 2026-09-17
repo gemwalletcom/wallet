@@ -35,11 +35,11 @@ data class FeeSelectionUIModel(
 internal fun confirmHeader(
     amountModel: AmountUIModel?,
     simulationHeader: SimulationHeaderUIModel?,
-    isPayment: Boolean,
+    isPlaceholder: Boolean,
     isLoading: Boolean,
     headerAsset: Asset?,
 ): ConfirmHeaderUIModel? = when {
-    isPayment && simulationHeader == null && isLoading -> ConfirmHeaderUIModel.Placeholder(headerAsset)
+    isPlaceholder && simulationHeader == null && isLoading -> ConfirmHeaderUIModel.Placeholder(headerAsset)
     simulationHeader != null -> ConfirmHeaderUIModel.Simulation(simulationHeader)
     amountModel?.headerKind is GemTransactionHeaderKind.Swap -> ConfirmHeaderUIModel.Swap(
         fromAsset = amountModel.fromAsset,

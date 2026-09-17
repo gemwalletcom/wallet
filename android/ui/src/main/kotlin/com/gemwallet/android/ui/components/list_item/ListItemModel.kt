@@ -13,11 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
@@ -53,7 +53,7 @@ data class ListItemModel(
     val info: InfoSheetEntity? = null,
 )
 
-private val listItemTagIconSize = 16.dp
+private val listItemTagIconSize = 18.dp
 
 enum class ListItemTextStyle {
     Body,
@@ -184,10 +184,10 @@ private fun SubtitleTag(model: ListItemModel) {
         ListItemTagType.Pending -> {
             Spacer8()
             Icon(
-                painter = painterResource(R.drawable.transaction_state_pending),
+                imageVector = AppIcons.ClockBadgeExclamation,
                 contentDescription = null,
                 modifier = Modifier.size(listItemTagIconSize),
-                tint = Color.Unspecified,
+                tint = pendingColor,
             )
         }
         ListItemTagType.None -> Unit

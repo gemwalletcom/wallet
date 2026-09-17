@@ -47,6 +47,11 @@ import com.gemwallet.android.ui.components.list_head.NftHead
 import com.gemwallet.android.ui.components.list_head.SwapListHead
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
+import com.gemwallet.android.ui.components.list_item.property.PropertyItem
+import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
+import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
+import com.gemwallet.android.ui.components.image.ListItemImageView
+import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
 import com.gemwallet.android.ui.components.perpetual.AutocloseSummaryRow
@@ -193,6 +198,16 @@ fun ConfirmScreen(
                         listPosition = listPosition,
                     )
                     is ConfirmRowUIModel.Network -> PropertyNetworkItem(chain = row.chain, value = row.name, listPosition = listPosition)
+                    is ConfirmRowUIModel.Wallet -> PropertyItem(
+                        title = { PropertyTitleText(text = row.title) },
+                        data = {
+                            PropertyDataText(
+                                text = row.name,
+                                badge = { DataBadgeChevron(isShowChevron = false) { ListItemImageView(image = row.image, size = smallIconSize) } },
+                            )
+                        },
+                        listPosition = listPosition,
+                    )
                     is ConfirmRowUIModel.PaymentAsset -> ListItem(
                         model = row.model,
                         listPosition = listPosition,
