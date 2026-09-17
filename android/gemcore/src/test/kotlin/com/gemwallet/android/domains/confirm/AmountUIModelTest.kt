@@ -31,6 +31,6 @@ class AmountUIModelTest {
     }
 
     @Test fun paymentEquivalentIsTheInvoicePrice() {
-        assertEquals("€0.10", mockAmountUIModel(paymentPrice = PaymentPrice(currency = "EUR", amount = 0.1)).amountEquivalent)
+        assertEquals("$0.10", mockAmountUIModel(paymentPrice = PaymentPrice(currency = "USD", amount = 0.1)).amountEquivalent)
     }
 }

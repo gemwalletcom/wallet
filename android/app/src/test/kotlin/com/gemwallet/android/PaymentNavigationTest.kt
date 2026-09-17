@@ -18,15 +18,12 @@ import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.spyk
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import uniffi.gemstone.AlienProvider
-import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemPaymentLoad
-import uniffi.gemstone.GemPaymentService
+import uniffi.gemstone.GemPaymentServiceInterface
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.Payment
 import uniffi.gemstone.PaymentLink
@@ -37,7 +34,7 @@ class PaymentNavigationTest {
 
     @Test
     fun routes_paymentLink_confirmsTheLoadedTransfer() = runTest {
-        val paymentService = spyk(GemPaymentService(mockk<AlienProvider>(), mockk<GemAssetsService>()))
+        val paymentService = mockk<GemPaymentServiceInterface>()
         coEvery { paymentService.load(any(), any()) } returns GemPaymentLoad.Sign(paymentTransfer())
         val navigation = PaymentNavigation(mockk(), getSession(), paymentService)
 
@@ -58,7 +55,7 @@ class PaymentNavigationTest {
 
     @Test
     fun routes_paymentLink_opensTheVerification() = runTest {
-        val paymentService = spyk(GemPaymentService(mockk<AlienProvider>(), mockk<GemAssetsService>()))
+        val paymentService = mockk<GemPaymentServiceInterface>()
         coEvery { paymentService.load(any(), any()) } returns GemPaymentLoad.Verify(
             invoice = mockPaymentInvoice(link = PaymentLink.SolanaPay(PAYMENT_URL)),
             assetId = mockAssetSolana().id.toIdentifier(),
