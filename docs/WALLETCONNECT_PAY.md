@@ -74,7 +74,7 @@ Every action of a payment is signed as `TransactionInputType::Payment`; `is_broa
 
 ## Identity verification
 
-The form is the gateway's web page, opened in a web view restricted to the link's host. It posts `payDataCollectionComplete` with `IC_COMPLETE` (or `IC_ERROR`) through the JavaScript bridge; on completion the app loads the link again, or re-selects the same asset when the form was opened from the confirm's verification row, and lands on a signable transfer. Closing the form leaves the confirm untouched underneath. iOS hosts the form in `PaymentVerificationScene`; Android does not host it yet and treats `Verify` as an unsupported link.
+The form is the gateway's web page, opened in a web view restricted to the link's host. The page tells the wallet it is done through the bridge it finds: `window.webkit.messageHandlers.payDataCollectionComplete.postMessage({type})` on iOS, `window.AndroidWallet.onDataCollectionComplete(json)` on Android, with `IC_COMPLETE` (or `IC_ERROR`). On completion the app loads the link again, or reloads the confirm when the form was opened from its verification row, and lands on a signable transfer. Closing the form leaves the confirm untouched underneath. iOS hosts the form in `PaymentVerificationScene` (a sheet from both entry points); Android in `PaymentVerificationScreen` from a scanned link and in a full bottom sheet from the confirm.
 
 ## On chain
 
@@ -116,4 +116,4 @@ Fixtures captured from the live gateway live in [`core/crates/payment/testdata/w
 - [Confirm execute and report](../core/gemstone/src/services/confirm/transfer.rs), [broadcast rule](../core/gemstone/src/services/confirm/rules.rs), [signing](../core/gemstone/src/signer/chain.rs)
 - [Record metadata](../core/gemstone/src/services/transfer/rules.rs), [activity rules](../core/gemstone/src/services/transactions/rules.rs), [tracker rule](../core/gemstone/src/services/transaction_state/rules.rs)
 - [iOS entry](../ios/Gem/Navigation/NavigationHandler.swift), [verification scene](../ios/Features/Transfer/Sources/Scenes/PaymentVerificationScene.swift), [web view bridge](../ios/Packages/Components/Sources/WebView.swift)
-- [Android entry](../android/app/src/main/kotlin/com/gemwallet/android/PaymentNavigation.kt)
+- [Android entry](../android/app/src/main/kotlin/com/gemwallet/android/PaymentNavigation.kt), [confirm view model](../android/features/confirm/viewmodels/src/main/kotlin/com/gemwallet/android/features/confirm/viewmodels/ConfirmViewModel.kt), [verification screen](../android/features/confirm/presents/src/main/kotlin/com/gemwallet/android/features/confirm/presents/PaymentVerificationScreen.kt), [web view](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/WebView.kt)
