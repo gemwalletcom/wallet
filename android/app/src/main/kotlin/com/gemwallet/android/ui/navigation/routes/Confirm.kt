@@ -61,7 +61,7 @@ fun EntryProviderScope<NavKey>.confirm(
     }
 
     entry<PaymentVerificationRoute>(
-        metadata = { key -> routeArguments(RouteArgument.Url to key.url, RouteArgument.Payment to key.link.packRoutePayload()) },
+        metadata = { key -> routeArguments(RouteArgument.Url to key.url, RouteArgument.PaymentLink to key.link.packRoutePayload()) },
     ) {
         PaymentVerificationScreen(
             onCancel = cancelAction::invoke,

@@ -51,6 +51,11 @@ internal fun confirmHeader(
     )
     amountModel?.headerKind is GemTransactionHeaderKind.Nft -> amountModel.nftAsset?.let { ConfirmHeaderUIModel.Nft(it) }
     amountModel?.headerKind is GemTransactionHeaderKind.Symbol || amountModel?.headerKind is GemTransactionHeaderKind.AssetImage -> ConfirmHeaderUIModel.Symbol(amountModel.asset)
+    amountModel?.headerKind is GemTransactionHeaderKind.Payment -> ConfirmHeaderUIModel.Amount(
+        amount = amountModel.fromAmountText,
+        equivalent = amountModel.amountEquivalent,
+        asset = headerAsset,
+    )
     else -> ConfirmHeaderUIModel.Amount(
         amount = amountModel?.cryptoAmount ?: "",
         equivalent = amountModel?.amountEquivalent?.takeIf { (amountModel.headerKind as? GemTransactionHeaderKind.Amount)?.showsFiat != false },

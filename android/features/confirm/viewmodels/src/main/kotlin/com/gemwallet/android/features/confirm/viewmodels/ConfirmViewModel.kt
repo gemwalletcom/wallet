@@ -443,17 +443,12 @@ class ConfirmViewModel @Inject constructor(
         val session = confirmation.value ?: return@launch
 
         try {
-            val result = session.execute()
-            val transactionHash = when (result) {
-                is GemExecuteResult.Signed -> result.data.first()
-                is GemExecuteResult.Sent -> result.hashes.last()
+            val (transactionHash, warning) = when (val result = session.execute()) {
+                is GemExecuteResult.Signed -> result.data.first() to result.warning
+                is GemExecuteResult.Sent -> result.hashes.last() to result.warning
             }
-            val warning = when (result) {
-                is GemExecuteResult.Signed -> result.warning
-                is GemExecuteResult.Sent -> result.warning
-            }?.text(context)
             viewModelScope.launch(Dispatchers.Main) {
-                finishAction(transactionHash, warning)
+                finishAction(transactionHash, warning?.text(context))
             }
         } catch (error: CancellationException) {
             throw error

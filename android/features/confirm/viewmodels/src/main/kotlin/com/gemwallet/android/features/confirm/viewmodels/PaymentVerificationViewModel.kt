@@ -41,7 +41,7 @@ class PaymentVerificationViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) : ViewModel(), ToastEmitter by ToastEmitterImpl() {
 
-    private val link: PaymentLink = requireNotNull(savedStateHandle.get<String>(RouteArgument.Payment.key)?.let { unpackRoutePayload<PaymentLink>(it) })
+    private val link: PaymentLink = requireNotNull(savedStateHandle.get<String>(RouteArgument.PaymentLink.key)?.let { unpackRoutePayload<PaymentLink>(it) })
     private val urlState = MutableStateFlow(requireNotNull(savedStateHandle.get<String>(RouteArgument.Url.key)))
     private val confirmState = MutableStateFlow<ConfirmTransferInput?>(null)
 
