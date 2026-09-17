@@ -52,6 +52,7 @@ import com.gemwallet.android.ui.components.LocalConnectionBannerHandled
 import com.gemwallet.android.ui.components.animation.NavigationAnimation
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.navigation.WalletNavigator
+import com.gemwallet.android.MessageToast
 import com.gemwallet.android.ui.navigation.WalletRootRoute
 import com.gemwallet.android.ui.navigation.routes.assetsRoute
 import com.gemwallet.android.ui.navigation.routes.settingsRoute
@@ -82,6 +83,11 @@ fun MainScreen(
             isPresentingScanner = false
             viewModel.onScan(code)
         },
+    )
+
+    MessageToast(
+        message = navigator.toastMessage(WalletRootRoute),
+        onShown = { navigator.clearToastMessage(WalletRootRoute) },
     )
 
     BackHandler(isRootRouteActive && currentTab.value != assetsRoute) {

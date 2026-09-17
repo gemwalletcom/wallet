@@ -34,6 +34,8 @@ sealed interface ConfirmRowUIModel {
         val explorerLink: BlockExplorerLink,
     ) : ConfirmRowUIModel
     data class Network(val chain: Chain, val name: String) : ConfirmRowUIModel
+    data class Sender(val title: String, val name: String, val image: ListItemImage) : ConfirmRowUIModel
+    data class PaymentAsset(val model: ListItemModel, val selectable: Boolean) : ConfirmRowUIModel
 }
 
 internal fun ConfirmProperty.uiModel(context: Context): ConfirmRowUIModel = when (this) {
@@ -66,10 +68,12 @@ internal fun ConfirmProperty.uiModel(context: Context): ConfirmRowUIModel = when
         explorerLink = explorerLink,
         avatar = null,
     )
-    is ConfirmProperty.Source -> ConfirmRowUIModel.Item(
-        ListItemModel(title = context.getString(R.string.common_wallet), subtitle = walletRow.name, image = walletRow.listItemImage()),
-    )
+    is ConfirmProperty.Source -> ConfirmRowUIModel.Sender(title = context.getString(R.string.common_wallet), name = walletRow.name, image = walletRow.listItemImage())
     is ConfirmProperty.Network -> ConfirmRowUIModel.Network(chain = chain, name = name)
+    is ConfirmProperty.PaymentAsset -> ConfirmRowUIModel.PaymentAsset(
+        model = ListItemModel(title = context.getString(R.string.transfer_pay_with), subtitle = symbol),
+        selectable = selectable,
+    )
 }
 
 private fun ConfirmProperty.Destination.Transfer.avatar(): ListItemImage? {
@@ -87,6 +91,12 @@ fun FeeUIModel.listItem(context: Context, feeAsset: Asset?): ListItemModel {
         is FeeUIModel.FeeInfo -> ListItemModel(title = title, subtitle = cryptoAmount, subtitleExtra = fiatAmount.takeIf { it.isNotEmpty() }, info = info)
     }
 }
+
+internal fun verificationListItem(context: Context): ListItemModel = ListItemModel(
+    title = context.getString(R.string.info_payment_verification_title),
+    subtitleTagType = ListItemTagType.Pending,
+    info = InfoSheetEntity.PaymentVerificationInfo,
+)
 
 internal fun FeeUIModel.FeeInfo.feeItems(context: Context): List<ListItemModel> = feeItems.map { (option, info) ->
     ListItemModel(title = context.getString(option.stringRes()), subtitle = info.cryptoAmount)

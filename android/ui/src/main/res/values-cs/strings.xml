@@ -110,6 +110,8 @@
   <string name="buy_rate">Kurz</string>
   <string name="buy_no_results">Nejsou k dispozici žádné nabídky</string>
   <string name="transfer_network_fee">Síťový poplatek</string>
+  <string name="transfer_pay_with">Zaplatit pomocí</string>
+  <string name="transfer_payment_title">Platba</string>
   <string name="transfer_memo">Memo</string>
   <string name="transfer_confirm">Potvrdit</string>
   <string name="transfer_from">Z</string>
@@ -224,6 +226,11 @@
   <string name="errors_no_internet_connection">Žádné připojení k internetu</string>
   <string name="errors_no_service_connection">Žádné připojení ke službě</string>
   <string name="errors_balances_activity_outdated">Zůstatky a aktivita mohou být zastaralé.</string>
+  <string name="errors_payment_in_progress">Platba již probíhá</string>
+  <string name="errors_payment_paid">Platba již byla uhrazena</string>
+  <string name="errors_payment_failed">Platba se nezdařila</string>
+  <string name="errors_payment_expired">Platnost platby vypršela</string>
+  <string name="errors_payment_cancelled">Platba byla zrušena</string>
   <string name="activity_title">Aktivita</string>
   <string name="activity_state_empty_title">Vaše aktivita se zde zobrazí</string>
   <string name="activity_state_empty_description">Proveďte svou první transakci</string>
@@ -435,6 +442,8 @@
   <string name="info_network_fee_title">Síťový poplatek</string>
   <string name="info_watch_wallet_title">Sledovaná peněženka</string>
   <string name="info_watch_wallet_description">Peněženka, ke které nemáte přístup, ale můžete sledovat její transakce a pohyby.</string>
+  <string name="info_payment_verification_title">Ověření platby</string>
+  <string name="info_payment_verification_description">Obchodník požaduje před platbou další informace.</string>
   <string name="info_network_fee_description">Každá transakce v síti %1$s vyžaduje poplatek ve výši %2$s zaplacený těžařům za zpracování vaší transakce, nikoli Gem Wallet. Síťové poplatky se liší podle využití sítě.</string>
   <string name="info_transaction_error_description">Transakci nebylo možné dokončit kvůli chybě, jako je nedostatek finančních prostředků, neplatný vstup nebo odmítnutí ze strany sítě. Zkontrolujte podrobnosti a zkuste to znovu.</string>
   <string name="info_transaction_pending_description">Transakce byla odeslána a čeká na potvrzení v síti. Doba zpracování se může lišit. Zkontrolujte prosím aktualizace.</string>

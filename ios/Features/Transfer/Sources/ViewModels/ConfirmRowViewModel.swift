@@ -58,6 +58,8 @@ extension ConfirmRowViewModel: ItemModelProvidable {
             )
         case let .memo(memo):
             .memo(MemoViewModel(memo: memo).listItemModel)
+        case let .paymentAsset(symbol, selectable):
+            .paymentAsset(ListItemModel(title: Localized.Transfer.payWith, subtitle: symbol), selectable: selectable)
         case .details, .none:
             .empty
         }
@@ -113,6 +115,7 @@ extension GemConfirmRowContent {
         case .network: .network
         case .memo: .memo
         case .details: .details
+        case .paymentAsset: .paymentAsset
         }
     }
 }

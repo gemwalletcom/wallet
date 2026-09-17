@@ -110,6 +110,8 @@
   <string name="buy_rate">Rata</string>
   <string name="buy_no_results">Nu există oferte disponibile</string>
   <string name="transfer_network_fee">Taxa de retea</string>
+  <string name="transfer_pay_with">Plătește cu</string>
+  <string name="transfer_payment_title">Plată</string>
   <string name="transfer_memo">Notă</string>
   <string name="transfer_confirm">Confirmați</string>
   <string name="transfer_from">De la</string>
@@ -224,6 +226,11 @@
   <string name="errors_no_internet_connection">Nicio conexiune la internet</string>
   <string name="errors_no_service_connection">Nicio conexiune la serviciu</string>
   <string name="errors_balances_activity_outdated">Soldurile și activitatea pot fi învechite.</string>
+  <string name="errors_payment_in_progress">Plata este deja în curs</string>
+  <string name="errors_payment_paid">Plata a fost deja efectuată</string>
+  <string name="errors_payment_failed">Plata a eșuat</string>
+  <string name="errors_payment_expired">Plata a expirat</string>
+  <string name="errors_payment_cancelled">Plata a fost anulată</string>
   <string name="activity_title">Activitate</string>
   <string name="activity_state_empty_title">Activitatea ta va apărea aici</string>
   <string name="activity_state_empty_description">Efectuați prima tranzacție</string>
@@ -435,6 +442,8 @@
   <string name="info_network_fee_title">Taxa de retea</string>
   <string name="info_watch_wallet_title">Portofel de monitorizare</string>
   <string name="info_watch_wallet_description">Un portofel la care nu ai acces, dar îi poți urmări tranzacțiile și mișcările.</string>
+  <string name="info_payment_verification_title">Verificarea plății</string>
+  <string name="info_payment_verification_description">Comerciantul solicită informații suplimentare înainte de plată.</string>
   <string name="info_network_fee_description">Fiecare tranzacție din rețeaua %1$s necesită o taxă în %2$s plătită minerilor pentru a vă procesa tranzacția, nu Gem Wallet. Taxele de rețea variază în funcție de utilizarea rețelei.</string>
   <string name="info_transaction_error_description">Tranzacția nu a putut fi finalizată din cauza unei erori, cum ar fi fonduri insuficiente, introducere nevalidă sau respingere din partea rețelei. Vă rugăm să examinați detaliile și să încercați din nou.</string>
   <string name="info_transaction_pending_description">Tranzacția a fost trimisă și așteaptă confirmarea în rețea. Timpii de procesare pot varia. Vă rugăm să verificați din nou pentru actualizări.</string>

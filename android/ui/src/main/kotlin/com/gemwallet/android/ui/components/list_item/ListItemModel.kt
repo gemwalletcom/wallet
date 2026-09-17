@@ -4,7 +4,9 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
@@ -19,6 +22,7 @@ import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator14
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
+import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer6
 import com.gemwallet.android.ui.theme.Spacer8
@@ -47,6 +51,8 @@ data class ListItemModel(
     val image: ListItemImage? = null,
     val info: InfoSheetEntity? = null,
 )
+
+private val listItemTagIconSize = 18.dp
 
 enum class ListItemTextStyle {
     Body,
@@ -81,6 +87,7 @@ enum class ListItemSymbol {
 enum class ListItemTagType {
     None,
     Progress,
+    Pending,
 }
 
 sealed interface ListItemImage {
@@ -158,7 +165,7 @@ fun ListItem(
 
 private fun subtitleBadge(model: ListItemModel, accessory: (@Composable () -> Unit)?): (@Composable () -> Unit)? = when (model.subtitleTagType) {
     ListItemTagType.None -> accessory
-    ListItemTagType.Progress -> {
+    ListItemTagType.Progress, ListItemTagType.Pending -> {
         {
             SubtitleTag(model)
             accessory?.invoke()
@@ -173,6 +180,15 @@ private fun SubtitleTag(model: ListItemModel) {
             Spacer8()
             CircularProgressIndicator16(color = model.subtitleStyle.color())
         }
+        ListItemTagType.Pending -> {
+            Spacer8()
+            Icon(
+                imageVector = AppIcons.ClockBadgeExclamation,
+                contentDescription = null,
+                modifier = Modifier.size(listItemTagIconSize),
+                tint = pendingColor,
+            )
+        }
         ListItemTagType.None -> Unit
     }
 }
@@ -185,7 +201,7 @@ private fun TitleTag(text: String, style: ListItemTextStyle, type: ListItemTagTy
             CircularProgressIndicator14()
             return
         }
-        ListItemTagType.None -> Unit
+        ListItemTagType.None, ListItemTagType.Pending -> Unit
     }
     when (style) {
         ListItemTextStyle.Primary,

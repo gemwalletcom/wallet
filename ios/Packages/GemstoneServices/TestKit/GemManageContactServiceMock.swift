@@ -1,0 +1,44 @@
+// Copyright (c). Gem Wallet. All rights reserved.
+
+import struct Gemstone.Chain
+import struct Gemstone.Contact
+import enum Gemstone.GemAddressFormatStyle
+import class Gemstone.GemAddressService
+import struct Gemstone.GemContactInput
+import struct Gemstone.GemContactScannedAddress
+import class Gemstone.GemManageContactService
+import protocol Gemstone.GemManageContactServiceProtocol
+import class Gemstone.GemPaymentService
+import GemstonePrimitivesTestKit
+
+public final class GemManageContactServiceMock: GemManageContactServiceProtocol, @unchecked Sendable {
+    private let service: GemManageContactService
+
+    public init() {
+        service = GemManageContactService(
+            contacts: .mock(),
+            addresses: GemAddressService(),
+            payments: GemPaymentService.mock(),
+        )
+    }
+
+    public func canSave(name: String, isSaving: Bool) -> Bool {
+        !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isSaving
+    }
+
+    public func scannedAddress(input: String) -> GemContactScannedAddress {
+        service.scannedAddress(input: input)
+    }
+
+    public func defaultChain() -> Gemstone.Chain {
+        service.defaultChain()
+    }
+
+    public func saveContact(input: GemContactInput) async throws -> Gemstone.Contact {
+        try await service.saveContact(input: input)
+    }
+
+    public func formatAddress(address: String, chain: Gemstone.Chain, style: GemAddressFormatStyle) -> String {
+        service.formatAddress(address: address, chain: chain, style: style)
+    }
+}

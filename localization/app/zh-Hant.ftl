@@ -131,6 +131,8 @@ buy_no_results = 暫無報價
 # Transfer
 
 transfer_network_fee = 網路手續費
+transfer_pay_with = 付款方式
+transfer_payment_title = 付款
 transfer_memo = 備註
 transfer_confirm = 確認
 transfer_from = 來自
@@ -254,6 +256,11 @@ errors_network_offline = 網路連線似乎已斷開。
 errors_no_internet_connection = 無網際網路連線
 errors_no_service_connection = 無法連線至服務
 errors_balances_activity_outdated = 餘額和交易紀錄可能尚未更新。
+errors_payment_in_progress = 此付款已在處理中
+errors_payment_paid = 此付款已完成
+errors_payment_failed = 付款失敗
+errors_payment_expired = 付款已過期
+errors_payment_cancelled = 付款已取消
 
 # Activity
 
@@ -540,6 +547,8 @@ sell_title = 出售%@
 info_network_fee_title = 網路手續費
 info_watch_wallet_title = 觀察錢包
 info_watch_wallet_description = 這是一個您無法操作的錢包，但可以查看它的交易和資產變動。
+info_payment_verification_title = 付款身分驗證
+info_payment_verification_description = 商家在付款前需要您提供更多資訊。
 info_network_fee_description = 在 %@ 網路上的每筆交易都需要以 %@ 支付給礦工的手續費，以處理交易，Gem Wallet 不收取此費用。網路手續費會根據網路使用情況而有所不同。
 info_transaction_error_description = 由於錯誤（例如資金不足、輸入無效或網路拒絕）導致交易無法完成。請查看詳細資訊並重試。
 info_transaction_pending_description = 交易已提交並正在等待網路確認。處理時間可能有所不同。請回來查看更新。

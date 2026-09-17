@@ -110,6 +110,8 @@
   <string name="buy_rate">হার</string>
   <string name="buy_no_results">কোনো উদ্ধৃতি উপলব্ধ নেই</string>
   <string name="transfer_network_fee">নেটওয়ার্ক ফি</string>
+  <string name="transfer_pay_with">যা দিয়ে পেমেন্ট করবেন</string>
+  <string name="transfer_payment_title">পেমেন্ট</string>
   <string name="transfer_memo">মেমো</string>
   <string name="transfer_confirm">নিশ্চিত করুন</string>
   <string name="transfer_from">প্রেরক</string>
@@ -224,6 +226,11 @@
   <string name="errors_no_internet_connection">ইন্টারনেট সংযোগ নেই</string>
   <string name="errors_no_service_connection">পরিষেবা সংযোগ নেই</string>
   <string name="errors_balances_activity_outdated">ব্যালেন্স এবং কার্যকলাপ পুরনো হতে পারে।</string>
+  <string name="errors_payment_in_progress">পেমেন্ট ইতিমধ্যে চলছে</string>
+  <string name="errors_payment_paid">পেমেন্ট ইতিমধ্যে সম্পন্ন হয়েছে</string>
+  <string name="errors_payment_failed">পেমেন্ট ব্যর্থ হয়েছে</string>
+  <string name="errors_payment_expired">পেমেন্টের মেয়াদ শেষ হয়ে গেছে</string>
+  <string name="errors_payment_cancelled">পেমেন্ট বাতিল করা হয়েছে</string>
   <string name="activity_title">কার্যকলাপ</string>
   <string name="activity_state_empty_title">আপনার কার্যকলাপ এখানে প্রদর্শিত হবে</string>
   <string name="activity_state_empty_description">আপনার প্রথম লেনদেন করুন</string>
@@ -435,6 +442,8 @@
   <string name="info_network_fee_title">নেটওয়ার্ক ফি</string>
   <string name="info_watch_wallet_title">ওয়ালেট দেখুন</string>
   <string name="info_watch_wallet_description">একটি মানিব্যাগ যা আপনার অ্যাক্সেস নেই, তবে আপনি এটির লেনদেন এবং গতিবিধি দেখতে পারেন।</string>
+  <string name="info_payment_verification_title">পেমেন্ট যাচাইকরণ</string>
+  <string name="info_payment_verification_description">মার্চেন্ট পেমেন্টের আগে অতিরিক্ত তথ্য চাইছে।</string>
   <string name="info_network_fee_description">%1$s নেটওয়ার্কে প্রতিটি লেনদেনের জন্য আপনার লেনদেন প্রক্রিয়া করার জন্য %2$s-এ ফি দিতে হবে, Gem Wallet নয়। নেটওয়ার্ক ফি নেটওয়ার্ক ব্যবহারের উপর ভিত্তি করে পরিবর্তিত হয়।</string>
   <string name="info_transaction_error_description">একটি ত্রুটির কারণে লেনদেন সম্পন্ন করা যায়নি, যেমন অপর্যাপ্ত তহবিল, অবৈধ ইনপুট, বা নেটওয়ার্ক দ্বারা প্রত্যাখ্যান। অনুগ্রহ করে বিস্তারিত পর্যালোচনা করুন এবং আবার চেষ্টা করুন।</string>
   <string name="info_transaction_pending_description">লেনদেন জমা দেওয়া হয়েছে এবং নেটওয়ার্কে নিশ্চিতকরণের জন্য অপেক্ষা করছে। প্রক্রিয়াকরণের সময় পরিবর্তিত হতে পারে। আপডেটের জন্য আবার চেক করুন.</string>

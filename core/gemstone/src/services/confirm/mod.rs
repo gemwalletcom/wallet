@@ -23,7 +23,7 @@ pub use transfer::GemConfirmTransferService;
 use crate::gateway::GemGateway;
 use crate::models::asset::chain_fee_asset_ids;
 use crate::models::gateway::GemTransactionPreloadInput;
-use crate::models::transaction::{GemSignedTransaction, GemTransactionLoadInput};
+use crate::models::transaction::{GemSignedTransaction, GemTransactionData, GemTransactionLoadInput};
 use crate::services::GemScanService;
 use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
@@ -35,7 +35,8 @@ use crate::services::transaction_state::{GemTransactionStateService, GemTransact
 use crate::services::transfer::rules::TransferInput;
 use crate::signer::GemSignerError;
 use primitives::TransactionInputType;
-use primitives::{Asset, AssetId, Chain, SimulationPayloadFieldDisplay, SimulationResult, Transaction, TransferDataOutputAction, WalletId};
+use num_bigint::BigInt;
+use primitives::{Asset, AssetId, Chain, SimulationPayloadFieldDisplay, SimulationResult, Transaction, TransactionFee, WalletId};
 
 #[derive(uniffi::Object)]
 pub struct GemConfirmService {
@@ -113,28 +114,34 @@ impl GemConfirmService {
         rules::validate_scan(scan.as_ref(), transfer.recipient.memo.as_deref(), &symbol)?;
 
         let selected = options.fee_selection.select_fee_rate(&fee_rates)?;
-        let load = self
-            .gateway
-            .get_transaction_load(
-                chain,
-                GemTransactionLoadInput {
-                    input_type: transfer.input_type.clone(),
-                    sender_address: input.from.address.clone(),
-                    destination_address: destination,
-                    value: transfer.value.to_biguint().ok_or_else(|| GemConfirmError::Load {
-                        msg: "negative transfer value".to_string(),
-                    })?,
-                    gas_price: selected.gas_price_type.clone(),
-                    memo: transfer.recipient.memo.clone(),
-                    is_max_value: transfer.use_max_amount,
-                    metadata,
-                },
-            )
-            .await
-            .map_err(error::load_error)?;
+        let load = if rules::is_signature_only(&transfer.input_type) {
+            GemTransactionData {
+                fee: TransactionFee::new_from_fee(BigInt::ZERO, AssetId::from_chain(chain)).into(),
+                metadata,
+            }
+        } else {
+            self.gateway
+                .get_transaction_load(
+                    chain,
+                    GemTransactionLoadInput {
+                        input_type: transfer.input_type.clone(),
+                        sender_address: input.from.address.clone(),
+                        destination_address: destination,
+                        value: transfer.value.to_biguint().ok_or_else(|| GemConfirmError::Load {
+                            msg: "negative transfer value".to_string(),
+                        })?,
+                        gas_price: selected.gas_price_type.clone(),
+                        memo: transfer.recipient.memo.clone(),
+                        is_max_value: transfer.use_max_amount,
+                        metadata,
+                    },
+                )
+                .await
+                .map_err(error::load_error)?
+        };
 
         let mut fee = load.fee;
-        if let Some(fee_asset_id) = options.fee_asset_id {
+        if let Some(fee_asset_id) = options.fee_asset_id.filter(|fee_asset_id| fee_asset_id.chain == chain) {
             fee.fee_asset = fee_asset_id;
         }
 
@@ -197,7 +204,7 @@ impl GemConfirmService {
 }
 
 impl GemConfirmService {
-    pub async fn execute(&self, input: SendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<GemExecuteResult, GemConfirmError> {
+    async fn sign(&self, input: &SendInput, signer: Arc<dyn GemTransactionSigner>) -> Result<Vec<GemSignedTransaction>, GemConfirmError> {
         let signer_input = input.signer_input()?;
         let chain = input.confirm.input.transfer.input_type.get_asset().chain();
         let transactions = signer.sign(input.wallet.clone(), signer_input).await.map_err(|error| error::sign_error(chain, error))?;
@@ -209,18 +216,7 @@ impl GemConfirmService {
             });
         }
         input.confirm.input.transfer.input_type.validate_approvals(&transactions)?;
-        match input.confirm.input.transfer.input_type.output().output_action {
-            TransferDataOutputAction::Sign => Ok(GemExecuteResult::Signed {
-                data: transactions.into_iter().map(|transaction| transaction.data).collect(),
-            }),
-            TransferDataOutputAction::Send => {
-                let result = self.send(input, transactions).await?;
-                Ok(GemExecuteResult::Sent {
-                    hashes: result.hashes,
-                    transactions: result.transactions,
-                })
-            }
-        }
+        Ok(transactions)
     }
 }
 
@@ -374,6 +370,7 @@ mod tests {
             let options = GemConfirmLoadOptions {
                 fee_selection: GemConfirmFeeSelection::Priority { priority: FeePriority::Normal },
                 fee_asset_id: None,
+                asset_id: None,
             };
 
             let result = testkit.confirm.load(input, options).await;

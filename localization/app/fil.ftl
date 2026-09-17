@@ -131,6 +131,8 @@ buy_no_results = Walang available na quotes
 # Transfer
 
 transfer_network_fee = Bayad sa Network
+transfer_pay_with = Magbayad gamit ang
+transfer_payment_title = Bayad
 transfer_memo = Memo
 transfer_confirm = Kumpirmahin
 transfer_from = Mula sa
@@ -254,6 +256,11 @@ errors_network_offline = Mukhang offline ang koneksyon sa internet.
 errors_no_internet_connection = Walang koneksyon sa internet
 errors_no_service_connection = Walang koneksyon sa serbisyo
 errors_balances_activity_outdated = Maaaring luma na ang mga balanse at aktibidad.
+errors_payment_in_progress = Isinasagawa na ang bayad
+errors_payment_paid = Nabayaran na
+errors_payment_failed = Nabigo ang bayad
+errors_payment_expired = Nag-expire na ang bayad
+errors_payment_cancelled = Nakansela ang bayad
 
 # Activity
 
@@ -540,6 +547,8 @@ sell_title = Ibenta %@
 info_network_fee_title = Bayad sa Network
 info_watch_wallet_title = Wallet na Binabantayan
 info_watch_wallet_description = Isang wallet na wala kang access, ngunit maaari mong panoorin ang mga transaksyon at paggalaw nito.
+info_payment_verification_title = Beripikasyon ng Bayad
+info_payment_verification_description = Humihingi ang merchant ng karagdagang impormasyon bago ang bayad.
 info_network_fee_description = Ang bawat transaksyon sa %@ network ay nangangailangan ng bayad sa %@ na binabayaran sa mga minero upang maproseso ang iyong transaksyon, hindi ang Gem Wallet. Nag-iiba-iba ang mga bayarin sa network batay sa paggamit ng network.
 info_transaction_error_description = Hindi makumpleto ang transaksyon dahil sa isang error, tulad ng hindi sapat na pondo, hindi wastong input, o pagtanggi ng network. Pakisuri ang mga detalye at subukang muli.
 info_transaction_pending_description = Naisumite na ang transaksyon at naghihintay ng kumpirmasyon sa network. Maaaring mag-iba ang mga oras ng pagproseso. Mangyaring bumalik para sa mga update.

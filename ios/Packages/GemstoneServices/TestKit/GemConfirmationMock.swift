@@ -11,6 +11,7 @@ public import struct Gemstone.GemConfirmLoad
 public import struct Gemstone.GemConfirmLoadOptions
 public import enum Gemstone.GemConfirmRowContent
 public import struct Gemstone.GemConfirmScreen
+public import struct Gemstone.GemTransferData
 public import protocol Gemstone.GemConfirmationProtocol
 public import enum Gemstone.GemExecuteResult
 public import enum Gemstone.GemKeystoreAuthentication
@@ -26,12 +27,13 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     private let rows: (Gemstone.AddressName?) -> [GemConfirmRowContent]
     private let assetConfig = GemAssetConfigService()
     private var loaded: GemConfirmLoad?
+    public private(set) var loadOptions: [GemConfirmLoadOptions] = []
     public var onLoad: (@MainActor () -> Void)?
 
     public init(
         state: GemConfirmLoad = .mock(),
         load: Result<GemConfirmLoad, any Error> = .success(.mock()),
-        execute: Result<GemExecuteResult, any Error> = .success(.signed(data: [])),
+        execute: Result<GemExecuteResult, any Error> = .success(.signed(data: [], warning: nil)),
         authentication: GemKeystoreAuthentication = .none,
         rows: @escaping (Gemstone.AddressName?) -> [GemConfirmRowContent] = { _ in [] },
     ) {
@@ -46,11 +48,16 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
         .mock()
     }
 
+    public func transfer() -> GemTransferData {
+        (loaded ?? initialState).transfer
+    }
+
     public func state() async throws -> GemConfirmLoad {
         loaded ?? initialState
     }
 
-    public func load(options _: GemConfirmLoadOptions) async throws -> GemConfirmLoad {
+    public func load(options: GemConfirmLoadOptions) async throws -> GemConfirmLoad {
+        loadOptions.append(options)
         await onLoad?()
         loaded = try loadResult.get()
         return try loadResult.get()

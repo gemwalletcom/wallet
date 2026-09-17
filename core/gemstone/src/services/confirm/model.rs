@@ -4,6 +4,7 @@ use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::gateway::GemFeeRate;
 use crate::models::transaction::{GemFeeOptionItem, GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::services::balance::GemAssetBalance;
+use crate::services::error_text::GemErrorText;
 use crate::services::simulation::GemSimulationWarningRow;
 use crate::services::transactions::GemAmountSign;
 use crate::services::transfer::GemTransferData;
@@ -51,6 +52,7 @@ impl GemConfirmFeeSelection {
 pub struct GemConfirmLoadOptions {
     pub fee_selection: GemConfirmFeeSelection,
     pub fee_asset_id: Option<AssetId>,
+    pub asset_id: Option<AssetId>,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -66,8 +68,8 @@ pub struct GemConfirmData {
 
 #[derive(Debug, Clone, uniffi::Enum)]
 pub enum GemExecuteResult {
-    Signed { data: Vec<String> },
-    Sent { hashes: Vec<String>, transactions: Vec<Transaction> },
+    Signed { data: Vec<String>, warning: Option<GemErrorText> },
+    Sent { hashes: Vec<String>, transactions: Vec<Transaction>, warning: Option<GemErrorText> },
 }
 
 pub(super) struct GemSendResult {
@@ -150,6 +152,7 @@ impl GemConfirmSimulation {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmLoad {
+    pub transfer: GemTransferData,
     pub sender: GemAccount,
     pub fee_asset: Asset,
     pub metadata: GemConfirmMetadata,
@@ -251,6 +254,8 @@ pub struct GemConfirmScreen {
     pub phase: GemConfirmPhase,
     pub has_critical_warning: bool,
     pub failure: Option<GemConfirmFailure>,
+    #[uniffi(default = true)]
+    pub has_preload: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -342,4 +347,8 @@ pub enum GemConfirmRowContent {
         memo: Option<String>,
     },
     Details,
+    PaymentAsset {
+        symbol: String,
+        selectable: bool,
+    },
 }

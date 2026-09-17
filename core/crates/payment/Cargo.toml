@@ -8,11 +8,19 @@ primitives = { path = "../primitives" }
 gem_client = { path = "../gem_client" }
 gem_encoding = { path = "../gem_encoding" }
 gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"] }
+gem_evm = { path = "../gem_evm" }
 gem_solana = { path = "../gem_solana" }
+gem_wallet_connect = { path = "../gem_wallet_connect" }
+number_formatter = { path = "../number_formatter" }
+async-trait = { workspace = true }
 futures = { workspace = true }
+num-bigint = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
+url = { workspace = true }
 
 [dev-dependencies]
 gem_client = { path = "../gem_client", features = ["testkit"] }
+primitives = { path = "../primitives", features = ["testkit"] }
 tokio = { workspace = true, features = ["macros", "rt"] }

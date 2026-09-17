@@ -110,6 +110,8 @@
   <string name="buy_rate">Tarifa</string>
   <string name="buy_no_results">No hay cotizaciones disponibles</string>
   <string name="transfer_network_fee">Tarifa de red</string>
+  <string name="transfer_pay_with">Pagar con</string>
+  <string name="transfer_payment_title">Pago</string>
   <string name="transfer_memo">Nota</string>
   <string name="transfer_confirm">Confirmar</string>
   <string name="transfer_from">De</string>
@@ -224,6 +226,11 @@
   <string name="errors_no_internet_connection">Sin conexión a internet</string>
   <string name="errors_no_service_connection">Sin conexión al servicio</string>
   <string name="errors_balances_activity_outdated">Los saldos y la actividad pueden estar desactualizados.</string>
+  <string name="errors_payment_in_progress">El pago ya está en curso</string>
+  <string name="errors_payment_paid">El pago ya se ha realizado</string>
+  <string name="errors_payment_failed">El pago ha fallado</string>
+  <string name="errors_payment_expired">El pago ha caducado</string>
+  <string name="errors_payment_cancelled">El pago fue cancelado</string>
   <string name="activity_title">Actividad</string>
   <string name="activity_state_empty_title">Tu actividad aparecerá aquí</string>
   <string name="activity_state_empty_description">Realiza tu primera transacción</string>
@@ -435,6 +442,8 @@
   <string name="info_network_fee_title">Tarifa de red</string>
   <string name="info_watch_wallet_title">Billetera de observación</string>
   <string name="info_watch_wallet_description">Una billetera a la que no tienes acceso, pero puedes observar sus transacciones y movimientos.</string>
+  <string name="info_payment_verification_title">Verificación del pago</string>
+  <string name="info_payment_verification_description">El comercio solicita información adicional antes del pago.</string>
   <string name="info_network_fee_description">Cada transacción en la red %1$s requiere una tarifa en %2$s pagada a los mineros para procesar su transacción, no a Gem Wallet. Las tarifas de red varían según el uso de la red.</string>
   <string name="info_transaction_error_description">La transacción no se pudo completar debido a un error, como fondos insuficientes, una entrada no válida o un rechazo de la red. Revise los detalles y vuelva a intentarlo.</string>
   <string name="info_transaction_pending_description">La transacción se ha enviado y está pendiente de confirmación en la red. El tiempo de procesamiento puede variar. Por favor, vuelva a consultar para obtener actualizaciones.</string>

@@ -1,4 +1,4 @@
-use crate::{Chain, ChainAddress, ChainType};
+use crate::{AssetId, Chain, ChainAddress, ChainType};
 use serde::Serialize;
 use std::str::FromStr;
 use strum::{AsRefStr, EnumString};
@@ -65,6 +65,10 @@ impl WalletConnectCAIP2 {
         Self::get_chain(namespace.to_string(), reference.to_string())
     }
 
+    pub fn format_account(chain: Chain, address: &str) -> Option<String> {
+        Some(format!("{}:{}:{address}", Self::get_namespace(chain)?, Self::get_reference(chain)?))
+    }
+
     pub fn parse_account(account: String) -> Option<ChainAddress> {
         let mut parts = account.split(':');
         let namespace = parts.next()?;
@@ -93,6 +97,27 @@ impl WalletConnectCAIP2 {
             return None;
         }
         Some((namespace, reference))
+    }
+}
+
+const SLIP44_NAMESPACE: &str = "slip44";
+
+pub struct WalletConnectCAIP19;
+
+impl WalletConnectCAIP19 {
+    pub fn get_asset_id(asset: &str) -> Option<AssetId> {
+        let (chain_id, asset) = match asset.split_once('/') {
+            Some((chain_id, asset)) => (chain_id, Some(asset)),
+            None => (asset, None),
+        };
+        let chain = WalletConnectCAIP2::parse_chain_id(chain_id.to_string())?;
+        let Some(asset) = asset else {
+            return Some(AssetId::from(chain, None));
+        };
+        match asset.split_once(':')? {
+            (SLIP44_NAMESPACE, _) => Some(AssetId::from(chain, None)),
+            (_, token_id) => Some(AssetId::from_token(chain, token_id)),
+        }
     }
 }
 
@@ -128,6 +153,30 @@ mod tests {
         assert!(WalletConnectCAIP2::get_chain_from_id(Some("eip155:1:extra".to_string())).is_err());
         assert!(WalletConnectCAIP2::get_chain_from_id(None).is_err());
         assert!(WalletConnectCAIP2::get_chain_from_id(Some("unknown:chain".to_string())).is_err());
+    }
+
+    #[test]
+    fn test_format_account() {
+        assert_eq!(
+            WalletConnectCAIP2::format_account(Chain::Base, "0x0000000000000000000000000000000000000001"),
+            Some("eip155:8453:0x0000000000000000000000000000000000000001".to_string())
+        );
+        assert_eq!(WalletConnectCAIP2::format_account(Chain::Bitcoin, "bc1q"), None);
+    }
+
+    #[test]
+    fn test_get_asset_id() {
+        assert_eq!(WalletConnectCAIP19::get_asset_id("eip155:10/slip44:614"), Some(AssetId::from_chain(Chain::Optimism)));
+        assert_eq!(
+            WalletConnectCAIP19::get_asset_id("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"),
+            Some(AssetId::from_chain(Chain::Solana))
+        );
+        assert_eq!(
+            WalletConnectCAIP19::get_asset_id("eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7"),
+            Some(AssetId::from_token(Chain::Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7"))
+        );
+        assert_eq!(WalletConnectCAIP19::get_asset_id("eip155:99999/slip44:60"), None);
+        assert_eq!(WalletConnectCAIP19::get_asset_id("eip155:1/erc20"), None);
     }
 
     #[test]

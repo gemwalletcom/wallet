@@ -110,6 +110,8 @@
   <string name="buy_rate">Rate</string>
   <string name="buy_no_results">Babu abin da ake so</string>
   <string name="transfer_network_fee">Kudin hanyar sadarwa</string>
+  <string name="transfer_pay_with">Biya da</string>
+  <string name="transfer_payment_title">Biyan kuɗi</string>
   <string name="transfer_memo">Memo</string>
   <string name="transfer_confirm">Tabbatar</string>
   <string name="transfer_from">Daga</string>
@@ -224,6 +226,11 @@
   <string name="errors_no_internet_connection">Babu haɗin intanet</string>
   <string name="errors_no_service_connection">Babu haɗin sabis</string>
   <string name="errors_balances_activity_outdated">Ma\'aunai da ayyuka na iya zama tsofaffi.</string>
+  <string name="errors_payment_in_progress">Biyan kuɗin ya riga ya fara</string>
+  <string name="errors_payment_paid">An riga an biya</string>
+  <string name="errors_payment_failed">Biyan kuɗin ya gaza</string>
+  <string name="errors_payment_expired">Biyan kuɗin ya ƙare</string>
+  <string name="errors_payment_cancelled">An soke biyan kuɗin</string>
   <string name="activity_title">Ayyuka</string>
   <string name="activity_state_empty_title">Ayyukanku za su bayyana a nan</string>
   <string name="activity_state_empty_description">Yi ciniki na farko</string>
@@ -435,6 +442,8 @@
   <string name="info_network_fee_title">Kudin hanyar sadarwa</string>
   <string name="info_watch_wallet_title">Kalli Wallet</string>
   <string name="info_watch_wallet_description">Wallet wanda ba ku da damar yin amfani da shi, amma kuna iya kallon ma\'amaloli da motsinsa.</string>
+  <string name="info_payment_verification_title">Tabbatar da biyan kuɗi</string>
+  <string name="info_payment_verification_description">Ɗan kasuwa yana neman ƙarin bayani kafin biyan kuɗi.</string>
   <string name="info_network_fee_description">Kowace ciniki akan hanyar sadarwar %1$s tana buƙatar kuɗi a cikin %2$s da aka biya ga masu hakar ma\'adinai don aiwatar da kasuwancin ku, ba Gem Wallet ba. Kudaden hanyar sadarwa sun bambanta dangane da amfani da hanyar sadarwa.</string>
   <string name="info_transaction_error_description">Ba za a iya kammala cinikin ba saboda kuskure, kamar rashin isassun kuɗi, shigarwa mara inganci, ko kin amincewa da hanyar sadarwa. Da fatan za a sake nazarin cikakkun bayanai kuma a sake gwadawa.</string>
   <string name="info_transaction_pending_description">An ƙaddamar da ma\'amala kuma yana jiran tabbaci akan hanyar sadarwar. Lokutan sarrafawa na iya bambanta. Da fatan za a duba baya don sabuntawa.</string>

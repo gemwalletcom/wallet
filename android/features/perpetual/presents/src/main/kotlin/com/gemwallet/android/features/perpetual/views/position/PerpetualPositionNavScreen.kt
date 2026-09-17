@@ -90,7 +90,7 @@ fun PerpetualPositionNavScreen(
     ) {
         AutocloseNavGraph(
             onDismiss = { showAutoclose = false },
-            finishAction = FinishConfirmAction { _ -> viewModel.fetch() },
+            finishAction = FinishConfirmAction { _, _ -> viewModel.fetch() },
             onAcquireAsset = onAcquireAsset,
         )
     }

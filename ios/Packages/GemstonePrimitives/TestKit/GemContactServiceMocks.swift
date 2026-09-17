@@ -19,38 +19,6 @@ public extension GemContactService {
     }
 }
 
-public final class GemManageContactServiceMock: GemManageContactServiceProtocol, @unchecked Sendable {
-    private let service: GemManageContactService
-
-    public init() {
-        service = GemManageContactService(
-            contacts: .mock(),
-            addresses: GemAddressService(),
-            payments: GemPaymentService.mock(),
-        )
-    }
-
-    public func canSave(name: String, isSaving: Bool) -> Bool {
-        !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isSaving
-    }
-
-    public func scannedAddress(input: String) -> GemContactScannedAddress {
-        service.scannedAddress(input: input)
-    }
-
-    public func defaultChain() -> Gemstone.Chain {
-        service.defaultChain()
-    }
-
-    public func saveContact(input: GemContactInput) async throws -> Gemstone.Contact {
-        try await service.saveContact(input: input)
-    }
-
-    public func formatAddress(address: String, chain: Gemstone.Chain, style: GemAddressFormatStyle) -> String {
-        service.formatAddress(address: address, chain: chain, style: style)
-    }
-}
-
 public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol, @unchecked Sendable {
     public var connectionSectionsValue: [GemConnectionSection] = []
     public var connectionRowValue = GemConnectionRow(title: "", host: nil, initial: nil, iconUrl: nil)

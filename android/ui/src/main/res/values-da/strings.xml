@@ -110,6 +110,8 @@
   <string name="buy_rate">Kurs</string>
   <string name="buy_no_results">Ingen tilbud tilgængelige</string>
   <string name="transfer_network_fee">Netværksgebyr</string>
+  <string name="transfer_pay_with">Betal med</string>
+  <string name="transfer_payment_title">Betaling</string>
   <string name="transfer_memo">Memo</string>
   <string name="transfer_confirm">Bekræft</string>
   <string name="transfer_from">Fra</string>
@@ -224,6 +226,11 @@
   <string name="errors_no_internet_connection">Ingen internetforbindelse</string>
   <string name="errors_no_service_connection">Ingen serviceforbindelse</string>
   <string name="errors_balances_activity_outdated">Saldi og aktivitet kan være forældede.</string>
+  <string name="errors_payment_in_progress">Betalingen er allerede i gang</string>
+  <string name="errors_payment_paid">Betalingen er allerede gennemført</string>
+  <string name="errors_payment_failed">Betalingen mislykkedes</string>
+  <string name="errors_payment_expired">Betalingen er udløbet</string>
+  <string name="errors_payment_cancelled">Betalingen blev annulleret</string>
   <string name="activity_title">Aktivitet</string>
   <string name="activity_state_empty_title">Din aktivitet vil blive vist her</string>
   <string name="activity_state_empty_description">Foretag din første transaktion</string>
@@ -435,6 +442,8 @@
   <string name="info_network_fee_title">Netværksgebyr</string>
   <string name="info_watch_wallet_title">Overvågningstegnebog</string>
   <string name="info_watch_wallet_description">En tegnebog, som du ikke har adgang til, men du kan se dens transaktioner og bevægelser.</string>
+  <string name="info_payment_verification_title">Betalingsverificering</string>
+  <string name="info_payment_verification_description">Forhandleren beder om yderligere oplysninger før betalingen.</string>
   <string name="info_network_fee_description">Hver transaktion på %1$s netværket kræver et gebyr i %2$s betalt til minearbejdere for at behandle din transaktion, ikke Gem Wallet. Netværksgebyrer varierer afhængigt af netværksbrug.</string>
   <string name="info_transaction_error_description">Transaktionen kunne ikke gennemføres på grund af en fejl, såsom utilstrækkelige midler, ugyldigt input eller afvisning af netværket. Gennemgå venligst detaljerne og prøv igen.</string>
   <string name="info_transaction_pending_description">Transaktionen er blevet indsendt og afventer bekræftelse på netværket. Behandlingstiderne kan variere. Kom venligst tilbage for opdateringer.</string>

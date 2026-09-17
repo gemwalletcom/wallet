@@ -45,7 +45,8 @@ struct TransferDataViewModel {
              .stake,
              .account,
              .perpetual,
-             .earn: .none
+             .earn,
+             .payment: .none
         case let .generic(_, metadata, _):
             URL(string: metadata.toPrimitives().url)
         }

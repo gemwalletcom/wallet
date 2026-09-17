@@ -131,6 +131,8 @@ buy_no_results = Nejsou k dispozici žádné nabídky
 # Transfer
 
 transfer_network_fee = Síťový poplatek
+transfer_pay_with = Zaplatit pomocí
+transfer_payment_title = Platba
 transfer_memo = Memo
 transfer_confirm = Potvrdit
 transfer_from = Z
@@ -254,6 +256,11 @@ errors_network_offline = Zdá se, že je internetové připojení offline.
 errors_no_internet_connection = Žádné připojení k internetu
 errors_no_service_connection = Žádné připojení ke službě
 errors_balances_activity_outdated = Zůstatky a aktivita mohou být zastaralé.
+errors_payment_in_progress = Platba již probíhá
+errors_payment_paid = Platba již byla uhrazena
+errors_payment_failed = Platba se nezdařila
+errors_payment_expired = Platnost platby vypršela
+errors_payment_cancelled = Platba byla zrušena
 
 # Activity
 
@@ -540,6 +547,8 @@ sell_title = Prodat %@
 info_network_fee_title = Síťový poplatek
 info_watch_wallet_title = Sledovaná peněženka
 info_watch_wallet_description = Peněženka, ke které nemáte přístup, ale můžete sledovat její transakce a pohyby.
+info_payment_verification_title = Ověření platby
+info_payment_verification_description = Obchodník požaduje před platbou další informace.
 info_network_fee_description = Každá transakce v síti %@ vyžaduje poplatek ve výši %@ zaplacený těžařům za zpracování vaší transakce, nikoli Gem Wallet. Síťové poplatky se liší podle využití sítě.
 info_transaction_error_description = Transakci nebylo možné dokončit kvůli chybě, jako je nedostatek finančních prostředků, neplatný vstup nebo odmítnutí ze strany sítě. Zkontrolujte podrobnosti a zkuste to znovu.
 info_transaction_pending_description = Transakce byla odeslána a čeká na potvrzení v síti. Doba zpracování se může lišit. Zkontrolujte prosím aktualizace.

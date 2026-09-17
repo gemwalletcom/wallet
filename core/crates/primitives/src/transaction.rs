@@ -1,6 +1,7 @@
 use crate::{
-    AddressName, AssetAddress, NFTAssetId, TransactionId, TransactionNFTTransferMetadata, TransactionSwapMetadata, asset_id::AssetId, transaction_direction::TransactionDirection,
-    transaction_metadata_types::TransactionAssetTransfersMetadata, transaction_state::TransactionState, transaction_type::TransactionType, transaction_utxo::TransactionUtxoInput,
+    AddressName, AssetAddress, NFTAssetId, TransactionId, TransactionNFTTransferMetadata, TransactionPaymentMetadata, TransactionSwapMetadata,
+    asset_id::AssetId, transaction_direction::TransactionDirection, transaction_metadata_types::TransactionAssetTransfersMetadata,
+    transaction_state::TransactionState, transaction_type::TransactionType, transaction_utxo::TransactionUtxoInput,
 };
 
 use chrono::{DateTime, Utc};
@@ -266,6 +267,10 @@ impl Transaction {
 
     pub fn swap_metadata(&self) -> Option<TransactionSwapMetadata> {
         self.metadata.as_ref().and_then(|value| TransactionSwapMetadata::deserialize(value).ok())
+    }
+
+    pub fn payment_metadata(&self) -> Option<TransactionPaymentMetadata> {
+        self.metadata.as_ref().and_then(|value| TransactionPaymentMetadata::deserialize(value).ok())
     }
 
     fn asset_transfers_metadata(&self) -> Option<TransactionAssetTransfersMetadata> {

@@ -18,8 +18,8 @@ use gem_tempo::TempoSigner;
 use gem_ton::signer::TonChainSigner;
 use gem_tron::signer::TronChainSigner;
 use gem_xrp::signer::XrpChainSigner;
-use primitives::swap::{SwapData, SwapQuoteDataType};
-use primitives::{Asset, BitcoinChain, Chain, ChainSigner, ChainType, SignerError, SignerInput, TransactionInputType, TransactionType};
+use primitives::swap::{ApprovalData, SwapData, SwapQuoteDataType};
+use primitives::{Asset, BitcoinChain, Chain, ChainSigner, ChainType, SignerError, SignerInput, TransactionInputType, TransactionLoadInput, TransactionType, TransferDataOutputType};
 use zeroize::Zeroizing;
 
 pub struct ChainTransactionSigner {
@@ -129,6 +129,18 @@ impl ChainTransactionSigner {
             TransactionInputType::TransferNft { .. } => self.one(input, private_key, transaction_type, "nft transfer", |signer, i, key| signer.sign_nft_transfer(i, key)),
             TransactionInputType::TokenApprove { .. } => self.one(input, private_key, transaction_type, "token approval", |signer, i, key| signer.sign_token_approval(i, key)),
             TransactionInputType::Generic { .. } => self.one(input, private_key, transaction_type, "data", |signer, i, key| signer.sign_data(i, key)),
+            TransactionInputType::Payment { asset, extra, .. } => match extra.output_type {
+                TransferDataOutputType::EncodedTransaction => self.one(input, private_key, transaction_type, "data", |signer, i, key| signer.sign_data(i, key)),
+                TransferDataOutputType::Signature => {
+                    let signature = self
+                        .dispatch_message(&extra.data.clone().unwrap_or_default(), private_key, "typed data", |signer, message, key| signer.sign_message(message, key))
+                        .map(|data| GemSignedTransaction { data, transaction_type })?;
+                    match &extra.approval {
+                        Some(approval) => Ok([self.sign_payment_approval(input, private_key, asset, approval)?, vec![signature]].concat()),
+                        None => Ok(vec![signature]),
+                    }
+                }
+            },
             TransactionInputType::Account { .. } => self.one(input, private_key, transaction_type, "account action", |signer, i, key| signer.sign_account_action(i, key)),
             TransactionInputType::Stake { .. } => self.many(input, private_key, "stake", |signer, i, key| signer.sign_stake(i, key)),
             TransactionInputType::Perpetual { .. } => self.many(input, private_key, "perpetual", |signer, i, key| signer.sign_perpetual(i, key)),
@@ -138,6 +150,22 @@ impl ChainTransactionSigner {
                 SwapQuoteDataType::Transfer => self.sign_swap_transfer(input, private_key, from_asset, swap_data),
             },
         }
+    }
+
+    fn sign_payment_approval(&self, input: &SignerInput, private_key: &[u8], asset: &Asset, approval: &ApprovalData) -> Result<Vec<GemSignedTransaction>, GemstoneError> {
+        let approve = SignerInput {
+            input: TransactionLoadInput {
+                input_type: TransactionInputType::TokenApprove {
+                    asset: asset.clone(),
+                    approval_data: approval.clone(),
+                },
+                ..input.input.clone()
+            },
+            fee: input.fee.clone(),
+        };
+        self.one(&approve, private_key, TransactionType::TokenApproval, "token approval", |signer, i, key| {
+            signer.sign_token_approval(i, key)
+        })
     }
 
     fn sign_swap_transfer(&self, input: &SignerInput, private_key: &[u8], from_asset: &Asset, swap_data: &SwapData) -> Result<Vec<GemSignedTransaction>, GemstoneError> {
@@ -247,6 +275,7 @@ fn unsupported_error(chain: Chain, action: &str) -> GemstoneError {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use gem_evm::testkit::eip712_mock::mock_eip712_json;
     use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_PRIVATE_KEY};
     use primitives::{
         ApplicationMetadata, DelegationValidator, StakeType, SwapProvider, TransactionFee, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra,
@@ -303,6 +332,46 @@ mod tests {
     }
 
     #[test]
+    fn test_sign_input_payment() {
+        let signer = ChainTransactionSigner::new(Chain::Ethereum);
+        let key = TEST_PRIVATE_KEY.to_vec();
+        let typed_data = mock_eip712_json(1).into_bytes();
+        let payment = |approval, gas_limit| -> GemSignerInput {
+            SignerInput::mock_evm(
+                TransactionInputType::mock_payment(Asset::mock_erc20(), TransferDataExtra::mock_signature(typed_data.clone(), approval)),
+                "0",
+                gas_limit,
+            )
+            .into()
+        };
+        let approval = ApprovalData::mock();
+        let approve: GemSignerInput = SignerInput::mock_evm(
+            TransactionInputType::TokenApprove {
+                asset: Asset::mock_erc20(),
+                approval_data: approval.clone(),
+            },
+            "0",
+            65000,
+        )
+        .into();
+
+        assert_eq!(
+            signer.sign_input(payment(None, 0), Zeroizing::new(key.clone())).unwrap(),
+            signed(vec![signer.sign_message(typed_data.clone(), key.clone()).unwrap()], TransactionType::Transfer),
+            "a payment is signed as typed data"
+        );
+        assert_eq!(
+            signer.sign_input(payment(Some(approval), 65000), Zeroizing::new(key.clone())).unwrap(),
+            [
+                signed(vec![signer.sign_token_approval(approve, key.clone()).unwrap()], TransactionType::TokenApproval),
+                signed(vec![signer.sign_message(typed_data, key).unwrap()], TransactionType::Transfer),
+            ]
+            .concat(),
+            "the approval is signed first"
+        );
+    }
+
+    #[test]
     fn test_sign_input_routing() {
         let signer = ChainTransactionSigner::new(Chain::Ethereum);
         let key = TEST_PRIVATE_KEY.to_vec();
@@ -324,7 +393,7 @@ mod tests {
         let approve: GemSignerInput = SignerInput::mock_evm(
             TransactionInputType::TokenApprove {
                 asset: Asset::mock(),
-                approval_data: primitives::swap::ApprovalData::mock(),
+                approval_data: ApprovalData::mock(),
             },
             "0",
             65000,

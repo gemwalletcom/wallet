@@ -6,6 +6,7 @@ import protocol Gemstone.GemPaymentServiceProtocol
 import GemstonePrimitives
 import Localization
 import Primitives
+import PrimitivesComponents
 
 public enum PaymentDestinationBuilder {
     public enum TransferDestination: Sendable {
@@ -33,7 +34,7 @@ public enum PaymentDestinationBuilder {
         assets: [AssetData],
         paymentService: any GemPaymentServiceProtocol,
     ) throws -> PaymentDestination {
-        switch paymentService.destination(request: payment, assets: assets.map { $0.asset.paymentWalletAsset }) {
+        switch paymentService.destination(request: payment, assets: assets.map(\.asset.paymentWalletAsset)) {
         case let .confirm(transfer):
             guard let assetData = assetData(for: transfer.assetId, in: assets) else {
                 throw AnyError(Localized.Errors.notSupported)
@@ -55,14 +56,6 @@ public enum PaymentDestinationBuilder {
         case .unsupported:
             throw AnyError(Localized.Errors.notSupported)
         }
-    }
-
-    public static func build(
-        transaction: GemPaymentTransaction,
-        asset: Primitives.Asset,
-        paymentService: any GemPaymentServiceProtocol,
-    ) -> PaymentDestination {
-        .confirm(paymentService.transactionTransferData(transaction: transaction, asset: asset.toGem()))
     }
 
     private static func assetData(for assetId: String, in assets: [AssetData]) -> AssetData? {

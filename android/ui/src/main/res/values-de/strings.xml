@@ -110,6 +110,8 @@
   <string name="buy_rate">Kurs</string>
   <string name="buy_no_results">Keine Kurse verfügbar.</string>
   <string name="transfer_network_fee">Netzwerk-Gebühr</string>
+  <string name="transfer_pay_with">Bezahlen mit</string>
+  <string name="transfer_payment_title">Zahlung</string>
   <string name="transfer_memo">Memo</string>
   <string name="transfer_confirm">Bestätigen</string>
   <string name="transfer_from">Von</string>
@@ -224,6 +226,11 @@
   <string name="errors_no_internet_connection">Keine Internetverbindung</string>
   <string name="errors_no_service_connection">Keine Serviceverbindung</string>
   <string name="errors_balances_activity_outdated">Guthaben und Aktivität sind möglicherweise nicht aktuell.</string>
+  <string name="errors_payment_in_progress">Die Zahlung läuft bereits</string>
+  <string name="errors_payment_paid">Die Zahlung wurde bereits geleistet</string>
+  <string name="errors_payment_failed">Die Zahlung ist fehlgeschlagen</string>
+  <string name="errors_payment_expired">Die Zahlung ist abgelaufen</string>
+  <string name="errors_payment_cancelled">Die Zahlung wurde abgebrochen</string>
   <string name="activity_title">Aktivität</string>
   <string name="activity_state_empty_title">Ihre Aktivität wird hier angezeigt</string>
   <string name="activity_state_empty_description">Machen Sie Ihre erste Transaktion</string>
@@ -435,6 +442,8 @@
   <string name="info_network_fee_title">Netzwerk-Gebühr</string>
   <string name="info_watch_wallet_title">Beobachtungs-Wallet</string>
   <string name="info_watch_wallet_description">Eine Wallet, auf die Sie keinen Zugriff haben, deren Transaktionen und Bewegungen Sie jedoch beobachten können.</string>
+  <string name="info_payment_verification_title">Zahlungsverifizierung</string>
+  <string name="info_payment_verification_description">Der Händler bittet vor der Zahlung um zusätzliche Informationen.</string>
   <string name="info_network_fee_description">Für jede Transaktion im %1$s-Netzwerk wird eine Gebühr in %2$s an die Miner gezahlt, um Ihre Transaktion abzuwickeln, nicht an Gem Wallet. Die Netzwerkgebühren variieren je nach Netzwerknutzung.</string>
   <string name="info_transaction_error_description">Die Transaktion konnte aufgrund eines Fehlers nicht abgeschlossen werden, z. B. aufgrund unzureichender Mittel, ungültiger Eingaben oder einer Ablehnung durch das Netzwerk. Bitte überprüfen Sie die Details und versuchen Sie es erneut.</string>
   <string name="info_transaction_pending_description">Die Transaktion wurde übermittelt und wartet auf die Bestätigung im Netzwerk. Die Bearbeitungszeit kann variieren. Bitte schauen Sie später noch einmal vorbei, um Updates zu erhalten.</string>

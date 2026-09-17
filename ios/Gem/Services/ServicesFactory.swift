@@ -82,7 +82,7 @@ struct ServicesFactory {
                 deviceKey: deviceKeyService,
             ),
         )
-        let paymentService = Gemstone.GemPaymentService(provider: nativeProvider)
+        let paymentService = Gemstone.GemPaymentService(provider: nativeProvider, assets: assetsService)
         let transactionSimulationService = GemSimulationService(provider: nativeProvider, nodes: nodeService)
         let serviceStatusConfiguration = URLSessionConfiguration.default
         serviceStatusConfiguration.timeoutIntervalForRequest = serviceStatusTimeout()
@@ -136,6 +136,7 @@ struct ServicesFactory {
             balance: balanceService,
             stake: stakeService,
             nft: nftService,
+            payments: paymentService,
         )
         let transactionsService = Gemstone.GemTransactionsService(
             api: deviceApiClient,

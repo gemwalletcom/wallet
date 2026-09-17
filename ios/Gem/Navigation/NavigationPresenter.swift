@@ -12,6 +12,7 @@ import Primitives
 import PrimitivesComponents
 import SwiftUI
 import Transactions
+import Transfer
 
 @Observable
 final class NavigationPresenter: Sendable {

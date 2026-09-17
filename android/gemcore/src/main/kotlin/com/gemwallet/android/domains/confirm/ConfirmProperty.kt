@@ -12,6 +12,7 @@ import uniffi.gemstone.GemConfirmDestination
 sealed interface ConfirmProperty {
     class Source(val walletRow: GemWalletRow) : ConfirmProperty
     class Network(val chain: Chain, val name: String) : ConfirmProperty
+    class PaymentAsset(val symbol: String, val selectable: Boolean) : ConfirmProperty
     class Memo(memo: String) : ConfirmProperty {
         val data: String = memo.ifEmpty { "-" }
     }

@@ -14,6 +14,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemGateway
+import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemDeviceApiClient
 import uniffi.gemstone.GemBalanceService
@@ -79,7 +80,8 @@ object TransactionsModule {
         balanceService: GemBalanceService,
         stakeService: GemStakeService,
         nftService: GemNftService,
-    ): GemTransactionStateService = GemTransactionStateService(gateway, store, assetsService, balanceService, stakeService, nftService)
+        paymentService: GemPaymentService,
+    ): GemTransactionStateService = GemTransactionStateService(gateway, store, assetsService, balanceService, stakeService, nftService, paymentService)
 
     @Singleton
     @Provides

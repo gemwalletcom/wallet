@@ -240,6 +240,7 @@ extension ListItemView {
                             .scaleEffect(scale)
                     case let .image(image):
                         image
+                            .foregroundStyle(subtitle.style.color)
                     }
                 }
 

@@ -71,7 +71,7 @@ class TransferDataCodecTest {
         val original = mockGemTransferData(
             inputType = TransactionInputType.Generic(
                 asset = asset.toGem(),
-                metadata = mockApplicationMetadata(name = "Merchant", source = ApplicationMetadataSource.Payment).toGem(),
+                metadata = mockApplicationMetadata(name = "Merchant", source = ApplicationMetadataSource.WalletConnect).toGem(),
                 extra = mockTransferDataExtra(
                     to = "merchant",
                     data = "encoded-transaction".toTransactionData(),
@@ -93,7 +93,7 @@ class TransferDataCodecTest {
         assertEquals(TransferDataOutputType.EncodedTransaction, generic.extra.outputType.toPrimitives())
         assertEquals(TransferDataOutputAction.Send, generic.extra.outputAction.toPrimitives())
         assertEquals("Merchant", metadata.name)
-        assertEquals(ApplicationMetadataSource.Payment, metadata.source)
+        assertEquals(ApplicationMetadataSource.WalletConnect, metadata.source)
         assertEquals("encoded-transaction", String(requireNotNull(generic.extra.data)))
         assertEquals(BigInteger("21000"), generic.extra.gasLimit)
         assertEquals(TransactionType.Transfer, generic.extra.transactionType.toPrimitives())

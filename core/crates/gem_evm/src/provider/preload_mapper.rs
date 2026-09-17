@@ -4,7 +4,10 @@ use alloy_primitives::hex;
 use num_bigint::BigInt;
 use num_traits::Num;
 use primitives::swap::SwapQuoteDataType;
-use primitives::{AssetSubtype, EVMChain, FeeRate, NFTType, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, decode_hex, fee::FeePriority, fee::GasPriceType};
+use primitives::{
+    AssetSubtype, EVMChain, FeeRate, NFTType, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra, decode_hex,
+    fee::FeePriority, fee::GasPriceType,
+};
 
 use crate::constants::TRANSFER_GAS_LIMIT;
 use crate::encode::{encode_erc20_approve_max_value, encode_erc20_transfer, encode_erc721_transfer, encode_erc1155_transfer};
@@ -91,12 +94,14 @@ pub fn get_transaction_params(_chain: EVMChain, input: &TransactionLoadInput) ->
                 }
             }
         }
-        TransactionInputType::TokenApprove { approval_data: approval, .. } => Ok(TransactionParams::new(
-            approval.token.clone(),
-            encode_erc20_approve_max_value(&approval.spender)?,
-            BigInt::from(0),
-        )),
-        TransactionInputType::Generic { extra, .. } => Ok(TransactionParams::new(extra.to.clone(), extra.data.clone().unwrap_or_default(), value)),
+        TransactionInputType::TokenApprove { approval_data: approval, .. }
+        | TransactionInputType::Payment {
+            extra: TransferDataExtra { approval: Some(approval), .. },
+            ..
+        } => Ok(TransactionParams::new_approval(approval.token.clone(), encode_erc20_approve_max_value(&approval.spender)?)),
+        TransactionInputType::Generic { extra, .. } | TransactionInputType::Payment { extra, .. } => {
+            Ok(TransactionParams::new(extra.to.clone(), extra.data.clone().unwrap_or_default(), value))
+        }
         TransactionInputType::Stake { .. } => Err("Unsupported chain for staking".into()),
         TransactionInputType::Earn { data: earn_data, .. } => {
             if let Some(approval) = &earn_data.approval {
@@ -149,6 +154,27 @@ pub fn get_extra_fee_gas_limit(input: &TransactionLoadInput) -> Result<BigInt, B
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::Asset;
+    use primitives::swap::ApprovalData;
+    use primitives::testkit::signer_mock::TEST_EVM_RECIPIENT;
+
+    #[test]
+    fn test_get_transaction_params_payment() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let approval = ApprovalData::mock();
+        let payment = |approval| TransactionInputType::mock_payment(Asset::mock_erc20(), TransferDataExtra { approval, ..TransferDataExtra::mock() });
+
+        assert_eq!(
+            get_transaction_params(EVMChain::Ethereum, &TransactionLoadInput::mock_evm(payment(Some(approval.clone())), "1000"))?,
+            TransactionParams::new_approval(approval.token.clone(), encode_erc20_approve_max_value(&approval.spender)?),
+            "a payment that still needs an approval sends the approval"
+        );
+        assert_eq!(
+            get_transaction_params(EVMChain::Ethereum, &TransactionLoadInput::mock_evm(payment(None), "1000"))?,
+            TransactionParams::new(TEST_EVM_RECIPIENT, vec![], BigInt::from(1000)),
+            "a payment paid by a transaction sends what the gateway built"
+        );
+        Ok(())
+    }
 
     #[test]
     fn test_map_transaction_preload_with_hex_prefix() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

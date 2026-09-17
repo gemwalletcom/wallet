@@ -56,6 +56,8 @@ import com.gemwallet.android.ui.navigation.routes.NftCollectionRoute
 import com.gemwallet.android.ui.navigation.routes.NftListRoute
 import com.gemwallet.android.ui.navigation.routes.NftUnverifiedCollectionsRoute
 import com.gemwallet.android.ui.navigation.routes.NotificationsRoute
+import com.gemwallet.android.ui.navigation.routes.PaymentSelectRoute
+import com.gemwallet.android.ui.navigation.routes.PaymentVerificationRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualPositionRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
 import com.gemwallet.android.ui.navigation.routes.PortfolioChartRoute
@@ -106,10 +108,17 @@ class WalletNavigator(
 ) {
     private val toastMessages = mutableStateMapOf<NavKey, String>()
     private val swapSelections = mutableStateMapOf<NavKey, SwapSelection>()
+    private val paymentSelections = mutableStateMapOf<NavKey, AssetId>()
 
     private fun push(route: NavKey): Boolean {
         if (backStack.lastOrNull() == route) return true
         return backStack.add(route)
+    }
+
+    private fun <T> popWithResult(results: MutableMap<NavKey, T>, value: T) {
+        val target = backStack.getOrNull(backStack.lastIndex - 1) ?: return
+        results[target] = value
+        pop()
     }
 
     private fun openAssetRoute(route: AssetRoute) = scope.launch {
@@ -166,15 +175,23 @@ class WalletNavigator(
         toastMessages.remove(route)
     }
 
-    fun popWithToast(message: String) {
-        val target = backStack.getOrNull(backStack.lastIndex - 1) ?: return
-        toastMessages[target] = message
-        pop()
-    }
+    fun popWithToast(message: String) = popWithResult(toastMessages, message)
 
     fun swapSelection(route: NavKey): SwapSelection? {
         return swapSelections[route]
     }
+
+    fun paymentSelection(route: NavKey): AssetId? {
+        return paymentSelections[route]
+    }
+
+    fun clearPaymentSelection(route: NavKey) {
+        paymentSelections.remove(route)
+    }
+
+    fun openPaymentSelect(assetIds: List<AssetId>) = push(PaymentSelectRoute(assetIds))
+
+    fun finishPaymentSelect(assetId: AssetId) = popWithResult(paymentSelections, assetId)
 
     fun clearSwapSelection(route: NavKey) {
         swapSelections.remove(route)
@@ -266,15 +283,10 @@ class WalletNavigator(
     fun openSwapSelect(itemType: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) {
         push(SwapSelectRoute(itemType, payAssetId, receiveAssetId))
     }
-    fun finishSwapSelect(itemType: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) {
-        val target = backStack.getOrNull(backStack.lastIndex - 1) ?: return
-        swapSelections[target] = SwapSelection(
-            itemType = itemType,
-            payAssetId = payAssetId,
-            receiveAssetId = receiveAssetId,
-        )
-        pop()
-    }
+    fun finishSwapSelect(itemType: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) = popWithResult(
+        swapSelections,
+        SwapSelection(itemType = itemType, payAssetId = payAssetId, receiveAssetId = receiveAssetId),
+    )
     private fun clearSwapSelections() = swapSelections.clear()
     fun openBuy() = push(FiatSelectRoute)
     fun openBuy(assetId: AssetId) = openBuy(assetId, amount = null)
@@ -290,6 +302,10 @@ class WalletNavigator(
     fun openConfirm(input: ConfirmTransferInput) {
         val pack = input.pack() ?: return
         push(ConfirmRoute(pack))
+    }
+    fun replaceWithConfirm(input: ConfirmTransferInput) {
+        val pack = input.pack() ?: return
+        replaceTop(ConfirmRoute(pack))
     }
     fun openNftList() = push(NftListRoute)
     fun openNftCollection(nftCollectionId: String) = push(NftCollectionRoute(nftCollectionId))
@@ -313,8 +329,10 @@ class WalletNavigator(
         return true
     }
 
-    fun popConfirmFlow() {
-        popFrom(backStack.indexOfLast { !it.isConfirmFlowSegmentRoute() } + 1)
+    fun popConfirmFlow(toast: String? = null) {
+        val index = backStack.indexOfLast { !it.isConfirmFlowSegmentRoute() }
+        toast?.let { message -> backStack.getOrNull(index)?.let { target -> toastMessages[target] = message } }
+        popFrom(index + 1)
     }
 
     private fun popFrom(index: Int) {
@@ -325,6 +343,7 @@ class WalletNavigator(
 
     private fun clearTransientState() {
         clearSwapSelections()
+        paymentSelections.clear()
         toastMessages.clear()
     }
 }
@@ -340,7 +359,9 @@ internal fun NavKey.isConfirmFlowSegmentRoute(): Boolean {
         is EarnRoute,
         is StakeRoute,
         is SwapPairRoute,
-        is SwapSelectRoute -> true
+        is SwapSelectRoute,
+        is PaymentSelectRoute,
+        is PaymentVerificationRoute -> true
         else -> false
     }
 }

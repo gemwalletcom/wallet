@@ -7,7 +7,6 @@ import struct Gemstone.GemFeeRateRows
 import Components
 import Foundation
 import enum Gemstone.GemConfirmError
-import struct Gemstone.GemConfirmLoadOptions
 import enum Gemstone.GemConfirmRowContent
 import protocol Gemstone.GemConfirmationProtocol
 import struct Gemstone.GemConfirmSimulationState
@@ -36,6 +35,7 @@ public final class ConfirmTransferSceneViewModel {
         didSet { feeRates = state.feeRateRows(selection: feeSelection) }
     }
     var feeAssetSelection: FeeAssetSelection
+    var assetSelection: AssetId?
     var state: ConfirmTransferState {
         didSet { onStateChange(state: state) }
     }
@@ -48,10 +48,9 @@ public final class ConfirmTransferSceneViewModel {
 
     public var isPresentingAlertMessage: AlertMessage?
 
-
     private let request: ConfirmTransferRequest
     private let wallet: Wallet
-    private let onComplete: VoidAction
+    private let onComplete: ((GemExecuteResult) -> Void)?
 
     private let confirmation: any GemConfirmationProtocol
 
@@ -59,7 +58,7 @@ public final class ConfirmTransferSceneViewModel {
         request: ConfirmTransferRequest,
         wallet: Wallet,
         confirmation: any GemConfirmationProtocol,
-        onComplete: VoidAction,
+        onComplete: ((GemExecuteResult) -> Void)?,
     ) {
         self.request = request
         self.wallet = wallet
@@ -83,7 +82,7 @@ public final class ConfirmTransferSceneViewModel {
     }
 
     var preloadSelection: ConfirmPreloadSelection {
-        ConfirmPreloadSelection(fee: feeSelection, feeAsset: feeAssetSelection)
+        ConfirmPreloadSelection(fee: feeSelection, feeAsset: feeAssetSelection, asset: assetSelection)
     }
 
     var payloadDetailsListItem: ListItemModel {
@@ -118,7 +117,7 @@ public final class ConfirmTransferSceneViewModel {
     }
 
     var isHeaderVisible: Bool {
-        guard request.data.applicationMetadata?.source == .payment else {
+        guard case .payment = transfer.inputType, transfer.value.isZero else {
             return true
         }
         return state.preload != nil
@@ -134,6 +133,8 @@ public final class ConfirmTransferSceneViewModel {
 
     public var payloadModel: SimulationPayloadModel { state.simulation.payload }
 
+    var transfer: GemTransferData { state.transfer }
+
     var confirmButtonModel: ConfirmButtonViewModel {
         ConfirmButtonViewModel(
             button: button,
@@ -144,7 +145,7 @@ public final class ConfirmTransferSceneViewModel {
 
     public var detailsViewModel: ConfirmDetailsViewModel {
         ConfirmDetailsViewModel(
-            type: request.data.inputType,
+            type: transfer.inputType,
             metadata: state.metadata,
             confirmation: confirmation,
         )
@@ -180,7 +181,7 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
             simulationWarnings.isEmpty ? nil : ListSection(type: .warnings, [.warnings]),
             payloadModel.primaryFields.isEmpty ? nil : ListSection(type: .payload, [.payload]),
             balanceChangeModels.isEmpty ? nil : ListSection(type: .balanceChanges, balanceChangeModels.indices.map(ConfirmTransferItem.balanceChange)),
-            ListSection(type: .fee, [.networkFee]),
+            ListSection(type: .fee, [state.verification == nil ? .networkFee : .verification]),
             ListSection(type: .error, [.error]),
         ].compactMap(\.self)
     }
@@ -192,10 +193,10 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
     public func itemModel(for item: ConfirmTransferItem) -> any ItemModelProvidable<ConfirmTransferItemModel> {
         switch item {
         case .header:
-            ConfirmHeaderViewModel(request: request, state: state, currency: confirmation.currency)
+            ConfirmHeaderViewModel(state: state, currency: confirmation.currency)
         case .warnings:
             ConfirmTransferItemModel.warnings(simulationWarningModels)
-        case .app, .sender, .network, .recipient, .memo:
+        case .app, .sender, .network, .paymentAsset, .recipient, .memo:
             ConfirmRowViewModel(content: rowContents.first { $0.item == item })
         case .details:
             detailsViewModel
@@ -209,6 +210,8 @@ extension ConfirmTransferSceneViewModel: ListSectionProvideable {
                 feeModel: feeModel,
                 infoAction: onSelectNetworkFeeInfo,
             )
+        case .verification:
+            ConfirmVerificationViewModel(infoAction: onSelectVerificationInfo)
         case .error:
             ConfirmErrorViewModel(
                 error: state.transactionError,
@@ -256,6 +259,31 @@ extension ConfirmTransferSceneViewModel {
         }
     }
 
+    func onSelectPaymentAsset() {
+        guard state.screen.phase != .loading, let invoice = transfer.invoice else { return }
+        isPresentingSheet = .paymentAsset(.payment(invoice.quotes.map { AssetId(core: $0.assetId) }))
+    }
+
+    public func selectPaymentAsset(_ asset: Asset) {
+        isPresentingSheet = nil
+        guard asset.id != transfer.asset.id else { return }
+        assetSelection = asset.id
+    }
+
+    func onSelectVerification() {
+        guard let verification = state.verification, let url = URL(string: verification.url) else { return }
+        isPresentingSheet = .paymentVerification(url)
+    }
+
+    func onSelectVerificationInfo() {
+        isPresentingSheet = .info(.paymentVerification)
+    }
+
+    public func onPaymentVerified() {
+        isPresentingSheet = nil
+        Task { await load() }
+    }
+
     func onSelectFeePicker() {
         isPresentingSheet = .networkFeeSelector
     }
@@ -280,10 +308,11 @@ extension ConfirmTransferSceneViewModel {
         state.screen = state.screen.onLoadStarted()
         do {
             state = try ConfirmTransferState(await confirmation.state(), screen: state.screen)
-            let load = try await confirmation.load(options: options(selection: feeSelection, feeAssetSelection: feeAssetSelection))
+            let load = try await confirmation.load(options: preloadSelection.loadOptions)
             state = try ConfirmTransferState(load, screen: state.screen.onLoaded(load: load))
         } catch {
             guard !Task.isCancelled else { return }
+            state.transfer = confirmation.transfer()
             state.screen = state.screen.onLoadFailed(error: error.confirmError)
             debugLog("confirm load error: \(error)")
         }
@@ -330,8 +359,8 @@ extension ConfirmTransferSceneViewModel {
         state.screen = state.screen.onExecuteStarted()
         Task {
             do {
-                try await submit(request: request)
-                onComplete?()
+                let result = try await submit(request: request)
+                onComplete?(result)
             } catch GemConfirmError.Cancelled {
                 state.screen = state.screen.onExecuteCancelled()
             } catch {
@@ -359,7 +388,7 @@ extension ConfirmTransferSceneViewModel {
     }
 
     private var dataModel: TransferDataViewModel {
-        TransferDataViewModel(data: request.data)
+        TransferDataViewModel(data: transfer)
     }
 }
 
@@ -370,14 +399,7 @@ extension ConfirmTransferSceneViewModel {
         confirmation.explorerLink(chain: chain, address: address)
     }
 
-    private func options(selection: GemConfirmFeeSelection, feeAssetSelection: FeeAssetSelection) -> GemConfirmLoadOptions {
-        GemConfirmLoadOptions(
-            feeSelection: selection,
-            feeAssetId: feeAssetSelection.selectedAssetId?.identifier,
-        )
-    }
-
-    func submit(request: ConfirmTransferRequest) async throws {
+    func submit(request: ConfirmTransferRequest) async throws -> GemExecuteResult {
         let result: GemExecuteResult
         do {
             result = try await confirmation.execute()
@@ -386,10 +408,11 @@ extension ConfirmTransferSceneViewModel {
             throw GemConfirmError.Broadcast(hashes: hashes, msg: msg)
         }
         switch result {
-        case let .signed(data):
+        case let .signed(data, _):
             data.forEach { request.delegate?(.success($0)) }
-        case let .sent(hashes, _):
+        case let .sent(hashes, _, _):
             hashes.forEach { request.delegate?(.success($0)) }
         }
+        return result
     }
 }

@@ -127,7 +127,9 @@ pub use self::platform::Platform;
 pub mod platform_store;
 pub use self::platform_store::PlatformStore;
 pub mod payment;
-pub use self::payment::{Payment, PaymentAmount, PaymentLink, PaymentRequest};
+pub use self::payment::{
+    Payment, PaymentAmount, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, PaymentStatus, PaymentVerification,
+};
 pub mod payment_type;
 pub use self::payment_type::PaymentType;
 pub mod contact;
@@ -199,11 +201,11 @@ pub mod hex;
 pub use self::hex::{HexError, decode_hex, decode_hex_array};
 pub mod transaction_metadata_types;
 pub use self::transaction_metadata_types::{
-    TransactionNFTTransferMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionSmartContractMetadata, TransactionSwapMetadata,
-    TransactionWalletConnectMetadata,
+    TransactionNFTTransferMetadata, TransactionPaymentMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionSmartContractMetadata,
+    TransactionSwapMetadata, TransactionWalletConnectMetadata,
 };
 pub mod wallet_connect_namespace;
-pub use self::wallet_connect_namespace::WalletConnectCAIP2;
+pub use self::wallet_connect_namespace::{WalletConnectCAIP2, WalletConnectCAIP19};
 pub mod wallet_connect;
 pub use self::wallet_connect::{WCEthereumTransaction, WalletConnectLink, WalletConnectRequest};
 pub mod account;

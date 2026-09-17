@@ -27,12 +27,14 @@ public enum ConfirmTransferItem: Identifiable, Hashable, Sendable {
     case app
     case sender
     case network
+    case paymentAsset
     case recipient
     case memo
     case details
     case balanceChange(Int)
     case payload
     case networkFee
+    case verification
     case error
 
     public var id: Self {
@@ -46,9 +48,11 @@ public enum ConfirmTransferItemModel {
     case header(TransactionHeaderItemModel)
     case recipient(AddressListItemViewModel)
     case network(ListItemModel)
+    case paymentAsset(ListItemModel, selectable: Bool)
     case memo(ListItemModel)
     case swapDetails(SwapDetailsViewModel)
     case networkFee(ListItemModel, selectable: Bool)
+    case verification(ListItemModel)
     case perpetualDetails(PerpetualDetailsViewModel)
     case perpetualModifyPosition(PerpetualModifyViewModel)
     case warnings([SimulationWarningViewModel])

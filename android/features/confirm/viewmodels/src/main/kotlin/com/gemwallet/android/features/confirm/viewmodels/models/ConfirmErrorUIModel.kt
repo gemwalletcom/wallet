@@ -113,6 +113,7 @@ private fun GemConfirmErrorDisplay.infoSheet(
     is GemConfirmErrorDisplay.AccountMissing,
     is GemConfirmErrorDisplay.Unknown,
     is GemConfirmErrorDisplay.InsufficientFunds,
+    is GemConfirmErrorDisplay.Payment,
     is GemConfirmErrorDisplay.Message -> null
 }
 

@@ -35,11 +35,11 @@ data class FeeSelectionUIModel(
 internal fun confirmHeader(
     amountModel: AmountUIModel?,
     simulationHeader: SimulationHeaderUIModel?,
-    isPayment: Boolean,
+    isPlaceholder: Boolean,
     isLoading: Boolean,
     headerAsset: Asset?,
 ): ConfirmHeaderUIModel? = when {
-    isPayment && simulationHeader == null && isLoading -> ConfirmHeaderUIModel.Placeholder(headerAsset)
+    isPlaceholder && simulationHeader == null && isLoading -> ConfirmHeaderUIModel.Placeholder(headerAsset)
     simulationHeader != null -> ConfirmHeaderUIModel.Simulation(simulationHeader)
     amountModel?.headerKind is GemTransactionHeaderKind.Swap -> ConfirmHeaderUIModel.Swap(
         fromAsset = amountModel.fromAsset,
@@ -51,6 +51,11 @@ internal fun confirmHeader(
     )
     amountModel?.headerKind is GemTransactionHeaderKind.Nft -> amountModel.nftAsset?.let { ConfirmHeaderUIModel.Nft(it) }
     amountModel?.headerKind is GemTransactionHeaderKind.Symbol || amountModel?.headerKind is GemTransactionHeaderKind.AssetImage -> ConfirmHeaderUIModel.Symbol(amountModel.asset)
+    amountModel?.headerKind is GemTransactionHeaderKind.Payment -> ConfirmHeaderUIModel.Amount(
+        amount = amountModel.fromAmountText,
+        equivalent = amountModel.amountEquivalent,
+        asset = headerAsset,
+    )
     else -> ConfirmHeaderUIModel.Amount(
         amount = amountModel?.cryptoAmount ?: "",
         equivalent = amountModel?.amountEquivalent?.takeIf { (amountModel.headerKind as? GemTransactionHeaderKind.Amount)?.showsFiat != false },

@@ -56,8 +56,8 @@ extension ViewModelFactory {
             ),
             wallet: wallet,
             confirmation: confirmTransferService().confirmation(wallet: wallet.toGem(), transfer: data, simulation: simulation),
-            onComplete: { [toastPresenter] in
-                Task { toastPresenter.present(.transfer(for: data.inputType)) }
+            onComplete: { [toastPresenter] result in
+                Task { toastPresenter.present(.transfer(result, for: data.inputType)) }
                 onComplete?()
             },
         )
@@ -73,6 +73,7 @@ extension ViewModelFactory {
             password: GemstoneKeystorePassword(keystore: keystore),
             recentActivity: recentAssetsService,
             preferences: preferencesService,
+            payment: paymentService,
         )
     }
 

@@ -18,6 +18,7 @@ pub use store::GemTransactionStateStore;
 use tracker::{GemTransactionUpdater, Tracking, poll};
 
 use crate::gateway::GemGateway;
+use crate::payment::GemPaymentService;
 use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
 use crate::services::nft::GemNftService;
@@ -36,6 +37,7 @@ pub struct GemTransactionStateService {
     balance: Arc<GemBalanceService>,
     stake: Arc<GemStakeService>,
     nft: Arc<GemNftService>,
+    payments: Arc<GemPaymentService>,
     tracking: Tracking,
 }
 
@@ -49,6 +51,7 @@ impl GemTransactionStateService {
         balance: Arc<GemBalanceService>,
         stake: Arc<GemStakeService>,
         nft: Arc<GemNftService>,
+        payments: Arc<GemPaymentService>,
     ) -> Self {
         Self {
             gateway,
@@ -57,6 +60,7 @@ impl GemTransactionStateService {
             balance,
             stake,
             nft,
+            payments,
             tracking: Tracking::default(),
         }
     }
@@ -102,7 +106,10 @@ impl GemTransactionStateService {
     }
 
     pub async fn update(&self, wallet_id: WalletId, transaction: Transaction) -> Result<Option<GemTransactionStateResult>, GemServiceError> {
-        let update = self.gateway.get_transaction_update(transaction.clone()).await.map_err(|error| error.to_string());
+        let update = match rules::payment_link(&transaction) {
+            Some(link) => self.payments.transaction_update(transaction.hash(), &link).await.map_err(|error| error.to_string()),
+            None => self.gateway.get_transaction_update(transaction.clone()).await.map_err(|error| error.to_string()),
+        };
         let previous_state = transaction.state;
         let result = apply(self.store.as_ref(), wallet_id.clone(), transaction.clone(), update, Utc::now()).await?;
         let Some(mut result) = result else {

@@ -1,7 +1,8 @@
 use chrono::{DateTime, Utc};
-use primitives::{AssetId, Chain, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionType, swap_transaction_timeout};
+use primitives::{AssetId, Chain, PaymentLink, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionType, swap_transaction_timeout};
 
 use super::model::{GemTransactionStateUpdate, TransactionPostProcessing};
+use crate::payment::payment_record_hash;
 use crate::services::collections::unique;
 
 pub fn destination_chain(transaction: &Transaction) -> Option<Chain> {
@@ -77,7 +78,13 @@ fn metadata_json(metadata: &TransactionMetadata) -> Result<String, serde_json::E
     match metadata {
         TransactionMetadata::Swap(swap) => serde_json::to_string(swap),
         TransactionMetadata::Perpetual(perpetual) => serde_json::to_string(perpetual),
+        TransactionMetadata::Payment(payment) => serde_json::to_string(payment),
     }
+}
+
+pub fn payment_link(transaction: &Transaction) -> Option<PaymentLink> {
+    let link = transaction.payment_metadata()?.link;
+    (payment_record_hash(&link).as_deref() == Some(transaction.hash())).then_some(link)
 }
 
 pub fn assets_to_enable(transactions: &[Transaction]) -> Vec<AssetId> {
@@ -87,6 +94,29 @@ pub fn assets_to_enable(transactions: &[Transaction]) -> Vec<AssetId> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::{PaymentMerchant, TransactionId, TransactionPaymentMetadata};
+
+    #[test]
+    fn test_payment_link_only_while_the_record_carries_the_payment_id() {
+        let mut transaction = Transaction::mock();
+        assert_eq!(payment_link(&transaction), None);
+
+        transaction.metadata = Some(serde_json::json!({"fromAsset": "ethereum", "fromValue": "1", "toAsset": "bitcoin", "toValue": "1", "provider": null}));
+        assert_eq!(payment_link(&transaction), None);
+
+        let link = PaymentLink::WalletConnectPay { payment_id: "pay_1".to_string() };
+        transaction.metadata = Some(
+            serde_json::to_value(TransactionPaymentMetadata {
+                link: link.clone(),
+                merchant: PaymentMerchant::mock(),
+            })
+            .unwrap(),
+        );
+        assert_eq!(payment_link(&transaction), None, "a payment with a chain hash is tracked on chain");
+
+        transaction.id = TransactionId::new(Chain::Ethereum, "pay_1".to_string());
+        assert_eq!(payment_link(&transaction), Some(link));
+    }
 
     #[test]
     fn test_post_processing_stake_chains_are_unique() {

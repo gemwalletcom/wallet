@@ -36,6 +36,10 @@ struct ConfirmRowViewModelTests {
         #expect(memo.subtitle == "test memo")
         #expect(try #require(ConfirmRowViewModel(content: .memo(memo: nil)).listItem).subtitle == "-")
 
+        let paymentAsset = try #require(ConfirmRowViewModel(content: .paymentAsset(symbol: "USDC", selectable: true)).listItem)
+        #expect(paymentAsset.title == Localized.Transfer.payWith)
+        #expect(paymentAsset.subtitle == "USDC")
+
         #expect(ConfirmRowViewModel(content: .details).isEmpty)
         #expect(ConfirmRowViewModel(content: nil).isEmpty)
     }
@@ -72,8 +76,8 @@ struct ConfirmRowViewModelTests {
 private extension ConfirmRowViewModel {
     var listItem: ListItemModel? {
         switch itemModel {
-        case let .app(item), let .sender(item), let .network(item), let .memo(item): item
-        case .header, .recipient, .swapDetails, .networkFee, .perpetualDetails, .perpetualModifyPosition, .warnings, .payload, .balanceChange, .error, .empty: nil
+        case let .app(item), let .sender(item), let .network(item), let .memo(item), let .paymentAsset(item, _): item
+        case .header, .recipient, .swapDetails, .networkFee, .verification, .perpetualDetails, .perpetualModifyPosition, .warnings, .payload, .balanceChange, .error, .empty: nil
         }
     }
 

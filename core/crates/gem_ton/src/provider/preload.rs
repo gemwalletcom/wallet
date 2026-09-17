@@ -45,7 +45,7 @@ pub fn calculate_transaction_fee(input: &TransactionLoadInput, recipient_token_a
             ),
         },
         TransactionInputType::TokenApprove { .. } => base_fee.clone(),
-        TransactionInputType::Generic { .. } => base_fee.clone(),
+        TransactionInputType::Generic { .. } | TransactionInputType::Payment { .. } => base_fee.clone(),
         TransactionInputType::Perpetual { .. } => base_fee.clone(),
         _ => base_fee.clone(),
     };

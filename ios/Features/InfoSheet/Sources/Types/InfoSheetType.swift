@@ -18,6 +18,7 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
     case transactionState(imageURL: URL?, placeholder: Image?, model: TransactionStateViewModel)
     case estimatedConfirmation(Chain)
     case watchWallet
+    case paymentVerification
     case stakeLockTime(Image?)
     case stakeApr(Image?)
     case dustThreshold(Chain, image: AssetImage)
@@ -58,6 +59,7 @@ public enum InfoSheetType: Identifiable, Sendable, Equatable {
         case let .transactionState(_, _, model): model.state.id
         case let .estimatedConfirmation(chain): "estimatedConfirmation_\(chain.rawValue)"
         case .watchWallet: "watchWallet"
+        case .paymentVerification: "paymentVerification"
         case .stakeLockTime: "stakeLockTime"
         case .stakeApr: "stakeApr"
         case .priceImpact: "priceImpact"

@@ -129,8 +129,6 @@ pub fn recipient_sections(wallets: Vec<Wallet>, chain: Chain, has_contacts: bool
 mod tests {
     use super::*;
     use crate::payment::GemPaymentService;
-    use crate::testkit::TestAlienProvider;
-    use std::sync::Arc;
 
     const ADDRESS: &str = "0x1f9090aae28b8a3dceadf281b0f12828e676c326";
     const CHECKSUMMED: &str = "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326";
@@ -289,7 +287,7 @@ mod tests {
 
     #[test]
     fn test_scan_confirms_an_asset_payment_and_only_fills_an_nft_recipient() {
-        let payments = GemPaymentService::new(Arc::new(TestAlienProvider::with_status(200)));
+        let payments = GemPaymentService::mock();
         let destination = GemPaymentDestination::Confirm {
             transfer: GemPaymentConfirmTransfer {
                 asset_id: primitives::AssetId::from_chain(Chain::Ethereum),
@@ -316,7 +314,7 @@ mod tests {
 
     #[test]
     fn test_scan_fills_a_recipient_and_rejects_the_rest() {
-        let payments = GemPaymentService::new(Arc::new(TestAlienProvider::with_status(200)));
+        let payments = GemPaymentService::mock();
         let asset = GemRecipientType::Asset {
             asset: Asset::from_chain(Chain::Ethereum),
         };

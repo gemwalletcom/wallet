@@ -61,6 +61,12 @@ extension ConfirmTransferScene {
             AddressListItemView(model: model)
         case let .network(model):
             ListItemImageView(model: model)
+        case let .paymentAsset(model, selectable):
+            NavigationCustomLink(
+                with: ListItemView(model: model),
+                isEnabled: selectable,
+                action: self.model.onSelectPaymentAsset,
+            )
         case let .memo(model):
             ListItemView(model: model)
                 .contextMenu(model.subtitle.map { [.copy(value: $0)] } ?? [])
@@ -79,14 +85,16 @@ extension ConfirmTransferScene {
                 ListItemView(model: listItemModel)
             }
         case let .networkFee(model, selectable):
-            if selectable {
-                NavigationCustomLink(
-                    with: ListItemView(model: model),
-                    action: self.model.onSelectFeePicker,
-                )
-            } else {
-                ListItemView(model: model)
-            }
+            NavigationCustomLink(
+                with: ListItemView(model: model),
+                isEnabled: selectable,
+                action: self.model.onSelectFeePicker,
+            )
+        case let .verification(model):
+            NavigationCustomLink(
+                with: ListItemView(model: model),
+                action: self.model.onSelectVerification,
+            )
         case let .warnings(models):
             SimulationWarningsContent(models: models)
         case let .balanceChange(model):

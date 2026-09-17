@@ -34,6 +34,7 @@ class BuildConfirmPropertiesImpl(
                 )
                 is GemConfirmRowContent.Network -> ConfirmProperty.Network(content.chain.toChain(), content.name)
                 is GemConfirmRowContent.Memo -> ConfirmProperty.Memo(content.memo.orEmpty())
+                is GemConfirmRowContent.PaymentAsset -> ConfirmProperty.PaymentAsset(content.symbol, content.selectable)
                 is GemConfirmRowContent.Details -> null
             }
         }

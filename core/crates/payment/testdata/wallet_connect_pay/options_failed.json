@@ -1,0 +1,22 @@
+{
+  "info": {
+    "status": "failed",
+    "amount": {
+      "unit": "iso4217/USD",
+      "value": "10",
+      "display": {
+        "assetSymbol": "USD",
+        "assetName": "US Dollar",
+        "decimals": 2
+      }
+    },
+    "expiresAt": 1789587739,
+    "merchant": {
+      "name": "Gem Wallet Test Merchant",
+      "iconUrl": "https://imagedelivery.net/_aTEfDRm7z3tKgu9JhfeKA/28f1b431-9d2a-4083-1bf8-5958939a2300/md"
+    },
+    "buyer": null
+  },
+  "collectData": null,
+  "options": null
+}

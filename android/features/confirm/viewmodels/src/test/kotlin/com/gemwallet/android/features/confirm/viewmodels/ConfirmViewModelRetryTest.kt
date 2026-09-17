@@ -87,7 +87,7 @@ class ConfirmViewModelRetryTest {
         coVerify(exactly = 1) { confirmation.load(any()) }
         assertEquals(GemConfirmPhase.FAILED, viewModel.screen.value.phase)
 
-        viewModel.send(FinishConfirmAction { _ -> })
+        viewModel.send(FinishConfirmAction { _, _ -> })
         advanceUntilIdle()
 
         coVerify(exactly = 2) { confirmation.load(any()) }

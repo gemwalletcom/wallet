@@ -26,7 +26,6 @@ import com.wallet.core.primitives.TransactionState
 import uniffi.gemstone.DelegationState
 import uniffi.gemstone.FeeOption
 import uniffi.gemstone.GemAddNodeFailure
-import uniffi.gemstone.GemAddressDisplay
 import uniffi.gemstone.GemAddressServiceInterface
 import uniffi.gemstone.GemApprovalValue
 import uniffi.gemstone.GemAssetMenuAction
@@ -43,6 +42,7 @@ import uniffi.gemstone.GemFiatTransactionBadge
 import uniffi.gemstone.GemHeaderButtonKind
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemRecipientSection
+import uniffi.gemstone.PaymentStatus
 import uniffi.gemstone.GemSimulationWarningKind
 import uniffi.gemstone.GemSimulationWarningRow
 import uniffi.gemstone.GemTransactionFilter
@@ -353,7 +353,16 @@ fun GemErrorText.text(context: Context): String = when (this) {
     GemErrorText.UnsupportedChain -> context.getString(R.string.errors_connections_unsupported_chain)
     GemErrorText.MaliciousOrigin -> context.getString(R.string.errors_connections_malicious_origin)
     GemErrorText.NoSupportedWallets -> context.getString(R.string.errors_connections_no_supported_wallets)
+    is GemErrorText.Payment -> status.errorText(context)
     is GemErrorText.Message -> text
+}
+
+fun PaymentStatus.errorText(context: Context): String = when (this) {
+    PaymentStatus.REQUIRES_ACTION, PaymentStatus.FAILED -> context.getString(R.string.errors_payment_failed)
+    PaymentStatus.PROCESSING -> context.getString(R.string.errors_payment_in_progress)
+    PaymentStatus.SUCCEEDED -> context.getString(R.string.errors_payment_paid)
+    PaymentStatus.EXPIRED -> context.getString(R.string.errors_payment_expired)
+    PaymentStatus.CANCELLED -> context.getString(R.string.errors_payment_cancelled)
 }
 
 @Composable
@@ -410,12 +419,6 @@ private fun prefixed(context: Context, @StringRes prefix: Int?, value: String): 
 @StringRes
 fun FeeOption.stringRes(): Int = when (this) {
     FeeOption.TOKEN_ACCOUNT_CREATION -> R.string.banner_account_activation_title
-}
-
-fun GemAddressServiceInterface.displayText(name: String?, formatted: String, hasImage: Boolean): String = when (val display = display(name, formatted, hasImage)) {
-    is GemAddressDisplay.Address -> formatted
-    is GemAddressDisplay.Name -> display.name
-    is GemAddressDisplay.NameWithAddress -> "${display.name} ($formatted)"
 }
 
 fun bannerTitle(context: Context, title: GemBannerTitle): String = when (title) {

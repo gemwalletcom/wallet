@@ -3,16 +3,18 @@ package com.gemwallet.android
 import com.gemwallet.android.ext.toGem
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
+import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.domains.wallet.chainAddresses
 import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.model.PaymentDestination
 import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
+import com.gemwallet.android.ui.navigation.routes.PaymentVerificationRoute
 import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute
 import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
-import com.wallet.core.primitives.ChainAddress
-import uniffi.gemstone.GemAssetsServiceInterface
+import uniffi.gemstone.GemPaymentLoad
 import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemPaymentServiceInterface
 import uniffi.gemstone.Payment
@@ -21,8 +23,8 @@ import uniffi.gemstone.PaymentRequest
 
 class PaymentNavigation @Inject constructor(
     private val getWalletAssets: GetWalletAssets,
+    private val getSession: GetSession,
     private val paymentService: GemPaymentServiceInterface,
-    private val assetsService: GemAssetsServiceInterface,
 ) {
 
     suspend fun routes(payment: Payment): List<NavKey> = when (payment) {
@@ -41,14 +43,10 @@ class PaymentNavigation @Inject constructor(
         }
 
     private suspend fun linkRoutes(link: PaymentLink): List<NavKey> {
-        val assets = getWalletAssets().first()
-        val accounts = assets.mapNotNull { it.owner }.distinctBy { it.chain }
-        val payment = paymentService.load(
-            link,
-            accounts.map { ChainAddress(chain = it.chain, address = it.address).toGem() },
-        )
-        val asset = assetsService.ensureTokenAsset(paymentService.transactionAssetId(payment))
-        val transfer = paymentService.transactionTransferData(payment, asset)
-        return listOfNotNull(transfer.pack()?.let(::ConfirmRoute))
+        val wallet = getSession().value?.wallet ?: return emptyList()
+        return when (val load = paymentService.load(link, wallet.chainAddresses.map { it.toGem() })) {
+            is GemPaymentLoad.Sign -> listOfNotNull(load.transfer.pack()?.let(::ConfirmRoute))
+            is GemPaymentLoad.Verify -> listOf(PaymentVerificationRoute(load.url, link))
+        }
     }
 }

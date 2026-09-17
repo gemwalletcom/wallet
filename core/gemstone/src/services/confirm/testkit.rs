@@ -10,6 +10,7 @@ use crate::GemstoneError;
 use crate::api::{GemApiClient, GemDeviceApiClient, GemStaticApiClient};
 use crate::gateway::GemGateway;
 use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionLoadFee, GemTransactionLoadMetadata};
+use crate::payment::GemPaymentService;
 use crate::services::assets::{GemAssetStore, GemAssetsService, config::GemAssetConfigService};
 use crate::services::balance::testkit::MemoryBalanceStore;
 use crate::services::balance::{GemAssetBalance, GemBalanceService};
@@ -104,6 +105,7 @@ impl ConfirmTestkit {
             session.clone(),
         ));
         let nft = Arc::new(GemNftService::new(device_api.clone(), Arc::new(MemoryNftStore::default()), session.clone()));
+        let payment = Arc::new(GemPaymentService::new(provider.clone(), assets.clone()));
         let transactions = Arc::new(GemTransactionStateService::new(
             gateway.clone(),
             Arc::new(MemoryTransactionStateStore::default()),
@@ -111,6 +113,7 @@ impl ConfirmTestkit {
             balance.clone(),
             stake,
             nft,
+            payment.clone(),
         ));
         let confirm = Arc::new(GemConfirmService::new(
             gateway,
@@ -131,6 +134,7 @@ impl ConfirmTestkit {
             Arc::new(MemoryKeystorePassword::default()),
             Arc::new(GemRecentActivityService::new(Arc::new(MemoryRecentActivityStore::default()), session)),
             preferences,
+            payment,
         ));
         Self { service, confirm, balances }
     }
@@ -282,6 +286,7 @@ impl GemConfirmLoad {
     pub fn mock() -> Self {
         let eth = Asset::mock_eth();
         GemConfirmLoad {
+            transfer: GemTransferData::mock(TransactionInputType::Transfer { asset: eth.clone() }),
             sender: Account::mock(Chain::Ethereum, "sender"),
             metadata: GemConfirmMetadata::mock(&eth.id, 0),
             fee_asset: eth,

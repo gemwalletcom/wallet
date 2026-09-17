@@ -69,7 +69,7 @@ enum ConfirmInfoSheetBuilder {
             return .dustThreshold(chain, image: image(for: chain.asset))
         case .malicious: return .maliciousTransaction
         case let .memoRequired(symbol): return .memoRequired(symbol: symbol)
-        case .feeRatesMissing, .offline, .accountMissing, .unknown, .insufficientFunds, .cancelled, .message:
+        case .feeRatesMissing, .offline, .accountMissing, .unknown, .insufficientFunds, .payment, .cancelled, .message:
             return nil
         }
     }

@@ -110,8 +110,8 @@ private fun AutocloseNavGraphContent(
                 ConfirmScreen(
                     input = input,
                     cancelAction = popInternal,
-                    finishAction = { hash ->
-                        finishAction(hash)
+                    finishAction = { hash, warning ->
+                        finishAction(hash, warning)
                         onDismiss()
                     },
                     onAcquireAsset = onAcquireAsset,

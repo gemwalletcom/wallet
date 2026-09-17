@@ -9,6 +9,7 @@ fun mockGemConfirmLoad(
     asset: Asset = mockAssetEthereum(),
     preload: GemConfirmPreload? = null,
 ) = GemConfirmLoad(
+    transfer = mockGemTransferData(asset = asset),
     sender = mockAccount(chain = asset.id.chain).toGem(),
     feeAsset = asset.toGem(),
     metadata = mockGemConfirmMetadata(asset),

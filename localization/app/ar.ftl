@@ -131,6 +131,8 @@ buy_no_results = لا توجد عروض أسعار متاحة
 # Transfer
 
 transfer_network_fee = رسوم الشبكة
+transfer_pay_with = الدفع بواسطة
+transfer_payment_title = الدفع
 transfer_memo = مذكرة
 transfer_confirm = يتأكد
 transfer_from = من
@@ -254,6 +256,11 @@ errors_network_offline = يبدو أن الاتصال بالإنترنت غير 
 errors_no_internet_connection = لا يوجد اتصال بالإنترنت
 errors_no_service_connection = لا يوجد اتصال بالخدمة
 errors_balances_activity_outdated = قد تكون الأرصدة والنشاط غير محدثة.
+errors_payment_in_progress = الدفع قيد التنفيذ بالفعل
+errors_payment_paid = تم الدفع بالفعل
+errors_payment_failed = فشل الدفع
+errors_payment_expired = انتهت صلاحية الدفع
+errors_payment_cancelled = تم إلغاء الدفع
 
 # Activity
 
@@ -540,6 +547,8 @@ sell_title = بيع %@
 info_network_fee_title = رسوم الشبكة
 info_watch_wallet_title = شاهد المحفظة
 info_watch_wallet_description = محفظة لا يمكنك الوصول إليها، ولكن يمكنك مشاهدة معاملاتها وحركاتها.
+info_payment_verification_title = التحقق من الدفع
+info_payment_verification_description = يطلب التاجر معلومات إضافية قبل الدفع.
 info_network_fee_description = تتطلب كل معاملة على شبكة %@ رسومًا بعملة %@ تُدفع لعمال المناجم لمعالجة معاملتك، وليس Gem Wallet. تختلف رسوم الشبكة حسب استخدام الشبكة.
 info_transaction_error_description = تعذّر إتمام المعاملة بسبب خطأ، مثل عدم كفاية الرصيد، أو إدخال غير صحيح، أو رفض من قِبل الشبكة. يُرجى مراجعة التفاصيل والمحاولة مرة أخرى.
 info_transaction_pending_description = تم إرسال المعاملة وهي بانتظار التأكيد على الشبكة. قد تختلف أوقات المعالجة. يُرجى مراجعة التحديثات.
