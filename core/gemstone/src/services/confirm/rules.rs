@@ -5,7 +5,7 @@ use crate::services::transfer::model::{GemConfirmRow, GemTransferData};
 use crate::services::wallet::model::wallet_row;
 use primitives::{AddressName, BlockExplorerLink};
 use primitives::{
-    ApplicationMetadataSource, Asset, AssetId, Chain, ChainType, FeePriority, FeeUnitType, GasPriceType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload,
+    ApplicationMetadataSource, Asset, AssetId, Chain, ChainType, EVMChain, FeePriority, FeeUnitType, GasPriceType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload,
     SimulationResult, SimulationWarningType, Transaction, TransactionPreloadInput, Wallet,
 };
 
@@ -429,12 +429,7 @@ fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[GemFeeRate], selectio
 
 pub(super) fn confirmation_fee_rates(asset_id: &AssetId, is_max_amount: bool, rates: Vec<GemFeeRate>) -> Vec<GemFeeRate> {
     let increase_percent = if is_max_amount && asset_id.is_native() {
-        asset_id
-            .chain
-            .config()
-            .evm
-            .as_ref()
-            .map_or(0, |config| config.chain_stack.max_amount_base_fee_increase_percent())
+        EVMChain::from_chain(asset_id.chain).map_or(0, |chain| chain.chain_stack().max_amount_base_fee_increase_percent())
     } else {
         BASE_FEE_INCREASE_PERCENT
     };
