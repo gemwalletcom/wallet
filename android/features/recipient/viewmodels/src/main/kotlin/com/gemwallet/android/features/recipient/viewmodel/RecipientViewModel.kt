@@ -11,6 +11,7 @@ import com.gemwallet.android.application.nft.cases.GetAssetNft
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.domains.asset.chain
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.isMemoSupport
 import com.gemwallet.android.ext.toGem
@@ -212,7 +213,7 @@ class RecipientViewModel @Inject constructor(
             is GemRecipientNext.Amount -> amountAction(
                 AmountParams.Transfer(asset.id, next.payment.recipient, memo.value, references, next.payment.amount)
             )
-            is GemRecipientNext.Confirm -> confirmAction(next.transfer)
+            is GemRecipientNext.Confirm -> confirmAction(ConfirmTransferInput(next.transfer))
         }
     }
 
@@ -244,7 +245,7 @@ class RecipientViewModel @Inject constructor(
             return
         }
         when (scan) {
-            is GemRecipientScan.Confirm -> confirmAction(scan.transfer)
+            is GemRecipientScan.Confirm -> confirmAction(ConfirmTransferInput(scan.transfer))
             is GemRecipientScan.Recipient -> updateFrom(scan.payment)
         }
     }

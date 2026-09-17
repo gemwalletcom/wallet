@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.earn.delegation.viewmodels
 
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -111,7 +112,7 @@ class DelegationViewModel @Inject constructor(
         val delegation = delegation.value ?: return
         when (val destination = stakeService.delegationActionDestination(assetInfo.asset.toGem(), delegation.toGem(), action, emptyList())) {
             GemDelegationDestination.Details -> Unit
-            is GemDelegationDestination.Confirm -> onConfirm(destination.transfer)
+            is GemDelegationDestination.Confirm -> onConfirm(ConfirmTransferInput(destination.transfer))
             is GemDelegationDestination.Amount -> onAmount(destination.input.toAmountParams(destination.asset.toPrimitives().id))
         }
     }
@@ -128,7 +129,7 @@ class DelegationViewModel @Inject constructor(
                     false,
                 )
             }
-            call(transfer)
+            call(ConfirmTransferInput(transfer))
         }
     }
 }

@@ -107,6 +107,18 @@ public final class PerpetualSceneViewModel {
         service.modifyButtons()
     }
 
+    public var buttonModels: [PerpetualButtonViewModel] {
+        buttons.map { PerpetualButtonViewModel(button: $0) }
+    }
+
+    public var modifyButtonModels: [PerpetualButtonViewModel] {
+        modifyButtons.map { PerpetualButtonViewModel(button: $0) }
+    }
+
+    public var modifyTitle: String {
+        GemPerpetualButton.modify.title
+    }
+
     public var infoRows: [GemPerpetualInfoRow] {
         service.infoRows()
     }
@@ -139,6 +151,10 @@ public final class PerpetualSceneViewModel {
         case .fundingPayments: onSelectFundingPaymentsInfo
         case .pnl, .size, .entryPrice, .margin: nil
         }
+    }
+
+    public func onSelect(_ button: PerpetualButtonViewModel) {
+        onSelectButton(button.button)
     }
 
     public func onSelectButton(_ button: GemPerpetualButton) {

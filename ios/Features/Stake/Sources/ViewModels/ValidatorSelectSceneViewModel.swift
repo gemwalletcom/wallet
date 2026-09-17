@@ -80,6 +80,10 @@ public final class ValidatorSelectSceneViewModel {
         )
     }
 
+    public func validatorModel(for validator: DelegationValidator) -> ValidatorViewModel {
+        ValidatorViewModel(row: validatorRow(for: validator))
+    }
+
     public func validatorRow(for validator: DelegationValidator) -> GemValidatorRow {
         rowsById[validator.id] ?? service.validatorRow(validator: validator.toGem())
     }

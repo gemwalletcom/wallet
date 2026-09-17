@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.stake.viewmodels
 
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
@@ -187,7 +188,7 @@ class StakeViewModel @Inject constructor(
         val assetInfo = assetInfo.value ?: return
         when (val destination = stakeService.delegationDestination(walletType.toGem(), assetInfo.asset.toGem(), delegation.toGem())) {
             GemDelegationDestination.Details -> onOpenDetail(delegation.validator.id, delegation.base.delegationId)
-            is GemDelegationDestination.Confirm -> onConfirm(destination.transfer)
+            is GemDelegationDestination.Confirm -> onConfirm(ConfirmTransferInput(destination.transfer))
             is GemDelegationDestination.Amount -> onAmount(destination.input.toAmountParams(destination.asset.toPrimitives().id))
         }
     }
@@ -195,7 +196,7 @@ class StakeViewModel @Inject constructor(
     fun onRewards(onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {
         val assetInfo = assetInfo.value ?: return
         when (val destination = claimRewards.value?.destination ?: return) {
-            is GemClaimRewardsDestination.Transfer -> onConfirm(destination.transfer)
+            is GemClaimRewardsDestination.Transfer -> onConfirm(ConfirmTransferInput(destination.transfer))
             is GemClaimRewardsDestination.Amount -> onAmount(AmountParams.Stake.Rewards(assetInfo.asset.id))
         }
     }

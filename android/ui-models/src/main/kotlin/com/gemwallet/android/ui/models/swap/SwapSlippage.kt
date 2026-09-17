@@ -2,7 +2,6 @@ package com.gemwallet.android.ui.models.swap
 
 import com.gemwallet.android.math.parseInputNumberOrNull
 import uniffi.gemstone.GemNumberFormat
-import uniffi.gemstone.GemSlippageViewState
 import java.text.DecimalFormatSymbols
 
 object SwapSlippage {
@@ -12,9 +11,9 @@ object SwapSlippage {
     fun format(bps: UInt, slippagePercent: (UInt) -> Double): String =
         slippagePercent(bps).toBigDecimal().stripTrailingZeros().toPlainString()
 
-    fun sanitize(input: String, state: GemSlippageViewState): String =
+    fun sanitize(input: String, maximumFractionDigits: UInt, maximumIntegerDigits: UInt): String =
         GemNumberFormat(DecimalFormatSymbols.getInstance().decimalSeparator.toString())
-            .sanitize(input, state.maximumFractionDigits, state.maximumIntegerDigits)
+            .sanitize(input, maximumFractionDigits, maximumIntegerDigits)
 
     fun parseBps(input: String, slippageBps: (Double) -> UInt?): UInt? {
         val percent = input.parseInputNumberOrNull() ?: return null

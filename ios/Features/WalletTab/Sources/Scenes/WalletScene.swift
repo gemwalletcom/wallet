@@ -50,8 +50,7 @@ public struct WalletScene: View {
             if let banner = state.visibleBanners.first {
                 Section {
                     BannerView(
-                        banner: banner,
-                        content: model.bannerContent(for: banner),
+                        model: model.bannerModel(for: banner),
                         action: model.onBanner,
                     )
                 }
@@ -61,9 +60,8 @@ public struct WalletScene: View {
             if !sections.pinned.isEmpty {
                 Section {
                     WalletAssetsList(
-                        assets: sections.pinned,                        currency: state.currency,
-
-                        row: model.assetRow,
+                        assets: sections.pinned,
+                        itemsModel: model.assetItems,
                         onHideAsset: model.onHideAsset,
                         onPinAsset: model.onPinAsset,
                         onCopyAddress: model.onCopyAddress,
@@ -77,9 +75,8 @@ public struct WalletScene: View {
 
             Section {
                 WalletAssetsList(
-                    assets: sections.assets,                    currency: state.currency,
-
-                    row: model.assetRow,
+                    assets: sections.assets,
+                    itemsModel: model.assetItems,
                     onHideAsset: model.onHideAsset,
                     onPinAsset: model.onPinAsset,
                     onCopyAddress: model.onCopyAddress,

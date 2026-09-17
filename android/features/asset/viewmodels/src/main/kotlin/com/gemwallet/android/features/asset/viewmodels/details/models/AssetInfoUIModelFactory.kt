@@ -3,6 +3,7 @@ package com.gemwallet.android.features.asset.viewmodels.details.models
 import android.content.Context
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.banner.BannerRow
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.confirm.account
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.price.tone
@@ -68,11 +69,13 @@ class AssetInfoUIModelFactory @Inject constructor(@ApplicationContext private va
             detailsState = details.state,
             priceAlertMenu = details.state.priceAlert.menu(),
             emptyTransactions = details.state.emptyTransactionsAction.emptyTransactions(),
-            activateTransferData = assetInfo.owner?.let { owner ->
-                GemTransferData(
-                    inputType = TransactionInputType.account(assetInfo.asset, AccountDataType.Activate),
-                    recipient = GemRecipient(owner.address),
-                    value = BigInteger.ZERO,
+            activateTransferInput = assetInfo.owner?.let { owner ->
+                ConfirmTransferInput(
+                    GemTransferData(
+                        inputType = TransactionInputType.account(assetInfo.asset, AccountDataType.Activate),
+                        recipient = GemRecipient(owner.address),
+                        value = BigInteger.ZERO,
+                    ),
                 )
             },
             banners = banners.map { it.uiModel(context) },

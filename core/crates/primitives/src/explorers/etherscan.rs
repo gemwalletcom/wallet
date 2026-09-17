@@ -37,7 +37,7 @@ impl EtherScan {
             EVMChain::Stable => Explorer::boxed(Metadata::with_token("Stablescan", "https://stablescan.xyz")),
             EVMChain::Tempo => TempoExplorer::boxed(),
             EVMChain::Ink => RouteScan::new_ink(),
-            EVMChain::Arc => Explorer::boxed(Metadata::with_token("Arc Explorer", "https://explorer.arc.io")),
+            EVMChain::Arc => Explorer::boxed(Metadata::with_token("ArcScan", "https://arc.etherscan.io")),
             EVMChain::XLayer => OkxExplorer::new_xlayer(),
         }
     }

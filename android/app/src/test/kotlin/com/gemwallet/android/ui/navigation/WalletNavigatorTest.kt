@@ -1,13 +1,12 @@
 package com.gemwallet.android.ui.navigation
 
-import uniffi.gemstone.GemAssetsServiceInterface
-import uniffi.gemstone.GemDeeplinkService
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.test.runTest
 import androidx.compose.runtime.mutableStateOf
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
+import com.gemwallet.android.domains.swap.SwapItemType
+import com.gemwallet.android.domains.wallet.WalletSecretInput
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.create_wallet.navigation.CreateWalletAlertRoute
 import com.gemwallet.android.features.create_wallet.navigation.CreateWalletRoute
 import com.gemwallet.android.features.import_wallet.navigation.ImportChainWalletRoute
@@ -17,9 +16,6 @@ import com.gemwallet.android.features.onboarding.AcceptTermsDestination
 import com.gemwallet.android.features.onboarding.AcceptTermsRoute
 import com.gemwallet.android.features.onboarding.OnboardingRoute
 import com.gemwallet.android.features.setup_wallet.navigation.SetupWalletRoute
-import com.gemwallet.android.domains.swap.SwapItemType
-import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
@@ -29,7 +25,6 @@ import com.gemwallet.android.ui.navigation.routes.AmountRoute
 import com.gemwallet.android.ui.navigation.routes.AssetChartRoute
 import com.gemwallet.android.ui.navigation.routes.AssetPriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
-import com.gemwallet.android.ui.navigation.routes.assetsRoute
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
 import com.gemwallet.android.ui.navigation.routes.DelegationRoute
 import com.gemwallet.android.ui.navigation.routes.FiatInputRoute
@@ -37,30 +32,36 @@ import com.gemwallet.android.ui.navigation.routes.FiatSelectRoute
 import com.gemwallet.android.ui.navigation.routes.NftAssetRoute
 import com.gemwallet.android.ui.navigation.routes.NftCollectionRoute
 import com.gemwallet.android.ui.navigation.routes.PriceAlertsRoute
-import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveRoute
-import com.gemwallet.android.ui.navigation.routes.WalletConnectRequestRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveSelectRoute
+import com.gemwallet.android.ui.navigation.routes.RecipientInputRoute
 import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
 import com.gemwallet.android.ui.navigation.routes.StakeRoute
 import com.gemwallet.android.ui.navigation.routes.SwapPairRoute
 import com.gemwallet.android.ui.navigation.routes.SwapRoute
 import com.gemwallet.android.ui.navigation.routes.SwapSelectRoute
-import com.gemwallet.android.ui.navigation.routes.WalletsRoute
+import com.gemwallet.android.ui.navigation.routes.WalletConnectRequestRoute
 import com.gemwallet.android.ui.navigation.routes.WalletDetailsRoute
 import com.gemwallet.android.ui.navigation.routes.WalletPhraseRoute
 import com.gemwallet.android.ui.navigation.routes.WalletSecurityReminderRoute
+import com.gemwallet.android.ui.navigation.routes.WalletsRoute
+import com.gemwallet.android.ui.navigation.routes.assetsRoute
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAssetId
-import uniffi.gemstone.GemWalletImportKind
-import uniffi.gemstone.GemWalletSecretKind
 import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemAssetsServiceInterface
+import uniffi.gemstone.GemDeeplinkService
+import uniffi.gemstone.GemWalletImportKind
+import uniffi.gemstone.GemWalletSecretKind
 
 class WalletNavigatorTest {
 
@@ -165,7 +166,7 @@ class WalletNavigatorTest {
         val navigator = navigatorWith(
             WalletRootRoute,
             WalletDetailsRoute(walletId),
-            WalletPhraseRoute(walletId, GemWalletSecretKind.PHRASE),
+            WalletPhraseRoute(WalletSecretInput(walletId, GemWalletSecretKind.PHRASE)),
         )
         val route = AssetRoute(mockAssetId(Chain.Solana))
 
@@ -181,16 +182,16 @@ class WalletNavigatorTest {
         val navigator = navigatorWith(
             WalletRootRoute,
             WalletDetailsRoute(walletId),
-            WalletSecurityReminderRoute(walletId, GemWalletSecretKind.PHRASE),
+            WalletSecurityReminderRoute(WalletSecretInput(walletId, GemWalletSecretKind.PHRASE)),
         )
 
-        navigator.finishWalletSecurityReminder(walletId, GemWalletSecretKind.PHRASE)
+        navigator.finishWalletSecurityReminder(WalletSecretInput(walletId, GemWalletSecretKind.PHRASE))
 
         assertEquals(
             listOf(
                 WalletRootRoute,
                 WalletDetailsRoute(walletId),
-                WalletPhraseRoute(walletId, GemWalletSecretKind.PHRASE),
+                WalletPhraseRoute(WalletSecretInput(walletId, GemWalletSecretKind.PHRASE)),
             ),
             navigator.backStack.toList(),
         )
@@ -235,8 +236,8 @@ class WalletNavigatorTest {
         val restored = listOf<NavKey>(
             WalletRootRoute,
             AssetRoute(assetId),
-            WalletSecurityReminderRoute(walletId, GemWalletSecretKind.PHRASE),
-            WalletPhraseRoute(walletId, GemWalletSecretKind.PHRASE),
+            WalletSecurityReminderRoute(WalletSecretInput(walletId, GemWalletSecretKind.PHRASE)),
+            WalletPhraseRoute(WalletSecretInput(walletId, GemWalletSecretKind.PHRASE)),
             CreateWalletRoute,
             RecipientInputRoute(assetId, nftAssetId = null),
             AmountRoute("amount"),

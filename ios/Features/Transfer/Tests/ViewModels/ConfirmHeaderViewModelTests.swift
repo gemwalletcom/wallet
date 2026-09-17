@@ -63,8 +63,8 @@ struct ConfirmHeaderViewModelTests {
             Issue.record("Expected assetValue header")
             return
         }
-        #expect(data.asset == Asset.mockEthereumUSDT().toGem())
-        #expect(data.value == .exact(value: BigUInt(1_000_000)))
+        #expect(data.data.asset == Asset.mockEthereumUSDT().toGem())
+        #expect(data.data.value == .exact(value: BigUInt(1_000_000)))
         #expect(item.showClearHeader == true)
     }
 

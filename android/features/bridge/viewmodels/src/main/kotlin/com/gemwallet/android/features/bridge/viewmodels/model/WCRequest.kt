@@ -2,6 +2,7 @@ package com.gemwallet.android.features.bridge.viewmodels.model
 
 import android.content.Context
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequest
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.components.list_head.SimulationHeaderUIModel
 import com.gemwallet.android.ui.components.list_head.headerUIModel
@@ -17,7 +18,6 @@ import uniffi.gemstone.GemConnectionRow
 import uniffi.gemstone.GemSignMessagePreview
 import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.GemSimulationWarningRow
-import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.MessageType
 import uniffi.gemstone.SignMessage as GemSignMessage
 import uniffi.gemstone.SimulationResult
@@ -96,7 +96,7 @@ sealed class WCRequest(
         val outputAction: TransferDataOutputAction
             get() = if (isSendable) TransferDataOutputAction.Send else TransferDataOutputAction.Sign
 
-        val transfer: GemTransferData
-            get() = request.transfer
+        val input: ConfirmTransferInput
+            get() = ConfirmTransferInput(request.transfer)
     }
 }

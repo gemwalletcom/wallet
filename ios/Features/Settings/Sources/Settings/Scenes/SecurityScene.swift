@@ -2,7 +2,6 @@
 
 import Primitives
 import Components
-import enum Gemstone.GemSecurityRow
 import Style
 import SwiftUI
 
@@ -17,7 +16,7 @@ public struct SecurityScene: View {
         List {
             ForEach(Array(model.sections.enumerated()), id: \.offset) { index, section in
                 Section {
-                    ForEach(section.rows, id: \.self) { row in
+                    ForEach(section.values) { row in
                         content(for: row)
                     }
                 } footer: {
@@ -36,7 +35,7 @@ public struct SecurityScene: View {
     }
 
     @ViewBuilder
-    private func content(for row: GemSecurityRow) -> some View {
+    private func content(for row: SecurityRow) -> some View {
         switch row {
         case .authentication:
             Toggle(model.authenticationTitle, isOn: $model.isEnabled)

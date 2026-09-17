@@ -13,6 +13,14 @@ public struct TransactionSwapProgressItemModel: Equatable {
         public let subtitle: String
         public let state: GemSwapProgressState
 
+        public var color: Color { state.color }
+        public var markerBackground: Color { state.markerBackground }
+        public var lineColor: Color { state.lineColor }
+        public var tagBackground: Color { state.background }
+        public var tagTitle: String? { state.step.tagTitle }
+        public var markerImage: Image? { state.marker.image }
+        public var showsSpinner: Bool { state.marker == .spinner }
+
         public init(
             title: String,
             subtitle: String,

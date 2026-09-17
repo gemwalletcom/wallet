@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import enum Gemstone.GemSwapDetailRow
 import Foundation
 import InfoSheet
 import Localization
@@ -68,12 +67,12 @@ public struct SwapDetailsView: View {
                     view
                 }
             } header: {
-                Text(GemSwapDetailRow.provider.title)
+                Text(model.providerTitle)
                     .listRowInsets(.horizontalMediumInsets)
             }
 
             Section {
-                ForEach(model.detailRows, id: \.self) { row in
+                ForEach(model.detailRowList) { row in
                     switch row {
                     case .provider:
                         EmptyView()

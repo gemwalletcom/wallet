@@ -1,5 +1,10 @@
 package com.gemwallet.android.ui.style
 
+import com.gemwallet.android.ext.requireChain
+import com.wallet.core.primitives.AssetId
+import com.gemwallet.android.ui.components.list_item.ListItemImage
+import com.gemwallet.android.ui.theme.Emoji
+import uniffi.gemstone.GemBannerIcon
 import androidx.annotation.DrawableRes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -26,7 +31,6 @@ import uniffi.gemstone.GemEmptyStateImage
 import uniffi.gemstone.GemFiatTransactionBadge
 import uniffi.gemstone.GemHeaderButtonKind
 import uniffi.gemstone.GemNameRecordState
-import uniffi.gemstone.GemPerpetualChartLineKind
 import uniffi.gemstone.GemSwapProgressStep
 import uniffi.gemstone.GemTransactionStateTone
 import uniffi.gemstone.GemValueTone
@@ -161,14 +165,6 @@ fun GemEmptyStateImage.image(): EmptyStateImage = when (this) {
     GemEmptyStateImage.WALLET -> EmptyStateImage.Vector(R.drawable.ic_wallet)
 }
 
-@Composable
-fun GemPerpetualChartLineKind.color(): Color = when (this) {
-    GemPerpetualChartLineKind.ENTRY -> MaterialTheme.colorScheme.outline
-    GemPerpetualChartLineKind.LIQUIDATION -> MaterialTheme.colorScheme.error
-    GemPerpetualChartLineKind.STOP_LOSS -> pendingColor
-    GemPerpetualChartLineKind.TAKE_PROFIT -> MaterialTheme.colorScheme.tertiary
-}
-
 fun GemNameRecordState.indicator(): NameResolveIndicatorUIModel? = when (this) {
     is GemNameRecordState.Loading -> NameResolveIndicatorUIModel.Loading
     GemNameRecordState.Error -> NameResolveIndicatorUIModel.Icon(ListItemSymbol.Error, ListItemTextStyle.Negative, R.string.errors_error_occurred)
@@ -183,4 +179,13 @@ fun GemAddressServiceInterface.formatShort(addresses: List<ChainAddress>): List<
 fun GemAmountInputType.amountSymbol(assetSymbol: String, currency: Currency): AmountSymbolUIModel = when (this) {
     GemAmountInputType.ASSET -> AmountSymbolUIModel(assetSymbol, AmountSymbolPlacement.Trailing)
     GemAmountInputType.FIAT -> AmountSymbolUIModel(android.icu.util.Currency.getInstance(currency.string).symbol, AmountSymbolPlacement.Leading)
+}
+
+fun GemBannerIcon.image(): ListItemImage = when (this) {
+    GemBannerIcon.MoneyBag -> ListItemImage.Emoji(Emoji.moneyBag)
+    is GemBannerIcon.Network -> ListItemImage.Asset(AssetId(chain.requireChain()))
+    GemBannerIcon.Warning -> ListItemImage.Symbol(ListItemSymbol.Warning)
+    GemBannerIcon.Suspicious -> ListItemImage.Drawable(R.drawable.suspicious)
+    GemBannerIcon.Bitcoin -> ListItemImage.Symbol(ListItemSymbol.CurrencyBitcoin)
+    GemBannerIcon.Perpetuals -> ListItemImage.Drawable(R.drawable.ic_perpetuals)
 }

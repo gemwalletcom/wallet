@@ -21,8 +21,8 @@ public struct SignMessageScene: View {
 
     public var body: some View {
         List {
-            if let headerData = model.headerData {
-                TransactionHeaderListItemView(headerType: .assetValue(headerData), showClearHeader: true)
+            if let headerModel = model.headerModel {
+                TransactionHeaderListItemView(headerType: .assetValue(headerModel), showClearHeader: true)
             } else {
                 ListAssetHeaderView(model: model.appPreview, subtitleLayout: .vertical)
             }

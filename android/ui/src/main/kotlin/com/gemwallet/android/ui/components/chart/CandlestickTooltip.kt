@@ -14,23 +14,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.model.text
-import com.gemwallet.android.ui.style.color
-import com.gemwallet.android.ui.localization.stringRes
+import com.gemwallet.android.ui.components.list_item.color
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.gemwallet.android.ui.theme.space4
-import com.gemwallet.android.ui.theme.space6
 import com.gemwallet.android.ui.theme.space1
 import com.gemwallet.android.ui.theme.space10
-import uniffi.gemstone.GemCandleTooltip
-import uniffi.gemstone.GemCandleTooltipCell
+import com.gemwallet.android.ui.theme.space4
+import com.gemwallet.android.ui.theme.space6
 
 private object CandlestickTooltipMetrics {
     val ChipCornerRadius = space10
@@ -50,7 +46,7 @@ private data class TooltipCellData(
 
 @Composable
 fun CandlestickTooltip(
-    model: GemCandleTooltip,
+    model: CandlestickTooltipUIModel,
     modifier: Modifier = Modifier,
 ) {
     val shape = RoundedCornerShape(CandlestickTooltipMetrics.ChipCornerRadius)
@@ -159,8 +155,8 @@ private fun TooltipGrid(
 }
 
 @Composable
-private fun GemCandleTooltipCell.toCellData(): TooltipCellData = TooltipCellData(
-    label = stringResource(row.stringRes()),
-    value = value.text(),
-    valueColor = value.tone.color(),
+private fun CandlestickTooltipCellUIModel.toCellData(): TooltipCellData = TooltipCellData(
+    label = label,
+    value = value,
+    valueColor = style.color(),
 )

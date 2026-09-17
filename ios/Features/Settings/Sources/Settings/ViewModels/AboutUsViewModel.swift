@@ -3,7 +3,6 @@
 import enum Gemstone.GemAboutRow
 import protocol Gemstone.GemAppUpdateServiceProtocol
 import Components
-import struct Gemstone.GemAboutSection
 import func Gemstone.aboutSections
 import func Gemstone.communityLinks
 import GemstonePrimitives
@@ -27,15 +26,27 @@ public final class AboutUsViewModel: Sendable {
         self.service = service
     }
 
-    var sections: [GemAboutSection] {
-        aboutSections()
+    var sections: [ListSection<AboutRowViewModel>] {
+        aboutSections().enumerated().map { index, section in
+            ListSection(id: "\(index)", title: nil, image: nil, values: section.rows.map(rowViewModel))
+        }
     }
 
     var title: String {
         Localized.Settings.aboutus
     }
 
-    func listItem(for row: GemAboutRow) -> ListItemModel {
+    private func rowViewModel(_ row: GemAboutRow) -> AboutRowViewModel {
+        switch row {
+        case .termsOfService: AboutRowViewModel(id: String(describing: row), kind: .link(termsOfServiceURL), model: listItem(for: row))
+        case .privacyPolicy: AboutRowViewModel(id: String(describing: row), kind: .link(privacyPolicyURL), model: listItem(for: row))
+        case .website: AboutRowViewModel(id: String(describing: row), kind: .link(websiteURL), model: listItem(for: row))
+        case .community: AboutRowViewModel(id: String(describing: row), kind: .community, model: listItem(for: row))
+        case .version: AboutRowViewModel(id: String(describing: row), kind: .version, model: listItem(for: row))
+        }
+    }
+
+    private func listItem(for row: GemAboutRow) -> ListItemModel {
         switch row {
         case .termsOfService, .privacyPolicy, .website, .community: ListItemModel(title: row.title)
         case .version: ListItemModel(title: row.title, subtitle: versionTextValue)

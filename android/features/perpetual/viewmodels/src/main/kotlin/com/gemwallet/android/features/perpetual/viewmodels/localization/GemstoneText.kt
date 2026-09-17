@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import com.gemwallet.android.ui.R
 import com.wallet.core.primitives.PerpetualMarginType
 import uniffi.gemstone.GemPerpetualButton
+import uniffi.gemstone.GemPerpetualChartLineKind
 import uniffi.gemstone.GemPerpetualInfoRow
 import uniffi.gemstone.GemPerpetualMarketSection
 import uniffi.gemstone.GemPerpetualPositionDetailRow
@@ -55,4 +56,12 @@ internal fun GemPerpetualMarketSection.stringRes(): Int? = when (this) {
     GemPerpetualMarketSection.PINNED -> R.string.common_pinned
     GemPerpetualMarketSection.MARKETS -> R.string.perpetuals_markets
     GemPerpetualMarketSection.RECENTS, GemPerpetualMarketSection.EMPTY -> null
+}
+
+@StringRes
+fun GemPerpetualChartLineKind.stringRes(): Int = when (this) {
+    GemPerpetualChartLineKind.ENTRY -> R.string.charts_entry
+    GemPerpetualChartLineKind.LIQUIDATION -> R.string.perpetual_liquidation
+    GemPerpetualChartLineKind.STOP_LOSS -> R.string.perpetual_stop_loss
+    GemPerpetualChartLineKind.TAKE_PROFIT -> R.string.perpetual_take_profit
 }

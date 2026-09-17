@@ -12,6 +12,7 @@ import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDetailsDataAggregate
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -24,11 +25,15 @@ import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualPositi
 import com.gemwallet.android.features.perpetual.viewmodels.model.infoListItem
 import com.gemwallet.android.features.perpetual.viewmodels.model.positionRow
 import com.gemwallet.android.features.perpetual.viewmodels.model.uiModel
+import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualChartUIModel
+import com.gemwallet.android.ui.components.chart.CandlestickTooltipUIModel
+import com.gemwallet.android.ui.components.chart.uiModel
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.perpetual.listItem
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
+import com.gemwallet.android.ui.models.flatMap
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.ChartCandleStick
 import com.wallet.core.primitives.ChartPeriod
@@ -65,6 +70,7 @@ import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualPositionKind
 import uniffi.gemstone.GemPerpetualSection
 import uniffi.gemstone.PerpetualProvider
+import uniffi.gemstone.candleTooltip
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -156,7 +162,7 @@ class PerpetualDetailsViewModel @Inject constructor(
     private val refreshState = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = refreshState.asStateFlow()
 
-    val chart: StateFlow<StateViewType<List<ChartCandleStick>>> = combine(period, refreshTrigger) { period, _ -> period }
+    private val candles: StateFlow<StateViewType<List<ChartCandleStick>>> = combine(period, refreshTrigger) { period, _ -> period }
         .flatMapLatest { period ->
             flow {
                 emit(StateViewType.Loading)
@@ -181,6 +187,12 @@ class PerpetualDetailsViewModel @Inject constructor(
         }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), StateViewType.Loading)
+
+    val chart: StateFlow<StateViewType<PerpetualChartUIModel>> = combine(candles, position) { state, position ->
+        state.flatMap { StateViewType.Data(PerpetualChartUIModel.from(it, position?.position, context)) }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), StateViewType.Loading)
+
+    fun tooltip(candle: ChartCandleStick): CandlestickTooltipUIModel = candleTooltip(candle.toGem()).uiModel(context)
 
     private val screenVisible = MutableStateFlow(false)
 
@@ -262,7 +274,7 @@ class PerpetualDetailsViewModel @Inject constructor(
         val perpetualId = perpetual.value?.id ?: return
         viewModelScope.launch {
             runCatchingCancellable { buildPerpetualParams.close(perpetualId) }
-                .onSuccess { input -> input?.let(confirmAction::invoke) }
+                .onSuccess { transfer -> transfer?.let { confirmAction(ConfirmTransferInput(it)) } }
                 .onFailure { errorState.value = it.errorText() }
         }
     }

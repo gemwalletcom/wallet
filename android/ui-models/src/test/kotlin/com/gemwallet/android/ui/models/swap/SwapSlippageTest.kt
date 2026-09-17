@@ -45,7 +45,7 @@ class SwapSlippageTest {
     fun sanitize_limitsDigitsToWhatCoreAllows() {
         val state = GemSlippageSession(isAuto = false, bps = 100u).viewState()
 
-        assertEquals("0.11", SwapSlippage.sanitize("0.111111", state))
-        assertEquals("33", SwapSlippage.sanitize("33333312312", state))
+        assertEquals("0.11", SwapSlippage.sanitize("0.111111", state.maximumFractionDigits, state.maximumIntegerDigits))
+        assertEquals("33", SwapSlippage.sanitize("33333312312", state.maximumFractionDigits, state.maximumIntegerDigits))
     }
 }

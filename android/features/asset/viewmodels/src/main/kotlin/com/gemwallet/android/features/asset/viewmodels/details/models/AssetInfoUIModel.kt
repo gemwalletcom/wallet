@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.asset.viewmodels.details.models
 
 import androidx.annotation.StringRes
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.banner.BannerRowUIModel
@@ -13,7 +14,6 @@ import com.wallet.core.primitives.VerificationStatus
 import uniffi.gemstone.GemAssetDetailsState
 import uniffi.gemstone.GemAssetNetworkDestination
 import uniffi.gemstone.GemPriceAlertToggle
-import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.GemValueTone
 
 class AssetInfoUIModel(
@@ -38,7 +38,7 @@ class AssetInfoUIModel(
     val detailsState: GemAssetDetailsState,
     val priceAlertMenu: PriceAlertMenuUIModel = GemPriceAlertToggle.DISABLED.menu(),
     val emptyTransactions: EmptyTransactionsUIModel = EmptyTransactionsUIModel(showsBuy = false, showsSwap = false),
-    val activateTransferData: GemTransferData? = null,
+    val activateTransferInput: ConfirmTransferInput? = null,
     val banners: List<BannerRowUIModel>,
     val pinListItem: ListItemModel = ListItemModel(title = ""),
     val addListItem: ListItemModel = ListItemModel(title = ""),

@@ -25,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.confirm.FeeUIModel
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.features.confirm.models.ConfirmDetailElement
@@ -66,13 +67,12 @@ import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.AssetId
-import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.SimulationResult
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfirmScreen(
-    input: GemTransferData? = null,
+    input: ConfirmTransferInput? = null,
     simulationResult: SimulationResult? = null,
     finishAction: FinishConfirmAction,
     cancelAction: CancelAction,
@@ -114,7 +114,7 @@ fun ConfirmScreen(
             cancelAction()
             return@LaunchedEffect
         }
-        viewModel.init(input, simulationResult)
+        viewModel.init(input.data, simulationResult)
     }
 
     BackHandler(handleSystemBack) {

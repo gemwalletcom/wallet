@@ -7,6 +7,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.transfer_amount.viewmodels.providers.AmountDataProvider
@@ -42,7 +43,6 @@ import uniffi.gemstone.GemAmountEntry
 import uniffi.gemstone.GemAmountEquivalent
 import uniffi.gemstone.GemAmountInputType
 import uniffi.gemstone.GemAmountServiceInterface
-import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.GemValueStyle
 
 @HiltViewModel
@@ -146,7 +146,7 @@ class AmountViewModel @Inject constructor(
         amount = ""
     }
 
-    fun onNext(onConfirm: (GemTransferData) -> Unit) {
+    fun onNext(onConfirm: (ConfirmTransferInput) -> Unit) {
         viewModelScope.launch {
             val entry = entry.value ?: return@launch
             entry.error?.let {
@@ -156,7 +156,7 @@ class AmountViewModel @Inject constructor(
             val value = entry.value ?: return@launch
             try {
                 amountError.value = null
-                onConfirm(provider.buildTransfer(Crypto(value), entry.isMax))
+                onConfirm(ConfirmTransferInput(provider.buildTransfer(Crypto(value), entry.isMax)))
             } catch (err: CancellationException) {
                 throw err
             } catch (err: Throwable) {

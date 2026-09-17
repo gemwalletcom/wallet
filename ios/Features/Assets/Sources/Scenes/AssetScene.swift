@@ -36,8 +36,7 @@ public struct AssetScene: View {
             if details.state.showsBanners, let banner = model.visibleBanners.first {
                 Section {
                     BannerView(
-                        banner: banner,
-                        content: model.bannerContent(for: banner),
+                        model: model.bannerModel(for: banner),
                         action: model.onSelectBanner,
                     )
                 }

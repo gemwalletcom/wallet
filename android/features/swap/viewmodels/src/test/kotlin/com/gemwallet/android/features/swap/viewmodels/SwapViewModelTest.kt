@@ -381,7 +381,7 @@ class SwapViewModelTest {
 
         var confirmed: GemTransferData? = null
         viewModel.onPrimaryAction(
-            onConfirm = { confirmed = it },
+            onConfirm = { confirmed = it.data },
             onShowPriceImpactWarning = {},
             authorize = { it() },
         )
@@ -549,7 +549,7 @@ class SwapViewModelTest {
 
         var confirmInput: GemTransferData? = null
         viewModel.swap { input ->
-            confirmInput = input
+            confirmInput = input.data
         }
         awaitCondition { viewModel.uiState.value.isTransferLoading }
 

@@ -119,7 +119,7 @@ internal fun AssetDetailsScene(
                             assetInfo = uiState.assetInfo,
                             banners = uiState.banners,
                             onStake = { onAction(AssetDetailsAction.Stake(it)) },
-                            onActivate = { uiState.activateTransferData?.let { onAction(AssetDetailsAction.Confirm(it)) } },
+                            onActivate = { uiState.activateTransferInput?.let { onAction(AssetDetailsAction.Confirm(it)) } },
                             onOpenPerpetuals = { onAction(AssetDetailsAction.OpenPerpetuals) },
                             onClose = { onAction(AssetDetailsAction.CloseBanner(it)) },
                         )

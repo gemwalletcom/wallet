@@ -36,7 +36,7 @@ public final class PreferencesViewModel {
         perpetualStopLoss = AutocloseOption(value: defaults.stopLossPercent)
     }
 
-    var state: GemPreferencesState {
+    private var state: GemPreferencesState {
         settings.preferences(currency: preferences.currency.toGem(), perpetualsEnabled: isPerpetualEnabled)
     }
 
@@ -44,7 +44,43 @@ public final class PreferencesViewModel {
         Localized.Settings.Preferences.title
     }
 
-    func listItem(for row: GemPreferencesRow) -> ListItemModel {
+    var leverageTitle: String {
+        GemPreferencesRow.perpetualLeverage.title
+    }
+
+    var takeProfitTitle: String {
+        GemPreferencesRow.perpetualTakeProfit.title
+    }
+
+    var stopLossTitle: String {
+        GemPreferencesRow.perpetualStopLoss.title
+    }
+
+    var sections: [ListSection<PreferencesRowViewModel>] {
+        state.sections.enumerated().map { index, section in
+            ListSection(id: "\(index)", title: nil, image: nil, values: section.rows.map(rowViewModel))
+        }
+    }
+
+    private func rowViewModel(_ row: GemPreferencesRow) -> PreferencesRowViewModel {
+        PreferencesRowViewModel(id: String(describing: row), kind: kind(for: row), model: listItem(for: row))
+    }
+
+    private func kind(for row: GemPreferencesRow) -> PreferencesRowKind {
+        switch row {
+        case .currency: .currency
+        case .language: .language
+        case .appearance: .appearance
+        case .networks: .networks
+        case .contacts: .contacts
+        case .perpetuals: .perpetuals
+        case .perpetualLeverage: .perpetualLeverage
+        case .perpetualTakeProfit: .perpetualTakeProfit
+        case .perpetualStopLoss: .perpetualStopLoss
+        }
+    }
+
+    private func listItem(for row: GemPreferencesRow) -> ListItemModel {
         switch row {
         case .currency: ListItemModel(title: row.title, subtitle: state.currency.text(), imageStyle: .settings(assetImage: row.assetImage))
         case .language: ListItemModel(title: row.title, subtitle: languageValue, imageStyle: .settings(assetImage: row.assetImage))

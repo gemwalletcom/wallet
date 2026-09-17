@@ -15,12 +15,11 @@ import com.gemwallet.android.features.bridge.viewmodels.RequestSceneState
 import com.gemwallet.android.features.bridge.viewmodels.WCRequestViewModel
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
 import com.gemwallet.android.features.bridge.viewmodels.model.WCRequest
-import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
 import com.gemwallet.android.features.confirm.presents.ConfirmScreen
+import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.screen.LoadingScene
-import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.AssetId
 
 @Composable
@@ -78,7 +77,7 @@ fun RequestScene(
                     onReject = viewModel::onReject,
                 )
                 is WCRequest.Transaction -> ConfirmScreen(
-                    input = request.transfer,
+                    input = request.input,
                     simulationResult = request.simulation,
                     finishAction = { hash -> viewModel.onTransactionResult(hash) },
                     onAcquireAsset = onAcquireAsset,

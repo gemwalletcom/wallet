@@ -1,5 +1,4 @@
 import Components
-import struct Gemstone.GemFiatViewState
 import Primitives
 import PrimitivesComponents
 import Store
@@ -24,7 +23,7 @@ public struct FiatScene: View {
             .padding(.top, .medium)
             .listGroupRowStyle()
             amountSelectorSection
-            providerSection(viewState)
+            providerSection(model.providerModel(viewState))
         }
         .safeAreaButton {
             StateButton(
@@ -80,22 +79,22 @@ extension FiatScene {
         }
     }
 
-    private func providerSection(_ viewState: GemFiatViewState) -> some View {
+    private func providerSection(_ provider: FiatProviderViewModel) -> some View {
         Section {
-            switch model.quotesState(viewState) {
+            switch provider.quotesState {
             case .noData:
-                StateEmptyView(title: model.emptyTitle(viewState))
+                StateEmptyView(title: provider.emptyTitle)
             case .loading:
                 ListItemLoadingView()
                     .id(UUID())
             case .data:
-                if let quote = model.selectedQuote(viewState) {
+                if let quote = provider.selectedQuote {
                     let view = ListItemImageView(
                         title: model.providerTitle,
                         subtitle: quote.providerName,
                         assetImage: model.providerAssetImage(quote.provider),
                     )
-                    if model.allowSelectProvider(viewState) {
+                    if provider.allowSelectProvider {
                         NavigationCustomLink(
                             with: view,
                             action: model.onSelectFiatProviders,

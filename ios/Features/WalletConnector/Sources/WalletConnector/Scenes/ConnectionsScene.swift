@@ -37,7 +37,7 @@ public struct ConnectionsScene: View {
                     ForEach(section.connections, id: \.connection.session.id) { item in
                         let connection = item.connection.toPrimitives()
                         NavigationLink(value: connection) {
-                            ConnectionView(connection: item)
+                            ConnectionView(model: ConnectionViewModel(connection: item))
                                 .swipeActions(edge: .trailing) {
                                     Button(
                                         model.disconnectTitle,

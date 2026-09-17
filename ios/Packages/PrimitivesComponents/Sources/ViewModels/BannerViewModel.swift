@@ -11,7 +11,7 @@ import Primitives
 import Style
 import SwiftUI
 
-struct BannerViewModel {
+public struct BannerViewModel {
     enum BannerViewType {
         case list
         case banner
@@ -20,7 +20,7 @@ struct BannerViewModel {
     private let banner: Banner
     private let content: GemBannerContent
 
-    init(banner: Banner, content: GemBannerContent) {
+    public init(banner: Banner, content: GemBannerContent) {
         self.banner = banner
         self.content = content
     }
@@ -127,7 +127,7 @@ struct BannerViewModel {
 }
 
 extension BannerViewModel: Identifiable {
-    var id: String {
+    public var id: String {
         banner.id
     }
 }

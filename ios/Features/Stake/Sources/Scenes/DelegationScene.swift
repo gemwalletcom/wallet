@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import enum Gemstone.GemDelegationRow
 import PrimitivesComponents
 import SwiftUI
 
@@ -27,12 +26,12 @@ public struct DelegationScene: View {
             .cleanListRow()
 
             Section {
-                ForEach(model.detailRows, id: \.self) { row in
+                ForEach(model.detailRowModels) { row in
                     content(for: row)
                 }
             }
 
-            if let rewardsRow = model.rewardsRow {
+            if let rewardsRow = model.rewardsRowModel {
                 Section {
                     content(for: rewardsRow)
                 }
@@ -53,29 +52,16 @@ public struct DelegationScene: View {
     }
 
     @ViewBuilder
-    private func content(for row: GemDelegationRow) -> some View {
-        switch row {
-        case .provider:
-            let item = ListItemView(model: model.listItem(for: row))
-            if let url = model.providerUrl {
-                SafariNavigationLink(url: url) { item }
-            } else {
-                item
-            }
-        case .apr:
-            ListItemView(model: model.listItem(for: row))
-        case .status:
-            ListItemView(model: model.listItem(for: row))
-        case .completionDate:
-            ListItemView(model: model.listItem(for: row))
-        case .rewards:
-            let rewardsItem = ListItemView(model: model.listItem(for: row))
-            if model.canClaimRewards {
-                NavigationCustomLink(with: rewardsItem) {
-                    model.onClaimRewards()
-                }
-            } else {
-                rewardsItem
+    private func content(for row: DelegationRowViewModel) -> some View {
+        let item = ListItemView(model: row.model)
+        switch row.action {
+        case .plain:
+            item
+        case let .url(url):
+            SafariNavigationLink(url: url) { item }
+        case .claimRewards:
+            NavigationCustomLink(with: item) {
+                model.onClaimRewards()
             }
         }
     }

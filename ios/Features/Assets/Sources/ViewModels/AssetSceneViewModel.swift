@@ -8,7 +8,6 @@ import protocol Gemstone.GemAssetDetailsServiceProtocol
 import struct Gemstone.GemAssetDetails
 import struct Gemstone.GemAssetDetailsInput
 import enum Gemstone.GemBalanceRow
-import struct Gemstone.GemBannerContent
 import struct Gemstone.GemBannerContext
 import typealias Gemstone.GemBigUint
 import struct Gemstone.GemRecipient
@@ -211,8 +210,8 @@ public final class AssetSceneViewModel: Sendable {
         bannerContext.visibleBanners(stored: banners.map { $0.toGem() }).map { $0.toPrimitives() }
     }
 
-    func bannerContent(for banner: Banner) -> GemBannerContent {
-        service.bannerContent(event: banner.event.toGem(), asset: banner.asset?.toGem())
+    func bannerModel(for banner: Banner) -> BannerViewModel {
+        BannerViewModel(banner: banner, content: service.bannerContent(event: banner.event.toGem(), asset: banner.asset?.toGem()))
     }
 
     private var bannerContext: GemBannerContext {

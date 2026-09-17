@@ -3,7 +3,7 @@
 import Foundation
 import SwiftUI
 
-public struct ListSection<T: Sendable & Identifiable>: Identifiable, Sendable {
+public struct ListSection<T: Identifiable>: Identifiable {
     public let id: String
     public let title: String?
     public let image: Image?
@@ -37,3 +37,5 @@ public struct ListSection<T: Sendable & Identifiable>: Identifiable, Sendable {
 }
 
 extension ListSection: Equatable where T: Equatable {}
+
+extension ListSection: Sendable where T: Sendable {}

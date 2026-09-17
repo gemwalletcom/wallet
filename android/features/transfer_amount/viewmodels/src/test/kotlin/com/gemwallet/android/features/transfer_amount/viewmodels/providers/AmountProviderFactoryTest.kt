@@ -51,6 +51,7 @@ class AmountProviderFactoryTest {
             every { this@mockk.invoke() } returns MutableStateFlow(null)
         },
         service = mockk<GemAmountServiceInterface>(relaxed = true),
+        stakeService = mockk(relaxed = true),
     )
     private val scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
 

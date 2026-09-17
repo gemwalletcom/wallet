@@ -13,7 +13,7 @@ struct ConnectionScene: View {
     var body: some View {
         List {
             Section {
-                ConnectionView(connection: model.details.connection)
+                ConnectionView(model: ConnectionViewModel(connection: model.details.connection))
             }
             Section {
                 ForEach(model.details.rows, id: \.self) { row in
