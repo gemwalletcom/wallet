@@ -3,7 +3,6 @@
 import Components
 import InfoSheet
 import Primitives
-import Style
 import Swap
 import SwiftUI
 
@@ -34,9 +33,8 @@ struct SwapNavigationView: View {
                     if let model = model.swapDetailsViewModel {
                         NavigationStack {
                             SwapDetailsView(model: Bindable(model))
-                                .presentationDetentsForCurrentDeviceSize(expandable: true)
-                                .presentationBackground(Colors.grayBackground)
                         }
+                        .sheetPresentation(.forCurrentDeviceSize(expandable: true))
                     }
                 }
             }

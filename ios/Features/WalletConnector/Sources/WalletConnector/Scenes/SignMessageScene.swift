@@ -89,9 +89,8 @@ public struct SignMessageScene: View {
                         actionListItem: model.viewFullMessageListItem,
                         actionDestination: AnyView(TextMessageScene(model: model.textMessageViewModel)),
                     )
-                    .presentationDetents([.large])
-                    .presentationBackground(Colors.grayBackground)
                 }
+                .sheetPresentation([.large])
             }
         }
     }

@@ -65,8 +65,7 @@ public struct SwapScene: View {
         .sheet(isPresented: $isPresentingSlippage) {
             if let slippageModel = model.swapSlippageViewModel {
                 SwapSlippageScene(model: slippageModel)
-                    .presentationDetents([.medium])
-                    .presentationBackground(Colors.grayBackground)
+                    .sheetPresentation([.medium])
             }
         }
         .onChangeBindQuery(model.fromAssetQuery, action: model.onChangeFromAsset)

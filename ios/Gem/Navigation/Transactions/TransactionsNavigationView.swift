@@ -1,13 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import GemstonePrimitives
 import Localization
 import NFT
-import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Store
-import Style
 import SwiftUI
 import Transactions
 
@@ -68,9 +67,7 @@ struct TransactionsNavigationView: View {
                     NavigationStack {
                         TransactionsFilterScene(model: $model.filterModel)
                     }
-                    .presentationDetentsForCurrentDeviceSize(expandable: true)
-                    .presentationDragIndicator(.visible)
-                    .presentationBackground(Colors.grayBackground)
+                    .sheetPresentation(.forCurrentDeviceSize(expandable: true), dragIndicator: .visible)
                 case let .selectAsset(selectType):
                     SelectAssetSceneNavigationStack(
                         model: viewModelFactory.selectAssetScene(

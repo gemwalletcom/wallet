@@ -2,7 +2,6 @@
 
 import Components
 import Primitives
-import Style
 import SwiftUI
 
 public struct ReportNavigationStack: View {
@@ -18,7 +17,6 @@ public struct ReportNavigationStack: View {
                 .toolbarDismissItem(type: .close, placement: .topBarLeading)
                 .activityIndicator(isLoading: model.state.isLoading, message: model.progressMessage)
         }
-        .presentationDetentsForCurrentDeviceSize()
-        .presentationBackground(Colors.grayBackground)
+        .sheetPresentation(.forCurrentDeviceSize())
     }
 }
