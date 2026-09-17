@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.type
@@ -116,10 +117,9 @@ internal fun AssetDetailsScene(
                 if (detailsState.showsBanners) {
                     item {
                         BannerItem(
-                            assetInfo = uiState.assetInfo,
                             banners = uiState.banners,
-                            onStake = { onAction(AssetDetailsAction.Stake(it)) },
-                            onActivate = { uiState.activateTransferInput?.let { onAction(AssetDetailsAction.Confirm(it)) } },
+                            onStake = { onAction(AssetDetailsAction.Stake(uiState.asset.id)) },
+                            onActivate = { onAction(AssetDetailsAction.Confirm(ConfirmTransferInput(it))) },
                             onOpenPerpetuals = { onAction(AssetDetailsAction.OpenPerpetuals) },
                             onClose = { onAction(AssetDetailsAction.CloseBanner(it)) },
                         )

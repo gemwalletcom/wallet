@@ -38,7 +38,7 @@ public struct BannerView: View {
 private extension BannerView {
     private var listView: some View {
         Button(
-            action: { action(model.action) },
+            action: { model.action.map(action) },
             label: {
                 HStack(spacing: .zero) {
                     ListItemView(model: model.listItem)

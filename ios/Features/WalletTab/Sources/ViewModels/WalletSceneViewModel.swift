@@ -195,7 +195,11 @@ public extension WalletSceneViewModel {
 
     internal func onBanner(action: BannerAction) {
         switch action.type {
-        case .event: break
+        case let .destination(destination):
+            switch destination {
+            case let .url(link): isPresentingUrl = link.url
+            case .stake, .activateAsset, .perpetuals: break
+            }
         case .closeBanner:
             Task {
                 do {
@@ -210,7 +214,6 @@ public extension WalletSceneViewModel {
             case .receive: isPresentingSheet = .selectAsset(.receive(.asset), chains: [])
             }
         }
-        isPresentingUrl = action.url
     }
 
     internal func onCopyAddress(_ message: String) {

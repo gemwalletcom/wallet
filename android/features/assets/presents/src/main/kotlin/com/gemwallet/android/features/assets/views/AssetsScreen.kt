@@ -31,7 +31,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -50,7 +52,9 @@ import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.SnackbarHost
 import com.gemwallet.android.ui.components.screen.ToastEffect
+import com.gemwallet.android.ui.components.banner.BannerDestination
 import com.gemwallet.android.ui.models.AssetsGroupType
+import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space2
@@ -73,6 +77,8 @@ fun AssetsScreen(
     listState: LazyListState = rememberLazyListState(),
     viewModel: AssetsViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
     val importing by viewModel.isLoadingAssets.collectAsStateWithLifecycle()
     val pinnedAssets by viewModel.pinnedAssets.collectAsStateWithLifecycle()
     val unpinnedAssets by viewModel.unpinnedAssets.collectAsStateWithLifecycle()
@@ -148,7 +154,14 @@ fun AssetsScreen(
                 item(key = BannersItemKey) {
                     BannersScene(
                         banners = bannerRows,
-                        onSelect = {},
+                        onSelect = { destination ->
+                            when (destination) {
+                                is BannerDestination.OpenUrl -> uriHandler.open(context, destination.url)
+                                BannerDestination.Stake,
+                                BannerDestination.Perpetuals,
+                                is BannerDestination.Activate -> Unit
+                            }
+                        },
                         onClose = viewModel::closeBanner,
                         onBuy = { onAction(AssetsAction.Buy) },
                         onReceive = { onAction(AssetsAction.Receive) },

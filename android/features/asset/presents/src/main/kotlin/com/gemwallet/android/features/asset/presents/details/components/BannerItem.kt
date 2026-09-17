@@ -1,34 +1,34 @@
 package com.gemwallet.android.features.asset.presents.details.components
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import com.gemwallet.android.features.banner.views.BannersScene
-import com.gemwallet.android.model.AssetInfo
+import com.gemwallet.android.ui.components.banner.BannerDestination
 import com.gemwallet.android.ui.components.banner.BannerRowUIModel
-import com.wallet.core.primitives.AssetId
+import com.gemwallet.android.ui.open
 import com.wallet.core.primitives.Banner
-import com.wallet.core.primitives.BannerEvent
+import uniffi.gemstone.GemTransferData
 
 @Composable
 internal fun BannerItem(
-    assetInfo: AssetInfo,
     banners: List<BannerRowUIModel>,
-    onStake: (AssetId) -> Unit,
-    onActivate: () -> Unit,
+    onStake: () -> Unit,
+    onActivate: (GemTransferData) -> Unit,
     onOpenPerpetuals: () -> Unit,
     onClose: (Banner) -> Unit,
 ) {
+    val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
+
     BannersScene(
         banners = banners,
-        onSelect = {
-            when (it.event) {
-                BannerEvent.Stake -> onStake(assetInfo.asset.id)
-                BannerEvent.ActivateAsset -> onActivate()
-
-                BannerEvent.TradePerpetuals -> onOpenPerpetuals()
-                BannerEvent.AccountActivation,
-                BannerEvent.AccountBlockedMultiSignature,
-                BannerEvent.SuspiciousAsset,
-                BannerEvent.Onboarding -> Unit
+        onSelect = { destination ->
+            when (destination) {
+                BannerDestination.Stake -> onStake()
+                is BannerDestination.Activate -> onActivate(destination.transfer)
+                BannerDestination.Perpetuals -> onOpenPerpetuals()
+                is BannerDestination.OpenUrl -> uriHandler.open(context, destination.url)
             }
         },
         onClose = onClose,

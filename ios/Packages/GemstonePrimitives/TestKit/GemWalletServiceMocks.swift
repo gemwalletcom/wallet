@@ -303,7 +303,7 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
     }
 
     public func bannerContent(event _: Gemstone.BannerEvent, asset _: Gemstone.Asset?) -> GemBannerContent {
-        GemBannerContent(icon: .none, title: .none, description: .none, link: .none)
+        GemBannerContent(icon: .none, title: .none, description: .none, destination: .none)
     }
 
     public func closeBanner(key: GemBannerKey) async throws {
@@ -350,7 +350,7 @@ public final class GemBannerServiceMock: GemBannerServiceProtocol, @unchecked Se
     public func setupWallet(wallet _: Gemstone.Wallet) async throws {}
 
     public func bannerContent(event _: Gemstone.BannerEvent, asset _: Gemstone.Asset?) -> GemBannerContent {
-        GemBannerContent(icon: .none, title: .none, description: .none, link: .none)
+        GemBannerContent(icon: .none, title: .none, description: .none, destination: .none)
     }
 }
 

@@ -1,5 +1,6 @@
 use crate::config::docs::DocsUrl;
 use crate::models::custom_types::GemBigInt;
+use crate::services::transfer::GemTransferData;
 use primitives::{Asset, AssetId, Banner, BannerEvent, BannerState, Chain, Wallet, WalletId};
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -147,12 +148,21 @@ pub enum GemBannerLink {
     External { url: String },
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
+pub enum GemBannerDestination {
+    Stake,
+    ActivateAsset { transfer: GemTransferData },
+    Perpetuals,
+    Url { link: GemBannerLink },
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
 pub struct GemBannerContent {
     pub icon: Option<GemBannerIcon>,
     pub title: Option<GemBannerTitle>,
     pub description: Option<GemBannerDescription>,
-    pub link: Option<GemBannerLink>,
+    pub destination: Option<GemBannerDestination>,
 }
 
 #[cfg(test)]

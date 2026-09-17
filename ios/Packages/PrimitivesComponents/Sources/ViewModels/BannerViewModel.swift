@@ -69,20 +69,12 @@ public struct BannerViewModel {
         }
     }
 
-    var action: BannerAction {
-        BannerAction(banner: banner, type: .event(banner.event), url: url)
+    var action: BannerAction? {
+        content.destination.map { BannerAction(banner: banner, type: .destination($0)) }
     }
 
     var closeAction: BannerAction {
-        BannerAction(banner: banner, type: .closeBanner, url: nil)
-    }
-
-    var url: URL? {
-        switch content.link {
-        case let .docs(item): AppUrl.docs(item)
-        case let .external(url): URL(string: url)
-        case .none: .none
-        }
+        BannerAction(banner: banner, type: .closeBanner)
     }
 
     var imageStyle: ListItemImageStyle? {

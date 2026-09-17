@@ -9,15 +9,24 @@ import com.gemwallet.android.ui.localization.bannerTitle
 import com.gemwallet.android.ui.style.image
 import com.wallet.core.primitives.Banner
 import com.wallet.core.primitives.BannerState
+import uniffi.gemstone.GemBannerDestination
 import uniffi.gemstone.GemBannerLink
+import uniffi.gemstone.GemTransferData
 
 data class BannerItemUIModel(
     val title: String?,
     val subtitle: String?,
     val icon: ListItemImage?,
     val canClose: Boolean,
-    val url: String?,
+    val destination: BannerDestination?,
 )
+
+sealed interface BannerDestination {
+    data object Stake : BannerDestination
+    data class Activate(val transfer: GemTransferData) : BannerDestination
+    data object Perpetuals : BannerDestination
+    data class OpenUrl(val url: String) : BannerDestination
+}
 
 data class BannerRowUIModel(
     val banner: Banner,
@@ -31,9 +40,16 @@ fun BannerRow.uiModel(context: Context): BannerRowUIModel = BannerRowUIModel(
         subtitle = content.description?.let { bannerDescription(context, it) },
         icon = content.icon?.image(),
         canClose = banner.state != BannerState.AlwaysActive,
-        url = content.link?.url(),
+        destination = content.destination?.destination(),
     ),
 )
+
+private fun GemBannerDestination.destination(): BannerDestination = when (this) {
+    GemBannerDestination.Stake -> BannerDestination.Stake
+    is GemBannerDestination.ActivateAsset -> BannerDestination.Activate(transfer)
+    GemBannerDestination.Perpetuals -> BannerDestination.Perpetuals
+    is GemBannerDestination.Url -> BannerDestination.OpenUrl(link.url())
+}
 
 private fun GemBannerLink.url(): String = when (this) {
     is GemBannerLink.Docs -> AppUrl.docs(item)
