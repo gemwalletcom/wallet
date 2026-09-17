@@ -417,6 +417,18 @@ pub fn stake_transfer_data(asset: Asset, stake_type: StakeType, value: BigInt, u
     }
 }
 
+pub fn activate_asset_transfer_data(asset: Asset) -> GemTransferData {
+    GemTransferData {
+        input_type: TransactionInputType::Account {
+            asset,
+            account_type: AccountDataType::Activate,
+        },
+        recipient: GemRecipient::address(String::new()),
+        value: BigInt::from(0),
+        use_max_amount: false,
+    }
+}
+
 pub fn earn_transfer_data(asset: Asset, earn_type: EarnType, data: ContractCallData, value: BigInt, use_max_amount: bool) -> GemTransferData {
     let provider = match &earn_type {
         EarnType::Deposit(provider) => provider,

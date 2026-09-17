@@ -13,6 +13,7 @@ import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.localization.stringRes
 import com.wallet.core.primitives.Asset
+import uniffi.gemstone.GemRecipientErrorDisplay
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FeePriority
@@ -447,3 +448,6 @@ fun bannerDescription(context: Context, description: GemBannerDescription): Stri
 
 private fun bannerAmount(amount: GemBannerAmount): String = ValueFormatter(style = GemValueStyle.AUTO)
     .string(amount.value, decimals = amount.decimals, currency = amount.symbol)
+fun GemRecipientErrorDisplay.string(context: Context): String = when (this) {
+    is GemRecipientErrorDisplay.InvalidAddress -> context.getString(R.string.errors_invalid_asset_address, network)
+}

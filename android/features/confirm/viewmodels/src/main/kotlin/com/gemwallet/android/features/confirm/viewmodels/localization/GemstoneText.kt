@@ -76,7 +76,7 @@ internal fun GemAcquireAssetFlow.actionLabel(context: Context, symbol: String): 
     symbol,
 )
 
-private fun amount(value: BigInteger, asset: Asset): String = ValueFormatter(style = GemValueStyle.FULL).string(value, asset)
+private fun amount(value: BigInteger, asset: Asset): String = ValueFormatter(style = GemValueStyle.AUTO).string(value, asset)
 
 @StringRes
 fun GemConfirmDestination.title(): Int = when (this) {

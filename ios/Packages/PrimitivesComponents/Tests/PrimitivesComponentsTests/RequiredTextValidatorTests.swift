@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+@testable import PrimitivesComponents
 import Testing
-@testable import Validators
 
 struct RequiredTextValidatorTests {
     private let fieldName = "Wallet 1"

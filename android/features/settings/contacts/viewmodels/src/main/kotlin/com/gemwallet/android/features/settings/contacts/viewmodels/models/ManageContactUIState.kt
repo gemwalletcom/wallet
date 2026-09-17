@@ -57,7 +57,7 @@ data class ContactAddressInput(
     val memo: String = "",
     val nameResolveIndicator: NameResolveIndicatorUIModel? = null,
     val isAddressValid: Boolean = false,
-    val showAddressError: Boolean = false,
+    val addressError: String = "",
 ) {
     val showsMemo: Boolean
         get() = GemContactAddressField.MEMO in contactAddressFields(chain.string)

@@ -30,7 +30,6 @@ let package = Package(
         .package(name: "PrimitivesComponents", path: "../../Packages/PrimitivesComponents"),
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
         .package(name: "BigInt", path: "../../Submodules/BigInt"),
-        .package(name: "Validators", path: "../../Packages/Validators"),
     ],
     targets: [
         .target(
@@ -47,7 +46,6 @@ let package = Package(
                 "PrimitivesComponents",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
                 .product(name: "BigInt", package: "BigInt"),
-                "Validators",
             ],
             path: "Sources",
         ),

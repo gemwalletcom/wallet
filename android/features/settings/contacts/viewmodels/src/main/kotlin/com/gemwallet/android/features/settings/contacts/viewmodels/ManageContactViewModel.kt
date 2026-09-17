@@ -27,6 +27,7 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Contact
 import com.wallet.core.primitives.ContactAddress
 import dagger.hilt.android.lifecycle.HiltViewModel
+import com.gemwallet.android.ui.localization.string
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.UUID
 import javax.inject.Inject
@@ -75,9 +76,9 @@ class ManageContactViewModel @Inject constructor(
         state,
         addressInput.text,
         addressInput.nameResolveState,
-        addressInput.showError,
+        addressInput.error,
         addressInput.isValid,
-    ) { current, address, resolve, showError, isValid ->
+    ) { current, address, resolve, addressError, isValid ->
         ManageContactUIState(
             isEdit = current.isEdit,
             name = current.name,
@@ -100,7 +101,7 @@ class ManageContactViewModel @Inject constructor(
                     address = address,
                     nameResolveIndicator = resolve.indicator(),
                     isAddressValid = isValid,
-                    showAddressError = showError,
+                    addressError = addressError?.string(context).orEmpty(),
                 )
             },
         )

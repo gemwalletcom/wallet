@@ -3,7 +3,7 @@ package com.gemwallet.android.ui.navigation.routes
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.asset_select.presents.views.SelectReceiveScreen
-import com.gemwallet.android.features.receive.presents.ReceiveNftChainsScreen
+import com.gemwallet.android.features.asset_select.presents.views.SelectReceiveCollectionScreen
 import com.gemwallet.android.features.receive.presents.ReceiveScreen
 import com.wallet.core.primitives.AssetId
 import kotlinx.serialization.Serializable
@@ -15,7 +15,7 @@ data class ReceiveRoute(val assetId: AssetId) : NavKey
 data object ReceiveSelectRoute : NavKey
 
 @Serializable
-data object ReceiveNftChainsRoute : NavKey
+data object ReceiveCollectionRoute : NavKey
 
 fun EntryProviderScope<NavKey>.receiveScreen(
     onCancel: () -> Unit,
@@ -32,10 +32,10 @@ fun EntryProviderScope<NavKey>.receiveScreen(
         )
     }
 
-    entry<ReceiveNftChainsRoute> {
-        ReceiveNftChainsScreen(
+    entry<ReceiveCollectionRoute> {
+        SelectReceiveCollectionScreen(
             onCancel = onCancel,
-            onSelect = { onReceive(AssetId(it)) },
+            onSelect = onReceive,
         )
     }
 }

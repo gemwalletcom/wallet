@@ -19,18 +19,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import com.gemwallet.android.ui.components.banner.BannerItemUIModel
+import com.gemwallet.android.ui.components.banner.BannerDestination
 import com.gemwallet.android.ui.components.banner.BannerRowUIModel
 import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -45,14 +43,12 @@ private val bannerEmojiFontSize = 32.sp
 @Composable
 fun BannersScene(
     banners: List<BannerRowUIModel>,
-    onSelect: (Banner) -> Unit,
+    onSelect: (BannerDestination) -> Unit,
     onClose: (Banner) -> Unit,
     onBuy: () -> Unit = {},
     onReceive: () -> Unit = {},
 ) {
     val pageState = rememberPagerState { banners.size }
-    val context = LocalContext.current
-    val uriHandler = LocalUriHandler.current
 
     if (banners.isEmpty()) {
         return
@@ -66,8 +62,7 @@ fun BannersScene(
         }
         Box(
             modifier = Modifier.listItem(ListPosition.Single).clickable {
-                model.url?.let { uriHandler.open(context, it) }
-                onSelect(banner)
+                model.destination?.let(onSelect)
             }
         ) {
             BannerText(

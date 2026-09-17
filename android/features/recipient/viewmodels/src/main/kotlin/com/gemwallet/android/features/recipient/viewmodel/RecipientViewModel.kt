@@ -35,6 +35,7 @@ import com.gemwallet.android.ui.style.indicator
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.NFTAsset
 import dagger.hilt.android.lifecycle.HiltViewModel
+import com.gemwallet.android.ui.localization.string
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineStart
@@ -87,7 +88,9 @@ class RecipientViewModel @Inject constructor(
     val address: StateFlow<String> = addressInput.text
     val nameResolveIndicator: StateFlow<NameResolveIndicatorUIModel?> = addressInput.nameResolveState.map { it.indicator() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-    val addressError: StateFlow<Boolean> = addressInput.showError
+    val addressError: StateFlow<String> = addressInput.error
+        .map { it?.string(context).orEmpty() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
     private val _memo = MutableStateFlow("")
     val memo = _memo.asStateFlow()
@@ -201,8 +204,8 @@ class RecipientViewModel @Inject constructor(
         val asset = recipient.asset
         val resolved = try {
             service.recipient(asset.chain.string, input, state, memo.value, references)
-        } catch (_: GemRecipientException) {
-            addressInput.markInvalid()
+        } catch (rejection: GemRecipientException) {
+            addressInput.markInvalid(rejection)
             return
         }
         val destination = GemRecipient(address = resolved.address, name = resolved.name ?: selectedName)
@@ -237,8 +240,8 @@ class RecipientViewModel @Inject constructor(
     private fun onAddressScan(type: GemRecipientType, data: String, confirmAction: ConfirmTransactionAction) {
         val scan = try {
             service.scan(data, type)
-        } catch (_: GemRecipientException) {
-            addressInput.markInvalid()
+        } catch (rejection: GemRecipientException) {
+            addressInput.markInvalid(rejection)
             return
         }
         when (scan) {

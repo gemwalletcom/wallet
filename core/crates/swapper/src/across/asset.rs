@@ -2,15 +2,7 @@ use crate::{SwapperError, eth_address};
 use alloy_primitives::Address;
 use gem_evm::across::deployment::AcrossDeployment;
 use gem_tron::address::TronAddress;
-use primitives::{AssetId, Chain, EVMChain};
-
-pub(in crate::across) fn across_asset_id(asset: &AssetId) -> Option<AssetId> {
-    if asset.chain == Chain::Tron || !asset.is_native() {
-        return Some(asset.clone());
-    }
-    let wrapped = EVMChain::from_chain(asset.chain)?.weth_contract()?;
-    Some(AssetId::from_token(asset.chain, wrapped))
-}
+use primitives::{AssetId, Chain};
 
 pub(in crate::across) fn parse_address(chain: Chain, address: &str) -> Result<Address, SwapperError> {
     match chain {
@@ -66,6 +58,7 @@ mod tests {
             Some(AssetId::from_chain(Chain::Robinhood))
         );
         assert_eq!(supported_asset_for_token(Chain::Robinhood, ROBINHOOD_USDG_TOKEN_ID), Some(ROBINHOOD_USDG_ASSET_ID.clone()));
+        assert_eq!(supported_asset_for_token(Chain::Arc, ARC_USDC_TOKEN_ID), Some(AssetId::from_chain(Chain::Arc)));
         assert_eq!(supported_asset_for_token(Chain::Bitcoin, "0x123"), None);
     }
 }

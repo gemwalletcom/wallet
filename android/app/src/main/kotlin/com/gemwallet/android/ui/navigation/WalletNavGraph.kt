@@ -182,7 +182,7 @@ fun WalletNavGraph(
                 collectionIdAction = navigator::openNftCollection,
                 assetIdAction = navigator::openNftAsset,
                 onRecipient = navigator::openNftRecipient,
-                onReceive = navigator::openReceiveNftChains,
+                onReceive = navigator::openReceiveCollection,
                 onUnverified = navigator::openNftUnverifiedCollections,
             )
 

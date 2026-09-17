@@ -4,7 +4,6 @@ import Foundation
 import Primitives
 @testable import PrimitivesComponents
 import Testing
-import Validators
 
 private enum DummyError: Error, Equatable { case invalid }
 private struct FailableValidator: TextValidator {

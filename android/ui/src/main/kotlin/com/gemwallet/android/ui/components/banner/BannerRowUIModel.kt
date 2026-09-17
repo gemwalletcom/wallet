@@ -3,26 +3,30 @@ package com.gemwallet.android.ui.components.banner
 import android.content.Context
 import com.gemwallet.android.AppUrl
 import com.gemwallet.android.domains.banner.BannerRow
-import com.gemwallet.android.ext.requireChain
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemImage
-import com.gemwallet.android.ui.components.list_item.ListItemSymbol
 import com.gemwallet.android.ui.localization.bannerDescription
 import com.gemwallet.android.ui.localization.bannerTitle
-import com.gemwallet.android.ui.theme.Emoji
-import com.wallet.core.primitives.AssetId
+import com.gemwallet.android.ui.style.image
 import com.wallet.core.primitives.Banner
 import com.wallet.core.primitives.BannerState
-import uniffi.gemstone.GemBannerIcon
+import uniffi.gemstone.GemBannerDestination
 import uniffi.gemstone.GemBannerLink
+import uniffi.gemstone.GemTransferData
 
 data class BannerItemUIModel(
     val title: String?,
     val subtitle: String?,
     val icon: ListItemImage?,
     val canClose: Boolean,
-    val url: String?,
+    val destination: BannerDestination?,
 )
+
+sealed interface BannerDestination {
+    data object Stake : BannerDestination
+    data class Activate(val transfer: GemTransferData) : BannerDestination
+    data object Perpetuals : BannerDestination
+    data class OpenUrl(val url: String) : BannerDestination
+}
 
 data class BannerRowUIModel(
     val banner: Banner,
@@ -36,17 +40,15 @@ fun BannerRow.uiModel(context: Context): BannerRowUIModel = BannerRowUIModel(
         subtitle = content.description?.let { bannerDescription(context, it) },
         icon = content.icon?.image(),
         canClose = banner.state != BannerState.AlwaysActive,
-        url = content.link?.url(),
+        destination = content.destination?.destination(),
     ),
 )
 
-private fun GemBannerIcon.image(): ListItemImage = when (this) {
-    GemBannerIcon.MoneyBag -> ListItemImage.Emoji(Emoji.moneyBag)
-    is GemBannerIcon.Network -> ListItemImage.Asset(AssetId(chain.requireChain()))
-    GemBannerIcon.Warning -> ListItemImage.Symbol(ListItemSymbol.Warning)
-    GemBannerIcon.Suspicious -> ListItemImage.Drawable(R.drawable.suspicious)
-    GemBannerIcon.Bitcoin -> ListItemImage.Symbol(ListItemSymbol.CurrencyBitcoin)
-    GemBannerIcon.Perpetuals -> ListItemImage.Drawable(R.drawable.ic_perpetuals)
+private fun GemBannerDestination.destination(): BannerDestination = when (this) {
+    GemBannerDestination.Stake -> BannerDestination.Stake
+    is GemBannerDestination.ActivateAsset -> BannerDestination.Activate(transfer)
+    GemBannerDestination.Perpetuals -> BannerDestination.Perpetuals
+    is GemBannerDestination.Url -> BannerDestination.OpenUrl(link.url())
 }
 
 private fun GemBannerLink.url(): String = when (this) {

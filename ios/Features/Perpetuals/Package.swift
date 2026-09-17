@@ -31,7 +31,6 @@ let package = Package(
         .package(name: "InfoSheet", path: "../InfoSheet"),
         .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
         .package(name: "Recents", path: "../Recents"),
-        .package(name: "Validators", path: "../../Packages/Validators"),
     ],
     targets: [
         .target(
@@ -49,7 +48,6 @@ let package = Package(
                 "Formatters",
                 "InfoSheet",
                 "Recents",
-                "Validators",
             ],
             path: "Sources",
         ),

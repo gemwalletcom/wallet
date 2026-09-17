@@ -1,4 +1,4 @@
-use primitives::{Asset, NFTAsset, Wallet};
+use primitives::{Asset, Chain, ChainAsset, NFTAsset, Wallet};
 
 use crate::payment::GemPaymentRecipient;
 use crate::services::transfer::GemTransferData;
@@ -7,7 +7,12 @@ use crate::services::transfer::GemTransferData;
 pub struct GemRecipientValidation {
     pub is_valid: bool,
     pub address: String,
-    pub shows_error: bool,
+    pub error: Option<GemRecipientErrorDisplay>,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemRecipientErrorDisplay {
+    InvalidAddress { network: String },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Error)]
@@ -26,6 +31,17 @@ impl std::fmt::Display for GemRecipientError {
 }
 
 impl std::error::Error for GemRecipientError {}
+
+#[uniffi::export]
+impl GemRecipientError {
+    pub fn display(&self, chain: Chain) -> GemRecipientErrorDisplay {
+        match self {
+            Self::InvalidAddress | Self::NameRecordMismatch => GemRecipientErrorDisplay::InvalidAddress {
+                network: ChainAsset::from_chain(chain).network_name,
+            },
+        }
+    }
+}
 
 #[derive(Debug, Clone, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]

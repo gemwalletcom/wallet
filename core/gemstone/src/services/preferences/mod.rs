@@ -143,30 +143,6 @@ impl GemPreferencesService {
         self.store.set(APPEARANCE.to_string(), rules::appearance_value(appearance).to_string())
     }
 
-    pub fn get_perpetual_leverage(&self) -> u8 {
-        rules::percent_or_default(self.store.get(PERPETUAL_LEVERAGE.to_string()), perpetual_config::DEFAULT_LEVERAGE)
-    }
-
-    pub fn set_perpetual_leverage(&self, leverage: u8) -> Result<(), GemServiceError> {
-        self.store.set(PERPETUAL_LEVERAGE.to_string(), leverage.to_string())
-    }
-
-    pub fn get_perpetual_take_profit_percent(&self) -> u8 {
-        rules::percent_or_default(self.store.get(PERPETUAL_TAKE_PROFIT.to_string()), perpetual_config::DEFAULT_TAKE_PROFIT_PERCENT)
-    }
-
-    pub fn set_perpetual_take_profit_percent(&self, percent: u8) -> Result<(), GemServiceError> {
-        self.store.set(PERPETUAL_TAKE_PROFIT.to_string(), percent.to_string())
-    }
-
-    pub fn get_perpetual_stop_loss_percent(&self) -> u8 {
-        rules::percent_or_default(self.store.get(PERPETUAL_STOP_LOSS.to_string()), perpetual_config::DEFAULT_STOP_LOSS_PERCENT)
-    }
-
-    pub fn set_perpetual_stop_loss_percent(&self, percent: u8) -> Result<(), GemServiceError> {
-        self.store.set(PERPETUAL_STOP_LOSS.to_string(), percent.to_string())
-    }
-
     pub fn increment_launches_count(&self) -> Result<u32, GemServiceError> {
         let count = self.get_launches_count() + 1;
         self.store.set(LAUNCHES_COUNT.to_string(), count.to_string())?;
@@ -207,6 +183,30 @@ impl GemPreferencesService {
 }
 
 impl GemPreferencesService {
+    pub fn get_perpetual_leverage(&self) -> u8 {
+        rules::percent_or_default(self.store.get(PERPETUAL_LEVERAGE.to_string()), perpetual_config::DEFAULT_LEVERAGE)
+    }
+
+    pub fn set_perpetual_leverage(&self, leverage: u8) -> Result<(), GemServiceError> {
+        self.store.set(PERPETUAL_LEVERAGE.to_string(), leverage.to_string())
+    }
+
+    pub fn get_perpetual_take_profit_percent(&self) -> u8 {
+        rules::percent_or_default(self.store.get(PERPETUAL_TAKE_PROFIT.to_string()), perpetual_config::DEFAULT_TAKE_PROFIT_PERCENT)
+    }
+
+    pub fn set_perpetual_take_profit_percent(&self, percent: u8) -> Result<(), GemServiceError> {
+        self.store.set(PERPETUAL_TAKE_PROFIT.to_string(), percent.to_string())
+    }
+
+    pub fn get_perpetual_stop_loss_percent(&self) -> u8 {
+        rules::percent_or_default(self.store.get(PERPETUAL_STOP_LOSS.to_string()), perpetual_config::DEFAULT_STOP_LOSS_PERCENT)
+    }
+
+    pub fn set_perpetual_stop_loss_percent(&self, percent: u8) -> Result<(), GemServiceError> {
+        self.store.set(PERPETUAL_STOP_LOSS.to_string(), percent.to_string())
+    }
+
     pub fn get_swap_slippage_bps(&self) -> Option<u32> {
         rules::swap_slippage_bps(self.store.get(SWAP_SLIPPAGE_BPS.to_string()))
     }

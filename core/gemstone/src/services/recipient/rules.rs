@@ -1,7 +1,7 @@
 use primitives::name::NameRecord;
-use primitives::{Asset, Chain, Wallet, WalletType};
+use primitives::{Asset, Chain, ChainAsset, Wallet, WalletType};
 
-use super::model::{GemRecipientError, GemRecipientNext, GemRecipientScan, GemRecipientSection, GemRecipientType, GemRecipientValidation};
+use super::model::{GemRecipientError, GemRecipientErrorDisplay, GemRecipientNext, GemRecipientScan, GemRecipientSection, GemRecipientType, GemRecipientValidation};
 use crate::address::{checksum_address, validate_address};
 use crate::models::custom_types::GemBigInt;
 use crate::payment::{GemPaymentConfirmTransfer, GemPaymentDestination, GemPaymentRecipient};
@@ -16,7 +16,7 @@ pub fn validation(chain: Chain, input: &str, state: &GemNameRecordState) -> GemR
     GemRecipientValidation {
         is_valid,
         address: address(chain, input, name_record),
-        shows_error: shows_error(input, is_valid),
+        error: error_display(chain, input, is_valid),
     }
 }
 
@@ -52,8 +52,11 @@ fn address(chain: Chain, input: &str, name_record: Option<&NameRecord>) -> Strin
     checksum_address(address, chain)
 }
 
-fn shows_error(input: &str, is_valid: bool) -> bool {
-    !input.trim().is_empty() && !is_name_supported(input) && !is_valid
+fn error_display(chain: Chain, input: &str, is_valid: bool) -> Option<GemRecipientErrorDisplay> {
+    let shows_error = !input.trim().is_empty() && !is_name_supported(input) && !is_valid;
+    shows_error.then(|| GemRecipientErrorDisplay::InvalidAddress {
+        network: ChainAsset::from_chain(chain).network_name,
+    })
 }
 
 pub fn scan_route(
@@ -137,7 +140,7 @@ mod tests {
         let loading = GemNameRecordState::Loading { name: "h3rman.near".into() };
         let pending = validation(Chain::Near, "h3rman.near", &loading);
         assert!(!pending.is_valid);
-        assert!(!pending.shows_error);
+        assert!(pending.error.is_none());
         assert_eq!(pending.address, "h3rman.near");
         assert!(!validation(Chain::Near, "h3rman.near", &GemNameRecordState::Error).is_valid);
         assert!(validation(Chain::Near, "h3rman.near", &GemNameRecordState::None).is_valid);
@@ -149,13 +152,27 @@ mod tests {
         let valid = validation(Chain::Ethereum, ADDRESS, &GemNameRecordState::None);
         assert!(valid.is_valid);
         assert_eq!(valid.address, CHECKSUMMED);
-        assert!(!valid.shows_error);
+        assert!(valid.error.is_none());
 
         let invalid = validation(Chain::Ethereum, "0xinvalid", &GemNameRecordState::None);
         assert!(!invalid.is_valid);
-        assert!(invalid.shows_error);
-        assert!(!validation(Chain::Ethereum, "", &GemNameRecordState::None).shows_error);
-        assert!(!validation(Chain::Ethereum, "vitalik.eth", &GemNameRecordState::None).shows_error);
+        assert_eq!(
+            invalid.error,
+            Some(GemRecipientErrorDisplay::InvalidAddress {
+                network: ChainAsset::from_chain(Chain::Ethereum).network_name
+            })
+        );
+        assert!(validation(Chain::Ethereum, "", &GemNameRecordState::None).error.is_none());
+        assert!(validation(Chain::Ethereum, "vitalik.eth", &GemNameRecordState::None).error.is_none());
+
+        let arbitrum = validation(Chain::Arbitrum, "0xinvalid", &GemNameRecordState::None);
+        assert_eq!(
+            arbitrum.error,
+            Some(GemRecipientErrorDisplay::InvalidAddress {
+                network: "Arbitrum".to_string()
+            }),
+            "the error names the network, not the chain's asset name"
+        );
     }
 
     #[test]

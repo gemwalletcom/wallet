@@ -113,7 +113,7 @@ internal fun RecipientScreen(
     hasMemo: Boolean,
     address: String,
     memo: String,
-    addressError: Boolean,
+    addressError: String,
     nameResolveIndicator: NameResolveIndicatorUIModel?,
     sections: List<ListSection<RecipientRowUIModel>>,
     buttonState: ButtonState,
@@ -154,7 +154,6 @@ internal fun RecipientScreen(
             item { RecipientHead(asset, head) }
             destinationView(
                 hasMemo = hasMemo,
-                assetName = asset.name,
                 address = address,
                 addressError = addressError,
                 nameResolveIndicator = nameResolveIndicator,

@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
+import uniffi.gemstone.GemApplicationMetadataServiceInterface
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -53,6 +54,7 @@ class WCAuthViewModel @Inject constructor(
     private val prepareSessionProposal: PrepareSessionProposal,
     private val activeRequest: ActiveWalletConnectRequest,
     private val walletConnectService: GemWalletConnectServiceInterface,
+    private val metadataService: GemApplicationMetadataServiceInterface,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -106,7 +108,7 @@ class WCAuthViewModel @Inject constructor(
                 _state.update {
                     AuthSceneState.Request(
                         texts = ReviewTexts(context),
-                        peer = walletConnectService.connectionRow(prepared.proposal.metadata.toGem()).headUIModel(),
+                        peer = metadataService.connectionRow(prepared.proposal.metadata.toGem()).headUIModel(),
                         availableWallets = prepared.proposal.wallets,
                         availableWalletRows = walletRows(prepared.proposal.wallets.map { it.toGem() }).map { it.uiModel(context) },
                         selectedWallet = selectedWallet,

@@ -6,6 +6,7 @@ import com.gemwallet.android.domains.duration.formatEstimatedConfirmation
 import com.gemwallet.android.domains.transaction.values.TransactionDetailsValue
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.features.activities.viewmodels.localization.stringRes
+import com.gemwallet.android.features.activities.viewmodels.style.markerUIModel
 import com.gemwallet.android.model.ValueFormatter
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemSymbol
@@ -54,14 +55,6 @@ private fun GemSwapProgressState.step(context: Context, title: String, subtitle:
     subtitle = subtitle,
     statusLabel = step.stringRes()?.let { context.getString(it) },
     style = step.textStyle(),
-    marker = marker.uiModel(),
+    marker = marker.markerUIModel(),
     showsEstimatedTime = marker == GemSwapProgressMarker.SPINNER,
 )
-
-private fun GemSwapProgressMarker.uiModel(): SwapProgressMarkerUIModel = when (this) {
-    GemSwapProgressMarker.CHECK -> SwapProgressMarkerUIModel.Icon(ListItemSymbol.Check)
-    GemSwapProgressMarker.CROSS -> SwapProgressMarkerUIModel.Icon(ListItemSymbol.Close)
-    GemSwapProgressMarker.SWAP -> SwapProgressMarkerUIModel.Icon(ListItemSymbol.Swap)
-    GemSwapProgressMarker.SPINNER -> SwapProgressMarkerUIModel.Spinner
-    GemSwapProgressMarker.DOTS -> SwapProgressMarkerUIModel.Dots
-}

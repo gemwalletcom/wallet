@@ -10,8 +10,6 @@ import struct Gemstone.GemAssetDetailsInput
 import enum Gemstone.GemBalanceRow
 import struct Gemstone.GemBannerContext
 import typealias Gemstone.GemBigUint
-import struct Gemstone.GemRecipient
-import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import GemstoneServices
 import Localization
@@ -323,25 +321,17 @@ public extension AssetSceneViewModel {
 
     internal func onSelectBanner(_ action: BannerAction) {
         switch action.type {
-        case let .event(event):
-            switch event {
+        case let .destination(destination):
+            switch destination {
             case .stake:
                 onSelectStake()
-            case .activateAsset:
-                isPresentingAssetSheet = .transfer(
-                    GemTransferData(
-                        inputType: .account(assetData.asset, .activate),
-                        recipient: GemRecipient(address: ""),
-                        value: BigInt.zero,
-                    ),
-                )
-            case .accountActivation,
-                 .accountBlockedMultiSignature,
-                 .onboarding,
-                 .suspiciousAsset: break
-            case .tradePerpetuals:
+            case let .activateAsset(transfer):
+                isPresentingAssetSheet = .transfer(transfer)
+            case .perpetuals:
                 UIApplication.shared.open(service.deeplinkGemUrl(deeplink: .perpetuals).asURL!)
                 preferences.isPerpetualEnabled = true
+            case let .url(link):
+                onSelect(url: link.url)
             }
         case let .button(bannerButton):
             switch bannerButton {
@@ -357,7 +347,6 @@ public extension AssetSceneViewModel {
                 }
             }
         }
-        onSelect(url: action.url)
     }
 
     internal func onSelectEarn() {

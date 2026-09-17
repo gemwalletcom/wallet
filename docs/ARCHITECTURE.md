@@ -397,7 +397,7 @@ impl GemPerpetualMarketCounts {
 
 **Which actions the screen or row offers.** Core returns the list of available actions as cases; the app renders each case as its own button. `GemStakeActionItem`, `GemHeaderButtonKind`, `GemAssetAction` and `GemFiatButtonAction` are this shape. An app that assembles the action list itself is deciding what the user is allowed to do, on its own, twice.
 
-**What a tap means.** The destination of a row is Core's answer — `GemSelectRowAction`, `GemDelegationDestination`, `GemAcquireAssetFlow` — and performing it is the app's, with the app's own route type per [navigation values are app types](#navigation-values-are-app-types). Core says *open the validator*; the app decides that means pushing `DelegationValidator`.
+**What a tap means.** The destination of a row is Core's answer — `GemSelectRowAction`, `GemDelegationDestination`, `GemAcquireAssetFlow`, `GemBannerDestination` — and performing it is the app's, with the app's own route type per [navigation values are app types](#navigation-values-are-app-types). Core says *open the validator*; the app decides that means pushing `DelegationValidator`. A destination that opens a link carries the link, so a screen never has to pair a tap answer with a separate URL field: `GemBannerContent.destination` replaced a `link` that the apps had to read beside their own per-event switch.
 
 **A limit comes with its answer.** When Core hands back a limit, it also answers what the limit implies, or each app invents the comparison. `GemWalletSearchLimits` returns `assets`, `perpetuals` and `nfts`, and both apps then wrote their own "is there more" check against different counts — iOS against the whole result, Android against the pinned and unpinned sum. A limit that only names a number is half an answer.
 
@@ -511,7 +511,7 @@ The precision ladder, the adaptive rule and its constants (`0.99`, `1e-10`, `100
 
 Two mechanisms are tempting and both are wrong.
 
-**Do not export a formatter as a foreign trait.** A `GemCurrencyFormatter` the apps implement would let Core call back for every number, and a view state with fifty rows and three numbers each becomes a hundred and fifty reverse crossings inside one call — the most expensive direction there is, against the rule above. It also breaks a real boundary: [`Formatters`](../ios/Packages/Formatters/) and `Validators` cannot import Gemstone, because the price widget links `Formatters` without the Rust library — which is why the formatters that read a Core rule live in `GemstonePrimitives`. And it makes a session impure, so a screen's state can no longer be asserted as one literal in a Rust test.
+**Do not export a formatter as a foreign trait.** A `GemCurrencyFormatter` the apps implement would let Core call back for every number, and a view state with fifty rows and three numbers each becomes a hundred and fifty reverse crossings inside one call — the most expensive direction there is, against the rule above. It also breaks a real boundary: [`Formatters`](../ios/Packages/Formatters/) holds only locale formatting, which is why the formatters that read a Core rule live in `GemstonePrimitives`. And it makes a session impure, so a screen's state can no longer be asserted as one literal in a Rust test.
 
 **Do not return a finished string either.** Core's formatter is not locale-aware, so a Core-formatted amount regresses every locale that groups or separates differently.
 

@@ -82,6 +82,7 @@ class AmountStakeProviderTest {
         getStakeValidator = getStakeValidator,
         getValidators = getValidators,
         service = service,
+        stakeService = mockk(relaxed = true),
         scope = scope,
     )
 

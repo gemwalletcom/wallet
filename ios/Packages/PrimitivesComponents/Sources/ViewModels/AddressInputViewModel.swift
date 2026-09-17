@@ -11,7 +11,6 @@ import Localization
 import Primitives
 import Style
 import SwiftUI
-import Validators
 
 @Observable
 @MainActor
@@ -91,7 +90,7 @@ public final class AddressInputViewModel {
             return update()
         }
         let validation = self.validation
-        update(error: validation.showsError ? TransferError.invalidAddress(asset: chain.asset) : nil)
+        update(error: validation.error)
         return validation.isValid
     }
 

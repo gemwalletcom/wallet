@@ -101,7 +101,7 @@ private fun GemConfirmErrorDisplay.infoSheet(
         val asset = asset.toPrimitives()
         InfoSheetEntity.MinimumAccountBalanceInfo(
             asset = asset,
-            value = ValueFormatter(style = GemValueStyle.FULL).string(required, asset),
+            value = ValueFormatter(style = GemValueStyle.AUTO).string(required, asset),
         )
     }
     is GemConfirmErrorDisplay.DustThreshold -> InfoSheetEntity.DustThresholdInfo(chain = chain.requireChain())
@@ -117,13 +117,13 @@ private fun GemConfirmErrorDisplay.infoSheet(
 }
 
 private fun AssetPriceValue?.amountWithFiat(value: BigInteger, asset: Asset): String {
-    val amount = ValueFormatter(style = GemValueStyle.FULL).string(value, asset)
+    val amount = ValueFormatter(style = GemValueStyle.AUTO).string(value, asset)
     val fiat = this?.let { formatFiat(it.calculateFiat(value)) }.orEmpty()
     return if (fiat.isEmpty()) amount else "$amount (~$fiat)"
 }
 
 private fun GemBalanceRequirement.formatted(asset: Asset): FormattedBalanceRequirement {
-    val formatter = ValueFormatter(style = GemValueStyle.FULL)
+    val formatter = ValueFormatter(style = GemValueStyle.AUTO)
     return FormattedBalanceRequirement(
         required = formatter.string(required, asset),
         available = formatter.string(available, asset),
