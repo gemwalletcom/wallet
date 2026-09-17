@@ -20,6 +20,7 @@ use crate::services::transactions::GemTransactionHeaderKind;
 pub(crate) trait TransferInput {
     fn input_asset(&self) -> Asset;
     fn transaction_asset(&self) -> Asset;
+    fn balance_asset(&self) -> Asset;
     fn header_kind(&self) -> GemTransactionHeaderKind;
     fn title(&self) -> GemConfirmTitle;
     fn shows_memo(&self) -> bool;
@@ -84,6 +85,13 @@ impl TransferInput for TransactionInputType {
         match self {
             Self::TransferNft { asset, .. } => Asset::from_chain(asset.chain()),
             _ => self.get_asset().clone(),
+        }
+    }
+
+    fn balance_asset(&self) -> Asset {
+        match self {
+            Self::Perpetual { perpetual_type, .. } => perpetual_type.base_asset().clone(),
+            _ => self.transaction_asset(),
         }
     }
 
@@ -154,13 +162,11 @@ impl TransferInput for TransactionInputType {
     }
 
     fn fee_asset(&self) -> Asset {
+        if let Self::Perpetual { perpetual_type, .. } = self {
+            return perpetual_type.base_asset().clone();
+        }
         let asset = self.transaction_asset();
         let chain = asset.chain();
-        if let Self::Perpetual { .. } = self
-            && chain == Chain::HyperCore
-        {
-            return asset_rules::default_asset(chain, AssetType::PERPETUAL).unwrap_or(asset);
-        }
         match chain {
             Chain::Tempo => asset,
             Chain::HyperCore => asset_rules::default_asset(chain, AssetType::TOKEN).unwrap_or(asset),
@@ -634,7 +640,7 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::asset_balance::BalanceMetadata;
     use primitives::{
-        Delegation, DelegationBase, DelegationValidator, NFTAsset, PaymentInvoice, PaymentMerchant, PaymentPrice, PerpetualConfirmData, PerpetualDirection, Resource,
+        Delegation, DelegationBase, DelegationValidator, NFTAsset, PaymentInvoice, PaymentMerchant, PaymentPrice, PerpetualConfirmData, PerpetualDirection, PerpetualModifyConfirmData, PerpetualReduceData, Resource,
         SwapProvider, TransactionType, TransferDataExtra,
         known_assets::HYPERCORE_PERPETUAL_USDC,
         swap::{SwapData, SwapQuote, SwapQuoteData},
@@ -698,6 +704,65 @@ mod tests {
             .header_kind(),
             GemTransactionHeaderKind::Symbol
         );
+    }
+
+    #[test]
+    fn test_balance_asset_is_the_perpetual_collateral_not_the_market() {
+        let market = Asset {
+            id: AssetId::from_token(Chain::HyperCore, "perpetual::ETH"),
+            ..Asset::from_chain(Chain::HyperCore)
+        };
+        let collateral = HYPERCORE_PERPETUAL_USDC.clone();
+        let data = PerpetualConfirmData {
+            base_asset: collateral.clone(),
+            ..PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None)
+        };
+        let open = TransactionInputType::Perpetual {
+            asset: market.clone(),
+            perpetual_type: PerpetualType::Open { data: data.clone() },
+        };
+        let modify = TransactionInputType::Perpetual {
+            asset: market.clone(),
+            perpetual_type: PerpetualType::Modify {
+                data: PerpetualModifyConfirmData {
+                    base_asset: collateral.clone(),
+                    ..PerpetualModifyConfirmData::mock(vec![], None, None)
+                },
+            },
+        };
+        let reduce = TransactionInputType::Perpetual {
+            asset: market.clone(),
+            perpetual_type: PerpetualType::Reduce {
+                data: PerpetualReduceData {
+                    data,
+                    position_direction: PerpetualDirection::Long,
+                },
+            },
+        };
+
+        for input_type in [&open, &modify, &reduce] {
+            assert_eq!(input_type.transaction_asset().id, market.id, "the market asset stays the transaction's own asset");
+            assert_eq!(
+                input_type.balance_asset().id,
+                collateral.id,
+                "a perpetual is funded from the collateral balance; the market asset never has a stored balance row"
+            );
+            assert_eq!(input_type.balance_asset().id, input_type.fee_asset().id);
+        }
+    }
+
+    #[test]
+    fn test_balance_asset_follows_the_transaction_asset_outside_perpetuals() {
+        let nft = TransactionInputType::TransferNft {
+            asset: Asset::from_chain(Chain::Ethereum),
+            nft_asset: NFTAsset::mock(),
+        };
+        assert_eq!(nft.balance_asset().id, nft.transaction_asset().id);
+
+        let transfer = TransactionInputType::Transfer {
+            asset: Asset::from_chain(Chain::Ethereum),
+        };
+        assert_eq!(transfer.balance_asset().id, transfer.transaction_asset().id);
     }
 
     #[test]
@@ -880,6 +945,29 @@ mod tests {
         };
         assert_eq!(perpetual.fee_asset().id, HYPERCORE_PERPETUAL_USDC.id);
         assert_eq!(perpetual.fee_asset().asset_type, AssetType::PERPETUAL);
+
+        let other_collateral = Asset::mock_with_params(
+            Chain::HyperCore,
+            Some("perpetual::EURC".to_string()),
+            "EURC".to_string(),
+            "EURC".to_string(),
+            6,
+            AssetType::PERPETUAL,
+        );
+        let other = TransactionInputType::Perpetual {
+            asset: Asset::from_chain(Chain::HyperCore),
+            perpetual_type: PerpetualType::Open {
+                data: PerpetualConfirmData {
+                    base_asset: other_collateral.clone(),
+                    ..PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None)
+                },
+            },
+        };
+        assert_eq!(
+            other.fee_asset().id,
+            other_collateral.id,
+            "the fee asset is the collateral the transaction itself carries, not a chain-wide default, so it can never disagree with the balance the load reads"
+        );
         let nft = TransactionInputType::TransferNft {
             asset: token,
             nft_asset: NFTAsset::mock(),
