@@ -53,7 +53,7 @@ fun PaymentVerificationScreen(
     ) {
         WebView(
             url = url,
-            javascriptInterface = viewModel.bridge.javascriptInterface,
+            bridge = viewModel.verificationBridge,
             modifier = Modifier.fillMaxSize(),
         )
     }

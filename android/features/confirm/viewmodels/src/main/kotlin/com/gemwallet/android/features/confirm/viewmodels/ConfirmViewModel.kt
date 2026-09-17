@@ -126,7 +126,7 @@ class ConfirmViewModel @Inject constructor(
 
     val isNetworkFeeSheetVisible = MutableStateFlow(false)
     val isVerificationVisible = MutableStateFlow(false)
-    val verificationBridge = PaymentVerificationBridge(::onVerified)
+    val verificationBridge = PaymentVerificationBridge(::onPaymentVerified)
     val feeSelection = MutableStateFlow<GemConfirmFeeSelection>(GemConfirmFeeSelection.Priority(FeePriority.Normal.toGem()))
     private val feeAssetSelection = MutableStateFlow<FeeAssetSelection>(FeeAssetSelection.Automatic)
     private val assetSelection = MutableStateFlow<AssetId?>(null)
@@ -194,9 +194,6 @@ class ConfirmViewModel @Inject constructor(
 
     val title = transfer.map { it?.title() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val isPaymentRequest = transfer.map { it?.inputType is TransactionInputType.Payment }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val isExternalRequest = transfer.map { it?.inputType?.applicationMetadata != null || it?.inputType is TransactionInputType.Payment }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
@@ -359,7 +356,7 @@ class ConfirmViewModel @Inject constructor(
         isVerificationVisible.value = false
     }
 
-    private fun onVerified() {
+    private fun onPaymentVerified() {
         isVerificationVisible.value = false
         reload()
     }
@@ -417,7 +414,7 @@ class ConfirmViewModel @Inject constructor(
         feeSelection.update { selection }
     }
 
-    fun changeAsset(assetId: AssetId) {
+    fun changePaymentAsset(assetId: AssetId) {
         if (transfer.value?.asset?.id == assetId) return
         screen.update { it.onLoadStarted() }
         assetSelection.update { assetId }

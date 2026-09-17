@@ -78,7 +78,7 @@ class ConfirmViewModelPaymentAssetTest {
         val viewModel = viewModel(payment(ethereum)).also { model = it }
         assertEquals(ethereum, viewModel.amountUIModel.first { it != null }?.asset)
 
-        viewModel.changeAsset(usdt.id)
+        viewModel.changePaymentAsset(usdt.id)
         advanceUntilIdle()
 
         coVerify { confirmation.load(match<GemConfirmLoadOptions> { it.assetId == usdt.id.toIdentifier() }) }
@@ -90,7 +90,7 @@ class ConfirmViewModelPaymentAssetTest {
         val viewModel = viewModel(payment(ethereum)).also { model = it }
         viewModel.amountUIModel.first { it != null }
 
-        viewModel.changeAsset(ethereum.id)
+        viewModel.changePaymentAsset(ethereum.id)
         advanceUntilIdle()
 
         coVerify(exactly = 0) { confirmation.load(match<GemConfirmLoadOptions> { it.assetId != null }) }

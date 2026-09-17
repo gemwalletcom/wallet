@@ -131,7 +131,7 @@ fun ConfirmScreen(
 
     LaunchedEffect(paymentAsset) {
         val assetId = paymentAsset ?: return@LaunchedEffect
-        viewModel.changeAsset(assetId)
+        viewModel.changePaymentAsset(assetId)
         onPaymentAssetConsumed()
     }
 
@@ -313,7 +313,7 @@ fun ConfirmScreen(
             verification?.let {
                 WebView(
                     url = it.url,
-                    javascriptInterface = viewModel.verificationBridge.javascriptInterface,
+                    bridge = viewModel.verificationBridge,
                     modifier = Modifier.fillMaxSize(),
                 )
             }

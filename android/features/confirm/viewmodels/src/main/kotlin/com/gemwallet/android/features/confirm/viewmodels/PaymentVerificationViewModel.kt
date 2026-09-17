@@ -43,9 +43,9 @@ class PaymentVerificationViewModel @Inject constructor(
 
     val url: StateFlow<String> = urlState.asStateFlow()
     val confirm: StateFlow<ConfirmTransferInput?> = confirmState.asStateFlow()
-    val bridge = PaymentVerificationBridge(::onVerified)
+    val verificationBridge = PaymentVerificationBridge(::onPaymentVerified)
 
-    private fun onVerified() {
+    private fun onPaymentVerified() {
         viewModelScope.launch(ioDispatcher) {
             val wallet = getSession().value?.wallet ?: return@launch
             try {

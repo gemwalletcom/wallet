@@ -22,7 +22,7 @@ class AmountUIModel(
     val toAmount: BigInteger?,
     val nftAsset: NFTAsset?,
     val currency: Currency,
-    val paymentPrice: PaymentPrice? = null,
+    val paymentPrice: PaymentPrice?,
 ) {
     val asset: Asset get() = fromAsset.asset
 

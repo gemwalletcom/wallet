@@ -115,6 +115,12 @@ class WalletNavigator(
         return backStack.add(route)
     }
 
+    private fun <T> popWithResult(results: MutableMap<NavKey, T>, value: T) {
+        val target = backStack.getOrNull(backStack.lastIndex - 1) ?: return
+        results[target] = value
+        pop()
+    }
+
     private fun openAssetRoute(route: AssetRoute) = scope.launch {
         val asset = withContext(Dispatchers.IO) {
             assetsService.openAsset(route.assetId.toIdentifier())
@@ -169,11 +175,7 @@ class WalletNavigator(
         toastMessages.remove(route)
     }
 
-    fun popWithToast(message: String) {
-        val target = backStack.getOrNull(backStack.lastIndex - 1) ?: return
-        toastMessages[target] = message
-        pop()
-    }
+    fun popWithToast(message: String) = popWithResult(toastMessages, message)
 
     fun swapSelection(route: NavKey): SwapSelection? {
         return swapSelections[route]
@@ -189,11 +191,7 @@ class WalletNavigator(
 
     fun openPaymentSelect(assetIds: List<AssetId>) = push(PaymentSelectRoute(assetIds))
 
-    fun finishPaymentSelect(assetId: AssetId) {
-        val target = backStack.getOrNull(backStack.lastIndex - 1) ?: return
-        paymentSelections[target] = assetId
-        pop()
-    }
+    fun finishPaymentSelect(assetId: AssetId) = popWithResult(paymentSelections, assetId)
 
     fun clearSwapSelection(route: NavKey) {
         swapSelections.remove(route)
@@ -285,15 +283,10 @@ class WalletNavigator(
     fun openSwapSelect(itemType: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) {
         push(SwapSelectRoute(itemType, payAssetId, receiveAssetId))
     }
-    fun finishSwapSelect(itemType: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) {
-        val target = backStack.getOrNull(backStack.lastIndex - 1) ?: return
-        swapSelections[target] = SwapSelection(
-            itemType = itemType,
-            payAssetId = payAssetId,
-            receiveAssetId = receiveAssetId,
-        )
-        pop()
-    }
+    fun finishSwapSelect(itemType: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) = popWithResult(
+        swapSelections,
+        SwapSelection(itemType = itemType, payAssetId = payAssetId, receiveAssetId = receiveAssetId),
+    )
     private fun clearSwapSelections() = swapSelections.clear()
     fun openBuy() = push(FiatSelectRoute)
     fun openBuy(assetId: AssetId) = openBuy(assetId, amount = null)

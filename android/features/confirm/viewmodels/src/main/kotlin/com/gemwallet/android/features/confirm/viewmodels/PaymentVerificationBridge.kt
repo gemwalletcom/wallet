@@ -1,13 +1,14 @@
 package com.gemwallet.android.features.confirm.viewmodels
 
 import android.webkit.JavascriptInterface
+import com.gemwallet.android.ui.components.WebViewBridge
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
-class PaymentVerificationBridge(private val onComplete: () -> Unit) {
+class PaymentVerificationBridge(private val onComplete: () -> Unit) : WebViewBridge {
 
-    val javascriptInterface: Pair<String, Any> = NAME to this
+    override val name: String = "AndroidWallet"
 
     @JavascriptInterface
     fun onDataCollectionComplete(message: String) {
@@ -18,7 +19,6 @@ class PaymentVerificationBridge(private val onComplete: () -> Unit) {
     }
 
     private companion object {
-        const val NAME = "AndroidWallet"
         const val MESSAGE_TYPE = "type"
         const val COMPLETE_TYPE = "IC_COMPLETE"
     }
