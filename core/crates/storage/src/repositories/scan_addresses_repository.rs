@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use diesel::{prelude::*, upsert::excluded};
+use diesel::prelude::*;
 use primitives::{Chain, ScanAddress};
 
 use crate::models::{NewScanAddressRow, ScanAddressRow};
@@ -21,7 +21,6 @@ pub trait ScanAddressesRepository {
     fn get_scan_addresses(&mut self, queries: &[(Chain, &str)]) -> Result<Vec<ScanAddress>, DatabaseError>;
     fn get_scan_addresses_by_addresses(&mut self, addresses: Vec<String>) -> Result<Vec<ScanAddress>, DatabaseError>;
     fn add_scan_addresses(&mut self, values: Vec<ScanAddress>) -> Result<usize, DatabaseError>;
-    fn upsert_scan_addresses(&mut self, values: Vec<ScanAddress>) -> Result<usize, DatabaseError>;
 }
 
 impl ScanAddressesRepository for DatabaseClient {
@@ -46,17 +45,6 @@ impl ScanAddressesRepository for DatabaseClient {
         let new_addresses = values.into_iter().map(NewScanAddressRow::from_primitive).collect::<Vec<_>>();
         use crate::schema::scan_addresses::dsl::*;
         Ok(diesel::insert_into(scan_addresses).values(new_addresses).on_conflict_do_nothing().execute(&mut self.connection)?)
-    }
-
-    fn upsert_scan_addresses(&mut self, values: Vec<ScanAddress>) -> Result<usize, DatabaseError> {
-        use crate::schema::scan_addresses::dsl::*;
-        let new_addresses = values.into_iter().map(NewScanAddressRow::from_primitive).collect::<Vec<_>>();
-        Ok(diesel::insert_into(scan_addresses)
-            .values(new_addresses)
-            .on_conflict((chain, address))
-            .do_update()
-            .set(name.eq(excluded(name)))
-            .execute(&mut self.connection)?)
     }
 }
 

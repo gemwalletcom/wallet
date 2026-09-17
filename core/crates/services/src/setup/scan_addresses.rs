@@ -16,9 +16,9 @@ use swapper::{chainflip, mayan, near_intents, squid, thorchain::THORChainNetwork
 pub async fn setup_scan_addresses(database: &Database) -> Result<(), Box<dyn Error + Send + Sync>> {
     let values = known_contracts();
     let count = values.len();
-    let upserted = database.run(move |client| client.upsert_scan_addresses(values)).await?;
+    let inserted = database.run(move |client| client.add_scan_addresses(values)).await?;
 
-    info_with_fields!("setup", step = "scan addresses", count = count, upserted = upserted);
+    info_with_fields!("setup", step = "scan addresses", count = count, inserted = inserted);
     Ok(())
 }
 
