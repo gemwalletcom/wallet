@@ -25,7 +25,8 @@ pub enum GemAssetIconImage {
 
 pub fn asset_icon(asset_id: &AssetId) -> GemAssetIcon {
     let icon_asset_id = icon_asset_id(asset_id);
-    let image = if let Some(token) = local_token_icon(asset_id) {
+    let local_token = local_token_icon(asset_id);
+    let image = if let Some(token) = local_token {
         GemAssetIconImage::LocalToken { token }
     } else if icon_asset_id.is_native() {
         GemAssetIconImage::Local {
@@ -36,7 +37,7 @@ pub fn asset_icon(asset_id: &AssetId) -> GemAssetIcon {
             url: GemImage::Asset { asset_id: icon_asset_id }.url(),
         }
     };
-    let badge = match asset_id.is_native() {
+    let badge = match asset_id.is_native() && local_token.is_none() {
         true => badge_chain(asset_id.chain),
         false => Some(icon_chain(asset_id.chain)),
     };

@@ -101,7 +101,10 @@ pub struct AssetProperties {
 
 impl AssetProperties {
     pub fn default(asset_id: AssetId) -> Self {
-        let is_enabled = asset_id.is_token() || asset_id.chain.rank() >= 0;
+        let is_enabled = match asset_id.is_token() {
+            true => !asset_id.is_native_mirror(),
+            false => asset_id.chain.rank() >= 0,
+        };
         let is_stakeable = is_enabled && asset_id.is_native() && asset_id.chain.is_stake_supported();
         let is_swapable = is_enabled && asset_id.chain.is_swap_supported();
         Self {
@@ -141,7 +144,10 @@ mod tests {
     use chrono::Utc;
 
     use super::*;
-    use crate::{Asset, Chain, PriceProvider, asset_constants::TEMPO_PATHUSD_ASSET_ID};
+    use crate::{
+        Asset, Chain, PriceProvider,
+        asset_constants::{ARC_EURC_ASSET_ID, ARC_USDC_TOKEN_ID, CELO_WETH_TOKEN_ID, TEMPO_PATHUSD_ASSET_ID},
+    };
 
     #[test]
     fn negative_rank_native_asset_is_disabled() {
@@ -150,6 +156,17 @@ mod tests {
         assert!(!properties.is_enabled);
         assert!(!properties.is_swapable);
         assert!(AssetProperties::default(TEMPO_PATHUSD_ASSET_ID.clone()).is_swapable);
+    }
+
+    #[test]
+    fn native_mirror_token_is_disabled() {
+        let properties = AssetProperties::default(AssetId::from_token(Chain::Arc, ARC_USDC_TOKEN_ID));
+
+        assert!(!properties.is_enabled);
+        assert!(!properties.is_swapable);
+        assert!(AssetProperties::default(AssetId::from_chain(Chain::Arc)).is_enabled);
+        assert!(AssetProperties::default(ARC_EURC_ASSET_ID.clone()).is_enabled);
+        assert!(AssetProperties::default(AssetId::from_token(Chain::Celo, CELO_WETH_TOKEN_ID)).is_enabled);
     }
 
     #[test]
