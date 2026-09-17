@@ -24,6 +24,7 @@ import enum Gemstone.GemLocalizedText
 import enum Gemstone.GemPriceAlertLabel
 import struct Gemstone.GemPriceAlertRow
 import enum Gemstone.GemPriceAlertText
+import enum Gemstone.GemRecipientErrorDisplay
 import enum Gemstone.GemSimulationWarningKind
 import enum Gemstone.SimulationPayloadFieldKind
 import enum Gemstone.GemTransactionRowSubtitle
@@ -537,6 +538,14 @@ public extension GemBannerDescription {
         case .suspiciousAsset: Localized.Banner.AssetStatus.description
         case .onboarding: Localized.Banner.Onboarding.description
         case .tradePerpetuals: Localized.Banner.Perpetuals.description
+        }
+    }
+}
+
+extension GemRecipientErrorDisplay: @retroactive LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case let .invalidAddress(network): Localized.Errors.invalidAssetAddress(network.boldMarkdown())
         }
     }
 }

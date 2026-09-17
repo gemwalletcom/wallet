@@ -11,9 +11,8 @@ import com.gemwallet.android.ui.components.fields.NameResolveIndicatorUIModel
 
 fun LazyListScope.destinationView(
     hasMemo: Boolean,
-    assetName: String,
     address: String,
-    addressError: Boolean,
+    addressError: String,
     nameResolveIndicator: NameResolveIndicatorUIModel?,
     memo: String,
     onAddress: (String) -> Unit,
@@ -27,7 +26,7 @@ fun LazyListScope.destinationView(
                 value = address,
                 label = stringResource(id = R.string.transfer_recipient_address_field),
                 indicator = nameResolveIndicator,
-                error = if (addressError) stringResource(R.string.errors_invalid_asset_address, assetName) else "",
+                error = addressError,
                 onValueChange = onAddress,
                 onQrScanner = { onQrScan(QrScanField.Address) },
                 onSubmit = onSubmitAddress,

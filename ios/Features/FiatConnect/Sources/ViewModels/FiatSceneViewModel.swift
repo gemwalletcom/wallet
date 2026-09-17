@@ -20,7 +20,6 @@ import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
-import Validators
 
 @MainActor
 @Observable
@@ -90,8 +89,8 @@ public final class FiatSceneViewModel {
         switch viewState.phase {
         case .noInput, .loading, .noQuotes, .failed: nil
         case .invalidInput: viewState.phase.inputErrorText.map(AnyError.init)
-        case let .invalid(check): amountCheckError(check)
-        case .ready: amountCheckError(viewState.amountCheck)
+        case let .invalid(check): check.errorText(locale: locale).map(AnyError.init)
+        case .ready: viewState.amountCheck.errorText(locale: locale).map(AnyError.init)
         }
     }
 
@@ -302,13 +301,6 @@ extension FiatSceneViewModel {
         return FiatQuoteViewModel(asset: asset, row: quote, locale: locale)
     }
 
-    private func amountCheckError(_ check: GemFiatAmountCheck) -> (any Error)? {
-        switch check {
-        case .valid, .belowMinimum, .aboveMaximum: check.limitDescription(locale: locale).map { AnyError($0) }
-        case let .insufficientBalance(requirement): TransferAmountCalculatorError.insufficientBalance(asset, requirement: requirement.toPrimitives())
-        }
-    }
-
     private func applyAmount(_ text: String, isImmediate: Bool) {
         guard text != viewState.amount else { return }
         session = session.onAmountChanged(amount: text)
@@ -341,7 +333,3 @@ extension FiatSceneViewModel {
     }
 }
 
-// MARK: - Private
-
-private extension FiatSceneViewModel {
-}

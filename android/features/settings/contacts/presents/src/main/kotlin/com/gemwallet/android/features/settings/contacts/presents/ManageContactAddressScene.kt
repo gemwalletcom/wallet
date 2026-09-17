@@ -56,11 +56,7 @@ fun ManageContactAddressScene(
             label = stringResource(R.string.common_address),
             indicator = input.nameResolveIndicator,
             onValueChange = onAddressChange,
-            error = if (input.showAddressError) {
-                stringResource(R.string.errors_invalid_asset_address, input.chain.networkName())
-            } else {
-                ""
-            },
+            error = input.addressError,
             onPaste = onPaste,
             onQrScanner = { scanning = true },
         )

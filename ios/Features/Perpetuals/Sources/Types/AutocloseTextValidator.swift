@@ -4,7 +4,7 @@ import Foundation
 import class Gemstone.AutocloseValidator
 import GemstonePrimitives
 import Primitives
-import Validators
+import PrimitivesComponents
 
 struct AutocloseTextValidator: TextValidator {
     private let validator: AutocloseValidator
@@ -17,14 +17,14 @@ struct AutocloseTextValidator: TextValidator {
         guard !text.isEmpty else { return }
 
         guard let price = NumberInput.double(text) else {
-            throw TransferError.invalidAmount
+            throw PerpetualError.invalidAmount
         }
 
         switch validator.validate(price: price) {
         case .valid:
             break
         case .invalidAmount:
-            throw TransferError.invalidAmount
+            throw PerpetualError.invalidAmount
         case .triggerMustBeHigher:
             throw PerpetualError.triggerPriceMustBeHigher
         case .triggerMustBeLower:

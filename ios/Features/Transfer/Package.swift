@@ -27,7 +27,6 @@ let package = Package(
         .package(name: "Components", path: "../../Packages/Components"),
         .package(name: "PrimitivesComponents", path: "../../Packages/PrimitivesComponents"),
         .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
-        .package(name: "Validators", path: "../../Packages/Validators"),
         .package(name: "Store", path: "../../Packages/Store"),
 
         .package(name: "Stake", path: "../Stake"),
@@ -53,7 +52,6 @@ let package = Package(
                 "GemstonePrimitives",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
                 "Store",
-                "Validators",
                 "Stake",
                 "WalletConnector",
                 "InfoSheet",

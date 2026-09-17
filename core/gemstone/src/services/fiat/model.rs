@@ -1,6 +1,5 @@
 use super::rules;
 use crate::formatted_number::GemFormattedNumber;
-use crate::services::balance::GemBalanceRequirement;
 use crate::services::swap::GemAssetRate;
 use primitives::{FiatProviderName, FiatTransactionStatus};
 
@@ -8,7 +7,7 @@ use primitives::{FiatProviderName, FiatTransactionStatus};
 pub enum GemFiatAmountCheck {
     BelowMinimum { minimum: GemFormattedNumber },
     AboveMaximum { maximum: GemFormattedNumber },
-    InsufficientBalance { requirement: GemBalanceRequirement },
+    InsufficientBalance { title: String },
     Valid,
 }
 

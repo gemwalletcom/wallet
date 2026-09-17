@@ -7,7 +7,6 @@ import Primitives
 import PrimitivesComponentsTestKit
 import PrimitivesTestKit
 import Testing
-import Validators
 
 @MainActor
 struct AddressInputViewModelTests {

@@ -11,7 +11,6 @@ import Localization
 import Primitives
 import PrimitivesComponents
 import Stake
-import Validators
 import struct Gemstone.GemTransferData
 
 public enum AmountStakeSelection {

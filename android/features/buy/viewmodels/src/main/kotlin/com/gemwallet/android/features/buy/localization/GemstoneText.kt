@@ -29,15 +29,15 @@ fun GemFiatButtonAction.stringRes(): Int = when (this) {
     GemFiatButtonAction.RETRY_QUOTE -> R.string.common_try_again
 }
 
-fun GemFiatAmountCheck.string(context: Context, assetName: String, assetSymbol: String): String? = when (this) {
+fun GemFiatAmountCheck.string(context: Context): String? = when (this) {
     is GemFiatAmountCheck.BelowMinimum -> context.getString(R.string.transfer_minimum_amount, minimum.text())
     is GemFiatAmountCheck.AboveMaximum -> context.getString(R.string.transfer_maximum_amount, maximum.text())
-    is GemFiatAmountCheck.InsufficientBalance -> context.getString(R.string.transfer_insufficient_balance, "$assetName ($assetSymbol)")
+    is GemFiatAmountCheck.InsufficientBalance -> context.getString(R.string.transfer_insufficient_balance, title)
     GemFiatAmountCheck.Valid -> null
 }
 
-fun GemFiatViewState.errorText(context: Context, assetName: String, assetSymbol: String): String? = when (val phase = phase) {
-    is GemFiatQuotePhase.Invalid -> phase.check.string(context, assetName, assetSymbol)
+fun GemFiatViewState.errorText(context: Context): String? = when (val phase = phase) {
+    is GemFiatQuotePhase.Invalid -> phase.check.string(context)
     GemFiatQuotePhase.InvalidInput -> context.getString(R.string.errors_invalid_amount)
     GemFiatQuotePhase.NoInput -> context.getString(
         R.string.input_enter_amount_to,
@@ -46,5 +46,5 @@ fun GemFiatViewState.errorText(context: Context, assetName: String, assetSymbol:
     GemFiatQuotePhase.NoQuotes -> context.getString(R.string.buy_no_results)
     is GemFiatQuotePhase.Failed -> context.getString(R.string.errors_unknown_try_again)
     is GemFiatQuotePhase.Loading -> null
-    GemFiatQuotePhase.Ready -> amountCheck.string(context, assetName, assetSymbol)
+    GemFiatQuotePhase.Ready -> amountCheck.string(context)
 }

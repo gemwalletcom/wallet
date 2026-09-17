@@ -3,7 +3,6 @@
 import Components
 import Style
 import SwiftUI
-import Validators
 
 public struct CurrencyInputValidationView: View {
     @Binding private var text: String

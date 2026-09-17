@@ -180,15 +180,8 @@ impl GemAmountError {
                 asset: asset.clone(),
                 minimum: minimum.clone(),
             },
-            Self::InsufficientBalance { asset, .. } => GemAmountErrorDisplay::InsufficientBalance { title: asset_title(asset) },
+            Self::InsufficientBalance { asset, .. } => GemAmountErrorDisplay::InsufficientBalance { title: asset.display_title() },
         }
-    }
-}
-
-fn asset_title(asset: &Asset) -> String {
-    match asset.name == asset.symbol {
-        true => asset.name.clone(),
-        false => asset.full_name(),
     }
 }
 
