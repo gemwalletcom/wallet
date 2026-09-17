@@ -363,9 +363,16 @@ mod tests {
             let store = Arc::new(MemoryAssetStore::default());
             let service = GemAssetsService::mock(provider.clone(), store.clone());
 
-            let result = service.ensure_token_asset(AssetId::from_token(Chain::Arc, ARC_USDC_TOKEN_ID)).await;
+            let mirror = AssetId::from_token(Chain::Arc, ARC_USDC_TOKEN_ID);
 
-            assert!(matches!(result, Err(GemServiceError::Unsupported { .. })));
+            let error = service.ensure_token_asset(mirror.clone()).await.unwrap_err();
+
+            assert_eq!(
+                error,
+                GemServiceError::Unsupported {
+                    msg: format!("{mirror} mirrors the native coin")
+                }
+            );
             assert!(provider.requested_paths().is_empty());
         });
     }
