@@ -178,7 +178,7 @@ mod tests {
                     invoice: invoice(OPTIONS),
                     account: coin.account.clone(),
                     transaction: send[0].params[0]["data"].as_str().unwrap().to_string(),
-                    transaction_type: TransactionType::SmartContractCall,
+                    transaction_type: TransactionType::Transfer,
                     memo: None,
                     request: request(&coin, TEST_ROUTER),
                     output_type: TransferDataOutputType::EncodedTransaction,

@@ -54,30 +54,17 @@ pub(super) fn map_invoice(invoice: &Invoice, payment_id: &str) -> PaymentInvoice
 }
 
 pub(super) fn map_transaction(quote: &Quote, action: PaymentAction, invoice: PaymentInvoice) -> PaymentTransaction {
-    let (transaction, transaction_type, recipient, output_type, approval) = match action {
-        PaymentAction::Send(send) => {
-            let transaction_type = if send.data.is_empty() {
-                TransactionType::Transfer
-            } else {
-                TransactionType::SmartContractCall
-            };
-            (send.data, transaction_type, send.recipient, TransferDataOutputType::EncodedTransaction, None)
-        }
-        PaymentAction::Sign(sign) => (sign.typed_data, TransactionType::Transfer, sign.recipient, TransferDataOutputType::Signature, None),
-        PaymentAction::ApproveAndSign { approval, sign } => (
-            sign.typed_data,
-            TransactionType::Transfer,
-            sign.recipient,
-            TransferDataOutputType::Signature,
-            Some(approval),
-        ),
+    let (transaction, recipient, output_type, approval) = match action {
+        PaymentAction::Send(send) => (send.data, send.recipient, TransferDataOutputType::EncodedTransaction, None),
+        PaymentAction::Sign(sign) => (sign.typed_data, sign.recipient, TransferDataOutputType::Signature, None),
+        PaymentAction::ApproveAndSign { approval, sign } => (sign.typed_data, sign.recipient, TransferDataOutputType::Signature, Some(approval)),
     };
 
     PaymentTransaction {
         invoice,
         account: quote.account.clone(),
         transaction,
-        transaction_type,
+        transaction_type: TransactionType::Transfer,
         memo: None,
         request: Some(PaymentRequest {
             address: recipient,
@@ -228,30 +215,24 @@ mod tests {
     fn test_map_transaction() {
         let invoice = PaymentInvoice::mock();
         let coin = quote(OPTIONS, TEST_ACCOUNT, &AssetId::from_chain(Chain::Optimism));
-        let send = |data: &str| {
-            PaymentAction::Send(PaymentSend {
-                recipient: TEST_ROUTER.to_string(),
-                data: data.to_string(),
-            })
-        };
+        let send = PaymentAction::Send(PaymentSend {
+            recipient: TEST_ROUTER.to_string(),
+            data: "0xd3906488".to_string(),
+        });
 
         assert_eq!(
-            map_transaction(&coin, send("0xd3906488"), invoice.clone()),
+            map_transaction(&coin, send, invoice.clone()),
             PaymentTransaction {
                 invoice: invoice.clone(),
                 account: coin.account.clone(),
                 transaction: "0xd3906488".to_string(),
-                transaction_type: TransactionType::SmartContractCall,
+                transaction_type: TransactionType::Transfer,
                 memo: None,
                 request: request(&coin, TEST_ROUTER),
                 output_type: TransferDataOutputType::EncodedTransaction,
                 approval: None,
-            }
-        );
-        assert_eq!(
-            map_transaction(&coin, send(""), invoice.clone()).transaction_type,
-            TransactionType::Transfer,
-            "a value transfer has no calldata"
+            },
+            "a router call pays the quote, so it is recorded as a transfer"
         );
 
         let usdt = quote(OPTIONS, TEST_ACCOUNT, &ETHEREUM_USDT_ASSET_ID);

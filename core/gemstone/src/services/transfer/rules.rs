@@ -305,12 +305,11 @@ impl TransferInput for TransactionInputType {
             Self::Generic { extra, .. } => Some(serde_json::to_value(TransactionWalletConnectMetadata {
                 output_action: extra.output_action.clone(),
             })?),
-            Self::Payment { invoice, extra, .. } if extra.output_type == TransferDataOutputType::Signature => Some(serde_json::to_value(TransactionPaymentMetadata {
+            Self::Payment { invoice, .. } => Some(serde_json::to_value(TransactionPaymentMetadata {
                 link: invoice.link.clone(),
                 merchant: invoice.merchant.clone(),
             })?),
-            Self::Payment { .. }
-            | Self::Transfer { .. }
+            Self::Transfer { .. }
             | Self::Deposit { .. }
             | Self::Withdrawal { .. }
             | Self::TokenApprove { .. }
@@ -1244,6 +1243,7 @@ mod tests {
         assert_eq!(transaction.asset_id, AssetId::from(Chain::Solana, Some("usdc".into())));
         assert_eq!(transaction.value, BigUint::from(19_000_000u64));
         assert_eq!(transaction.to, "recipient");
+        assert!(transaction.payment_metadata().is_some(), "a broadcast payment carries the merchant like a signature payment");
 
         let token_payment = TransactionInputType::mock_payment(Asset::mock_erc20(), TransferDataExtra::mock_signature(b"typed data".to_vec(), Some(ApprovalData::mock())));
         let approve_leg = GemPendingTransactionInput::mock(token_payment.clone(), TransactionType::TokenApproval, "0xapprove", 0, 2)

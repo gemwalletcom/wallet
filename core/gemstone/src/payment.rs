@@ -193,7 +193,7 @@ fn transaction_transfer_data(transaction: PaymentTransaction, asset: Asset) -> G
     }
 }
 
-fn payment_record_hash(link: &PaymentLink) -> Option<String> {
+pub(crate) fn payment_record_hash(link: &PaymentLink) -> Option<String> {
     match link {
         PaymentLink::WalletConnectPay { payment_id } => Some(payment_id.clone()),
         PaymentLink::SolanaPay { .. } => None,
