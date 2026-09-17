@@ -1,9 +1,10 @@
 use chrono::{TimeZone, Utc};
 
 use crate::{
-    Asset, AssetId, CancelOrderData, Chain, Perpetual, PerpetualConfirmData, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualModifyConfirmData,
+    AssetId, CancelOrderData, Chain, Perpetual, PerpetualConfirmData, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualModifyConfirmData,
     PerpetualModifyPositionType, PerpetualOrderType, PerpetualPosition, PerpetualProvider, PerpetualTriggerOrder, TPSLOrderData,
     chart::ChartDateValue,
+    known_assets::HYPERCORE_PERPETUAL_USDC,
     portfolio::{PerpetualPortfolio, PerpetualPortfolioTimeframeData},
 };
 
@@ -12,7 +13,7 @@ impl PerpetualConfirmData {
         Self {
             direction,
             margin_type: PerpetualMarginType::Cross,
-            base_asset: Asset::from_chain(Chain::HyperCore),
+            base_asset: HYPERCORE_PERPETUAL_USDC.clone(),
             asset_index: asset_index as i32,
             price: "123.45".to_string(),
             fiat_value: 100.0,
@@ -102,7 +103,7 @@ impl PerpetualModifyPositionType {
 impl PerpetualModifyConfirmData {
     pub fn mock(modify_types: Vec<PerpetualModifyPositionType>, take_profit_order_id: Option<u64>, stop_loss_order_id: Option<u64>) -> Self {
         Self {
-            base_asset: Asset::mock(),
+            base_asset: HYPERCORE_PERPETUAL_USDC.clone(),
             asset_index: 0,
             modify_types,
             take_profit_order_id,

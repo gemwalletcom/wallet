@@ -1119,6 +1119,34 @@ mod tests {
     }
 
     #[test]
+    fn test_every_perpetual_transfer_carries_the_chain_collateral_as_its_base_asset() {
+        let market = Perpetual::mock();
+        let asset = Asset::from_chain(Chain::HyperCore);
+        let chain_collateral = collateral_asset_id(Chain::HyperCore).unwrap();
+        let open = position_action(
+            &market,
+            &asset,
+            None,
+            GemPerpetualPositionKind::Open {
+                direction: PerpetualDirection::Long,
+            },
+        )
+        .unwrap();
+        let transfers = [
+            order_transfer(open, BigInt::from(50_000_000), false, 8, None, None),
+            close_transfer(&market, &asset, Some(PerpetualPosition::mock())).unwrap(),
+        ];
+
+        for transfer in transfers {
+            assert_eq!(
+                transfer.input_type.get_perpetual_type().unwrap().base_asset().id,
+                chain_collateral,
+                "the collateral a transfer carries and the one the chain answers for must stay the same asset: the confirm load reads the balance row of the first and the price of the second"
+            );
+        }
+    }
+
+    #[test]
     fn test_stale_position_ids_keeps_only_positions_that_disappeared() {
         let stale = stale_position_ids(
             vec!["a".into(), "b".into()],
