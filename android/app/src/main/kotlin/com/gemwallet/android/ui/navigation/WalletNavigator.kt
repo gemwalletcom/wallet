@@ -38,8 +38,6 @@ import com.gemwallet.android.ui.navigation.routes.AssetsResultsRoute
 import com.gemwallet.android.ui.navigation.routes.BridgeConnectionDetailsRoute
 import com.gemwallet.android.ui.navigation.routes.BridgeConnectionsRoute
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
-import com.gemwallet.android.ui.navigation.routes.PaymentSelectRoute
-import com.gemwallet.android.ui.navigation.routes.PaymentVerificationRoute
 import com.gemwallet.android.ui.navigation.routes.ContactsRoute
 import com.gemwallet.android.ui.navigation.routes.CurrenciesRoute
 import com.gemwallet.android.ui.navigation.routes.DelegationRoute
@@ -58,6 +56,8 @@ import com.gemwallet.android.ui.navigation.routes.NftCollectionRoute
 import com.gemwallet.android.ui.navigation.routes.NftListRoute
 import com.gemwallet.android.ui.navigation.routes.NftUnverifiedCollectionsRoute
 import com.gemwallet.android.ui.navigation.routes.NotificationsRoute
+import com.gemwallet.android.ui.navigation.routes.PaymentSelectRoute
+import com.gemwallet.android.ui.navigation.routes.PaymentVerificationRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualPositionRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
 import com.gemwallet.android.ui.navigation.routes.PortfolioChartRoute

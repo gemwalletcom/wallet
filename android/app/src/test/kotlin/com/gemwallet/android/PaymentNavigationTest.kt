@@ -10,12 +10,11 @@ import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.navigation.routes.PaymentVerificationRoute
 import com.gemwallet.android.testkit.mockAssetSolana
+import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockPaymentInvoice
+import com.gemwallet.android.testkit.mockTransferDataExtra
 import com.gemwallet.android.ui.navigation.routes.ConfirmRoute
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.TransactionType
-import com.wallet.core.primitives.TransferDataOutputAction
-import com.wallet.core.primitives.TransferDataOutputType
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -29,11 +28,9 @@ import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemPaymentLoad
 import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemRecipient
-import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.Payment
 import uniffi.gemstone.PaymentLink
 import uniffi.gemstone.TransactionInputType
-import uniffi.gemstone.TransferDataExtra
 import java.math.BigInteger
 
 class PaymentNavigationTest {
@@ -75,24 +72,15 @@ class PaymentNavigationTest {
         assertEquals(PaymentLink.SolanaPay(PAYMENT_URL), route.link)
     }
 
-    private fun paymentTransfer() = GemTransferData(
+    private fun paymentTransfer() = mockGemTransferData(
+        asset = mockAssetSolana(),
         inputType = TransactionInputType.Payment(
             asset = mockAssetSolana().toGem(),
             invoice = mockPaymentInvoice(link = PaymentLink.SolanaPay(PAYMENT_URL)),
-            extra = TransferDataExtra(
-                to = SOLANA_ADDRESS,
-                gasLimit = null,
-                gasPrice = null,
-                data = "encoded-transaction".toByteArray(),
-                outputType = TransferDataOutputType.EncodedTransaction.toGem(),
-                outputAction = TransferDataOutputAction.Send.toGem(),
-                transactionType = TransactionType.Transfer.toGem(),
-                approval = null,
-            ),
+            extra = mockTransferDataExtra(to = SOLANA_ADDRESS, data = "encoded-transaction".toByteArray()),
         ),
-        recipient = GemRecipient(address = SOLANA_ADDRESS, name = null, memo = null, references = emptyList()),
+        recipient = GemRecipient(address = SOLANA_ADDRESS),
         value = BigInteger("19000000"),
-        useMaxAmount = false,
     )
 
     private companion object {

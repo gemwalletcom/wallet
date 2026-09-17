@@ -8,8 +8,8 @@ import com.wallet.core.primitives.ApplicationMetadata
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.StakeType
-import uniffi.gemstone.PaymentInvoice
 import uniffi.gemstone.GemTransferData
+import uniffi.gemstone.PaymentInvoice
 import uniffi.gemstone.PerpetualType
 import uniffi.gemstone.SwapData
 import uniffi.gemstone.TransactionInputType

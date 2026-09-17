@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.confirm.viewmodels.models
+package com.gemwallet.android.features.confirm.viewmodels
 
 import android.webkit.JavascriptInterface
 import kotlinx.serialization.json.Json

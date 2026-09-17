@@ -26,7 +26,6 @@ import com.wallet.core.primitives.TransactionState
 import uniffi.gemstone.DelegationState
 import uniffi.gemstone.FeeOption
 import uniffi.gemstone.GemAddNodeFailure
-import uniffi.gemstone.GemAddressDisplay
 import uniffi.gemstone.GemAddressServiceInterface
 import uniffi.gemstone.GemApprovalValue
 import uniffi.gemstone.GemAssetMenuAction
@@ -420,12 +419,6 @@ private fun prefixed(context: Context, @StringRes prefix: Int?, value: String): 
 @StringRes
 fun FeeOption.stringRes(): Int = when (this) {
     FeeOption.TOKEN_ACCOUNT_CREATION -> R.string.banner_account_activation_title
-}
-
-fun GemAddressServiceInterface.displayText(name: String?, formatted: String, hasImage: Boolean): String = when (val display = display(name, formatted, hasImage)) {
-    is GemAddressDisplay.Address -> formatted
-    is GemAddressDisplay.Name -> display.name
-    is GemAddressDisplay.NameWithAddress -> "${display.name} ($formatted)"
 }
 
 fun bannerTitle(context: Context, title: GemBannerTitle): String = when (title) {

@@ -13,9 +13,9 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.model.AuthState
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.WalletApp
 import com.gemwallet.android.ui.components.screen.LoadingScene
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.theme.WalletTheme
 
 @Composable

@@ -10,16 +10,14 @@ import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.wallet.chainAddresses
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.confirm.viewmodels.models.PaymentVerificationBridge
-import com.gemwallet.android.serializer.unpackRoutePayload
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ToastEmitter
 import com.gemwallet.android.ui.models.ToastEmitterImpl
 import com.gemwallet.android.ui.models.ToastMessage
-import com.gemwallet.android.ui.models.navigation.RouteArgument
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,8 +27,6 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.GemPaymentException
 import uniffi.gemstone.GemPaymentLoad
 import uniffi.gemstone.GemPaymentServiceInterface
-import uniffi.gemstone.PaymentLink
-import javax.inject.Inject
 
 @HiltViewModel
 class PaymentVerificationViewModel @Inject constructor(
@@ -41,8 +37,8 @@ class PaymentVerificationViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) : ViewModel(), ToastEmitter by ToastEmitterImpl() {
 
-    private val link: PaymentLink = requireNotNull(savedStateHandle.get<String>(RouteArgument.PaymentLink.key)?.let { unpackRoutePayload<PaymentLink>(it) })
-    private val urlState = MutableStateFlow(requireNotNull(savedStateHandle.get<String>(RouteArgument.Url.key)))
+    private val link = savedStateHandle.requirePaymentLink()
+    private val urlState = MutableStateFlow(savedStateHandle.requireUrl())
     private val confirmState = MutableStateFlow<ConfirmTransferInput?>(null)
 
     val url: StateFlow<String> = urlState.asStateFlow()

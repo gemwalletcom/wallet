@@ -7,14 +7,12 @@ import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
-import com.gemwallet.android.serializer.unpackRoutePayload
-import com.gemwallet.android.ui.models.navigation.RouteArgument
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemSelectAssetType
-import javax.inject.Inject
 
 @HiltViewModel
 class PaymentSelectViewModel @Inject constructor(
@@ -34,6 +32,3 @@ class PaymentSelectViewModel @Inject constructor(
     ioDispatcher,
     context,
 )
-
-private fun SavedStateHandle.paymentAssetIds(): List<String> =
-    get<String>(RouteArgument.AssetIds.key)?.let { unpackRoutePayload<List<String>>(it) }.orEmpty()

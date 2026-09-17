@@ -34,7 +34,7 @@ sealed interface ConfirmRowUIModel {
         val explorerLink: BlockExplorerLink,
     ) : ConfirmRowUIModel
     data class Network(val chain: Chain, val name: String) : ConfirmRowUIModel
-    data class Wallet(val title: String, val name: String, val image: ListItemImage) : ConfirmRowUIModel
+    data class Sender(val title: String, val name: String, val image: ListItemImage) : ConfirmRowUIModel
     data class PaymentAsset(val model: ListItemModel, val selectable: Boolean) : ConfirmRowUIModel
 }
 
@@ -68,7 +68,7 @@ internal fun ConfirmProperty.uiModel(context: Context): ConfirmRowUIModel = when
         explorerLink = explorerLink,
         avatar = null,
     )
-    is ConfirmProperty.Source -> ConfirmRowUIModel.Wallet(title = context.getString(R.string.common_wallet), name = walletRow.name, image = walletRow.listItemImage())
+    is ConfirmProperty.Source -> ConfirmRowUIModel.Sender(title = context.getString(R.string.common_wallet), name = walletRow.name, image = walletRow.listItemImage())
     is ConfirmProperty.Network -> ConfirmRowUIModel.Network(chain = chain, name = name)
     is ConfirmProperty.PaymentAsset -> ConfirmRowUIModel.PaymentAsset(
         model = ListItemModel(title = context.getString(R.string.transfer_pay_with), subtitle = symbol),

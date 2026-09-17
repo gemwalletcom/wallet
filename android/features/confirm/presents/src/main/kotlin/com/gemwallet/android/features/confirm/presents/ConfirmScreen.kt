@@ -40,24 +40,23 @@ import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmHeaderUIM
 import com.gemwallet.android.features.confirm.viewmodels.models.ConfirmRowUIModel
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.WebView
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_head.AmountListHead
 import com.gemwallet.android.ui.components.list_head.AssetValueListHead
 import com.gemwallet.android.ui.components.list_head.NftHead
 import com.gemwallet.android.ui.components.list_head.SwapListHead
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
-import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
-import com.gemwallet.android.ui.components.image.ListItemImageView
-import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
+import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
+import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
+import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.perpetual.AutocloseSummaryRow
 import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsBottomSheet
 import com.gemwallet.android.ui.components.perpetual.PerpetualDetailsSummaryItem
-import com.gemwallet.android.ui.components.WebView
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.SheetExpansion
@@ -72,6 +71,7 @@ import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.SimulationResult
 
@@ -198,7 +198,7 @@ fun ConfirmScreen(
                         listPosition = listPosition,
                     )
                     is ConfirmRowUIModel.Network -> PropertyNetworkItem(chain = row.chain, value = row.name, listPosition = listPosition)
-                    is ConfirmRowUIModel.Wallet -> PropertyItem(
+                    is ConfirmRowUIModel.Sender -> PropertyItem(
                         title = { PropertyTitleText(text = row.title) },
                         data = {
                             PropertyDataText(
