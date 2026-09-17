@@ -29,6 +29,8 @@ use num_bigint::{BigInt, Sign};
 use primitives::AssetPrice;
 use primitives::TransactionInputType;
 
+const BASE_FEE_INCREASE_PERCENT: u32 = 20;
+
 impl SendInput {
     pub(super) fn signer_input(&self) -> Result<GemSignerInput, GemConfirmError> {
         let GemConfirmInput { from, transfer } = &self.confirm.input;
@@ -425,16 +427,21 @@ fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[GemFeeRate], selectio
     }
 }
 
-pub(super) fn confirmation_fee_rates(chain: Chain, is_max_amount: bool, rates: Vec<GemFeeRate>) -> Vec<GemFeeRate> {
-    let multiplier = if is_max_amount {
-        1
+pub(super) fn confirmation_fee_rates(asset_id: &AssetId, is_max_amount: bool, rates: Vec<GemFeeRate>) -> Vec<GemFeeRate> {
+    let increase_percent = if is_max_amount && asset_id.is_native() {
+        asset_id
+            .chain
+            .config()
+            .evm
+            .as_ref()
+            .map_or(0, |config| config.chain_stack.max_amount_base_fee_increase_percent())
     } else {
-        chain.config().evm.as_ref().map_or(1, |config| config.chain_stack.base_fee_multiplier())
+        BASE_FEE_INCREASE_PERCENT
     };
     let mut rates = rates;
     for rate in &mut rates {
         match &mut rate.gas_price_type {
-            GasPriceType::Eip1559 { gas_price, .. } => *gas_price *= multiplier,
+            GasPriceType::Eip1559 { gas_price, .. } => *gas_price = &*gas_price * (100 + increase_percent) / 100u32,
             GasPriceType::Regular { .. } | GasPriceType::Solana { .. } => {}
         }
     }
@@ -707,7 +714,7 @@ mod tests {
     #[test]
     fn test_confirmation_fee_rates_list_normal_before_fast() {
         let rates = confirmation_fee_rates(
-            Chain::Ethereum,
+            &AssetId::from_chain(Chain::Ethereum),
             false,
             vec![GemFeeRate::mock(FeePriority::Fast, 20), GemFeeRate::mock(FeePriority::Normal, 10)],
         );
@@ -715,37 +722,42 @@ mod tests {
     }
 
     #[test]
-    fn test_confirmation_fee_rates_arbitrum_stack() {
-        for (chain, is_max_amount, base_fee) in [
-            (Chain::Arbitrum, false, 40),
-            (Chain::Robinhood, false, 40),
-            (Chain::Arbitrum, true, 20),
-            (Chain::Robinhood, true, 20),
-            (Chain::Ethereum, false, 20),
-            (Chain::Optimism, false, 20),
-            (Chain::ZkSync, false, 20),
+    fn test_confirmation_fee_rates_base_fee_increase() {
+        let native = AssetId::from_chain;
+        let token = |chain| AssetId::from_token(chain, "0x1111111111111111111111111111111111111111");
+        for (asset_id, is_max_amount, base_fee) in [
+            (native(Chain::Ethereum), false, 120),
+            (native(Chain::Ethereum), true, 100),
+            (token(Chain::Ethereum), true, 120),
+            (native(Chain::Arbitrum), false, 120),
+            (native(Chain::Arbitrum), true, 105),
+            (native(Chain::Robinhood), true, 105),
+            (token(Chain::Robinhood), true, 120),
+            (native(Chain::Optimism), false, 120),
+            (native(Chain::Optimism), true, 100),
+            (native(Chain::ZkSync), true, 100),
         ] {
             let rates = confirmation_fee_rates(
-                chain,
+                &asset_id,
                 is_max_amount,
                 vec![
                     GemFeeRate {
                         priority: FeePriority::Normal,
-                        gas_price_type: GasPriceType::eip1559(20, 5),
+                        gas_price_type: GasPriceType::eip1559(100, 5),
                     },
                     GemFeeRate {
                         priority: FeePriority::Fast,
-                        gas_price_type: GasPriceType::eip1559(20, 10),
+                        gas_price_type: GasPriceType::eip1559(100, 10),
                     },
                 ],
             );
             assert_eq!(
                 rates.iter().map(|rate| rate.gas_price_type.clone()).collect::<Vec<_>>(),
                 vec![GasPriceType::eip1559(base_fee, 5), GasPriceType::eip1559(base_fee, 10)],
-                "{chain:?} max={is_max_amount}"
+                "{asset_id} max={is_max_amount}"
             );
-            let custom = GemConfirmFeeSelection::Custom { gas_price: BigInt::from(30) }.select_fee_rate(&rates).unwrap();
-            assert_eq!(custom.gas_price_type, GasPriceType::eip1559(25, 5));
+            let custom = GemConfirmFeeSelection::Custom { gas_price: BigInt::from(150) }.select_fee_rate(&rates).unwrap();
+            assert_eq!(custom.gas_price_type, GasPriceType::eip1559(145, 5));
         }
     }
 
