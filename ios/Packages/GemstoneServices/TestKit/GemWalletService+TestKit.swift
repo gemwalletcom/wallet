@@ -11,6 +11,7 @@ import class Gemstone.GemSignMessageService
 import class Gemstone.GemWalletPreferencesService
 import class Gemstone.GemWalletService
 import class Gemstone.GemWalletSessionService
+import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import NativeProviderService
 import GemstoneServices
@@ -56,9 +57,9 @@ public extension GemWalletSessionService {
     }
 
     static func mock(wallet: Wallet) throws -> GemWalletSessionService {
-        let store = WalletStore.mock(db: .mock())
-        try store.addWallet(wallet)
-        return GemWalletSessionService(store: GemstoneWalletSessionStore.mock(), wallets: GemstoneWalletStore(store: store))
+        let service = try GemWalletSessionService.mock(store: .mock(db: .mockWithWallets([wallet])))
+        try service.setCurrent(walletId: wallet.id)
+        return service
     }
 }
 

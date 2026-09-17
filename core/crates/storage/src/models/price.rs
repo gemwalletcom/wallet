@@ -338,13 +338,9 @@ mod tests {
         chrono::Utc.timestamp_opt(secs, 0).unwrap().naive_utc()
     }
 
-    fn row(price: f64, ath: f64, ath_d: Option<NaiveDateTime>, atl: f64, atl_d: Option<NaiveDateTime>) -> PriceRow {
-        PriceRow::new(PriceProvider::Pyth, "x".into(), price, None, ath, ath_d, atl, atl_d, None, None, ts(1000))
-    }
-
     #[test]
     fn test_total_volume_market_roundtrip() {
-        let mut price = row(50.0, 100.0, Some(ts(100)), 10.0, Some(ts(200)));
+        let mut price = PriceRow::new(PriceProvider::Pyth, "x".into(), 50.0, None, 100.0, Some(ts(100)), 10.0, Some(ts(200)), None, None, ts(1000));
         price.total_volume = Some(123.0);
 
         let price_data = price.as_price_data();
@@ -356,16 +352,16 @@ mod tests {
 
     #[test]
     fn test_merge_extremes() {
-        let stored = row(50.0, 100.0, Some(ts(100)), 10.0, Some(ts(200)));
+        let stored = PriceRow::new(PriceProvider::Pyth, "x".into(), 50.0, None, 100.0, Some(ts(100)), 10.0, Some(ts(200)), None, None, ts(1000));
         assert!(stored.merge_extremes(None).is_empty());
 
-        let stored = row(5.0, 100.0, Some(ts(100)), 10.0, Some(ts(200)));
+        let stored = PriceRow::new(PriceProvider::Pyth, "x".into(), 5.0, None, 100.0, Some(ts(100)), 10.0, Some(ts(200)), None, None, ts(1000));
         let updates = stored.merge_extremes(None);
         assert_eq!(updates.len(), 1);
         assert!(matches!(updates[0], PriceUpdate::AllTimeLow { value, .. } if value == 5.0));
 
-        let stored = row(50.0, 80.0, Some(ts(100)), 10.0, Some(ts(200)));
-        let wire = row(50.0, 150.0, Some(ts(900)), 0.0, None);
+        let stored = PriceRow::new(PriceProvider::Pyth, "x".into(), 50.0, None, 80.0, Some(ts(100)), 10.0, Some(ts(200)), None, None, ts(1000));
+        let wire = PriceRow::new(PriceProvider::Pyth, "x".into(), 50.0, None, 150.0, Some(ts(900)), 0.0, None, None, None, ts(1000));
         let updates = stored.merge_extremes(Some(&wire));
         assert_eq!(updates.len(), 1);
         match &updates[0] {
@@ -376,17 +372,29 @@ mod tests {
             _ => panic!("expected AllTimeHigh"),
         }
 
-        let stored = row(50.0, 100.0, Some(ts(100)), 10.0, Some(ts(200)));
-        let wire = row(50.0, 0.0, None, 0.0, None);
+        let stored = PriceRow::new(PriceProvider::Pyth, "x".into(), 50.0, None, 100.0, Some(ts(100)), 10.0, Some(ts(200)), None, None, ts(1000));
+        let wire = PriceRow::new(PriceProvider::Pyth, "x".into(), 50.0, None, 0.0, None, 0.0, None, None, None, ts(1000));
         assert!(stored.merge_extremes(Some(&wire)).is_empty());
 
-        let stored = row(7.5, 100.0, Some(ts(100)), 0.0, None);
+        let stored = PriceRow::new(PriceProvider::Pyth, "x".into(), 7.5, None, 100.0, Some(ts(100)), 0.0, None, None, None, ts(1000));
         let updates = stored.merge_extremes(None);
         assert_eq!(updates.len(), 1);
         assert!(matches!(updates[0], PriceUpdate::AllTimeLow { value, .. } if value == 7.5));
 
-        let stored = row(200.0, 100.0, Some(ts(100)), 10.0, Some(ts(200)));
-        let wire = row(200.0, 150.0, Some(ts(900)), 0.0, None);
+        let stored = PriceRow::new(
+            PriceProvider::Pyth,
+            "x".into(),
+            200.0,
+            None,
+            100.0,
+            Some(ts(100)),
+            10.0,
+            Some(ts(200)),
+            None,
+            None,
+            ts(1000),
+        );
+        let wire = PriceRow::new(PriceProvider::Pyth, "x".into(), 200.0, None, 150.0, Some(ts(900)), 0.0, None, None, None, ts(1000));
         let updates = stored.merge_extremes(Some(&wire));
         assert_eq!(updates.len(), 1);
         match &updates[0] {

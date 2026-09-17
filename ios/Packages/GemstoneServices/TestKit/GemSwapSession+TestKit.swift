@@ -34,4 +34,9 @@ public extension GemSwapSession {
     static func mockFailed(_ error: SwapperError) -> GemSwapSession {
         mockLoading().onQuoteResults(results: GemSwapQuotesResult(request: .mock, quotes: [], error: error))
     }
+
+    func failedTransfer(_ error: SwapperError) -> GemSwapSession {
+        let started = startTransfer()!
+        return started.onTransferFailed(transfer: started.transferPhase, error: error)
+    }
 }

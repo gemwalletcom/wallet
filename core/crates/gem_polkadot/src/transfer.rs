@@ -255,35 +255,7 @@ fn encode_compact_integer(value: u128, output: &mut Vec<u8>) {
 
 #[cfg(test)]
 mod tests {
-    use num_bigint::BigUint;
-    use primitives::{Asset, Chain, GasPriceType, TransactionInputType};
-
     use super::*;
-
-    const ADDRESS: &str = "15e6w4u9nH4Tb9HdJco2Zua4y5DpHb1hHXBKBGkUrLMTpuXo";
-
-    fn input() -> TransactionLoadInput {
-        TransactionLoadInput {
-            input_type: TransactionInputType::Transfer {
-                asset: Asset::from_chain(Chain::Polkadot),
-            },
-            sender_address: ADDRESS.to_string(),
-            destination_address: ADDRESS.to_string(),
-            value: BigUint::from(10000u64),
-            gas_price: GasPriceType::regular(10),
-            memo: None,
-            is_max_value: false,
-            metadata: TransactionLoadMetadata::Polkadot {
-                sequence: 0,
-                genesis_hash: "0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3".to_string(),
-                block_hash: "0x6e3ffeaa3be9d19bd110e5b6e7cbbc92cceed0d2ec557276c296bf7970ace2e5".to_string(),
-                block_number: 24_666_537,
-                spec_version: 1_003_004,
-                transaction_version: 26,
-                period: 64,
-            },
-        }
-    }
 
     #[test]
     fn test_encode_compact_integer() {
@@ -320,7 +292,7 @@ mod tests {
     #[test]
     fn test_fee_estimation_transaction() {
         assert_eq!(
-            fee_estimation_transaction_with_private_key(&input(), &[1; 32]).unwrap(),
+            fee_estimation_transaction_with_private_key(&TransactionLoadInput::mock_polkadot(), &[1; 32]).unwrap(),
             concat!(
                 "0x39028400",
                 "8a88e3dd7409f195fd52db2d3cba5d72ca6709bf1d94121bf3748801b40f6f5c",

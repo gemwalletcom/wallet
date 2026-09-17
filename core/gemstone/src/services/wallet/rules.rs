@@ -2,10 +2,11 @@ use gem_keystore::Mnemonic;
 use primitives::{Account, AddressName, AddressType, Chain, ChainAddress, NameRecord, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
 
 use super::error::GemWalletImportError;
-use super::model::{GemWalletDetails, GemWalletImportKind, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSecretKind, GemWalletSubtitle};
+use super::model::{GemSecretPhraseRow, GemWalletDetails, GemWalletImportKind, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSecretKind, GemWalletSubtitle};
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
 
 const WALLET_ADDRESS_STYLE: GemAddressFormatStyle = GemAddressFormatStyle::Extra { extra: 1 };
+const SECRET_PHRASE_COLUMNS: u32 = 2;
 use crate::address::{checksum_address, validate_address};
 use crate::keystore::GemKeystoreAccount;
 use crate::signer::decode_private_key;
@@ -132,6 +133,16 @@ fn secret_kind(wallet: &Wallet) -> Option<GemWalletSecretKind> {
         SecretExport::PrivateKey(_) => Some(GemWalletSecretKind::PrivateKey),
         SecretExport::None => None,
     }
+}
+
+pub fn secret_phrase_rows(word_count: u32) -> Vec<GemSecretPhraseRow> {
+    let per_column = word_count / SECRET_PHRASE_COLUMNS;
+    let pairs = (0..per_column).map(|row| GemSecretPhraseRow::Pair {
+        left: row,
+        right: row + per_column,
+    });
+    let odd_last = (word_count % SECRET_PHRASE_COLUMNS == 1).then(|| GemSecretPhraseRow::Single { index: word_count - 1 });
+    pairs.chain(odd_last).collect()
 }
 
 pub fn row(wallet: &Wallet) -> GemWalletRow {
@@ -289,16 +300,6 @@ mod tests {
     }
 
     use super::*;
-    use primitives::NameProvider;
-
-    fn record(name: &str, address: &str) -> NameRecord {
-        NameRecord {
-            name: name.to_string(),
-            chain: Chain::Ethereum,
-            address: address.to_string(),
-            provider: NameProvider::Ens,
-        }
-    }
 
     #[test]
     fn test_import_kinds_offer_a_private_key_only_where_the_chain_supports_it() {
@@ -334,11 +335,11 @@ mod tests {
             Ok(GemWalletImportType::PrivateKey { value, chain: Chain::Ethereum }) if value == "0xabc"
         ));
         assert!(matches!(
-            import_request(GemWalletImportKind::Address, Some(Chain::Ethereum), "vitalik.eth", Some(&record("vitalik.eth", "0xd8dA"))),
+            import_request(GemWalletImportKind::Address, Some(Chain::Ethereum), "vitalik.eth", Some(&NameRecord::mock("vitalik.eth", "0xd8dA"))),
             Ok(GemWalletImportType::Address { address, chain: Chain::Ethereum }) if address == "0xd8dA"
         ));
         assert!(matches!(
-            import_request(GemWalletImportKind::Address, Some(Chain::Ethereum), " 0x123 ", Some(&record("", ""))),
+            import_request(GemWalletImportKind::Address, Some(Chain::Ethereum), " 0x123 ", Some(&NameRecord::mock("", ""))),
             Ok(GemWalletImportType::Address { address, .. }) if address == "0x123"
         ));
         assert!(matches!(
@@ -353,8 +354,8 @@ mod tests {
 
     #[test]
     fn test_import_name_uses_the_resolved_name_unless_it_is_blank() {
-        assert_eq!(import_name(Some(&record("vitalik.eth", "0x1")), "Wallet #2".to_string()), "vitalik.eth");
-        assert_eq!(import_name(Some(&record("  ", "0x1")), "Wallet #2".to_string()), "Wallet #2");
+        assert_eq!(import_name(Some(&NameRecord::mock("vitalik.eth", "0x1")), "Wallet #2".to_string()), "vitalik.eth");
+        assert_eq!(import_name(Some(&NameRecord::mock("  ", "0x1")), "Wallet #2".to_string()), "Wallet #2");
         assert_eq!(import_name(None, "Wallet #2".to_string()), "Wallet #2");
     }
 
@@ -429,19 +430,11 @@ mod tests {
         );
     }
 
-    fn wallet(id: WalletId, wallet_type: WalletType, chains: &[Chain]) -> Wallet {
-        Wallet {
-            id,
-            wallet_type,
-            ..Wallet::mock_with_accounts(Account::mock_chains(chains, "address"))
-        }
-    }
-
     #[test]
     fn test_secret_kind_follows_the_wallet_type() {
-        let phrase = wallet(WalletId::Multicoin("0x1".to_string()), WalletType::Multicoin, &[Chain::Ethereum]);
-        let private_key = wallet(WalletId::PrivateKey(Chain::Ethereum, "0x2".to_string()), WalletType::PrivateKey, &[Chain::Ethereum]);
-        let view = wallet(WalletId::View(Chain::Ethereum, "0x3".to_string()), WalletType::View, &[Chain::Ethereum]);
+        let phrase = Wallet::mock_with_id(WalletId::Multicoin("0x1".to_string()), &[Chain::Ethereum]);
+        let private_key = Wallet::mock_with_id(WalletId::PrivateKey(Chain::Ethereum, "0x2".to_string()), &[Chain::Ethereum]);
+        let view = Wallet::mock_with_id(WalletId::View(Chain::Ethereum, "0x3".to_string()), &[Chain::Ethereum]);
 
         assert_eq!(secret_kind(&phrase), Some(GemWalletSecretKind::Phrase));
         assert_eq!(secret_kind(&private_key), Some(GemWalletSecretKind::PrivateKey));
@@ -449,9 +442,26 @@ mod tests {
     }
 
     #[test]
+    fn test_secret_phrase_rows() {
+        assert_eq!(
+            secret_phrase_rows(4),
+            vec![GemSecretPhraseRow::Pair { left: 0, right: 2 }, GemSecretPhraseRow::Pair { left: 1, right: 3 }]
+        );
+        assert_eq!(
+            secret_phrase_rows(5),
+            vec![
+                GemSecretPhraseRow::Pair { left: 0, right: 2 },
+                GemSecretPhraseRow::Pair { left: 1, right: 3 },
+                GemSecretPhraseRow::Single { index: 4 },
+            ]
+        );
+        assert_eq!(secret_phrase_rows(0), vec![]);
+    }
+
+    #[test]
     fn test_details_show_one_address_only_when_the_wallet_has_one_account() {
-        let single = wallet(WalletId::Single(Chain::Ethereum, "0x2".to_string()), WalletType::Single, &[Chain::Ethereum]);
-        let multicoin = wallet(WalletId::Multicoin("0x1".to_string()), WalletType::Multicoin, &[Chain::Ethereum, Chain::Bitcoin]);
+        let single = Wallet::mock_with_id(WalletId::Single(Chain::Ethereum, "0x2".to_string()), &[Chain::Ethereum]);
+        let multicoin = Wallet::mock_with_id(WalletId::Multicoin("0x1".to_string()), &[Chain::Ethereum, Chain::Bitcoin]);
 
         let single_details = details(&single);
         assert_eq!(single_details.row.id, single.id.id());
@@ -462,12 +472,12 @@ mod tests {
 
     #[test]
     fn test_row_comes_from_the_wallet_id() {
-        let multicoin = row(&wallet(WalletId::Multicoin("0x1".to_string()), WalletType::Multicoin, &[Chain::Ethereum]));
+        let multicoin = row(&Wallet::mock_with_id(WalletId::Multicoin("0x1".to_string()), &[Chain::Ethereum]));
         assert_eq!(multicoin.subtitle, GemWalletSubtitle::Multicoin);
         assert_eq!(multicoin.placeholder, GemWalletPlaceholder::Multicoin);
         assert!(!multicoin.shows_watch_badge);
 
-        let view = row(&wallet(WalletId::View(Chain::Ethereum, "0x2".to_string()), WalletType::View, &[Chain::Ethereum]));
+        let view = row(&Wallet::mock_with_id(WalletId::View(Chain::Ethereum, "0x2".to_string()), &[Chain::Ethereum]));
         assert_eq!(
             view.subtitle,
             GemWalletSubtitle::Address {
@@ -477,15 +487,15 @@ mod tests {
         assert_eq!(view.placeholder, GemWalletPlaceholder::Chain { chain: Chain::Ethereum });
         assert!(view.shows_watch_badge);
 
-        let single = row(&wallet(WalletId::Single(Chain::Bitcoin, "bc1".to_string()), WalletType::Single, &[Chain::Bitcoin]));
+        let single = row(&Wallet::mock_with_id(WalletId::Single(Chain::Bitcoin, "bc1".to_string()), &[Chain::Bitcoin]));
         assert!(!single.shows_watch_badge);
     }
 
     #[test]
     fn test_wallets_missing_chains() {
-        let multicoin = wallet(WalletId::Multicoin("0x1".to_string()), WalletType::Multicoin, &[Chain::Ethereum]);
-        let complete = wallet(WalletId::Multicoin("0x2".to_string()), WalletType::Multicoin, &[Chain::Ethereum, Chain::Bitcoin]);
-        let single = wallet(WalletId::Single(Chain::Ethereum, "0x3".to_string()), WalletType::Single, &[Chain::Ethereum]);
+        let multicoin = Wallet::mock_with_id(WalletId::Multicoin("0x1".to_string()), &[Chain::Ethereum]);
+        let complete = Wallet::mock_with_id(WalletId::Multicoin("0x2".to_string()), &[Chain::Ethereum, Chain::Bitcoin]);
+        let single = Wallet::mock_with_id(WalletId::Single(Chain::Ethereum, "0x3".to_string()), &[Chain::Ethereum]);
 
         let result = wallets_missing_chains(vec![multicoin.clone(), complete, single], &[Chain::Ethereum, Chain::Bitcoin]);
 
@@ -497,7 +507,7 @@ mod tests {
     #[test]
     fn test_existing_wallet_requires_same_type() {
         let id = WalletId::Single(Chain::Bitcoin, "bc1".to_string());
-        let wallets = vec![wallet(id.clone(), WalletType::Single, &[Chain::Bitcoin])];
+        let wallets = vec![Wallet::mock_with_id(id.clone(), &[Chain::Bitcoin])];
 
         assert!(existing_wallet(&wallets, &id, WalletType::Single).is_some());
         assert!(existing_wallet(&wallets, &id, WalletType::PrivateKey).is_none());
@@ -506,11 +516,11 @@ mod tests {
 
     #[test]
     fn test_next_current_wallet_prefers_multicoin_then_lowest_index() {
-        let mut view = wallet(WalletId::View(Chain::Ethereum, "0xv".to_string()), WalletType::View, &[Chain::Ethereum]);
+        let mut view = Wallet::mock_with_id(WalletId::View(Chain::Ethereum, "0xv".to_string()), &[Chain::Ethereum]);
         view.index = 0;
-        let mut second = wallet(WalletId::Multicoin("0x2".to_string()), WalletType::Multicoin, &[Chain::Ethereum]);
+        let mut second = Wallet::mock_with_id(WalletId::Multicoin("0x2".to_string()), &[Chain::Ethereum]);
         second.index = 2;
-        let mut first = wallet(WalletId::Multicoin("0x1".to_string()), WalletType::Multicoin, &[Chain::Ethereum]);
+        let mut first = Wallet::mock_with_id(WalletId::Multicoin("0x1".to_string()), &[Chain::Ethereum]);
         first.index = 1;
 
         assert_eq!(next_current_wallet(&[view, second, first.clone()]), Some(first.id));
@@ -537,20 +547,23 @@ mod tests {
     #[test]
     fn test_next_wallet_index_uses_highest_index() {
         assert_eq!(next_wallet_index(&[]), 1);
-        let mut first = wallet(WalletId::Multicoin("1".into()), WalletType::Multicoin, &[]);
+        let mut first = Wallet::mock_with_id(WalletId::Multicoin("1".into()), &[]);
         first.index = 3;
-        let mut second = wallet(WalletId::Multicoin("2".into()), WalletType::Single, &[]);
+        let mut second = Wallet {
+            wallet_type: WalletType::Single,
+            ..Wallet::mock_with_id(WalletId::Multicoin("2".into()), &[])
+        };
         second.index = 1;
         assert_eq!(next_wallet_index(&[first, second]), 4);
     }
 
     #[test]
     fn test_wallets_sort_by_type_then_index() {
-        let mut watch = wallet(WalletId::View(Chain::Ethereum, "0xv".to_string()), WalletType::View, &[Chain::Ethereum]);
+        let mut watch = Wallet::mock_with_id(WalletId::View(Chain::Ethereum, "0xv".to_string()), &[Chain::Ethereum]);
         watch.index = 0;
-        let mut second = wallet(WalletId::Multicoin("0x2".to_string()), WalletType::Multicoin, &[Chain::Ethereum]);
+        let mut second = Wallet::mock_with_id(WalletId::Multicoin("0x2".to_string()), &[Chain::Ethereum]);
         second.index = 2;
-        let mut first = wallet(WalletId::Multicoin("0x1".to_string()), WalletType::Multicoin, &[Chain::Ethereum]);
+        let mut first = Wallet::mock_with_id(WalletId::Multicoin("0x1".to_string()), &[Chain::Ethereum]);
         first.index = 1;
 
         let sorted = sorted_wallets(vec![watch.clone(), second.clone(), first.clone()]);

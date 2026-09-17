@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.asset.presents.details
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,38 +10,39 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDataAggregate
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.type
-import com.gemwallet.android.ui.components.InfoSheetEntity
-import com.gemwallet.android.ui.components.list_item.energyItem
-import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
-import com.gemwallet.android.ui.components.list_item.property.verificationStatusItem
-import com.gemwallet.android.ui.components.list_item.rememberDateSections
-import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
-import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.screen.PullToRefreshBox
-import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.components.screen.showSnackbar
-import kotlinx.coroutines.launch
-import com.gemwallet.android.ui.open
 import com.gemwallet.android.features.asset.presents.details.components.AssetDetailsMenu
 import com.gemwallet.android.features.asset.presents.details.components.AssetHeadItem
-import com.gemwallet.android.features.asset.presents.details.components.BalancePropertyItem
 import com.gemwallet.android.features.asset.presents.details.components.BannerItem
 import com.gemwallet.android.features.asset.presents.details.components.EmptyTransactionsItem
-import uniffi.gemstone.GemAssetEmptyAction
 import com.gemwallet.android.features.asset.presents.details.components.balancesHeader
 import com.gemwallet.android.features.asset.presents.details.components.manageAssetItem
 import com.gemwallet.android.features.asset.presents.details.components.network
 import com.gemwallet.android.features.asset.presents.details.components.price
 import com.gemwallet.android.features.asset.viewmodels.details.models.AssetInfoUIModel
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.energyItem
+import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
+import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import com.gemwallet.android.ui.components.list_item.property.verificationStatusItem
+import com.gemwallet.android.ui.components.list_item.rememberDateSections
+import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
+import com.gemwallet.android.ui.components.screen.PullToRefreshBox
+import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.components.screen.showSnackbar
+import com.gemwallet.android.ui.open
+import kotlinx.coroutines.launch
+import uniffi.gemstone.GemAssetEmptyAction
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -141,36 +143,30 @@ internal fun AssetDetailsScene(
                     },
                 )
                 uiState.verificationStatus?.let { verificationStatusItem(it) }
-                price(uiState, detailsState.priceAlertsCount.toInt(), onChart = { onAction(AssetDetailsAction.OpenChart(it)) }, onPriceAlerts = { onAction(AssetDetailsAction.OpenPriceAlerts(it)) })
+                price(uiState, onChart = { onAction(AssetDetailsAction.OpenChart(it)) }, onPriceAlerts = { onAction(AssetDetailsAction.OpenPriceAlerts(it)) })
                 network(uiState, onAction)
                 balancesHeader(uiState.accountInfoUIModel)
                 itemsPositioned(uiState.accountInfoUIModel.balances) { position, item ->
-                    BalancePropertyItem(
-                        title = item.type.label,
-                        balance = item.value,
-                        listPosition = position,
-                        info = when (item.type) {
-                            AssetInfoUIModel.BalanceViewType.PendingUnconfirmed -> InfoSheetEntity.PendingUnconfirmedBalanceInfo
-                            AssetInfoUIModel.BalanceViewType.Available,
-                            AssetInfoUIModel.BalanceViewType.Stake,
-                            AssetInfoUIModel.BalanceViewType.Earn,
-                            AssetInfoUIModel.BalanceViewType.Reserved -> null
-                        },
-                        onAction = when (item.type) {
-                            AssetInfoUIModel.BalanceViewType.Available,
-                            AssetInfoUIModel.BalanceViewType.PendingUnconfirmed -> null
-                            AssetInfoUIModel.BalanceViewType.Stake -> {
-                                { onAction(AssetDetailsAction.Stake(uiState.asset.id)) }
-                            }
-
-                            AssetInfoUIModel.BalanceViewType.Earn -> {
-                                { onAction(AssetDetailsAction.Earn(uiState.asset.id)) }
-                            }
-
-                            AssetInfoUIModel.BalanceViewType.Reserved -> item.url?.let { url ->
-                                { uriHandler.open(context, url) }
-                            }
+                    val onBalance: (() -> Unit)? = when (item.type) {
+                        AssetInfoUIModel.BalanceViewType.Available,
+                        AssetInfoUIModel.BalanceViewType.PendingUnconfirmed -> null
+                        AssetInfoUIModel.BalanceViewType.Stake -> {
+                            { onAction(AssetDetailsAction.Stake(uiState.asset.id)) }
                         }
+
+                        AssetInfoUIModel.BalanceViewType.Earn -> {
+                            { onAction(AssetDetailsAction.Earn(uiState.asset.id)) }
+                        }
+
+                        AssetInfoUIModel.BalanceViewType.Reserved -> item.url?.let { url ->
+                            { uriHandler.open(context, url) }
+                        }
+                    }
+                    ListItem(
+                        model = item.model,
+                        listPosition = position,
+                        modifier = onBalance?.let { Modifier.clickable(onClick = it).testTag("assetStake") } ?: Modifier,
+                        accessory = onBalance?.let { { DataBadgeChevron() } },
                     )
                 }
                 if (detailsState.showsResources) {

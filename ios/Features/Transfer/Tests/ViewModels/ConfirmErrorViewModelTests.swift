@@ -11,7 +11,7 @@ import Localization
 import PrimitivesTestKit
 import Testing
 @testable import Transfer
-import TransferTestKit
+@testable import TransferTestKit
 
 struct ConfirmErrorViewModelTests {
     @Test

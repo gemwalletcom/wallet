@@ -42,9 +42,7 @@ import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.coordinators.asset.WalletAssetsCoordinator
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
-import com.gemwallet.android.data.coordinators.asset.GetWidgetAssetsImpl
 import com.gemwallet.android.application.tokens.cases.SearchTokens
-import com.gemwallet.android.application.assets.cases.GetWidgetAssets
 import com.gemwallet.android.application.session.cases.GetCurrentWallet
 
 @InstallIn(SingletonComponent::class)
@@ -139,10 +137,6 @@ object AssetModule {
         walletSessionService,
     )
 
-    @Provides
-    @Singleton
-    fun provideGetWidgetAssets(searchTokensCase: SearchTokens, getWalletAssets: GetWalletAssets): GetWidgetAssets =
-        GetWidgetAssetsImpl(searchTokensCase, getWalletAssets)
 
     @Provides
     @Singleton

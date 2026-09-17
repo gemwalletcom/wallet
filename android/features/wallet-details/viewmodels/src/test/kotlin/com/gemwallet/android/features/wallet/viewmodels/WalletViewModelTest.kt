@@ -54,7 +54,7 @@ class WalletViewModelTest {
     fun `renaming a wallet goes to Core`() = runTest(dispatcher) {
         val service: GemWalletServiceInterface = mockk(relaxed = true)
         val details: GetWalletDetails = mockk { every { getWallet(any()) } returns flowOf(null) }
-        val model = WalletViewModel(details, service, mockk(relaxed = true), route()).also { models.add(it) }
+        val model = WalletViewModel(details, service, mockk(relaxed = true), route(), mockk(relaxed = true)).also { models.add(it) }
 
         model.setWalletName("Savings").join()
 
@@ -67,7 +67,7 @@ class WalletViewModelTest {
             coEvery { rename(any(), any()) } throws IllegalStateException("taken")
         }
         val details: GetWalletDetails = mockk { every { getWallet(any()) } returns flowOf(null) }
-        val model = WalletViewModel(details, service, mockk(relaxed = true), route()).also { models.add(it) }
+        val model = WalletViewModel(details, service, mockk(relaxed = true), route(), mockk(relaxed = true)).also { models.add(it) }
 
         model.setWalletName("Savings").join()
 
@@ -78,7 +78,7 @@ class WalletViewModelTest {
     fun `deleting a wallet hands both callbacks to the case`() = runTest(dispatcher) {
         val delete: DeleteWallet = mockk(relaxed = true)
         val details: GetWalletDetails = mockk { every { getWallet(any()) } returns flowOf(null) }
-        val model = WalletViewModel(details, mockk(relaxed = true), delete, route()).also { models.add(it) }
+        val model = WalletViewModel(details, mockk(relaxed = true), delete, route(), mockk(relaxed = true)).also { models.add(it) }
 
         model.delete(onBoard = {}, onComplete = {}).join()
 

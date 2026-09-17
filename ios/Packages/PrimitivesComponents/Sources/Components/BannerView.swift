@@ -43,11 +43,7 @@ private extension BannerView {
             action: { action(model.action) },
             label: {
                 HStack(spacing: .zero) {
-                    ListItemView(
-                        title: model.title,
-                        titleExtra: model.description,
-                        imageStyle: model.imageStyle,
-                    )
+                    ListItemView(model: model.listItem)
 
                     Spacer(minLength: model.canClose ? .extraLarge : .zero)
                 }

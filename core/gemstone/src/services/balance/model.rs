@@ -198,31 +198,7 @@ impl GemBalanceRecord {
 
 #[cfg(test)]
 mod tests {
-    use primitives::Chain;
-
     use super::*;
-
-    fn balance() -> GemAssetBalance {
-        GemAssetBalance::zero(Chain::Ethereum.as_asset_id())
-    }
-
-    fn metadata(votes: u32) -> BalanceMetadata {
-        BalanceMetadata {
-            votes,
-            energy_available: 1,
-            energy_total: 2,
-            bandwidth_available: 3,
-            bandwidth_total: 4,
-        }
-    }
-
-    fn update(update_type: GemBalanceUpdateType) -> GemBalanceUpdate {
-        GemBalanceUpdate {
-            asset_id: Chain::Ethereum.as_asset_id(),
-            update_type,
-            is_active: true,
-        }
-    }
 
     #[test]
     fn test_a_requirement_has_no_shortfall_once_the_balance_covers_it() {
@@ -235,16 +211,19 @@ mod tests {
 
     #[test]
     fn test_a_coin_update_leaves_the_staking_fields_alone() {
-        let staked = balance().applying(&update(GemBalanceUpdateType::Stake {
+        let staked = GemAssetBalance::mock().applying(&GemBalanceUpdate::mock(GemBalanceUpdateType::Stake {
             staked: GemBigUint::from(70u32),
             pending: GemBigUint::from(5u32),
             rewards: GemBigUint::from(3u32),
             locked: GemBigUint::from(2u32),
             frozen: GemBigUint::from(1u32),
-            metadata: Some(metadata(9)),
+            metadata: Some(BalanceMetadata {
+                votes: 9,
+                ..BalanceMetadata::default()
+            }),
         }));
 
-        let after_coin = staked.applying(&update(GemBalanceUpdateType::Coin {
+        let after_coin = staked.applying(&GemBalanceUpdate::mock(GemBalanceUpdateType::Coin {
             available: GemBigUint::from(11u32),
             frozen: GemBigUint::from(12u32),
             reserved: GemBigUint::from(13u32),
@@ -260,16 +239,19 @@ mod tests {
 
     #[test]
     fn test_a_stake_update_without_metadata_keeps_the_metadata_it_had() {
-        let with_metadata = balance().applying(&update(GemBalanceUpdateType::Stake {
+        let with_metadata = GemAssetBalance::mock().applying(&GemBalanceUpdate::mock(GemBalanceUpdateType::Stake {
             staked: GemBigUint::from(70u32),
             pending: GemBigUint::ZERO,
             rewards: GemBigUint::ZERO,
             locked: GemBigUint::ZERO,
             frozen: GemBigUint::ZERO,
-            metadata: Some(metadata(9)),
+            metadata: Some(BalanceMetadata {
+                votes: 9,
+                ..BalanceMetadata::default()
+            }),
         }));
 
-        let without = with_metadata.applying(&update(GemBalanceUpdateType::Stake {
+        let without = with_metadata.applying(&GemBalanceUpdate::mock(GemBalanceUpdateType::Stake {
             staked: GemBigUint::from(80u32),
             pending: GemBigUint::ZERO,
             rewards: GemBigUint::ZERO,
@@ -284,12 +266,12 @@ mod tests {
 
     #[test]
     fn test_a_perpetual_update_writes_the_withdrawable_a_token_update_never_touches() {
-        let perpetual = balance().applying(&update(GemBalanceUpdateType::Perpetual {
+        let perpetual = GemAssetBalance::mock().applying(&GemBalanceUpdate::mock(GemBalanceUpdateType::Perpetual {
             available: GemBigUint::from(5u32),
             reserved: GemBigUint::from(6u32),
             withdrawable: GemBigUint::from(7u32),
         }));
-        let token = perpetual.applying(&update(GemBalanceUpdateType::Token {
+        let token = perpetual.applying(&GemBalanceUpdate::mock(GemBalanceUpdateType::Token {
             available: GemBigUint::from(9u32),
         }));
 
@@ -302,17 +284,17 @@ mod tests {
     fn test_an_inactive_update_deactivates_the_balance() {
         let inactive = GemBalanceUpdate {
             is_active: false,
-            ..update(GemBalanceUpdateType::Token {
+            ..GemBalanceUpdate::mock(GemBalanceUpdateType::Token {
                 available: GemBigUint::from(1u32),
             })
         };
 
-        assert!(!balance().applying(&inactive).is_active);
+        assert!(!GemAssetBalance::mock().applying(&inactive).is_active);
     }
 
     #[test]
     fn test_a_record_reads_each_value_at_the_asset_decimals() {
-        let earned = balance().applying(&update(GemBalanceUpdateType::Earn {
+        let earned = GemAssetBalance::mock().applying(&GemBalanceUpdate::mock(GemBalanceUpdateType::Earn {
             balance: GemBigUint::from(2_500_000u32),
         }));
 

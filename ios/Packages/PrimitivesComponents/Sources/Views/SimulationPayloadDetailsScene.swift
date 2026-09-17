@@ -11,18 +11,18 @@ public struct SimulationPayloadDetailsScene: View {
 
     private let primaryModels: [SimulationPayloadFieldViewModel]
     private let secondaryModels: [SimulationPayloadFieldViewModel]
-    private let actionTitle: String?
+    private let actionListItem: ListItemModel?
     private let actionDestination: AnyView?
 
     public init(
         primaryModels: [SimulationPayloadFieldViewModel],
         secondaryModels: [SimulationPayloadFieldViewModel],
-        actionTitle: String? = nil,
+        actionListItem: ListItemModel? = nil,
         actionDestination: AnyView? = nil,
     ) {
         self.primaryModels = primaryModels
         self.secondaryModels = secondaryModels
-        self.actionTitle = actionTitle
+        self.actionListItem = actionListItem
         self.actionDestination = actionDestination
     }
 
@@ -40,12 +40,12 @@ public struct SimulationPayloadDetailsScene: View {
                 }
             }
 
-            if let actionTitle, let actionDestination {
+            if let actionListItem, let actionDestination {
                 Section {
                     NavigationLink {
                         actionDestination
                     } label: {
-                        ListItemView(title: actionTitle)
+                        ListItemView(model: actionListItem)
                     }
                 }
             }

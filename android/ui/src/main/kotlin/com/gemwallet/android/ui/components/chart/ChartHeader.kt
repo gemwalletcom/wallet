@@ -18,7 +18,6 @@ import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.space8
-import uniffi.gemstone.GemChartValueType
 
 @Composable
 fun ChartHeader(

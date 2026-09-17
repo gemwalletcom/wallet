@@ -41,13 +41,8 @@ final class VerifyPhraseViewModel {
         AppUrl.docs(.howToSecureSecretPhrase)
     }
 
-    var rows: [[WordIndex]] {
-        wordsVerified
-            .enumerated()
-            .map {
-                WordIndex(index: $0.offset, word: $0.element)
-            }
-            .splitInSubArrays(into: wordsVerified.count / 2)
+    var rows: [SecretPhraseRow] {
+        SecretPhraseRow.rows(for: wordsVerified)
     }
 
     var rowsSections: [[WordIndex]] {

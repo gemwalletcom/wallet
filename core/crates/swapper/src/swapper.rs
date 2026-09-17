@@ -419,18 +419,15 @@ mod tests {
             SwapperQuoteAsset::from(ETHEREUM_USDC_ASSET_ID.clone()),
         );
 
-        let gem_swapper = GemSwapper {
-            rpc_provider: Arc::new(NativeProvider::default()),
-            swappers: vec![
-                Box::new(MockSwapper::new(SwapperProvider::UniswapV3, || Err(SwapperError::InputAmountError { min_amount: None }))),
-                Box::new(MockSwapper::new(SwapperProvider::PancakeswapV3, || {
-                    Err(SwapperError::InputAmountError {
-                        min_amount: Some("1264000".into()),
-                    })
-                })),
-                Box::new(MockSwapper::new(SwapperProvider::Jupiter, || Err(SwapperError::NoQuoteAvailable))),
-            ],
-        };
+        let gem_swapper = GemSwapper::mock(vec![
+            Box::new(MockSwapper::new(SwapperProvider::UniswapV3, || Err(SwapperError::InputAmountError { min_amount: None }))),
+            Box::new(MockSwapper::new(SwapperProvider::PancakeswapV3, || {
+                Err(SwapperError::InputAmountError {
+                    min_amount: Some("1264000".into()),
+                })
+            })),
+            Box::new(MockSwapper::new(SwapperProvider::Jupiter, || Err(SwapperError::NoQuoteAvailable))),
+        ]);
         let result = gem_swapper.get_quotes(&request).await.unwrap();
         assert!(result.quotes.is_empty());
         assert_eq!(result.errors.len(), 3);
@@ -454,12 +451,7 @@ mod tests {
             SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)),
             SwapperQuoteAsset::from(ETHEREUM_USDC_ASSET_ID.clone()),
         );
-        let swapper_with = |swappers: Vec<Box<dyn Swapper>>| GemSwapper {
-            rpc_provider: Arc::new(NativeProvider::default()),
-            swappers,
-        };
-
-        let known_minimums = swapper_with(vec![
+        let known_minimums = GemSwapper::mock(vec![
             Box::new(MockSwapper::new(SwapperProvider::PancakeswapV3, || {
                 Err(SwapperError::InputAmountError {
                     min_amount: Some("5000000".into()),
@@ -479,7 +471,7 @@ mod tests {
             }
         );
 
-        let unknown_minimum = swapper_with(vec![
+        let unknown_minimum = GemSwapper::mock(vec![
             Box::new(MockSwapper::new(SwapperProvider::UniswapV3, || Err(SwapperError::InputAmountError { min_amount: None }))),
             Box::new(MockSwapper::new(SwapperProvider::UniswapV4, || {
                 Err(SwapperError::InputAmountError {
@@ -489,7 +481,7 @@ mod tests {
         ]);
         assert_eq!(unknown_minimum.get_quote(&request).await.unwrap_err(), SwapperError::InputAmountError { min_amount: None });
 
-        let route_errors = swapper_with(vec![
+        let route_errors = GemSwapper::mock(vec![
             Box::new(MockSwapper::new(SwapperProvider::UniswapV3, || Err(SwapperError::NoQuoteAvailable))),
             Box::new(MockSwapper::new(SwapperProvider::Jupiter, || {
                 Err(SwapperError::ComputeQuoteError("HTTP error: status 500".into()))
@@ -548,21 +540,7 @@ mod timing_tests {
     use primitives::{AssetId, Chain, asset_constants::ETHEREUM_USDC_ASSET_ID};
 
     use super::*;
-    use crate::{Options, QuoteRequest, alien::reqwest_provider::NativeProvider};
-
-    fn request(to_asset: AssetId, destination_address: &str) -> QuoteRequest {
-        QuoteRequest {
-            from_asset: AssetId::from_chain(Chain::Ethereum).into(),
-            to_asset: to_asset.into(),
-            wallet_address: "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4".into(),
-            destination_address: destination_address.into(),
-            value: BigUint::from(100000000000000000u64),
-            options: Options {
-                slippage: 100.into(),
-                use_max_amount: false,
-            },
-        }
-    }
+    use crate::{QuoteRequest, alien::reqwest_provider::NativeProvider, testkit::mock_quote};
 
     async fn report(swapper: &GemSwapper, request: &QuoteRequest, round: &str) {
         let started = Instant::now();
@@ -594,11 +572,19 @@ mod timing_tests {
     async fn test_report_preload_and_quote_durations_per_provider() {
         let swapper = GemSwapper::new(Arc::new(NativeProvider::new().set_debug(false)));
 
-        let on_chain = request(ETHEREUM_USDC_ASSET_ID.clone(), "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4");
+        let mut on_chain = mock_quote(AssetId::from_chain(Chain::Ethereum).into(), ETHEREUM_USDC_ASSET_ID.clone().into());
+        on_chain.wallet_address = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4".into();
+        on_chain.destination_address = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4".into();
+        on_chain.value = BigUint::from(100000000000000000u64);
+        on_chain.options.slippage = 100.into();
         report(&swapper, &on_chain, "on-chain cold").await;
         report(&swapper, &on_chain, "on-chain warm").await;
 
-        let cross_chain = request(AssetId::from_chain(Chain::Solana), "7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q");
+        let cross_chain = QuoteRequest {
+            to_asset: AssetId::from_chain(Chain::Solana).into(),
+            destination_address: "7v91N7iZ9mNicL8WfG6cgSCKyRXydQjLh6UYBWwm6y1Q".into(),
+            ..on_chain.clone()
+        };
         report(&swapper, &cross_chain, "cross-chain cold").await;
         report(&swapper, &cross_chain, "cross-chain warm").await;
     }

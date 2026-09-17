@@ -8,6 +8,7 @@ pub(crate) mod testkit;
 
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemPreferencesStore;
+use std::fmt;
 use std::sync::Arc;
 
 use primitives::Chain;
@@ -24,6 +25,12 @@ const NODE: &str = "node";
 pub struct GemNodeService {
     store: Arc<dyn GemNodeStore>,
     preferences: Arc<dyn GemPreferencesStore>,
+}
+
+impl fmt::Debug for GemNodeService {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("GemNodeService").finish_non_exhaustive()
+    }
 }
 
 #[uniffi::export]
@@ -94,8 +101,8 @@ impl GemNodeService {
 }
 
 impl GemNodeService {
-    fn node_url(&self, chain: Chain) -> String {
-        node_url(self.preferences.as_ref(), chain)
+    pub(crate) fn node_url(&self, chain: Chain) -> String {
+        self.selected_node(chain).url
     }
 
     fn selected_url(&self, chain: Chain) -> Option<String> {
@@ -105,10 +112,6 @@ impl GemNodeService {
     fn set_selected_url(&self, chain: Chain, url: String) -> Result<(), GemServiceError> {
         self.preferences.set(node_key(chain), url)
     }
-}
-
-pub fn node_url(preferences: &dyn GemPreferencesStore, chain: Chain) -> String {
-    rules::preferred_chain_node(chain, preferences.get(node_key(chain))).url
 }
 
 fn node_key(chain: Chain) -> String {
@@ -122,20 +125,12 @@ mod tests {
     use super::*;
     use crate::services::preferences::testkit::MemoryPreferencesStore;
 
-    fn node(url: &str) -> Node {
-        Node {
-            url: url.to_string(),
-            status: NodeState::Active,
-            priority: 0,
-        }
-    }
-
     #[test]
     fn test_merge_nodes_keeps_defaults_first_and_dedupes() {
-        let merged = merge_nodes(vec![node("a"), node("b")], vec![node("b"), node("c")]);
+        let merged = merge_nodes(vec![Node::mock("a", 0), Node::mock("b", 0)], vec![Node::mock("b", 0), Node::mock("c", 0)]);
         assert_eq!(merged.iter().map(|node| node.url.as_str()).collect::<Vec<_>>(), vec!["a", "b", "c"]);
-        assert!(is_default_node("a", &[node("a")]));
-        assert!(!is_default_node("c", &[node("a")]));
+        assert!(is_default_node("a", &[Node::mock("a", 0)]));
+        assert!(!is_default_node("c", &[Node::mock("a", 0)]));
     }
 
     #[test]

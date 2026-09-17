@@ -34,7 +34,7 @@ fun PerpetualMarketNavScreen(
     val sceneState by viewModel.sceneState.collectAsStateWithLifecycle()
     val unpinnedPerpetuals by viewModel.unpinnedPerpetuals.collectAsStateWithLifecycle()
     val pinnedPerpetuals by viewModel.pinnedPerpetuals.collectAsStateWithLifecycle()
-    val positions by viewModel.positions.collectAsStateWithLifecycle()
+    val positions by viewModel.positionRows.collectAsStateWithLifecycle()
     val balance by viewModel.balance.collectAsStateWithLifecycle()
     val recent by viewModel.recent.collectAsStateWithLifecycle()
     val query = rememberTextFieldState()

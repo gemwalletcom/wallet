@@ -84,6 +84,7 @@ class PerpetualDetailsViewModelTest {
             service,
             session,
             SavedStateHandle(mapOf(RouteArgument.AssetId.key to asset.id.toIdentifier())),
+            mockk(relaxed = true),
         ).also { models.add(it) }
     }
 

@@ -25,7 +25,8 @@ pub enum GemAssetIconImage {
 
 pub fn asset_icon(asset_id: &AssetId) -> GemAssetIcon {
     let icon_asset_id = icon_asset_id(asset_id);
-    let image = if let Some(token) = local_token_icon(asset_id) {
+    let local_token = local_token_icon(asset_id);
+    let image = if let Some(token) = local_token {
         GemAssetIconImage::LocalToken { token }
     } else if icon_asset_id.is_native() {
         GemAssetIconImage::Local {
@@ -36,7 +37,7 @@ pub fn asset_icon(asset_id: &AssetId) -> GemAssetIcon {
             url: GemImage::Asset { asset_id: icon_asset_id }.url(),
         }
     };
-    let badge = match asset_id.is_native() {
+    let badge = match asset_id.is_native() && local_token.is_none() {
         true => badge_chain(asset_id.chain),
         false => Some(icon_chain(asset_id.chain)),
     };
@@ -75,56 +76,43 @@ fn perpetual_coin(asset_id: &AssetId) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use gem_hypercore::models::metadata::perpetual_asset_id;
     use primitives::EVMChain;
-
-    fn local(chain: Chain) -> GemAssetIconImage {
-        GemAssetIconImage::Local { chain }
-    }
-
-    fn remote(asset_id: &AssetId) -> GemAssetIconImage {
-        GemAssetIconImage::Remote {
-            url: GemImage::Asset { asset_id: asset_id.clone() }.url(),
-        }
-    }
-
-    fn perpetual(coin: &str) -> AssetId {
-        AssetId::from(Chain::HyperCore, Some(AssetId::sub_token_id(&["perpetual".to_string(), coin.to_string()])))
-    }
 
     #[test]
     fn test_native_assets_draw_their_coin_and_badge_only_on_ethereum_layer2() {
         assert_eq!(
             asset_icon(&AssetId::from_chain(Chain::Ethereum)),
             GemAssetIcon {
-                image: local(Chain::Ethereum),
+                image: GemAssetIconImage::Local { chain: Chain::Ethereum },
                 badge: None
             }
         );
         assert_eq!(
             asset_icon(&AssetId::from_chain(Chain::Base)),
             GemAssetIcon {
-                image: local(Chain::Ethereum),
+                image: GemAssetIconImage::Local { chain: Chain::Ethereum },
                 badge: Some(Chain::Base)
             }
         );
         assert_eq!(
             asset_icon(&AssetId::from_chain(Chain::Robinhood)),
             GemAssetIcon {
-                image: local(Chain::Ethereum),
+                image: GemAssetIconImage::Local { chain: Chain::Ethereum },
                 badge: Some(Chain::Robinhood)
             }
         );
         assert_eq!(
             asset_icon(&AssetId::from_chain(Chain::SeiEvm)),
             GemAssetIcon {
-                image: local(Chain::Sei),
+                image: GemAssetIconImage::Local { chain: Chain::Sei },
                 badge: None
             }
         );
         assert_eq!(
             asset_icon(&AssetId::from_chain(Chain::OpBNB)),
             GemAssetIcon {
-                image: local(Chain::OpBNB),
+                image: GemAssetIconImage::Local { chain: Chain::OpBNB },
                 badge: None
             }
         );
@@ -133,7 +121,13 @@ mod tests {
     #[test]
     fn test_layer2_coins_that_are_not_ether_draw_their_own_logo_without_a_badge() {
         for chain in [Chain::Celo, Chain::Mantle, Chain::XLayer] {
-            assert_eq!(asset_icon(&AssetId::from_chain(chain)), GemAssetIcon { image: local(chain), badge: None });
+            assert_eq!(
+                asset_icon(&AssetId::from_chain(chain)),
+                GemAssetIcon {
+                    image: GemAssetIconImage::Local { chain },
+                    badge: None
+                }
+            );
         }
     }
 
@@ -149,12 +143,19 @@ mod tests {
                 true => assert_eq!(
                     icon,
                     GemAssetIcon {
-                        image: local(Chain::Ethereum),
+                        image: GemAssetIconImage::Local { chain: Chain::Ethereum },
                         badge: Some(chain)
                     },
                     "{chain}"
                 ),
-                false => assert_eq!(icon, GemAssetIcon { image: local(chain), badge: None }, "{chain}"),
+                false => assert_eq!(
+                    icon,
+                    GemAssetIcon {
+                        image: GemAssetIconImage::Local { chain },
+                        badge: None
+                    },
+                    "{chain}"
+                ),
             }
         }
     }
@@ -168,34 +169,36 @@ mod tests {
     #[test]
     fn test_known_usdt_and_usdc_draw_the_bundled_token_logo_badged_with_their_chain() {
         use primitives::known_assets::{ETHEREUM_USDT, HYPERCORE_PERPETUAL_USDC, SOLANA_USDC, SUI_SBUSDT, TEMPO_BRIDGED_USDC, TRON_USDT};
-        let token = |token| GemAssetIconImage::LocalToken { token };
         assert_eq!(
             asset_icon(&ETHEREUM_USDT.id),
             GemAssetIcon {
-                image: token(GemLocalTokenIcon::Usdt),
+                image: GemAssetIconImage::LocalToken { token: GemLocalTokenIcon::Usdt },
                 badge: Some(Chain::Ethereum)
             }
         );
         assert_eq!(
             asset_icon(&TRON_USDT.id),
             GemAssetIcon {
-                image: token(GemLocalTokenIcon::Usdt),
+                image: GemAssetIconImage::LocalToken { token: GemLocalTokenIcon::Usdt },
                 badge: Some(Chain::Tron)
             }
         );
         assert_eq!(
             asset_icon(&SOLANA_USDC.id),
             GemAssetIcon {
-                image: token(GemLocalTokenIcon::Usdc),
+                image: GemAssetIconImage::LocalToken { token: GemLocalTokenIcon::Usdc },
                 badge: Some(Chain::Solana)
             }
         );
-        assert_eq!(asset_icon(&HYPERCORE_PERPETUAL_USDC.id).image, token(GemLocalTokenIcon::Usdc));
-        assert_eq!(asset_icon(&TEMPO_BRIDGED_USDC.id).image, remote(&TEMPO_BRIDGED_USDC.id));
-        assert_eq!(asset_icon(&SUI_SBUSDT.id).image, remote(&SUI_SBUSDT.id));
+        assert_eq!(
+            asset_icon(&HYPERCORE_PERPETUAL_USDC.id).image,
+            GemAssetIconImage::LocalToken { token: GemLocalTokenIcon::Usdc }
+        );
+        assert_eq!(asset_icon(&TEMPO_BRIDGED_USDC.id).image, GemAssetIconImage::mock_remote(&TEMPO_BRIDGED_USDC.id));
+        assert_eq!(asset_icon(&SUI_SBUSDT.id).image, GemAssetIconImage::mock_remote(&SUI_SBUSDT.id));
         assert_eq!(
             asset_icon(&AssetId::from_token(Chain::Ethereum, "0x0000000000000000000000000000000000000001")).image,
-            remote(&AssetId::from_token(Chain::Ethereum, "0x0000000000000000000000000000000000000001"))
+            GemAssetIconImage::mock_remote(&AssetId::from_token(Chain::Ethereum, "0x0000000000000000000000000000000000000001"))
         );
     }
 
@@ -208,21 +211,21 @@ mod tests {
         assert_eq!(
             asset_icon(&base_usdc),
             GemAssetIcon {
-                image: remote(&base_usdc),
+                image: GemAssetIconImage::mock_remote(&base_usdc),
                 badge: Some(Chain::Base)
             }
         );
         assert_eq!(
             asset_icon(&ethereum_wbtc),
             GemAssetIcon {
-                image: remote(&ethereum_wbtc),
+                image: GemAssetIconImage::mock_remote(&ethereum_wbtc),
                 badge: Some(Chain::Ethereum)
             }
         );
         assert_eq!(
             asset_icon(&sei_token),
             GemAssetIcon {
-                image: remote(&sei_token),
+                image: GemAssetIconImage::mock_remote(&sei_token),
                 badge: Some(Chain::Sei)
             }
         );
@@ -231,24 +234,24 @@ mod tests {
     #[test]
     fn test_perpetuals_borrow_the_coin_chain_logo_when_the_coin_is_a_known_chain() {
         assert_eq!(
-            asset_icon(&perpetual("BTC")),
+            asset_icon(&perpetual_asset_id("BTC")),
             GemAssetIcon {
-                image: local(Chain::Bitcoin),
+                image: GemAssetIconImage::Local { chain: Chain::Bitcoin },
                 badge: Some(Chain::HyperCore)
             }
         );
         assert_eq!(
-            asset_icon(&perpetual("ETH")),
+            asset_icon(&perpetual_asset_id("ETH")),
             GemAssetIcon {
-                image: local(Chain::Ethereum),
+                image: GemAssetIconImage::Local { chain: Chain::Ethereum },
                 badge: Some(Chain::HyperCore)
             }
         );
-        let unknown = perpetual("PUMP");
+        let unknown = perpetual_asset_id("PUMP");
         assert_eq!(
             asset_icon(&unknown),
             GemAssetIcon {
-                image: remote(&unknown),
+                image: GemAssetIconImage::mock_remote(&unknown),
                 badge: Some(Chain::HyperCore)
             }
         );

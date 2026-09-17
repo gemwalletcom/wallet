@@ -2,6 +2,8 @@ pub mod chart_client;
 pub mod markets_client;
 pub mod price_alert_client;
 pub mod price_client;
+#[cfg(any(test, feature = "testkit"))]
+pub mod testkit;
 
 pub use chart_client::ChartClient;
 pub use markets_client::MarketsClient;

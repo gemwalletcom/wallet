@@ -1,23 +1,19 @@
 package com.gemwallet.android.ui.components
 
-import com.gemwallet.android.ui.localization.infoDescriptionRes
-import com.gemwallet.android.ui.localization.statusLabelRes
-import com.gemwallet.android.ui.components.screen.SheetExpansion
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,7 +22,8 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import uniffi.gemstone.SwapProvider
+import com.gemwallet.android.AppUrl
+import com.gemwallet.android.domains.asset.title
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ui.R
@@ -34,20 +31,19 @@ import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
+import com.gemwallet.android.ui.components.screen.SheetExpansion
+import com.gemwallet.android.ui.localization.statusLabelRes
 import com.gemwallet.android.ui.open
-import com.gemwallet.android.ui.theme.paddingDefault
-import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.extraLargeIconSize
-import com.gemwallet.android.domains.asset.title
+import com.gemwallet.android.ui.theme.paddingDefault
+import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
-import com.wallet.core.primitives.TransactionState
-import uniffi.gemstone.GemTransactionStateTone
-import com.gemwallet.android.AppUrl
 import com.wallet.core.primitives.StakeChain
-import com.gemwallet.android.ui.style.badgeIconRes
+import com.wallet.core.primitives.TransactionState
 import uniffi.gemstone.DocsUrl
+import uniffi.gemstone.SwapProvider
 
 internal val infoSheetIconSize = extraLargeIconSize
 
@@ -184,11 +180,11 @@ sealed class InfoSheetEntity(
         infoUrl = { AppUrl.staking(StakeChain.Tron.string) },
     )
 
-    class TransactionInfo(icon: Any?, state: TransactionState, tone: GemTransactionStateTone) : InfoSheetEntity(
+    class TransactionInfo(icon: Any?, state: TransactionState, @DrawableRes badgeIcon: Int, @StringRes description: Int) : InfoSheetEntity(
         icon = icon,
-        badgeIcon = tone.badgeIconRes(),
+        badgeIcon = badgeIcon,
         title = state.statusLabelRes(),
-        description = tone.infoDescriptionRes(),
+        description = description,
         infoUrl = { AppUrl.docs(DocsUrl.TransactionStatus) },
     )
 

@@ -52,12 +52,6 @@ mod tests {
     };
     use signer::SignatureScheme;
 
-    fn sign_auth_message(auth_message: &AuthMessage) -> String {
-        let hash = create_auth_hash(auth_message).hash;
-        let signature = Signer::sign_digest(SignatureScheme::Secp256k1, &hash, &TEST_PRIVATE_KEY).unwrap();
-        encode_with_0x(&signature)
-    }
-
     #[test]
     fn test_verify_auth_signature_success() {
         let auth_message = AuthMessage {
@@ -69,8 +63,9 @@ mod tests {
             },
         };
 
-        let signature = sign_auth_message(&auth_message);
-        assert!(verify_auth_signature(&auth_message, &signature));
+        let hash = create_auth_hash(&auth_message).hash;
+        let signature = Signer::sign_digest(SignatureScheme::Secp256k1, &hash, &TEST_PRIVATE_KEY).unwrap();
+        assert!(verify_auth_signature(&auth_message, &encode_with_0x(&signature)));
     }
 
     #[test]

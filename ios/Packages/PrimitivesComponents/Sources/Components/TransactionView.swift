@@ -15,15 +15,7 @@ public struct TransactionView: View {
     }
 
     public var body: some View {
-        ListItemView(
-            title: model.titleTextValue,
-            titleExtra: model.titleExtraTextValue,
-            titleTag: model.titleTagTextValue,
-            titleTagType: model.titleTagType,
-            subtitle: model.subtitleTextValue(currency: currency),
-            subtitleExtra: model.subtitleExtraTextValue(currency: currency),
-            imageStyle: .asset(assetImage: model.assetImage),
-        )
+        ListItemView(model: model.listItem(currency: currency))
     }
 }
 

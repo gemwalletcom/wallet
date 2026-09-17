@@ -200,10 +200,7 @@ mod tests {
     fn test_encode_websocket_request() {
         let request = HyperliquidRequest {
             method: HyperliquidMethod::Subscribe,
-            subscription: HyperliquidSubscription::Candle {
-                symbol: "ETH".to_string(),
-                interval: "30m".to_string(),
-            },
+            subscription: HyperliquidSubscription::mock_candle("ETH"),
         };
 
         assert_eq!(

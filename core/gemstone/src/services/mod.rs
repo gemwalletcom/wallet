@@ -60,6 +60,7 @@ pub mod wallet_connect;
 pub mod wallet_home;
 pub mod wallet_preferences;
 pub mod wallet_session;
+pub mod widget;
 
 pub use app_start::{GemAppStartFailure, GemAppStartService, GemAppStartStep};
 pub use app_update::GemAppUpdateService;

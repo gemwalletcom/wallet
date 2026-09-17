@@ -12,6 +12,7 @@ use crate::rpc::EthereumClient;
 #[cfg(feature = "rpc")]
 pub mod chain_provider_mock;
 pub mod eip712_mock;
+pub mod fee_history_mock;
 #[cfg(feature = "rpc")]
 pub mod rpc_mock;
 pub mod siwe_mock;

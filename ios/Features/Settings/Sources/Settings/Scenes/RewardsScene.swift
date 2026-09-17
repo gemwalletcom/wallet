@@ -192,11 +192,7 @@ public struct RewardsScene: View {
             ForEach(redemptions, id: \.option.id) { redemption in
                 let viewModel = RewardRedemptionOptionViewModel(redemption: redemption)
                 NavigationCustomLink(
-                    with: ListItemView(
-                        title: viewModel.title,
-                        subtitle: viewModel.subtitle,
-                        imageStyle: .asset(assetImage: viewModel.assetImage),
-                    ),
+                    with: ListItemView(model: viewModel.listItem),
                 ) {
                     if redemption.canRedeem {
                         model.showRedemptionAlert(for: redemption)
@@ -213,26 +209,14 @@ public struct RewardsScene: View {
     @ViewBuilder
     private var infoSection: some View {
         Section {
-            if let code = model.referralCode {
-                ListItemView(
-                    title: model.myReferralCodeTitle,
-                    subtitle: code,
-                )
-                .contextMenu(model.referralLink.map { [.copy(value: $0)] } ?? [])
+            if let item = model.referralCodeListItem {
+                ListItemView(model: item)
+                    .contextMenu(model.referralLink.map { [.copy(value: $0)] } ?? [])
             }
-            ListItemView(
-                title: model.referralCountTitle,
-                subtitle: model.referralCountText,
-            )
-            ListItemView(
-                title: model.pointsTitle,
-                subtitle: model.pointsText,
-            )
-            if let invitedBy = model.invitedBy {
-                ListItemView(
-                    title: model.invitedByTitle,
-                    subtitle: invitedBy,
-                )
+            ListItemView(model: model.referralCountListItem)
+            ListItemView(model: model.pointsListItem)
+            if let item = model.invitedByListItem {
+                ListItemView(model: item)
             }
         } header: {
             Text(model.statsSectionTitle)

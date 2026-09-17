@@ -4,7 +4,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import uniffi.gemstone.GemSlippageSession
-import uniffi.gemstone.GemSlippageViewState
 
 class SwapSlippageTest {
     private val slippagePercent = { bps: UInt -> bps.toDouble() / 100 }
@@ -36,7 +35,7 @@ class SwapSlippageTest {
 
     @Test
     fun suggestions_formatToExpectedLabels() {
-        val suggestions = state().suggestionsBps
+        val suggestions = GemSlippageSession(isAuto = false, bps = 100u).viewState().suggestionsBps
 
         assertEquals(listOf(30u, 50u, 300u), suggestions)
         assertEquals(listOf("0.3%", "0.5%", "3%"), suggestions.map { SwapSlippage.percentLabel(it, slippagePercent) })
@@ -44,11 +43,9 @@ class SwapSlippageTest {
 
     @Test
     fun sanitize_limitsDigitsToWhatCoreAllows() {
-        val state = state()
+        val state = GemSlippageSession(isAuto = false, bps = 100u).viewState()
 
         assertEquals("0.11", SwapSlippage.sanitize("0.111111", state))
         assertEquals("33", SwapSlippage.sanitize("33333312312", state))
     }
-
-    private fun state(): GemSlippageViewState = GemSlippageSession(isAuto = false, bps = 100u).viewState()
 }

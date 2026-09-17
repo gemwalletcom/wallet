@@ -2,7 +2,6 @@
 
 import Components
 import enum Gemstone.GemPreferencesRow
-import struct Gemstone.GemPreferencesState
 import Primitives
 import PrimitivesComponents
 import Style
@@ -24,7 +23,7 @@ public struct PreferencesScene: View {
                 ForEach(Array(state.sections.enumerated()), id: \.offset) { _, section in
                     Section {
                         ForEach(section.rows, id: \.self) { row in
-                            content(for: row, state: state)
+                            content(for: row)
                         }
                     }
                 }
@@ -58,28 +57,28 @@ public struct PreferencesScene: View {
     }
 
     @ViewBuilder
-    private func content(for row: GemPreferencesRow, state: GemPreferencesState) -> some View {
+    private func content(for row: GemPreferencesRow) -> some View {
         switch row {
         case .currency:
             NavigationLink(value: Scenes.Currency()) {
-                ListItemView(title: row.title, subtitle: state.currency.text(), imageStyle: .settings(assetImage: row.assetImage))
+                ListItemView(model: model.listItem(for: row))
             }
         case .language:
             NavigationCustomLink(
-                with: ListItemView(title: row.title, subtitle: model.languageValue, imageStyle: .settings(assetImage: row.assetImage)),
+                with: ListItemView(model: model.listItem(for: row)),
                 action: onSelectLanguage,
             )
         case .appearance:
             NavigationLink(value: Scenes.Appearance()) {
-                ListItemView(title: row.title, subtitle: model.appearanceValue, imageStyle: .settings(assetImage: row.assetImage))
+                ListItemView(model: model.listItem(for: row))
             }
         case .networks:
             NavigationLink(value: Scenes.Chains()) {
-                ListItemView(title: row.title, imageStyle: .settings(assetImage: row.assetImage))
+                ListItemView(model: model.listItem(for: row))
             }
         case .contacts:
             NavigationLink(value: Scenes.Contacts()) {
-                ListItemView(title: row.title, imageStyle: .settings(assetImage: row.assetImage))
+                ListItemView(model: model.listItem(for: row))
             }
         case .perpetuals:
             ListItemToggleView(
@@ -88,24 +87,17 @@ public struct PreferencesScene: View {
                 imageStyle: .settings(assetImage: row.assetImage),
             )
         case .perpetualLeverage:
-            perpetualLink(title: row.title, value: model.defaultLeverageValue, action: model.onSelectLeverage)
+            perpetualLink(row, action: model.onSelectLeverage)
         case .perpetualTakeProfit:
-            perpetualLink(title: row.title, value: model.defaultTakeProfitValue, action: model.onSelectTakeProfit)
+            perpetualLink(row, action: model.onSelectTakeProfit)
         case .perpetualStopLoss:
-            perpetualLink(title: row.title, value: model.defaultStopLossValue, action: model.onSelectStopLoss)
+            perpetualLink(row, action: model.onSelectStopLoss)
         }
     }
 
-    private func perpetualLink(
-        title: String,
-        value: String,
-        action: @escaping @MainActor () -> Void,
-    ) -> some View {
-        NavigationCustomLink(
-            with: ListItemView(title: title, subtitle: value),
-            action: action,
-        )
-        .padding(.leading, Sizing.image.asset - .tiny)
+    private func perpetualLink(_ row: GemPreferencesRow, action: @escaping @MainActor () -> Void) -> some View {
+        NavigationCustomLink(with: ListItemView(model: model.listItem(for: row)), action: action)
+            .padding(.leading, Sizing.image.asset - .tiny)
     }
 }
 

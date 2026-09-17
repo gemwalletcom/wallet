@@ -47,9 +47,9 @@ import com.gemwallet.android.features.perpetual.views.PerpetualsPreviewSection
 import com.gemwallet.android.features.update_app.presents.InAppUpdateBanner
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.AssetContextActions
-import com.gemwallet.android.ui.components.screen.AssetToastEffect
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.SnackbarHost
+import com.gemwallet.android.ui.components.screen.ToastEffect
 import com.gemwallet.android.ui.models.AssetsGroupType
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
@@ -81,7 +81,7 @@ fun AssetsScreen(
     val collectionsAvailable by viewModel.collectionsAvailable.collectAsStateWithLifecycle()
 
     val snackbar = remember { SnackbarHostState() }
-    AssetToastEffect(viewModel.toastEvents, snackbar)
+    ToastEffect(viewModel.toastEvents, snackbar)
 
     val currentOnContentReady by rememberUpdatedState(onContentReady)
     LaunchedEffect(walletSummary != null) {

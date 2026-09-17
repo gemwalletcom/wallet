@@ -13,6 +13,10 @@ let package = Package(
             name: "FiatConnect",
             targets: ["FiatConnect"],
         ),
+        .library(
+            name: "FiatConnectTestKit",
+            targets: ["FiatConnectTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "Gemstone", path: "../../Packages/Gemstone"),
@@ -47,10 +51,22 @@ let package = Package(
             ],
             path: "Sources",
         ),
+        .target(
+            name: "FiatConnectTestKit",
+            dependencies: [
+                "FiatConnect",
+                "Gemstone",
+                "Primitives",
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
+            ],
+            path: "TestKit",
+        ),
         .testTarget(
             name: "FiatConnectTests",
             dependencies: [
                 "FiatConnect",
+                "FiatConnectTestKit",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
                 .product(name: "BigInt", package: "BigInt"),
@@ -60,6 +76,7 @@ let package = Package(
                 "Localization",
                 "Primitives",
                 "Store",
+                "GemstonePrimitives",
             ],
             path: "Tests",
         ),

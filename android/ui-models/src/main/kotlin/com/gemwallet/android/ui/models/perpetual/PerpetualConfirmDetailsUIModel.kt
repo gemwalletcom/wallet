@@ -1,6 +1,6 @@
 package com.gemwallet.android.ui.models.perpetual
 
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
 import com.wallet.core.primitives.PerpetualDirection
 import uniffi.gemstone.GemPerpetualDetailsAction
 
@@ -18,7 +18,7 @@ data class PerpetualConfirmDetailsUIModel(
 ) {
     data class Pnl(
         val text: String,
-        val direction: ValueDirection,
+        val direction: GemValueTone,
     )
 
     data class Autoclose(

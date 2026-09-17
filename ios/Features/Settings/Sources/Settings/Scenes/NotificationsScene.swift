@@ -25,10 +25,7 @@ public struct NotificationsScene: View {
 
             Section {
                 NavigationLink(value: Scenes.PriceAlerts()) {
-                    ListItemView(
-                        title: model.priceAlertsTitle,
-                        imageStyle: .settings(assetImage: model.priceAlertsImage),
-                    )
+                    ListItemView(model: model.priceAlertsListItem)
                 }
             }
         }

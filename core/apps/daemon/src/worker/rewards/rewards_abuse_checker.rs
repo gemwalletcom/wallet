@@ -5,26 +5,26 @@ use std::error::Error;
 use storage::{AbusePatterns, ConfigCacher, Database, RiskSignalsRepository};
 use streamer::{RewardsNotificationPayload, StreamProducer, StreamProducerQueue};
 
-struct AbuseDetectionConfig {
-    disable_threshold: i64,
-    attempt_penalty: i64,
-    verified_threshold_multiplier: f64,
-    lookback: std::time::Duration,
-    min_referrals_to_evaluate: i64,
-    country_rotation_threshold: i64,
-    country_rotation_penalty: i64,
-    ring_referrers_per_device_threshold: i64,
-    ring_referrers_per_fingerprint_threshold: i64,
-    ring_penalty: i64,
-    device_farming_threshold: i64,
-    device_farming_penalty: i64,
-    velocity_window: std::time::Duration,
-    velocity_divisor: i64,
-    velocity_penalty: i64,
-    referral_per_user_daily: i64,
-    verified_multiplier: i64,
-    trusted_multiplier: i64,
-    disabled_referrer_penalty: i64,
+pub(crate) struct AbuseDetectionConfig {
+    pub(crate) disable_threshold: i64,
+    pub(crate) attempt_penalty: i64,
+    pub(crate) verified_threshold_multiplier: f64,
+    pub(crate) lookback: std::time::Duration,
+    pub(crate) min_referrals_to_evaluate: i64,
+    pub(crate) country_rotation_threshold: i64,
+    pub(crate) country_rotation_penalty: i64,
+    pub(crate) ring_referrers_per_device_threshold: i64,
+    pub(crate) ring_referrers_per_fingerprint_threshold: i64,
+    pub(crate) ring_penalty: i64,
+    pub(crate) device_farming_threshold: i64,
+    pub(crate) device_farming_penalty: i64,
+    pub(crate) velocity_window: std::time::Duration,
+    pub(crate) velocity_divisor: i64,
+    pub(crate) velocity_penalty: i64,
+    pub(crate) referral_per_user_daily: i64,
+    pub(crate) verified_multiplier: i64,
+    pub(crate) trusted_multiplier: i64,
+    pub(crate) disabled_referrer_penalty: i64,
 }
 
 struct AbuseEvaluation {
@@ -335,45 +335,20 @@ fn calculate_pattern_penalty_breakdown(patterns: &AbusePatterns, config: &AbuseD
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{MINUTE, WEEK};
-
-    fn config() -> AbuseDetectionConfig {
-        AbuseDetectionConfig {
-            disable_threshold: 200,
-            attempt_penalty: 15,
-            verified_threshold_multiplier: 2.0,
-            lookback: WEEK,
-            min_referrals_to_evaluate: 2,
-            country_rotation_threshold: 2,
-            country_rotation_penalty: 50,
-            ring_referrers_per_device_threshold: 2,
-            ring_referrers_per_fingerprint_threshold: 2,
-            ring_penalty: 80,
-            device_farming_threshold: 5,
-            device_farming_penalty: 10,
-            velocity_window: MINUTE * 5,
-            velocity_divisor: 2,
-            velocity_penalty: 100,
-            referral_per_user_daily: 5,
-            verified_multiplier: 2,
-            trusted_multiplier: 3,
-            disabled_referrer_penalty: 80,
-        }
-    }
 
     #[test]
     fn test_abuse_score() {
-        assert_eq!(calculate_abuse_score(100, 5, 1, &config()), 175.0);
-        assert_eq!(calculate_abuse_score(0, 10, 1, &config()), 150.0);
-        assert_eq!(calculate_abuse_score(200, 0, 1, &config()), 200.0);
-        assert_eq!(calculate_abuse_score(100, 5, 10, &config()), 17.5);
-        assert_eq!(calculate_abuse_score(0, 10, 10, &config()), 15.0);
-        assert_eq!(calculate_abuse_score(200, 0, 10, &config()), 20.0);
+        assert_eq!(calculate_abuse_score(100, 5, 1, &AbuseDetectionConfig::mock()), 175.0);
+        assert_eq!(calculate_abuse_score(0, 10, 1, &AbuseDetectionConfig::mock()), 150.0);
+        assert_eq!(calculate_abuse_score(200, 0, 1, &AbuseDetectionConfig::mock()), 200.0);
+        assert_eq!(calculate_abuse_score(100, 5, 10, &AbuseDetectionConfig::mock()), 17.5);
+        assert_eq!(calculate_abuse_score(0, 10, 10, &AbuseDetectionConfig::mock()), 15.0);
+        assert_eq!(calculate_abuse_score(200, 0, 10, &AbuseDetectionConfig::mock()), 20.0);
     }
 
     #[test]
     fn test_abuse_score_breakdown() {
-        let score = calculate_abuse_score_breakdown(44, 0, 2, &config());
+        let score = calculate_abuse_score_breakdown(44, 0, 2, &AbuseDetectionConfig::mock());
         assert_eq!(score.risk_score_per_referral, 22.0);
         assert_eq!(score.attempts_per_referral, 0.0);
         assert_eq!(score.attempt_penalty_score, 0.0);
@@ -382,14 +357,14 @@ mod tests {
 
     #[test]
     fn test_abuse_threshold() {
-        assert_eq!(calculate_abuse_threshold(&config(), &RewardStatus::Unverified), 200.0);
-        assert_eq!(calculate_abuse_threshold(&config(), &RewardStatus::Verified), 400.0);
-        assert_eq!(calculate_abuse_threshold(&config(), &RewardStatus::Trusted), 600.0);
+        assert_eq!(calculate_abuse_threshold(&AbuseDetectionConfig::mock(), &RewardStatus::Unverified), 200.0);
+        assert_eq!(calculate_abuse_threshold(&AbuseDetectionConfig::mock(), &RewardStatus::Verified), 400.0);
+        assert_eq!(calculate_abuse_threshold(&AbuseDetectionConfig::mock(), &RewardStatus::Trusted), 600.0);
     }
 
     #[test]
     fn test_pattern_penalty() {
-        let config = config();
+        let config = AbuseDetectionConfig::mock();
         let base = AbusePatterns {
             max_countries_per_device: 1,
             max_referrers_per_device: 1,
@@ -539,7 +514,7 @@ mod tests {
                 max_devices_per_ip: 5,
                 signals_in_velocity_window: 2,
             },
-            &config(),
+            &AbuseDetectionConfig::mock(),
             &RewardStatus::Unverified,
         );
         assert_eq!(penalties.country_rotation_penalty, 50.0);

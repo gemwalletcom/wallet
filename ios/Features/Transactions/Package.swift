@@ -13,6 +13,10 @@ let package = Package(
             name: "Transactions",
             targets: ["Transactions"],
         ),
+        .library(
+            name: "TransactionsTestKit",
+            targets: ["TransactionsTestKit"],
+        ),
     ],
     dependencies: [
         .package(name: "GemstonePrimitives", path: "../../Packages/GemstonePrimitives"),
@@ -47,16 +51,28 @@ let package = Package(
             ],
             path: "Sources",
         ),
+        .target(
+            name: "TransactionsTestKit",
+            dependencies: [
+                "Transactions",
+                "Gemstone",
+                "Primitives",
+                "Store",
+                .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
+            ],
+            path: "TestKit",
+        ),
         .testTarget(
             name: "TransactionsTests",
             dependencies: [
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 "Transactions",
+                "TransactionsTestKit",
                 "PrimitivesComponents",
-                .product(name: "BigInt", package: "BigInt"),
+                .product(name: "PrimitivesComponentsTestKit", package: "PrimitivesComponents"),
                 "Components",
-                "Formatters",
                 "Gemstone",
                 "GemstonePrimitives",
                 "Localization",

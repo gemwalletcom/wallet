@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.components.chart
 
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -27,14 +27,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.gemwallet.android.domains.price.ValueDirection
-import com.gemwallet.android.ui.components.list_item.color
+import uniffi.gemstone.GemValueTone
+import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.models.chart.CandleUIModel
 import com.gemwallet.android.ui.models.chart.CandlestickChartUIModel
 import com.gemwallet.android.ui.models.chart.ChartAxisTick
 import com.gemwallet.android.ui.models.chart.ChartReferenceLineUIModel
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.space1
 import com.gemwallet.android.ui.theme.space2
 import uniffi.gemstone.GemPerpetualChartLineKind
@@ -83,9 +82,9 @@ fun GemCandlestickChart(
     val density = LocalDensity.current
     val textMeasurer = rememberTextMeasurer()
 
-    val upColor = ValueDirection.Up.color()
-    val downColor = ValueDirection.Down.color()
-    val flatColor = ValueDirection.None.color()
+    val upColor = GemValueTone.POSITIVE.color()
+    val downColor = GemValueTone.NEGATIVE.color()
+    val flatColor = GemValueTone.NEUTRAL.color()
     val axisLabelColor = MaterialTheme.colorScheme.secondary
     val gridGuidelineColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.13f)
     val selectionAccentColor = MaterialTheme.colorScheme.primary
@@ -218,24 +217,14 @@ fun GemCandlestickChart(
 
 @Composable
 private fun referenceColors(): (GemPerpetualChartLineKind) -> Color {
-    val entryColor = MaterialTheme.colorScheme.outline
-    val liquidationColor = MaterialTheme.colorScheme.error
-    val stopLossColor = pendingColor
-    val takeProfitColor = MaterialTheme.colorScheme.tertiary
-    return { role ->
-        when (role) {
-            GemPerpetualChartLineKind.ENTRY -> entryColor
-            GemPerpetualChartLineKind.LIQUIDATION -> liquidationColor
-            GemPerpetualChartLineKind.STOP_LOSS -> stopLossColor
-            GemPerpetualChartLineKind.TAKE_PROFIT -> takeProfitColor
-        }
-    }
+    val colors = GemPerpetualChartLineKind.entries.associateWith { it.color() }
+    return { role -> colors.getValue(role) }
 }
 
 private fun candleColor(candle: CandleUIModel, up: Color, down: Color, flat: Color): Color = when (candle.direction) {
-    ValueDirection.Up -> up
-    ValueDirection.Down -> down
-    ValueDirection.None -> flat
+    GemValueTone.POSITIVE -> up
+    GemValueTone.NEGATIVE -> down
+    GemValueTone.NEUTRAL, GemValueTone.PLAIN -> flat
 }
 
 private fun DrawScope.drawYAxis(

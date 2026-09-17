@@ -24,12 +24,11 @@ public final class NotificationsViewModel {
         Localized.Settings.Notifications.title
     }
 
-    var priceAlertsTitle: String {
-        Localized.Settings.PriceAlerts.title
-    }
-
-    var priceAlertsImage: AssetImage {
-        AssetImage.image(Images.Settings.priceAlerts)
+    var priceAlertsListItem: ListItemModel {
+        ListItemModel(
+            title: Localized.Settings.PriceAlerts.title,
+            imageStyle: .settings(assetImage: AssetImage.image(Images.Settings.priceAlerts)),
+        )
     }
 }
 

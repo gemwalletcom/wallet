@@ -96,7 +96,7 @@ class TransactionsViewModelFiltersTest {
         val details: GetTransactionDetails = mockk(relaxed = true)
 
         assertThrows(IllegalArgumentException::class.java) {
-            TransactionDetailsViewModel(details, SavedStateHandle(mapOf(RouteArgument.TransactionId.key to "not-an-id")))
+            TransactionDetailsViewModel(details, SavedStateHandle(mapOf(RouteArgument.TransactionId.key to "not-an-id")), mockk(relaxed = true))
         }
     }
 }

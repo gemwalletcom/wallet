@@ -11,22 +11,7 @@ import typealias Gemstone.ChartCandleUpdate
 import Primitives
 import PrimitivesTestKit
 import Testing
-import WebSocketClient
-
-private actor WebSocketConnectionStub: WebSocketConnectable {
-    var state: WebSocketState = .disconnected
-
-    func connect() -> AsyncStream<WebSocketEvent> {
-        AsyncStream { continuation in
-            continuation.yield(.connected)
-            continuation.finish()
-        }
-    }
-
-    func disconnect() async {}
-    func send(_: Data) async throws {}
-    func send(_: String) async throws {}
-}
+import WebSocketClientTestKit
 
 private final class PerpetualStreamServiceStub: GemPerpetualStreamServiceProtocol, @unchecked Sendable {
     private let lock = NSLock()
@@ -49,14 +34,16 @@ private final class PerpetualStreamServiceStub: GemPerpetualStreamServiceProtoco
 }
 
 struct HyperliquidObserverServiceTests {
-    @Test
+    @Test(.timeLimit(.minutes(1)))
     func retriesTheSameWalletAfterAFailedConnection() async throws {
         let wallet = Wallet.mock(accounts: [.mock(chain: .hyperCore)])
+        let opened = AsyncStream<Void>.makeStream()
+        let socket = WebSocketConnectionMock(onConnect: { opened.continuation.yield(()) })
         let streamService = PerpetualStreamServiceStub()
         let perpetualService = GemPerpetualServiceMock()
         perpetualService.connectionFailures = 1
         let service = HyperliquidObserverService(
-            webSocket: WebSocketConnectionStub(),
+            webSocket: socket,
             perpetualService: perpetualService,
             streamService: streamService,
         )
@@ -65,6 +52,9 @@ struct HyperliquidObserverServiceTests {
         #expect(streamService.addresses.isEmpty)
 
         await service.setup(for: wallet)
+        var connections = opened.stream.makeAsyncIterator()
+        _ = await connections.next()
+        await socket.simulateConnected()
         try await Task.sleep(for: .milliseconds(200))
 
         #expect(streamService.addresses.count == 1)

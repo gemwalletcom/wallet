@@ -1,11 +1,6 @@
 package com.gemwallet.android.features.assets.viewmodels
 
-import com.gemwallet.android.ext.chainIds
-import com.gemwallet.android.ext.toGem
-import com.wallet.core.primitives.Wallet
-import uniffi.gemstone.GemSearchScope
-import uniffi.gemstone.GemAssetSelectionServiceInterface
-import uniffi.gemstone.GemSelectAssetType
+import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.nft.cases.GetNftCollections
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
@@ -14,22 +9,22 @@ import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
-import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.chainIds
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.models.BaseSelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
-import com.gemwallet.android.model.RecentAssetsRequest
-import com.gemwallet.android.ui.models.AssetToast
+import com.gemwallet.android.features.assets.viewmodels.models.AssetListRowUIModel
+import com.gemwallet.android.features.assets.viewmodels.models.uiModel
+import com.gemwallet.android.ui.components.screen.assetPinnedToast
 import com.gemwallet.android.ui.models.NftItemUIModel
-import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.RecentActivityType
-import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.AssetList
+import com.gemwallet.android.ui.models.toUIModels
 import com.wallet.core.primitives.NFTData
 import com.wallet.core.primitives.PerpetualId
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -39,8 +34,10 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import javax.inject.Inject
-import com.gemwallet.android.ui.models.toUIModels
+import kotlinx.coroutines.launch
+import uniffi.gemstone.GemAssetSelectionServiceInterface
+import uniffi.gemstone.GemSearchScope
+import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.GemWalletSearchCounts
 import uniffi.gemstone.GemWalletSearchPhase
 import uniffi.gemstone.walletSearchPhase
@@ -54,12 +51,14 @@ class WalletSearchViewModel @Inject constructor(
     service: GemAssetSelectionServiceInterface,
     getPerpetuals: GetPerpetuals,
     getNftCollections: GetNftCollections,
+    @ApplicationContext context: Context,
 ) : BaseAssetSelectViewModel(
     getSession,
     recentAssetsService,
     service,
     BaseSelectSearch(searchService),
     GemSelectAssetType.WalletSearch,
+    context,
 ) {
 
     override suspend fun searchRemote(query: String) {
@@ -113,8 +112,9 @@ class WalletSearchViewModel @Inject constructor(
         .map { items -> limits().hasMoreNfts(items.size.toUInt()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val lists: StateFlow<List<AssetList>> = currentQuery
+    val lists: StateFlow<List<AssetListRowUIModel>> = currentQuery
         .flatMapLatest { query -> searchService.searchLists(query) }
+        .map { lists -> lists.map { it.uiModel() } }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -162,7 +162,7 @@ class WalletSearchViewModel @Inject constructor(
     fun onTogglePerpetualPin(perpetualId: PerpetualId) = viewModelScope.launch {
         val item = visiblePerpetuals.value.firstOrNull { it.id == perpetualId } ?: return@launch
         setPerpetualPinned(perpetualId, !item.isPinned)
-        emitToast(AssetToast.Pin(item.title, !item.isPinned))
+        emitToast(assetPinnedToast(context, item.title, !item.isPinned))
     }
 
 }

@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.asset.presents.details.components
 
+import com.gemwallet.android.ui.components.list_head.uiModel
 import androidx.compose.runtime.Composable
 import com.gemwallet.android.ui.components.list_head.AmountListHead
 import com.gemwallet.android.ui.components.list_head.AssetHeadActions
@@ -21,11 +22,12 @@ internal fun AssetHeadItem(
         icon = uiState.asset,
     ) {
         AssetHeadActions(
-            actions = uiState.detailsState.headerActions,
-            onTransfer = { onTransfer(uiState.asset.id) },
-            onReceive = { onReceive(uiState.asset.id) },
-            onBuy = { onBuy(uiState.asset.id) },
-            onSwap = onSwap,
+            uiState.detailsState.headerActions.uiModel(
+                onTransfer = { onTransfer(uiState.asset.id) },
+                onReceive = { onReceive(uiState.asset.id) },
+                onBuy = { onBuy(uiState.asset.id) },
+                onSwap = onSwap,
+            ),
         )
     }
 }

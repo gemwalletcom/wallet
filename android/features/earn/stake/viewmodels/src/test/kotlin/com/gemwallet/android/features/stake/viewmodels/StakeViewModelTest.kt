@@ -8,7 +8,6 @@ import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetValidators
-import com.gemwallet.android.application.stake.cases.SyncStakeDelegations
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAssetCosmos
 import com.gemwallet.android.testkit.mockAssetInfo
@@ -61,7 +60,6 @@ class StakeViewModelTest {
     private val getSession = mockk<GetSession> {
         every { this@mockk() } returns MutableStateFlow(mockSession())
     }
-    private val syncStakeDelegations = mockk<SyncStakeDelegations>()
     private val stakeService = mockk<GemStakeServiceInterface>(relaxed = true) {
         every { minStakeAmount(asset.id.chain.string) } returns BigInteger.ZERO
         every { claimRewards(asset.id.chain.string, any()) } returns mockClaimRewards()
@@ -82,17 +80,17 @@ class StakeViewModelTest {
 
     @Test
     fun `a failed delegations sync stops the spinner instead of taking the screen down`() = runTest(testDispatcher, timeout = 10.seconds) {
-        coEvery { syncStakeDelegations.sync(asset.id.chain) } throws IllegalStateException("Network offline")
+        coEvery { stakeService.sync(asset.id.chain.string) } throws IllegalStateException("Network offline")
 
         val viewModel = StakeViewModel(
             getAssetInfo = getAssetInfo,
             getWalletAssets = getWalletAssets,
             getDelegations = getDelegations,
             getValidators = getValidators,
-            syncStakeDelegations = syncStakeDelegations,
             stakeService = stakeService,
             getSession = getSession,
             stateHandle = SavedStateHandle(mapOf(RouteArgument.AssetId.key to asset.id.toIdentifier())),
+            context = mockk(relaxed = true),
         )
 
         assertEquals(listOf(true, false), viewModel.isSync.take(2).toList())

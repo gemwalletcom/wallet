@@ -50,11 +50,7 @@ extension SettingsScene {
         switch row {
         case .wallets:
             NavigationCustomLink(
-                with: ListItemView(
-                    title: row.title,
-                    subtitle: model.walletsValue,
-                    imageStyle: .settings(assetImage: row.assetImage),
-                ),
+                with: ListItemView(model: model.listItem(for: row)),
                 action: onOpenWallets,
             )
         case .security:
@@ -67,7 +63,7 @@ extension SettingsScene {
             link(row, to: Scenes.WalletConnect())
         case .support:
             NavigationCustomLink(
-                with: ListItemView(title: row.title, imageStyle: .settings(assetImage: row.assetImage)),
+                with: ListItemView(model: model.listItem(for: row)),
                 action: onOpenSupport,
             )
         case .rewards:
@@ -81,7 +77,7 @@ extension SettingsScene {
 
     private func link(_ row: GemSettingsRow, to scene: some Hashable) -> some View {
         NavigationLink(value: scene) {
-            ListItemView(title: row.title, imageStyle: .settings(assetImage: row.assetImage))
+            ListItemView(model: model.listItem(for: row))
         }
     }
 }

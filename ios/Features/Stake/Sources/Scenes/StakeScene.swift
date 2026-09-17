@@ -69,17 +69,10 @@ extension StakeScene {
     @ViewBuilder
     private func actionLink(_ item: GemStakeActionItem) -> some View {
         if let infoAction = model.frozenBalanceInfoAction(for: item) {
-            NavigationCustomLink(
-                with: ListItemView(
-                    title: item.action.title,
-                    titleStyle: .bodySecondary,
-                    infoAction: infoAction,
-                ),
-                action: infoAction,
-            )
+            NavigationCustomLink(with: ListItemView(model: model.actionListItem(item)), action: infoAction)
         } else {
             NavigationLink(value: model.destination(for: item.action)) {
-                ListItemView(title: item.action.title, subtitle: model.subtitle(for: item.action))
+                ListItemView(model: model.actionListItem(item))
             }
             .enabled(item.isEnabled)
         }

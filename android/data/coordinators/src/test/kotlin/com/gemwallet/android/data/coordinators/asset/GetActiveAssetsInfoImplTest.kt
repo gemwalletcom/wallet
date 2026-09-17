@@ -7,14 +7,12 @@ import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetInfo
 import com.gemwallet.android.testkit.mockAssetPriceInfo
+import com.gemwallet.android.testkit.mockGemAssetRow
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.WalletId
-import uniffi.gemstone.GemAssetRow
-import uniffi.gemstone.GemAssetRowSubtitle
 import uniffi.gemstone.GemAssetRowTitle
-import uniffi.gemstone.GemAssetRowTrailing
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
@@ -31,8 +29,8 @@ import org.junit.Test
 
 class GetActiveAssetsInfoImplTest {
     private val assets = listOf(
-        mockAssetInfo(asset = mockAsset(Chain.Bitcoin)).copy(price = mockAssetPriceInfo(price = 50000.0, priceChangePercentage24h = 2.5)),
-        mockAssetInfo(asset = mockAsset(Chain.Ethereum)).copy(price = mockAssetPriceInfo(price = 3000.0, currency = Currency.EUR)),
+        mockAssetInfo(asset = mockAsset(Chain.Bitcoin), price = mockAssetPriceInfo(price = 50000.0, priceChangePercentage24h = 2.5)),
+        mockAssetInfo(asset = mockAsset(Chain.Ethereum), price = mockAssetPriceInfo(price = 3000.0, currency = Currency.EUR)),
         mockAssetInfo(asset = mockAsset(Chain.Solana)),
     )
 
@@ -45,12 +43,7 @@ class GetActiveAssetsInfoImplTest {
         override fun byIdentifiers(assetIds: List<String>): Flow<List<AssetInfo>> = walletAssets
     }
 
-    private val row = GemAssetRow(
-        title = GemAssetRowTitle.CANONICAL_ASSET,
-        showsSymbol = false,
-        subtitle = GemAssetRowSubtitle.PRICE,
-        trailing = GemAssetRowTrailing.BALANCE,
-    )
+    private val row = mockGemAssetRow(title = GemAssetRowTitle.CANONICAL_ASSET)
 
     private val hideBalances = MutableStateFlow(false)
 

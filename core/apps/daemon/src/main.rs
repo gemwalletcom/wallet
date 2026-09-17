@@ -9,6 +9,8 @@ mod pusher;
 mod reporters;
 mod setup;
 mod shutdown;
+#[cfg(test)]
+mod testkit;
 mod worker;
 
 use std::str::FromStr;
@@ -36,7 +38,10 @@ pub async fn main() {
         panic!("{e}\nUsage examples:\n daemon parser\n daemon parser ethereum\n daemon worker alerter\n daemon worker prices jupiter\n daemon consumer indexer transactions fetch_transactions");
     });
 
-    let settings = settings::Settings::new().unwrap();
+    let settings = settings::Settings::new()
+        .unwrap()
+        .with_postgres_application_name(&service.name().replace(' ', "_"))
+        .unwrap();
 
     info_with_fields!("daemon start", service = service.name());
 

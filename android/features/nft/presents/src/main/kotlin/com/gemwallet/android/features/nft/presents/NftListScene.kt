@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.nft.presents
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,26 +22,26 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.nft.presents.components.NFTItem
+import com.gemwallet.android.features.nft.presents.localization.stringRes
 import com.gemwallet.android.features.nft.viewmodels.NftListViewModels
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentType
 import com.gemwallet.android.ui.components.empty.EmptyContentView
-import com.gemwallet.android.ui.components.list_item.LinkItem
+import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
-import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.NftItemUIModel
 import com.gemwallet.android.ui.models.actions.CancelAction
-import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ui.models.actions.NftAssetIdAction
 import com.gemwallet.android.ui.models.actions.NftCollectionIdAction
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.gemwallet.android.features.nft.presents.localization.stringRes
 import uniffi.gemstone.GemNftList
 
 private val collectibleCellMinSize = 150.dp
@@ -57,7 +58,7 @@ fun NftListNavScreen(
 ) {
     val items by viewModel.collections.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
-    val unverifiedCount by viewModel.unverifiedCount.collectAsStateWithLifecycle()
+    val unverifiedListItem by viewModel.unverifiedListItem.collectAsStateWithLifecycle()
     val walletId by viewModel.walletId.collectAsStateWithLifecycle()
 
     LaunchedEffect(walletId) {
@@ -67,7 +68,7 @@ fun NftListNavScreen(
     NftListScene(
         items = items,
         isRefreshing = isRefreshing,
-        unverifiedCount = unverifiedCount,
+        unverifiedListItem = unverifiedListItem,
         list = viewModel.list,
         listState = listState,
         onAction = { action ->
@@ -87,7 +88,7 @@ fun NftListNavScreen(
 internal fun NftListScene(
     items: List<NftItemUIModel>,
     isRefreshing: Boolean,
-    unverifiedCount: Int,
+    unverifiedListItem: ListItemModel?,
     list: GemNftList,
     listState: LazyGridState = rememberLazyGridState(),
     onAction: (NftListAction) -> Unit,
@@ -113,9 +114,7 @@ internal fun NftListScene(
             isRefreshing = isRefreshing,
             onRefresh = { onAction(NftListAction.Refresh) },
         ) {
-            val showUnverifiedRow = list == GemNftList.COLLECTIONS && unverifiedCount > 0
-
-            if (items.isEmpty() && !showUnverifiedRow) {
+            if (items.isEmpty() && unverifiedListItem == null) {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     item {
                         EmptyContentView(
@@ -159,17 +158,12 @@ internal fun NftListScene(
                         }
                     }
                 }
-                if (showUnverifiedRow) {
-                    LinkItem(
-                        title = stringResource(R.string.asset_verification_unverified),
+                unverifiedListItem?.let { model ->
+                    ListItem(
+                        model = model,
                         listPosition = ListPosition.Single,
-                        trailingContent = {
-                            PropertyDataText(
-                                text = unverifiedCount.toString(),
-                                badge = { DataBadgeChevron() },
-                            )
-                        },
-                        onClick = { onAction(NftListAction.OpenUnverified) },
+                        modifier = Modifier.clickable { onAction(NftListAction.OpenUnverified) },
+                        accessory = { DataBadgeChevron() },
                     )
                 }
             }

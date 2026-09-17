@@ -42,8 +42,23 @@ public final class SettingsViewModel {
         )
     }
 
-    var walletsValue: String {
+    func listItem(for row: GemSettingsRow) -> ListItemModel {
+        ListItemModel(
+            title: row.title,
+            subtitle: subtitle(for: row),
+            imageStyle: .settings(assetImage: row.assetImage),
+        )
+    }
+
+    private var walletsValue: String {
         "\(walletsQuery.value.count)"
+    }
+
+    private func subtitle(for row: GemSettingsRow) -> String? {
+        switch row {
+        case .wallets: walletsValue
+        case .security, .notifications, .preferences, .walletConnect, .support, .rewards, .aboutUs, .developer: nil
+        }
     }
 
 }

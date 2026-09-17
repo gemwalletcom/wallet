@@ -65,6 +65,10 @@ public final class WalletDetailViewModel {
         Localized.Common.wallet
     }
 
+    func showSecretListItem(for secretKind: GemWalletSecretKind) -> ListItemModel {
+        ListItemModel(title: Localized.Common.show(secretKind.title))
+    }
+
     var secretKind: GemWalletSecretKind? {
         details.secretKind
     }
@@ -96,10 +100,7 @@ extension WalletDetailViewModel {
     }
 
     func delete() async throws {
-        switch try await service.delete(wallet) {
-        case .walletsRemaining: break
-        case .lastWalletDeleted: preferences.reload()
-        }
+        preferences.reload(after: try await service.delete(wallet))
     }
 
     func onSelectImage() {

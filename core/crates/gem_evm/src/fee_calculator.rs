@@ -89,28 +89,6 @@ mod tests {
     use super::*;
     use primitives::fee::FeePriority;
 
-    fn create_test_fee_history() -> EthereumFeeHistory {
-        EthereumFeeHistory {
-            reward: vec![
-                vec!["0x31e7fe5d".to_string(), "0x3b9aca04".to_string()],
-                vec!["0x18bf8474".to_string(), "0x3b9aca00".to_string()],
-                vec!["0x32324960".to_string(), "0x3b9aca00".to_string()],
-                vec!["0x7bf60c0".to_string(), "0x31e7fe5d".to_string()],
-                vec!["0x29b92700".to_string(), "0x39fbe24e".to_string()],
-            ],
-            base_fee_per_gas: vec![
-                BigInt::from(2618877110u64),
-                BigInt::from(2600645117u64),
-                BigInt::from(2474034920u64),
-                BigInt::from(2495024366u64),
-                BigInt::from(2624620404u64),
-                BigInt::from(2541053471u64),
-            ],
-            gas_used_ratio: vec![0.4787648265769147, 0.30434244444444447, 0.5349411706429458, 0.707018, 0.37411107986145914],
-            oldest_block: 22832041,
-        }
-    }
-
     #[test]
     fn test_get_fee_history_blocks() {
         assert!(get_fee_history_blocks(primitives::EVMChain::Ethereum) > 0);
@@ -125,7 +103,7 @@ mod tests {
     #[test]
     fn test_calculate_priority_fees() {
         let calculator = FeeCalculator::new();
-        let fee_history = create_test_fee_history();
+        let fee_history = EthereumFeeHistory::mock_ethereum();
         let priorities = [FeePriority::Normal, FeePriority::Fast];
 
         let result = calculator.calculate_priority_fees(&fee_history, &priorities, BigInt::from(100_000_000)).unwrap();
@@ -174,7 +152,7 @@ mod tests {
         assert!(calculator.calculate_priority_fees(&empty_history, &[FeePriority::Normal], BigInt::from(100)).is_err());
         assert!(
             calculator
-                .calculate_priority_fees(&create_test_fee_history(), &[FeePriority::Normal], BigInt::from(100))
+                .calculate_priority_fees(&EthereumFeeHistory::mock_ethereum(), &[FeePriority::Normal], BigInt::from(100))
                 .is_err()
         );
     }

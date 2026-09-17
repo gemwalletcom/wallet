@@ -219,7 +219,6 @@ impl Drop for Inflight {
 mod tests {
     use super::*;
     use crate::config::MetricsConfig;
-    use crate::testkit::config::metrics_config;
 
     fn metric_lines(encoded: &str, prefix: &str) -> Vec<String> {
         let mut lines = encoded.lines().filter(|line| line.starts_with(prefix)).map(str::to_owned).collect::<Vec<_>>();
@@ -231,7 +230,7 @@ mod tests {
     fn test_node_attempts_and_provider_traffic_share_families() {
         let metrics = Metrics::new(MetricsConfig {
             source: "api".into(),
-            ..metrics_config()
+            ..MetricsConfig::mock()
         });
         metrics.add_proxy_request("ethereum", &["eth_chainId".into(), "eth_blockNumber".into()]);
         metrics.record_node_upstream(Chain::Ethereum, "rpc.example.com", "/?apikey=secret", 200, Duration::from_millis(50));
@@ -268,7 +267,7 @@ mod tests {
 
     #[test]
     fn test_node_groups_follow_chain_families() {
-        let metrics = Metrics::new(metrics_config());
+        let metrics = Metrics::mock();
         for chain in [
             Chain::Ethereum,
             Chain::Base,
@@ -298,7 +297,7 @@ mod tests {
 
     #[test]
     fn test_endpoint_state_and_inflight_drop() {
-        let metrics = Metrics::new(metrics_config());
+        let metrics = Metrics::mock();
         let inflight = metrics.track_inflight("worker", "prices", "jupiter");
         metrics.record_upstream_latency("worker", "prices", "jupiter", "key_1", 200, Duration::from_millis(125));
         metrics.record_throttle_wait("worker", "prices", "jupiter", "key_1", Duration::from_millis(175));

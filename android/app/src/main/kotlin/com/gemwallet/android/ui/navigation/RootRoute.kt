@@ -14,7 +14,7 @@ import com.gemwallet.android.domains.search.WalletSearchTag
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.asset_select.presents.navigation.AssetsManageRoute
-import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
+import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
 import com.gemwallet.android.features.create_wallet.navigation.CreateWalletAlertRoute
 import com.gemwallet.android.features.create_wallet.navigation.CreateWalletRoute
 import com.gemwallet.android.features.import_wallet.navigation.ImportChainWalletRoute
@@ -99,6 +99,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemDeeplinkService
+import uniffi.gemstone.GemDeeplinkServiceInterface
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.UrlAction
@@ -137,7 +138,7 @@ fun rememberWalletNavigationState(
 class WalletNavigator(
     val backStack: NavBackStack<NavKey>,
     val currentTab: MutableState<String>,
-    private val deeplinkService: GemDeeplinkService,
+    private val deeplinkService: GemDeeplinkServiceInterface,
     private val assetsService: GemAssetsServiceInterface,
     private val scope: CoroutineScope,
 ) {

@@ -375,8 +375,6 @@ async fn rocket_ws_stream(settings: Settings) -> Result<Rocket<Build>, Box<dyn E
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
-    let settings = Settings::new()?;
-
     let service = match std::env::args().nth(1) {
         Some(arg) => APIService::from_str(&arg).unwrap_or_else(|_| {
             let services: Vec<_> = APIService::iter().map(|s| format!("api {}", s.as_ref())).collect();
@@ -384,6 +382,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         }),
         None => APIService::Api,
     };
+    let settings = Settings::new()?.with_postgres_application_name(service.as_ref())?;
 
     info_with_fields!("api start service", service = service.as_ref());
 

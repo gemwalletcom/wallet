@@ -27,29 +27,15 @@ fn is_verified_marketplace(marketplace: Option<&str>) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gem_ton::models::TokenInfoExtra;
 
     #[test]
     fn test_is_verified() {
         let address = Address::try_parse_hex("0:80D78A35F955A14B679FAA887FF4CD5BFC0F43B4A4EEA2A7E6927F3701B273C2").unwrap();
-        let info = mock_token_info(None);
+        let info = TokenInfo::mock_with_marketplace(None);
         assert!(is_verified(&address, &info));
 
         let other = Address::try_parse_hex("0:0000000000000000000000000000000000000000000000000000000000000000").unwrap();
-        assert!(is_verified(&other, &mock_token_info(Some("getgems.io"))));
-        assert!(!is_verified(&other, &mock_token_info(Some("other.io"))));
-    }
-
-    fn mock_token_info(marketplace: Option<&str>) -> TokenInfo {
-        TokenInfo {
-            valid: true,
-            name: Some("Collection".to_string()),
-            description: None,
-            image: None,
-            extra: Some(TokenInfoExtra {
-                domain: None,
-                marketplace: marketplace.map(str::to_string),
-            }),
-        }
+        assert!(is_verified(&other, &TokenInfo::mock_with_marketplace(Some("getgems.io"))));
+        assert!(!is_verified(&other, &TokenInfo::mock_with_marketplace(Some("other.io"))));
     }
 }

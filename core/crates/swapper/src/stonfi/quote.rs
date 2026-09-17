@@ -126,23 +126,9 @@ pub(super) fn scaled_next_min_ask_amount(first: &SwapSimulation, next: &SwapSimu
 #[cfg(test)]
 mod tests {
     use super::super::constants::FALLBACK_ROUTERS;
+    use super::super::testkit::{TEST_PTON_WALLET, TEST_USDT_WALLET};
     use super::*;
     use primitives::{AssetId, Chain, asset_constants::TON_USDT_TOKEN_ID};
-
-    const PTON_WALLET: &str = "EQCSIMGBps_qzRG3uPYhON8bucyCtu0mYdL1-u4gSz77IBa3";
-    const USDT_WALLET: &str = "EQCSLWJ9fY7b0A5OI72wxUp27l4fRlc6GvRBeFf6PiPpH4p3";
-
-    fn pool_data() -> PoolData {
-        PoolData {
-            is_locked: false,
-            reserve0: BigUint::from(3_809_436_784_065u64),
-            reserve1: BigUint::from(1_784_561_670_122_756u64),
-            token0_wallet: USDT_WALLET.to_string(),
-            token1_wallet: PTON_WALLET.to_string(),
-            lp_fee: 7,
-            protocol_fee: 3,
-        }
-    }
 
     #[test]
     fn test_token_address() {
@@ -156,7 +142,7 @@ mod tests {
     #[test]
     fn test_compute_amount_out() {
         let amount = BigUint::from(1_000_000_000u64);
-        let out = compute_amount_out(&pool_data(), PTON_WALLET, &amount).unwrap();
+        let out = compute_amount_out(&PoolData::mock(), TEST_PTON_WALLET, &amount).unwrap();
 
         assert_eq!(out, BigUint::from(2_132_526u64));
         assert_eq!(apply_slippage(&out, 100), BigUint::from(2_111_200u64));
@@ -166,7 +152,7 @@ mod tests {
     fn test_compute_amount_out_rejects_unknown_offer_wallet() {
         let amount = BigUint::from(1_000_000_000u64);
         assert_eq!(
-            compute_amount_out(&pool_data(), "EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c", &amount).unwrap_err(),
+            compute_amount_out(&PoolData::mock(), "EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c", &amount).unwrap_err(),
             SwapperError::InvalidRoute
         );
     }
@@ -174,7 +160,7 @@ mod tests {
     #[test]
     fn test_compute_amount_out_selects_pool_side() {
         let amount = BigUint::from(2_000_000u64);
-        let out = compute_amount_out(&pool_data(), USDT_WALLET, &amount).unwrap();
+        let out = compute_amount_out(&PoolData::mock(), TEST_USDT_WALLET, &amount).unwrap();
 
         assert_eq!(out, BigUint::from(935_978_872u64));
     }

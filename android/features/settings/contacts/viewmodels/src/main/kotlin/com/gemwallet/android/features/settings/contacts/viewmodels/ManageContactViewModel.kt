@@ -1,21 +1,25 @@
 package com.gemwallet.android.features.settings.contacts.viewmodels
 
-import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.ext.toGem
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.contacts.cases.GetContacts
-import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.requireChain
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressForm
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAddressInput
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ContactAvatarState
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ManageContactPage
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ManageContactState
 import com.gemwallet.android.features.settings.contacts.viewmodels.models.ManageContactUIState
+import com.gemwallet.android.features.settings.contacts.viewmodels.models.addAddressListItem
+import com.gemwallet.android.features.settings.contacts.viewmodels.models.rows
 import com.gemwallet.android.ui.components.image.EmojiAvatarRenderer
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.name.AddressInputModel
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Chain
@@ -23,6 +27,8 @@ import com.wallet.core.primitives.Contact
 import com.wallet.core.primitives.ContactAddress
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.UUID
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -31,15 +37,13 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemErrorText
+import uniffi.gemstone.GemAddressService
 import uniffi.gemstone.GemContactAddressInput
 import uniffi.gemstone.GemContactAvatar
 import uniffi.gemstone.GemContactInput
 import uniffi.gemstone.GemManageContactServiceInterface
 import uniffi.gemstone.GemNameServiceInterface
-import java.util.UUID
-import javax.inject.Inject
-import com.gemwallet.android.ext.errorText
+import uniffi.gemstone.contactInitials
 
 @HiltViewModel
 class ManageContactViewModel @Inject constructor(
@@ -48,6 +52,7 @@ class ManageContactViewModel @Inject constructor(
     private val service: GemManageContactServiceInterface,
     nameService: GemNameServiceInterface,
     savedStateHandle: SavedStateHandle,
+    private val addressService: GemAddressService,
 ) : ViewModel() {
 
     private sealed interface Mode {
@@ -75,13 +80,16 @@ class ManageContactViewModel @Inject constructor(
         ManageContactUIState(
             isEdit = current.isEdit,
             name = current.name,
+            initials = contactInitials(current.name),
             description = current.description,
             avatar = current.avatar,
             addresses = current.addresses,
+            addressRows = current.addresses.rows(addressService),
+            addAddressListItem = addAddressListItem(context),
             page = current.page,
             isSaving = current.isSaving,
             saved = current.saved,
-            error = current.error,
+            errorText = current.errorText,
             isSaveEnabled = service.canSave(current.name, current.isSaving),
             addressInput = current.form?.let { form ->
                 ContactAddressInput(
@@ -234,11 +242,11 @@ class ManageContactViewModel @Inject constructor(
             runCatchingCancellable { service.saveContact(input) }
                 .onSuccess { state.update { it.copy(saved = true) } }
                 .onFailure { error ->
-                    state.update { it.copy(isSaving = false, error = error.errorText()) }
+                    state.update { it.copy(isSaving = false, errorText = error.errorText().text(context)) }
                 }
         }
     }
 
-    fun clearError() = state.update { it.copy(error = null) }
+    fun clearError() = state.update { it.copy(errorText = null) }
 
 }

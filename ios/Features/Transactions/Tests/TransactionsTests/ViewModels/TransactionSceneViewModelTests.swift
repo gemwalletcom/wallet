@@ -1,4 +1,3 @@
-import class Gemstone.GemTransactionDetailsService
 import enum Gemstone.GemTransactionHeaderAction
 import GemstonePrimitivesTestKit
 import Components
@@ -12,6 +11,7 @@ import PrimitivesTestKit
 import Style
 import Testing
 @testable import Transactions
+import TransactionsTestKit
 
 @MainActor
 struct TransactionSceneViewModelTests {
@@ -42,15 +42,9 @@ struct TransactionSceneViewModelTests {
     func nftHeaderAction() {
         let assetId = NFTAssetId(chain: .ethereum, contractAddress: "0xasset", tokenId: "1")
         var selectedAction: GemTransactionHeaderAction?
-        let model = TransactionSceneViewModel(
-            transaction: TransactionExtended.mock(
-                transaction: Transaction.mock(
-                    type: .transferNFT,
-                    metadata: .encode(TransactionNFTTransferMetadata(assetId: assetId, name: "NFT")),
-                ),
-            ),
-            walletId: .mock(),
-            service: GemTransactionDetailsService.mock(),
+        let model = TransactionSceneViewModel.mock(
+            type: .transferNFT,
+            metadata: .encode(TransactionNFTTransferMetadata(assetId: assetId, name: "NFT")),
             onHeaderAction: { selectedAction = $0 },
         )
 
@@ -63,15 +57,9 @@ struct TransactionSceneViewModelTests {
 
     @Test
     func nftHeaderActionRequiresHandler() {
-        let model = TransactionSceneViewModel(
-            transaction: TransactionExtended.mock(
-                transaction: Transaction.mock(
-                    type: .transferNFT,
-                    metadata: .encode(TransactionNFTTransferMetadata(assetId: .mock(), name: "NFT")),
-                ),
-            ),
-            walletId: .mock(),
-            service: GemTransactionDetailsService.mock(),
+        let model = TransactionSceneViewModel.mock(
+            type: .transferNFT,
+            metadata: .encode(TransactionNFTTransferMetadata(assetId: .mock(), name: "NFT")),
         )
 
         #expect(model.onTransactionHeaderTap == nil)
@@ -99,8 +87,7 @@ struct TransactionSceneViewModelTests {
 
     @Test
     func dateItemModel() {
-        let testDate = Date(timeIntervalSince1970: 1_609_459_200)
-        let model = TransactionSceneViewModel.mock(createdAt: testDate)
+        let model = TransactionSceneViewModel.mock()
 
         if case let .listItem(item) = model.item(for: GemTransactionDetailRow.date) {
             #expect(item.title == Localized.Transaction.date)
@@ -146,7 +133,7 @@ struct TransactionSceneViewModelTests {
 
     @Test
     func swapProgressItemModel() {
-        let model = TransactionSceneViewModel.swapProgressMock(state: .inTransit, fromAsset: .mockEthereum(), toAsset: .mockNear())
+        let model = TransactionSceneViewModel.mock(type: .swap, state: .inTransit, asset: .mockEthereum(), swapToAsset: .mockNear(), confirmationEtaSeconds: 720)
 
         if case let .swapProgress(progress) = model.item(for: GemTransactionDetailRow.swapProgress) {
             #expect(progress.transfer.title == Localized.Transfer.title)
@@ -169,18 +156,11 @@ struct TransactionSceneViewModelTests {
 
     @Test
     func participantItemModel() {
-        let transaction = TransactionExtended.mock(
-            transaction: Transaction.mock(
-                type: .transfer,
-                direction: .incoming,
-                from: "0xSenderAddress",
-                to: "0xRecipientAddress",
-            ),
-        )
-        let modelWithAddresses = TransactionSceneViewModel(
-            transaction: transaction,
-            walletId: .mock(),
-            service: GemTransactionDetailsService.mock(),
+        let modelWithAddresses = TransactionSceneViewModel.mock(
+            type: .transfer,
+            direction: .incoming,
+            from: "0xSenderAddress",
+            to: "0xRecipientAddress",
         )
 
         if case let .participant(item) = modelWithAddresses.item(for: GemTransactionDetailRow.participant) {
@@ -199,7 +179,7 @@ struct TransactionSceneViewModelTests {
 
     @Test
     func memoItemModel() {
-        let modelWithMemo = TransactionSceneViewModel.mock(assetId: .mock(.cosmos), memo: "Test memo")
+        let modelWithMemo = TransactionSceneViewModel.mock(asset: .mock(id: .mock(.cosmos)), memo: "Test memo")
         if case let .listItem(item) = modelWithMemo.item(for: GemTransactionDetailRow.memo) {
             #expect(item.title == Localized.Transfer.memo)
             #expect(item.subtitle == "Test memo")
@@ -207,13 +187,13 @@ struct TransactionSceneViewModelTests {
             Issue.record("Expected listItem for memo")
         }
 
-        let modelNoMemo = TransactionSceneViewModel.mock(assetId: .mock(.cosmos), memo: nil)
+        let modelNoMemo = TransactionSceneViewModel.mock(asset: .mock(id: .mock(.cosmos)), memo: nil)
         if case .empty = modelNoMemo.item(for: GemTransactionDetailRow.memo) {
         } else {
             Issue.record("Expected empty for nil memo")
         }
 
-        let modelEmptyMemo = TransactionSceneViewModel.mock(assetId: .mock(.cosmos), memo: "")
+        let modelEmptyMemo = TransactionSceneViewModel.mock(asset: .mock(id: .mock(.cosmos)), memo: "")
         if case .empty = modelEmptyMemo.item(for: GemTransactionDetailRow.memo) {
         } else {
             Issue.record("Expected empty for empty memo")
@@ -267,10 +247,10 @@ struct TransactionSceneViewModelTests {
 
     @Test
     func sectionsComeFromCoreWithOnlyTheRowsTheTransactionHas() {
-        let transfer = TransactionSceneViewModel.mock(assetId: .mock(.cosmos), memo: "gm").sections
+        let transfer = TransactionSceneViewModel.mock(asset: .mock(id: .mock(.cosmos)), memo: "gm").sections
         #expect(transfer.map(\.values) == [[.header], [.date, .status, .participant, .memo, .network], [.fee], [.explorer]])
 
-        let swap = TransactionSceneViewModel.swapProgressMock(state: .inTransit, fromAsset: .mockEthereum(), toAsset: .mockNear()).sections
+        let swap = TransactionSceneViewModel.mock(type: .swap, state: .inTransit, asset: .mockEthereum(), swapToAsset: .mockNear(), confirmationEtaSeconds: 720).sections
         #expect(swap.map(\.values) == [[.header], [.swapProgress], [.date, .status, .rate, .network, .provider], [.fee], [.explorer]])
     }
 
@@ -292,66 +272,5 @@ struct TransactionSceneViewModelTests {
         if case .empty = model {
             Issue.record("Expected non-empty model")
         }
-    }
-}
-
-extension TransactionSceneViewModel {
-    static func mock(
-        type: TransactionType = .transfer,
-        state: TransactionState = .confirmed,
-        direction: TransactionDirection = .outgoing,
-        assetId: AssetId = .mock(),
-        asset: Asset = .mock(),
-        assets: [Asset] = [],
-        toAddress: String = "participant_address",
-        memo: String? = nil,
-        metadata: AnyCodableValue? = nil,
-        confirmationEtaSeconds: UInt32? = nil,
-        createdAt _: Date = Date(),
-    ) -> TransactionSceneViewModel {
-        TransactionSceneViewModel(
-            transaction: TransactionExtended.mock(
-                transaction: Transaction.mock(
-                    type: type,
-                    state: state,
-                    direction: direction,
-                    assetId: assetId,
-                    to: toAddress,
-                    memo: memo,
-                    metadata: metadata,
-                ),
-                asset: asset,
-                assets: assets,
-                confirmationEtaSeconds: confirmationEtaSeconds,
-            ),
-            walletId: .mock(),
-            service: GemTransactionDetailsService.mock(),
-        )
-    }
-
-    static func swapProgressMock(
-        state: TransactionState,
-        fromAsset: Asset,
-        toAsset: Asset,
-        provider: SwapProvider? = .nearIntents,
-        confirmationEtaSeconds: UInt32? = 720,
-    ) -> TransactionSceneViewModel {
-        mock(
-            type: .swap,
-            state: state,
-            assetId: fromAsset.id,
-            asset: fromAsset,
-            assets: [fromAsset, toAsset],
-            metadata: AnyCodableValue.encode(
-                TransactionSwapMetadata.mock(
-                    fromAsset: fromAsset.id,
-                    fromValue: "1000000000000000000",
-                    toAsset: toAsset.id,
-                    toValue: "200",
-                    provider: provider?.rawValue,
-                ),
-            ),
-            confirmationEtaSeconds: confirmationEtaSeconds,
-        )
     }
 }

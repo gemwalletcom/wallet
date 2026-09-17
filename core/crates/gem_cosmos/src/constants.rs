@@ -24,6 +24,9 @@ pub const EVENTS_ATTRIBUTE_AMOUNT: &str = "amount";
 pub const BOND_STATUS_BONDED: &str = "BOND_STATUS_BONDED";
 pub const BOND_STATUS_UNBONDED: &str = "BOND_STATUS_UNBONDED";
 
+pub const TRANSFER_GAS_LIMIT: u64 = 200_000;
+pub const GAS_PRICE_DECIMALS: u32 = 18;
+
 pub fn get_base_fee(chain: CosmosChain) -> u64 {
     match chain {
         CosmosChain::Thorchain => 2_000_000,
@@ -31,7 +34,7 @@ pub fn get_base_fee(chain: CosmosChain) -> u64 {
         CosmosChain::Cosmos => 3_000,
         CosmosChain::Osmosis => 10_000,
         CosmosChain::Celestia => 3_000,
-        CosmosChain::Sei => 100_000,
+        CosmosChain::Sei => 20_000,
         CosmosChain::Injective => 100_000_000_000_000,
         CosmosChain::Noble => 25_000,
     }

@@ -27,6 +27,22 @@ public final class GemSecureStoreMock: GemSecureStore, @unchecked Sendable {
     }
 }
 
+public final class GemNodeStoreMock: GemNodeStore, @unchecked Sendable {
+    public init() {}
+
+    public func getNodes(chain _: Gemstone.Chain) async throws -> [Gemstone.Node] { [] }
+
+    public func addNode(chain _: Gemstone.Chain, node _: Gemstone.Node) async throws {}
+
+    public func deleteNode(chain _: Gemstone.Chain, url _: String) async throws {}
+}
+
+public extension GemNodeService {
+    static func mock() -> GemNodeService {
+        GemNodeService(store: GemNodeStoreMock(), preferences: GemPreferencesStoreMock())
+    }
+}
+
 public final class GemPreferencesStoreMock: GemPreferencesStore, @unchecked Sendable {
     private let lock = NSLock()
     private var values: [String: String] = [:]

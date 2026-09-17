@@ -1,45 +1,41 @@
 package com.gemwallet.android.features.asset_select.viewmodels
 
-import com.gemwallet.android.domains.asset.assetConfig
-import com.gemwallet.android.domains.asset.toQueryFilters
+import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import android.util.Log
-import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
-import com.gemwallet.android.model.AssetFilter
-import com.gemwallet.android.model.NO_QUERY_LIMIT
-import com.gemwallet.android.model.RecentAssetsRequest
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
+import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
+import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
+import com.gemwallet.android.domains.asset.assetConfig
+import com.gemwallet.android.domains.asset.toQueryFilters
+import com.gemwallet.android.domains.price.values.RowFormatters
 import com.gemwallet.android.ext.getAccount
+import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.toIdentifier
-import com.wallet.core.primitives.RecentActivityType
-import uniffi.gemstone.GemAssetAction
-import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import uniffi.gemstone.GemAssetRowTitle
-import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregate
-import com.gemwallet.android.domains.price.values.RowFormatters
-import com.gemwallet.android.ui.models.AssetToast
-import com.gemwallet.android.ui.models.AssetToastEmitter
-import com.gemwallet.android.ui.models.AssetToastEmitterImpl
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectAssetFilters
 import com.gemwallet.android.features.asset_select.viewmodels.models.SelectSearch
 import com.gemwallet.android.features.asset_select.viewmodels.models.UIState
+import com.gemwallet.android.model.AssetFilter
+import com.gemwallet.android.model.NO_QUERY_LIMIT
+import com.gemwallet.android.model.RecentAssetsRequest
+import com.gemwallet.android.ui.components.screen.assetAddedToast
+import com.gemwallet.android.ui.components.screen.assetPinnedToast
+import com.gemwallet.android.ui.models.ToastEmitter
+import com.gemwallet.android.ui.models.ToastEmitterImpl
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PerpetualId
-import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.ext.requireChain
-import uniffi.gemstone.GemAssetSelectionServiceInterface
-import uniffi.gemstone.GemSelectAssetType
-import uniffi.gemstone.GemAssetSearchStep
-import uniffi.gemstone.GemSelectAssetState
+import com.wallet.core.primitives.RecentActivityType
+import com.wallet.core.primitives.WalletType
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
@@ -47,7 +43,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -56,11 +51,17 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.wallet.core.primitives.WalletType
+import uniffi.gemstone.GemAssetAction
+import uniffi.gemstone.GemAssetRowTitle
+import uniffi.gemstone.GemAssetSearchStep
+import uniffi.gemstone.GemAssetSelectionServiceInterface
+import uniffi.gemstone.GemSelectAssetState
+import uniffi.gemstone.GemSelectAssetType
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 open class BaseAssetSelectViewModel(
@@ -69,7 +70,8 @@ open class BaseAssetSelectViewModel(
     protected val service: GemAssetSelectionServiceInterface,
     val search: SelectSearch,
     selectType: GemSelectAssetType,
-) : ViewModel(), AssetToastEmitter by AssetToastEmitterImpl() {
+    protected val context: Context,
+) : ViewModel(), ToastEmitter by ToastEmitterImpl() {
 
     val flow = service.flow(selectType)
     val queryState = TextFieldState()
@@ -117,13 +119,10 @@ open class BaseAssetSelectViewModel(
     private val assetsContent = combine(
         filters,
         search.items(filters),
-    ) { filters, items ->
-        val chainFilter = filters?.chainFilter.orEmpty()
-        val balanceFilter = filters?.hasBalance == true
+    ) { _, items ->
         val wallet = session.value?.wallet
         val formatters = RowFormatters()
         items
-            .filter { (chainFilter.isEmpty() || it.id().chain in chainFilter) && (!balanceFilter || it.balance.totalAmount > 0.0) }
             .map { item ->
                 val owner = item.owner ?: wallet?.getAccount(item.asset.id.chain)
                 val assetInfo = if (item.owner == owner) item else item.copy(owner = owner)
@@ -219,7 +218,7 @@ open class BaseAssetSelectViewModel(
 
     fun onAddToWallet(assetId: AssetId) = viewModelScope.launch {
         if (setVisibility(assetId, visible = true).isSuccess) {
-            emitToast(AssetToast.AddedToWallet)
+            emitToast(assetAddedToast(context))
         }
     }
 
@@ -228,7 +227,7 @@ open class BaseAssetSelectViewModel(
         val willPin = item?.pinned != true
         runCatchingCancellable { service.setAssetPinned(assetId.toIdentifier(), willPin) }
             .onFailure { Log.e(TAG, "pinning ${assetId.toIdentifier()} failed", it) }
-        item?.let { emitToast(AssetToast.Pin(it.asset.name, willPin)) }
+        item?.let { emitToast(assetPinnedToast(context, it.asset.name, willPin)) }
     }
 
     private suspend fun setVisibility(assetId: AssetId, visible: Boolean): Result<Unit> = withContext(Dispatchers.IO) {

@@ -23,31 +23,22 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.asset
 import com.gemwallet.android.features.settings.networks.viewmodels.AddNodeViewModel
+import com.gemwallet.android.features.settings.networks.viewmodels.models.NodeCheckRowUIModel
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.features.settings.networks.presents.localization.stringRes
-import com.gemwallet.android.features.settings.networks.presents.localization.text
-import com.gemwallet.android.features.settings.networks.presents.style.icon
-import com.gemwallet.android.features.settings.networks.presents.style.tint
-import uniffi.gemstone.GemNodeCheckRow
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.QrCodeScannerModal
-import com.wallet.core.primitives.QRScanType
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.fields.TransferTextFieldActions
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.ListItemTitleText
-import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer16
 import com.wallet.core.primitives.Chain
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.localization.string
+import com.wallet.core.primitives.QRScanType
 
 @Composable
 fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
@@ -85,17 +76,15 @@ fun AddNodeScene(chain: Chain, onCancel: () -> Unit) {
         )
         UrlField(
             value = viewModel.url,
-            error = uiModel.failure?.string().orEmpty(),
+            error = uiModel.errorText,
             onValueChange = viewModel::onUrlChange,
             onQRScan = {
                 isShowQRScan = true
             }
         )
         Spacer16()
-        uiModel.status?.let { status ->
-            status.rows().forEach { NodeCheckRow(it) }
-            WarningItem()
-        }
+        uiModel.checks.forEach { NodeCheckRow(it) }
+        uiModel.warning?.let { ListItem(model = it, listPosition = ListPosition.Single) }
     }
 
     QrCodeScannerModal(
@@ -151,40 +140,19 @@ private fun UrlField(
 }
 
 @Composable
-private fun WarningItem() {
+private fun NodeCheckRow(row: NodeCheckRowUIModel) {
+    val isInSync = row.isInSync
     ListItem(
-        listPosition = ListPosition.Single,
-        title = {
-            ListItemTitleText(stringResource(R.string.asset_verification_warning_title))
-        },
-        subtitle = {
-            Text(
-                text = stringResource(R.string.nodes_import_node_warning_message),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.secondary,
-            )
+        model = row.model,
+        listPosition = ListPosition.Middle,
+        accessory = isInSync?.let {
+            {
+                Icon(
+                    imageVector = if (it) AppIcons.CheckCircleOutlined else AppIcons.Cancel,
+                    tint = if (it) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.error,
+                    contentDescription = "",
+                )
+            }
         },
     )
-}
-
-@Composable
-private fun NodeCheckRow(row: GemNodeCheckRow) {
-    when (row) {
-        is GemNodeCheckRow.InSync -> PropertyItem(
-            title = { PropertyTitleText(row.stringRes()) },
-            data = {
-                PropertyDataText(
-                    "",
-                    badge = {
-                        Icon(
-                            imageVector = row.state.icon(),
-                            tint = row.state.tint(),
-                            contentDescription = "",
-                        )
-                    },
-                )
-            },
-        )
-        else -> PropertyItem(row.stringRes(), row.text())
-    }
 }

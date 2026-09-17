@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.assets.views
 
 import androidx.compose.foundation.layout.fillMaxSize
-import uniffi.gemstone.GemAssetAction
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -23,13 +22,14 @@ import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.assetPriceSupport
 import com.gemwallet.android.ui.components.list_item.getBalanceInfo
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
-import com.gemwallet.android.ui.components.screen.AssetToastEffect
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.components.screen.ToastEffect
 import com.gemwallet.android.ui.models.AssetsGroupType
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.PerpetualId
+import uniffi.gemstone.GemAssetAction
 
 @Composable
 fun AssetsResultsScreen(
@@ -37,14 +37,14 @@ fun AssetsResultsScreen(
     viewModel: AssetsResultsViewModel = hiltViewModel(),
 ) {
     val pinned by viewModel.pinned.collectAsStateWithLifecycle()
-    val cappedAssets by viewModel.cappedAssets.collectAsStateWithLifecycle()
+    val unpinned by viewModel.unpinned.collectAsStateWithLifecycle()
     val previewPerpetuals by viewModel.previewPerpetuals.collectAsStateWithLifecycle()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.refreshing.collectAsStateWithLifecycle()
     val longPressedAsset = remember { mutableStateOf<AssetId?>(null) }
     val longPressedPerpetual = remember { mutableStateOf<PerpetualId?>(null) }
     val snackbar = remember { SnackbarHostState() }
-    AssetToastEffect(viewModel.toastEvents, snackbar)
+    ToastEffect(viewModel.toastEvents, snackbar)
 
     val onAssetClick: (Asset) -> Unit = {
         viewModel.updateRecent(it, GemAssetAction.OPEN)
@@ -84,7 +84,7 @@ fun AssetsResultsScreen(
                     )
                 }
                 assetRows(
-                    items = cappedAssets,
+                    items = unpinned,
                     onSelect = onAssetClick,
                     support = { assetPriceSupport(it.price) },
                     titleBadge = { item -> getAssetBadge(item, viewModel.flow.row.showsSymbol) },

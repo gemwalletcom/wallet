@@ -105,21 +105,13 @@ pub fn map_staking_validators(witnesses: WitnessesList, apy: Option<f64>) -> Vec
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::WitnessAccount;
-
-    fn unfrozen(amount: u64, expire_time: u64) -> TronUnfrozen {
-        TronUnfrozen {
-            unfreeze_amount: amount,
-            unfreeze_expire_time: Some(expire_time),
-        }
-    }
 
     #[test]
     fn test_every_expired_unfreeze_is_one_withdrawal() {
         let now = DateTime::from_timestamp(1_000_000, 0).unwrap();
         let asset_id = Chain::Tron.as_asset_id();
 
-        let delegations = map_unfreeze_delegations(vec![unfrozen(6, 900_000_000), unfrozen(4, 800_000_000)], &asset_id, now);
+        let delegations = map_unfreeze_delegations(vec![TronUnfrozen::mock(6, 900_000_000), TronUnfrozen::mock(4, 800_000_000)], &asset_id, now);
 
         assert_eq!(delegations.len(), 1);
         assert_eq!(delegations[0].state, DelegationState::AwaitingWithdrawal);
@@ -131,7 +123,7 @@ mod tests {
         let now = DateTime::from_timestamp(1_000_000, 0).unwrap();
         let asset_id = Chain::Tron.as_asset_id();
 
-        let delegations = map_unfreeze_delegations(vec![unfrozen(6, 900_000_000), unfrozen(4, 2_000_000_000)], &asset_id, now);
+        let delegations = map_unfreeze_delegations(vec![TronUnfrozen::mock(6, 900_000_000), TronUnfrozen::mock(4, 2_000_000_000)], &asset_id, now);
 
         assert_eq!(delegations.len(), 2);
         assert_eq!(delegations[0].state, DelegationState::Pending);
@@ -140,28 +132,9 @@ mod tests {
         assert_eq!(delegations[1].balance, BigUint::from(6u32));
     }
 
-    fn create_mock_witnesses() -> WitnessesList {
-        WitnessesList {
-            witnesses: vec![
-                WitnessAccount {
-                    address: "4159f3440fd40722f716144e4490a4de162d3b3fcb".to_string(),
-                    vote_count: Some(1000000),
-                    url: "https://validator1.com".to_string(),
-                    is_jobs: Some(true),
-                },
-                WitnessAccount {
-                    address: "41357a7401a0f0c2d4a44a1881a0c622f15d986291".to_string(),
-                    vote_count: Some(500000),
-                    url: "https://validator2.com".to_string(),
-                    is_jobs: Some(false),
-                },
-            ],
-        }
-    }
-
     #[test]
     fn test_map_staking_validators() {
-        let witnesses = create_mock_witnesses();
+        let witnesses = WitnessesList::mock();
         let validators = map_staking_validators(witnesses, Some(4.2));
 
         assert_eq!(validators.len(), 3);

@@ -5,14 +5,13 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.serializer.decodeJson
 import com.wallet.core.primitives.AddressName
 import com.wallet.core.primitives.AddressType
-import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.BlockExplorerLink
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemConfirmDestination
 
 sealed interface ConfirmProperty {
     class Source(val walletRow: GemWalletRow) : ConfirmProperty
-    class Network(val data: Asset) : ConfirmProperty
+    class Network(val chain: Chain, val name: String) : ConfirmProperty
     class Memo(memo: String) : ConfirmProperty {
         val data: String = memo.ifEmpty { "-" }
     }
@@ -36,18 +35,18 @@ sealed interface ConfirmProperty {
         class Generic(val appName: String) : Destination(appName, null)
 
         companion object {
-            fun map(destination: GemConfirmDestination?, chain: Chain, addressName: AddressName? = null): Destination? = when (destination) {
-                null -> null
+            fun map(destination: GemConfirmDestination, chain: Chain, addressName: AddressName?, explorerLink: BlockExplorerLink): Destination = when (destination) {
                 is GemConfirmDestination.Recipient -> Transfer(
                     domain = destination.name,
                     address = destination.address,
                     chain = chain,
                     addressType = addressName?.type,
                     imageUrl = addressName?.imageUrl,
+                    explorerLink = explorerLink,
                     kind = destination,
                 )
-                is GemConfirmDestination.Contract -> Contract(address = destination.address, chain = chain, kind = destination)
-                is GemConfirmDestination.Validator -> Stake(data = destination.name, address = destination.address, kind = destination)
+                is GemConfirmDestination.Contract -> Contract(address = destination.address, chain = chain, explorerLink = explorerLink, kind = destination)
+                is GemConfirmDestination.Validator -> Stake(data = destination.name, address = destination.address, explorerLink = explorerLink, kind = destination)
                 is GemConfirmDestination.Resource -> Resource(destination.resource.toPrimitives(), kind = destination)
                 is GemConfirmDestination.Provider -> Provider(destination.name, kind = destination)
             }

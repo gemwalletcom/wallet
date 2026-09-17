@@ -4,7 +4,7 @@ import androidx.compose.runtime.Stable
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransaction
 import com.gemwallet.android.application.transactions.cases.GetTransactionDetails
-import com.gemwallet.android.domains.price.toValueDirection
+import com.gemwallet.android.domains.price.tone
 import com.gemwallet.android.model.text
 import com.gemwallet.android.domains.swap.AssetRateFormatter
 import com.gemwallet.android.domains.transaction.aggregates.TransactionDetailsAggregate
@@ -38,6 +38,7 @@ import uniffi.gemstone.GemTransactionDetailRow
 import uniffi.gemstone.GemTransactionDetailSection
 import uniffi.gemstone.GemTransactionDetailRows
 import uniffi.gemstone.GemTransactionDetailsService
+import uniffi.gemstone.GemTransactionDetailsServiceInterface
 import uniffi.gemstone.GemTransactionHeader
 import uniffi.gemstone.GemTransactionHeaderAction
 import uniffi.gemstone.GemTransactionParticipant
@@ -49,7 +50,7 @@ import uniffi.gemstone.GemValueStyle
 class GetTransactionDetailsImpl(
     private val getSession: GetSession,
     private val getTransaction: GetTransaction,
-    private val transactionDetailsService: GemTransactionDetailsService,
+    private val transactionDetailsService: GemTransactionDetailsServiceInterface,
 ) : GetTransactionDetails {
 
     override fun getTransactionDetails(id: TransactionId): Flow<TransactionDetailsAggregate?> = combine(
@@ -118,7 +119,7 @@ class TransactionDetailsAggregateImpl(
     val network: TransactionDetailsValue.Network = TransactionDetailsValue.Network(asset)
 
     val pnl: TransactionDetailsValue.Pnl? = rows.pnl
-        ?.let { TransactionDetailsValue.Pnl(value = it.text(), direction = it.value.toValueDirection()) }
+        ?.let { TransactionDetailsValue.Pnl(value = it.text(), direction = it.value.tone()) }
 
     val price: TransactionDetailsValue.Price? = rows.price?.let { TransactionDetailsValue.Price(it.text()) }
 

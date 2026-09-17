@@ -17,9 +17,11 @@ fun WalletNavScreen(
     viewModel: WalletViewModel = hiltViewModel(),
 ) {
     val wallet by viewModel.wallet.collectAsStateWithLifecycle()
+    val secret by viewModel.secret.collectAsStateWithLifecycle()
 
     WalletScene(
         wallet = wallet,
+        secret = secret,
         onAction = { action ->
             when (action) {
                 is WalletAction.SetName -> viewModel.setWalletName(action.name)

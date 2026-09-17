@@ -7,6 +7,7 @@ use async_trait::async_trait;
 use futures::TryFutureExt;
 use gem_client::reqwest_client;
 use gem_jsonrpc::RpcResponse;
+use gem_jsonrpc::alien::RpcProvider;
 use gem_jsonrpc::rpc::RpcProvider as GenericRpcProvider;
 use reqwest::{Client, Method};
 
@@ -49,17 +50,6 @@ impl Default for NativeProvider {
 #[async_trait]
 impl GenericRpcProvider for NativeProvider {
     type Error = AlienError;
-
-    fn get_endpoint(&self, chain: Chain) -> Result<String, Self::Error> {
-        if let Some(url) = self.endpoints.get(&chain) {
-            return Ok(url.clone());
-        }
-        let nodes = get_nodes_for_chain(chain);
-        if nodes.is_empty() {
-            return Err(Self::Error::response_error(format!("not supported chain: {chain:?}")));
-        }
-        Ok(nodes[0].url.clone())
-    }
 
     async fn request(&self, target: Target) -> Result<RpcResponse, Self::Error> {
         if self.debug {
@@ -111,5 +101,18 @@ impl GenericRpcProvider for NativeProvider {
             status: Some(status.as_u16()),
             data: bytes.to_vec(),
         })
+    }
+}
+
+impl RpcProvider for NativeProvider {
+    fn get_endpoint(&self, chain: Chain) -> Result<String, AlienError> {
+        if let Some(url) = self.endpoints.get(&chain) {
+            return Ok(url.clone());
+        }
+        let nodes = get_nodes_for_chain(chain);
+        if nodes.is_empty() {
+            return Err(AlienError::response_error(format!("not supported chain: {chain:?}")));
+        }
+        Ok(nodes[0].url.clone())
     }
 }

@@ -30,53 +30,17 @@ impl ChainSigner for CardanoChainSigner {
 
 #[cfg(test)]
 mod tests {
-    use num_bigint::BigUint;
-    use primitives::{Asset, Chain, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, UTXO};
+    use primitives::{SignerInput, TransactionFee, TransactionLoadInput};
 
     use super::*;
 
     const PRIVATE_KEY_TEST_1: &str = "089b68e458861be0c44bf9f7967f05cc91e51ede86dc679448a3566990b7785bd48c330875b1e0d03caaed0e67cecc42075dce1c7a13b1c49240508848ac82f603391c68824881ae3fc23a56a1a75ada3b96382db502e37564e84a5413cfaf1290dbd508e5ec71afaea98da2df1533c22ef02a26bb87b31907d0b2738fb7785b38d53aa68fc01230784c9209b2b2a2faf28491b3b1f1d221e63e704bbd0403c4154425dfbb01a2c5c042da411703603f89af89e57faae2946e2a5c18b1c5ca0e";
     const WALLET_CORE_OWN_ADDRESS_1: &str = "addr1q8043m5heeaydnvtmmkyuhe6qv5havvhsf0d26q3jygsspxlyfpyk6yqkw0yhtyvtr0flekj84u64az82cufmqn65zdsylzk23";
     const TO_ADDRESS: &str = "addr1q92cmkgzv9h4e5q7mnrzsuxtgayvg4qr7y3gyx97ukmz3dfx7r9fu73vqn25377ke6r0xk97zw07dqr9y5myxlgadl2s0dgke5";
-    const TEST_BLOCK_NUMBER: u64 = 189_992_800;
-
-    fn signer_input(sender_address: &str) -> SignerInput {
-        SignerInput::new(
-            TransactionLoadInput {
-                input_type: TransactionInputType::Transfer {
-                    asset: Asset::from_chain(Chain::Cardano),
-                },
-                sender_address: sender_address.to_string(),
-                destination_address: TO_ADDRESS.to_string(),
-                value: BigUint::from(7000000u64),
-                gas_price: GasPriceType::regular(0u64),
-                memo: None,
-                is_max_value: false,
-                metadata: TransactionLoadMetadata::Cardano {
-                    block_number: TEST_BLOCK_NUMBER,
-                    utxos: vec![
-                        UTXO {
-                            transaction_id: "f074134aabbfb13b8aec7cf5465b1e5a862bde5cb88532cc7e64619179b3e767".to_string(),
-                            vout: 1,
-                            value: BigUint::from(1500000u64),
-                            address: sender_address.to_string(),
-                        },
-                        UTXO {
-                            transaction_id: "554f2fd942a23d06835d26bbd78f0106fa94c8a551114a0bef81927f66467af0".to_string(),
-                            vout: 0,
-                            value: BigUint::from(6500000u64),
-                            address: sender_address.to_string(),
-                        },
-                    ],
-                },
-            },
-            TransactionFee::mock(),
-        )
-    }
 
     #[test]
     fn test_sign_transfer_vector() {
-        let input = signer_input(WALLET_CORE_OWN_ADDRESS_1);
+        let input = SignerInput::new(TransactionLoadInput::mock_cardano(WALLET_CORE_OWN_ADDRESS_1, "7000000"), TransactionFee::mock());
         let private_key = hex::decode(PRIVATE_KEY_TEST_1).unwrap();
         let plan = plan_transfer(&input.input).unwrap();
         let key_pair = CardanoExtendedKeyPair::from_private_key(&private_key).unwrap();
@@ -95,13 +59,13 @@ mod tests {
 
     #[test]
     fn test_sign_transfer_rejects_invalid_key_length() {
-        let input = signer_input(WALLET_CORE_OWN_ADDRESS_1);
+        let input = SignerInput::new(TransactionLoadInput::mock_cardano(WALLET_CORE_OWN_ADDRESS_1, "7000000"), TransactionFee::mock());
         assert!(CardanoChainSigner.sign_transfer(&input, &[0u8; 32]).is_err());
     }
 
     #[test]
     fn test_sign_transfer_rejects_sender_key_mismatch() {
-        let input = signer_input(TO_ADDRESS);
+        let input = SignerInput::new(TransactionLoadInput::mock_cardano(TO_ADDRESS, "7000000"), TransactionFee::mock());
         let private_key = hex::decode(PRIVATE_KEY_TEST_1).unwrap();
         assert_eq!(
             CardanoChainSigner.sign_transfer(&input, &private_key).err().unwrap().to_string(),

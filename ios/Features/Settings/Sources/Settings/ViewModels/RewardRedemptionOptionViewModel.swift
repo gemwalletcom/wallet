@@ -31,6 +31,10 @@ struct RewardRedemptionOptionViewModel: Identifiable {
         pointsText
     }
 
+    var listItem: ListItemModel {
+        ListItemModel(title: title, subtitle: subtitle, imageStyle: .asset(assetImage: assetImage))
+    }
+
     var assetImage: AssetImage {
         guard let asset = option.asset else {
             return AssetImage()

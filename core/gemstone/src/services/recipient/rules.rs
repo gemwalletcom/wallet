@@ -125,23 +125,12 @@ pub fn recipient_sections(wallets: Vec<Wallet>, chain: Chain, has_contacts: bool
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::name::NameProvider;
+    use crate::payment::GemPaymentService;
+    use crate::testkit::TestAlienProvider;
+    use std::sync::Arc;
 
     const ADDRESS: &str = "0x1f9090aae28b8a3dceadf281b0f12828e676c326";
     const CHECKSUMMED: &str = "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326";
-
-    fn record(name: &str, address: &str, chain: Chain) -> NameRecord {
-        NameRecord {
-            name: name.to_string(),
-            chain,
-            address: address.to_string(),
-            provider: NameProvider::Ens,
-        }
-    }
-
-    fn complete(record: NameRecord) -> GemNameRecordState {
-        GemNameRecordState::Complete { record }
-    }
 
     #[test]
     fn test_a_pending_or_failed_name_lookup_is_never_a_valid_recipient() {
@@ -171,20 +160,36 @@ mod tests {
 
     #[test]
     fn test_name_record_must_match_input_and_chain() {
-        let ens = record("vitalik.eth", ADDRESS, Chain::Ethereum);
-        let valid = validation(Chain::Ethereum, "vitalik.eth", &complete(ens.clone()));
+        let ens = NameRecord::mock("vitalik.eth", ADDRESS);
+        let valid = validation(Chain::Ethereum, "vitalik.eth", &GemNameRecordState::Complete { record: ens.clone() });
         assert!(valid.is_valid);
         assert_eq!(valid.address, CHECKSUMMED);
 
-        assert!(!validation(Chain::Ethereum, "other.eth", &complete(ens.clone())).is_valid);
-        assert!(!validation(Chain::Polygon, "vitalik.eth", &complete(ens.clone())).is_valid);
-        assert!(!validation(Chain::Ethereum, "vitalik.eth", &complete(record("vitalik.eth", "0xbad", Chain::Ethereum))).is_valid);
+        assert!(!validation(Chain::Ethereum, "other.eth", &GemNameRecordState::Complete { record: ens.clone() }).is_valid);
+        assert!(!validation(Chain::Polygon, "vitalik.eth", &GemNameRecordState::Complete { record: ens.clone() }).is_valid);
+        assert!(
+            !validation(
+                Chain::Ethereum,
+                "vitalik.eth",
+                &GemNameRecordState::Complete {
+                    record: NameRecord::mock("vitalik.eth", "0xbad")
+                }
+            )
+            .is_valid
+        );
     }
 
     #[test]
     fn test_recipient_builds_from_record_or_address() {
-        let ens = record("vitalik.eth", ADDRESS, Chain::Ethereum);
-        let named = recipient(Chain::Ethereum, "vitalik.eth", &complete(ens.clone()), Some("memo".into()), vec!["ref".into()]).unwrap();
+        let ens = NameRecord::mock("vitalik.eth", ADDRESS);
+        let named = recipient(
+            Chain::Ethereum,
+            "vitalik.eth",
+            &GemNameRecordState::Complete { record: ens.clone() },
+            Some("memo".into()),
+            vec!["ref".into()],
+        )
+        .unwrap();
         assert_eq!(named.address, CHECKSUMMED);
         assert_eq!(named.name.as_deref(), Some("vitalik.eth"));
         assert_eq!(named.memo.as_deref(), Some("memo"));
@@ -194,7 +199,7 @@ mod tests {
         assert_eq!(plain.address, CHECKSUMMED);
         assert_eq!(plain.name, None);
         assert_eq!(
-            recipient(Chain::Ethereum, "other.eth", &complete(ens.clone()), None, vec![]),
+            recipient(Chain::Ethereum, "other.eth", &GemNameRecordState::Complete { record: ens.clone() }, None, vec![]),
             Err(GemRecipientError::NameRecordMismatch)
         );
         assert_eq!(
@@ -219,27 +224,27 @@ mod tests {
 
     #[test]
     fn test_name_record_matching_is_exact() {
-        let ens = record("vitalik.eth", ADDRESS, Chain::Ethereum);
-        assert!(!validation(Chain::Ethereum, "Vitalik.eth", &complete(ens.clone())).is_valid);
+        let ens = NameRecord::mock("vitalik.eth", ADDRESS);
+        assert!(!validation(Chain::Ethereum, "Vitalik.eth", &GemNameRecordState::Complete { record: ens.clone() }).is_valid);
         assert_eq!(
-            recipient(Chain::Ethereum, "Vitalik.eth", &complete(ens.clone()), None, vec![]),
+            recipient(Chain::Ethereum, "Vitalik.eth", &GemNameRecordState::Complete { record: ens.clone() }, None, vec![]),
             Err(GemRecipientError::NameRecordMismatch)
         );
         assert_eq!(
-            recipient(Chain::Ethereum, " vitalik.eth", &complete(ens.clone()), None, vec![]),
+            recipient(Chain::Ethereum, " vitalik.eth", &GemNameRecordState::Complete { record: ens.clone() }, None, vec![]),
             Err(GemRecipientError::NameRecordMismatch)
         );
         assert_eq!(
-            recipient(Chain::Polygon, "vitalik.eth", &complete(ens.clone()), None, vec![]),
+            recipient(Chain::Polygon, "vitalik.eth", &GemNameRecordState::Complete { record: ens.clone() }, None, vec![]),
             Err(GemRecipientError::NameRecordMismatch)
         );
 
-        let empty = record("vitalik.eth", "", Chain::Ethereum);
+        let empty = NameRecord::mock("vitalik.eth", "");
         assert_eq!(
-            recipient(Chain::Ethereum, "vitalik.eth", &complete(empty.clone()), None, vec![]),
+            recipient(Chain::Ethereum, "vitalik.eth", &GemNameRecordState::Complete { record: empty.clone() }, None, vec![]),
             Err(GemRecipientError::InvalidAddress)
         );
-        let fallback = validation(Chain::Ethereum, "vitalik.eth", &complete(empty.clone()));
+        let fallback = validation(Chain::Ethereum, "vitalik.eth", &GemNameRecordState::Complete { record: empty.clone() });
         assert!(!fallback.is_valid);
         assert_eq!(fallback.address, "vitalik.eth");
     }
@@ -265,31 +270,17 @@ mod tests {
         );
     }
 
-    fn confirm_transfer(address: &str) -> GemPaymentConfirmTransfer {
-        GemPaymentConfirmTransfer {
-            asset_id: primitives::AssetId::from_chain(Chain::Ethereum),
-            address: address.to_string(),
-            value: 5u32.into(),
-            memo: None,
-            references: vec![],
-        }
-    }
-
-    fn transfer_data(transfer: GemPaymentConfirmTransfer) -> GemTransferData {
-        GemTransferData {
-            input_type: TransactionInputType::Transfer {
-                asset: Asset::from_chain(Chain::Ethereum),
-            },
-            recipient: GemRecipient::address(transfer.address),
-            value: GemBigInt::from(5),
-            use_max_amount: false,
-        }
-    }
-
     #[test]
     fn test_scan_confirms_an_asset_payment_and_only_fills_an_nft_recipient() {
+        let payments = GemPaymentService::new(Arc::new(TestAlienProvider::with_status(200)));
         let destination = GemPaymentDestination::Confirm {
-            transfer: confirm_transfer(ADDRESS),
+            transfer: GemPaymentConfirmTransfer {
+                asset_id: primitives::AssetId::from_chain(Chain::Ethereum),
+                address: ADDRESS.to_string(),
+                value: 5u32.into(),
+                memo: None,
+                references: vec![],
+            },
         };
         let asset = GemRecipientType::Asset {
             asset: Asset::from_chain(Chain::Ethereum),
@@ -298,14 +289,17 @@ mod tests {
             nft_asset: primitives::NFTAsset::mock(),
         };
 
-        assert!(matches!(scan_route(destination.clone(), &asset, transfer_data), Ok(GemRecipientScan::Confirm { transfer }) if transfer.recipient.address == ADDRESS));
         assert!(
-            matches!(scan_route(destination, &nft, transfer_data), Ok(GemRecipientScan::Recipient { payment }) if payment.recipient.address == ADDRESS && payment.amount.is_none())
+            matches!(scan_route(destination.clone(), &asset, |transfer| payments.transfer_data(transfer, Asset::from_chain(Chain::Ethereum))), Ok(GemRecipientScan::Confirm { transfer }) if transfer.recipient.address == ADDRESS)
+        );
+        assert!(
+            matches!(scan_route(destination, &nft, |transfer| payments.transfer_data(transfer, Asset::from_chain(Chain::Ethereum))), Ok(GemRecipientScan::Recipient { payment }) if payment.recipient.address == ADDRESS && payment.amount.is_none())
         );
     }
 
     #[test]
     fn test_scan_fills_a_recipient_and_rejects_the_rest() {
+        let payments = GemPaymentService::new(Arc::new(TestAlienProvider::with_status(200)));
         let asset = GemRecipientType::Asset {
             asset: Asset::from_chain(Chain::Ethereum),
         };
@@ -318,13 +312,17 @@ mod tests {
             payment: payment.clone(),
         };
 
-        assert!(matches!(scan_route(recipient, &asset, transfer_data), Ok(GemRecipientScan::Recipient { payment: found }) if found == payment));
+        assert!(
+            matches!(scan_route(recipient, &asset, |transfer| payments.transfer_data(transfer, Asset::from_chain(Chain::Ethereum))), Ok(GemRecipientScan::Recipient { payment: found }) if found == payment)
+        );
         assert!(matches!(
-            scan_route(GemPaymentDestination::Unsupported, &asset, transfer_data),
+            scan_route(GemPaymentDestination::Unsupported, &asset, |transfer| payments
+                .transfer_data(transfer, Asset::from_chain(Chain::Ethereum))),
             Err(GemRecipientError::InvalidAddress)
         ));
         assert!(matches!(
-            scan_route(GemPaymentDestination::SelectAsset { payment, chains: vec![] }, &asset, transfer_data),
+            scan_route(GemPaymentDestination::SelectAsset { payment, chains: vec![] }, &asset, |transfer| payments
+                .transfer_data(transfer, Asset::from_chain(Chain::Ethereum))),
             Err(GemRecipientError::InvalidAddress)
         ));
     }
@@ -354,15 +352,6 @@ mod tests {
         }
     }
 
-    fn recipient_wallet(name: &str, wallet_type: WalletType, is_pinned: bool, chain: Chain) -> Wallet {
-        Wallet {
-            name: name.to_string(),
-            wallet_type,
-            is_pinned,
-            ..Wallet::mock_with_accounts(vec![primitives::Account::mock(chain, "address")])
-        }
-    }
-
     fn names(section: &GemRecipientSection) -> Vec<String> {
         match section {
             GemRecipientSection::Pinned { wallets } | GemRecipientSection::Wallets { wallets } | GemRecipientSection::ViewWallets { wallets } => {
@@ -375,12 +364,36 @@ mod tests {
     #[test]
     fn test_a_private_key_wallet_is_offered_beside_the_other_wallets() {
         let wallets = vec![
-            recipient_wallet("pinned", WalletType::Multicoin, true, Chain::Ethereum),
-            recipient_wallet("multicoin", WalletType::Multicoin, false, Chain::Ethereum),
-            recipient_wallet("private key", WalletType::PrivateKey, false, Chain::Ethereum),
-            recipient_wallet("single", WalletType::Single, false, Chain::Ethereum),
-            recipient_wallet("watching", WalletType::View, false, Chain::Ethereum),
-            recipient_wallet("other chain", WalletType::Multicoin, false, Chain::Bitcoin),
+            Wallet {
+                name: "pinned".to_string(),
+                is_pinned: true,
+                ..Wallet::mock_with_type(WalletType::Multicoin, &[Chain::Ethereum])
+            },
+            Wallet {
+                name: "multicoin".to_string(),
+                is_pinned: false,
+                ..Wallet::mock_with_type(WalletType::Multicoin, &[Chain::Ethereum])
+            },
+            Wallet {
+                name: "private key".to_string(),
+                is_pinned: false,
+                ..Wallet::mock_with_type(WalletType::PrivateKey, &[Chain::Ethereum])
+            },
+            Wallet {
+                name: "single".to_string(),
+                is_pinned: false,
+                ..Wallet::mock_with_type(WalletType::Single, &[Chain::Ethereum])
+            },
+            Wallet {
+                name: "watching".to_string(),
+                is_pinned: false,
+                ..Wallet::mock_with_type(WalletType::View, &[Chain::Ethereum])
+            },
+            Wallet {
+                name: "other chain".to_string(),
+                is_pinned: false,
+                ..Wallet::mock_with_type(WalletType::Multicoin, &[Chain::Bitcoin])
+            },
         ];
 
         let sections = recipient_sections(wallets, Chain::Ethereum, true);
@@ -393,7 +406,15 @@ mod tests {
 
     #[test]
     fn test_an_empty_section_is_left_out_and_contacts_only_appear_when_there_are_some() {
-        let sections = recipient_sections(vec![recipient_wallet("watching", WalletType::View, false, Chain::Ethereum)], Chain::Ethereum, false);
+        let sections = recipient_sections(
+            vec![Wallet {
+                name: "watching".to_string(),
+                is_pinned: false,
+                ..Wallet::mock_with_type(WalletType::View, &[Chain::Ethereum])
+            }],
+            Chain::Ethereum,
+            false,
+        );
 
         assert_eq!(sections.len(), 1);
         assert!(matches!(sections[0], GemRecipientSection::ViewWallets { .. }));
@@ -401,7 +422,15 @@ mod tests {
 
     #[test]
     fn test_a_pinned_view_wallet_stays_in_the_pinned_section() {
-        let sections = recipient_sections(vec![recipient_wallet("watching", WalletType::View, true, Chain::Ethereum)], Chain::Ethereum, false);
+        let sections = recipient_sections(
+            vec![Wallet {
+                name: "watching".to_string(),
+                is_pinned: true,
+                ..Wallet::mock_with_type(WalletType::View, &[Chain::Ethereum])
+            }],
+            Chain::Ethereum,
+            false,
+        );
 
         assert_eq!(names(&sections[0]), vec!["watching"]);
         assert_eq!(sections.len(), 1);

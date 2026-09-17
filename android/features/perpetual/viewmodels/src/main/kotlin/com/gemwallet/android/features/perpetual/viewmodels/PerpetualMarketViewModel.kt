@@ -1,32 +1,31 @@
 package com.gemwallet.android.features.perpetual.viewmodels
 
-import androidx.lifecycle.ViewModel
-import uniffi.gemstone.GemAssetAction
-import androidx.lifecycle.viewModelScope
+import android.content.Context
 import android.util.Log
-import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualBalance
 import com.gemwallet.android.application.perpetual.cases.GetPerpetualPositions
 import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
+import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
+import com.gemwallet.android.domains.perpetual.values.PerpetualBalance
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.domains.perpetual.values.PerpetualBalance
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualMarketSceneState
+import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualPositionRowUIModel
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.RecentAssetsRequest
-import com.wallet.core.primitives.RecentActivityType
+import com.gemwallet.android.ui.components.perpetual.listItem
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
+import com.wallet.core.primitives.RecentActivityType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
-import uniffi.gemstone.GemMarketsRefreshTrigger
-import uniffi.gemstone.GemPerpetualServiceInterface
-import uniffi.gemstone.GemPerpetualSubscription
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -36,7 +35,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import uniffi.gemstone.GemAssetAction
+import uniffi.gemstone.GemMarketsRefreshTrigger
+import uniffi.gemstone.GemPerpetualServiceInterface
+import uniffi.gemstone.GemPerpetualSubscription
 
 @HiltViewModel
 class PerpetualMarketViewModel @Inject constructor(
@@ -46,6 +48,7 @@ class PerpetualMarketViewModel @Inject constructor(
     private val recentAssetsService: RecentAssetsService,
     private val service: GemPerpetualServiceInterface,
     private val perpetualObserver: PerpetualObserver,
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     val query = MutableStateFlow<String?>(null)
@@ -63,10 +66,15 @@ class PerpetualMarketViewModel @Inject constructor(
         val needle = q?.trim().orEmpty()
         if (needle.isEmpty()) items else items.filter {
             it.title.contains(needle, ignoreCase = true) ||
+                it.perpetualId.symbol.contains(needle, ignoreCase = true) ||
                 it.asset.symbol.contains(needle, ignoreCase = true) ||
                 it.asset.name.contains(needle, ignoreCase = true)
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val positionRows: StateFlow<List<PerpetualPositionRowUIModel>> = positions
+        .map { items -> items.map { PerpetualPositionRowUIModel(it.asset, it.listItem(context)) } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val balance = getBalance.getDisplayBalance()
         .stateIn(viewModelScope, SharingStarted.Eagerly, EmptyPerpetualBalance)
     val recent: StateFlow<List<Asset>> =

@@ -1,5 +1,7 @@
 mod localization;
 mod remote_mappers;
+#[cfg(test)]
+mod testkit;
 
 use primitives::Platform;
 

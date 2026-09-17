@@ -3,6 +3,7 @@
 import Components
 import Formatters
 import Foundation
+import func Gemstone.abbreviationThreshold
 import class Gemstone.GemAddressService
 import enum Gemstone.GemAssetMarketRow
 import GemstonePrimitives
@@ -78,7 +79,7 @@ struct AssetDetailsInfoViewModel {
     }
 
     private func supply(_ value: Double) -> String {
-        let formatted = AbbreviatedFormatter().string(from: value) ?? NumericFormatter().string(value)
+        let formatted = value >= abbreviationThreshold() ? AbbreviatedFormatter().string(from: value) ?? NumericFormatter().string(value) : NumericFormatter().string(value)
         return "\(formatted) \(asset.symbol)"
     }
 }

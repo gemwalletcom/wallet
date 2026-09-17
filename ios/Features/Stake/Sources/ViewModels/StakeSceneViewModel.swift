@@ -36,7 +36,7 @@ public final class StakeSceneViewModel {
     public let assetQuery: ObservableQuery<AssetRequest>
 
     public var delegations: [Delegation] {
-        delegationsQuery.value
+        service.sortedDelegations(delegations: delegationsQuery.value.map { $0.toGem() }).map { Delegation(core: $0) }
     }
 
     public var validators: [DelegationValidator] {
@@ -132,11 +132,8 @@ public final class StakeSceneViewModel {
     }
 
     func navigationDestination(for delegation: DelegationViewModel) -> any Hashable {
-        switch service.delegationDestination(walletType: wallet.type.toGem(), asset: asset.toGem(), delegation: delegation.delegation.toGem()) {
-        case .details: delegation.delegation
-        case let .confirm(transfer): transfer
-        case let .amount(asset, input): AmountInput(type: input.map(), asset: asset.toPrimitives())
-        }
+        service.delegationDestination(walletType: wallet.type.toGem(), asset: asset.toGem(), delegation: delegation.delegation.toGem())
+            .navigationValue(delegation: delegation.delegation)
     }
 
     var delegationsViewState: StateViewType<[DelegationViewModel]> {
@@ -176,6 +173,13 @@ public final class StakeSceneViewModel {
         case .unfreeze: destination(type: .stake(.unfreeze(resource: Resource.bandwidth.toGem())))
         case .claimRewards: claimRewardsDestination
         }
+    }
+
+    func actionListItem(_ item: GemStakeActionItem) -> ListItemModel {
+        if let infoAction = frozenBalanceInfoAction(for: item) {
+            return ListItemModel(title: item.action.title, titleStyle: .bodySecondary, infoAction: infoAction)
+        }
+        return ListItemModel(title: item.action.title, subtitle: subtitle(for: item.action))
     }
 
     func subtitle(for action: GemStakeAction) -> String? {

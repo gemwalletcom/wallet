@@ -147,12 +147,7 @@ public struct PerpetualScene: View {
                     .numericTransition(for: position.pnlWithPercentText)
             case .autoclose:
                 NavigationCustomLink(
-                    with: ListItemView(
-                        title: row.title,
-                        subtitle: position.autocloseText.subtitle,
-                        subtitleExtra: position.autocloseText.subtitleExtra,
-                        infoAction: model.infoAction(for: row),
-                    ),
+                    with: ListItemView(model: model.autocloseListItem(position, row: row)),
                     action: model.onSelectAutoclose,
                 )
             case .size, .entryPrice, .liquidationPrice, .margin, .fundingPayments:

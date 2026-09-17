@@ -63,6 +63,10 @@ public final class SwapDetailsViewModel {
         self.swapProviderSelectAction = swapProviderSelectAction
     }
 
+    var detailsListItem: ListItemModel {
+        ListItemModel(title: Localized.Common.details)
+    }
+
     var detailRows: [GemSwapDetailRow] {
         summary.rows(showsPriceImpact: shouldShowPriceImpactInDetails)
     }

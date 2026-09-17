@@ -41,7 +41,7 @@ public struct DelegationScene: View {
             if model.showManage {
                 Section(model.manageTitle) {
                     ForEach(model.availableActions) { action in
-                        NavigationCustomLink(with: ListItemView(title: action.title)) {
+                        NavigationCustomLink(with: ListItemView(model: model.actionListItem(action))) {
                             model.onSelectAction(action)
                         }
                     }
@@ -56,28 +56,20 @@ public struct DelegationScene: View {
     private func content(for row: GemDelegationRow) -> some View {
         switch row {
         case .provider:
-            let item = ListItemView(title: model.title(for: row), subtitle: model.model.validatorText)
+            let item = ListItemView(model: model.listItem(for: row))
             if let url = model.providerUrl {
                 SafariNavigationLink(url: url) { item }
             } else {
                 item
             }
         case .apr:
-            ListItemView(title: model.aprModel.title, subtitle: model.aprModel.subtitle)
+            ListItemView(model: model.listItem(for: row))
         case .status:
-            ListItemView(title: model.title(for: row), subtitle: model.stateModel.title, subtitleStyle: model.stateModel.textStyle)
+            ListItemView(model: model.listItem(for: row))
         case .completionDate:
-            ListItemView(title: model.title(for: row), subtitle: model.model.completionDateText)
+            ListItemView(model: model.listItem(for: row))
         case .rewards:
-            let rewardsItem = ListItemView(
-                title: model.title(for: row),
-                titleStyle: model.model.titleStyle,
-                subtitle: model.model.rewardsText,
-                subtitleStyle: model.model.subtitleStyle,
-                subtitleExtra: model.model.rewardsFiatValueText,
-                subtitleStyleExtra: model.model.subtitleExtraStyle,
-                imageStyle: model.assetImageStyle,
-            )
+            let rewardsItem = ListItemView(model: model.listItem(for: row))
             if model.canClaimRewards {
                 NavigationCustomLink(with: rewardsItem) {
                     model.onClaimRewards()

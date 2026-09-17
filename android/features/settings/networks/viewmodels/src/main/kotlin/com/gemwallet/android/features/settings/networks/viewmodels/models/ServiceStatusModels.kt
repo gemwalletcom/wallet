@@ -1,15 +1,12 @@
 package com.gemwallet.android.features.settings.networks.viewmodels.models
 
-import uniffi.gemstone.GemLatencyStatus
-import uniffi.gemstone.GemServiceEndpoint
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 
 data class ServiceStatusUIState(
     val rows: List<ServiceStatusRowUiModel> = emptyList(),
 )
 
 data class ServiceStatusRowUiModel(
-    val endpoint: GemServiceEndpoint,
-    val statusState: GemLatencyStatus = GemLatencyStatus.Loading,
-) {
-    val id: String get() = endpoint.url
-}
+    val id: String,
+    val model: ListItemModel,
+)

@@ -100,24 +100,30 @@ mod tests {
 
     use super::*;
 
-    fn encode_mock(input_type: TransactionInputType) -> Vec<u8> {
-        let params = TransactionParams::new("0x000000000000000000000000000000000000dead".to_string(), vec![], BigInt::from(1_000_000_000_000_000_000u64));
-        let mut input = TransactionLoadInput::mock_evm_with_metadata(input_type, "1000000000000000000", TransactionLoadMetadata::mock_evm(5, 10));
-        input.gas_price = GasPriceType::eip1559(BigInt::from(2_000_000_000u64), BigInt::from(1_000_000_000u64));
-        encode_transaction_for_l1_fee(&input, &params, &BigInt::from(21_000u64)).unwrap()
-    }
-
     #[test]
     fn test_encode_transaction_for_l1_fee() {
-        let encoded = encode_mock(TransactionInputType::Transfer {
-            asset: Asset::from_chain(Chain::Optimism),
-        });
+        let params = TransactionParams::new("0x000000000000000000000000000000000000dead".to_string(), vec![], BigInt::from(1_000_000_000_000_000_000u64));
+        let input = TransactionLoadInput {
+            gas_price: GasPriceType::eip1559(BigInt::from(2_000_000_000u64), BigInt::from(1_000_000_000u64)),
+            ..TransactionLoadInput::mock_evm_with_metadata(
+                TransactionInputType::Transfer {
+                    asset: Asset::from_chain(Chain::Optimism),
+                },
+                "1000000000000000000",
+                TransactionLoadMetadata::mock_evm(5, 10),
+            )
+        };
+        let encoded = encode_transaction_for_l1_fee(&input, &params, &BigInt::from(21_000u64)).unwrap();
         assert_eq!(
             encode(&encoded),
             "020000000000000a00000000000000053b9aca00773594005208000000000000000000000000000000000000dead0de0b6b3a7640000c0"
         );
 
-        let encoded_token = encode_mock(TransactionInputType::Transfer { asset: Asset::mock_erc20() });
+        let token_input = TransactionLoadInput {
+            input_type: TransactionInputType::Transfer { asset: Asset::mock_erc20() },
+            ..input
+        };
+        let encoded_token = encode_transaction_for_l1_fee(&token_input, &params, &BigInt::from(21_000u64)).unwrap();
         assert_eq!(
             encode(&encoded_token),
             "02000000000000000a00000000000000053b9aca00773594005208000000000000000000000000000000000000dead0de0b6b3a7640000c0"

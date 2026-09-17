@@ -1,12 +1,14 @@
 package com.gemwallet.android.ui.components.list_item
 
 import androidx.compose.foundation.lazy.LazyListScope
-import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
-import com.gemwallet.android.ui.models.ListPosition
+import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.localization.titleRes
+import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.BalanceMetadata
-import uniffi.gemstone.GemBalanceResource
 import uniffi.gemstone.balanceResourceRows
 
 fun LazyListScope.energyItem(balanceMetadata: BalanceMetadata?) {
@@ -15,12 +17,8 @@ fun LazyListScope.energyItem(balanceMetadata: BalanceMetadata?) {
     item {
         SubheaderItem(R.string.asset_resources)
         rows.forEachIndexed { index, row ->
-            PropertyItem(
-                title = when (row.resource) {
-                    GemBalanceResource.ENERGY -> R.string.stake_resource_energy
-                    GemBalanceResource.BANDWIDTH -> R.string.stake_resource_bandwidth
-                },
-                data = row.text,
+            ListItem(
+                model = ListItemModel(title = stringResource(row.resource.titleRes()), subtitle = row.text),
                 listPosition = if (index == 0) ListPosition.First else ListPosition.Last,
             )
         }

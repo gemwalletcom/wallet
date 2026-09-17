@@ -94,12 +94,18 @@ mod tests {
 
     #[test]
     fn test_swap_price_impact_needs_a_price_on_both_sides() {
-        let priced = |value: u32, price: Option<f64>| Arc::new(GemSwapValue::new(value.into(), 2, price));
+        assert_eq!(
+            Arc::new(GemSwapValue::new(100u32.into(), 2, None)).price_impact(Arc::new(GemSwapValue::new(100u32.into(), 2, Some(1.0)))),
+            None
+        );
+        assert_eq!(
+            Arc::new(GemSwapValue::new(100u32.into(), 2, Some(1.0))).price_impact(Arc::new(GemSwapValue::new(100u32.into(), 2, None))),
+            None
+        );
 
-        assert_eq!(priced(100, None).price_impact(priced(100, Some(1.0))), None);
-        assert_eq!(priced(100, Some(1.0)).price_impact(priced(100, None)), None);
-
-        let impact = priced(200, Some(1.0)).price_impact(priced(100, Some(1.0))).expect("impact");
+        let impact = Arc::new(GemSwapValue::new(200u32.into(), 2, Some(1.0)))
+            .price_impact(Arc::new(GemSwapValue::new(100u32.into(), 2, Some(1.0))))
+            .expect("impact");
         assert_eq!(impact.percentage, -50.0);
     }
 

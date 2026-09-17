@@ -3,29 +3,17 @@
 import BigInt
 import Primitives
 @testable import PrimitivesComponents
+import PrimitivesComponentsTestKit
 import PrimitivesTestKit
 import Testing
 
 struct TransactionInfoModelTests {
     let asset = Asset.mock()
     let feeAsset = Asset.mock()
-    let assetPrice = Price.mock(price: 1.5)
-    let feeAssetPrice = Price.mock(price: 0.5)
-    let value = BigInt(100_000_000)
-    let feeValue = BigInt(10_000_000)
 
     @Test
     func amountDisplay() {
-        let model = TransactionInfoViewModel(
-            currency: "USD",
-            asset: asset,
-            assetPrice: assetPrice,
-            feeAsset: feeAsset,
-            feeAssetPrice: feeAssetPrice,
-            value: value,
-            feeValue: feeValue,
-            sign: .incoming,
-        )
+        let model = TransactionInfoViewModel.mock(sign: .incoming)
 
         let display = model.amountDisplay()
         #expect(display.amount.text.contains(asset.symbol))
@@ -35,16 +23,7 @@ struct TransactionInfoModelTests {
 
     @Test
     func amountDisplayOutgoing() {
-        let model = TransactionInfoViewModel(
-            currency: "USD",
-            asset: asset,
-            assetPrice: assetPrice,
-            feeAsset: feeAsset,
-            feeAssetPrice: feeAssetPrice,
-            value: value,
-            feeValue: feeValue,
-            sign: .outgoing,
-        )
+        let model = TransactionInfoViewModel.mock(sign: .outgoing)
 
         let display = model.amountDisplay()
         #expect(display.amount.text.contains(asset.symbol))
@@ -54,16 +33,7 @@ struct TransactionInfoModelTests {
 
     @Test
     func amountDisplayFiat() {
-        let model = TransactionInfoViewModel(
-            currency: "USD",
-            asset: asset,
-            assetPrice: assetPrice,
-            feeAsset: feeAsset,
-            feeAssetPrice: feeAssetPrice,
-            value: value,
-            feeValue: feeValue,
-            sign: .none,
-        )
+        let model = TransactionInfoViewModel.mock()
 
         let display = model.amountDisplay()
         #expect(display.fiat != nil)
@@ -72,16 +42,7 @@ struct TransactionInfoModelTests {
 
     @Test
     func feeDisplay() throws {
-        let model = TransactionInfoViewModel(
-            currency: "USD",
-            asset: asset,
-            assetPrice: assetPrice,
-            feeAsset: feeAsset,
-            feeAssetPrice: feeAssetPrice,
-            value: value,
-            feeValue: feeValue,
-            sign: .incoming,
-        )
+        let model = TransactionInfoViewModel.mock(sign: .incoming)
 
         let feeDisplay = try #require(model.feeDisplay)
         #expect(feeDisplay.amount.text.contains(feeAsset.symbol))
@@ -90,16 +51,7 @@ struct TransactionInfoModelTests {
 
     @Test
     func feeDisplayFiat() throws {
-        let model = TransactionInfoViewModel(
-            currency: "USD",
-            asset: asset,
-            assetPrice: assetPrice,
-            feeAsset: feeAsset,
-            feeAssetPrice: feeAssetPrice,
-            value: value,
-            feeValue: feeValue,
-            sign: .none,
-        )
+        let model = TransactionInfoViewModel.mock()
 
         #expect(model.feeDisplay != nil)
         #expect(try #require(model.feeDisplay?.fiat) != nil)
@@ -108,16 +60,7 @@ struct TransactionInfoModelTests {
 
     @Test
     func headerTypeAmount() {
-        let model = TransactionInfoViewModel(
-            currency: "USD",
-            asset: asset,
-            assetPrice: assetPrice,
-            feeAsset: feeAsset,
-            feeAssetPrice: feeAssetPrice,
-            value: value,
-            feeValue: feeValue,
-            sign: .incoming,
-        )
+        let model = TransactionInfoViewModel.mock(sign: .incoming)
         let header = model.headerType(input: .amount(showFiat: true))
         guard case let .amount(display) = header else {
             Issue.record("Expected header type .amount")
@@ -131,16 +74,7 @@ struct TransactionInfoModelTests {
     @Test
     func headerTypeNFT() {
         let nftAsset = NFTAsset.mock()
-        let model = TransactionInfoViewModel(
-            currency: "USD",
-            asset: asset,
-            assetPrice: assetPrice,
-            feeAsset: feeAsset,
-            feeAssetPrice: feeAssetPrice,
-            value: value,
-            feeValue: feeValue,
-            sign: .none,
-        )
+        let model = TransactionInfoViewModel.mock()
 
         let header = model.headerType(input: .nft(name: nftAsset.name, id: nftAsset.id.identifier))
         guard case let .nft(name, _) = header else {
@@ -154,28 +88,11 @@ struct TransactionInfoModelTests {
     @Test
     func headerTypeSwap() {
         let swapMetadata = SwapHeaderInput(
-            from: AssetValuePrice(
-                asset: asset,
-                value: value,
-                price: assetPrice,
-            ),
-            to: AssetValuePrice(
-                asset: feeAsset,
-                value: feeValue,
-                price: feeAssetPrice,
-            ),
+            from: .mock(asset: asset, price: .mock(price: 1.5)),
+            to: .mock(asset: feeAsset, value: BigInt(10_000_000), price: .mock(price: 0.5)),
         )
 
-        let model = TransactionInfoViewModel(
-            currency: "USD",
-            asset: asset,
-            assetPrice: assetPrice,
-            feeAsset: feeAsset,
-            feeAssetPrice: feeAssetPrice,
-            value: value,
-            feeValue: feeValue,
-            sign: .none,
-        )
+        let model = TransactionInfoViewModel.mock()
 
         let header = model.headerType(input: .swap(swapMetadata))
         guard case let .swap(fromField, toField) = header else {
@@ -193,16 +110,7 @@ struct TransactionInfoModelTests {
 
     @Test
     func amountDisplayFiatNilWhenAssetPriceIsNil() {
-        let model = TransactionInfoViewModel(
-            currency: "USD",
-            asset: asset,
-            assetPrice: nil,
-            feeAsset: feeAsset,
-            feeAssetPrice: feeAssetPrice,
-            value: value,
-            feeValue: feeValue,
-            sign: .none,
-        )
+        let model = TransactionInfoViewModel.mock(assetPrice: nil)
 
         let display = model.amountDisplay()
         #expect(display.fiat == nil)
@@ -210,48 +118,21 @@ struct TransactionInfoModelTests {
 
     @Test
     func feeDisplayNilWhenFeeValueIsNil() {
-        let model = TransactionInfoViewModel(
-            currency: "USD",
-            asset: asset,
-            assetPrice: assetPrice,
-            feeAsset: feeAsset,
-            feeAssetPrice: feeAssetPrice,
-            value: value,
-            feeValue: nil,
-            sign: .none,
-        )
+        let model = TransactionInfoViewModel.mock(feeValue: nil)
 
         #expect(model.feeDisplay == nil)
     }
 
     @Test
     func feeDisplayFiatNilWhenFeeAssetPriceIsNil() {
-        let model = TransactionInfoViewModel(
-            currency: "USD",
-            asset: asset,
-            assetPrice: assetPrice,
-            feeAsset: feeAsset,
-            feeAssetPrice: nil,
-            value: value,
-            feeValue: feeValue,
-            sign: .none,
-        )
+        let model = TransactionInfoViewModel.mock(feeAssetPrice: nil)
 
         #expect(model.feeDisplay?.fiat == nil)
     }
 
     @Test
     func headerTypeAmountWithoutFiat() {
-        let model = TransactionInfoViewModel(
-            currency: "USD",
-            asset: asset,
-            assetPrice: assetPrice,
-            feeAsset: feeAsset,
-            feeAssetPrice: feeAssetPrice,
-            value: value,
-            feeValue: feeValue,
-            sign: .incoming,
-        )
+        let model = TransactionInfoViewModel.mock(sign: .incoming)
         let header = model.headerType(input: .amount(showFiat: false))
         guard case let .amount(display) = header else {
             Issue.record("Expected header type .amount")

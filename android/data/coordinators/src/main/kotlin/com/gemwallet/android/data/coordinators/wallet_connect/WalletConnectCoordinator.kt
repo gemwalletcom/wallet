@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemChainService
+import uniffi.gemstone.GemChainServiceInterface
 import uniffi.gemstone.GemWalletConnectRejectionReason
 import uniffi.gemstone.GemWalletConnectServiceInterface
 
@@ -45,7 +46,7 @@ class WalletConnectCoordinator(
     private val connectionStore: GemstoneConnectionStore,
     private val walletConnectClient: WalletConnectClient,
     private val walletConnectService: GemWalletConnectServiceInterface,
-    private val chainService: GemChainService,
+    private val chainService: GemChainServiceInterface,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
 ) : IsWalletConnectEnabled,
     PairWalletConnect,

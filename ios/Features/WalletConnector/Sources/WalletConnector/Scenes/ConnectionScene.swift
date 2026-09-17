@@ -17,7 +17,7 @@ struct ConnectionScene: View {
             }
             Section {
                 ForEach(model.details.rows, id: \.self) { row in
-                    ListItemView(title: row.title, subtitle: model.value(for: row))
+                    ListItemView(model: model.listItem(for: row))
                 }
             }
             Section {

@@ -118,17 +118,6 @@ impl GemAddNodeSession {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::Latency;
-
-    fn check() -> GemNodeCheck {
-        GemNodeCheck {
-            url: "https://node".to_string(),
-            chain_id: None,
-            latest_block_number: 1,
-            is_in_sync: true,
-            latency: Latency::from_milliseconds(10),
-        }
-    }
 
     #[test]
     fn test_an_empty_url_is_idle_and_never_starts_a_check() {
@@ -140,7 +129,9 @@ mod tests {
 
     #[test]
     fn test_a_new_url_clears_the_previous_answer() {
-        let checked = GemAddNodeSession::new(Chain::Ethereum).on_input("https://node".to_string()).on_checked(check());
+        let checked = GemAddNodeSession::new(Chain::Ethereum)
+            .on_input("https://node".to_string())
+            .on_checked(GemNodeCheck::mock());
         assert!(checked.view_state().can_import);
 
         let retyped = checked.on_input("https://other".to_string());
@@ -152,7 +143,7 @@ mod tests {
     fn test_a_failure_replaces_the_answer_and_blocks_the_import() {
         let failed = GemAddNodeSession::new(Chain::Ethereum)
             .on_input("https://node".to_string())
-            .on_checked(check())
+            .on_checked(GemNodeCheck::mock())
             .on_failed(GemAddNodeFailure::InvalidNetworkId);
 
         assert_eq!(
@@ -168,7 +159,7 @@ mod tests {
     fn test_importing_leaves_the_screen_ready_for_the_next_url() {
         let imported = GemAddNodeSession::new(Chain::Ethereum)
             .on_input("https://node".to_string())
-            .on_checked(check())
+            .on_checked(GemNodeCheck::mock())
             .on_imported();
 
         assert_eq!(imported, GemAddNodeSession::new(Chain::Ethereum));
@@ -226,32 +217,15 @@ impl GemNodeListSession {
 #[cfg(test)]
 mod node_list_tests {
     use super::*;
-    use primitives::Latency;
-
-    fn node(url: &str) -> GemNodeSelection {
-        GemNodeSelection {
-            url: url.to_string(),
-            host: url.to_string(),
-            is_selected: false,
-            gem_node_flag: None,
-        }
-    }
-
-    fn result(block: u64) -> GemNodeStatusState {
-        GemNodeStatusState::Result {
-            latest_block_number: block,
-            latency: Latency::from_milliseconds(10),
-        }
-    }
 
     #[test]
     fn test_a_status_for_a_node_that_is_gone_is_dropped() {
         let session = GemNodeListSession::new(Chain::Ethereum)
-            .on_nodes(vec![node("a"), node("b")])
-            .on_status("a".to_string(), result(1))
-            .on_status("b".to_string(), result(2));
+            .on_nodes(vec![GemNodeSelection::mock("a"), GemNodeSelection::mock("b")])
+            .on_status("a".to_string(), GemNodeStatusState::mock_result(1))
+            .on_status("b".to_string(), GemNodeStatusState::mock_result(2));
 
-        let after_delete = session.on_nodes(vec![node("a")]);
+        let after_delete = session.on_nodes(vec![GemNodeSelection::mock("a")]);
 
         assert_eq!(after_delete.statuses.len(), 1);
         assert!(after_delete.statuses.contains_key("a"));
@@ -259,9 +233,9 @@ mod node_list_tests {
 
     #[test]
     fn test_a_status_that_arrives_for_a_node_the_list_no_longer_has_is_ignored() {
-        let session = GemNodeListSession::new(Chain::Ethereum).on_nodes(vec![node("a")]);
+        let session = GemNodeListSession::new(Chain::Ethereum).on_nodes(vec![GemNodeSelection::mock("a")]);
 
-        let late = session.on_status("gone".to_string(), result(3));
+        let late = session.on_status("gone".to_string(), GemNodeStatusState::mock_result(3));
 
         assert!(late.statuses.is_empty(), "a late answer must not add a row back");
     }
@@ -269,8 +243,8 @@ mod node_list_tests {
     #[test]
     fn test_checking_puts_every_node_back_to_loading() {
         let session = GemNodeListSession::new(Chain::Ethereum)
-            .on_nodes(vec![node("a"), node("b")])
-            .on_status("a".to_string(), result(1))
+            .on_nodes(vec![GemNodeSelection::mock("a"), GemNodeSelection::mock("b")])
+            .on_status("a".to_string(), GemNodeStatusState::mock_result(1))
             .on_checking();
 
         assert_eq!(session.node_urls(), vec!["a".to_string(), "b".to_string()]);

@@ -91,14 +91,10 @@ public struct AmountScene: View {
                 }
 
             case let .perpetual(perpetual):
-                if let leverageSelection = perpetual.leverageSelection {
+                if let leverageListItem = perpetual.leverageListItem {
                     Section {
                         NavigationCustomLink(
-                            with: ListItemView(
-                                title: leverageSelection.title,
-                                subtitle: leverageSelection.selected.displayText,
-                                subtitleStyle: perpetual.leverageTextStyle,
-                            ),
+                            with: ListItemView(model: leverageListItem),
                             action: model.onSelectLeverage,
                         )
                     }
@@ -107,11 +103,7 @@ public struct AmountScene: View {
                 if perpetual.isAutocloseEnabled {
                     Section {
                         NavigationCustomLink(
-                            with: ListItemView(
-                                title: perpetual.autocloseTitle,
-                                subtitle: perpetual.autocloseText.subtitle,
-                                subtitleExtra: perpetual.autocloseText.subtitleExtra,
-                            ),
+                            with: ListItemView(model: perpetual.autocloseListItem),
                             action: model.onSelectAutoclose,
                         )
                     }

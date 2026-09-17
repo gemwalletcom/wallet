@@ -20,7 +20,8 @@ settings = { path = "../settings" }
 
 [dev-dependencies]
 tokio = { workspace = true }
+gem_ton = { path = "../gem_ton", features = ["rpc", "testkit"] }
 primitives = { path = "../primitives", features = ["testkit"] }
 
 [features]
-nft_integration_tests = []
+nft_integration_tests = ["settings/testkit"]

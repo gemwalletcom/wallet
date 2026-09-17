@@ -85,8 +85,31 @@ public final class AssetSceneViewModel: Sendable {
         input.wallet
     }
 
-    var priceAlertsTitle: String {
-        Localized.Settings.PriceAlerts.title
+    var pinListItem: ListItemModel {
+        ListItemModel(title: pinText, imageStyle: .list(assetImage: AssetImage(placeholder: pinImage)))
+    }
+
+    var enableListItem: ListItemModel {
+        ListItemModel(title: enableText, imageStyle: .list(assetImage: AssetImage(placeholder: enableImage)))
+    }
+
+    func priceAlertsListItem(_ details: GemAssetDetails) -> ListItemModel {
+        ListItemModel(title: Localized.Settings.PriceAlerts.title, subtitle: String(details.state.priceAlertsCount))
+    }
+
+    func balanceListItem(for row: GemBalanceRow) -> ListItemModel {
+        switch row {
+        case let .available(value): ListItemModel(title: row.title(stakeProvider: .stake), subtitle: balanceText(value))
+        case let .staked(value): ListItemModel(title: row.title(stakeProvider: .stake), subtitle: stakeBalanceText(value))
+        case let .earn(value): ListItemModel(title: row.title(stakeProvider: .earn), subtitle: balanceText(value))
+        case let .pendingUnconfirmed(value): ListItemModel(title: row.title(stakeProvider: .stake), subtitle: balanceText(value), infoAction: onSelectPendingUnconfirmedInfo)
+        case let .reserved(value, _): ListItemModel(title: row.title(stakeProvider: .stake), subtitle: balanceText(value))
+        }
+    }
+
+    var earnListItem: ListItemModel {
+        let apr = aprModel(for: .earn)
+        return ListItemModel(title: StakeProviderType.earn.title, subtitle: apr.text, subtitleStyle: apr.subtitle.style)
     }
 
     var balancesTitle: String {

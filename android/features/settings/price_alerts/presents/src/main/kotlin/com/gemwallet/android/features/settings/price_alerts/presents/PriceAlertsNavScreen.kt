@@ -10,7 +10,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalResources
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.model.AssetInfo
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.rememberNotificationPermissionGate
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
@@ -49,8 +48,9 @@ fun PriceAlertsNavScreen(
     var selectingAsset by remember { mutableStateOf(false) }
     val requestNotificationPermission = rememberNotificationPermissionGate()
 
-    val data by viewModel.data.collectAsStateWithLifecycle()
-    val assetInfo by viewModel.assetInfo.collectAsStateWithLifecycle()
+    val sections by viewModel.sections.collectAsStateWithLifecycle()
+    val isAutoAlertEnabled by viewModel.isAutoAlertEnabled.collectAsStateWithLifecycle()
+    val asset by viewModel.asset.collectAsStateWithLifecycle()
     val priceAlertEnabled by viewModel.priceAlertEnabled.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
@@ -71,8 +71,9 @@ fun PriceAlertsNavScreen(
                 },
             )
             false -> PriceAlertScene(
-                assetInfo = assetInfo,
-                data = data,
+                asset = asset,
+                sections = sections,
+                isAutoAlertEnabled = isAutoAlertEnabled,
                 enabled = priceAlertEnabled == true,
                 syncState = isRefreshing,
                 isAssetView = viewModel.isAssetManage(),

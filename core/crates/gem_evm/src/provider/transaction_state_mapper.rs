@@ -25,24 +25,14 @@ mod tests {
     use super::*;
     use num_bigint::{BigInt, BigUint};
 
-    const BLOCK_HASH: &str = "0x1111111111111111111111111111111111111111111111111111111111111111";
-
-    fn receipt(status: &str, block_number: u64, block_hash: &str, l1_fee: Option<BigUint>) -> TransactionReceipt {
-        TransactionReceipt {
-            gas_used: BigUint::from(21000u32),
-            effective_gas_price: BigUint::from(20000000000u64),
-            l1_fee,
-            logs: vec![],
-            status: status.to_string(),
-            block_hash: block_hash.to_string(),
-            block_number,
-            fee_token: None,
-        }
-    }
-
     #[test]
     fn test_map_transaction_status() {
-        let result = map_transaction_status(&receipt("0x1", 0x123, BLOCK_HASH, None));
+        let receipt = TransactionReceipt {
+            block_number: 0x123,
+            ..TransactionReceipt::mock()
+        };
+
+        let result = map_transaction_status(&receipt);
 
         assert_eq!(result.state, TransactionState::Confirmed);
         assert_eq!(
@@ -53,7 +43,10 @@ mod tests {
             ]
         );
 
-        let result = map_transaction_status(&receipt("0x0", 0x123, BLOCK_HASH, None));
+        let result = map_transaction_status(&TransactionReceipt {
+            status: "0x0".to_string(),
+            ..receipt.clone()
+        });
 
         assert_eq!(result.state, TransactionState::Reverted);
         assert_eq!(
@@ -64,22 +57,34 @@ mod tests {
             ]
         );
 
-        let result = map_transaction_status(&receipt("0x2", 0x123, BLOCK_HASH, None));
+        let result = map_transaction_status(&TransactionReceipt {
+            status: "0x2".to_string(),
+            ..receipt.clone()
+        });
 
         assert_eq!(result.state, TransactionState::Pending);
         assert_eq!(result.changes, vec![]);
 
-        let result = map_transaction_status(&receipt("0x1", 0x123, primitives::contract_constants::EVM_ZERO_BLOCK_HASH, None));
+        let result = map_transaction_status(&TransactionReceipt {
+            block_hash: primitives::contract_constants::EVM_ZERO_BLOCK_HASH.to_string(),
+            ..receipt.clone()
+        });
 
         assert_eq!(result.state, TransactionState::Pending);
         assert_eq!(result.changes, vec![]);
 
-        let result = map_transaction_status(&receipt("0x1", 0, BLOCK_HASH, None));
+        let result = map_transaction_status(&TransactionReceipt {
+            block_number: 0,
+            ..receipt.clone()
+        });
 
         assert_eq!(result.state, TransactionState::Pending);
         assert_eq!(result.changes, vec![]);
 
-        let result = map_transaction_status(&receipt("0x1", 0x123, BLOCK_HASH, Some(BigUint::from(5000000000000000u64))));
+        let result = map_transaction_status(&TransactionReceipt {
+            l1_fee: Some(BigUint::from(5000000000000000u64)),
+            ..receipt
+        });
 
         assert_eq!(result.state, TransactionState::Confirmed);
         let expected_total = BigInt::from(21000u32) * BigInt::from(20000000000u64) + BigInt::from(5000000000000000u64);

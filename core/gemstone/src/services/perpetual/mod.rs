@@ -5,7 +5,7 @@ pub mod rules;
 pub mod store;
 pub mod stream;
 #[cfg(test)]
-pub mod testkit;
+pub(crate) mod testkit;
 
 use crate::services::error::GemServiceError;
 use crate::services::failures::record;
@@ -266,7 +266,7 @@ fn provider(chain: Chain) -> Result<PerpetualProvider, GemServiceError> {
 #[cfg(test)]
 mod tests {
     use futures::executor::block_on;
-    use primitives::{Account, WalletType};
+    use primitives::Account;
 
     use super::testkit::PerpetualTestkit;
     use super::*;
@@ -405,10 +405,7 @@ mod tests {
     fn test_refresh_reports_both_steps_when_both_fail() {
         block_on(async {
             let testkit = PerpetualTestkit::new();
-            let wallet = Wallet {
-                accounts: Account::mock_chains(&[Chain::HyperCore], "0xc64c"),
-                ..Wallet::mock()
-            };
+            let wallet = Wallet::mock_with_accounts(Account::mock_chains(&[Chain::HyperCore], "0xc64c"));
             *testkit.wallets.wallets.lock().unwrap() = vec![wallet.clone()];
             testkit.service.session.set_current_wallet_id(Some(wallet.id.clone())).unwrap();
 
@@ -436,11 +433,7 @@ mod tests {
     fn test_perpetuals_connect_only_for_a_wallet_that_can_hold_them() {
         let testkit = PerpetualTestkit::new();
         testkit.preferences.set_perpetual_enabled(true).unwrap();
-        let hypercore = Wallet {
-            wallet_type: WalletType::Multicoin,
-            accounts: Account::mock_chains(&[Chain::HyperCore], "0xc64c"),
-            ..Wallet::mock()
-        };
+        let hypercore = Wallet::mock_with_accounts(Account::mock_chains(&[Chain::HyperCore], "0xc64c"));
 
         assert!(!testkit.service.should_connect_perpetuals(None));
         assert!(testkit.service.should_connect_perpetuals(Some(hypercore)));

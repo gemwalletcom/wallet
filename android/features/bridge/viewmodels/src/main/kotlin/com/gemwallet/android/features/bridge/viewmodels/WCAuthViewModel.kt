@@ -1,27 +1,25 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
-import uniffi.gemstone.GemConnectionRow
-import uniffi.gemstone.GemWalletConnectAuthAccount
-import uniffi.gemstone.GemWalletConnectServiceInterface
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.getKeystorePassword
-import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
-import com.gemwallet.android.ext.toGem
-import uniffi.gemstone.GemWalletRow
-import uniffi.gemstone.walletRows
-import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.serializer.decodeJson
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
-import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthPayloadParams
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticationRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
+import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
+import com.gemwallet.android.application.wallet_connect.cases.PrepareSessionProposal
 import com.gemwallet.android.application.wallet_connect.fromWalletConnectChainId
 import com.gemwallet.android.ext.getAccount
-import com.gemwallet.android.features.bridge.viewmodels.model.map
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
+import com.gemwallet.android.features.bridge.viewmodels.model.ReviewTexts
 import com.gemwallet.android.features.bridge.viewmodels.model.WalletConnectReviewModel
+import com.gemwallet.android.features.bridge.viewmodels.model.map
+import com.gemwallet.android.serializer.decodeJson
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.PayloadField
 import com.gemwallet.android.ui.models.buttonState
@@ -30,6 +28,8 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -39,11 +39,15 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemConnectionRow
+import uniffi.gemstone.GemWalletConnectAuthAccount
+import uniffi.gemstone.GemWalletConnectServiceInterface
+import uniffi.gemstone.GemWalletRow
 import uniffi.gemstone.MessageSigner
+import uniffi.gemstone.MessageType
 import uniffi.gemstone.SignDigestType
 import uniffi.gemstone.SignMessage
-import javax.inject.Inject
-import uniffi.gemstone.MessageType
+import uniffi.gemstone.walletRows
 
 @HiltViewModel
 class WCAuthViewModel @Inject constructor(
@@ -51,6 +55,7 @@ class WCAuthViewModel @Inject constructor(
     private val prepareSessionProposal: PrepareSessionProposal,
     private val activeRequest: ActiveWalletConnectRequest,
     private val walletConnectService: GemWalletConnectServiceInterface,
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private var authRequest: WalletConnectAuthenticationRequest? = null
@@ -102,6 +107,7 @@ class WCAuthViewModel @Inject constructor(
                 }
                 _state.update {
                     AuthSceneState.Request(
+                        texts = ReviewTexts(context),
                         peer = walletConnectService.connectionRow(prepared.proposal.metadata.toGem()),
                         availableWallets = prepared.proposal.wallets,
                         availableWalletRows = walletRows(prepared.proposal.wallets.map { it.toGem() }),
@@ -321,6 +327,11 @@ sealed interface AuthSceneState {
         val availableWalletRows: List<GemWalletRow>
         val selectedWallet: Wallet
         val approval: AuthApproval
+        val texts: ReviewTexts
+
+        override val appListItem: ListItemModel get() = ListItemModel(title = texts.app, subtitle = peer.title)
+        override val walletListItem: ListItemModel get() = ListItemModel(title = texts.wallet, subtitle = selectedWallet.name)
+        override val viewFullMessageListItem: ListItemModel get() = ListItemModel(title = texts.viewFullMessage)
 
         override val icon: String? get() = peer.iconUrl
         override val name: String get() = peer.title
@@ -338,6 +349,7 @@ sealed interface AuthSceneState {
         override val availableWalletRows: List<GemWalletRow>,
         override val selectedWallet: Wallet,
         override val approval: AuthApproval,
+        override val texts: ReviewTexts,
     ) : Content
 
     data class Approving(
@@ -348,6 +360,7 @@ sealed interface AuthSceneState {
         override val availableWalletRows: List<GemWalletRow> get() = request.availableWalletRows
         override val selectedWallet: Wallet get() = request.selectedWallet
         override val approval: AuthApproval get() = request.approval
+        override val texts: ReviewTexts get() = request.texts
     }
 }
 

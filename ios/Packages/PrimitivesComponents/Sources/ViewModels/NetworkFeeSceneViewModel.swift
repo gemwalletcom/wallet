@@ -50,6 +50,10 @@ public struct NetworkFeeSceneViewModel {
 
     // MARK: - Network Fee
 
+    public var feeListItem: ListItemModel {
+        ListItemModel(title: title, subtitle: value, subtitleExtra: fiatValue, placeholders: [.subtitle])
+    }
+
     public var title: String { Localized.Transfer.networkFee }
     public var infoIcon: String { Localized.FeeRates.info }
     public var value: String? { feeAmount.map { display(for: $0).amount.text } }
@@ -114,8 +118,6 @@ public struct NetworkFeeSceneViewModel {
         NetworkFeeCustomViewModel(
             chain: feeAsset.chain,
             feeAsset: feeAsset,
-            feeAssetPrice: feeAssetPrice,
-            currency: currency,
             unitType: unitType,
             decimals: unitDecimals,
             baseFee: feeAmount,
@@ -123,6 +125,7 @@ public struct NetworkFeeSceneViewModel {
             normalTotal: feeRates?.normalTotal ?? feeRates?.selectedTotal,
             initialRate: selection.customGasPrice(),
             onSelect: { onSelect?(.custom(gasPrice: $0)) },
+            display: display(for:),
         )
     }
 

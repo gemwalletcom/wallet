@@ -110,7 +110,6 @@ mod tests {
     use reqwest::header::HeaderMap;
 
     use super::*;
-    use crate::testkit::config::metrics_config;
 
     #[test]
     fn test_broadcast_result_hypercore() {
@@ -265,18 +264,9 @@ mod tests {
 
     #[test]
     fn test_broadcast_metrics_exclude_transaction_data() {
-        let metrics = Metrics::new(metrics_config());
+        let metrics = Metrics::mock();
         let providers = BroadcastProviders::from_chains([Chain::Ethereum]);
-        let request = ProxyRequest::new(
-            Method::POST,
-            HeaderMap::new(),
-            vec![],
-            "/".into(),
-            "/".into(),
-            "example.com".into(),
-            "agent".into(),
-            Chain::Ethereum,
-        );
+        let request = ProxyRequest::mock(Chain::Ethereum, Method::POST, "/", &[]);
         let response = Ok(ProxyResponse::new(
             200,
             HeaderMap::new(),

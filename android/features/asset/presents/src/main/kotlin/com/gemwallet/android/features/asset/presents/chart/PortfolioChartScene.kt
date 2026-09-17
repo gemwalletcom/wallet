@@ -26,6 +26,9 @@ import com.gemwallet.android.features.asset.presents.localization.stringRes
 import com.gemwallet.android.features.asset.viewmodels.chart.viewmodels.PortfolioChartViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.TabsBar
+import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.SubheaderItem
+import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
@@ -40,7 +43,6 @@ fun PortfolioChartScene(
     viewModel: PortfolioChartViewModel = hiltViewModel(),
 ) {
     val statistics by viewModel.statistics.collectAsStateWithLifecycle()
-    val currency by viewModel.currency.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val selectedType by viewModel.selectedType.collectAsStateWithLifecycle()
     val showSegmentedControl by viewModel.showSegmentedControl.collectAsStateWithLifecycle()
@@ -71,7 +73,10 @@ fun PortfolioChartScene(
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item { PortfolioChart(viewModel) }
                 if (state.chart is StateViewType.Data || state.chart == StateViewType.NoData) {
-                    portfolioStatistics(currency, statistics)
+                    if (statistics.isNotEmpty()) {
+                        item { SubheaderItem(R.string.common_info) }
+                        itemsPositioned(statistics) { position, item -> ListItem(model = item, listPosition = position) }
+                    }
                 }
             }
         }

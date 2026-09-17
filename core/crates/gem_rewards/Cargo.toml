@@ -22,3 +22,9 @@ hex = { workspace = true }
 chrono = { workspace = true }
 regex = { workspace = true }
 async-trait = { workspace = true }
+
+[features]
+testkit = ["storage/testkit"]
+
+[dev-dependencies]
+storage = { path = "../storage", features = ["testkit"] }

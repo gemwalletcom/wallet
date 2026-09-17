@@ -1,42 +1,13 @@
-use config::{Config as FileConfig, File, FileFormat};
 use rocket::http::{ContentType, Header};
 use rocket::local::asynchronous::Client;
 use serde_json::{Value, json};
 
 use super::*;
-use crate::config::RoutesConfig;
-use crate::testkit::config::{chain_config, sample_config};
-
-const TEST_LIMIT: usize = 8;
-
-async fn nodes() -> Client {
-    let mut config = sample_config();
-    let settings = config.chains.as_mut().unwrap();
-    settings.request.limit = TEST_LIMIT;
-    settings.monitoring.enabled = false;
-    config.routes = None;
-    let chains = HashMap::from([(Chain::Ethereum, chain_config(Chain::Ethereum, "https://upstream.example.invalid"))]);
-    Client::tracked(Server::new(config, chains).unwrap().rocket()).await.unwrap()
-}
-
-async fn egress() -> Client {
-    let mut config = sample_config();
-    config.chains = None;
-    let mut settings: RoutesConfig = FileConfig::builder()
-        .add_source(File::from_str(include_str!("../../testdata/route_headers.yml"), FileFormat::Yaml))
-        .build()
-        .unwrap()
-        .try_deserialize()
-        .unwrap();
-    settings.request.limit = TEST_LIMIT;
-    settings.routes.get_mut("security_public").unwrap().allowlist = serde_json::from_value(json!([{ "path": "/allowed", "method": "GET" }])).unwrap();
-    config.routes = Some(settings);
-    Client::tracked(Server::new(config, HashMap::new()).unwrap().rocket()).await.unwrap()
-}
+use crate::testkit::server_mock::TEST_REQUEST_LIMIT;
 
 #[tokio::test]
 async fn test_node_health_root_and_metrics() {
-    let client = nodes().await;
+    let client = Client::tracked(Server::mock_nodes().rocket()).await.unwrap();
     assert_eq!(client.get("/health").dispatch().await.status(), Status::Ok);
     let root = client.get("/").dispatch().await;
     assert_eq!(root.status(), Status::Ok);
@@ -51,7 +22,7 @@ async fn test_node_health_root_and_metrics() {
 
 #[tokio::test]
 async fn test_node_invalid_chain_and_missing_host_are_json_errors() {
-    let client = nodes().await;
+    let client = Client::tracked(Server::mock_nodes().rocket()).await.unwrap();
     for (path, message) in [("/invalid-chain", "Invalid chain"), ("/auth", "Invalid chain"), ("/ethereum", "Failed to build request")] {
         let response = client.get(path).dispatch().await;
         assert_eq!(response.status(), Status::BadRequest);
@@ -65,7 +36,7 @@ async fn test_node_invalid_chain_and_missing_host_are_json_errors() {
 
 #[tokio::test]
 async fn test_provider_health_and_route_access() {
-    let client = egress().await;
+    let client = Client::tracked(Server::mock_egress().rocket()).await.unwrap();
     assert_eq!(client.get("/health").dispatch().await.status(), Status::Ok);
     for (method, path, status, message) in [
         (RocketMethod::Get, "/", Status::NotFound, "route not found"),
@@ -87,7 +58,7 @@ async fn test_provider_health_and_route_access() {
 
 #[tokio::test]
 async fn test_egress_unavailable_endpoint_preserves_metrics() {
-    let client = egress().await;
+    let client = Client::tracked(Server::mock_egress().rocket()).await.unwrap();
     let response = client.get("/worker/security_public/allowed?token=not-a-metric-label").dispatch().await;
     assert_eq!(response.status(), Status::ServiceUnavailable);
     assert_eq!(response.content_type(), Some(ContentType::JSON));
@@ -113,12 +84,16 @@ async fn test_egress_unavailable_endpoint_preserves_metrics() {
 #[tokio::test]
 async fn test_request_body_limit_accepts_exact_size_and_rejects_truncation_in_both_modes() {
     for (client, path, denied_message) in [
-        (nodes().await, "/ethereum/denied", "Request not allowed"),
-        (egress().await, "/worker/security_public/denied", "request not allowed"),
+        (Client::tracked(Server::mock_nodes().rocket()).await.unwrap(), "/ethereum/denied", "Request not allowed"),
+        (
+            Client::tracked(Server::mock_egress().rocket()).await.unwrap(),
+            "/worker/security_public/denied",
+            "request not allowed",
+        ),
     ] {
         for (length, status, message) in [
-            (TEST_LIMIT, Status::Forbidden, denied_message),
-            (TEST_LIMIT + 1, Status::PayloadTooLarge, "request body is too large"),
+            (TEST_REQUEST_LIMIT, Status::Forbidden, denied_message),
+            (TEST_REQUEST_LIMIT + 1, Status::PayloadTooLarge, "request body is too large"),
         ] {
             let response = client.post(path).header(Header::new("Host", "localhost")).body(vec![b'x'; length]).dispatch().await;
             assert_eq!(response.status(), status, "{path} body length {length}");
@@ -131,9 +106,7 @@ async fn test_request_body_limit_accepts_exact_size_and_rejects_truncation_in_bo
 
 #[test]
 fn test_mixed_routes_reserve_chain_prefixes() {
-    let config = sample_config();
-    let chains = HashMap::from([(Chain::Ethereum, chain_config(Chain::Ethereum, "https://upstream.example.invalid"))]);
-    let server = Server::new(config, chains).unwrap();
+    let server = Server::new(Config::mock(), HashMap::from([(Chain::Ethereum, ChainConfig::mock(Chain::Ethereum))])).unwrap();
 
     assert!(matches!(server.routes.target("/ethereum"), Ok(Target::Node(_, Chain::Ethereum))));
     assert!(matches!(

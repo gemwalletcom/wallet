@@ -29,7 +29,7 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.savedState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
+import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
 import com.gemwallet.android.features.confirm.presents.ConfirmScreen
 import com.gemwallet.android.features.perpetual.viewmodels.AutocloseViewModel
 import uniffi.gemstone.GemTransferData
@@ -64,6 +64,8 @@ private fun AutocloseNavGraphContent(
 ) {
     val viewModel: AutocloseViewModel = hiltViewModel()
     val uiModel by viewModel.uiModel.collectAsStateWithLifecycle()
+    val priceRows by viewModel.priceRows.collectAsStateWithLifecycle()
+    val positionListItem by viewModel.positionListItem.collectAsStateWithLifecycle()
     val takeProfitText by viewModel.takeProfitText.collectAsStateWithLifecycle()
     val stopLossText by viewModel.stopLossText.collectAsStateWithLifecycle()
 
@@ -88,6 +90,8 @@ private fun AutocloseNavGraphContent(
             val model = uiModel ?: return@entry
             AutocloseScene(
                 model = model,
+                priceRows = priceRows,
+                positionListItem = positionListItem,
                 takeProfitText = takeProfitText,
                 stopLossText = stopLossText,
                 onAction = { action ->

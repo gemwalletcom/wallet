@@ -1,10 +1,23 @@
 use std::sync::Mutex;
 
+use chrono::Utc;
 use primitives::currency::Currency;
 use primitives::{AssetId, AssetMarket, AssetPrice, FiatRate};
 
 use super::{GemPriceStore, GemPriceUpdate};
 use crate::services::error::GemServiceError;
+
+impl GemPriceUpdate {
+    pub fn mock(asset_id: AssetId, price: f64, price_change_percentage_24h: f64) -> Self {
+        Self {
+            asset_id,
+            price,
+            price_usd: price,
+            price_change_percentage_24h,
+            updated_at: Utc::now(),
+        }
+    }
+}
 
 #[derive(Default)]
 pub struct MemoryPriceStore {
@@ -14,6 +27,15 @@ pub struct MemoryPriceStore {
     pub prices: Mutex<Vec<AssetPrice>>,
     pub saved: Mutex<Vec<(Currency, Vec<GemPriceUpdate>)>>,
     pub converted: Mutex<Vec<(Currency, f64)>>,
+}
+
+impl MemoryPriceStore {
+    pub fn with_rate(symbol: Currency, rate: f64) -> Self {
+        Self {
+            rates: Mutex::new(vec![FiatRate { symbol, rate }]),
+            ..Default::default()
+        }
+    }
 }
 
 #[async_trait::async_trait]

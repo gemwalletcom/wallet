@@ -113,19 +113,6 @@ mod tests {
     const USDC: &str = SUI_USDC_TOKEN_ID;
     const BLUE: &str = "0xe1b45a0e641b9955a20aa0ad1c1f4ad86aad8afb07296d4085e349a50e90bdca::blue::BLUE";
 
-    fn hop(coin_a: &str, coin_b: &str, a2b: bool, amount_out: u64) -> Hop {
-        Hop {
-            pool_id: "0xpool".into(),
-            pool_init_version: 1,
-            coin_a: coin_a.into(),
-            coin_b: coin_b.into(),
-            a2b,
-            amount_in: 1_000,
-            amount_out,
-            after_sqrt_price: 0,
-        }
-    }
-
     #[test]
     fn test_fee_side_preference() {
         assert_eq!(FeeSide::select(SUI_FULL, USDC), FeeSide::Input);
@@ -139,8 +126,14 @@ mod tests {
 
     #[test]
     fn test_pool_route_traversal() {
+        let hop = Hop {
+            coin_a: SUI_FULL.into(),
+            coin_b: USDC.into(),
+            amount_out: 800_000,
+            ..Hop::mock()
+        };
         let route = PoolRoute {
-            hops: vec![hop(SUI_FULL, USDC, true, 800_000)],
+            hops: vec![hop.clone()],
             fee_amount: 5_000,
             fee_side: FeeSide::Input,
         };
@@ -150,7 +143,7 @@ mod tests {
         assert_eq!(route.net_amount_out(), 800_000);
 
         let route_output_fee = PoolRoute {
-            hops: vec![hop(SUI_FULL, USDC, true, 800_000)],
+            hops: vec![hop],
             fee_amount: 5_000,
             fee_side: FeeSide::Output,
         };

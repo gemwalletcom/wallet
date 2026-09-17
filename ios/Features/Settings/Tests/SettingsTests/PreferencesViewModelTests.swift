@@ -8,18 +8,15 @@ import Primitives
 import PrimitivesComponents
 import Testing
 @testable import Settings
+import SettingsTestKit
 
 @MainActor
 struct PreferencesViewModelTests {
-    private func model(settings: GemSettingsServiceMock = GemSettingsServiceMock()) -> PreferencesViewModel {
-        PreferencesViewModel(settings: settings, preferences: .mock())
-    }
-
     @Test
     func theDefaultsComeFromCore() {
         let settings = GemSettingsServiceMock()
         settings.perpetualDefaults = GemPerpetualDefaults(leverage: 10, takeProfitPercent: 30, stopLossPercent: 15)
-        let model = model(settings: settings)
+        let model = PreferencesViewModel.mock(settings: settings)
 
         #expect(model.perpetualLeverage.value == 10)
         #expect(model.defaultLeverageValue == "10x")
@@ -31,7 +28,7 @@ struct PreferencesViewModelTests {
     func changingALeverageWritesEveryDefaultBack() {
         let settings = GemSettingsServiceMock()
         settings.perpetualDefaults = GemPerpetualDefaults(leverage: 3, takeProfitPercent: 25, stopLossPercent: 10)
-        let model = model(settings: settings)
+        let model = PreferencesViewModel.mock(settings: settings)
 
         model.perpetualLeverage = LeverageOption(value: 20)
 
@@ -44,7 +41,7 @@ struct PreferencesViewModelTests {
     @Test
     func changingTakeProfitAndStopLossWritesThemToo() {
         let settings = GemSettingsServiceMock()
-        let model = model(settings: settings)
+        let model = PreferencesViewModel.mock(settings: settings)
 
         model.perpetualTakeProfit = AutocloseOption(value: 50)
         model.perpetualStopLoss = AutocloseOption(value: 20)
@@ -57,7 +54,7 @@ struct PreferencesViewModelTests {
     func aFailedWriteLeavesTheSelectionOnScreen() {
         let settings = GemSettingsServiceMock()
         settings.setDefaultsError = AnyError("preferences are read only")
-        let model = model(settings: settings)
+        let model = PreferencesViewModel.mock(settings: settings)
 
         model.perpetualLeverage = LeverageOption(value: 20)
 
@@ -68,7 +65,7 @@ struct PreferencesViewModelTests {
     @Test
     func theStateIsAskedForWithThePerpetualToggle() {
         let settings = GemSettingsServiceMock()
-        let model = model(settings: settings)
+        let model = PreferencesViewModel.mock(settings: settings)
         model.isPerpetualEnabled = false
 
         _ = model.state
@@ -78,7 +75,7 @@ struct PreferencesViewModelTests {
 
     @Test
     func eachPickerOpensOnItsOwn() {
-        let model = model()
+        let model = PreferencesViewModel.mock()
 
         model.onSelectLeverage()
         #expect(model.isPresentingLeveragePicker)
@@ -93,7 +90,7 @@ struct PreferencesViewModelTests {
 
     @Test
     func theOfferedOptionsAreNotEmpty() {
-        let model = model()
+        let model = PreferencesViewModel.mock()
 
         #expect(model.leverageOptions.isNotEmpty)
         #expect(model.takeProfitOptions.isNotEmpty)

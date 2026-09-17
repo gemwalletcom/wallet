@@ -116,6 +116,10 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
         Localized.Perpetual.autoClose
     }
 
+    var autocloseListItem: ListItemModel {
+        ListItemModel(title: autocloseTitle, subtitle: autocloseText.subtitle, subtitleExtra: autocloseText.subtitleExtra)
+    }
+
     var autocloseText: (subtitle: String, subtitleExtra: String?) {
         autocloseFormatter.format(
             takeProfit: data.takeProfit.flatMap { NumberInput.double($0) },

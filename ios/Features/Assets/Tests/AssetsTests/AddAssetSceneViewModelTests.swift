@@ -1,10 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 @testable import Assets
+import AssetsTestKit
 import GemstonePrimitivesTestKit
-import GemstoneServicesTestKit
 import Primitives
-import PrimitivesTestKit
 import Testing
 
 @MainActor
@@ -31,16 +30,5 @@ struct AddAssetSceneViewModelTests {
         model.onChangeAddress()
         #expect(model.loadTrigger == nil)
         #expect(model.state.isNoData)
-    }
-}
-
-// MARK: - Mock Extensions
-
-extension AddAssetSceneViewModel {
-    static func mock() -> AddAssetSceneViewModel {
-        AddAssetSceneViewModel(
-            wallet: .mock(accounts: [.mock(chain: .ethereum)]),
-            service: GemAddAssetServiceMock(),
-        )
     }
 }

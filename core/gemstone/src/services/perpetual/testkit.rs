@@ -2,17 +2,19 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
+use num_bigint::BigInt;
 use primitives::perpetual::PerpetualData;
-use primitives::{PerpetualMarketData, PerpetualPosition, PerpetualProvider, Wallet, WalletId};
+use primitives::{Asset, AutocloseValidation, PerpetualDirection, PerpetualMarginType, PerpetualMarketData, PerpetualPosition, PerpetualProvider, TpslType, Wallet, WalletId};
 
-use super::{GemPerpetualService, GemPerpetualStore};
-use crate::api::GemApiClient;
-use crate::gateway::{EmptyPreferences, GemGateway};
+use super::model::{GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualTransferData};
+use super::{GemAutocloseField, GemAutocloseModify, GemPerpetualService, GemPerpetualStore};
+use crate::gateway::GemGateway;
 use crate::services::assets::GemAssetsService;
 use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::balance::GemBalanceService;
-use crate::services::balance::testkit::RecordingBalanceStore;
+use crate::services::balance::testkit::MemoryBalanceStore;
 use crate::services::error::GemServiceError;
+use crate::services::node::GemNodeService;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::preferences::testkit::MemoryPreferencesStore;
 use crate::services::price::GemPriceService;
@@ -25,7 +27,7 @@ use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_preferences::testkit::MemoryWalletPreferencesStore;
 use crate::services::wallet_session::GemWalletSessionService;
 use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
-use crate::testkit::TestAlienProvider;
+use crate::testkit::{EmptyPreferences, TestAlienProvider};
 
 #[derive(Default)]
 pub struct MemoryPerpetualStore {
@@ -73,7 +75,7 @@ pub struct PerpetualTestkit {
     pub provider: Arc<TestAlienProvider>,
     pub store: Arc<MemoryPerpetualStore>,
     pub wallets: Arc<MemoryWalletStore>,
-    pub balances: Arc<RecordingBalanceStore>,
+    pub balances: Arc<MemoryBalanceStore>,
     pub preferences: Arc<GemPreferencesService>,
     pub wallet_preferences: Arc<GemWalletPreferencesService>,
     pub wallet_id: WalletId,
@@ -95,18 +97,16 @@ impl PerpetualTestkit {
             wallets.clone(),
         ));
         let provider = Arc::new(TestAlienProvider::with_status(503));
-        let gateway = Arc::new(GemGateway::new(provider.clone(), preferences_store, Arc::new(EmptyPreferences)));
+        let gateway = Arc::new(GemGateway::new(
+            provider.clone(),
+            Arc::new(GemNodeService::mock()),
+            preferences_store,
+            Arc::new(EmptyPreferences),
+        ));
         let price = Arc::new(GemPriceService::new(Arc::new(MemoryPriceStore::default())));
         let asset_store = Arc::new(MemoryAssetStore::default());
-        let assets = Arc::new(GemAssetsService::new(
-            Arc::new(GemApiClient::new(provider.clone())),
-            gateway.clone(),
-            asset_store.clone(),
-            price.clone(),
-            preferences.clone(),
-            session.clone(),
-        ));
-        let balances = Arc::new(RecordingBalanceStore::default());
+        let assets = Arc::new(GemAssetsService::mock(provider.clone(), asset_store.clone()));
+        let balances = Arc::new(MemoryBalanceStore::default());
         let balance = Arc::new(GemBalanceService::new(
             gateway.clone(),
             wallets.clone(),
@@ -144,5 +144,67 @@ impl PerpetualTestkit {
 impl Default for PerpetualTestkit {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl GemPerpetualOrderInput {
+    pub fn mock(action: GemPerpetualOrderAction) -> Self {
+        Self {
+            action,
+            direction: PerpetualDirection::Long,
+            margin_type: PerpetualMarginType::Cross,
+            base_asset: Asset::mock(),
+            asset: Asset::mock(),
+            asset_index: 1,
+            price: 100.0,
+            usdc_value: BigInt::from(50_000_000),
+            usdc_decimals: 6,
+            leverage: 4,
+            slippage: None,
+            take_profit: None,
+            stop_loss: None,
+        }
+    }
+}
+
+impl GemPerpetualTransferData {
+    pub fn mock() -> Self {
+        Self {
+            provider: PerpetualProvider::Hypercore,
+            direction: PerpetualDirection::Long,
+            asset: Asset::mock(),
+            base_asset: Asset::mock(),
+            asset_index: 0,
+            price: 100.0,
+            leverage: 3,
+            margin_type: PerpetualMarginType::Cross,
+        }
+    }
+}
+
+impl GemAutocloseField {
+    pub fn mock(price: Option<f64>, original_price: Option<f64>, is_valid: bool, order_id: Option<u64>) -> Self {
+        Self {
+            tpsl_type: TpslType::TakeProfit,
+            price,
+            original_price,
+            formatted_price: price.map(|price| format!("{price:.1}")),
+            validation: match is_valid {
+                true => AutocloseValidation::Valid,
+                false => AutocloseValidation::InvalidAmount,
+            },
+            order_id,
+        }
+    }
+}
+
+impl GemAutocloseModify {
+    pub fn mock(take_profit: GemAutocloseField, stop_loss: GemAutocloseField) -> Self {
+        Self {
+            direction: PerpetualDirection::Long,
+            asset_index: 5,
+            take_profit,
+            stop_loss,
+        }
     }
 }

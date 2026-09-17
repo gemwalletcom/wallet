@@ -36,31 +36,24 @@ public struct AboutUsScene: View {
         switch row {
         case .termsOfService:
             SafariNavigationLink(url: model.termsOfServiceURL) {
-                ListItemView(title: row.title)
+                ListItemView(model: model.listItem(for: row))
             }
         case .privacyPolicy:
             SafariNavigationLink(url: model.privacyPolicyURL) {
-                ListItemView(title: row.title)
+                ListItemView(model: model.listItem(for: row))
             }
         case .website:
             SafariNavigationLink(url: model.websiteURL) {
-                ListItemView(title: row.title)
+                ListItemView(model: model.listItem(for: row))
             }
         case .community:
             SocialLinksView(model: model.linksViewModel)
         case .version:
-            ListItemView(title: row.title, subtitle: model.versionTextValue)
+            ListItemView(model: model.listItem(for: row))
                 .contextMenu(model.contextMenuItems)
 
-            if let version = model.releaseVersion {
-                NavigationCustomLink(
-                    with: ListItemView(
-                        title: Localized.UpdateApp.title,
-                        subtitle: version,
-                        imageStyle: .settings(assetImage: model.releaseImage),
-                    ),
-                    action: model.onUpdate,
-                )
+            if let item = model.updateListItem {
+                NavigationCustomLink(with: ListItemView(model: item), action: model.onUpdate)
             }
         }
     }

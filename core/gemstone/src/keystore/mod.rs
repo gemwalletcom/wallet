@@ -1,6 +1,8 @@
 #[allow(clippy::module_inception)]
 mod keystore;
 #[cfg(test)]
+pub(crate) mod testkit;
+#[cfg(test)]
 mod tests;
 mod types;
 

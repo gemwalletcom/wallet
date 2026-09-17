@@ -25,6 +25,10 @@ struct ServiceStatusItemViewModel: Identifiable {
     var titleTagType: TitleTagType { statusTag.type }
     var titleTagStyle: TextStyle { statusTag.style }
 
+    var listItem: ListItemModel {
+        ListItemModel(title: title, titleTag: titleTag, titleTagStyle: titleTagStyle, titleTagType: titleTagType, titleExtra: subtitle)
+    }
+
     private var statusTag: LatencyStatusViewModel {
         LatencyStatusViewModel(status: status)
     }

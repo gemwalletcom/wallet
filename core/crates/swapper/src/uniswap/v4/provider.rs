@@ -11,15 +11,14 @@ use crate::{
     alien::{RpcClient, RpcProvider},
     approval::evm::{check_approval_erc20_with_client, check_approval_permit2_with_client},
     approval::get_swap_gas_limit_with_approval,
-    eth_address,
     fees::{apply_slippage_in_bp, default_referral_fees},
     uniswap::{
         deadline::get_sig_deadline,
         discovery::{PoolDiscovery, candidate_pairs, discover_v4_pools},
         fee_token::is_quote_input_fee_token,
         quote_result::{QuotePosition, get_best_quote},
+        routed_asset::{Funding, Protocol, RoutedAsset, base_pair},
         swap_route::{RouteData, build_swap_route, get_intermediaries},
-        uses_native_currency,
     },
 };
 use gem_evm::{
@@ -28,7 +27,6 @@ use gem_evm::{
         FeeTier,
         command::{Permit2Permit, encode_commands},
         deployment::v4::get_uniswap_deployment_by_chain,
-        path::get_base_pair,
     },
 };
 use gem_hash::keccak::keccak256;
@@ -41,6 +39,8 @@ use super::{
     path::{build_pool_key, build_pool_keys, build_quote_exact_params, get_intermediary_token},
     quoter::{build_quote_exact_requests, build_quote_exact_single_request},
 };
+
+const PROTOCOL: Protocol = Protocol::V4;
 
 pub struct UniswapV4 {
     pub provider: ProviderType,
@@ -72,43 +72,36 @@ impl UniswapV4 {
     }
 
     fn is_base_pair(token_in: &Address, token_out: &Address, evm_chain: &EVMChain) -> bool {
-        let Some(base_pair) = get_base_pair(evm_chain, evm_chain.native_asset_contract()) else {
+        let Some(base_pair) = base_pair(*evm_chain, PROTOCOL) else {
             return false;
         };
         let base_set: HashSet<Address> = HashSet::from_iter(base_pair.path_building_array());
         base_set.contains(token_in) || base_set.contains(token_out)
     }
 
-    fn parse_asset_address(asset_id: &AssetId, evm_chain: EVMChain) -> Result<Address, SwapperError> {
-        if uses_native_currency(asset_id) {
-            Ok(Address::ZERO)
-        } else {
-            eth_address::parse_or_native_address(asset_id, evm_chain)
-        }
-    }
-
-    fn parse_assets(from_asset: &AssetId, to_asset: &AssetId) -> Result<(EVMChain, Address, Address), SwapperError> {
+    fn routed_pair(from_asset: &AssetId, to_asset: &AssetId) -> Result<(EVMChain, RoutedAsset, RoutedAsset), SwapperError> {
         if from_asset.chain != to_asset.chain {
             return Err(SwapperError::NotSupportedChain);
         }
         let evm_chain = EVMChain::from_chain(from_asset.chain).ok_or(SwapperError::NotSupportedChain)?;
         Ok((
             evm_chain,
-            Self::parse_asset_address(from_asset, evm_chain)?,
-            Self::parse_asset_address(to_asset, evm_chain)?,
+            RoutedAsset::from_asset(from_asset, evm_chain, PROTOCOL)?,
+            RoutedAsset::from_asset(to_asset, evm_chain, PROTOCOL)?,
         ))
     }
 
-    fn parse_request(request: &QuoteRequest) -> Result<(EVMChain, Address, Address, u128), SwapperError> {
-        let (evm_chain, token_in, token_out) = Self::parse_assets(&request.from_asset.asset_id(), &request.to_asset.asset_id())?;
-        let amount_in = u128::from_str(&request.value.to_string()).map_err(SwapperError::from)?;
-        Ok((evm_chain, token_in, token_out, amount_in))
+    fn routed_request(request: &QuoteRequest) -> Result<(EVMChain, RoutedAsset, RoutedAsset, u128), SwapperError> {
+        let (evm_chain, input, output) = Self::routed_pair(&request.from_asset.asset_id(), &request.to_asset.asset_id())?;
+        let amount_in = U256::from_str(&request.value.to_string()).map_err(SwapperError::from)? / input.scale;
+        let amount_in = u128::try_from(amount_in).map_err(|_| SwapperError::ComputeQuoteError("amount is too large".into()))?;
+        Ok((evm_chain, input, output, amount_in))
     }
 
     async fn preload_pool_candidates(&self, chain: Chain, token_in: Address, token_out: Address) -> Result<(), SwapperError> {
         let deployment = get_uniswap_deployment_by_chain(&chain).ok_or(SwapperError::NotSupportedChain)?;
         let evm_chain = EVMChain::from_chain(chain).ok_or(SwapperError::NotSupportedChain)?;
-        let base_pair = get_base_pair(&evm_chain, evm_chain.native_asset_contract()).ok_or_else(|| SwapperError::ComputeQuoteError("base pair not found".into()))?;
+        let base_pair = base_pair(evm_chain, PROTOCOL).ok_or_else(|| SwapperError::ComputeQuoteError("base pair not found".into()))?;
         let client = self.client_for(chain)?;
         let fee_tiers = self.get_tiers();
         let pairs = candidate_pairs(token_in, token_out, get_intermediaries(&token_in, &token_out, &base_pair));
@@ -151,19 +144,20 @@ impl Swapper for UniswapV4 {
     }
 
     async fn preload_routes(&self, from_asset: &AssetId, to_asset: &AssetId) {
-        let Ok((_, token_in, token_out)) = Self::parse_assets(from_asset, to_asset) else {
+        let Ok((_, input, output)) = Self::routed_pair(from_asset, to_asset) else {
             return;
         };
-        _ = self.preload_pool_candidates(from_asset.chain, token_in, token_out).await;
+        _ = self.preload_pool_candidates(from_asset.chain, input.address, output.address).await;
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let from_chain = request.from_asset.chain();
         let to_chain = request.to_asset.chain();
         let deployment = get_uniswap_deployment_by_chain(&from_chain).ok_or(SwapperError::NotSupportedChain)?;
-        let (evm_chain, token_in, token_out, from_value) = Self::parse_request(request)?;
+        let (evm_chain, input, output, from_value) = Self::routed_request(request)?;
+        let (token_in, token_out) = (input.address, output.address);
         let fee_tiers = self.get_tiers();
-        let base_pair = get_base_pair(&evm_chain, evm_chain.native_asset_contract()).ok_or(SwapperError::ComputeQuoteError("base pair not found".into()))?;
+        let base_pair = base_pair(evm_chain, PROTOCOL).ok_or(SwapperError::ComputeQuoteError("base pair not found".into()))?;
         let fee_token_is_input = is_quote_input_fee_token(Some(&base_pair), request, token_in, token_out);
         let fee_bps = default_referral_fees().evm.bps;
         let quote_amount_in = if fee_token_is_input && fee_bps > 0 {
@@ -242,7 +236,7 @@ impl Swapper for UniswapV4 {
         Ok(Quote {
             from_value: request.value.clone(),
             min_from_value: None,
-            to_value: u256_to_biguint(&to_value),
+            to_value: u256_to_biguint(&(to_value * output.scale)),
             data: ProviderData {
                 provider: self.provider().clone(),
                 routes,
@@ -255,17 +249,17 @@ impl Swapper for UniswapV4 {
 
     async fn get_permit2_for_quote(&self, quote: &Quote) -> Result<Option<Permit2ApprovalData>, SwapperError> {
         let from_asset = quote.request.from_asset.asset_id();
-        if uses_native_currency(&from_asset) {
+        let (_, input, _, amount_in) = Self::routed_request(&quote.request)?;
+        if input.funding != Funding::Permit2 {
             return Ok(None);
         }
-        let (_, token_in, _, amount_in) = Self::parse_request(&quote.request)?;
         let deployment = get_uniswap_deployment_by_chain(&from_asset.chain).ok_or(SwapperError::NotSupportedChain)?;
 
         let client = self.client_for(from_asset.chain)?;
         let permit2_data = check_approval_permit2_with_client(
             deployment.permit2,
             quote.request.wallet_address.clone(),
-            token_in.to_string(),
+            input.address.to_string(),
             deployment.universal_router.to_string(),
             U256::from(amount_in),
             &client,
@@ -279,7 +273,7 @@ impl Swapper for UniswapV4 {
     async fn get_quote_data(&self, quote: &Quote, data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
         let request = &quote.request;
         let from_asset = request.from_asset.asset_id();
-        let (_, token_in, token_out, amount_in) = Self::parse_request(request)?;
+        let (evm_chain, input, output, amount_in) = Self::routed_request(request)?;
         let deployment = get_uniswap_deployment_by_chain(&from_asset.chain).ok_or(SwapperError::NotSupportedChain)?;
         let route = quote.data.routes.first().ok_or(SwapperError::InvalidRoute)?;
         let route_data: RouteData = serde_json::from_str(&route.route_data).map_err(|_| SwapperError::InvalidRoute)?;
@@ -287,20 +281,19 @@ impl Swapper for UniswapV4 {
 
         let client = self.client_for(from_asset.chain)?;
         let permit = data.permit2_data().map(Permit2Permit::try_from).transpose()?;
-        let input_is_native = uses_native_currency(&request.from_asset.asset_id());
 
-        let approval: Option<ApprovalData> = if input_is_native {
-            None
-        } else {
+        let approval: Option<ApprovalData> = if input.funding == Funding::Permit2 {
             check_approval_erc20_with_client(
                 request.wallet_address.clone(),
-                token_in.to_string(),
+                input.address.to_string(),
                 deployment.permit2.to_string(),
                 U256::from(amount_in),
                 &client,
             )
             .await?
             .approval_data()
+        } else {
+            None
         };
         let swap_gas_limit = match from_asset.chain {
             Chain::Tempo => TEMPO_SWAP_GAS_LIMIT,
@@ -309,14 +302,13 @@ impl Swapper for UniswapV4 {
         let gas_limit = get_swap_gas_limit_with_approval(&approval, None, swap_gas_limit);
 
         let sig_deadline = get_sig_deadline();
-        let evm_chain = EVMChain::from_chain(from_asset.chain).ok_or(SwapperError::NotSupportedChain)?;
-        let base_pair = get_base_pair(&evm_chain, evm_chain.native_asset_contract());
-        let fee_token_is_input = is_quote_input_fee_token(base_pair.as_ref(), request, token_in, token_out);
+        let base_pair = base_pair(evm_chain, PROTOCOL);
+        let fee_token_is_input = is_quote_input_fee_token(base_pair.as_ref(), request, input.address, output.address);
 
         let commands = build_commands(
             request,
-            &token_in,
-            &token_out,
+            &input,
+            &output,
             amount_in,
             to_amount,
             &quote.data.routes,
@@ -326,7 +318,10 @@ impl Swapper for UniswapV4 {
         )?;
         let encoded = encode_commands(&commands, U256::from(sig_deadline));
 
-        let value = if input_is_native { request.value.clone() } else { BigUint::ZERO };
+        let value = match input.funding {
+            Funding::Value | Funding::RouterBalance => u256_to_biguint(&(U256::from(amount_in) * input.scale)),
+            Funding::Permit2 => BigUint::ZERO,
+        };
 
         Ok(SwapperQuoteData::new_contract(
             deployment.universal_router.into(),
@@ -359,9 +354,9 @@ mod tests {
             options: Options::default(),
         };
 
-        let (evm_chain, token_in, token_out, _) = UniswapV4::parse_request(&request).unwrap();
+        let (evm_chain, input, output, _) = UniswapV4::routed_request(&request).unwrap();
 
-        assert!(UniswapV4::is_base_pair(&token_in, &token_out, &evm_chain));
+        assert!(UniswapV4::is_base_pair(&input.address, &output.address, &evm_chain));
         // Ensure provider field is used to avoid warnings
         assert_eq!(swapper.provider.id, SwapperProvider::UniswapV4);
     }
@@ -378,8 +373,8 @@ mod tests {
     #[test]
     fn rejects_tempo_network_asset() {
         let native = AssetId::from_chain(Chain::Tempo);
-        assert!(UniswapV4::parse_assets(&native, &TEMPO_BRIDGED_USDC_ASSET_ID).is_err());
-        assert!(UniswapV4::parse_assets(&TEMPO_BRIDGED_USDC_ASSET_ID, &native).is_err());
+        assert!(UniswapV4::routed_pair(&native, &TEMPO_BRIDGED_USDC_ASSET_ID).is_err());
+        assert!(UniswapV4::routed_pair(&TEMPO_BRIDGED_USDC_ASSET_ID, &native).is_err());
     }
 }
 
@@ -390,9 +385,48 @@ mod swap_integration_tests {
     use num_traits::ToPrimitive;
     use primitives::{
         AssetId, Chain,
-        asset_constants::{ROBINHOOD_USDG_TOKEN_ID, TEMPO_BRIDGED_USDC_ASSET_ID, TEMPO_PATHUSD_ASSET_ID},
+        asset_constants::{ARC_EURC_ASSET_ID, ROBINHOOD_USDG_TOKEN_ID, TEMPO_BRIDGED_USDC_ASSET_ID, TEMPO_PATHUSD_ASSET_ID},
     };
     use std::sync::Arc;
+
+    #[tokio::test]
+    async fn test_arc_native_usdc_eurc_quotes() -> Result<(), SwapperError> {
+        let network_provider = Arc::new(NativeProvider::default());
+        let swap_provider = uniswap::default::boxed_uniswap_v4(network_provider);
+        let options = Options {
+            slippage: 100.into(),
+            use_max_amount: false,
+        };
+        let native = AssetId::from_chain(Chain::Arc);
+        let wallet = "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7";
+
+        let request = QuoteRequest {
+            from_asset: native.clone().into(),
+            to_asset: ARC_EURC_ASSET_ID.clone().into(),
+            wallet_address: wallet.into(),
+            destination_address: wallet.into(),
+            value: BigUint::from(1_000_000_000_000_000_000u64),
+            options: options.clone(),
+        };
+        let quote = swap_provider.get_quote(&request).await?;
+        assert!(quote.to_value > BigUint::from(500_000u64) && quote.to_value < BigUint::from(1_000_000u64));
+        let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+        assert_eq!(quote_data.value, BigUint::from(1_000_000_000_000_000_000u64));
+        assert!(quote_data.approval.is_none());
+
+        let request = QuoteRequest {
+            from_asset: ARC_EURC_ASSET_ID.clone().into(),
+            to_asset: native.into(),
+            wallet_address: wallet.into(),
+            destination_address: wallet.into(),
+            value: BigUint::from(1_000_000u64),
+            options,
+        };
+        let quote = swap_provider.get_quote(&request).await?;
+        assert!(quote.to_value > BigUint::from(1_000_000_000_000_000_000u64) && quote.to_value < BigUint::from(2_000_000_000_000_000_000u64));
+
+        Ok(())
+    }
 
     #[tokio::test]
     async fn test_v4_quoter() -> Result<(), SwapperError> {

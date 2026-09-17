@@ -9,20 +9,14 @@ import PrimitivesTestKit
 @testable import Store
 import Testing
 @testable import Transactions
+import TransactionsTestKit
 
 @MainActor
 struct TransactionsViewModelTests {
-    private func model(
-        service: GemTransactionsServiceMock = GemTransactionsServiceMock(),
-        wallet: Primitives.Wallet = .mock(),
-    ) -> TransactionsViewModel {
-        TransactionsViewModel(service: service, wallet: wallet, type: .all)
-    }
-
     @Test
     func theFilterOffersTheChainsCoreReturned() {
         let service = GemTransactionsServiceMock(filterChains: [Chain.bitcoin.rawValue, Chain.ethereum.rawValue])
-        let model = model(service: service)
+        let model = TransactionsViewModel.mock(service: service)
 
         #expect(model.filterModel.chainsFilter.allChains == [.bitcoin, .ethereum])
         #expect(model.filterModel.isAnyFilterSpecified == false)
@@ -31,7 +25,7 @@ struct TransactionsViewModelTests {
     @Test
     func loadingSyncsEveryAsset() async {
         let service = GemTransactionsServiceMock()
-        let model = model(service: service)
+        let model = TransactionsViewModel.mock(service: service)
 
         await model.load()
 
@@ -43,7 +37,7 @@ struct TransactionsViewModelTests {
     func aFailedSyncLeavesNoToast() async {
         let service = GemTransactionsServiceMock()
         service.syncError = AnyError("offline")
-        let model = model(service: service)
+        let model = TransactionsViewModel.mock(service: service)
 
         await model.load()
 
@@ -52,7 +46,7 @@ struct TransactionsViewModelTests {
 
     @Test
     func openingTheFilterPresentsTheSheet() {
-        let model = model()
+        let model = TransactionsViewModel.mock()
 
         model.onSelectFilterButton()
 
@@ -62,7 +56,7 @@ struct TransactionsViewModelTests {
     @Test
     func theEmptyStateChangesOnceAFilterIsOn() {
         let service = GemTransactionsServiceMock(filterChains: [Chain.bitcoin.rawValue])
-        let model = model(service: service)
+        let model = TransactionsViewModel.mock(service: service)
         let unfiltered = model.emptyContentModel.title
 
         model.filterModel.chainsFilter.selectedChains = [.bitcoin]
@@ -73,13 +67,9 @@ struct TransactionsViewModelTests {
 
 @MainActor
 struct TransactionsFilterViewModelTests {
-    private func model(chains: [Primitives.Chain] = [.bitcoin, .ethereum]) -> TransactionsFilterViewModel {
-        TransactionsFilterViewModel(wallet: .mock(), chains: chains, type: .all)
-    }
-
     @Test
     func aChainSelectionReachesTheRequest() {
-        let model = model()
+        let model = TransactionsFilterViewModel.mock()
 
         let confirmed = model.onFinishChainsSelection(SelectionResult(items: [.bitcoin], isConfirmed: true))
 
@@ -90,7 +80,7 @@ struct TransactionsFilterViewModelTests {
 
     @Test
     func aCancelledSelectionStillKeepsWhatWasPicked() {
-        let model = model()
+        let model = TransactionsFilterViewModel.mock()
 
         let confirmed = model.onFinishChainsSelection(SelectionResult(items: [.ethereum], isConfirmed: false))
 
@@ -100,7 +90,7 @@ struct TransactionsFilterViewModelTests {
 
     @Test
     func theTypesComeFromCore() {
-        let model = model()
+        let model = TransactionsFilterViewModel.mock()
 
         #expect(model.transactionTypesFilter.allTransactionsTypes.isNotEmpty)
         #expect(model.transactionTypesFilter.isAnySelected == false)
@@ -108,7 +98,7 @@ struct TransactionsFilterViewModelTests {
 
     @Test
     func aTypeSelectionMapsToItsTransactionTypes() {
-        let model = model()
+        let model = TransactionsFilterViewModel.mock()
         guard let filter = model.transactionTypesFilter.allTransactionsTypes.first else {
             Issue.record("core returned no transaction filters")
             return
@@ -123,7 +113,7 @@ struct TransactionsFilterViewModelTests {
 
     @Test
     func eachFilterSheetOpensOnItsOwn() {
-        let model = model()
+        let model = TransactionsFilterViewModel.mock()
 
         model.onSelectChainsFilter()
         #expect(model.isPresentingChains)

@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.transfer_amount.presents
 
+import com.gemwallet.android.ui.components.list_item.uiModel
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
@@ -36,7 +37,7 @@ fun ValidatorsScene(
                 }
                 itemsPositioned(recommended, key = { index, item -> "recommended-${item.validator.id}" }) { position, item ->
                     ValidatorItem(
-                        data = item,
+                        data = item.uiModel(),
                         listPosition = position,
                         isSelected = selectedValidatorId == item.validator.id,
                         onClick = onSelect
@@ -50,7 +51,7 @@ fun ValidatorsScene(
             val validatorsSize = validators.size
             itemsIndexed(validators, key = { index, item -> item.validator.id }) { index, item ->
                 ValidatorItem(
-                    data = item,
+                    data = item.uiModel(),
                     listPosition = ListPosition.getPosition(index, validatorsSize),
                     isSelected = selectedValidatorId == item.validator.id,
                     onClick = onSelect

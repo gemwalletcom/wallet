@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemAboutRow
 import protocol Gemstone.GemAppUpdateServiceProtocol
 import Components
 import struct Gemstone.GemAboutSection
@@ -32,6 +33,17 @@ public final class AboutUsViewModel: Sendable {
 
     var title: String {
         Localized.Settings.aboutus
+    }
+
+    func listItem(for row: GemAboutRow) -> ListItemModel {
+        switch row {
+        case .termsOfService, .privacyPolicy, .website, .community: ListItemModel(title: row.title)
+        case .version: ListItemModel(title: row.title, subtitle: versionTextValue)
+        }
+    }
+
+    var updateListItem: ListItemModel? {
+        releaseVersion.map { ListItemModel(title: Localized.UpdateApp.title, subtitle: $0, imageStyle: .settings(assetImage: releaseImage)) }
     }
 
 

@@ -2,19 +2,17 @@ package com.gemwallet.android.features.bridge.viewmodels
 
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
-import com.gemwallet.android.application.wallet_connect.WalletConnectJsonRpcRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectJsonRpcResponse
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequests
-import com.gemwallet.android.application.wallet_connect.WalletConnectSessionRequest
-import com.gemwallet.android.application.wallet_connect.WalletConnectValidation
-import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConnectRequest
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
-import com.gemwallet.android.testkit.mockAccount
-import com.gemwallet.android.testkit.mockWallet
+import com.gemwallet.android.testkit.mockGemConnectionRow
+import com.gemwallet.android.testkit.mockGemSignMessagePreview
+import com.gemwallet.android.testkit.mockGemWalletConnectMessageRequest
+import com.gemwallet.android.testkit.mockWalletConnectSessionRequest
+import com.gemwallet.android.testkit.mockWalletConnectVerifyContext
+import com.gemwallet.android.testkit.mockWalletConnectionSession
 import com.gemwallet.android.ui.models.ButtonState
-import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -38,25 +36,14 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.ApplicationMetadata
-import uniffi.gemstone.ApplicationMetadataSource
-import uniffi.gemstone.GemConnectionRow
-import uniffi.gemstone.GemSignMessagePreview
 import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.GemWalletConnectFailure
-import uniffi.gemstone.GemWalletConnectMessageRequest
 import uniffi.gemstone.GemWalletConnectOutcome
 import uniffi.gemstone.GemWalletConnectResponse
 import uniffi.gemstone.GemWalletConnectRpcError
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.GemWalletConnectSessionRequest
-import uniffi.gemstone.MessageType
-import uniffi.gemstone.SignDigestType
-import uniffi.gemstone.SignMessage
-import uniffi.gemstone.SimulationResult
 import uniffi.gemstone.WalletConnectResponseType
-import uniffi.gemstone.WalletConnectionSession
-import uniffi.gemstone.WalletConnectionState
 import uniffi.gemstone.WalletConnectionVerificationStatus
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -79,86 +66,20 @@ class WCRequestViewModelTest {
 
     private val idle = GemWalletConnectOutcome(response = null, failure = null)
 
-    private val wallet = mockWallet(
-        id = "multicoin_0xabc",
-        name = "Main Wallet",
-        accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xabc")),
-    )
+    private val sessionRequest = mockWalletConnectSessionRequest(id = 42L, topic = topic)
 
-    private val metadata = ApplicationMetadata(
-        name = "Uniswap",
-        description = "Swap",
-        url = "https://app.uniswap.org",
-        icon = "https://app.uniswap.org/icon.png",
-        source = ApplicationMetadataSource.WALLET_CONNECT,
-    )
-
-    private val connectionRow = GemConnectionRow(
-        title = "Uniswap",
-        host = "app.uniswap.org",
-        initial = "U",
-        iconUrl = "https://app.uniswap.org/icon.png",
-    )
-
-    private val sessionRequest = WalletConnectSessionRequest(
-        topic = topic,
-        chainId = "eip155:1",
-        request = WalletConnectJsonRpcRequest(id = 42L, method = "personal_sign", params = "[]"),
-    )
-
-    private val verifyContext = WalletConnectVerifyContext(
-        origin = "https://app.uniswap.org",
-        validation = WalletConnectValidation.Valid,
-        isScam = false,
-    )
-
-    private fun signMessagePreview(hasCriticalWarning: Boolean) = GemSignMessagePreview(
-        messageType = MessageType.TEXT,
-        text = "Sign in",
-        primaryFields = emptyList(),
-        secondaryFields = emptyList(),
-        hasCriticalWarning = hasCriticalWarning,
-        header = null,
-    )
-
-    private fun messageRequest() = GemWalletConnectMessageRequest(
-        sessionId = topic,
-        chain = Chain.Ethereum.toGem(),
-        wallet = wallet.toGem(),
-        account = wallet.accounts.first().toGem(),
-        session = WalletConnectionSession(
-            id = "session-1",
-            sessionId = topic,
-            state = WalletConnectionState.ACTIVE,
-            chains = listOf(Chain.Ethereum.toGem()),
-            createdAt = 0L,
-            expireAt = 0L,
-            metadata = metadata,
-        ),
-        simulation = SimulationResult(
-            warnings = emptyList(),
-            balanceChanges = emptyList(),
-            payload = emptyList(),
-            header = null,
-        ),
-        message = SignMessage(
-            chain = Chain.Ethereum.toGem(),
-            signType = SignDigestType.EIP191,
-            data = "Sign in".toByteArray(),
-        ),
-        assets = emptyList(),
-    )
+    private val verifyContext = mockWalletConnectVerifyContext()
 
     private fun service(
         onProcess: suspend (GemWalletConnectSessionRequest) -> GemWalletConnectOutcome = { idle },
     ): GemWalletConnectServiceInterface = mockk(relaxed = true) {
-        every { connectionRow(any()) } returns connectionRow
+        every { connectionRow(any()) } returns mockGemConnectionRow()
         every { userRejectedError() } returns GemWalletConnectRpcError(code = 4001, message = "User rejected")
         coEvery { processRequest(any()) } coAnswers { onProcess(firstArg()) }
     }
 
     private fun signMessageService(hasCriticalWarning: Boolean = false): GemSignMessageServiceInterface = mockk(relaxed = true) {
-        every { preview(any(), any(), any()) } returns signMessagePreview(hasCriticalWarning)
+        every { preview(any(), any(), any()) } returns mockGemSignMessagePreview(hasCriticalWarning)
         coEvery { addressNames(any(), any()) } returns emptyList()
     }
 
@@ -173,10 +94,11 @@ class WCRequestViewModelTest {
         respondWalletConnectRequest = respond,
         pendingRequests = requests,
         activeRequest = ActiveWalletConnectRequest(events = emptyFlow()),
+        context = mockk(relaxed = true),
     ).also { models.add(it) }
 
     private fun TestScope.pending(requests: WalletConnectPendingRequests, signature: CompletableDeferred<String>? = null): Job =
-        launch { runCatching { requests.signMessage(messageRequest()) }.onSuccess { signature?.complete(it) } }
+        launch { runCatching { requests.signMessage(mockGemWalletConnectMessageRequest(session = mockWalletConnectionSession(sessionId = topic))) }.onSuccess { signature?.complete(it) } }
 
     private suspend fun WCRequestViewModel.awaitContent(): RequestSceneState.Content =
         sceneState.first { it !is RequestSceneState.Loading } as RequestSceneState.Content

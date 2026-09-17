@@ -216,27 +216,6 @@ pub struct SingleTransaction {
 mod tests {
     use super::*;
 
-    fn block_transaction(fee: u64, keys: Vec<&str>, pre: Vec<u64>, post: Vec<u64>) -> BlockTransaction {
-        BlockTransaction {
-            meta: Meta {
-                err: None,
-                fee,
-                pre_balances: pre,
-                post_balances: post,
-                pre_token_balances: vec![],
-                post_token_balances: vec![],
-                loaded_addresses: None,
-            },
-            transaction: Transaction {
-                message: TransactionMessage {
-                    account_keys: keys.into_iter().map(String::from).collect(),
-                    instructions: vec![],
-                },
-                signatures: vec![],
-            },
-        }
-    }
-
     #[test]
     fn test_version_one_transaction_parses_without_lookup_addresses() {
         let json = r#"{
@@ -267,7 +246,7 @@ mod tests {
 
     #[test]
     fn test_account_key() {
-        let mut transaction = block_transaction(5000, vec!["sender", "program"], vec![], vec![]);
+        let mut transaction = BlockTransaction::mock(&["sender", "program"], vec![], vec![]);
         assert_eq!(transaction.account_key(0).map(String::as_str), Some("sender"));
         assert_eq!(transaction.account_key(2), None);
 
@@ -284,25 +263,25 @@ mod tests {
 
     #[test]
     fn test_balance_change() {
-        let tx = block_transaction(5000, vec!["sender", "recipient"], vec![100_000, 0], vec![85_000, 10_000]);
+        let tx = BlockTransaction::mock(&["sender", "recipient"], vec![100_000, 0], vec![85_000, 10_000]);
         assert_eq!(tx.get_balance_change("sender"), 10_000);
     }
 
     #[test]
     fn test_balance_change_no_change() {
-        let tx = block_transaction(5000, vec!["sender"], vec![100_000], vec![95_000]);
+        let tx = BlockTransaction::mock(&["sender"], vec![100_000], vec![95_000]);
         assert_eq!(tx.get_balance_change("sender"), 0);
     }
 
     #[test]
     fn test_balance_change_received() {
-        let tx = block_transaction(5000, vec!["sender"], vec![100_000], vec![200_000]);
+        let tx = BlockTransaction::mock(&["sender"], vec![100_000], vec![200_000]);
         assert_eq!(tx.get_balance_change("sender"), 0);
     }
 
     #[test]
     fn test_balance_change_unknown_address() {
-        let tx = block_transaction(5000, vec!["sender"], vec![100_000], vec![85_000]);
+        let tx = BlockTransaction::mock(&["sender"], vec![100_000], vec![85_000]);
         assert_eq!(tx.get_balance_change("unknown"), 0);
     }
 }

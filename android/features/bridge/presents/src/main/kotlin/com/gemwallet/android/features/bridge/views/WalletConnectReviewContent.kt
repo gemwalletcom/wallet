@@ -2,7 +2,6 @@
 
 package com.gemwallet.android.features.bridge.views
 
-import com.gemwallet.android.ui.components.screen.SheetExpansion
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,13 +14,18 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.WalletItem
 import com.gemwallet.android.ui.components.list_item.listItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
+import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
+import com.gemwallet.android.ui.components.list_item.uiModel
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
+import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.components.simulation.simulationPayloadDetailsContent
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.PayloadField
@@ -51,6 +55,7 @@ internal fun WalletConnectPayloadDetailsSheet(
     addressNames: Map<String, String>,
     onViewFullMessage: () -> Unit,
     onDismissRequest: () -> Unit,
+    viewFullMessageListItem: ListItemModel,
 ) {
     ModalBottomSheet(
         isVisible = isVisible,
@@ -65,10 +70,11 @@ internal fun WalletConnectPayloadDetailsSheet(
                 addressNames = addressNames,
             )
             item {
-                PropertyItem(
-                    action = R.string.sign_message_view_full_message,
+                ListItem(
+                    model = viewFullMessageListItem,
                     listPosition = ListPosition.Single,
-                    onClick = onViewFullMessage,
+                    modifier = Modifier.clickable(onClick = onViewFullMessage),
+                    accessory = { DataBadgeChevron() },
                 )
             }
         }
@@ -117,7 +123,7 @@ internal fun WalletSelectionSheet(
             item { SubheaderItem(R.string.wallets_title) }
             itemsIndexed(walletRows) { index, row ->
                 WalletItem(
-                    row = row,
+                    model = row.uiModel(LocalContext.current),
                     isCurrent = row.id == selectedWalletId?.id,
                     listPosition = ListPosition.getPosition(index, walletRows.size),
                     modifier = Modifier.clickable {

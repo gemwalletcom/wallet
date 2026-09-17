@@ -19,7 +19,7 @@ import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.wallet.core.primitives.TransactionId
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
-import com.gemwallet.android.features.confirm.presents.AcquireAssetAction
+import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetAction
 import com.wallet.core.primitives.AssetId
 import com.gemwallet.android.ui.localization.text
 
@@ -44,13 +44,12 @@ fun PerpetualPositionNavScreen(
 
     val perpetual by viewModel.perpetual.collectAsStateWithLifecycle()
     val position by viewModel.position.collectAsStateWithLifecycle()
+    val positionListItem by viewModel.positionListItem.collectAsStateWithLifecycle()
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
     val chart by viewModel.chart.collectAsStateWithLifecycle()
     val period by viewModel.period.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val sections by viewModel.sections.collectAsStateWithLifecycle()
-    val positionRows by viewModel.positionRows.collectAsStateWithLifecycle()
-    val buttons by viewModel.buttons.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error?.text(), iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
     var showAutoclose by remember { mutableStateOf(false) }
@@ -58,14 +57,12 @@ fun PerpetualPositionNavScreen(
     PerpetualPositionScene(
         perpetual = perpetual,
         position = position,
+        positionListItem = positionListItem,
         transactions = transactions,
         chart = chart,
         period = period,
         isRefreshing = isRefreshing,
         sections = sections,
-        positionRows = positionRows,
-        infoRows = viewModel.infoRows,
-        buttons = buttons,
         modifyButtons = viewModel.modifyButtons,
         snackbar = snackbar,
         onAction = { action ->

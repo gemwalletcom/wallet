@@ -123,6 +123,15 @@ public final class PerpetualSceneViewModel {
         }
     }
 
+    public func autocloseListItem(_ position: PerpetualPositionViewModel, row: GemPerpetualPositionDetailRow) -> ListItemModel {
+        ListItemModel(
+            title: row.title,
+            subtitle: position.autocloseText.subtitle,
+            subtitleExtra: position.autocloseText.subtitleExtra,
+            infoAction: infoAction(for: row),
+        )
+    }
+
     public func infoAction(for row: GemPerpetualPositionDetailRow) -> InfoSheetAction? {
         switch row {
         case .autoclose: onSelectAutocloseInfo

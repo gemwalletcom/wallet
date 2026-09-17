@@ -32,7 +32,7 @@ struct SwapTokenViewModelTests {
     func aSelectedRowPricesWhatWasTyped() {
         let asset = Asset.mock(decimals: 8)
         let assetData = AssetDataViewModel(
-            assetData: .mock(asset: asset, price: Price(price: 50_000, priceChangePercentage24h: 0, updatedAt: .now)),
+            assetData: .mock(asset: asset, price: .mock(price: 50_000)),
             formatter: .short,
             currency: .usd,
         )

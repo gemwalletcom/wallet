@@ -1,6 +1,9 @@
 pub mod models;
 pub use models::*;
 
+#[cfg(any(test, feature = "testkit"))]
+pub mod testkit;
+
 use serde::{Serialize, de::DeserializeOwned};
 use std::error::Error;
 

@@ -33,6 +33,11 @@ extension ViewModelFactory {
     }
 
     @MainActor
+    public func appearanceScene() -> AppearanceViewModel {
+        AppearanceViewModel(preferences: observablePreferences)
+    }
+
+    @MainActor
     public func preferencesScene() -> PreferencesViewModel {
         PreferencesViewModel(
             settings: GemSettingsService(preferences: preferencesService),
@@ -102,7 +107,7 @@ extension ViewModelFactory {
 
     @MainActor
     public func developerScene(walletId: WalletId) -> DeveloperViewModel {
-        DeveloperViewModel(walletId: walletId, service: developerService)
+        DeveloperViewModel(walletId: walletId, service: developerService, devicePlatform: devicePlatform)
     }
 
     @MainActor

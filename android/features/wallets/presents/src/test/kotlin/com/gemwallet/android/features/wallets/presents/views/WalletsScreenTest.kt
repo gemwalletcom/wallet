@@ -1,9 +1,8 @@
 package com.gemwallet.android.features.wallets.presents.views
 
 import com.gemwallet.android.domains.wallet.aggregates.WalletDataAggregate
-import uniffi.gemstone.GemWalletPlaceholder
-import uniffi.gemstone.GemWalletRow
-import uniffi.gemstone.GemWalletSubtitle
+import com.gemwallet.android.testkit.mockGemWalletRow
+import com.gemwallet.android.testkit.mockWalletDataAggregate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -12,9 +11,9 @@ class WalletsScreenTest {
 
     @Test
     fun `toWalletSections partitions wallets from one snapshot`() {
-        val pinnedWallet = wallet(id = "pinned", isPinned = true)
-        val unpinnedWallet = wallet(id = "unpinned", isPinned = false)
-        val secondPinnedWallet = wallet(id = "second-pinned", isPinned = true)
+        val pinnedWallet = mockWalletDataAggregate(mockGemWalletRow(id = "pinned", isPinned = true))
+        val unpinnedWallet = mockWalletDataAggregate(mockGemWalletRow(id = "unpinned"))
+        val secondPinnedWallet = mockWalletDataAggregate(mockGemWalletRow(id = "second-pinned", isPinned = true))
 
         val sections = listOf(pinnedWallet, unpinnedWallet, secondPinnedWallet).toWalletSections()
 
@@ -33,22 +32,5 @@ class WalletsScreenTest {
         assertTrue(sections.pinnedWallets.isEmpty())
         assertTrue(sections.unpinnedWallets.isEmpty())
         assertTrue(sections.allWallets.isEmpty())
-    }
-
-    private fun wallet(
-        id: String,
-        isPinned: Boolean,
-    ) = object : WalletDataAggregate {
-        override val isCurrent: Boolean = false
-        override val row: GemWalletRow = GemWalletRow(
-            id = id,
-            name = id,
-            subtitle = GemWalletSubtitle.Multicoin,
-            placeholder = GemWalletPlaceholder.Multicoin,
-            showsWatchBadge = false,
-            isPinned = isPinned,
-            hasAvatar = false,
-            imageUrl = null,
-        )
     }
 }

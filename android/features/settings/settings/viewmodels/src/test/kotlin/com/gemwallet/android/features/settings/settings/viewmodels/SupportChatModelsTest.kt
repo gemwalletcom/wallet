@@ -1,9 +1,8 @@
 package com.gemwallet.android.features.settings.settings.viewmodels
 
+import com.gemwallet.android.testkit.mockSupportMessage
 import com.wallet.core.primitives.SupportAgent
-import com.wallet.core.primitives.SupportMessage
 import com.wallet.core.primitives.SupportMessageSender
-import com.wallet.core.primitives.SupportMessageStatus
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -14,16 +13,7 @@ class SupportChatModelsTest {
 
     private val user = SupportMessageSender.User
 
-    private fun agent(name: String) = SupportMessageSender.Agent(SupportAgent(name))
-
-    private fun message(id: String, sender: SupportMessageSender, createdAt: Long) = SupportMessage(
-        id = id,
-        content = id,
-        sender = sender,
-        status = SupportMessageStatus.Sent,
-        createdAt = createdAt,
-        images = emptyList(),
-    )
+    private val ann = SupportMessageSender.Agent(SupportAgent("Ann"))
 
     @Test
     fun emptyInputReturnsNoDays() {
@@ -32,7 +22,7 @@ class SupportChatModelsTest {
 
     @Test
     fun groupsByDaySortedAscending() {
-        val days = buildSupportChatDays(listOf(message("b", user, day2), message("a", user, day1)))
+        val days = buildSupportChatDays(listOf(mockSupportMessage("b", user, day2), mockSupportMessage("a", user, day1)))
 
         assertEquals(2, days.size)
         assertEquals(listOf("a"), days[0].groups.flatMap { it.messages }.map { it.id })
@@ -43,13 +33,13 @@ class SupportChatModelsTest {
     fun groupsCarryTheSenderAndTheMessages() {
         val days = buildSupportChatDays(
             listOf(
-                message("a", user, day1),
-                message("b", agent("Ann"), day1 + 1_000L),
-                message("c", agent("Ann"), day1 + 2_000L),
+                mockSupportMessage("a", user, day1),
+                mockSupportMessage("b", ann, day1 + 1_000L),
+                mockSupportMessage("c", ann, day1 + 2_000L),
             ),
         )
 
-        assertEquals(listOf(user, agent("Ann")), days[0].groups.map { it.sender })
+        assertEquals(listOf(user, ann), days[0].groups.map { it.sender })
         assertEquals(listOf(listOf("a"), listOf("b", "c")), days[0].groups.map { group -> group.messages.map { it.id } })
     }
 }

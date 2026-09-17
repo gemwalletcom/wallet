@@ -6,17 +6,14 @@ import Foundation
 import GemstoneServices
 import Primitives
 @testable import Settings
+import SettingsTestKit
 import Testing
-
-private final class MockCurrencyStorage: CurrencyStorable, @unchecked Sendable {
-    var currency: Currency = .usd
-}
 
 @MainActor
 struct CurrencySceneViewModelTests {
     @Test
     func setNewCurrency() async throws {
-        let usdCurrencyStorage = MockCurrencyStorage()
+        let usdCurrencyStorage = CurrencyStorageMock()
         let service = GemCurrencyServiceMock()
         let viewModel = CurrencySceneViewModel(currencyStorage: usdCurrencyStorage, service: service)
 
@@ -29,7 +26,7 @@ struct CurrencySceneViewModelTests {
 
     @Test
     func aFailedChangeLeavesTheStoredCurrency() async {
-        let usdCurrencyStorage = MockCurrencyStorage()
+        let usdCurrencyStorage = CurrencyStorageMock()
         let viewModel = CurrencySceneViewModel(currencyStorage: usdCurrencyStorage, service: GemCurrencyServiceMock(error: AnyError("offline")))
 
         await #expect(throws: (any Error).self) { try await viewModel.setCurrency(.ars) }

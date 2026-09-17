@@ -32,10 +32,7 @@ struct ValidatorSelectionView: View {
             HStack {
                 ValidatorImageView(model: ValidatorViewModel(row: row))
                     .assetBadge(value.value.id == selection ? Images.Wallets.selected : nil)
-                ListItemView(
-                    title: value.title,
-                    subtitle: value.subtitle,
-                )
+                ListItemView(model: value.listItem)
             }
         }
         .contentShape(Rectangle())

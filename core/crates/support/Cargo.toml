@@ -18,6 +18,7 @@ backend = [
     "dep:streamer",
     "dep:sha2",
 ]
+testkit = []
 
 [dependencies]
 chrono = { workspace = true, optional = true }

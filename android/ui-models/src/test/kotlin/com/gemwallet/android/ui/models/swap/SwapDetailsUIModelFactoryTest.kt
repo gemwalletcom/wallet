@@ -3,8 +3,10 @@ package com.gemwallet.android.ui.models.swap
 import uniffi.gemstone.swapQuoteSummary
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetEthereum
 import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.testkit.mockAssetPriceInfo
+import com.gemwallet.android.testkit.mockAssetPriceValue
 import com.gemwallet.android.testkit.mockSwapQuote
 import com.gemwallet.android.model.ValueFormatter
 import org.junit.Assert.assertEquals
@@ -21,8 +23,8 @@ import uniffi.gemstone.GemValueStyle
 class SwapDetailsUIModelFactoryTest {
 
 
-    private val payAsset = assetInfo(symbol = "AAA")
-    private val receiveAsset = assetInfo(symbol = "BBB")
+    private val payAsset = mockAssetPriceValue(asset = mockAsset(symbol = "AAA", name = "AAA", decimals = 18), price = mockAssetPriceInfo(price = 1.0))
+    private val receiveAsset = mockAssetPriceValue(asset = mockAsset(symbol = "BBB", name = "BBB", decimals = 18), price = mockAssetPriceInfo(price = 1.0))
 
     @Test
     fun `low price impact stays in details and is hidden in summary`() {
@@ -93,8 +95,8 @@ class SwapDetailsUIModelFactoryTest {
 
     @Test
     fun `rate handles cross decimal assets`() {
-        val eth = assetInfo(symbol = "ETH", decimals = 18)
-        val usdc = assetInfo(symbol = "USDC", decimals = 6)
+        val eth = mockAssetPriceValue(asset = mockAssetEthereum(), price = mockAssetPriceInfo(price = 1.0))
+        val usdc = mockAssetPriceValue(asset = mockAsset(symbol = "USDC", name = "USDC", decimals = 6), price = mockAssetPriceInfo(price = 1.0))
         val result = SwapDetailsUIModelFactory.create(
             SwapDetailsUIModelInput(
                 payAsset = eth,
@@ -102,7 +104,7 @@ class SwapDetailsUIModelFactoryTest {
                 summary = summary("1000000000000000000", "2000000000", DEFAULT_SLIPPAGE_BPS, null, eth, usdc),
                 provider = provider(
                     toValue = "2000000000",
-                    receiveAsset = assetInfo(symbol = "USDC", decimals = 6),
+                    receiveAsset = usdc,
                 ),
                 slippageBps = DEFAULT_SLIPPAGE_BPS,
                 selectedSlippage = DEFAULT_SLIPPAGE_BPS,
@@ -206,14 +208,6 @@ class SwapDetailsUIModelFactoryTest {
         title = "OKX (DEX)",
         receiveAsset = receiveAsset,
         toValue = BigInteger(toValue),
-    )
-
-    private fun assetInfo(
-        symbol: String,
-        decimals: Int = 18,
-    ) = AssetPriceValue(
-        asset = mockAsset(symbol = symbol, name = symbol, decimals = decimals),
-        price = mockAssetPriceInfo(price = 1.0),
     )
 
     private fun formattedReceiveAmount(atomicValue: String) =

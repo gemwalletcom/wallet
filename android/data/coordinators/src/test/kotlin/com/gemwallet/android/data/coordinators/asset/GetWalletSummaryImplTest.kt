@@ -1,6 +1,6 @@
 package com.gemwallet.android.data.coordinators.asset
 
-import com.gemwallet.android.domains.price.ValueDirection
+import uniffi.gemstone.GemValueTone
 import com.wallet.core.primitives.Currency
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -18,7 +18,7 @@ class GetWalletSummaryImplTest {
 
         assertEquals("-\$140.57", value.valueFormatted)
         assertEquals("2.84%", value.changePercentageFormatted)
-        assertEquals(ValueDirection.Down, value.state)
+        assertEquals(GemValueTone.NEGATIVE, value.state)
     }
 
     @Test
@@ -31,7 +31,7 @@ class GetWalletSummaryImplTest {
 
         assertEquals("+\$140.57", value.valueFormatted)
         assertEquals("2.84%", value.changePercentageFormatted)
-        assertEquals(ValueDirection.Up, value.state)
+        assertEquals(GemValueTone.POSITIVE, value.state)
     }
 
     @Test

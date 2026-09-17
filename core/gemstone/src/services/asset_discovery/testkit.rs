@@ -4,14 +4,15 @@ use primitives::{Transaction, Wallet, WalletId};
 
 use super::GemAssetDiscoveryService;
 use crate::api::{GemApiClient, GemDeviceApiClient};
-use crate::gateway::{EmptyPreferences, GemGateway};
+use crate::gateway::GemGateway;
 use crate::services::assets::GemAssetsService;
 use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::balance::GemBalanceService;
-use crate::services::balance::testkit::RecordingBalanceStore;
+use crate::services::balance::testkit::MemoryBalanceStore;
 use crate::services::device::GemDeviceKeyService;
 use crate::services::nft::GemNftService;
 use crate::services::nft::testkit::MemoryNftStore;
+use crate::services::node::GemNodeService;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::preferences::testkit::MemoryPreferencesStore;
 use crate::services::price::GemPriceService;
@@ -25,7 +26,7 @@ use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_preferences::testkit::MemoryWalletPreferencesStore;
 use crate::services::wallet_session::GemWalletSessionService;
 use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
-use crate::testkit::TestAlienProvider;
+use crate::testkit::{EmptyPreferences, TestAlienProvider};
 
 #[derive(Default)]
 pub struct RecordingTransactionStatus {
@@ -45,7 +46,7 @@ pub struct DiscoveryTestkit {
     pub wallets: Arc<MemoryWalletStore>,
     pub balance: Arc<GemBalanceService>,
     pub provider: Arc<TestAlienProvider>,
-    pub balances: Arc<RecordingBalanceStore>,
+    pub balances: Arc<MemoryBalanceStore>,
     pub preferences: Arc<GemPreferencesService>,
     pub wallet_preferences: Arc<GemWalletPreferencesService>,
     pub session: Arc<GemWalletSessionService>,
@@ -70,7 +71,12 @@ impl DiscoveryTestkit {
             }),
             wallets.clone(),
         ));
-        let gateway = Arc::new(GemGateway::new(provider.clone(), preferences_store, Arc::new(EmptyPreferences)));
+        let gateway = Arc::new(GemGateway::new(
+            provider.clone(),
+            Arc::new(GemNodeService::mock()),
+            preferences_store,
+            Arc::new(EmptyPreferences),
+        ));
         let device_api = Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)))));
         let asset_store = Arc::new(MemoryAssetStore::default());
         let assets: Arc<GemAssetsService> = Arc::new(GemAssetsService::new(
@@ -81,7 +87,7 @@ impl DiscoveryTestkit {
             preferences.clone(),
             session.clone(),
         ));
-        let balances = Arc::new(RecordingBalanceStore::default());
+        let balances = Arc::new(MemoryBalanceStore::default());
         let balance = Arc::new(GemBalanceService::new(
             gateway,
             wallets.clone(),

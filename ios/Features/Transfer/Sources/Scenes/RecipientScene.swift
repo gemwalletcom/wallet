@@ -78,7 +78,7 @@ public struct RecipientScene: View {
                     ForEach(section.values) {
                         let recipient = $0.value
                         NavigationCustomLink(
-                            with: ListItemView(title: $0.title ?? $0.value.name, subtitle: $0.subtitle),
+                            with: ListItemView(model: model.listItem(for: $0)),
                             action: {
                                 focusedField = nil
                                 model.onSelectRecipient(recipient)

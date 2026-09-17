@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemPreferencesRow
 import Components
 import struct Gemstone.GemPreferencesState
 import protocol Gemstone.GemSettingsServiceProtocol
@@ -41,6 +42,18 @@ public final class PreferencesViewModel {
 
     var title: String {
         Localized.Settings.Preferences.title
+    }
+
+    func listItem(for row: GemPreferencesRow) -> ListItemModel {
+        switch row {
+        case .currency: ListItemModel(title: row.title, subtitle: state.currency.text(), imageStyle: .settings(assetImage: row.assetImage))
+        case .language: ListItemModel(title: row.title, subtitle: languageValue, imageStyle: .settings(assetImage: row.assetImage))
+        case .appearance: ListItemModel(title: row.title, subtitle: appearanceValue, imageStyle: .settings(assetImage: row.assetImage))
+        case .networks, .contacts, .perpetuals: ListItemModel(title: row.title, imageStyle: .settings(assetImage: row.assetImage))
+        case .perpetualLeverage: ListItemModel(title: row.title, subtitle: defaultLeverageValue)
+        case .perpetualTakeProfit: ListItemModel(title: row.title, subtitle: defaultTakeProfitValue)
+        case .perpetualStopLoss: ListItemModel(title: row.title, subtitle: defaultStopLossValue)
+        }
     }
 
     var languageValue: String {

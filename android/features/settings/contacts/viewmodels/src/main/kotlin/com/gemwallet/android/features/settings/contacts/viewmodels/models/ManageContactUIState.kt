@@ -1,11 +1,11 @@
 package com.gemwallet.android.features.settings.contacts.viewmodels.models
 
-import uniffi.gemstone.GemContactAddressField
-import uniffi.gemstone.contactAddressFields
-import uniffi.gemstone.GemErrorText
-import uniffi.gemstone.GemNameRecordState
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ContactAddress
+import uniffi.gemstone.GemContactAddressField
+import uniffi.gemstone.GemNameRecordState
+import uniffi.gemstone.contactAddressFields
 
 enum class ManageContactPage {
     Form,
@@ -17,14 +17,17 @@ enum class ManageContactPage {
 data class ManageContactUIState(
     val isEdit: Boolean = false,
     val name: String = "",
+    val initials: String = "",
     val description: String = "",
     val avatar: ContactAvatarState = ContactAvatarState.Empty,
     val addresses: List<ContactAddress> = emptyList(),
+    val addressRows: List<ContactAddressRowUIModel> = emptyList(),
+    val addAddressListItem: ListItemModel? = null,
     val page: ManageContactPage = ManageContactPage.Form,
     val addressInput: ContactAddressInput? = null,
     val isSaving: Boolean = false,
     val saved: Boolean = false,
-    val error: GemErrorText? = null,
+    val errorText: String? = null,
     val isSaveEnabled: Boolean = false,
 )
 
@@ -38,7 +41,7 @@ data class ManageContactState(
     val form: ContactAddressForm? = null,
     val isSaving: Boolean = false,
     val saved: Boolean = false,
-    val error: GemErrorText? = null,
+    val errorText: String? = null,
 )
 
 data class ContactAddressForm(
@@ -56,8 +59,8 @@ data class ContactAddressInput(
     val isAddressValid: Boolean = false,
     val showAddressError: Boolean = false,
 ) {
-    val fields: List<GemContactAddressField>
-        get() = contactAddressFields(chain.string)
+    val showsMemo: Boolean
+        get() = GemContactAddressField.MEMO in contactAddressFields(chain.string)
 
     val isConfirmEnabled: Boolean
         get() = isAddressValid

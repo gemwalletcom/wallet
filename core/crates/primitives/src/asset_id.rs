@@ -2,7 +2,7 @@ use std::fmt;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 
-use crate::{AssetSubtype, chain::Chain, known_assets};
+use crate::{AssetSubtype, EVMChain, EvmNativeCurrency, chain::Chain, known_assets};
 
 pub const CHAIN_SEPARATOR: &str = "_";
 pub const TOKEN_ID_SEPARATOR: &str = "::";
@@ -128,6 +128,16 @@ impl AssetId {
     }
     pub fn is_token(&self) -> bool {
         self.token_id.is_some()
+    }
+
+    pub fn is_native_mirror(&self) -> bool {
+        let Some(token_id) = self.token_id.as_deref() else {
+            return false;
+        };
+        match EVMChain::from_chain(self.chain).map(|chain| chain.native_currency()) {
+            Some(EvmNativeCurrency::Mirrored { token, .. }) => token == token_id,
+            Some(EvmNativeCurrency::Wrapped(_) | EvmNativeCurrency::Token(_) | EvmNativeCurrency::None) | None => false,
+        }
     }
 
     pub fn token_subtype(&self) -> AssetSubtype {

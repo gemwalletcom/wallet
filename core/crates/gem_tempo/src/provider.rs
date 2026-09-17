@@ -220,12 +220,8 @@ mod tests {
         let receipt = TransactionReceipt {
             gas_used: BigUint::from(471_789u64),
             effective_gas_price: BigUint::from(1_260_212_000u64),
-            l1_fee: None,
-            logs: vec![],
-            status: "0x1".to_string(),
-            block_hash: "0x1111111111111111111111111111111111111111111111111111111111111111".to_string(),
             block_number: 291,
-            fee_token: None,
+            ..TransactionReceipt::mock()
         };
 
         let result = map_transaction_status_with_fee(&receipt, scale_fee_to_token_units(receipt.get_fee().into()));

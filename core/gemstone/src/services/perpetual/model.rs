@@ -330,16 +330,7 @@ mod tests {
 
     #[test]
     fn test_position_action_recipient_names_the_provider_without_an_address() {
-        let data = GemPerpetualTransferData {
-            provider: PerpetualProvider::Hypercore,
-            direction: PerpetualDirection::Long,
-            asset: Asset::mock(),
-            base_asset: Asset::mock(),
-            asset_index: 0,
-            price: 100.0,
-            leverage: 3,
-            margin_type: PerpetualMarginType::Cross,
-        };
+        let data = GemPerpetualTransferData::mock();
         let action = GemPerpetualPositionAction::Open { data };
 
         let recipient = action.recipient();
@@ -350,16 +341,7 @@ mod tests {
 
     #[test]
     fn test_only_opening_a_position_shows_autoclose() {
-        let data = GemPerpetualTransferData {
-            provider: PerpetualProvider::Hypercore,
-            direction: PerpetualDirection::Long,
-            asset: Asset::mock(),
-            base_asset: Asset::mock(),
-            asset_index: 0,
-            price: 100.0,
-            leverage: 3,
-            margin_type: PerpetualMarginType::Cross,
-        };
+        let data = GemPerpetualTransferData::mock();
 
         assert!(GemPerpetualPositionAction::Open { data: data.clone() }.shows_autoclose());
         assert!(!GemPerpetualPositionAction::Increase { data }.shows_autoclose());

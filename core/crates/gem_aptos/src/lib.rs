@@ -8,6 +8,9 @@ pub mod r#move;
 pub mod signer;
 mod token_id;
 
+#[cfg(any(test, feature = "testkit"))]
+pub mod testkit;
+
 #[cfg(feature = "rpc")]
 pub mod rpc;
 

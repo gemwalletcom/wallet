@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.stake.viewmodels
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -8,19 +9,27 @@ import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetValidators
+import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.StakeProviderType
 import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import java.math.BigInteger
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -31,10 +40,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import uniffi.gemstone.GemPercentageStyle
 import uniffi.gemstone.GemStakeServiceInterface
 import uniffi.gemstone.GemValidatorRow
-import java.math.BigInteger
-import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -45,6 +53,7 @@ class EarnViewModel @Inject constructor(
     private val stakeService: GemStakeServiceInterface,
     getSession: GetSession,
     stateHandle: SavedStateHandle,
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val assetId = stateHandle.get<String>(RouteArgument.AssetId.key)?.toAssetId()
@@ -75,6 +84,13 @@ class EarnViewModel @Inject constructor(
     val apr = combine(providers, assetInfo) { items, current ->
         stakeService.earnApr(items.map { it.toGem() }, current?.metadata?.earnApr)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, 0.0)
+
+    val aprListItem: StateFlow<ListItemModel> = apr.map {
+        ListItemModel(title = context.getString(R.string.stake_apr, ""), subtitle = it.formatAsPercentage(style = GemPercentageStyle.UNSIGNED), subtitleStyle = ListItemTextStyle.Positive)
+    }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, ListItemModel(title = context.getString(R.string.stake_apr, "")))
+
+    val depositListItem = ListItemModel(title = context.getString(R.string.wallet_deposit))
 
     val depositParams = combine(providers, session) { items, current ->
         val provider = items.firstOrNull() ?: return@combine null

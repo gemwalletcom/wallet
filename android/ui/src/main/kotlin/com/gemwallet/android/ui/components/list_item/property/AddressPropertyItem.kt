@@ -13,23 +13,42 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.setPlainText
-import com.gemwallet.android.ui.components.image.InitialsAvatar
+import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
+import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.BlockExplorerLink
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
 
 @Composable
 fun AddressPropertyItem(
     @StringRes title: Int,
     displayText: String,
     copyValue: String,
-    icon: Any? = null,
-    placeholderText: String? = null,
+    image: ListItemImage? = null,
+    explorerLink: BlockExplorerLink? = null,
+    listPosition: ListPosition = ListPosition.Middle,
+) {
+    AddressPropertyItem(
+        title = stringResource(title),
+        displayText = displayText,
+        copyValue = copyValue,
+        image = image,
+        explorerLink = explorerLink,
+        listPosition = listPosition,
+    )
+}
+
+@Composable
+fun AddressPropertyItem(
+    title: String,
+    displayText: String,
+    copyValue: String,
+    image: ListItemImage? = null,
     explorerLink: BlockExplorerLink? = null,
     listPosition: ListPosition = ListPosition.Middle,
 ) {
@@ -46,16 +65,13 @@ fun AddressPropertyItem(
         content = { modifier ->
             PropertyItem(
                 modifier = modifier,
-                title = { PropertyTitleText(title) },
+                title = { PropertyTitleText(text = title) },
                 data = {
                     PropertyDataText(
                         text = displayText,
                         badge = when {
-                            icon != null -> {
-                                { DataBadgeChevron(icon, explorerLink != null) }
-                            }
-                            placeholderText != null -> {
-                                { DataBadgeChevron(explorerLink != null) { InitialsAvatar(text = placeholderText, size = smallIconSize) } }
+                            image != null -> {
+                                { DataBadgeChevron(explorerLink != null) { ListItemImageView(image = image, size = smallIconSize) } }
                             }
                             explorerLink != null -> {
                                 { DataBadgeChevron() }

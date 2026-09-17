@@ -7,10 +7,6 @@ struct AssetListItemView: View {
     let model: AssetListItemViewModel
 
     var body: some View {
-        ListItemView(
-            title: model.name,
-            subtitle: model.count,
-            imageStyle: .settings(assetImage: model.image),
-        )
+        ListItemView(model: model.listItem)
     }
 }

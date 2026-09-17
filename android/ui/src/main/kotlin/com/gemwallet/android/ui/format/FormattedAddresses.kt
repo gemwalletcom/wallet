@@ -4,29 +4,27 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ui.LocalAddressService
+import com.gemwallet.android.ui.style.formatShort
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainAddress
-import uniffi.gemstone.GemAddressFormatStyle
 
 @Composable
 fun rememberFormattedAddress(
     address: String,
     chain: Chain? = null,
-    style: GemAddressFormatStyle = GemAddressFormatStyle.Short,
 ): String {
     val addressService = LocalAddressService.current
-    return remember(addressService, address, chain, style) {
-        addressService.format(address, chain?.string, style)
+    return remember(addressService, address, chain) {
+        addressService.formatShort(address, chain?.string)
     }
 }
 
 @Composable
 fun rememberFormattedAddresses(
     addresses: List<ChainAddress>,
-    style: GemAddressFormatStyle = GemAddressFormatStyle.Short,
 ): Map<String, String> {
     val addressService = LocalAddressService.current
-    return remember(addressService, addresses, style) {
-        addresses.map { it.address }.zip(addressService.formatAll(addresses.map { it.toGem() }, style)).toMap()
+    return remember(addressService, addresses) {
+        addresses.map { it.address }.zip(addressService.formatShort(addresses.map { it.toGem() })).toMap()
     }
 }

@@ -67,6 +67,18 @@ public final class EarnSceneViewModel {
         AssetViewModel(asset: asset)
     }
 
+    var aprListItem: ListItemModel {
+        ListItemModel(title: aprModel.title.text, titleStyle: aprModel.title.style, subtitle: aprModel.subtitle.text, subtitleStyle: aprModel.subtitle.style)
+    }
+
+    var noDataListItem: ListItemModel {
+        ListItemModel(title: Localized.Errors.noDataAvailable)
+    }
+
+    var depositListItem: ListItemModel {
+        ListItemModel(title: Localized.Wallet.deposit)
+    }
+
     var aprModel: AprViewModel {
         AprViewModel(apr: service.earnApr(providers: providers.map { $0.toGem() }, assetApr: assetData.metadata.earnApr))
     }
@@ -98,11 +110,8 @@ public final class EarnSceneViewModel {
     }
 
     func navigationDestination(for delegation: DelegationViewModel) -> any Hashable {
-        switch service.delegationDestination(walletType: wallet.type.toGem(), asset: asset.toGem(), delegation: delegation.delegation.toGem()) {
-        case .details: delegation.delegation
-        case let .confirm(transfer): transfer
-        case let .amount(asset, input): AmountInput(type: input.map(), asset: asset.toPrimitives())
-        }
+        service.delegationDestination(walletType: wallet.type.toGem(), asset: asset.toGem(), delegation: delegation.delegation.toGem())
+            .navigationValue(delegation: delegation.delegation)
     }
 
     var showEmptyState: Bool {

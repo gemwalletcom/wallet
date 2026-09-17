@@ -163,44 +163,10 @@ mod tests {
     use serde_json::json;
 
     use super::*;
-    use crate::config::routes::EndpointConfig;
-
-    fn route(group: &str, service: &str) -> Route {
-        Route {
-            group: group.to_string(),
-            service: service.to_string(),
-            selection: Selection::Ordered,
-            cursor: AtomicUsize::new(0),
-            statuses: vec![429, 503],
-            allowlist: PathAllowlist::default(),
-            endpoints: Vec::new(),
-            forward_headers: HashSet::new(),
-        }
-    }
-
-    fn routes(routes: Vec<Route>) -> HashMap<String, Route> {
-        routes.into_iter().map(|route| (route.service.clone(), route)).collect()
-    }
-
-    fn endpoint(url: &str, query: HashMap<String, String>) -> Endpoint {
-        Endpoint::new(
-            EndpointConfig {
-                name: "key_1".to_string(),
-                url: url.to_string(),
-                headers: None,
-                query: Some(query),
-                proxy: None,
-            },
-            None,
-            &Client::new(),
-            &HashMap::new(),
-        )
-        .unwrap()
-    }
 
     #[test]
     fn test_cache_key_isolates_request_context() {
-        let mut route = route("prices", "provider");
+        let mut route = Route::mock("prices", "provider");
         route.forward_headers.insert(AUTHORIZATION);
         let headers = HeaderMap::from_iter([(AUTHORIZATION, HeaderValue::from_static("Bearer first"))]);
         let request = RouteMatch {
@@ -231,7 +197,10 @@ mod tests {
 
     #[test]
     fn test_match_route() {
-        let routes = routes(vec![route("prices", "tonapi"), route("prices", "tonapi_rates")]);
+        let routes = HashMap::from([
+            ("tonapi".to_string(), Route::mock("prices", "tonapi")),
+            ("tonapi_rates".to_string(), Route::mock("prices", "tonapi_rates")),
+        ]);
         for source in ["api", "consumer", "parser"] {
             let uri = format!("/{source}/tonapi_rates/v2");
             let matched = match_route(&routes, &Method::GET, &uri).unwrap();
@@ -253,9 +222,9 @@ mod tests {
                 { "path": "/chains", "method": "GET" }
             ]))
             .unwrap(),
-            ..route("swap", "relay")
+            ..Route::mock("swap", "relay")
         };
-        let routes = routes(vec![relay, route("swap", "jupiter")]);
+        let routes = HashMap::from([("relay".to_string(), relay), ("jupiter".to_string(), Route::mock("swap", "jupiter"))]);
         assert!(match_route(&routes, &Method::POST, "/worker/relay/quote/v2").is_ok());
         assert!(match_route(&routes, &Method::GET, "/worker/relay/chains").is_ok());
         assert_eq!(match_route(&routes, &Method::GET, "/worker/relay/quote/v2").err(), Some(MatchError::NotAllowed));
@@ -265,42 +234,40 @@ mod tests {
 
     #[test]
     fn test_target_url() {
-        let routes = routes(vec![route("prices", "tonapi")]);
+        let routes = HashMap::from([("tonapi".to_string(), Route::mock("prices", "tonapi"))]);
         let matched = match_route(&routes, &Method::GET, "/worker/tonapi/v2/rates/TON%2FUSD?currency=usd").unwrap();
         assert_eq!(
-            matched.target_url(&endpoint("https://tonapi.io/api/", HashMap::new())).unwrap().as_str(),
+            matched.target_url(&Endpoint::mock("https://tonapi.io/api/")).unwrap().as_str(),
             "https://tonapi.io/api/v2/rates/TON%2FUSD?currency=usd"
         );
     }
 
     #[test]
     fn test_target_url_without_suffix() {
-        let routes = routes(vec![route("indexer", "sui")]);
+        let routes = HashMap::from([("sui".to_string(), Route::mock("indexer", "sui"))]);
         let matched = match_route(&routes, &Method::POST, "/parser/sui").unwrap();
         assert_eq!(
-            matched.target_url(&endpoint("https://graphql.mainnet.sui.io/graphql", HashMap::new())).unwrap().as_str(),
+            matched.target_url(&Endpoint::mock("https://graphql.mainnet.sui.io/graphql")).unwrap().as_str(),
             "https://graphql.mainnet.sui.io/graphql"
         );
         assert_eq!(
-            matched
-                .target_url(&endpoint("https://sui.blockpi.network/v1/graphql/key", HashMap::new()))
-                .unwrap()
-                .as_str(),
+            matched.target_url(&Endpoint::mock("https://sui.blockpi.network/v1/graphql/key")).unwrap().as_str(),
             "https://sui.blockpi.network/v1/graphql/key"
         );
     }
 
     #[test]
     fn test_target_credentials() {
-        let routes = routes(vec![route("indexer", "blockscout")]);
+        let routes = HashMap::from([("blockscout".to_string(), Route::mock("indexer", "blockscout"))]);
         let matched = match_route(&routes, &Method::GET, "/worker/blockscout/api?apikey=client&chain=1").unwrap();
-        let endpoint = endpoint("https://api.blockscout.com", HashMap::from([("apikey".to_string(), "secret".to_string())]));
+        let mut endpoint = Endpoint::mock("https://api.blockscout.com");
+        endpoint.query = HashMap::from([("apikey".to_string(), "secret".to_string())]);
         assert_eq!(matched.target_url(&endpoint).unwrap().as_str(), "https://api.blockscout.com/api?chain=1&apikey=secret");
     }
 
     #[test]
     fn test_should_retry() {
-        let route = route("prices", "tonapi");
+        let route = Route::mock("prices", "tonapi");
         assert!(route.should_retry(429));
         assert!(!route.should_retry(400));
     }
@@ -309,7 +276,7 @@ mod tests {
     fn test_prioritize_endpoints() {
         let route = Route {
             selection: Selection::RoundRobin,
-            ..route("indexer", "blockscout")
+            ..Route::mock("indexer", "blockscout")
         };
         let orders = (0..4)
             .map(|_| {

@@ -11,7 +11,7 @@ import com.gemwallet.android.domains.perpetual.formatLeverage
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
-import com.gemwallet.android.ui.components.list_item.ListItemTitleText
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
@@ -35,14 +35,14 @@ fun SelectLeverageDialog(
         ) {
             itemsPositioned(leverages) { position, item ->
                 ListItem(
+                    model = ListItemModel(title = item.formatLeverage()),
+                    listPosition = position,
                     modifier = Modifier.clickable {
                         onSelect(item)
                         onDismiss()
                     },
                     minHeight = ListItemDefaults.plainMinHeight,
-                    title = { ListItemTitleText(item.formatLeverage()) },
-                    listPosition = position,
-                    trailing = if (item == selected) {
+                    accessory = if (item == selected) {
                         @Composable { SelectionCheckmark() }
                     } else {
                         null

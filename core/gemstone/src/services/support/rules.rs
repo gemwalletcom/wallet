@@ -69,20 +69,27 @@ pub fn image_file_name(url: &str) -> String {
 mod tests {
     #[test]
     fn test_the_sync_cursor_is_the_last_agent_message() {
-        let at = |seconds: i64, agent: bool| SupportMessage {
-            id: seconds.to_string(),
-            content: String::new(),
-            sender: match agent {
-                true => SupportMessageSender::Agent(primitives::SupportAgent { name: "Agent".to_string() }),
-                false => SupportMessageSender::User,
-            },
-            status: SupportMessageStatus::Sent,
-            created_at: DateTime::from_timestamp(seconds, 0).unwrap(),
-            images: vec![],
-        };
         assert_eq!(sync_from_timestamp(vec![]), 0, "nothing to sync from yet");
-        assert_eq!(sync_from_timestamp(vec![at(10, false), at(20, false)]), 0, "only the user has written");
-        assert_eq!(sync_from_timestamp(vec![at(10, true), at(20, false), at(30, true), at(40, false)]), 30);
+        assert_eq!(
+            sync_from_timestamp(vec![SupportMessage::mock("10", 10), SupportMessage::mock("20", 20)]),
+            0,
+            "only the user has written"
+        );
+        assert_eq!(
+            sync_from_timestamp(vec![
+                SupportMessage {
+                    sender: SupportMessageSender::mock_agent("Agent"),
+                    ..SupportMessage::mock("10", 10)
+                },
+                SupportMessage::mock("20", 20),
+                SupportMessage {
+                    sender: SupportMessageSender::mock_agent("Agent"),
+                    ..SupportMessage::mock("30", 30)
+                },
+                SupportMessage::mock("40", 40)
+            ]),
+            30
+        );
     }
 
     use super::*;
@@ -96,37 +103,34 @@ mod tests {
         assert!(!image_file_name("https://cdn.example.com/files/blob").contains('.'));
     }
 
-    fn message(id: &str, sender: SupportMessageSender) -> SupportMessage {
-        SupportMessage {
-            id: id.into(),
-            content: id.into(),
-            sender,
-            status: SupportMessageStatus::Sent,
-            created_at: Utc::now(),
-            images: vec![],
-        }
-    }
-
-    fn agent(name: &str) -> SupportMessageSender {
-        SupportMessageSender::Agent(primitives::SupportAgent { name: name.into() })
-    }
-
     #[test]
     fn test_chat_groups_chunk_consecutive_messages_by_sender_and_agent_name() {
         let groups = chat_groups(vec![
-            message("a", SupportMessageSender::User),
-            message("b", SupportMessageSender::User),
-            message("c", agent("Gemma")),
-            message("d", agent("Radmir")),
-            message("e", agent("Radmir")),
-            message("f", SupportMessageSender::User),
-            message("g", agent("Gemma")),
+            SupportMessage::mock("a", 0),
+            SupportMessage::mock("b", 0),
+            SupportMessage {
+                sender: SupportMessageSender::mock_agent("Gemma"),
+                ..SupportMessage::mock("c", 0)
+            },
+            SupportMessage {
+                sender: SupportMessageSender::mock_agent("Radmir"),
+                ..SupportMessage::mock("d", 0)
+            },
+            SupportMessage {
+                sender: SupportMessageSender::mock_agent("Radmir"),
+                ..SupportMessage::mock("e", 0)
+            },
+            SupportMessage::mock("f", 0),
+            SupportMessage {
+                sender: SupportMessageSender::mock_agent("Gemma"),
+                ..SupportMessage::mock("g", 0)
+            },
         ]);
         let ids: Vec<Vec<&str>> = groups.iter().map(|group| group.messages.iter().map(|message| message.id.as_str()).collect()).collect();
 
         assert_eq!(ids, vec![vec!["a", "b"], vec!["c"], vec!["d", "e"], vec!["f"], vec!["g"]]);
         assert_eq!(groups[0].sender, SupportMessageSender::User);
-        assert_eq!(groups[2].sender, agent("Radmir"));
+        assert_eq!(groups[2].sender, SupportMessageSender::mock_agent("Radmir"));
         assert!(chat_groups(vec![]).is_empty());
     }
 

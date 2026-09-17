@@ -48,6 +48,8 @@ android {
 
 dependencies {
     api(project(":data:services:gemstone"))
+    api(project(":ui-models"))
+    implementation(project(":ui"))
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

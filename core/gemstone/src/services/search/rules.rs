@@ -88,29 +88,11 @@ pub fn prices(assets: &[AssetBasic]) -> Vec<AssetPrice> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{Account, Asset, AssetId, AssetProperties, AssetScore, AssetType};
-
-    fn wallet(wallet_type: WalletType, chains: &[Chain]) -> Wallet {
-        Wallet {
-            wallet_type,
-            ..Wallet::mock_with_accounts(Account::mock_chains(chains, ""))
-        }
-    }
-
-    fn asset(chain: Chain, token_id: Option<&str>) -> AssetBasic {
-        let id = AssetId::from(chain, token_id.map(str::to_string));
-        AssetBasic {
-            asset: Asset::new(id.clone(), String::new(), String::new(), 0, AssetType::NATIVE),
-            properties: AssetProperties::default(id),
-            score: AssetScore::default(),
-            price: None,
-        }
-    }
 
     #[test]
     fn test_wallet_chains() {
-        assert!(wallet_chains(&wallet(WalletType::Multicoin, &[Chain::Bitcoin, Chain::Ethereum])).is_empty());
-        assert_eq!(wallet_chains(&wallet(WalletType::Single, &[Chain::Solana])), vec![Chain::Solana]);
+        assert!(wallet_chains(&Wallet::mock_with_type(WalletType::Multicoin, &[Chain::Bitcoin, Chain::Ethereum])).is_empty());
+        assert_eq!(wallet_chains(&Wallet::mock_with_type(WalletType::Single, &[Chain::Solana])), vec![Chain::Solana]);
     }
 
     #[test]
@@ -131,15 +113,9 @@ mod tests {
 
     #[test]
     fn test_prices_skip_assets_without_price() {
-        let mut priced = asset(Chain::Ethereum, None);
-        priced.price = Some(primitives::Price {
-            price: 2.0,
-            price_change_percentage_24h: 1.5,
-            updated_at: chrono::Utc::now(),
-            provider: Default::default(),
-        });
+        let priced = AssetBasic::mock_with_price(Chain::Ethereum, 2.0, 1.5);
 
-        let prices = prices(&[priced, asset(Chain::Bitcoin, None)]);
+        let prices = prices(&[priced, Asset::from_chain(Chain::Bitcoin).as_basic_primitive()]);
 
         assert_eq!(prices.len(), 1);
         assert_eq!(

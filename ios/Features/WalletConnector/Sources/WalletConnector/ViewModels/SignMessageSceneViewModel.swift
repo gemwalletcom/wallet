@@ -43,6 +43,14 @@ public final class SignMessageSceneViewModel {
         preview = service.preview(message: payload.message, simulation: payload.simulation, assets: payload.assets.map { $0.toGem() })
     }
 
+    var viewFullMessageListItem: ListItemModel {
+        ListItemModel(title: Localized.SignMessage.viewFullMessage)
+    }
+
+    var payloadDetailsListItem: ListItemModel {
+        ListItemModel(title: Localized.Common.details)
+    }
+
     public var networkText: String {
         payload.chain.networkName
     }

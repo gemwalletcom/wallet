@@ -81,3 +81,9 @@ public struct ListItemValueSectionList<Item: Identifiable, Content: View>: View 
         }
     }
 }
+
+public extension ListItemValue {
+    var listItem: ListItemModel {
+        ListItemModel(title: title, subtitle: subtitle)
+    }
+}

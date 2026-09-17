@@ -1,9 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Formatters
-import GemstonePrimitives
-import Primitives
 @testable import PrimitivesComponents
+import PrimitivesComponentsTestKit
 import Style
 import Testing
 
@@ -30,16 +28,5 @@ struct PnLViewModelTests {
         #expect(PnLViewModel.mock(pnl: -200, marginAmount: 1000).color == Colors.red)
         #expect(PnLViewModel.mock(pnl: 0, marginAmount: 1000).color == Colors.gray)
         #expect(PnLViewModel.mock(pnl: nil, marginAmount: 1000).color == .secondary)
-    }
-}
-
-extension PnLViewModel {
-    static func mock(pnl: Double?, marginAmount: Double) -> PnLViewModel {
-        PnLViewModel(
-            pnl: pnl,
-            marginAmount: marginAmount,
-            currencyFormatter: CurrencyFormatter.usd,
-            percentFormatter: PercentFormatter.signed,
-        )
     }
 }

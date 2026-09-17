@@ -17,10 +17,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.gemwallet.android.serializer.toJson
 import uniffi.gemstone.GemConnectionService
+import uniffi.gemstone.GemConnectionServiceInterface
 
 class ConnectionStatusObserver(
     private val monitors: List<ConnectionComponentMonitor>,
-    private val connectionService: GemConnectionService,
+    private val connectionService: GemConnectionServiceInterface,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
 ) {
     private val state = MutableStateFlow<Map<ConnectionComponent, Boolean>>(emptyMap())

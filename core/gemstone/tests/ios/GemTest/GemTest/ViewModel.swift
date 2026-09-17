@@ -5,10 +5,10 @@ import Gemstone
 
 public struct ViewModel: Sendable {
     let provider = NativeProvider()
-    let preferences = MemoryPreferences()
+    let nodes = GemNodeService(store: MemoryNodeStore(), preferences: MemoryPreferences())
 
     public func fetchQuote(_ request: SwapperQuoteRequest) async throws {
-        let swapper = GemSwapper(rpcProvider: self.provider, preferences: self.preferences)
+        let swapper = GemSwapper(rpcProvider: self.provider, nodes: self.nodes)
         let quotes = try await swapper.getQuote(request: request)
         print("<== quotes: \(quotes.count)")
         guard
@@ -26,7 +26,7 @@ public struct ViewModel: Sendable {
     }
 
     public func fetchQuoteById(_ request: SwapperQuoteRequest, provider: SwapProvider) async throws {
-        let swapper = GemSwapper(rpcProvider: self.provider, preferences: self.preferences)
+        let swapper = GemSwapper(rpcProvider: self.provider, nodes: self.nodes)
         let quote = try await swapper.getQuoteByProvider(provider: provider, request: request)
         self.dumpQuote(quote)
 
@@ -34,7 +34,7 @@ public struct ViewModel: Sendable {
     }
 
     public func fetchQuoteData(quote: SwapperQuote) async throws {
-        let swapper = GemSwapper(rpcProvider: self.provider, preferences: self.preferences)
+        let swapper = GemSwapper(rpcProvider: self.provider, nodes: self.nodes)
 
         if let permit2 = try await swapper.getPermit2ForQuote(quote: quote) {
             print("<== permit2", permit2)
@@ -45,7 +45,7 @@ public struct ViewModel: Sendable {
     }
 
     public func fetchProviders() {
-        let swapper = GemSwapper(rpcProvider: self.provider, preferences: self.preferences)
+        let swapper = GemSwapper(rpcProvider: self.provider, nodes: self.nodes)
         print("<== getProviders:\n", swapper.getProviders())
     }
 

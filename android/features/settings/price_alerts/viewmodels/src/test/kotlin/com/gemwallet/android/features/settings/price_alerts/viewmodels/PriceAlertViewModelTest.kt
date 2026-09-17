@@ -98,6 +98,7 @@ class PriceAlertViewModelTest {
         getAssetTokenInfo = mockk(relaxed = true),
         service = service,
         savedStateHandle = SavedStateHandle(assetId?.let { mapOf(RouteArgument.AssetId.key to it.toIdentifier()) } ?: emptyMap()),
+        context = mockk(relaxed = true),
     )
 
     private fun service(enabled: Boolean): GemPriceAlertService {

@@ -103,7 +103,7 @@ extension FiatScene {
                     } else {
                         view
                     }
-                    ListItemView(title: model.rateTitle, subtitle: model.rateValue)
+                    ListItemView(model: model.rateListItem)
                 }
             case let .error(error):
                 ListItemErrorView(errorTitle: model.errorTitle, error: error)

@@ -1,26 +1,19 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Gemstone
 import GemstonePrimitivesTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
 import Primitives
 import Testing
 @testable import Settings
+import SettingsTestKit
 
 @MainActor
 struct SecurityViewModelTests {
-    private func model(
-        service: BiometryAuthenticationMock = BiometryAuthenticationMock(),
-        settings: GemSettingsServiceMock = GemSettingsServiceMock(),
-    ) -> SecurityViewModel {
-        SecurityViewModel(service: service, settings: settings, preferences: .mock())
-    }
-
     @Test
     func theSceneStartsFromWhatTheKeystoreReports() {
         let service = BiometryAuthenticationMock(requiresAuthentication: true, lockPeriod: .oneMinute, isPrivacyLockEnabled: true)
-        let model = model(service: service)
+        let model = SecurityViewModel.mock(service: service)
 
         #expect(model.isEnabled)
         #expect(model.isPrivacyLockEnabled)
@@ -30,7 +23,7 @@ struct SecurityViewModelTests {
     @Test
     func theSectionsFollowWhetherAuthenticationIsOn() {
         let settings = GemSettingsServiceMock()
-        let model = model(service: BiometryAuthenticationMock(requiresAuthentication: true), settings: settings)
+        let model = SecurityViewModel.mock(service: BiometryAuthenticationMock(requiresAuthentication: true), settings: settings)
 
         _ = model.sections
 
@@ -40,7 +33,7 @@ struct SecurityViewModelTests {
     @Test
     func turningBiometricsOnAsksTheKeystoreOnce() async {
         let service = BiometryAuthenticationMock(requiresAuthentication: false)
-        let model = model(service: service)
+        let model = SecurityViewModel.mock(service: service)
         model.isEnabled = true
 
         await model.toggleBiometrics()
@@ -52,7 +45,7 @@ struct SecurityViewModelTests {
     @Test
     func aToggleThatMatchesTheKeystoreDoesNothing() async {
         let service = BiometryAuthenticationMock(requiresAuthentication: true)
-        let model = model(service: service)
+        let model = SecurityViewModel.mock(service: service)
 
         await model.toggleBiometrics()
 
@@ -63,7 +56,7 @@ struct SecurityViewModelTests {
     func aCancelledPromptRevertsTheToggleWithoutAnAlert() async {
         let service = BiometryAuthenticationMock(requiresAuthentication: false)
         service.enableError = BiometryAuthenticationError.cancelledByUser
-        let model = model(service: service)
+        let model = SecurityViewModel.mock(service: service)
         model.isEnabled = true
 
         await model.toggleBiometrics()
@@ -76,7 +69,7 @@ struct SecurityViewModelTests {
     func aFailedPromptRevertsTheToggleAndShowsTheError() async {
         let service = BiometryAuthenticationMock(requiresAuthentication: false)
         service.enableError = AnyError("keystore locked")
-        let model = model(service: service)
+        let model = SecurityViewModel.mock(service: service)
         model.isEnabled = true
 
         await model.toggleBiometrics()
@@ -89,7 +82,7 @@ struct SecurityViewModelTests {
     func aFailedPrivacyLockRevertsTheToggle() {
         let service = BiometryAuthenticationMock(isPrivacyLockEnabled: false)
         service.privacyLockError = AnyError("not available")
-        let model = model(service: service)
+        let model = SecurityViewModel.mock(service: service)
         model.isPrivacyLockEnabled = true
 
         model.togglePrivacyLock()
@@ -102,7 +95,7 @@ struct SecurityViewModelTests {
     func aFailedLockPeriodFallsBackToTheStoredOne() {
         let service = BiometryAuthenticationMock(lockPeriod: .oneMinute)
         service.lockPeriodError = AnyError("write failed")
-        let model = model(service: service)
+        let model = SecurityViewModel.mock(service: service)
 
         model.lockPeriod = .fiveMinutes
 
@@ -113,7 +106,7 @@ struct SecurityViewModelTests {
     @Test
     func changingTheLockPeriodStoresIt() {
         let service = BiometryAuthenticationMock(lockPeriod: .default)
-        let model = model(service: service)
+        let model = SecurityViewModel.mock(service: service)
 
         model.lockPeriod = .fiveMinutes
 

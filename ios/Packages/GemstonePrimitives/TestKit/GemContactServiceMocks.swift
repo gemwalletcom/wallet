@@ -9,12 +9,14 @@ import PrimitivesTestKit
 import struct Gemstone.GemPriceAlertSession
 import enum Gemstone.GemNameInputStep
 
-private func contactService() -> GemContactService {
-    GemContactService(
-        store: GemContactStoreMock(),
-        addressStore: GemAddressStoreMock(),
-        files: GemFileStoreMock(),
-    )
+public extension GemContactService {
+    static func mock() -> GemContactService {
+        GemContactService(
+            store: GemContactStoreMock(),
+            addressStore: GemAddressStoreMock(),
+            files: GemFileStoreMock(),
+        )
+    }
 }
 
 public final class GemManageContactServiceMock: GemManageContactServiceProtocol, @unchecked Sendable {
@@ -22,7 +24,7 @@ public final class GemManageContactServiceMock: GemManageContactServiceProtocol,
 
     public init() {
         service = GemManageContactService(
-            contacts: contactService(),
+            contacts: .mock(),
             addresses: GemAddressService(),
             payments: GemPaymentService.mock(),
         )

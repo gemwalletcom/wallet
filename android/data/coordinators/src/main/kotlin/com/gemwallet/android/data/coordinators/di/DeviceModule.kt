@@ -7,6 +7,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import uniffi.gemstone.GemDeviceKeyService
+import uniffi.gemstone.GemDeviceKeyServiceInterface
 import uniffi.gemstone.GemSecureStore
 
 @InstallIn(SingletonComponent::class)
@@ -15,4 +16,8 @@ object DeviceModule {
     @Provides
     @Singleton
     fun provideDeviceKeyService(secureStore: GemSecureStore): GemDeviceKeyService = GemDeviceKeyService(secureStore)
+
+    @Provides
+    @Singleton
+    fun provideDeviceKeyServiceInterface(service: GemDeviceKeyService): GemDeviceKeyServiceInterface = service
 }

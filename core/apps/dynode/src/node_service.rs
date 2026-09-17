@@ -346,94 +346,28 @@ impl NodeService {
 #[cfg(test)]
 mod tests {
     use primitives::Chain;
-    use reqwest::{Method, header, header::HeaderMap};
+    use reqwest::{Method, header::HeaderMap};
 
     use super::*;
-    use crate::config::{ChainTypesConfig, Override, Url};
-    use crate::testkit::config as testkit;
-
-    fn create_service(chains: HashMap<Chain, ChainConfig>) -> NodeService {
-        create_service_with_retry(chains, testkit::retry_config(false, vec![], vec![]))
-    }
-
-    fn create_service_with_retry(chains: HashMap<Chain, ChainConfig>, retry_config: RetryConfig) -> NodeService {
-        create_service_with_config(chains, retry_config, ChainTypesConfig::default())
-    }
-
-    fn create_service_with_config(chains: HashMap<Chain, ChainConfig>, retry_config: RetryConfig, chain_types: ChainTypesConfig) -> NodeService {
-        let metrics = Metrics::new(testkit::metrics_config());
-        let broadcast_webhook = DynodeBroadcastWebhookClient::disabled();
-
-        NodeService::new(
-            chains,
-            metrics,
-            gem_client::reqwest_client(),
-            chain_types,
-            RequestCache::default(),
-            retry_config,
-            HeadersConfig {
-                forward: vec![header::CONTENT_TYPE.to_string()],
-            },
-            broadcast_webhook,
-            MonitoringConfig {
-                enabled: false,
-                ..testkit::monitoring_config()
-            },
-        )
-    }
-
-    fn create_request(host: &str, chain: Chain) -> ProxyRequest {
-        ProxyRequest::new(
-            Method::POST,
-            HeaderMap::new(),
-            vec![],
-            "/".to_string(),
-            "/".to_string(),
-            host.to_string(),
-            "test".to_string(),
-            chain,
-        )
-    }
-
-    fn create_jsonrpc_request(chain: Chain, method: &str) -> ProxyRequest {
-        ProxyRequest::new(
-            Method::POST,
-            HeaderMap::new(),
-            format!(r#"{{"jsonrpc":"2.0","method":"{method}","params":[],"id":1}}"#).into_bytes(),
-            "/".to_string(),
-            "/".to_string(),
-            "ethereum.example.com".to_string(),
-            "test".to_string(),
-            chain,
-        )
-    }
-
-    fn ethereum_chain_types() -> ChainTypesConfig {
-        serde_json::from_value(serde_json::json!({
-            "ethereum": {
-                "allowlist": [
-                    { "rpc_method": "eth_chainId" }
-                ]
-            }
-        }))
-        .unwrap()
-    }
+    use crate::config::Override;
 
     #[tokio::test]
     async fn test_broadcast_metrics_count_final_response_without_webhook() {
-        let config = ChainConfig {
+        let service = NodeService::mock(ChainConfig {
             urls: vec![],
-            ..testkit::chain_config(Chain::Ethereum, "https://ethereum.example.com")
-        };
-        let service = create_service(HashMap::from([(Chain::Ethereum, config)]));
+            ..ChainConfig::mock(Chain::Ethereum)
+        });
         let prefix = "dynode_transaction_broadcasts_total{";
         let before = service.metrics.get_metrics();
         let initial = before.lines().filter(|line| line.starts_with(prefix)).collect::<Vec<_>>();
         assert_eq!(initial.len(), 2);
         assert!(initial.iter().all(|line| line.ends_with(" 0")));
 
-        service.handle_request(&create_jsonrpc_request(Chain::Ethereum, "eth_chainId")).await.unwrap();
-        service.handle_request(&create_jsonrpc_request(Chain::Ethereum, "eth_sendRawTransaction")).await.unwrap();
+        service.handle_request(&ProxyRequest::mock_jsonrpc(Chain::Ethereum, "eth_chainId")).await.unwrap();
+        service
+            .handle_request(&ProxyRequest::mock_jsonrpc(Chain::Ethereum, "eth_sendRawTransaction"))
+            .await
+            .unwrap();
         let encoded = service.metrics.get_metrics();
         assert_eq!(
             encoded.lines().filter(|line| line.starts_with(prefix) && !line.ends_with(" 0")).collect::<Vec<_>>(),
@@ -450,7 +384,7 @@ mod tests {
             (vec!["http://127.0.0.1:9/secret-key", "http://localhost:9/other-key"], None, Some("localhost")),
         ] {
             let config = ChainConfig {
-                urls: urls.into_iter().map(testkit::url).collect(),
+                urls: urls.into_iter().map(Url::mock).collect(),
                 overrides: override_url.map(|url| {
                     vec![Override {
                         rpc_method: Some("eth_sendRawTransaction".to_string()),
@@ -458,10 +392,13 @@ mod tests {
                         url: url.to_string(),
                     }]
                 }),
-                ..testkit::chain_config(Chain::Ethereum, "http://127.0.0.1:9")
+                ..ChainConfig::mock(Chain::Ethereum)
             };
-            let service = create_service_with_retry(HashMap::from([(Chain::Ethereum, config)]), testkit::retry_config(true, vec![], vec![]));
-            let request = create_jsonrpc_request(Chain::Ethereum, "eth_sendRawTransaction");
+            let service = NodeService {
+                retry_config: RetryConfig::mock(),
+                ..NodeService::mock(config)
+            };
+            let request = ProxyRequest::mock_jsonrpc(Chain::Ethereum, "eth_sendRawTransaction");
             let mut remote_host = None;
             let _ = service.handle_request_inner(&request, &mut remote_host).await;
             assert_eq!(remote_host.as_deref(), expected);
@@ -470,9 +407,8 @@ mod tests {
 
     #[test]
     fn test_get_chain_config_found() {
-        let chains = HashMap::from([(Chain::Bitcoin, testkit::chain_config(Chain::Bitcoin, "https://bitcoin.example.com"))]);
-        let service = create_service(chains);
-        let request = create_request("any.host.com", Chain::Bitcoin);
+        let service = NodeService::mock(ChainConfig::mock(Chain::Bitcoin));
+        let request = ProxyRequest::mock(Chain::Bitcoin, Method::POST, "/", &[]);
 
         let result = service.get_chain_config(&request);
         assert!(result.is_ok());
@@ -481,9 +417,8 @@ mod tests {
 
     #[test]
     fn test_get_chain_config_not_found() {
-        let chains = HashMap::from([(Chain::Bitcoin, testkit::chain_config(Chain::Bitcoin, "https://bitcoin.example.com"))]);
-        let service = create_service(chains);
-        let request = create_request("unknown", Chain::Ethereum);
+        let service = NodeService::mock(ChainConfig::mock(Chain::Bitcoin));
+        let request = ProxyRequest::mock(Chain::Ethereum, Method::POST, "/", &[]);
 
         let result = service.get_chain_config(&request);
         assert!(result.is_err());
@@ -492,10 +427,12 @@ mod tests {
 
     #[test]
     fn test_matches_retry_status_codes() {
-        let chains = HashMap::from([(Chain::Ethereum, testkit::chain_config(Chain::Ethereum, "https://ethereum.example.com"))]);
-        let service = create_service_with_retry(chains, testkit::retry_config(true, vec![429], vec![]));
+        let service = NodeService {
+            retry_config: RetryConfig::mock_with_errors(vec![429], vec![]),
+            ..NodeService::mock(ChainConfig::mock(Chain::Ethereum))
+        };
 
-        let request = create_request("ethereum.example.com", Chain::Ethereum);
+        let request = ProxyRequest::mock(Chain::Ethereum, Method::POST, "/", &[]);
         let response = ProxyResponse::new(429, HeaderMap::new(), vec![]);
 
         assert!(service.matches_response_error_signal(&request, &response, &service.retry_config.errors));
@@ -503,19 +440,12 @@ mod tests {
 
     #[test]
     fn test_matches_retry_jsonrpc_messages() {
-        let chains = HashMap::from([(Chain::Ethereum, testkit::chain_config(Chain::Ethereum, "https://ethereum.example.com"))]);
-        let service = create_service_with_retry(chains, testkit::retry_config(true, vec![], vec!["Exceeded the quota usage"]));
+        let service = NodeService {
+            retry_config: RetryConfig::mock_with_errors(vec![], vec!["Exceeded the quota usage"]),
+            ..NodeService::mock(ChainConfig::mock(Chain::Ethereum))
+        };
 
-        let request = ProxyRequest::new(
-            Method::POST,
-            HeaderMap::new(),
-            br#"{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}"#.to_vec(),
-            "/".to_string(),
-            "/".to_string(),
-            "ethereum.example.com".to_string(),
-            "test".to_string(),
-            Chain::Ethereum,
-        );
+        let request = ProxyRequest::mock_jsonrpc(Chain::Ethereum, "eth_blockNumber");
         let response = ProxyResponse::new(
             200,
             HeaderMap::new(),
@@ -527,9 +457,11 @@ mod tests {
 
     #[tokio::test]
     async fn test_handle_request_denies_disallowed_jsonrpc_method() {
-        let chains = HashMap::from([(Chain::Ethereum, testkit::chain_config(Chain::Ethereum, "https://ethereum.example.com"))]);
-        let service = create_service_with_config(chains, testkit::retry_config(false, vec![], vec![]), ethereum_chain_types());
-        let request = create_jsonrpc_request(Chain::Ethereum, "unsupported_method");
+        let service = NodeService {
+            chain_types: ChainTypesConfig::mock(),
+            ..NodeService::mock(ChainConfig::mock(Chain::Ethereum))
+        };
+        let request = ProxyRequest::mock_jsonrpc(Chain::Ethereum, "unsupported_method");
 
         let response = service.handle_request(&request).await.unwrap();
 
@@ -544,9 +476,14 @@ mod tests {
 
     #[tokio::test]
     async fn test_handle_request_allowed_jsonrpc_reaches_proxy_path() {
-        let chains = HashMap::from([(Chain::Ethereum, testkit::chain_config(Chain::Ethereum, "http://127.0.0.1:9"))]);
-        let service = create_service_with_config(chains, testkit::retry_config(false, vec![], vec![]), ethereum_chain_types());
-        let request = create_jsonrpc_request(Chain::Ethereum, "eth_chainId");
+        let service = NodeService {
+            chain_types: ChainTypesConfig::mock(),
+            ..NodeService::mock(ChainConfig {
+                urls: vec![Url::mock("http://127.0.0.1:9")],
+                ..ChainConfig::mock(Chain::Ethereum)
+            })
+        };
+        let request = ProxyRequest::mock_jsonrpc(Chain::Ethereum, "eth_chainId");
 
         let result = service.handle_request(&request).await;
 
@@ -555,23 +492,14 @@ mod tests {
 
     #[tokio::test]
     async fn test_handle_request_hides_upstream_url_on_retry_failure() {
-        let mut chain_config = testkit::chain_config(Chain::Solana, "http://127.0.0.1:9/secret-key");
-        chain_config.urls.push(Url {
-            url: "http://127.0.0.1:10/other-secret-key".to_string(),
-            headers: None,
-        });
-        let chains = HashMap::from([(Chain::Solana, chain_config)]);
-        let service = create_service_with_retry(chains, testkit::retry_config(true, vec![500], vec![]));
-        let request = ProxyRequest::new(
-            Method::POST,
-            HeaderMap::new(),
-            br#"{"jsonrpc":"2.0","method":"getSlot","params":[],"id":1}"#.to_vec(),
-            "/".to_string(),
-            "/".to_string(),
-            "solana.example.com".to_string(),
-            "test".to_string(),
-            Chain::Solana,
-        );
+        let service = NodeService {
+            retry_config: RetryConfig::mock_with_errors(vec![500], vec![]),
+            ..NodeService::mock(ChainConfig {
+                urls: vec![Url::mock("http://127.0.0.1:9/secret-key"), Url::mock("http://127.0.0.1:10/other-secret-key")],
+                ..ChainConfig::mock(Chain::Solana)
+            })
+        };
+        let request = ProxyRequest::mock_jsonrpc(Chain::Solana, "getSlot");
 
         let response = service.handle_request(&request).await.unwrap();
         let body = serde_json::from_slice::<JsonRpcErrorResponse>(&response.body).unwrap();

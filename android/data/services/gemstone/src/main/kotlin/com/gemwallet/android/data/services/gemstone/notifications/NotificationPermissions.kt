@@ -12,11 +12,12 @@ import com.gemwallet.android.model.NotificationsAvailable
 import uniffi.gemstone.GemNotificationPermissions
 import uniffi.gemstone.GemNotificationPrompt
 import uniffi.gemstone.GemPreferencesService
+import uniffi.gemstone.GemPreferencesServiceInterface
 
 class GemstoneNotificationPermissions(
     private val context: Context,
     private val requests: NotificationPermissionRequests,
-    private val preferences: GemPreferencesService,
+    private val preferences: GemPreferencesServiceInterface,
     private val notificationsAvailable: NotificationsAvailable,
 ) : GemNotificationPermissions {
 

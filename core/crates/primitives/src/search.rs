@@ -2,7 +2,7 @@ use crate::{AssetBasic, NFTCollection, PerpetualSearchData};
 use serde::{Deserialize, Serialize};
 use typeshare::typeshare;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[typeshare(swift = "Codable, Sendable, Equatable, Hashable, Identifiable")]
 #[serde(rename_all = "camelCase")]
 pub struct AssetList {

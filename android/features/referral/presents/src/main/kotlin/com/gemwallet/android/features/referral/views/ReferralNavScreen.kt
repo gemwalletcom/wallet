@@ -2,6 +2,8 @@
 
 package com.gemwallet.android.features.referral.views
 
+import com.gemwallet.android.ui.components.list_item.uiModel
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -52,6 +54,8 @@ fun ReferralNavScreen(
     val inSync by viewModel.inSync.collectAsStateWithLifecycle()
     val referralCode by viewModel.referralCode.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val infoRows by viewModel.infoRows.collectAsStateWithLifecycle()
+    val redemptions by viewModel.redemptions.collectAsStateWithLifecycle()
 
     ReferralScene(
         inSync = inSync,
@@ -59,6 +63,8 @@ fun ReferralNavScreen(
         referralCode = referralCode,
         referralLink = referralLink,
         uiState = uiState,
+        infoRows = infoRows,
+        redemptions = redemptions,
         currentWallet = currentWallet,
         onUsername = viewModel::createReferral,
         onCode = viewModel::useCode,
@@ -87,7 +93,7 @@ fun ReferralNavScreen(
         LazyColumn {
             itemsIndexed(availableWalletRows) { index, item ->
                 WalletItem(
-                    row = item,
+                    model = item.uiModel(LocalContext.current),
                     isCurrent = item.id == currentWallet?.id?.id,
                     listPosition = ListPosition.getPosition(index, availableWalletRows.size),
                     modifier = Modifier.clickable {

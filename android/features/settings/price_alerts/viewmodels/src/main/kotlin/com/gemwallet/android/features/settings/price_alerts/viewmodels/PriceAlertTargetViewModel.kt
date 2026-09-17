@@ -1,51 +1,52 @@
 package com.gemwallet.android.features.settings.price_alerts.viewmodels
 
-import uniffi.gemstone.GemErrorText
-import uniffi.gemstone.GemPriceAlertPrompt
+import androidx.annotation.StringRes
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetAssetInfo
-import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.domains.pricealerts.formatAmount
 import com.gemwallet.android.domains.percentage.formatAsPercentage
-import com.gemwallet.android.domains.price.ValueDirection
-import com.gemwallet.android.domains.price.toValueDirection
+import com.gemwallet.android.domains.price.tone
+import com.gemwallet.android.domains.pricealerts.formatAmount
+import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.features.settings.price_alerts.viewmodels.localization.stringRes
+import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertConfirmResult
 import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.NumericFormatter
-import com.gemwallet.android.features.settings.price_alerts.viewmodels.models.PriceAlertConfirmResult
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.PriceAlert
-import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.PriceAlertDirection
 import com.wallet.core.primitives.PriceAlertNotificationType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemPriceAlertServiceInterface
-import uniffi.gemstone.PriceAlertFormatter
-import java.math.BigDecimal
-import javax.inject.Inject
-import kotlinx.coroutines.flow.asStateFlow
-import com.gemwallet.android.ext.errorText
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemErrorText
+import uniffi.gemstone.GemPriceAlertServiceInterface
 import uniffi.gemstone.GemPriceAlertSession
 import uniffi.gemstone.GemPriceAlertViewState
+import uniffi.gemstone.GemValueTone
+import uniffi.gemstone.PriceAlertFormatter
 
 @HiltViewModel
 class PriceAlertTargetViewModel @Inject constructor(
@@ -76,9 +77,9 @@ class PriceAlertTargetViewModel @Inject constructor(
         it?.price?.price?.priceChangePercentage24h.formatAsPercentage()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
 
-    val priceState: StateFlow<ValueDirection> = assetInfo.map {
-        it?.price?.price?.priceChangePercentage24h.toValueDirection()
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, ValueDirection.None)
+    val priceState: StateFlow<GemValueTone> = assetInfo.map {
+        it?.price?.price?.priceChangePercentage24h.tone()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, GemValueTone.NEUTRAL)
 
     private val _direction = MutableStateFlow(PriceAlertDirection.Up)
     val direction: StateFlow<PriceAlertDirection> = _direction
@@ -102,8 +103,9 @@ class PriceAlertTargetViewModel @Inject constructor(
     private val viewState: StateFlow<GemPriceAlertViewState> = session.map { it.viewState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.viewState())
 
-    val prompt: StateFlow<GemPriceAlertPrompt> = viewState.map { it.prompt }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.prompt)
+    @get:StringRes
+    val prompt: StateFlow<Int> = viewState.map { it.prompt.stringRes() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.prompt.stringRes())
 
     val resolvedDirection: StateFlow<PriceAlertDirection?> = viewState.map { it.direction?.toPrimitives() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

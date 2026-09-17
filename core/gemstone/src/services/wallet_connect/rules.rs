@@ -415,39 +415,36 @@ mod tests {
     }
 
     use super::*;
+    use gem_wallet_connect::WCEthereumTransactionData as WcEthereumTransactionData;
     use primitives::Account;
 
-    fn wallet(id: &str, wallet_type: WalletType, chains: &[Chain]) -> Wallet {
-        Wallet {
-            id: WalletId::Multicoin(id.to_string()),
-            name: id.to_string(),
-            wallet_type,
-            ..Wallet::mock_with_accounts(Account::mock_chains(chains, "address"))
-        }
-    }
+    use crate::testkit::mock_wc_ethereum_transaction_data;
 
     #[test]
     fn test_connections_group_by_wallet_in_wallet_order_and_newest_first() {
-        let wallet = |id: &str, index: i32| Wallet {
-            index,
-            ..wallet(id, WalletType::Multicoin, &[Chain::Ethereum])
+        let second = Wallet {
+            name: "second".to_string(),
+            index: 2,
+            ..Wallet::mock_with_id(WalletId::Multicoin("second".to_string()), &[Chain::Ethereum])
         };
-        let connection = |wallet: &Wallet, id: &str, minutes: i64| WalletConnection {
-            session: WalletConnectionSession {
-                created_at: Utc::now() - chrono::Duration::minutes(minutes),
-                ..session_with(id, WalletConnectionState::Active, &[Chain::Ethereum])
-            },
-            wallet: wallet.clone(),
+        let first = Wallet {
+            name: "first".to_string(),
+            index: 1,
+            ..Wallet::mock_with_id(WalletId::Multicoin("first".to_string()), &[Chain::Ethereum])
         };
-        let second = wallet("second", 2);
-        let first = wallet("first", 1);
 
-        let groups = connection_groups(vec![
-            connection(&second, "old-second", 30),
-            connection(&first, "old-first", 20),
-            connection(&second, "new-second", 1),
-            connection(&first, "new-first", 5),
-        ]);
+        let groups = connection_groups(
+            [(&second, "old-second", 30), (&first, "old-first", 20), (&second, "new-second", 1), (&first, "new-first", 5)]
+                .into_iter()
+                .map(|(wallet, id, minutes)| WalletConnection {
+                    session: WalletConnectionSession {
+                        created_at: Utc::now() - chrono::Duration::minutes(minutes),
+                        ..WalletConnectionSession::mock(id, &[Chain::Ethereum])
+                    },
+                    wallet: wallet.clone(),
+                })
+                .collect(),
+        );
 
         let titles: Vec<&str> = groups.iter().map(|(wallet, _)| wallet.name.as_str()).collect();
         assert_eq!(titles, vec!["first", "second"], "sections follow the order the wallets are listed in");
@@ -462,21 +459,9 @@ mod tests {
         );
     }
 
-    fn session_with(id: &str, state: WalletConnectionState, chains: &[Chain]) -> WalletConnectionSession {
-        WalletConnectionSession {
-            state,
-            ..session(
-                id.to_string(),
-                chains.to_vec(),
-                Utc::now(),
-                application_metadata("app".into(), String::new(), "https://app.example".into(), vec![]),
-            )
-        }
-    }
-
     #[test]
     fn test_authentication_offers_one_account_per_requested_chain_the_wallet_holds() {
-        let wallet = wallet("multi", WalletType::Multicoin, &[Chain::Ethereum, Chain::Solana]);
+        let wallet = Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Solana]);
 
         let accounts = authentication_accounts(
             &[
@@ -500,8 +485,8 @@ mod tests {
     #[test]
     fn test_session_account_requires_session_chain_and_account() {
         let connection = WalletConnection {
-            session: session_with("topic", WalletConnectionState::Active, &[Chain::Ethereum, Chain::Solana]),
-            wallet: wallet("multi", WalletType::Multicoin, &[Chain::Ethereum]),
+            session: WalletConnectionSession::mock("topic", &[Chain::Ethereum, Chain::Solana]),
+            wallet: Wallet::mock_with_chains(&[Chain::Ethereum]),
         };
 
         assert_eq!(session_account(&connection, Chain::Ethereum).unwrap().chain, Chain::Ethereum);
@@ -513,13 +498,16 @@ mod tests {
     #[test]
     fn test_sessions_sync_rules() {
         let local = vec![
-            session_with("active-kept", WalletConnectionState::Active, &[Chain::Ethereum]),
-            session_with("active-gone", WalletConnectionState::Active, &[Chain::Ethereum]),
-            session_with("started-gone", WalletConnectionState::Started, &[Chain::Ethereum]),
+            WalletConnectionSession::mock("active-kept", &[Chain::Ethereum]),
+            WalletConnectionSession::mock("active-gone", &[Chain::Ethereum]),
+            WalletConnectionSession {
+                state: WalletConnectionState::Started,
+                ..WalletConnectionSession::mock("started-gone", &[Chain::Ethereum])
+            },
         ];
         let remote = vec![
-            session_with("active-kept", WalletConnectionState::Active, &[Chain::Ethereum, Chain::Solana]),
-            session_with("unknown", WalletConnectionState::Active, &[Chain::Ethereum]),
+            WalletConnectionSession::mock("active-kept", &[Chain::Ethereum, Chain::Solana]),
+            WalletConnectionSession::mock("unknown", &[Chain::Ethereum]),
         ];
 
         assert_eq!(sessions_to_delete(&local, &remote), vec!["active-gone".to_string()]);
@@ -532,10 +520,16 @@ mod tests {
 
     #[test]
     fn test_session_wallets() {
-        let multicoin = wallet("multi", WalletType::Multicoin, &[Chain::Ethereum, Chain::Solana]);
-        let single = wallet("single", WalletType::Single, &[Chain::Ethereum]);
-        let view = wallet("view", WalletType::View, &[Chain::Ethereum]);
-        let bitcoin_only = wallet("btc", WalletType::Single, &[Chain::Bitcoin]);
+        let multicoin = Wallet {
+            name: "multi".to_string(),
+            ..Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Solana])
+        };
+        let single = Wallet {
+            name: "single".to_string(),
+            ..Wallet::mock_with_type(WalletType::Single, &[Chain::Ethereum])
+        };
+        let view = Wallet::mock_with_type(WalletType::View, &[Chain::Ethereum]);
+        let bitcoin_only = Wallet::mock_with_type(WalletType::Single, &[Chain::Bitcoin]);
         let wallets = vec![single.clone(), view, bitcoin_only, multicoin.clone()];
 
         let required = session_wallets(wallets.clone(), &[Chain::Ethereum, Chain::Solana], &[]);
@@ -550,8 +544,14 @@ mod tests {
 
     #[test]
     fn test_default_wallet_prefers_current() {
-        let first = wallet("first", WalletType::Multicoin, &[Chain::Ethereum]);
-        let second = wallet("second", WalletType::Multicoin, &[Chain::Ethereum]);
+        let first = Wallet {
+            name: "first".to_string(),
+            ..Wallet::mock_with_id(WalletId::Multicoin("first".to_string()), &[Chain::Ethereum])
+        };
+        let second = Wallet {
+            name: "second".to_string(),
+            ..Wallet::mock_with_id(WalletId::Multicoin("second".to_string()), &[Chain::Ethereum])
+        };
         let wallets = vec![first.clone(), second.clone()];
         assert_eq!(default_wallet(&wallets, Some(second.id.clone())).map(|wallet| wallet.name), Some("second".to_string()));
         assert_eq!(
@@ -563,7 +563,7 @@ mod tests {
 
     #[test]
     fn test_session_chains_keeps_supported_order() {
-        let wallet = wallet("w", WalletType::Multicoin, &[Chain::Solana, Chain::Ethereum, Chain::Bitcoin]);
+        let wallet = Wallet::mock_with_chains(&[Chain::Solana, Chain::Ethereum, Chain::Bitcoin]);
         assert_eq!(
             session_chains(&wallet, &[Chain::Ethereum, Chain::Solana, Chain::Tron]),
             vec![Chain::Ethereum, Chain::Solana]
@@ -618,26 +618,26 @@ mod tests {
     #[test]
     fn test_validate_transaction_sender_binds_an_evm_request_to_the_session_account() {
         let account = Account::mock(Chain::Ethereum, "0xAbC");
-        let evm = |from: &str| WalletConnectTransaction::Ethereum {
-            data: crate::wallet_connect::WCEthereumTransactionData {
-                chain_id: Some(1),
-                from: from.to_string(),
-                to: "0xto".to_string(),
-                value: None,
-                gas: None,
-                gas_limit: None,
-                gas_price: None,
-                max_fee_per_gas: None,
-                max_priority_fee_per_gas: None,
-                nonce: None,
-                data: None,
-            },
+        let matching = WalletConnectTransaction::Ethereum {
+            data: WcEthereumTransactionData {
+                from: "0xabc".to_string(),
+                ..mock_wc_ethereum_transaction_data()
+            }
+            .into(),
+            kind: EvmTransactionKind::Transfer,
+        };
+        let other = WalletConnectTransaction::Ethereum {
+            data: WcEthereumTransactionData {
+                from: "0xother".to_string(),
+                ..mock_wc_ethereum_transaction_data()
+            }
+            .into(),
             kind: EvmTransactionKind::Transfer,
         };
 
-        assert!(validate_transaction_sender(&evm("0xabc"), &account).is_ok(), "EVM addresses compare without case");
+        assert!(validate_transaction_sender(&matching, &account).is_ok(), "EVM addresses compare without case");
         assert!(
-            validate_transaction_sender(&evm("0xother"), &account).is_err(),
+            validate_transaction_sender(&other, &account).is_err(),
             "a dapp cannot simulate for one account and sign with another"
         );
     }

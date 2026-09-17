@@ -1,4 +1,6 @@
 mod rules;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use std::sync::Arc;
 
@@ -82,15 +84,10 @@ fn link(name: &str, url: String) -> BlockExplorerLink {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::services::preferences::testkit::MemoryPreferencesStore;
-
-    fn service() -> GemExplorerService {
-        GemExplorerService::new(Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default()))))
-    }
 
     #[test]
     fn test_a_transaction_link_without_a_provider_uses_the_selected_explorer() {
-        let service = service();
+        let service = GemExplorerService::mock();
         let selected = service.get_explorer_name(Chain::Ethereum);
         let link = service.get_transaction_link(Chain::Ethereum, "0xhash".to_string(), None, None, None);
 
@@ -100,7 +97,7 @@ mod tests {
 
     #[test]
     fn test_a_swap_provider_names_its_own_explorer_and_an_unknown_one_falls_back() {
-        let service = service();
+        let service = GemExplorerService::mock();
         let selected = service.get_explorer_name(Chain::Ethereum);
 
         let across = service.get_transaction_link(Chain::Ethereum, "0xhash".to_string(), Some("across".to_string()), None, None);
@@ -113,7 +110,7 @@ mod tests {
 
     #[test]
     fn test_the_transaction_link_follows_the_explorer_the_user_picked() {
-        let service = service();
+        let service = GemExplorerService::mock();
         let explorers = service.get_explorers(Chain::Ethereum);
         let other = explorers.last().unwrap().clone();
         service.set_explorer_name(Chain::Ethereum, other.clone()).unwrap();

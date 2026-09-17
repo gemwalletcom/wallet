@@ -11,6 +11,7 @@ public extension GatewayService {
     static func mock() -> GatewayService {
         GatewayService(
             provider: NativeProvider(session: .offline),
+            nodes: .mock(),
             preferences: GemPreferencesStoreMock(),
             securePreferences: GemSecureStoreMock(),
         )

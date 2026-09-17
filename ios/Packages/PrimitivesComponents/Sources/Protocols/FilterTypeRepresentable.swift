@@ -8,3 +8,9 @@ public protocol FilterTypeRepresentable {
     var title: String { get }
     var image: AssetImage { get }
 }
+
+public extension FilterTypeRepresentable {
+    var listItem: ListItemModel {
+        ListItemModel(title: title, subtitle: value, imageStyle: .settings(assetImage: image))
+    }
+}
