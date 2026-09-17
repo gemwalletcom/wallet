@@ -1,7 +1,7 @@
 use crate::u256::u256_to_biguint;
 use alloy_primitives::Address;
 
-use crate::across::{deployment::AcrossDeployment, deposit::parse_deposit};
+use crate::across::{asset::AcrossAsset, deployment::AcrossDeployment, deposit::parse_deposit};
 use primitives::{Chain, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata};
 
 use super::{ParseContext, ParseContextExt, TransactionParser};
@@ -31,11 +31,13 @@ impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for AcrossParser
         };
         let relay_data = &deposit.relay_data;
         let destination_chain = Chain::from_chain_id(deposit.destination_chain_id)?;
+        let from_asset = AcrossDeployment::supported_asset_for_token(*context.metadata.chain, Address::from_word(relay_data.input_token))?;
+        let to_asset = AcrossDeployment::supported_asset_for_token(destination_chain, Address::from_word(relay_data.output_token))?;
         let metadata = TransactionSwapMetadata {
-            from_asset: AcrossDeployment::supported_asset_for_token(*context.metadata.chain, Address::from_word(relay_data.input_token))?,
-            from_value: u256_to_biguint(&relay_data.input_amount),
-            to_asset: AcrossDeployment::supported_asset_for_token(destination_chain, Address::from_word(relay_data.output_token))?,
-            to_value: u256_to_biguint(&relay_data.output_amount),
+            from_value: u256_to_biguint(&(relay_data.input_amount * AcrossAsset::from_asset(&from_asset)?.scale)),
+            to_value: u256_to_biguint(&(relay_data.output_amount * AcrossAsset::from_asset(&to_asset)?.scale)),
+            from_asset,
+            to_asset,
             provider: Some(SwapProvider::Across.id().to_string()),
         };
         let depositor = Address::from_word(relay_data.depositor).to_checksum(None);
@@ -56,7 +58,7 @@ mod tests {
     };
     use primitives::{
         Chain, SwapProvider, TransactionSwapMetadata, TransactionType,
-        asset_constants::{BASE_USDC_ASSET_ID, POLYGON_USDC_ASSET_ID},
+        asset_constants::{BASE_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID, POLYGON_USDC_ASSET_ID},
         testkit::json_rpc::load_json_rpc_result,
     };
 
@@ -75,5 +77,18 @@ mod tests {
         assert_eq!(metadata.to_asset, BASE_USDC_ASSET_ID.clone());
         assert_eq!(metadata.to_value, BigUint::from(10500000u64));
         assert_eq!(metadata.provider, Some(SwapProvider::Across.id().to_string()));
+    }
+
+    #[test]
+    fn test_parse_across_arc_deposit_scales_native_usdc() {
+        let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/across_arc_deposit_transaction.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/across_arc_deposit_receipt.json"));
+        let parsed = ProtocolParsers::map_transaction(&Chain::Arc, &transaction, &receipt, DateTime::default()).unwrap();
+        let metadata = serde_json::from_value::<TransactionSwapMetadata>(parsed.metadata.unwrap()).unwrap();
+
+        assert_eq!(metadata.from_asset, Chain::Arc.as_asset_id());
+        assert_eq!(metadata.from_value, BigUint::from(5_000_000_000_000_000_000u64));
+        assert_eq!(metadata.to_asset, ETHEREUM_USDC_ASSET_ID.clone());
+        assert_eq!(metadata.to_value, BigUint::from(4_984_358u64));
     }
 }

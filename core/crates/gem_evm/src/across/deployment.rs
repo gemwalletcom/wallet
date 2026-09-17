@@ -1,8 +1,8 @@
-use super::fees::CapitalCostConfig;
+use super::{asset::AcrossAsset, fees::CapitalCostConfig};
 use crate::ether_conv::EtherConv;
 use alloy_primitives::{Address, map::HashSet};
 use num_bigint::BigInt;
-use primitives::{AssetId, Chain, EVMChain, asset_constants::*, contract_constants::*};
+use primitives::{AssetId, Chain, asset_constants::*, contract_constants::*};
 use std::{collections::HashMap, vec};
 
 /// https://docs.across.to/developer-docs/developers/contract-addresses
@@ -102,28 +102,18 @@ impl AcrossDeployment {
             (Chain::SmartChain, vec![SMARTCHAIN_ETH_ASSET_ID.clone()]),
             (Chain::Plasma, vec![PLASMA_USDT_ASSET_ID.clone()]),
             (Chain::Robinhood, vec![ROBINHOOD_WETH_ASSET_ID.clone(), ROBINHOOD_USDG_ASSET_ID.clone()]),
-            (Chain::Arc, vec![ARC_USDC_ASSET_ID.clone()]),
+            (Chain::Arc, vec![]),
             (Chain::Tron, vec![TRON_USDT_ASSET_ID.clone()]),
         ])
     }
 
     pub fn supported_asset_for_token(chain: Chain, token: Address) -> Option<AssetId> {
-        let asset = Self::supported_assets()
-            .get(&chain)?
-            .iter()
-            .find(|asset| {
-                asset
-                    .token_id
-                    .as_deref()
-                    .and_then(|token_id| token_id.parse::<Address>().ok())
-                    .is_some_and(|address| address == token)
-            })?
-            .clone();
-        let is_wrapped_native = EVMChain::from_chain(chain)
-            .and_then(|chain| chain.weth_contract().and_then(|address| address.parse::<Address>().ok()))
-            .is_some_and(|address| address == token);
-
-        if is_wrapped_native { Some(chain.as_asset_id()) } else { Some(asset) }
+        let token_address = |asset: &AssetId| asset.token_id.as_deref().and_then(|token_id| token_id.parse::<Address>().ok());
+        let native = chain.as_asset_id();
+        if AcrossAsset::from_asset(&native).and_then(|routed| token_address(&routed.asset_id)) == Some(token) {
+            return Some(native);
+        }
+        Self::supported_assets().get(&chain)?.iter().find(|asset| token_address(asset) == Some(token)).cloned()
     }
 
     pub fn deposit_addresses() -> Vec<String> {
@@ -309,7 +299,7 @@ mod tests {
     use super::AcrossDeployment;
     use primitives::{
         Chain,
-        asset_constants::{ARC_USDC_ASSET_ID, ROBINHOOD_USDG_ASSET_ID, ROBINHOOD_WETH_ASSET_ID},
+        asset_constants::{ARC_USDC_TOKEN_ID, ROBINHOOD_USDG_ASSET_ID, ROBINHOOD_WETH_ASSET_ID},
         contract_constants::{
             ARC_ACROSS_MULTICALL_HANDLER_CONTRACT, ARC_ACROSS_SPOKE_POOL_CONTRACT, ROBINHOOD_ACROSS_MULTICALL_HANDLER_CONTRACT, ROBINHOOD_ACROSS_SPOKE_POOL_CONTRACT,
         },
@@ -333,6 +323,10 @@ mod tests {
         assert_eq!(deployment.chain_id, 5042);
         assert_eq!(deployment.spoke_pool, ARC_ACROSS_SPOKE_POOL_CONTRACT);
         assert_eq!(deployment.multicall_handler(), ARC_ACROSS_MULTICALL_HANDLER_CONTRACT);
-        assert_eq!(AcrossDeployment::supported_assets().get(&Chain::Arc), Some(&vec![ARC_USDC_ASSET_ID.clone()]));
+        assert_eq!(AcrossDeployment::supported_assets().get(&Chain::Arc), Some(&vec![]));
+        assert_eq!(
+            AcrossDeployment::supported_asset_for_token(Chain::Arc, ARC_USDC_TOKEN_ID.parse().unwrap()),
+            Some(Chain::Arc.as_asset_id())
+        );
     }
 }
