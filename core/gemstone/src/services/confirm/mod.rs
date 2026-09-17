@@ -108,7 +108,7 @@ impl GemConfirmService {
             self.simulate(chain, &input),
         );
         let metadata = metadata.map_err(error::load_error)?;
-        let fee_rates = rules::confirmation_fee_rates(&asset.id, transfer.use_max_amount, fee_rates.map_err(error::load_error)?);
+        let fee_rates = rules::confirmation_fee_rates(chain, transfer.use_max_amount, fee_rates.map_err(error::load_error)?);
         let simulation = simulation?;
 
         rules::validate_scan(scan.as_ref(), transfer.recipient.memo.as_deref(), &symbol)?;

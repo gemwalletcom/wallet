@@ -13,11 +13,10 @@ pub enum ChainStack {
 }
 
 impl ChainStack {
-    pub fn base_fee_increase_percent(self, is_max_native: bool) -> u8 {
+    pub fn base_fee_multiplier(self) -> u8 {
         match self {
-            Self::Arbitrum if is_max_native => 20,
-            Self::Arbitrum => 100,
-            Self::Native | Self::Optimism | Self::ZkSync => 0,
+            Self::Arbitrum => 2,
+            Self::Native | Self::Optimism | Self::ZkSync => 1,
         }
     }
 }
