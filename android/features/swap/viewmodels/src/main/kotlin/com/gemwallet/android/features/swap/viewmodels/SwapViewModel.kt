@@ -71,7 +71,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemSlippageSelection
-import uniffi.gemstone.GemSlippageSession
 import uniffi.gemstone.GemSwapButtonAction
 import uniffi.gemstone.GemSwapPairSelection
 import uniffi.gemstone.GemSwapQuoteServiceInterface
@@ -104,10 +103,9 @@ class SwapViewModel @Inject constructor(
     val selectedSlippage: StateFlow<UInt?> = selectedSlippageBps.asStateFlow()
 
     fun slippageState(bps: UInt?, isAuto: Boolean): SlippageStateUIModel =
-        newSlippageSession(bps).onAuto(isAuto).viewState().uiModel(context, ::slippagePercent)
-
-    private fun newSlippageSession(bps: UInt?): GemSlippageSession =
-        swapQuoteService.newSlippageSession(bps?.let { GemSlippageSelection.Manual(it) } ?: GemSlippageSelection.Auto)
+        swapQuoteService.newSlippageSession(if (isAuto) GemSlippageSelection.Auto else GemSlippageSelection.Manual(bps ?: 0u))
+            .viewState()
+            .uiModel(context, ::slippagePercent)
 
     fun slippageBps(percent: Double): UInt? = swapQuoteService.slippageBpsFromPercent(percent)
 

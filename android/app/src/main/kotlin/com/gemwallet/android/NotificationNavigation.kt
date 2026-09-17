@@ -78,7 +78,7 @@ class NotificationNavigation @Inject constructor(
     }
 
     private suspend fun prepareAssets(vararg assetIds: AssetId) {
-        assetsService.syncMissingAssets(assetIds.map { it.toIdentifier() })
+        assetIds.forEach { assetsService.ensureAsset(it.toIdentifier()) }
     }
 
     private suspend fun prepareWalletAssetRoutes(walletId: WalletId, assetId: AssetId?): List<NavKey> {

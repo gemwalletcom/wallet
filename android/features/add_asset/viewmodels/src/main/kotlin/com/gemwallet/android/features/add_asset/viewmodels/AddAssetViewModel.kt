@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.add_asset.viewmodels
 
+import uniffi.gemstone.GemChainServiceInterface
 import android.content.Context
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.mutableStateOf
@@ -49,6 +50,7 @@ import uniffi.gemstone.GemErrorText
 class AddAssetViewModel @Inject constructor(
     getSession: GetSession,
     private val service: GemAddAssetServiceInterface,
+    private val chainService: GemChainServiceInterface,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -68,7 +70,7 @@ class AddAssetViewModel @Inject constructor(
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val chains = snapshotFlow { chainFilter.text }.combine(availableChains) { query, availableChains ->
-        availableChains?.let { service.matchingChains(it.map { chain -> chain.string }, query.toString()).map { chain -> chain.requireChain() } } ?: emptyList()
+        availableChains?.let { chainService.getMatchingChains(it.map { chain -> chain.string }, query.toString()).map { chain -> chain.requireChain() } } ?: emptyList()
     }
     .flowOn(Dispatchers.IO)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

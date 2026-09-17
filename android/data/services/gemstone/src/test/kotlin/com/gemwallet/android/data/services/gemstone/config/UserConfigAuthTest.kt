@@ -20,9 +20,6 @@ class UserConfigAuthTest {
     private val secureStore = mockk<GemSecureStore>(relaxed = true)
     private val preferencesService = mockk<GemPreferencesService>(relaxed = true) {
         every { getAppearance() } returns uniffi.gemstone.Appearance.SYSTEM
-        every { getPerpetualLeverage() } returns 1u
-        every { getPerpetualTakeProfitPercent() } returns 1u
-        every { getPerpetualStopLossPercent() } returns 1u
     }
 
     @Test
