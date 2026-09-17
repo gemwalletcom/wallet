@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.settings.settings.viewmodels
 
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.MutableStateFlow
 import android.content.Context
@@ -20,7 +22,6 @@ import com.wallet.core.primitives.Appearance
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
@@ -34,6 +35,7 @@ class PreferencesViewModel @Inject constructor(
     private val userConfig: UserConfig,
     private val settingsService: GemSettingsServiceInterface,
     getCurrentCurrency: GetCurrentCurrency,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -52,12 +54,12 @@ class PreferencesViewModel @Inject constructor(
     private val appearance = userConfig.appearance()
         .stateIn(viewModelScope, SharingStarted.Eagerly, Appearance.System)
 
-    fun setAppearance(appearance: Appearance) = viewModelScope.launch(Dispatchers.IO) {
+    fun setAppearance(appearance: Appearance) = viewModelScope.launch(ioDispatcher) {
         userConfig.setAppearance(appearance)
     }
 
 
-    fun setPerpetualEnabled(enabled: Boolean) = viewModelScope.launch(Dispatchers.IO) {
+    fun setPerpetualEnabled(enabled: Boolean) = viewModelScope.launch(ioDispatcher) {
         userConfig.setPerpetualEnabled(enabled)
     }
 
@@ -84,7 +86,7 @@ class PreferencesViewModel @Inject constructor(
         state.sections.map { section -> section.rows.map { it.uiModel(context, state, appearance, perpetual, perpetualOptions) } }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    fun setPerpetualOption(setting: PerpetualSetting, value: Int) = viewModelScope.launch(Dispatchers.IO) {
+    fun setPerpetualOption(setting: PerpetualSetting, value: Int) = viewModelScope.launch(ioDispatcher) {
         val defaults = state.value.perpetualDefaults
         settingsService.setPerpetualDefaults(
             when (setting) {

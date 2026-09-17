@@ -3,12 +3,13 @@ package com.gemwallet.android.features.wallet.viewmodels
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.features.wallet.viewmodels.models.WalletSecretContentUIModel
 import com.gemwallet.android.features.wallet.viewmodels.models.uiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemWalletServiceInterface
@@ -17,6 +18,7 @@ import uniffi.gemstone.GemWalletServiceInterface
 class WalletSecretDataViewModel @Inject constructor(
     private val service: GemWalletServiceInterface,
     savedStateHandle: SavedStateHandle,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     val secretKind = savedStateHandle.requireSecretKind()
 
@@ -24,7 +26,7 @@ class WalletSecretDataViewModel @Inject constructor(
 
     init {
         val walletId = savedStateHandle.requireWalletId()
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             secret.value = runCatchingCancellable { service.exportSecret(walletId.id).uiModel() }
         }
     }

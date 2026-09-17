@@ -47,7 +47,7 @@ class SetupWalletViewModelTest {
 
     private fun viewModel(service: GemWalletServiceInterface = mockk(relaxed = true)): SetupWalletViewModel {
         val getWallet: GetWallet = mockk { every { this@mockk.invoke(any()) } returns flowOf(wallet) }
-        return SetupWalletViewModel(WalletId(wallet.id.id), getWallet, service).also { models.add(it) }
+        return SetupWalletViewModel(WalletId(wallet.id.id), getWallet, service, dispatcher).also { models.add(it) }
     }
 
     @Test

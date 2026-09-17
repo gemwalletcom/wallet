@@ -8,6 +8,7 @@ import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.cases.GetWalletSummary
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.assetConfig
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -23,7 +24,7 @@ import com.wallet.core.primitives.Banner
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -42,6 +43,7 @@ class AssetsViewModel @Inject constructor(
     getWalletSummary: GetWalletSummary,
     private val getSession: GetSession,
     private val userConfig: UserConfig,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel(), ToastEmitter by ToastEmitterImpl() {
 
@@ -93,12 +95,12 @@ class AssetsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     init {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             currentWalletId.filterNotNull().collectLatest { loadOnce() }
         }
     }
 
-    fun onRefresh() = viewModelScope.launch(Dispatchers.IO) {
+    fun onRefresh() = viewModelScope.launch(ioDispatcher) {
         isRefreshing.value = true
         try {
             refresh()
@@ -122,12 +124,12 @@ class AssetsViewModel @Inject constructor(
             .onFailure { Log.e(TAG, "assets refresh failed", it) }
     }
 
-    fun hideAsset(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
+    fun hideAsset(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable { service.setAssetsEnabled(listOf(assetId.toIdentifier()), false) }
             .onFailure { Log.e(TAG, "hiding ${assetId.toIdentifier()} failed", it) }
     }
 
-    fun togglePin(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
+    fun togglePin(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {
         val item = assetGroups.value.let { it.pinned + it.unpinned }.firstOrNull { it.id == assetId } ?: return@launch
         runCatchingCancellable { service.setAssetPinned(assetId.toIdentifier(), !item.pinned) }
             .onFailure { Log.e(TAG, "pinning ${assetId.toIdentifier()} failed", it) }
@@ -138,7 +140,7 @@ class AssetsViewModel @Inject constructor(
         userConfig.hideBalances()
     }
 
-    fun closeBanner(banner: Banner) = viewModelScope.launch(Dispatchers.IO) {
+    fun closeBanner(banner: Banner) = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable { service.closeBanner(banner.toGemKey()) }
             .onFailure { Log.e(TAG, "banner ${banner.event} close failed", it) }
     }

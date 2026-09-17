@@ -74,6 +74,7 @@ class EarnViewModelTest {
         stakeService = stakeService,
         getSession = getSession,
         stateHandle = SavedStateHandle(mapOf(RouteArgument.AssetId.key to asset.id.toIdentifier())),
+        ioDispatcher = testDispatcher,
         context = mockk(relaxed = true),
     )
 

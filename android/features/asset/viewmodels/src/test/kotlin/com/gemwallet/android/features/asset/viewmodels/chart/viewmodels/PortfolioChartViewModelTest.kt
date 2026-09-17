@@ -179,6 +179,7 @@ class PortfolioChartViewModelTest {
         getSession = getSession,
         observePerpetualWallet = observePerpetualWallet,
         initialType = initialType,
+        ioDispatcher = testDispatcher,
         context = mockk<Context> { every { getString(any()) } answers { firstArg<Int>().toString() } },
     ).also(viewModels::add)
 }

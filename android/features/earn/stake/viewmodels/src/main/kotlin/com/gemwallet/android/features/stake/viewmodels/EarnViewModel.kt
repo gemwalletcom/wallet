@@ -9,6 +9,7 @@ import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetValidators
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toAssetId
@@ -25,7 +26,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.math.BigInteger
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -53,6 +54,7 @@ class EarnViewModel @Inject constructor(
     private val stakeService: GemStakeServiceInterface,
     getSession: GetSession,
     stateHandle: SavedStateHandle,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -60,25 +62,25 @@ class EarnViewModel @Inject constructor(
         ?: error("Missing assetId")
 
     val assetInfo = getAssetInfo(assetId)
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val session = getSession()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val providers = getValidators(assetId, StakeProviderType.Earn)
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val positions = session.filterNotNull()
         .flatMapLatest { current -> getDelegations(current.wallet.id, assetId, StakeProviderType.Earn) }
         .map { delegations -> delegations.filter { it.base.balance > BigInteger.ZERO } }
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val validatorRows = positions
         .map { items -> items.associate { it.validator.id to stakeService.validatorRow(it.validator.toGem()) } }
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap<String, GemValidatorRow>())
 
     val apr = combine(providers, assetInfo) { items, current ->
@@ -115,7 +117,7 @@ class EarnViewModel @Inject constructor(
                 sync.update { false }
             }
         }
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
     fun onRefresh() {

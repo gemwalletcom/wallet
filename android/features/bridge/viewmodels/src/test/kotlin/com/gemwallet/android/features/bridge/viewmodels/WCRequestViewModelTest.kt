@@ -99,6 +99,7 @@ class WCRequestViewModelTest {
         respondWalletConnectRequest = respond,
         pendingRequests = requests,
         activeRequest = ActiveWalletConnectRequest(events = emptyFlow()),
+        ioDispatcher = dispatcher,
         context = mockk(relaxed = true),
     ).also { models.add(it) }
 

@@ -46,6 +46,7 @@ android {
 dependencies {
     api(project(":ui-models"))
     implementation(project(":ui"))
+    implementation(project(":data:services:gemstone"))
 
     implementation(libs.lifecycle.viewmodel)
     implementation(libs.lifecycle.viewmodel.savedstate)

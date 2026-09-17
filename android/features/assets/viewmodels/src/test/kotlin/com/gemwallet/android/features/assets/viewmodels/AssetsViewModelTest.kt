@@ -123,6 +123,7 @@ class AssetsViewModelTest {
         getWalletSummary = getWalletSummary,
         getSession = getSession,
         userConfig = mockk(relaxed = true),
+        ioDispatcher = testDispatcher,
         context = mockk(relaxed = true),
     )
 }

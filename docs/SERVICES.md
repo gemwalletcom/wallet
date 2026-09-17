@@ -162,7 +162,7 @@ public final class SupportChatSceneViewModel {
 ```kotlin
 private val alertsEnabled = MutableStateFlow(service.isEnabled())
 
-fun togglePriceAlerts(enable: Boolean) = viewModelScope.launch(Dispatchers.IO) {
+fun togglePriceAlerts(enable: Boolean) = viewModelScope.launch(ioDispatcher) {
     service.setEnabled(enable)
     alertsEnabled.value = service.isEnabled()
 }

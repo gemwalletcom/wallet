@@ -104,6 +104,7 @@ class ConnectionsViewModelTest {
             mockk(relaxed = true),
             service,
             SavedStateHandle(mapOf(RouteArgument.ConnectionId.key to "connection-1")),
+            dispatcher,
             mockk(relaxed = true),
         ).also { scopes.add(it) }
 
@@ -121,6 +122,7 @@ class ConnectionsViewModelTest {
             disconnect,
             mockk(relaxed = true),
             SavedStateHandle(mapOf(RouteArgument.ConnectionId.key to "gone")),
+            dispatcher,
             mockk(relaxed = true),
         ).also { scopes.add(it) }
 

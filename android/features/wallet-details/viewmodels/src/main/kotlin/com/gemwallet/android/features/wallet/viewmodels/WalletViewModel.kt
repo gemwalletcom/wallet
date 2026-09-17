@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet.cases.DeleteWallet
 import com.gemwallet.android.application.wallet.cases.GetWalletDetails
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.domains.wallet.WalletSecretInput
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.features.wallet.viewmodels.models.WalletSecretUIModel
@@ -16,7 +17,7 @@ import com.gemwallet.android.ui.localization.stringRes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -30,6 +31,7 @@ class WalletViewModel @Inject constructor(
     private val service: GemWalletServiceInterface,
     private val deleteWallet: DeleteWallet,
     savedStateHandle: SavedStateHandle,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -44,12 +46,12 @@ class WalletViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    fun setWalletName(name: String) = viewModelScope.launch(Dispatchers.IO) {
+    fun setWalletName(name: String) = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable { service.rename(walletId.id, name) }
             .onFailure { Log.e(TAG, "renaming wallet ${walletId.id} failed", it) }
     }
 
-    fun delete(onBoard: () -> Unit, onComplete: () -> Unit) = viewModelScope.launch(Dispatchers.IO) {
+    fun delete(onBoard: () -> Unit, onComplete: () -> Unit) = viewModelScope.launch(ioDispatcher) {
         deleteWallet.deleteWallet(walletId, onBoard, onComplete)
     }
 

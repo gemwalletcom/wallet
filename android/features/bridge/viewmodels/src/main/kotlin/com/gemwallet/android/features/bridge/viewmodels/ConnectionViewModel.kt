@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.cases.DisconnectWalletConnection
 import com.gemwallet.android.application.wallet_connect.cases.GetWalletConnections
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.bridge.viewmodels.localization.stringRes
 import com.gemwallet.android.features.bridge.viewmodels.model.listItem
@@ -16,6 +17,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import java.text.DateFormat
 import java.util.Date
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
@@ -34,6 +36,7 @@ class ConnectionViewModel @Inject constructor(
     private val disconnectWalletConnection: DisconnectWalletConnection,
     private val service: GemWalletConnectServiceInterface,
     savedState: SavedStateHandle,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -61,7 +64,7 @@ class ConnectionViewModel @Inject constructor(
 
     fun disconnect(onSuccess: () -> Unit) {
         details.value?.connection?.connection?.session?.id?.let {
-            viewModelScope.launch(Dispatchers.IO) {
+            viewModelScope.launch(ioDispatcher) {
                 disconnectWalletConnection.disconnect(
                     connectionId = it,
                     onSuccess = { viewModelScope.launch(Dispatchers.Main) { onSuccess() } },

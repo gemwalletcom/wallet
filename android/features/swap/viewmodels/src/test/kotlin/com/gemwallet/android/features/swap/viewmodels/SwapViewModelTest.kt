@@ -134,6 +134,7 @@ class SwapViewModelTest {
         requestSwapQuotes = requestSwapQuotes,
         swapQuoteService = swapQuoteService,
         savedStateHandle = savedStateHandle,
+        ioDispatcher = testDispatcher,
         context = mockk<Context> {
             every { getString(any()) } returns "Error"
             every { getString(any(), *anyVararg()) } returns "Error"

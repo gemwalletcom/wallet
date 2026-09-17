@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
+import kotlinx.coroutines.CoroutineDispatcher
 import uniffi.gemstone.GemApplicationMetadataServiceInterface
 import android.content.Context
 import android.util.Log
@@ -26,7 +28,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -53,6 +54,7 @@ class WCRequestViewModel @Inject constructor(
     private val respondWalletConnectRequest: RespondWalletConnectRequest,
     private val pendingRequests: WalletConnectPendingRequests,
     private val activeRequest: ActiveWalletConnectRequest,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -94,7 +96,7 @@ class WCRequestViewModel @Inject constructor(
         pendingRequests.current.value?.takeIf { it.sessionId == sessionRequest.topic }?.reject()
         state.update { RequestViewModelState(sessionRequest = sessionRequest) }
         val job = viewModelScope.launch {
-            val outcome = withContext(Dispatchers.IO) {
+            val outcome = withContext(ioDispatcher) {
                 service.processRequest(
                     GemWalletConnectSessionRequest(
                         topic = sessionRequest.topic,
@@ -133,7 +135,7 @@ class WCRequestViewModel @Inject constructor(
         }
         val request = (sceneState.value as? RequestSceneState.Content)?.request as? WCRequest.SignMessage ?: return
         state.update { it.copy(responseState = RequestResponseState.Responding, approved = request) }
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             val signature = try {
                 service.signMessage(request.wallet.id.id, request.signMessage)
             } catch (err: CancellationException) {

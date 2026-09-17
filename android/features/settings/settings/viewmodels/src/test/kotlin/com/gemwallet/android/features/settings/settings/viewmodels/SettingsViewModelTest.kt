@@ -101,6 +101,7 @@ class SettingsViewModelTest {
         getPushEnabled = getPushEnabled,
         notificationsAvailable = true,
         settingsService = settingsService,
+        ioDispatcher = testDispatcher,
         context = mockk<Context> { every { getString(any()) } returns "" },
     )
 }

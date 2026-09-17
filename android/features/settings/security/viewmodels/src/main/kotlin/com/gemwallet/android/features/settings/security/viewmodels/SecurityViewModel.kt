@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.features.settings.security.viewmodels.localization.stringRes
 import com.gemwallet.android.features.settings.security.viewmodels.models.LockPeriodOption
 import com.gemwallet.android.features.settings.security.viewmodels.models.SecurityRowUIModel
@@ -11,7 +12,7 @@ import com.gemwallet.android.features.settings.security.viewmodels.models.uiMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -25,6 +26,7 @@ import uniffi.gemstone.lockPeriods
 class SecurityViewModel @Inject constructor(
     private val userConfig: UserConfig,
     private val settingsService: GemSettingsServiceInterface,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -46,12 +48,12 @@ class SecurityViewModel @Inject constructor(
         authRequired.value = required
     }
 
-    fun setLockInterval(minutes: Int) = viewModelScope.launch(Dispatchers.IO) {
+    fun setLockInterval(minutes: Int) = viewModelScope.launch(ioDispatcher) {
         userConfig.setLockInterval(minutes)
     }
 
     fun setHideBalances() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             userConfig.hideBalances()
         }
     }

@@ -100,7 +100,7 @@ class BaseAssetSelectViewModelTest {
                 items.filter { (chains.isEmpty() || it.asset.id.chain in chains) && (AssetFilter.HasBalance !in query || it.balance.totalAmount > 0.0) }
             }
         }
-        return BaseAssetSelectViewModel(session, recents, service, search, GemSelectAssetType.Send, mockk(relaxed = true))
+        return BaseAssetSelectViewModel(session, recents, service, search, GemSelectAssetType.Send, dispatcher, mockk(relaxed = true))
             .also { models.add(it) }
     }
 

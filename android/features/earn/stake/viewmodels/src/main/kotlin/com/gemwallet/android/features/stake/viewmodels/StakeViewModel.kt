@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.stake.viewmodels
 
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import android.content.Context
 import android.util.Log
@@ -37,7 +38,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.math.BigInteger
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -68,6 +69,7 @@ class StakeViewModel @Inject constructor(
     private val stakeService: GemStakeServiceInterface,
     getSession: GetSession,
     stateHandle: SavedStateHandle,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
     private val initialAssetId = stateHandle.get<String>(RouteArgument.AssetId.key)?.toAssetId()
@@ -113,7 +115,7 @@ class StakeViewModel @Inject constructor(
 
     private val validatorRows = delegations
         .map { items -> items.associate { it.validator.id to stakeService.validatorRow(it.validator.toGem()) } }
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
     private val hasValidators = assetId
@@ -160,13 +162,13 @@ class StakeViewModel @Inject constructor(
                 }
                 val assetInfo = assetInfo.filterNotNull().first()
                 emit(true)
-                runCatchingCancellable { withContext(Dispatchers.IO) { stakeService.sync(assetInfo.asset.id.chain.string) } }
+                runCatchingCancellable { withContext(ioDispatcher) { stakeService.sync(assetInfo.asset.id.chain.string) } }
                     .onFailure { Log.e(TAG, "stake delegations sync failed", it) }
                 emit(false)
                 sync.update { false }
             }
         }
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
     val actionRows: StateFlow<List<StakeActionUIModel>> = combine(actions, assetInfo.filterNotNull(), rewardsText) { actions, info, rewards ->

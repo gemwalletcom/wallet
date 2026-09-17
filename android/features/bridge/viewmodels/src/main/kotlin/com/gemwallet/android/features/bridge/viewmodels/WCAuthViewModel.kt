@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.bridge.viewmodels
 
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
+import kotlinx.coroutines.CoroutineDispatcher
 import uniffi.gemstone.GemApplicationMetadataServiceInterface
 import android.content.Context
 import androidx.lifecycle.ViewModel
@@ -31,7 +33,6 @@ import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -55,6 +56,7 @@ class WCAuthViewModel @Inject constructor(
     private val activeRequest: ActiveWalletConnectRequest,
     private val walletConnectService: GemWalletConnectServiceInterface,
     private val metadataService: GemApplicationMetadataServiceInterface,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -83,7 +85,7 @@ class WCAuthViewModel @Inject constructor(
             finish(request)
             return
         }
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             try {
                 val prepared = prepareSessionProposal(
                     name = request.metadata?.name.orEmpty(),
@@ -151,7 +153,7 @@ class WCAuthViewModel @Inject constructor(
         val approval = current.approval
         _state.update { AuthSceneState.Approving(current) }
 
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             try {
                 if (!isActiveRequest(request)) {
                     return@launch

@@ -40,7 +40,7 @@ import com.wallet.core.primitives.RecentActivityType
 import com.wallet.core.primitives.WalletType
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -73,6 +73,7 @@ open class BaseAssetSelectViewModel(
     protected val service: GemAssetSelectionServiceInterface,
     val search: SelectSearch,
     selectType: GemSelectAssetType,
+    protected val ioDispatcher: CoroutineDispatcher,
     protected val context: Context,
 ) : ViewModel(), ToastEmitter by ToastEmitterImpl() {
 
@@ -135,7 +136,7 @@ open class BaseAssetSelectViewModel(
                 assetInfo.toAssetInfoDataAggregate(GemAssetRowTitle.CANONICAL_ASSET, formatters = formatters)
             }
     }
-    .flowOn(Dispatchers.IO)
+    .flowOn(ioDispatcher)
     .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
 
     private data class AssetSections(
@@ -186,7 +187,7 @@ open class BaseAssetSelectViewModel(
             }
         }
     .map { items -> items.map { it.asset }.toImmutableList() }
-    .flowOn(Dispatchers.IO)
+    .flowOn(ioDispatcher)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<Asset>().toImmutableList())
 
     val showsRecents: StateFlow<Boolean> = combine(snapshotFlow { queryState.text.isNotEmpty() }, recent) { hasQuery, recents -> flow.showsRecents(hasQuery, recents.isNotEmpty()) }
@@ -214,7 +215,7 @@ open class BaseAssetSelectViewModel(
     fun onSelected(asset: Asset) {
         flow.action?.let { updateRecent(asset, it) }
         if (flow.enablesPriceAlert) {
-            viewModelScope.launch(Dispatchers.IO) {
+            viewModelScope.launch(ioDispatcher) {
                 runCatchingCancellable { service.setPriceAlert(asset.id.toIdentifier(), true) }
                     .onFailure { Log.e(TAG, "enabling the price alert for ${asset.id.toIdentifier()} failed", it) }
             }
@@ -231,7 +232,7 @@ open class BaseAssetSelectViewModel(
         }
     }
 
-    fun onTogglePin(assetId: AssetId) = viewModelScope.launch(Dispatchers.IO) {
+    fun onTogglePin(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {
         val item = assets.value.firstOrNull { it.asset.id == assetId }
         val willPin = item?.pinned != true
         runCatchingCancellable { service.setAssetPinned(assetId.toIdentifier(), willPin) }
@@ -239,7 +240,7 @@ open class BaseAssetSelectViewModel(
         item?.let { emitToast(assetPinnedToast(context, it.asset.name, willPin)) }
     }
 
-    private suspend fun setVisibility(assetId: AssetId, visible: Boolean): Result<Unit> = withContext(Dispatchers.IO) {
+    private suspend fun setVisibility(assetId: AssetId, visible: Boolean): Result<Unit> = withContext(ioDispatcher) {
         runCatchingCancellable { service.setAssetsEnabled(listOf(assetId.toIdentifier()), visible) }
             .onFailure { Log.e(TAG, "setting ${assetId.toIdentifier()} enabled=$visible failed", it) }
     }
@@ -269,7 +270,7 @@ open class BaseAssetSelectViewModel(
 
     init {
         if (flow.networkSearch) {
-            viewModelScope.launch(Dispatchers.IO) {
+            viewModelScope.launch(ioDispatcher) {
                 searchRequests.collectLatest { input ->
                     val step = flow.searchStep(input)
                     if (step !is GemAssetSearchStep.Search) return@collectLatest
@@ -290,7 +291,7 @@ open class BaseAssetSelectViewModel(
     }
 
     protected suspend fun setPerpetualPinned(perpetualId: PerpetualId, pinned: Boolean) {
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             runCatchingCancellable { service.setPerpetualPinned(perpetualId.toIdentifier(), pinned) }
                 .onFailure { Log.e(TAG, "pinning perpetual ${perpetualId.toIdentifier()} failed", it) }
         }
@@ -298,7 +299,7 @@ open class BaseAssetSelectViewModel(
 
     fun openRecent(asset: Asset) = updateRecent(asset, GemAssetAction.OPEN)
 
-    fun updateRecent(asset: Asset, action: GemAssetAction) = viewModelScope.launch(Dispatchers.IO) {
+    fun updateRecent(asset: Asset, action: GemAssetAction) = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable { service.addRecent(action, asset.toGem()) }
             .onFailure { Log.e(TAG, "recording recent ${asset.id.toIdentifier()} failed", it) }
     }

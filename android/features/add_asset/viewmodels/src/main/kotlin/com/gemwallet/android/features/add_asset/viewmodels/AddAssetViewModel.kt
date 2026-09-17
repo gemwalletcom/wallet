@@ -1,5 +1,7 @@
 package com.gemwallet.android.features.add_asset.viewmodels
 
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
+import kotlinx.coroutines.CoroutineDispatcher
 import uniffi.gemstone.GemChainServiceInterface
 import android.content.Context
 import androidx.compose.foundation.text.input.TextFieldState
@@ -25,7 +27,6 @@ import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -51,6 +52,7 @@ class AddAssetViewModel @Inject constructor(
     getSession: GetSession,
     private val service: GemAddAssetServiceInterface,
     private val chainService: GemChainServiceInterface,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -66,13 +68,13 @@ class AddAssetViewModel @Inject constructor(
     val availableChains = wallet.map { wallet ->
         wallet?.let { service.chains(it.toGem()).map { chain -> chain.requireChain() } }
     }
-    .flowOn(Dispatchers.IO)
+    .flowOn(ioDispatcher)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val chains = snapshotFlow { chainFilter.text }.combine(availableChains) { query, availableChains ->
         availableChains?.let { chainService.getMatchingChains(it.map { chain -> chain.string }, query.toString()).map { chain -> chain.requireChain() } } ?: emptyList()
     }
-    .flowOn(Dispatchers.IO)
+    .flowOn(ioDispatcher)
     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val chain = MutableStateFlow<Chain?>(null)
@@ -95,7 +97,7 @@ class AddAssetViewModel @Inject constructor(
                 emit(searchToken(input, requireNotNull(chain), address))
             }
         }
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, service.newSession(null))
 
     val searchState = session.map { it.viewState().phase }
@@ -122,7 +124,7 @@ class AddAssetViewModel @Inject constructor(
         val link = service.tokenUrl(token.id.chain.string, tokenId)?.toPrimitives() ?: return@map null
         LinkRowUIModel(url = link.link, model = ListItemModel(title = context.getString(R.string.transaction_view_on, link.name)))
     }
-    .flowOn(Dispatchers.IO)
+    .flowOn(ioDispatcher)
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun onQrScan() {
@@ -160,7 +162,7 @@ class AddAssetViewModel @Inject constructor(
         val wallet = wallet.value ?: return@launch
         state.update { it.copy(isImporting = true) }
         val added = runCatchingCancellable {
-            withContext(Dispatchers.IO) {
+            withContext(ioDispatcher) {
                 service.add(wallet.toGem(), asset.id.toIdentifier())
             }
         }

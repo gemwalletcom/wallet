@@ -12,6 +12,7 @@ import com.gemwallet.android.application.perpetual.cases.PerpetualObserver
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDetailsDataAggregate
 import com.gemwallet.android.ext.errorText
@@ -42,7 +43,7 @@ import com.wallet.core.primitives.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.currentCoroutineContext
@@ -83,6 +84,7 @@ class PerpetualDetailsViewModel @Inject constructor(
     private val service: GemPerpetualDetailsServiceInterface,
     private val getSession: GetSession,
     savedStateHandle: SavedStateHandle,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -108,10 +110,10 @@ class PerpetualDetailsViewModel @Inject constructor(
         emit(Unit)
     }
         .onStart { emit(Unit) }
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
 
     val perpetual = getPerpetual.getPerpetualByAssetId(assetId)
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val position = combine(
@@ -121,7 +123,7 @@ class PerpetualDetailsViewModel @Inject constructor(
         .flatMapLatest { (perpetual, walletId) ->
             perpetual?.let { getPerpetualPosition.getPositionByPerpetual(walletId, it.id) } ?: flowOf(null)
         }
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val positionListItem: StateFlow<ListItemModel?> = position.map { it?.listItem(context) }
@@ -153,7 +155,7 @@ class PerpetualDetailsViewModel @Inject constructor(
         getTransactions.getTransactions(transactionFilters),
         transactionSync,
     ) { transactions, _ -> transactions }
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val period = MutableStateFlow(service.chartPeriod().toPrimitives())
@@ -185,7 +187,7 @@ class PerpetualDetailsViewModel @Inject constructor(
                 }
             }
         }
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SubscriptionGraceMillis), StateViewType.Loading)
 
     val chart: StateFlow<StateViewType<PerpetualChartUIModel>> = combine(candles, position) { state, position ->
@@ -231,7 +233,7 @@ class PerpetualDetailsViewModel @Inject constructor(
     }
 
     fun period(period: ChartPeriod) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             runCatchingCancellable { service.setChartPeriod(period.toGem()) }
                 .onFailure { Log.e(TAG, "storing the chart period failed", it) }
         }
@@ -243,7 +245,7 @@ class PerpetualDetailsViewModel @Inject constructor(
 
     fun fetch() {
         refreshTrigger.update { it + 1 }
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             runCatchingCancellable { service.syncPositions() }
                 .onFailure { Log.e(TAG, "perpetual positions sync failed", it) }
         }

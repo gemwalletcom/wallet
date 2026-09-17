@@ -9,6 +9,7 @@ import com.gemwallet.android.application.perpetual.cases.GetPerpetuals
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualDataAggregate
 import com.gemwallet.android.domains.search.WalletSearchTag
 import com.gemwallet.android.domains.search.toGem
@@ -28,7 +29,7 @@ import com.wallet.core.primitives.PerpetualId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -49,6 +50,7 @@ class AssetsResultsViewModel @Inject constructor(
     recentAssetsService: RecentAssetsService,
     service: GemAssetSelectionServiceInterface,
     getPerpetuals: GetPerpetuals,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher,
     @ApplicationContext context: Context,
     savedStateHandle: SavedStateHandle,
 ) : BaseAssetSelectViewModel(
@@ -57,6 +59,7 @@ class AssetsResultsViewModel @Inject constructor(
     service,
     selectSearchOf(savedStateHandle, searchService, service),
     GemSelectAssetType.WalletSearchResults,
+    ioDispatcher,
     context,
 ) {
 
@@ -78,7 +81,7 @@ class AssetsResultsViewModel @Inject constructor(
             ) { items, show ->
                 if (show) items.take(resultsLimit()) else emptyList()
             }
-                .flowOn(Dispatchers.IO)
+                .flowOn(ioDispatcher)
                 .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
         WalletSearchTag.All ->
@@ -108,7 +111,7 @@ class AssetsResultsViewModel @Inject constructor(
     fun refresh() = fetch(pull = true)
 
     private fun fetch(pull: Boolean) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             isFetching.value = true
             if (pull) isPullRefreshing.value = true
             try {

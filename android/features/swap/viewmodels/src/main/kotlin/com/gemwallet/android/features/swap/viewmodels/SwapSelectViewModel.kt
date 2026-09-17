@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.assets.AssetsSearchService
 import com.gemwallet.android.data.services.gemstone.assets.RecentAssetsService
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
@@ -14,6 +15,7 @@ import com.gemwallet.android.ui.models.navigation.RouteArgument
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -30,6 +32,7 @@ class SwapSelectViewModel @Inject constructor(
     recentAssetsService: RecentAssetsService,
     service: GemAssetSelectionServiceInterface,
     savedStateHandle: SavedStateHandle,
+    @IoDispatcher ioDispatcher: CoroutineDispatcher,
     @ApplicationContext context: Context,
 ) : BaseAssetSelectViewModel(
     getSession = getSession,
@@ -40,6 +43,7 @@ class SwapSelectViewModel @Inject constructor(
         SwapItemType.Pay -> GemSelectAssetType.SwapPay
         SwapItemType.Receive -> GemSelectAssetType.SwapReceive(payAssetId = savedStateHandle.get<String?>(RouteArgument.FromAssetId.key))
     },
+    ioDispatcher,
     context,
 ) {
 

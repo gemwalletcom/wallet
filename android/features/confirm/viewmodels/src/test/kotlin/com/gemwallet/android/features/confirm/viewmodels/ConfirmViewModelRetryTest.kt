@@ -44,10 +44,9 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.job
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -83,17 +82,17 @@ class ConfirmViewModelRetryTest {
             value = BigInteger.TEN,
         )
         val viewModel = viewModel(transfer).also { model = it }
-        runCurrent()
-        coVerify(timeout = 5_000, exactly = 1) { confirmation.load(any()) }
+        advanceUntilIdle()
 
-        assertEquals(GemConfirmPhase.FAILED, viewModel.screen.first { it.phase == GemConfirmPhase.FAILED }.phase)
+        coVerify(exactly = 1) { confirmation.load(any()) }
+        assertEquals(GemConfirmPhase.FAILED, viewModel.screen.value.phase)
 
         viewModel.send(FinishConfirmAction { _ -> })
-        runCurrent()
+        advanceUntilIdle()
 
-        coVerify(timeout = 5_000, exactly = 2) { confirmation.load(any()) }
-        assertEquals(GemConfirmPhase.READY, viewModel.screen.first { it.phase == GemConfirmPhase.READY }.phase)
-        assertEquals(asset, viewModel.feeAsset.first { it != null }?.asset)
+        coVerify(exactly = 2) { confirmation.load(any()) }
+        assertEquals(GemConfirmPhase.READY, viewModel.screen.value.phase)
+        assertEquals(asset, viewModel.feeAsset.value?.asset)
     }
 
     private fun viewModel(transfer: GemTransferData): ConfirmViewModel {
@@ -141,6 +140,7 @@ class ConfirmViewModelRetryTest {
             buildConfirmProperties = mockk(relaxed = true),
             confirmService = confirmService,
             savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transfer.pack()))),
+            ioDispatcher = testDispatcher,
             context = mockk<Context> { every { getString(any()) } returns "Error"; every { getString(any(), *anyVararg()) } returns "Error" },
         )
     }

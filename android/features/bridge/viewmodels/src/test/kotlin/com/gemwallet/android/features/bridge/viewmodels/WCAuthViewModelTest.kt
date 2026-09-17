@@ -116,6 +116,7 @@ class WCAuthViewModelTest {
         activeRequest = ActiveWalletConnectRequest(events = emptyFlow()),
         walletConnectService = service,
         metadataService = metadataService(),
+        ioDispatcher = dispatcher,
         context = mockk(relaxed = true),
     ).also { models.add(it) }
 

@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.walletChartPeriods
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWallet
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
@@ -25,7 +26,7 @@ import com.wallet.core.primitives.PortfolioType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -52,6 +53,7 @@ class PortfolioChartViewModel internal constructor(
     getSession: GetSession,
     observePerpetualWallet: ObservePerpetualWallet,
     initialType: PortfolioType,
+    private val ioDispatcher: CoroutineDispatcher,
     private val context: Context,
 ) : ViewModel() {
     private val _selectedType = MutableStateFlow(initialType)
@@ -92,7 +94,7 @@ class PortfolioChartViewModel internal constructor(
                 else -> emit(state.copy(data = StateViewType.Data(data)))
             }
         }
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(StopTimeoutMillis),
@@ -109,7 +111,7 @@ class PortfolioChartViewModel internal constructor(
             },
         )
     }
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), ChartUIModel.State())
 
     val statistics: StateFlow<List<ListItemModel>> = portfolio
@@ -149,12 +151,14 @@ class PortfolioChartViewModel internal constructor(
         getSession: GetSession,
         observePerpetualWallet: ObservePerpetualWallet,
         savedStateHandle: SavedStateHandle,
+        @IoDispatcher ioDispatcher: CoroutineDispatcher,
         @ApplicationContext context: Context,
     ) : this(
         service = service,
         getSession = getSession,
         observePerpetualWallet = observePerpetualWallet,
         initialType = savedStateHandle.portfolioType(),
+        ioDispatcher = ioDispatcher,
         context = context,
     )
 }

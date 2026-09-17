@@ -5,6 +5,7 @@ import com.gemwallet.android.features.confirm.viewmodels.models.AcquireAssetRequ
 import uniffi.gemstone.GemAcquireAssetFlow
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.ext.toGem
@@ -24,11 +25,12 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.job
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -50,39 +52,43 @@ class ConfirmViewModelNetworkFeeSheetTest {
     private val account = mockAccount(chain = Chain.Solana)
     private val confirmService = mockk<GemConfirmTransferService>(relaxed = true)
     private val confirmation = mockk<GemConfirmation>()
+    private var model: ConfirmViewModel? = null
 
     @Before
     fun setUp() = Dispatchers.setMain(testDispatcher)
 
     @After
-    fun tearDown() = Dispatchers.resetMain()
+    fun tearDown() = runTest(testDispatcher) {
+        model?.viewModelScope?.coroutineContext?.job?.cancelAndJoin()
+        Dispatchers.resetMain()
+    }
 
     @Test
     fun networkFeeSheetShowsOncePerErrorAndStaysDismissed() = runTest(testDispatcher) {
-        val viewModel = viewModel()
-        runCurrent()
+        val viewModel = viewModel().also { model = it }
+        advanceUntilIdle()
 
-        assertEquals(GemConfirmPhase.FAILED, viewModel.screen.first { it.phase == GemConfirmPhase.FAILED }.phase)
-        assertTrue(viewModel.isNetworkFeeSheetVisible.first { it })
+        assertEquals(GemConfirmPhase.FAILED, viewModel.screen.value.phase)
+        assertTrue(viewModel.isNetworkFeeSheetVisible.value)
 
         viewModel.dismissNetworkFeeSheet()
-        runCurrent()
+        advanceUntilIdle()
 
         assertEquals(GemConfirmPhase.FAILED, viewModel.screen.value.phase)
         assertFalse(viewModel.isNetworkFeeSheetVisible.value)
 
         viewModel.send(FinishConfirmAction { _ -> })
-        runCurrent()
+        advanceUntilIdle()
 
-        assertTrue(viewModel.isNetworkFeeSheetVisible.first { it })
+        assertTrue(viewModel.isNetworkFeeSheetVisible.value)
     }
 
     @Test
     fun loadErrorCarriesItsTextAndInfoSheet() = runTest(testDispatcher) {
-        val viewModel = viewModel()
-        runCurrent()
+        val viewModel = viewModel().also { model = it }
+        advanceUntilIdle()
 
-        val error = requireNotNull(viewModel.loadError.first { it != null })
+        val error = requireNotNull(viewModel.loadError.value)
         assertEquals("Error", error.text)
         assertTrue(error.info is InfoSheetEntity.NetworkFeeRequiredInfo)
 
@@ -112,6 +118,7 @@ class ConfirmViewModelNetworkFeeSheetTest {
             buildConfirmProperties = mockk(relaxed = true),
             confirmService = confirmService,
             savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transfer.pack()))),
+            ioDispatcher = testDispatcher,
             context = mockk<Context> { every { getString(any()) } returns "Error"; every { getString(any(), *anyVararg()) } returns "Error" },
         )
     }

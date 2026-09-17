@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.receive.cases.GetReceiveAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
@@ -19,7 +20,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -42,6 +43,7 @@ class ReceiveViewModel @AssistedInject constructor(
     private val getWalletAssets: GetWalletAssets,
     private val service: GemReceiveServiceInterface,
     getSession: GetSession,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -50,7 +52,7 @@ class ReceiveViewModel @AssistedInject constructor(
 
     val asset = selectedAssetId
         .flatMapLatest { getReceiveAssetInfo(it) }
-        .flowOn(Dispatchers.IO)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, storedAsset(sourceAssetId))
 
     private fun storedAsset(assetId: AssetId) = getWalletAssets().value.firstOrNull { it.asset.id == assetId }
@@ -68,7 +70,7 @@ class ReceiveViewModel @AssistedInject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, listOf(sourceAssetId))
 
     init {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             val wallet = session.filterNotNull().first().wallet
             runCatchingCancellable { service.syncNetworkAssetIds(sourceAssetId.toIdentifier(), wallet.toGem()) }
         }
@@ -87,7 +89,7 @@ class ReceiveViewModel @AssistedInject constructor(
         fun create(assetId: AssetId): ReceiveViewModel
     }
 
-    fun setVisible() = viewModelScope.launch(Dispatchers.IO) {
+    fun setVisible() = viewModelScope.launch(ioDispatcher) {
         val assetId = asset.value?.asset?.id ?: return@launch
         val wallet = session.filterNotNull().first().wallet
         service.enableAsset(wallet.id.id, assetId.toIdentifier())

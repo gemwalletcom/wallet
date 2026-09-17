@@ -8,6 +8,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.application.transactions.cases.TransactionsRequestFilter
 import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.domains.connection.refreshInterval
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -19,7 +20,7 @@ import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,6 +48,7 @@ class TransactionsViewModel @Inject constructor(
     getTransactions: GetTransactions,
     private val service: GemTransactionsServiceInterface,
     private val connectionStatusObserver: ConnectionStatusObserver,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -115,7 +117,7 @@ class TransactionsViewModel @Inject constructor(
         val current = walletId.value ?: return null
         if (current == syncedWalletId) return null
         syncedWalletId = current
-        return viewModelScope.launch(Dispatchers.IO) {
+        return viewModelScope.launch(ioDispatcher) {
             val synced = sync()
             if (!synced && syncedWalletId == current) {
                 syncedWalletId = null
@@ -127,7 +129,7 @@ class TransactionsViewModel @Inject constructor(
         .onFailure { Log.e(TAG, "transactions sync failed", it) }
         .isSuccess
 
-    fun refresh() = viewModelScope.launch(Dispatchers.IO) {
+    fun refresh() = viewModelScope.launch(ioDispatcher) {
         _isRefreshing.update { true }
         try {
             sync()

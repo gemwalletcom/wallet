@@ -59,15 +59,17 @@ class AddAssetViewModelTest {
     }
     private val getSession = mockk<GetSession> { every { this@mockk() } returns MutableStateFlow(mockSession(wallet = wallet)) }
 
+    private val dispatcher = UnconfinedTestDispatcher()
+
     @Before
-    fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
+    fun setUp() = Dispatchers.setMain(dispatcher)
 
     @After
     fun tearDown() = Dispatchers.resetMain()
 
     @Test
     fun `typed address resolves the token through the service`() = runTest {
-        val viewModel = AddAssetViewModel(getSession, service, chainService, mockk(relaxed = true))
+        val viewModel = AddAssetViewModel(getSession, service, chainService, dispatcher, mockk(relaxed = true))
         try {
             withContext(Dispatchers.Main) {
                 viewModel.addressState.value = "0x1"
@@ -83,7 +85,7 @@ class AddAssetViewModelTest {
 
     @Test
     fun `addAsset adds the found token to the current wallet`() = runTest {
-        val viewModel = AddAssetViewModel(getSession, service, chainService, mockk(relaxed = true))
+        val viewModel = AddAssetViewModel(getSession, service, chainService, dispatcher, mockk(relaxed = true))
         try {
             withContext(Dispatchers.Main) {
                 viewModel.addressState.value = "0x1"
@@ -104,7 +106,7 @@ class AddAssetViewModelTest {
     @Test
     fun `a failed add stays on the screen and reports the Core message`() = runTest {
         coEvery { service.add(any(), any()) } throws GemServiceException.Store("disk full")
-        val viewModel = AddAssetViewModel(getSession, service, chainService, mockk(relaxed = true))
+        val viewModel = AddAssetViewModel(getSession, service, chainService, dispatcher, mockk(relaxed = true))
         try {
             withContext(Dispatchers.Main) {
                 viewModel.addressState.value = "0x1"

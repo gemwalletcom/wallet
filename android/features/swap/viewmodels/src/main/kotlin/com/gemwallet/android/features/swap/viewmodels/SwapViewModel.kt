@@ -15,6 +15,7 @@ import com.gemwallet.android.application.swap.cases.SwapQuotesResult
 import com.gemwallet.android.application.swap.cases.create
 import com.gemwallet.android.application.swap.cases.matches
 import com.gemwallet.android.application.swap.cases.toGem
+import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.domains.asset.calculateFiat
 import com.gemwallet.android.domains.asset.formatFiat
 import com.gemwallet.android.domains.asset.swapValue
@@ -49,6 +50,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -86,6 +88,7 @@ class SwapViewModel @Inject constructor(
     requestSwapQuotes: RequestSwapQuotes,
     private val savedStateHandle: SavedStateHandle,
     private val swapQuoteService: GemSwapQuoteServiceInterface,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -289,7 +292,7 @@ class SwapViewModel @Inject constructor(
             return
         }
         selectedSlippageBps.update { slippageBps }
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             swapQuoteService.setSlippageBps(slippageBps)
         }
     }
@@ -339,7 +342,7 @@ class SwapViewModel @Inject constructor(
         refreshEnabled.value = isEnabled
     }
 
-    fun swap(onConfirm: (ConfirmTransferInput) -> Unit) = viewModelScope.launch(Dispatchers.IO) {
+    fun swap(onConfirm: (ConfirmTransferInput) -> Unit) = viewModelScope.launch(ioDispatcher) {
         val pending = quote.value ?: return@launch
         val started = session.value.startTransfer() ?: return@launch
         val transfer = started.transferPhase
@@ -362,7 +365,7 @@ class SwapViewModel @Inject constructor(
         }
     }
 
-    private fun subscribePrice(id: AssetId) = viewModelScope.launch(Dispatchers.IO) {
+    private fun subscribePrice(id: AssetId) = viewModelScope.launch(ioDispatcher) {
         runCatchingCancellable { swapQuoteService.addPrices(listOf(id.toIdentifier())) }
     }
 

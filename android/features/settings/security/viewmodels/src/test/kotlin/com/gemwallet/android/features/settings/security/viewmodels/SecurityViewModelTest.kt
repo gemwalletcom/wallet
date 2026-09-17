@@ -54,14 +54,14 @@ class SecurityViewModelTest {
     @Test
     fun `the rows come from core with the authentication flag`() {
         val settings = settings()
-        SecurityViewModel(userConfig(authRequired = true), settings, context())
+        SecurityViewModel(userConfig(authRequired = true), settings, dispatcher, context())
 
         verify { settings.securitySections(true) }
     }
 
     @Test
     fun `the stored preferences are what the scene starts from`() = runTest(dispatcher) {
-        val model = SecurityViewModel(userConfig(authRequired = true, lockMinutes = 5, hideBalances = true), settings(), context())
+        val model = SecurityViewModel(userConfig(authRequired = true, lockMinutes = 5, hideBalances = true), settings(), dispatcher, context())
         advanceUntilIdle()
 
         val rows = model.rows.value.flatten()
@@ -74,7 +74,7 @@ class SecurityViewModelTest {
     @Test
     fun `changing the lock interval and the balance privacy writes through`() = runTest(dispatcher) {
         val config = userConfig()
-        val model = SecurityViewModel(config, settings(), context())
+        val model = SecurityViewModel(config, settings(), dispatcher, context())
 
         model.setAuthRequired(true)
         model.setLockInterval(15)

@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.job
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -76,8 +77,9 @@ class ConfirmViewModelRequestTest {
         val transfer = mockGemTransferData(asset = asset, recipient = GemRecipient(address = account.address, memo = "m".repeat(64 * 1024)))
         val handle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(transfer.pack())))
         model = viewModel(handle)
+        advanceUntilIdle()
 
-        verify(timeout = AWAIT_MS, exactly = 1) { confirmService.confirmation(any(), transfer, any()) }
+        verify(exactly = 1) { confirmService.confirmation(any(), transfer, any()) }
     }
 
     @Test
@@ -86,15 +88,13 @@ class ConfirmViewModelRequestTest {
         val second = mockGemTransferData(asset = asset, recipient = GemRecipient(address = account.address, memo = "second"))
         val handle = SavedStateHandle(mapOf(RouteArgument.Params.key to requireNotNull(first.pack())))
         model = viewModel(handle)
-        verify(timeout = AWAIT_MS) { confirmService.confirmation(any(), first, any()) }
+        advanceUntilIdle()
+        verify { confirmService.confirmation(any(), first, any()) }
 
         handle[RouteArgument.Params.key] = requireNotNull(second.pack())
+        advanceUntilIdle()
 
-        verify(timeout = AWAIT_MS) { confirmService.confirmation(any(), second, any()) }
-    }
-
-    private companion object {
-        const val AWAIT_MS = 5_000L
+        verify { confirmService.confirmation(any(), second, any()) }
     }
 
     private fun viewModel(handle: SavedStateHandle): ConfirmViewModel {
@@ -113,6 +113,7 @@ class ConfirmViewModelRequestTest {
         buildConfirmProperties = mockk(relaxed = true),
         confirmService = confirmService,
         savedStateHandle = handle,
+        ioDispatcher = testDispatcher,
         context = mockk<Context> { every { getString(any()) } returns "Error"; every { getString(any(), *anyVararg()) } returns "Error" },
     )
 }

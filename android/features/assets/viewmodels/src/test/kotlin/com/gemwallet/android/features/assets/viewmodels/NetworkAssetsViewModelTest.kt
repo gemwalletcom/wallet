@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -92,8 +93,9 @@ class NetworkAssetsViewModelTest {
     fun `the initial balance refresh asks for the active and hidden assets of the chain`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
         viewModel.pinned.first { it.isNotEmpty() }
+        advanceUntilIdle()
 
-        coVerify(exactly = 1, timeout = AWAIT_MS) {
+        coVerify(exactly = 1) {
             service.updateBalances(
                 listOf(pinnedToken.asset.id.toIdentifier(), unpinnedToken.asset.id.toIdentifier(), hiddenToken.asset.id.toIdentifier()),
             )
@@ -107,9 +109,10 @@ class NetworkAssetsViewModelTest {
 
         viewModel.togglePin(pinnedToken.asset.id)
         viewModel.togglePin(unpinnedToken.asset.id)
+        advanceUntilIdle()
 
-        coVerify(exactly = 1, timeout = AWAIT_MS) { service.setAssetPinned(pinnedToken.asset.id.toIdentifier(), false) }
-        coVerify(exactly = 1, timeout = AWAIT_MS) { service.setAssetPinned(unpinnedToken.asset.id.toIdentifier(), true) }
+        coVerify(exactly = 1) { service.setAssetPinned(pinnedToken.asset.id.toIdentifier(), false) }
+        coVerify(exactly = 1) { service.setAssetPinned(unpinnedToken.asset.id.toIdentifier(), true) }
     }
 
     @Test
@@ -131,12 +134,12 @@ class NetworkAssetsViewModelTest {
             override fun invoke(): Flow<WalletId> = walletId
         },
         service = service,
+        ioDispatcher = testDispatcher,
         context = mockk<Context> { every { getString(any()) } returns "Assets" },
         savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Chain.key to Chain.Ethereum.string)),
     )
 
     private companion object {
-        const val AWAIT_MS = 2_000L
         const val FIRST_WALLET = "wallet-1"
         const val SECOND_WALLET = "wallet-2"
     }
