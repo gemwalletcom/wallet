@@ -85,6 +85,7 @@ import uniffi.gemstone.SimulationResult
 import javax.inject.Inject
 import com.gemwallet.android.domains.confirm.unpackTransferData
 import android.content.Context
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.features.confirm.viewmodels.localization.broadcastLabel
 import com.gemwallet.android.features.confirm.viewmodels.localization.buttonLabel
@@ -256,6 +257,7 @@ class ConfirmViewModel @Inject constructor(
             toAmount = inputType.swapData?.quote?.toValue,
             nftAsset = inputType.nftAsset,
             currency = content.currency,
+            paymentPrice = inputType.paymentInvoice?.price,
         )
     }
     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -441,12 +443,17 @@ class ConfirmViewModel @Inject constructor(
         val session = confirmation.value ?: return@launch
 
         try {
-            val transactionHash = when (val result = session.execute()) {
+            val result = session.execute()
+            val transactionHash = when (result) {
                 is GemExecuteResult.Signed -> result.data.first()
                 is GemExecuteResult.Sent -> result.hashes.last()
             }
+            val warning = when (result) {
+                is GemExecuteResult.Signed -> result.warning
+                is GemExecuteResult.Sent -> result.warning
+            }?.text(context)
             viewModelScope.launch(Dispatchers.Main) {
-                finishAction(transactionHash)
+                finishAction(transactionHash, warning)
             }
         } catch (error: CancellationException) {
             throw error

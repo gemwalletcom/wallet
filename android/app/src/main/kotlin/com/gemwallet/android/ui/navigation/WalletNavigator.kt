@@ -336,8 +336,10 @@ class WalletNavigator(
         return true
     }
 
-    fun popConfirmFlow() {
-        popFrom(backStack.indexOfLast { !it.isConfirmFlowSegmentRoute() } + 1)
+    fun popConfirmFlow(toast: String? = null) {
+        val index = backStack.indexOfLast { !it.isConfirmFlowSegmentRoute() }
+        toast?.let { message -> backStack.getOrNull(index)?.let { target -> toastMessages[target] = message } }
+        popFrom(index + 1)
     }
 
     private fun popFrom(index: Int) {

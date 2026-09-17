@@ -3,6 +3,7 @@ package com.gemwallet.android.domains.confirm
 import com.gemwallet.android.model.AssetPriceValue
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.CryptoFiatConverter
+import com.gemwallet.android.model.CurrencyFormatter
 import com.gemwallet.android.model.ValueFormatter
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Currency
@@ -10,6 +11,7 @@ import com.wallet.core.primitives.NFTAsset
 import java.math.BigInteger
 import uniffi.gemstone.GemTransactionHeaderKind
 import uniffi.gemstone.GemValueStyle
+import uniffi.gemstone.PaymentPrice
 
 class AmountUIModel(
     val headerKind: GemTransactionHeaderKind,
@@ -20,6 +22,7 @@ class AmountUIModel(
     val toAmount: BigInteger?,
     val nftAsset: NFTAsset?,
     val currency: Currency,
+    val paymentPrice: PaymentPrice? = null,
 ) {
     val asset: Asset get() = fromAsset.asset
 
@@ -37,6 +40,7 @@ class AmountUIModel(
     }
 
     val amountEquivalent: String by lazy {
+        paymentPrice?.let { return@lazy CurrencyFormatter(currencyCode = it.currency).string(it.amount) }
         val price = fromAsset.price?.price?.price ?: return@lazy ""
         CryptoFiatConverter.toFiatString(Crypto(amount), asset.decimals, price, currency)
     }

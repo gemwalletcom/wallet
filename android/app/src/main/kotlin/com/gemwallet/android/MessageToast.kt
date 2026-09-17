@@ -14,11 +14,18 @@ internal fun MessageToast(
     @StringRes message: Int,
     onShown: () -> Unit,
 ) {
+    MessageToast(message = stringResource(id = message).takeIf { visible }, onShown = onShown)
+}
+
+@Composable
+internal fun MessageToast(
+    message: String?,
+    onShown: () -> Unit,
+) {
     val context = LocalContext.current
-    val text = stringResource(id = message)
-    LaunchedEffect(visible) {
-        if (visible) {
-            makeText(context, text, Toast.LENGTH_SHORT).show()
+    LaunchedEffect(message) {
+        if (message != null) {
+            makeText(context, message, Toast.LENGTH_SHORT).show()
             onShown()
         }
     }
