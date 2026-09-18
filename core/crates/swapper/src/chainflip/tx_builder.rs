@@ -1,7 +1,11 @@
 use std::{str::FromStr, sync::Arc};
 
 use gem_encoding::encode_base64;
-use gem_solana::{AccountMeta, DEFAULT_SWAP_GAS_LIMIT, InstructionBuilder, Pubkey, SolanaClient, TransactionBuilder, compute_budget::set_compute_unit_limit, try_decode_blockhash};
+use gem_solana::{
+    AccountMeta, DEFAULT_SWAP_GAS_LIMIT, InstructionBuilder, Pubkey, SolanaClient, TransactionBuilder,
+    compute_budget::{set_compute_unit_limit, set_compute_unit_price},
+    try_decode_blockhash,
+};
 use gem_tron::address::TronAddress;
 use num_bigint::BigUint;
 use primitives::{
@@ -51,10 +55,8 @@ pub(super) fn build_solana_transaction(fee_payer: &str, response: &SolanaVaultSw
         })
         .collect::<Result<_, SwapperError>>()?;
     let instruction = InstructionBuilder::new(program_id).accounts(accounts).data(data).build();
-
     let mut transaction_builder = TransactionBuilder::new(fee_payer, blockhash);
-    transaction_builder.add_instruction(set_compute_unit_limit(DEFAULT_SWAP_GAS_LIMIT));
-    transaction_builder.add_instruction(instruction);
+    transaction_builder.add_instructions(vec![set_compute_unit_price(0), set_compute_unit_limit(DEFAULT_SWAP_GAS_LIMIT), instruction]);
 
     let transaction = transaction_builder.build().map_err(SwapperError::transaction_error)?;
     let bytes = transaction.serialize().map_err(SwapperError::transaction_error)?;
@@ -67,6 +69,7 @@ mod tests {
     use super::*;
     use crate::chainflip::broker::{SolanaVaultSwapResponse, TronVaultSwapResponse};
     use gem_jsonrpc::types::JsonRpcResponse;
+    use gem_solana::decode_transaction;
     use num_bigint::BigUint;
 
     #[test]
@@ -137,8 +140,12 @@ mod tests {
 
         assert_eq!(
             tx_b64,
-            "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAQIhfupPuKcYE+oWKNRaIwBKQhB6vsZxjpwpHXTx7w7758q21EdC4D4NruUv9F26xeVqhYm0WXVWkSIjeQIxD3II9tUC6aOjrGBy017zEItREWS3QDEQI/vMhwSVTo/1e2664X/uFi6gx6sRwFnSAPu1ODmcAsu2sf8IuwYArWOf4gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMGRm/lIRcy/+ytunLDm+e8jOW7xfcSayxDmzpAAAAAiKB2TmOdpVByNvc2jO/SqWcRJnwnp6i4PhwcXOdR2sf+adsEMvxMdgZ9RYJ0BKLVq++GfFFu+oFIYBJkEkLMJpzwID++OVGHruXrGUzSEC5Cyny69vOfFr8T0fbCq+HOAgUABQKgaAYABwYGAQADAgS2AaMmXOLzaY3EgB0sBAAAAAAEAAAAFAAAAFFLyx+aq7kE5hBr0QUrZtJwbbu3BwAAAABsAAAAAAoAAACF+6k+4pxgT6hYo1FojAEpCEHq+xnGOnCkddPHvDvvn8qhRbbz/dR46Sb6cwLQdTEAAAAAAAAAAAAAAAAAAAAAAAAeg9KXLT3KOjMNYMJ3fuW40laDxj+jWRFphWCYMPQgVAUABAAtEQAAADiSTMM0VhiQ46gZQHNTcQ4J"
+            "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAQIhfupPuKcYE+oWKNRaIwBKQhB6vsZxjpwpHXTx7w7758q21EdC4D4NruUv9F26xeVqhYm0WXVWkSIjeQIxD3II9tUC6aOjrGBy017zEItREWS3QDEQI/vMhwSVTo/1e2664X/uFi6gx6sRwFnSAPu1ODmcAsu2sf8IuwYArWOf4gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMGRm/lIRcy/+ytunLDm+e8jOW7xfcSayxDmzpAAAAAiKB2TmOdpVByNvc2jO/SqWcRJnwnp6i4PhwcXOdR2sf+adsEMvxMdgZ9RYJ0BKLVq++GfFFu+oFIYBJkEkLMJpzwID++OVGHruXrGUzSEC5Cyny69vOfFr8T0fbCq+HOAwUACQMAAAAAAAAAAAUABQKgaAYABwYGAQADAgS2AaMmXOLzaY3EgB0sBAAAAAAEAAAAFAAAAFFLyx+aq7kE5hBr0QUrZtJwbbu3BwAAAABsAAAAAAoAAACF+6k+4pxgT6hYo1FojAEpCEHq+xnGOnCkddPHvDvvn8qhRbbz/dR46Sb6cwLQdTEAAAAAAAAAAAAAAAAAAAAAAAAeg9KXLT3KOjMNYMJ3fuW40laDxj+jWRFphWCYMPQgVAUABAAtEQAAADiSTMM0VhiQ46gZQHNTcQ4J"
         );
+
+        let transaction = decode_transaction(&tx_b64).unwrap();
+        assert_eq!(transaction.get_compute_unit_price(), Some(0));
+        assert_eq!(transaction.get_compute_unit_limit(), Some(DEFAULT_SWAP_GAS_LIMIT));
 
         Ok(())
     }

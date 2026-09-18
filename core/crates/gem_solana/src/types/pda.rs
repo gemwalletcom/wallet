@@ -13,7 +13,7 @@ const PROGRAM_DERIVED_ADDRESS_MARKER: &[u8] = b"ProgramDerivedAddress";
 pub fn find_program_address(program_id: &Pubkey, seeds: &[&[u8]]) -> Result<(Pubkey, u8)> {
     validate_seeds(seeds, true)?;
 
-    for bump in (0..=u8::MAX).rev() {
+    for bump in (1..=u8::MAX).rev() {
         let bump_seed = [bump];
         let mut seeds_with_bump = Vec::with_capacity(seeds.len().saturating_add(1));
         seeds_with_bump.extend_from_slice(seeds);

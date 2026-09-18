@@ -1,5 +1,5 @@
 use gem_encoding::encode_base64;
-use gem_solana::{Pubkey, SignatureBytes, VersionedTransactionExt, decode_transaction};
+use gem_solana::{Pubkey, VersionedTransactionExt, decode_transaction};
 use primitives::{PaymentAmount, PaymentRequest, TransactionType};
 
 pub(super) struct PreparedTransaction {
@@ -28,7 +28,6 @@ pub(super) fn prepare(transaction: &str, signer: &str) -> Result<PreparedTransac
     *fee_payer = signer;
 
     match transaction.signatures() {
-        [] => transaction.add_signature(SignatureBytes::new([0u8; 64])),
         [signature] if signature.as_bytes() == &[0u8; 64] => {}
         [_] => return Err("Solana Pay transaction already contains the wallet signature".to_string()),
         _ => return Err("Solana Pay transaction has an invalid signature count".to_string()),

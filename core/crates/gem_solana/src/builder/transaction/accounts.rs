@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{AccountMeta, CompiledInstruction, Instruction, MessageHeader, Pubkey, Result, SolanaError};
-
-pub(super) const MAX_ACCOUNT_KEYS: usize = u8::MAX as usize + 1;
+use crate::{AccountMeta, CompiledInstruction, Instruction, MessageHeader, Pubkey, Result, SolanaError, types::MAX_ACCOUNT_KEYS};
 
 #[derive(Default)]
 pub(crate) struct AccountBuckets {

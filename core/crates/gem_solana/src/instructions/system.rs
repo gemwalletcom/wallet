@@ -6,6 +6,15 @@ use crate::{
 };
 
 const TRANSFER_DISCRIMINANT: [u8; 4] = hex!("02000000");
+pub const ADVANCE_NONCE_ACCOUNT_DISCRIMINANT: [u8; 4] = hex!("04000000");
+
+pub fn is_advance_nonce_account_data(data: &[u8]) -> bool {
+    data.get(..4) == Some(ADVANCE_NONCE_ACCOUNT_DISCRIMINANT.as_slice())
+}
+
+pub fn is_advance_nonce_account(instruction: &Instruction) -> bool {
+    instruction.program_id == system_program() && is_advance_nonce_account_data(&instruction.data)
+}
 
 pub fn transfer(from: &Pubkey, to: &Pubkey, lamports: u64) -> Instruction {
     let mut data = Vec::with_capacity(12);

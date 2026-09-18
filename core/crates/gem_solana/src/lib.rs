@@ -39,7 +39,7 @@ pub use transaction::{
 };
 pub use types::{
     AccountMeta, AddressLookupTableAccount, CompiledInstruction, Instruction, MAX_TRANSACTION_SIZE, Message, MessageAddressTableLookup, MessageHeader, Pubkey, SignatureBytes,
-    VersionedMessageV0, VersionedTransaction, find_program_address,
+    TransactionConfig, VersionedMessageV0, VersionedMessageV1, VersionedTransaction, find_program_address,
 };
 
 pub(crate) use error::Result;
