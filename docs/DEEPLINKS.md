@@ -38,6 +38,13 @@ Support chat messages are parsed in Core, and a link whose URL is a deep link is
 [Buy Bitcoin](gem://tokens/bitcoin/buy?amount=100)
 ```
 
+A destination wrapped in angle brackets is the same link. Chat backends auto-link http(s) URLs into that form, and both of these resolve to the deep link rather than falling through to the browser:
+
+```markdown
+[Bitcoin](<https://gemwallet.com/tokens/bitcoin>)
+Bitcoin: <https://gemwallet.com/tokens/bitcoin>
+```
+
 ## Implementation
 
 - [Deep link parsing and building](../core/crates/primitives/src/deeplink.rs)
