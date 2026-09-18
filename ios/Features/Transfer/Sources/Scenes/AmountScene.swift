@@ -141,8 +141,8 @@ public struct AmountScene: View {
         .frame(maxWidth: .infinity)
         .navigationTitle(model.title)
         .onChange(of: model.amountInputModel.text, model.onChangeAmountText)
-        .onAppear {
-            model.onAppear()
+        .onAppear(perform: model.onAppear)
+        .taskOnce {
             if model.shouldFocusOnAppear {
                 focusedField = true
             }
