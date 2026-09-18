@@ -17,7 +17,8 @@ pub async fn build_quote_data(wallet_address: &str, step: &SolanaStepData, rpc_p
 }
 
 fn build_transaction(wallet_address: &str, step: &SolanaStepData, blockhash: &str, lookup_tables: &[AddressLookupTableAccount]) -> Result<SwapperQuoteData, SwapperError> {
-    let instructions = instructions_from_primitives::<HexInstructionData>(step.instructions.clone()).map_err(SwapperError::transaction_error)?;
+    let mut instructions = instructions_from_primitives::<HexInstructionData>(step.instructions.clone()).map_err(SwapperError::transaction_error)?;
+    compute_budget::ensure_compute_unit_price(&mut instructions, 0);
     let fee_payer = SolanaAddress::parse(wallet_address).map_err(SwapperError::transaction_error)?.into();
     let data = encode_v0_transaction(fee_payer, blockhash, &instructions, lookup_tables).map_err(SwapperError::transaction_error)?;
     let gas_limit = compute_budget::get_compute_unit_limit(&instructions).map(|limit| limit.to_string());
@@ -40,6 +41,7 @@ mod tests {
 
         let transaction = decode_transaction(&quote_data.data).unwrap();
         assert_eq!(transaction.num_required_signatures(), 1);
+        assert_eq!(transaction.get_compute_unit_price(), Some(0));
         assert!(quote_data.to.is_empty());
         assert_eq!(quote_data.value, BigUint::ZERO);
         assert!(quote_data.approval.is_none());
