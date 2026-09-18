@@ -19,7 +19,7 @@ public final class PerpetualChartModel {
 
     private var observeTask: Task<Void, Never>?
 
-    public var state: StateViewType<[ChartCandleStick]> = .loading
+    public var state: StateViewType<PerpetualCandles> = .loading
     public var currentPeriod: ChartPeriod {
         didSet { service.setChartPeriodValue(currentPeriod) }
     }
@@ -70,13 +70,16 @@ private extension PerpetualChartModel {
     }
 
     func updateCandlesticks(perpetual: Perpetual) async {
+        let period = currentPeriod
         if state.value == nil {
             state = .loading
         }
         do {
-            let candlesticks = try await service.candlesticks(perpetual: perpetual, period: currentPeriod)
-            state = .data(candlesticks)
+            let candlesticks = try await service.candlesticks(perpetual: perpetual, period: period)
+            guard period == currentPeriod else { return }
+            state = .data(PerpetualCandles(period: period, candles: candlesticks))
         } catch {
+            guard period == currentPeriod else { return }
             state.setError(error)
         }
     }
@@ -105,11 +108,11 @@ private extension PerpetualChartModel {
     }
 
     func handleChartUpdate(_ update: ChartCandleUpdate, perpetual: Perpetual) {
-        guard case let .data(candlesticks) = state,
-              let merged = service.apply(update: update, to: candlesticks, perpetual: perpetual, period: currentPeriod)
+        guard case let .data(loaded) = state,
+              let merged = service.apply(update: update, to: loaded.candles, perpetual: perpetual, period: loaded.period)
         else {
             return
         }
-        state = .data(merged)
+        state = .data(PerpetualCandles(period: loaded.period, candles: merged))
     }
 }

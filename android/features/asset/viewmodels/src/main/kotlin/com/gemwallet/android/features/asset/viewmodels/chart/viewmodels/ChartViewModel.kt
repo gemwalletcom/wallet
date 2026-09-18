@@ -55,10 +55,10 @@ class ChartViewModel internal constructor(
             val loading = chartService.newSession().onSelectPeriod(period)
             emit(loading.viewState())
             val next = try {
-                loading.onLoaded(chartService.syncCharts(assetId.toIdentifier(), period))
+                loading.onLoaded(chartService.syncCharts(assetId.toIdentifier(), period), period)
             } catch (e: Exception) {
                 currentCoroutineContext().ensureActive()
-                loading.onFailed(e as? GemServiceException ?: GemServiceException.Core(e.message.orEmpty()))
+                loading.onFailed(e as? GemServiceException ?: GemServiceException.Core(e.message.orEmpty()), period)
             }
             refreshController.stopRefreshing()
             emit(next.viewState())

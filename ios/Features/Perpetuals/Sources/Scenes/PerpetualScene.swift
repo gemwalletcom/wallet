@@ -32,8 +32,8 @@ public struct PerpetualScene: View {
                         case let .data(data):
                             CandlestickChartView(
                                 model: CandlestickChartViewModel(
-                                    candles: data,
-                                    period: chart.currentPeriod,
+                                    candles: data.candles,
+                                    period: data.period,
                                     position: model.positions.first?.position,
                                 ),
                             )
