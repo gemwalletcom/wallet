@@ -40,6 +40,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import uniffi.gemstone.GemAssetAction
+import uniffi.gemstone.GemAssetFilter
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemSelectAssetFlow
 import uniffi.gemstone.GemSelectAssetScope
@@ -77,6 +78,10 @@ class BaseAssetSelectViewModelTest {
         every { recents } returns true
         every { networkSearch } returns false
         every { enablesPriceAlert } returns false
+        every { appliedFilters(any(), any()) } answers {
+            val chains = firstArg<List<String>>()
+            listOfNotNull(GemAssetFilter.Chains(chains).takeIf { chains.isNotEmpty() }, GemAssetFilter.HasBalance.takeIf { secondArg<Boolean>() })
+        }
     }
 
     private fun viewModel(
