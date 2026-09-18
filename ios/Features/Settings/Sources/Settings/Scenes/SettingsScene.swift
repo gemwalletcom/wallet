@@ -1,8 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemListRow
 import Localization
 import Primitives
+import PrimitivesComponents
 import SwiftUI
 
 public struct SettingsScene: View {
@@ -23,15 +25,8 @@ public struct SettingsScene: View {
     }
 
     public var body: some View {
-        List {
-            ForEach(model.sections) { section in
-                Section {
-                    ForEach(section.values) { row in
-                        content(for: row)
-                    }
-                }
-            }
-            .listRowInsets(.assetListRowInsets)
+        ListSectionView(provider: model) { row in
+            content(for: row)
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listStyle(.insetGrouped)
@@ -45,13 +40,10 @@ public struct SettingsScene: View {
 
 extension SettingsScene {
     @ViewBuilder
-    private func content(for row: SettingsRowViewModel) -> some View {
-        switch row.destination {
+    private func content(for row: GemListRow) -> some View {
+        switch model.destination(for: row) {
         case .wallets:
-            NavigationCustomLink(
-                with: ListItemView(model: row.model),
-                action: onOpenWallets,
-            )
+            NavigationCustomLink(with: GemListRowView(row: row), action: onOpenWallets)
         case .security:
             link(row, to: Scenes.Security())
         case .notifications:
@@ -61,22 +53,21 @@ extension SettingsScene {
         case .walletConnect:
             link(row, to: Scenes.WalletConnect())
         case .support:
-            NavigationCustomLink(
-                with: ListItemView(model: row.model),
-                action: onOpenSupport,
-            )
+            NavigationCustomLink(with: GemListRowView(row: row), action: onOpenSupport)
         case .rewards:
             link(row, to: Scenes.Referral())
         case .aboutUs:
             link(row, to: Scenes.AboutUs())
         case .developer:
             link(row, to: Scenes.Developer())
+        case .none:
+            GemListRowView(row: row)
         }
     }
 
-    private func link(_ row: SettingsRowViewModel, to scene: some Hashable) -> some View {
+    private func link(_ row: GemListRow, to scene: some Hashable) -> some View {
         NavigationLink(value: scene) {
-            ListItemView(model: row.model)
+            GemListRowView(row: row)
         }
     }
 }

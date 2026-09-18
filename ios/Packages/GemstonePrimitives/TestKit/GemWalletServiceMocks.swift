@@ -145,6 +145,7 @@ public final class GemStreamServiceMock: GemStreamServiceProtocol, @unchecked Se
     private let onDisconnected: @Sendable () async -> Void
     private let onEvent: @Sendable (String) async throws -> GemStreamEvent
     private let onSession: @Sendable () async throws -> Void
+    private let onSync: @Sendable (GemStreamEvent) async throws -> Void
 
     public init(
         prepare: @escaping @Sendable () async throws -> Bool = { true },
@@ -152,12 +153,14 @@ public final class GemStreamServiceMock: GemStreamServiceProtocol, @unchecked Se
         onDisconnected: @escaping @Sendable () async -> Void = {},
         onEvent: @escaping @Sendable (String) async throws -> GemStreamEvent = { _ in .prices(prices: 0, rates: 0) },
         onSession: @escaping @Sendable () async throws -> Void = {},
+        onSync: @escaping @Sendable (GemStreamEvent) async throws -> Void = { _ in },
     ) {
         self.prepare = prepare
         self.onConnected = onConnected
         self.onDisconnected = onDisconnected
         self.onEvent = onEvent
         self.onSession = onSession
+        self.onSync = onSync
     }
 
     public func updateSession() async throws {
@@ -178,6 +181,10 @@ public final class GemStreamServiceMock: GemStreamServiceProtocol, @unchecked Se
 
     public func handle(event: String) async throws -> GemStreamEvent {
         try await onEvent(event)
+    }
+
+    public func sync(event: GemStreamEvent) async throws {
+        try await onSync(event)
     }
 }
 
@@ -288,7 +295,7 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
 
     public func updateBalances(assetIds _: [Gemstone.AssetId]) async throws {}
 
-    public func showsInitialLoading() throws -> Bool {
+    public func showsInitialLoading() -> Bool {
         showsLoading
     }
 
@@ -371,40 +378,40 @@ public final class GemSearchServiceMock: GemSearchServiceProtocol, @unchecked Se
 }
 
 public final class GemSettingsServiceMock: GemSettingsServiceProtocol, @unchecked Sendable {
-    public var sectionsValue: [GemSettingsSection] = []
-    public var securitySectionsValue: [GemSecuritySection] = []
-    public var perpetualDefaults = GemPerpetualDefaults(leverage: 3, takeProfitPercent: 25, stopLossPercent: 10)
-    public var preferencesSections: [GemPreferencesSection] = []
+    public var sectionsValue: [GemListSection] = []
+    public var securitySectionsValue: [GemListSection] = []
+    public var perpetualDefaultsValue = GemPerpetualDefaults(leverage: 3, takeProfitPercent: 25, stopLossPercent: 10)
+    public var preferencesSectionsValue: [GemListSection] = []
     public var setDefaultsError: Error?
 
     public private(set) var storedDefaults: [GemPerpetualDefaults] = []
-    public private(set) var securitySectionsCalls: [Bool] = []
-    public private(set) var perpetualsEnabledCalls: [Bool] = []
+    public private(set) var securitySectionsCalls: [GemSecurityInput] = []
+    public private(set) var preferencesInputs: [GemPreferencesInput] = []
 
     public init() {}
 
-    public func preferences(currency: Gemstone.Currency, perpetualsEnabled: Bool) -> GemPreferencesState {
-        perpetualsEnabledCalls.append(perpetualsEnabled)
-        return GemPreferencesState(
-            currency: GemCurrencyRow(currency: currency, flag: "🇺🇸"),
-            sections: preferencesSections,
-            perpetualDefaults: perpetualDefaults,
-        )
+    public func preferencesSections(input: GemPreferencesInput) -> [GemListSection] {
+        preferencesInputs.append(input)
+        return preferencesSectionsValue
     }
 
-    public func sections(wallets _: [Gemstone.Wallet], notificationsAvailable _: Bool, walletConnectAvailable _: Bool) -> [GemSettingsSection] {
+    public func perpetualDefaults() -> GemPerpetualDefaults {
+        perpetualDefaultsValue
+    }
+
+    public func sections(wallets _: [Gemstone.Wallet], notificationsAvailable _: Bool, walletConnectAvailable _: Bool) -> [GemListSection] {
         sectionsValue
     }
 
-    public func securitySections(authenticationEnabled: Bool) -> [GemSecuritySection] {
-        securitySectionsCalls.append(authenticationEnabled)
+    public func securitySections(input: GemSecurityInput) -> [GemListSection] {
+        securitySectionsCalls.append(input)
         return securitySectionsValue
     }
 
     public func setPerpetualDefaults(defaults: GemPerpetualDefaults) throws {
         if let setDefaultsError { throw setDefaultsError }
         storedDefaults.append(defaults)
-        perpetualDefaults = defaults
+        perpetualDefaultsValue = defaults
     }
 }
 

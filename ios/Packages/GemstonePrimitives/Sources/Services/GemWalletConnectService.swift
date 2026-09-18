@@ -5,13 +5,6 @@ import protocol Gemstone.GemWalletConnectServiceProtocol
 import enum Gemstone.WalletConnectionVerificationStatus
 import Primitives
 
-public struct WalletConnectSessionApproval: Sendable {
-    public let chains: [Chain]
-    public let accounts: [Primitives.Account]
-    public let methods: [String]
-    public let events: [String]
-}
-
 public extension GemWalletConnectServiceProtocol {
     func metadata(name: String, description: String, url: String, icons: [String]) -> Primitives.ApplicationMetadata {
         applicationMetadata(name: name, description: description, url: url, icons: icons).toPrimitives()
@@ -32,16 +25,6 @@ public extension GemWalletConnectServiceProtocol {
             validation: validation,
         )
         return (result.proposal.toPrimitives(), result.verificationStatus)
-    }
-
-    func sessionApproval(wallet: Wallet) throws -> WalletConnectSessionApproval {
-        let approval = sessionApproval(wallet: wallet.toGem())
-        return WalletConnectSessionApproval(
-            chains: approval.chains.map { Primitives.Chain(core: $0) },
-            accounts: approval.accounts.map { $0.toPrimitives() },
-            methods: approval.methods,
-            events: approval.events,
-        )
     }
 
     func session(topic: String, accounts: [String], expireAt: Date, metadata: Primitives.ApplicationMetadata) throws -> WalletConnectionSession {

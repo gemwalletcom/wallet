@@ -9,12 +9,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import com.gemwallet.android.domains.duration.formatAvailableIn
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.WalletTheme
-import com.wallet.core.primitives.Delegation
 
 @Composable
 fun ValidatorItem(
@@ -65,16 +63,6 @@ private fun ValidatorIcon(
     }
 }
 
-
-fun availableIn(delegation: Delegation?): String {
-    val remaining = availableInDurationMillis(delegation) ?: return ""
-    return formatAvailableIn(remaining)
-}
-
-internal fun availableInDurationMillis(
-    delegation: Delegation?,
-    currentTimeMillis: Long = System.currentTimeMillis(),
-): Long? = delegation?.base?.completionDate?.minus(currentTimeMillis)
 
 @Composable
 @Preview

@@ -42,6 +42,7 @@ import uniffi.gemstone.GemAutocloseConfirmPolicy
 import uniffi.gemstone.GemAutocloseEstimator
 import uniffi.gemstone.GemAutocloseField
 import uniffi.gemstone.GemAutocloseModify
+import uniffi.gemstone.GemAutoclosePrices
 import uniffi.gemstone.GemAutocloseSession
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -94,7 +95,7 @@ class AutocloseViewModel @Inject constructor(
 
     val priceRows: StateFlow<List<ListItemModel>> = uiModel.map { model ->
         listOfNotNull(
-            model?.let { ListItemModel(title = context.getString(R.string.perpetual_entry_price), subtitle = it.entryPriceText) },
+            model?.entryPriceText?.let { ListItemModel(title = context.getString(R.string.perpetual_entry_price), subtitle = it) },
             model?.let { ListItemModel(title = context.getString(R.string.perpetual_market_price), subtitle = it.marketPriceText) },
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -132,7 +133,7 @@ class AutocloseViewModel @Inject constructor(
         val takeProfitField = autocloseField(position, TpslType.TakeProfit, takeProfitText.value)
         val stopLossField = autocloseField(position, TpslType.StopLoss, stopLossText.value)
         val modify = GemAutocloseModify(position.position.direction.toGem(), assetIndex, takeProfitField, stopLossField)
-        if (!GemAutocloseSession(modify, GemAutocloseConfirmPolicy.UNTIL_SUBMITTED, true).viewState().confirmEnabled) return
+        if (!GemAutocloseSession(modify, GemAutocloseConfirmPolicy.UNTIL_SUBMITTED, true, prices(position)).viewState().confirmEnabled) return
         _confirmRequests.tryEmit(ConfirmTransferInput(modify.transfer(position.perpetual.provider.toGem(), position.asset.toGem())))
     }
 
@@ -148,13 +149,13 @@ class AutocloseViewModel @Inject constructor(
             GemAutocloseModify(position.position.direction.toGem(), 0, takeProfit, stopLoss),
             GemAutocloseConfirmPolicy.UNTIL_SUBMITTED,
             submitAttempted,
+            prices(position),
         ).viewState()
         return AutocloseUIModelFactory.create(
             position = position,
             takeProfit = takeProfit,
             stopLoss = stopLoss,
-            confirmEnabled = state.confirmEnabled,
-            showErrors = state.showsErrors,
+            state = state,
         )
     }
 
@@ -180,6 +181,11 @@ class AutocloseViewModel @Inject constructor(
             orderId = original?.order_id?.toULongOrNull(),
         )
     }
+
+    private fun prices(position: PerpetualPositionData) = GemAutoclosePrices(
+        entry = position.position.entryPrice,
+        market = position.perpetual.price,
+    )
 
     private fun estimator(position: PerpetualPositionData) = GemAutocloseEstimator(
         entryPrice = position.position.entryPrice,

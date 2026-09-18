@@ -118,6 +118,25 @@ pub struct GemNodeSelection {
 }
 
 #[uniffi::export]
+impl GemNodeSubtitle {
+    pub fn text(&self, latest_block_label: String) -> String {
+        match self {
+            Self::LatestBlock { value } => format!("{latest_block_label}: {value}"),
+        }
+    }
+}
+
+#[uniffi::export]
+impl GemNodeRowTitle {
+    pub fn text(&self, gem_node_label: String) -> String {
+        match self {
+            Self::Host { host } => host.clone(),
+            Self::GemNode { flag } => format!("{gem_node_label} {flag}"),
+        }
+    }
+}
+
+#[uniffi::export]
 impl GemNodeSelection {
     pub fn title(&self) -> GemNodeRowTitle {
         match &self.gem_node_flag {
@@ -170,6 +189,13 @@ mod tests {
             GemNodeSubtitle::LatestBlock { value: "-".to_string() },
             "a node that failed still shows the block row, with nothing in it"
         );
+    }
+
+    #[test]
+    fn test_a_node_subtitle_prints_the_label_before_the_block() {
+        let subtitle = GemNodeSubtitle::LatestBlock { value: "21,000,000".to_string() };
+
+        assert_eq!(subtitle.text("Latest block".to_string()), "Latest block: 21,000,000");
     }
 
     #[test]

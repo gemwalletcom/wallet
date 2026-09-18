@@ -12,13 +12,13 @@ pub enum GemChartSection {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemAssetMarketRow {
-    MarketCap { value: f64, rank: Option<i32> },
-    FullyDilutedValuation { value: f64 },
-    TradingVolume { value: f64 },
+    MarketCap { value: GemFormattedNumber, rank: Option<i32> },
+    FullyDilutedValuation { value: GemFormattedNumber },
+    TradingVolume { value: GemFormattedNumber },
     Contract { token_id: String, explorer: Option<BlockExplorerLink> },
-    CirculatingSupply { value: f64 },
-    TotalSupply { value: f64 },
-    MaxSupply { value: f64 },
+    CirculatingSupply { value: GemFormattedNumber },
+    TotalSupply { value: GemFormattedNumber },
+    MaxSupply { value: GemFormattedNumber },
     AllTimeHigh { value: ChartValuePercentage },
     AllTimeLow { value: ChartValuePercentage },
 }

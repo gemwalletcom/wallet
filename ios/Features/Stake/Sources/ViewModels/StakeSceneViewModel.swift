@@ -144,7 +144,7 @@ public final class StakeSceneViewModel {
     }
 
     private var lockTimeValue: String {
-        Self.lockTimeFormatter.string(from: TimeInterval(service.lockTimeSeconds(chain: chain.chain.rawValue))) ?? .empty
+        CountdownFormatter().string(parts: service.lockTimeParts(chain: chain.chain.rawValue)) ?? .empty
     }
 
     var lockTimeInfoSheet: InfoSheetType {
@@ -249,13 +249,6 @@ extension StakeSceneViewModel {
 // MARK: - Private
 
 extension StakeSceneViewModel {
-    private static let lockTimeFormatter: DateComponentsFormatter = {
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.day]
-        formatter.unitsStyle = .full
-        return formatter
-    }()
-
     var assetModel: AssetViewModel {
         AssetViewModel(asset: asset)
     }

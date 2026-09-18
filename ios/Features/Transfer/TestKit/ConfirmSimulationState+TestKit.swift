@@ -14,7 +14,7 @@ extension ConfirmSimulationState {
             result: nil,
             warnings: warnings,
             hasCriticalWarning: warnings.contains { $0.severity == .critical },
-            payload: SimulationPayloadModel(chain: .ethereum, primaryFields: [], secondaryFields: []),
+            payload: SimulationPayloadModel(primaryFields: [], secondaryFields: []),
             headerData: headerData,
             balanceChanges: [],
         )

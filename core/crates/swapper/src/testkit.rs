@@ -19,6 +19,13 @@ impl ProviderData {
 }
 
 impl AssetList {
+    pub fn mock_with_chains(chains: &[Chain]) -> Self {
+        Self {
+            chains: chains.to_vec(),
+            asset_ids: Vec::new(),
+        }
+    }
+
     pub fn mock() -> Self {
         Self {
             chains: vec![Chain::Tron, Chain::Bitcoin],

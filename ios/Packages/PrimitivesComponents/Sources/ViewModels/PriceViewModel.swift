@@ -10,6 +10,7 @@ import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI
+import func Gemstone.valueTone
 
 public struct PriceViewModel: Sendable {
     public let price: Price?
@@ -50,17 +51,11 @@ public struct PriceViewModel: Sendable {
     }
 
     public static func priceChangeTextColor(value: Double?) -> Color {
-        guard let value else { return Colors.gray }
-        return PriceChangeColor.color(for: value)
+        valueTone(value: value ?? 0).color
     }
 
     public var priceChangeTextBackgroundColor: Color {
-        if priceChange == 0 {
-            return Colors.grayVeryLight
-        } else if priceChange ?? 0 > 0 {
-            return Colors.greenLight
-        }
-        return Colors.redLight
+        valueTone(value: priceChange ?? 0).backgroundColor
     }
 
     public func fiatAmountText(amount: Double) -> String {

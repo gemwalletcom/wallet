@@ -1,3 +1,4 @@
+use super::model::GemFiatSuggestedAmount;
 use std::sync::Arc;
 
 use primitives::currency::Currency;
@@ -30,8 +31,15 @@ impl GemFiatQuoteService {
         CURRENCY
     }
 
-    pub fn suggested_amounts(&self) -> Vec<i32> {
-        get_fiat_config().suggested_amounts
+    pub fn suggested_amounts(&self, currency_symbol: String) -> Vec<GemFiatSuggestedAmount> {
+        get_fiat_config()
+            .suggested_amounts
+            .into_iter()
+            .map(|amount| GemFiatSuggestedAmount {
+                amount: amount.unsigned_abs(),
+                text: format!("{currency_symbol}{amount}"),
+            })
+            .collect()
     }
 
     pub fn new_session(&self, quote_type: FiatQuoteType, amount: Option<u32>) -> GemFiatSession {

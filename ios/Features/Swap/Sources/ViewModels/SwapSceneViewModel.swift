@@ -131,7 +131,7 @@ public final class SwapSceneViewModel {
             summary: summary,
             slippagePercent: selectedSlippage.bps.map { service.slippagePercent(bps: $0) },
             currency: service.currency.rawValue,
-            isProviderSelectionEnabled: isQuoteInteractionEnabled,
+            allowSelectProvider: viewState.allowsProviderSelection,
             swapPriceImpact: fromAssetPrice.swapValue(selectedQuote.fromValue)
                 .priceImpact(receive: toAssetPrice.swapValue(selectedQuote.toValue)),
             swapProviderSelectAction: { [weak self] quote in
@@ -447,8 +447,10 @@ extension SwapSceneViewModel {
                 guard session.transferPhase == transfer else { return }
                 onSwap?(transferData)
                 session = session.onTransferHandedOff(transfer: transfer)
+            } catch let error as SwapperError {
+                session = session.onTransferFailed(transfer: transfer, error: error)
+                debugLog("SwapScene get swap data error: \(error)")
             } catch {
-                session = session.onTransferFailed(transfer: transfer, error: error.swapperError ?? .ComputeQuoteError(error.localizedDescription))
                 debugLog("SwapScene get swap data error: \(error)")
             }
         }
@@ -472,13 +474,12 @@ extension SwapSceneViewModel {
             if let selectedSwapQuote, let asset = toAsset?.asset {
                 setToValue(quote: selectedSwapQuote, asset: asset)
             }
+        } catch let error as SwapperError {
+            guard !Task.isCancelled, currentInput == input else { return }
+            session = session.onQuoteResults(results: GemSwapQuotesResult(request: input.request, quotes: [], error: error))
+            debugLog("SwapScene get quotes error: \(error)")
         } catch {
-            if !error.isCancelled, !Task.isCancelled {
-                guard currentInput == input else { return }
-                let failure = error.swapperError ?? .ComputeQuoteError(error.localizedDescription)
-                session = session.onQuoteResults(results: GemSwapQuotesResult(request: input.request, quotes: [], error: failure))
-                debugLog("SwapScene get quotes error: \(error)")
-            }
+            debugLog("SwapScene get quotes error: \(error)")
         }
     }
 
@@ -514,11 +515,5 @@ extension SwapSceneViewModel {
             }
             swap()
         }
-    }
-}
-
-extension Error {
-    var swapperError: Gemstone.SwapperError? {
-        self as? Gemstone.SwapperError
     }
 }

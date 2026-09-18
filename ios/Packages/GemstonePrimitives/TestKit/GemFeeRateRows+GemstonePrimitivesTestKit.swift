@@ -16,6 +16,7 @@ public extension GemFeeRateRows {
     ) -> GemFeeRateRows {
         GemFeeRateRows(
             rows: rows.map { GemFeeRateRow(priority: $0.0, unitValue: $0.1, fee: $0.2, displayValue: unitType == .native ? ($0.2 ?? $0.1) : $0.1) },
+            showsOptions: rows.count > 1,
             unitType: unitType,
             unitDecimals: decimals,
             supportsCustomFee: supportsCustomFee,

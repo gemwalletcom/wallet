@@ -58,7 +58,12 @@ class GetTransactionDetailsImpl(
         getTransaction(id),
     ) { session, data -> Pair(session, data) }
         .mapNotNull { (session, data) ->
-            data?.let { TransactionDetailsAggregateImpl(transactionDetailsService.detailRows(it.toGem()), session.currency) }
+            data?.let {
+                TransactionDetailsAggregateImpl(
+                    transactionDetailsService.detailRows(it.toGem(), session.wallet.type.toGem()),
+                    session.currency,
+                )
+            }
         }
         .flowOn(Dispatchers.IO)
 }

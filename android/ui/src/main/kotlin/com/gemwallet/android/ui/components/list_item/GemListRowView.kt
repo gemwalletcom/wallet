@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,6 +23,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.localization.titleRes
 import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemListSection
 
 fun LazyListScope.gemListSections(sections: List<GemListSection>) {
@@ -37,6 +39,10 @@ fun LazyListScope.gemListSections(sections: List<GemListSection>) {
 fun GemListRowView(
     row: GemListRow,
     listPosition: ListPosition,
+    modifier: Modifier = Modifier,
+    onToggle: ((GemListRowTitle, Boolean) -> Unit)? = null,
+    onSelect: ((GemListRowTitle) -> Unit)? = null,
+    accessory: (@Composable () -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -46,8 +52,16 @@ fun GemListRowView(
         is GemListRowUIModel.Item -> ListItem(
             model = row.model,
             listPosition = listPosition,
-            modifier = row.url?.let { url -> Modifier.clickable { uriHandler.open(context, url) } } ?: Modifier,
-            accessory = row.url?.let { { DataBadgeChevron() } },
+            modifier = modifier.then(row.url?.let { url -> Modifier.clickable { uriHandler.open(context, url) } } ?: Modifier),
+            minHeight = ListItemDefaults.plainMinHeight,
+            accessory = if (row.url != null || row.opensAnotherScreen) {
+                {
+                    DataBadgeChevron()
+                    accessory?.invoke()
+                }
+            } else {
+                null
+            },
         )
         is GemListRowUIModel.Icon -> Column(
             modifier = Modifier
@@ -58,6 +72,34 @@ fun GemListRowView(
             HeaderIcon(row.asset)
         }
         is GemListRowUIModel.Address -> AddressCard(row = row) { clipboardManager.setCopy(context, row.copy) }
+        is GemListRowUIModel.Toggle -> ListItem(
+            model = row.model,
+            listPosition = listPosition,
+            modifier = modifier,
+            minHeight = ListItemDefaults.plainMinHeight,
+            accessory = { Switch(checked = row.isOn, onCheckedChange = { onToggle?.invoke(row.title, it) }) },
+        )
+        is GemListRowUIModel.Picker -> ListItem(
+            model = row.model,
+            listPosition = listPosition,
+            modifier = modifier.clickable { onSelect?.invoke(row.title) },
+            minHeight = ListItemDefaults.plainMinHeight,
+            accessory = {
+                DataBadgeChevron()
+                accessory?.invoke()
+            },
+        )
+        is GemListRowUIModel.Social -> Column {
+            row.links.forEachIndexed { index, link ->
+                ListItem(
+                    model = link.uiModel(context).model,
+                    listPosition = ListPosition.getPosition(index, row.links.size),
+                    modifier = Modifier.clickable { uriHandler.open(context, link.url) },
+                    minHeight = ListItemDefaults.plainMinHeight,
+                    accessory = { DataBadgeChevron() },
+                )
+            }
+        }
         GemListRowUIModel.Loading -> Column(
             modifier = Modifier
                 .fillMaxWidth()

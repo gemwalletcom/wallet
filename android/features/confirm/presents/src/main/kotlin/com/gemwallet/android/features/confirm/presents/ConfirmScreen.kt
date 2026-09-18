@@ -103,7 +103,6 @@ fun ConfirmScreen(
     val feeAsset by viewModel.feeAsset.collectAsStateWithLifecycle()
     val simulation by viewModel.simulation.collectAsStateWithLifecycle()
     val detailElements by viewModel.detailElements.collectAsStateWithLifecycle()
-    val payloadAddressNames by viewModel.payloadAddressNames.collectAsStateWithLifecycle()
     val title by viewModel.title.collectAsStateWithLifecycle()
     val isExternalRequest by viewModel.isExternalRequest.collectAsStateWithLifecycle()
 
@@ -209,7 +208,6 @@ fun ConfirmScreen(
             simulationWarningsContent(simulation.warnings)
             simulationPayloadFieldsContent(
                 fields = simulation.primaryPayloadFields,
-                addressNames = payloadAddressNames,
                 onDetailsClick = simulation.secondaryPayloadFields
                     .takeIf { it.isNotEmpty() }
                     ?.let { { showSimulationDetails = true } },
@@ -268,8 +266,7 @@ fun ConfirmScreen(
                 simulationPayloadDetailsContent(
                     primaryFields = simulation.primaryPayloadFields,
                     secondaryFields = simulation.secondaryPayloadFields,
-                    addressNames = payloadAddressNames,
-                )
+                    )
             }
         }
 

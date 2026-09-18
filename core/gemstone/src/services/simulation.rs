@@ -14,9 +14,11 @@ use gem_wallet_connect::{
     SignDigestType as WcSignDigestType, WCEthereumTransactionData as WcEthereumTransactionData, WalletConnectTransactionType as WcWalletConnectTransactionType,
 };
 use primitives::{
-    AssetId, Chain, EVMChain, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningType,
+    AddressName, AssetId, Chain, ChainAddress, EVMChain, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity,
+    SimulationWarning, SimulationWarningType,
 };
 
+use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::models::custom_types::GemBigInt;
 use crate::{
     GemstoneError,
@@ -237,6 +239,96 @@ impl GemSimulationFormatter {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash, uniffi::Enum)]
+pub enum GemSimulationPayloadTitle {
+    Contract,
+    Method,
+    Token,
+    Spender,
+    Value,
+    Expiration,
+    Custom { label: String },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, uniffi::Enum)]
+pub enum GemSimulationPayloadValue {
+    Text { text: String },
+    Address { display: String, address: String },
+    Timestamp { unix_ms: i64 },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, uniffi::Record)]
+pub struct GemSimulationPayloadRow {
+    pub title: GemSimulationPayloadTitle,
+    pub value: GemSimulationPayloadValue,
+}
+
+pub fn payload_rows(fields: &[SimulationPayloadField], chain: Option<Chain>, names: &[AddressName]) -> Vec<GemSimulationPayloadRow> {
+    fields.iter().map(|field| payload_row(field, chain, names)).collect()
+}
+
+pub fn named_payload_rows(rows: Vec<GemSimulationPayloadRow>, chain: Option<Chain>, names: &[AddressName]) -> Vec<GemSimulationPayloadRow> {
+    rows.into_iter()
+        .map(|row| GemSimulationPayloadRow {
+            value: match row.value {
+                GemSimulationPayloadValue::Address { address, .. } => address_value(address, chain, names),
+                GemSimulationPayloadValue::Text { .. } | GemSimulationPayloadValue::Timestamp { .. } => row.value,
+            },
+            title: row.title,
+        })
+        .collect()
+}
+
+pub fn address_requests(rows: &[GemSimulationPayloadRow], chain: Chain) -> Vec<ChainAddress> {
+    rows.iter()
+        .filter_map(|row| match &row.value {
+            GemSimulationPayloadValue::Address { address, .. } => Some(ChainAddress::new(chain, address.clone())),
+            GemSimulationPayloadValue::Text { .. } | GemSimulationPayloadValue::Timestamp { .. } => None,
+        })
+        .collect()
+}
+
+fn payload_row(field: &SimulationPayloadField, chain: Option<Chain>, names: &[AddressName]) -> GemSimulationPayloadRow {
+    GemSimulationPayloadRow {
+        title: match field.kind {
+            SimulationPayloadFieldKind::Contract => GemSimulationPayloadTitle::Contract,
+            SimulationPayloadFieldKind::Method => GemSimulationPayloadTitle::Method,
+            SimulationPayloadFieldKind::Token => GemSimulationPayloadTitle::Token,
+            SimulationPayloadFieldKind::Spender => GemSimulationPayloadTitle::Spender,
+            SimulationPayloadFieldKind::Value => GemSimulationPayloadTitle::Value,
+            SimulationPayloadFieldKind::Expiration => GemSimulationPayloadTitle::Expiration,
+            SimulationPayloadFieldKind::Custom => GemSimulationPayloadTitle::Custom {
+                label: field.label.clone().unwrap_or_default(),
+            },
+        },
+        value: match field.field_type {
+            SimulationPayloadFieldType::Text => GemSimulationPayloadValue::Text { text: field.value.clone() },
+            SimulationPayloadFieldType::Address => address_value(field.value.clone(), chain, names),
+            SimulationPayloadFieldType::Timestamp => match timestamp_unix_ms(&field.value) {
+                Some(unix_ms) => GemSimulationPayloadValue::Timestamp { unix_ms },
+                None => GemSimulationPayloadValue::Text { text: field.value.clone() },
+            },
+        },
+    }
+}
+
+fn address_value(address: String, chain: Option<Chain>, names: &[AddressName]) -> GemSimulationPayloadValue {
+    let short = format_address(&address, chain, GemAddressFormatStyle::Short);
+    let display = names
+        .iter()
+        .find(|name| name.address.eq_ignore_ascii_case(&address) && !name.name.is_empty() && !name.name.eq_ignore_ascii_case(&address))
+        .map(|name| format!("{} ({short})", name.name))
+        .unwrap_or(short);
+    GemSimulationPayloadValue::Address { display, address }
+}
+
+fn timestamp_unix_ms(value: &str) -> Option<i64> {
+    if let Ok(seconds) = value.parse::<f64>() {
+        return Some((seconds * 1000.0) as i64);
+    }
+    chrono::DateTime::parse_from_rfc3339(value).ok().map(|date| date.timestamp_millis())
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemSimulationWarningKind {
     UnlimitedApproval,
@@ -318,7 +410,7 @@ mod tests {
     use crate::services::node::GemNodeService;
     use crate::testkit::{TestAlienProvider, mock_wc_ethereum_transaction_data};
     use num_bigint::BigInt;
-    use primitives::{SimulationBalanceChange, SimulationPayloadFieldDisplay, SimulationPayloadFieldType, SimulationWarningApproval};
+    use primitives::{AddressType, SimulationBalanceChange, SimulationPayloadFieldDisplay, SimulationWarningApproval, VerificationStatus};
 
     #[test]
     fn test_warning_rows_hide_bounded_approvals_and_keep_every_other_warning() {
@@ -449,6 +541,86 @@ mod tests {
             formatter.payload_fields(payload, true).into_iter().map(|field| field.kind).collect::<Vec<_>>(),
             vec![SimulationPayloadFieldKind::Spender]
         );
+    }
+
+    #[test]
+    fn test_payload_rows_title_by_kind_and_carry_the_short_address_or_the_parsed_timestamp() {
+        let address = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4";
+        let fields = vec![
+            SimulationPayloadField::standard(SimulationPayloadFieldKind::Spender, address, SimulationPayloadFieldType::Address, SimulationPayloadFieldDisplay::Primary),
+            SimulationPayloadField::standard(SimulationPayloadFieldKind::Expiration, "1662714817", SimulationPayloadFieldType::Timestamp, SimulationPayloadFieldDisplay::Primary),
+            SimulationPayloadField::custom("issuedAt", "2024-01-02T03:04:05.123Z", SimulationPayloadFieldType::Timestamp, SimulationPayloadFieldDisplay::Secondary),
+            SimulationPayloadField::custom("statement", "Sign in", SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Secondary),
+        ];
+        let short = format_address(address, Some(Chain::Ethereum), GemAddressFormatStyle::Short);
+
+        let rows = payload_rows(&fields, Some(Chain::Ethereum), &[]);
+
+        assert_eq!(
+            rows,
+            vec![
+                GemSimulationPayloadRow {
+                    title: GemSimulationPayloadTitle::Spender,
+                    value: GemSimulationPayloadValue::Address {
+                        display: short,
+                        address: address.to_string()
+                    },
+                },
+                GemSimulationPayloadRow {
+                    title: GemSimulationPayloadTitle::Expiration,
+                    value: GemSimulationPayloadValue::Timestamp { unix_ms: 1_662_714_817_000 },
+                },
+                GemSimulationPayloadRow {
+                    title: GemSimulationPayloadTitle::Custom { label: "issuedAt".to_string() },
+                    value: GemSimulationPayloadValue::Timestamp { unix_ms: 1_704_164_645_123 },
+                },
+                GemSimulationPayloadRow {
+                    title: GemSimulationPayloadTitle::Custom { label: "statement".to_string() },
+                    value: GemSimulationPayloadValue::Text { text: "Sign in".to_string() },
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn test_named_payload_rows_prefix_a_known_name_and_skip_names_that_repeat_the_address() {
+        let address = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4";
+        let other = "0x0000000000000000000000000000000000000001";
+        let rows = payload_rows(
+            &[
+                SimulationPayloadField::standard(SimulationPayloadFieldKind::Spender, address, SimulationPayloadFieldType::Address, SimulationPayloadFieldDisplay::Primary),
+                SimulationPayloadField::standard(SimulationPayloadFieldKind::Contract, other, SimulationPayloadFieldType::Address, SimulationPayloadFieldDisplay::Primary),
+            ],
+            Some(Chain::Ethereum),
+            &[],
+        );
+        let name = |address: &str, name: &str| AddressName {
+            chain: Chain::Ethereum,
+            address: address.to_string(),
+            name: name.to_string(),
+            address_type: AddressType::Contract,
+            status: VerificationStatus::Verified,
+            image_url: None,
+        };
+
+        let named = named_payload_rows(rows, Some(Chain::Ethereum), &[name(&address.to_lowercase(), "Hyperliquid"), name(other, other)]);
+
+        let short = format_address(address, Some(Chain::Ethereum), GemAddressFormatStyle::Short);
+        assert_eq!(
+            named[0].value,
+            GemSimulationPayloadValue::Address {
+                display: format!("Hyperliquid ({short})"),
+                address: address.to_string()
+            }
+        );
+        assert_eq!(
+            named[1].value,
+            GemSimulationPayloadValue::Address {
+                display: format_address(other, Some(Chain::Ethereum), GemAddressFormatStyle::Short),
+                address: other.to_string()
+            }
+        );
+        assert_eq!(address_requests(&named, Chain::Ethereum), vec![ChainAddress::new(Chain::Ethereum, address.to_string()), ChainAddress::new(Chain::Ethereum, other.to_string())]);
     }
 
     #[test]

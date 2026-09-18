@@ -6,6 +6,7 @@ import GemstonePrimitives
 import Primitives
 import Style
 import SwiftUI
+import func Gemstone.valueTone
 
 public struct TotalValueViewModel {
     private let totalValue: TotalFiatValue
@@ -33,6 +34,6 @@ public struct TotalValueViewModel {
     }
 
     public var pnlColor: Color {
-        PriceChangeColor.color(for: totalValue.pnlAmount)
+        valueTone(value: totalValue.pnlAmount).color
     }
 }

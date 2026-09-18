@@ -19,6 +19,7 @@ import SwiftUI
 @Observable
 @MainActor
 public final class TransactionSceneViewModel {
+    private let wallet: Wallet
     private let service: any GemTransactionDetailsServiceProtocol
     private let onHeaderAction: ((GemTransactionHeaderAction) -> Void)?
     private let onAddContact: ((AddContactType) -> Void)?
@@ -34,17 +35,18 @@ public final class TransactionSceneViewModel {
 
     public init(
         transaction: TransactionExtended,
-        walletId: WalletId,
+        wallet: Wallet,
         service: any GemTransactionDetailsServiceProtocol,
         onHeaderAction: ((GemTransactionHeaderAction) -> Void)? = nil,
         onAddContact: ((AddContactType) -> Void)? = nil,
         onSelectAddress: (@MainActor @Sendable (ChainAddress) -> Void)? = nil,
     ) {
+        self.wallet = wallet
         self.service = service
         self.onHeaderAction = onHeaderAction
         self.onAddContact = onAddContact
         self.onSelectAddress = onSelectAddress
-        query = ObservableQuery(TransactionRequest(walletId: walletId, recordId: transaction.recordId), initialValue: transaction)
+        query = ObservableQuery(TransactionRequest(walletId: wallet.id, recordId: transaction.recordId), initialValue: transaction)
     }
 
     var title: String {
@@ -150,7 +152,7 @@ extension TransactionSceneViewModel {
 
 extension TransactionSceneViewModel {
     private var rows: GemTransactionDetailRows {
-        service.detailRows(transaction: transactionExtended.toGem())
+        service.detailRows(transaction: transactionExtended.toGem(), walletType: wallet.type.toGem())
     }
 
     private var explorerViewModel: TransactionExplorerViewModel {

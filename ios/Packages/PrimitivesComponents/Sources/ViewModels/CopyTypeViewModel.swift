@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemAddressService
+import struct Gemstone.GemCopy
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -8,27 +8,14 @@ import Style
 import UIKit
 
 public struct CopyTypeViewModel: Equatable, Hashable, Sendable {
-    public let type: CopyType
-    public let copyValue: String
+    public let content: GemCopy
 
-    public init(type: CopyType, copyValue: String) {
-        self.type = type
-        self.copyValue = copyValue
+    public init(content: GemCopy) {
+        self.content = content
     }
 
     public var message: String {
-        switch type {
-        case .secretPhrase: Localized.Common.copied(Localized.Common.secretPhrase)
-        case .privateKey: Localized.Common.copied(Localized.Common.privateKey)
-        case let .address(asset, address):
-            Localized.Common.copied(
-                String(
-                    format: "%@ (%@) ",
-                    asset.name,
-                    GemAddressService.shared.format(address: address, chain: asset.chain),
-                ),
-            )
-        }
+        content.kind.copiedMessage(display: content.display)
     }
 
     public var systemImage: String {
@@ -36,14 +23,11 @@ public struct CopyTypeViewModel: Equatable, Hashable, Sendable {
     }
 
     public var expirationTimeInternal: TimeInterval? {
-        switch type {
-        case .secretPhrase, .privateKey: 60
-        case .address: .none
-        }
+        content.kind.isSensitive() ? 60 : .none
     }
 
     public func copy() {
-        Self.copyToClipboard(copyValue, expirationTime: expirationTimeInternal)
+        Self.copyToClipboard(content.value, expirationTime: expirationTimeInternal)
     }
 
     public static func copyToClipboard(_ value: String, expirationTime: TimeInterval?) {

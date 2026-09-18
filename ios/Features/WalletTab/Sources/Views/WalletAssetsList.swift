@@ -7,6 +7,7 @@ import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
+import func Gemstone.addressCopy
 
 struct WalletAssetsList: View {
     let assets: [AssetData]
@@ -43,7 +44,7 @@ struct WalletAssetsList: View {
                 .contextMenu(
                     AssetContextMenu.items(
                         for: asset,
-                        onCopy: { onCopyAddress?(CopyTypeViewModel(type: .address(asset.asset, address: $0), copyValue: $0).message) },
+                        onCopy: { onCopyAddress?(CopyTypeViewModel(content: addressCopy(chain: asset.asset.chain.toGem(), address: $0)).message) },
                         onPin: { onPinAsset?(asset.asset, !asset.metadata.isPinned) },
                         onHide: asset.metadata.isBalanceEnabled ? { onHideAsset?(asset.asset.id) } : nil,
                         onAddToWallet: onAddToWallet.map { action in { action(asset.asset.id) } },

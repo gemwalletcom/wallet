@@ -106,13 +106,7 @@ public struct DelegationViewModel: Sendable {
     }
 
     public var completionDateText: String? {
-        guard
-            status.completion != nil,
-            let completionDate = delegation.base.completionDate,
-            case let remaining = Date.now.distance(to: completionDate),
-            remaining > 0
-        else { return nil }
-        return CountdownFormatter().string(seconds: Int64(remaining))
+        CountdownFormatter().string(parts: service.completionCountdownParts(delegation: delegation.toGem()))
     }
 }
 

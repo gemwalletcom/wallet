@@ -17,6 +17,7 @@ import Style
 import SwiftUI
 import struct Gemstone.GemWalletSearchCounts
 import func Gemstone.walletSearchPhase
+import func Gemstone.addressCopy
 
 @Observable
 @MainActor
@@ -211,7 +212,7 @@ public final class WalletSearchSceneViewModel: Sendable, AssetActions, Perpetual
         AssetContextMenu.items(
             for: assetData,
             onCopy: { [weak self] in
-                self?.onSelectCopyAddress(CopyTypeViewModel(type: .address(assetData.asset, address: $0), copyValue: $0).message)
+                self?.onSelectCopyAddress(CopyTypeViewModel(content: addressCopy(chain: assetData.asset.chain.toGem(), address: $0)).message)
             },
             onPin: { [weak self] in
                 self?.onPinAsset(assetData.asset, value: !assetData.metadata.isPinned)

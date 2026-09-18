@@ -35,7 +35,14 @@ const MINUTE_SECONDS: i64 = 60;
 const HOUR_SECONDS: i64 = 60 * MINUTE_SECONDS;
 const DAY_SECONDS: i64 = 24 * HOUR_SECONDS;
 
-fn countdown_parts(seconds: i64) -> Vec<GemDurationPart> {
+pub(crate) fn day_parts(seconds: i64) -> Vec<GemDurationPart> {
+    match seconds / DAY_SECONDS {
+        0 => vec![],
+        days => vec![part(days, GemDurationUnit::Day)],
+    }
+}
+
+pub(crate) fn countdown_parts(seconds: i64) -> Vec<GemDurationPart> {
     if seconds < 0 {
         return vec![];
     }

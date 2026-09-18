@@ -124,7 +124,7 @@ class WCAuthViewModelTest {
 
     private suspend fun WCAuthViewModel.awaitContent(): AuthSceneState.Content = when (val settled = awaitSettled()) {
         is AuthSceneState.Content -> settled
-        is AuthSceneState.Error -> throw AssertionError(settled.message, settled.cause)
+        is AuthSceneState.Error -> throw AssertionError(settled.text.toString())
         else -> throw AssertionError("unexpected state $settled")
     }
 

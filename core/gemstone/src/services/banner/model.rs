@@ -1,7 +1,8 @@
 use crate::config::docs::DocsUrl;
-use crate::models::custom_types::GemBigInt;
+use crate::models::custom_types::{GemBigInt, GemBigUint};
+use crate::services::balance::GemAssetBalance;
 use crate::services::transfer::GemTransferData;
-use primitives::{Asset, AssetId, Banner, BannerEvent, BannerState, Chain, Wallet, WalletId};
+use primitives::{Asset, AssetId, AssetMetaData, Banner, BannerEvent, BannerState, Chain, Wallet, WalletId};
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemBannerContext {
@@ -22,7 +23,25 @@ impl GemBannerContext {
     }
 }
 
+#[uniffi::export]
+pub fn asset_banner_context(wallet: Option<Wallet>, asset: Asset, metadata: AssetMetaData, balance: GemAssetBalance) -> GemBannerContext {
+    GemBannerContext::asset(wallet, asset, &metadata, &balance)
+}
+
 impl GemBannerContext {
+    pub fn asset(wallet: Option<Wallet>, asset: Asset, metadata: &AssetMetaData, balance: &GemAssetBalance) -> Self {
+        Self {
+            wallet,
+            is_stakeable: metadata.is_stake_enabled,
+            has_stake_balance: balance.staked_value(asset.chain()) > GemBigUint::ZERO,
+            has_available_balance: balance.available > GemBigUint::ZERO,
+            is_asset_activated: balance.is_active,
+            asset_rank_score: Some(metadata.rank_score),
+            asset: Some(asset),
+            is_wallet_empty: false,
+        }
+    }
+
     pub fn wallet(wallet: Wallet, is_wallet_empty: bool) -> Self {
         Self {
             wallet: Some(wallet),
@@ -169,6 +188,35 @@ pub struct GemBannerContent {
 mod tests {
     use super::*;
     use primitives::Chain;
+
+    #[test]
+    fn test_asset_context_decides_the_balance_facts_itself() {
+        let asset = Asset::from_chain(Chain::Ethereum);
+        let metadata = AssetMetaData {
+            is_stake_enabled: true,
+            rank_score: 42,
+            ..AssetMetaData::mock()
+        };
+        let empty = GemAssetBalance { is_active: false, ..GemAssetBalance::mock() };
+        let funded = GemAssetBalance {
+            staked: GemBigUint::from(5u32),
+            is_active: true,
+            ..GemAssetBalance::mock_with_available(10)
+        };
+
+        let context = GemBannerContext::asset(None, asset.clone(), &metadata, &empty);
+        assert!(context.is_stakeable);
+        assert!(!context.has_stake_balance);
+        assert!(!context.has_available_balance);
+        assert!(!context.is_asset_activated);
+        assert_eq!(context.asset_rank_score, Some(42));
+        assert!(!context.is_wallet_empty);
+
+        let context = GemBannerContext::asset(None, asset, &metadata, &funded);
+        assert!(context.has_stake_balance);
+        assert!(context.has_available_balance);
+        assert!(context.is_asset_activated);
+    }
 
     #[test]
     fn test_banner_identifier() {

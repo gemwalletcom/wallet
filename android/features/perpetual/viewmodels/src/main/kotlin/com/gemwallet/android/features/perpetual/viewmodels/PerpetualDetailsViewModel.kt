@@ -23,7 +23,6 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.perpetual.viewmodels.localization.stringRes
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualDetailsSectionUIModel
 import com.gemwallet.android.features.perpetual.viewmodels.model.PerpetualPositionRowUIModel
-import com.gemwallet.android.features.perpetual.viewmodels.model.infoListItem
 import com.gemwallet.android.features.perpetual.viewmodels.model.positionRow
 import com.gemwallet.android.features.perpetual.viewmodels.model.uiModel
 import com.gemwallet.android.features.perpetual.viewmodels.models.PerpetualChartUIModel
@@ -136,7 +135,7 @@ class PerpetualDetailsViewModel @Inject constructor(
                 GemPerpetualSection.INFO -> PerpetualDetailsSectionUIModel.Info(
                     title = context.getString(section.stringRes()),
                     buttons = if (perpetual == null) emptyList() else service.buttons(position != null).map { it.uiModel(context) },
-                    rows = perpetual?.let { details -> service.infoRows().map { details.infoListItem(context, it) } }.orEmpty(),
+                    rows = perpetual?.let { details -> service.infoRows(details.perpetual.toGem(), details.asset.toGem()) }.orEmpty(),
                 )
             }
         }

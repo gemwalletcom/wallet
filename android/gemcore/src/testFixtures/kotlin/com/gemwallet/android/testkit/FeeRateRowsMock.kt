@@ -8,6 +8,7 @@ fun mockGemFeeRateRows(
     selectedTotal: BigInteger = BigInteger("2"),
 ) = GemFeeRateRows(
     rows = emptyList(),
+    showsOptions = false,
     unitType = FeeUnitType.GWEI,
     unitDecimals = 0u,
     supportsCustomFee = true,

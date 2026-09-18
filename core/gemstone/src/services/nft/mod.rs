@@ -14,6 +14,7 @@ use primitives::{NFTAssetData, NFTAssetId, NFTData, ReportNft, WalletId};
 pub use collectible::GemCollectibleService;
 pub use model::{
     GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleIdentifier, GemCollectibleRow, GemCollectibleSection, GemNftItem, GemNftList,
+    GemNftUnverifiedRow,
 };
 pub use store::GemNftStore;
 
@@ -59,8 +60,8 @@ impl GemNftService {
         rules::list_items(data, list)
     }
 
-    pub fn unverified_collections(&self, data: Vec<NFTData>) -> Vec<NFTData> {
-        rules::unverified_collections(data)
+    pub fn unverified_row(&self, data: Vec<NFTData>, list: GemNftList) -> Option<GemNftUnverifiedRow> {
+        rules::unverified_row(data, list)
     }
 }
 

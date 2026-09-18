@@ -32,8 +32,8 @@ public struct PerpetualScene: View {
                         case let .data(data):
                             CandlestickChartView(
                                 model: CandlestickChartViewModel(
-                                    candles: data,
-                                    period: chart.currentPeriod,
+                                    candles: data.candles,
+                                    period: data.period,
                                     position: model.positions.first?.position,
                                 ),
                             )
@@ -66,10 +66,7 @@ public struct PerpetualScene: View {
                     buttonsSection
                     Section(header: Text(section.title)) {
                         ForEach(model.infoRows, id: \.self) { row in
-                            ListItemView(
-                                field: model.perpetualViewModel.infoField(for: row),
-                                infoAction: model.infoAction(for: row),
-                            )
+                            GemListRowView(row: row, onInfo: model.onInfo)
                         }
                     }
                 }

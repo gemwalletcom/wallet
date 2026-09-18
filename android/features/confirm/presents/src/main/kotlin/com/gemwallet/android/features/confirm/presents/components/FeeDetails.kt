@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.confirm.presents.components
 
 import com.gemwallet.android.ui.theme.listItemIconSize
+import com.gemwallet.android.features.confirm.viewmodels.models.NetworkFeeCustomViewModel
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import androidx.compose.ui.unit.Dp
@@ -146,6 +147,7 @@ fun FeeDetails(
                 feeListItem = feeListItem,
                 selection = selection,
                 feeRateModels = model.feeRateModels(unitSymbol),
+                showsOptions = model.showsOptions,
                 feeAsset = feeAsset,
                 unitSymbol = unitSymbol,
                 supportsCustomFee = model.supportsCustomFee,
@@ -180,6 +182,7 @@ private fun FeeRates(
     feeListItem: ListItemModel?,
     selection: FeeSelectionUIModel,
     feeRateModels: List<FeeRateUIModel>,
+    showsOptions: Boolean,
     feeAsset: FeeAssetUIModel,
     unitSymbol: String,
     supportsCustomFee: Boolean,
@@ -204,7 +207,7 @@ private fun FeeRates(
                 )
             }
         }
-        if (feeRateModels.size > 1) {
+        if (showsOptions) {
             val totalCount = feeRateModels.size + if (supportsCustomFee) 1 else 0
             itemsPositioned(feeRateModels, totalCount = totalCount) { position, feeRate ->
                 FeeRow(

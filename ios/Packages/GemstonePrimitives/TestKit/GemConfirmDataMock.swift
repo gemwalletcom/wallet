@@ -161,7 +161,7 @@ public extension GemConfirmLoad {
             feeAsset: feeAsset.toGem(),
             metadata: metadata,
             feeAssets: feeAssets,
-            simulation: GemConfirmSimulationState(chain: Primitives.Chain.ethereum.rawValue, result: nil, warnings: warnings, simulation: simulation, addressNames: []),
+            simulation: GemConfirmSimulationState(chain: Primitives.Chain.ethereum.rawValue, result: nil, warnings: warnings, simulation: simulation),
             addressName: addressName?.toGem(),
             preload: preload,
         )

@@ -255,7 +255,7 @@ extension WalletSceneViewModel {
     }
 
     private var shouldShowInitialLoadingAssets: Bool {
-        (try? service.showsInitialLoading()) ?? false
+        service.showsInitialLoading()
     }
 
     func setAssetPinned(_ assetId: AssetId, pinned: Bool) async throws {

@@ -97,17 +97,20 @@ impl GemSwapService {
 
 impl GemSwapService {
     async fn suggest_receive_asset(&self, wallet: &Wallet, pay_asset_id: &AssetId) -> Result<Option<AssetId>, GemServiceError> {
+        let supported = rules::assets_in_wallet(self.supported_assets(pay_asset_id.clone()), wallet);
         let pairs = self.store.get_swap_pairs(wallet.id.clone()).await?;
-        if let Some(asset_id) = rules::most_swapped_receive_asset(&pairs, pay_asset_id) {
+        if let Some(asset_id) = rules::most_swapped_receive_asset(&pairs, pay_asset_id, &supported) {
             return Ok(Some(asset_id));
         }
         let recents = self.store.get_recent_asset_ids(wallet.id.clone()).await?;
-        if let Some(asset_id) = rules::first_other_asset(recents, pay_asset_id) {
+        if let Some(asset_id) = rules::first_supported_receive_asset(recents, pay_asset_id, &supported) {
             return Ok(Some(asset_id));
         }
-        let supported = rules::assets_in_wallet(self.supported_assets(pay_asset_id.clone()), wallet);
-        let candidates = self.store.get_receive_asset_ids(wallet.id.clone(), supported.chains, supported.asset_ids).await?;
-        Ok(rules::first_other_asset(candidates, pay_asset_id))
+        let candidates = self
+            .store
+            .get_receive_asset_ids(wallet.id.clone(), supported.chains.clone(), supported.asset_ids.clone())
+            .await?;
+        Ok(rules::first_supported_receive_asset(candidates, pay_asset_id, &supported))
     }
 
     async fn get_quote_data(&self, wallet: &Wallet, quote: &Quote) -> Result<GemSwapQuoteData, SwapperError> {
@@ -143,7 +146,7 @@ impl GemSwapService {
 
 #[cfg(test)]
 mod tests {
-    use primitives::Chain;
+    use primitives::{Chain, asset_constants::SMARTCHAIN_USDT_TOKEN_ID};
 
     use super::testkit::MemorySwapStore;
     use super::*;
@@ -197,7 +200,7 @@ mod tests {
     fn test_a_recent_asset_is_used_when_no_pair_was_ever_swapped() {
         block_on(async {
             let store = Arc::new(MemorySwapStore::default());
-            *store.recent_asset_ids.lock().unwrap() = vec![Chain::Ethereum.as_asset_id(), Chain::Bitcoin.as_asset_id()];
+            *store.recent_asset_ids.lock().unwrap() = vec![Chain::Ethereum.as_asset_id(), Chain::Bitcoin.as_asset_id(), Chain::Solana.as_asset_id()];
 
             let wallet = Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Solana]);
             let suggestion = GemSwapService::mock(store)
@@ -208,9 +211,29 @@ mod tests {
 
             assert_eq!(
                 suggestion.receive_asset_id,
-                Some(Chain::Bitcoin.as_asset_id()),
-                "the pay asset is never its own receive asset"
+                Some(Chain::Solana.as_asset_id()),
+                "the pay asset is never its own receive asset, and neither is a chain the wallet has no account on"
             );
+        });
+    }
+
+    #[test]
+    fn test_a_single_chain_wallet_is_never_suggested_an_asset_it_cannot_receive() {
+        block_on(async {
+            let usdt_smartchain = AssetId::from_token(Chain::SmartChain, SMARTCHAIN_USDT_TOKEN_ID);
+            let store = Arc::new(MemorySwapStore::default());
+            *store.pairs.lock().unwrap() = vec![GemSwapPair {
+                from_asset_id: Chain::Bitcoin.as_asset_id(),
+                to_asset_id: usdt_smartchain.clone(),
+            }];
+            *store.recent_asset_ids.lock().unwrap() = vec![usdt_smartchain.clone()];
+            *store.receive_asset_ids.lock().unwrap() = vec![usdt_smartchain];
+
+            let wallet = Wallet::mock_with_chains(&[Chain::Bitcoin]);
+            let suggestion = GemSwapService::mock(store).suggest_pair(wallet, Some(Chain::Bitcoin.as_asset_id())).await.unwrap().unwrap();
+
+            assert_eq!(suggestion.pay_asset_id, Chain::Bitcoin.as_asset_id());
+            assert_eq!(suggestion.receive_asset_id, None);
         });
     }
 

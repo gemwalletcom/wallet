@@ -25,6 +25,7 @@ import org.junit.Test
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import uniffi.gemstone.GemTransactionRowSubtitle
 import uniffi.gemstone.transactionRow
 import com.gemwallet.android.ext.toGem
 
@@ -107,7 +108,7 @@ class TransactionDataAggregateImplTest {
         val extended = mockTransactionExtended(transaction)
         val aggregate = createAggregate(extended)
 
-        assertEquals("bc1qx2...tpd9l", aggregate.address)
+        assertEquals(GemTransactionRowSubtitle.ToAddress("bc1qx2...tpd9l"), aggregate.subtitle)
     }
 
     @Test
@@ -122,7 +123,7 @@ class TransactionDataAggregateImplTest {
         val extended = mockTransactionExtended(transaction)
         val aggregate = createAggregate(extended)
 
-        assertEquals("bc1qsender", aggregate.address)
+        assertEquals(GemTransactionRowSubtitle.FromAddress("bc1qsender"), aggregate.subtitle)
     }
 
     @Test
@@ -137,7 +138,7 @@ class TransactionDataAggregateImplTest {
         val extended = mockTransactionExtended(transaction)
         val aggregate = createAggregate(extended)
 
-        assertEquals("bc1qsender", aggregate.address)
+        assertEquals(GemTransactionRowSubtitle.ToAddress("bc1qsender"), aggregate.subtitle)
     }
 
     @Test
@@ -149,7 +150,7 @@ class TransactionDataAggregateImplTest {
         val extended = mockTransactionExtended(transaction)
         val aggregate = createAggregate(extended)
 
-        assertEquals("", aggregate.address)
+        assertEquals(GemTransactionRowSubtitle.None, aggregate.subtitle)
     }
 
     @Test
@@ -162,7 +163,7 @@ class TransactionDataAggregateImplTest {
         val extended = mockTransactionExtended(transaction)
         val aggregate = createAggregate(extended)
 
-        assertEquals("bc1qre...eiver", aggregate.address)
+        assertEquals(GemTransactionRowSubtitle.ToAddress("bc1qre...eiver"), aggregate.subtitle)
     }
 
     @Test

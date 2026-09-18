@@ -11,6 +11,7 @@ import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
+import func Gemstone.addressCopy
 
 @Observable
 @MainActor
@@ -88,7 +89,7 @@ public final class AssetsResultsSceneViewModel: AssetActions, PerpetualPinAction
             for: assetData,
             onCopy: { [weak self] in
                 self?.isPresentingToastMessage = .copy(
-                    CopyTypeViewModel(type: .address(assetData.asset, address: $0), copyValue: $0).message,
+                    CopyTypeViewModel(content: addressCopy(chain: assetData.asset.chain.toGem(), address: $0)).message,
                 )
             },
             onPin: { [weak self] in

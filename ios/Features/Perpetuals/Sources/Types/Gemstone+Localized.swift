@@ -3,7 +3,6 @@
 import enum Gemstone.GemCandleTooltipRow
 import enum Gemstone.GemPerpetualButton
 import enum Gemstone.GemPerpetualChartLineKind
-import enum Gemstone.GemPerpetualInfoRow
 import enum Gemstone.GemPerpetualMarketSection
 import enum Gemstone.GemPerpetualPositionDetailRow
 import enum Gemstone.GemPerpetualSection
@@ -42,15 +41,6 @@ extension GemPerpetualPositionDetailRow {
     }
 }
 
-extension GemPerpetualInfoRow {
-    var title: String {
-        switch self {
-        case .dailyVolume: Localized.Markets.dailyVolume
-        case .openInterest: Localized.Info.Perpetual.OpenInterest.title
-        case .fundingRate: Localized.Info.Perpetual.FundingApr.title
-        }
-    }
-}
 
 extension GemPerpetualButton {
     var title: String {

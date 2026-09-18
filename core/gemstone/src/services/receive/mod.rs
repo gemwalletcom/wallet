@@ -8,7 +8,7 @@ use primitives::{Asset, AssetId, Chain, Wallet, WalletId};
 use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
-pub use model::GemReceiveWarning;
+pub use model::{GemReceiveNetworks, GemReceiveWarning};
 
 #[derive(uniffi::Object)]
 pub struct GemReceiveService {
@@ -27,17 +27,17 @@ impl GemReceiveService {
         rules::warnings(chain)
     }
 
-    pub fn network_asset_ids(&self, asset_id: AssetId, associations: Vec<AssetId>, wallet: Wallet) -> Vec<AssetId> {
-        rules::network_asset_ids(asset_id, associations, &wallet)
+    pub fn networks(&self, asset_id: AssetId, associations: Vec<AssetId>, wallet: Wallet) -> GemReceiveNetworks {
+        rules::networks(asset_id, associations, &wallet)
     }
 
     pub async fn enable_asset(&self, wallet_id: WalletId, asset_id: AssetId) -> Result<(), GemServiceError> {
         self.balances.set_assets_enabled(wallet_id, vec![asset_id], true).await
     }
 
-    pub async fn sync_network_asset_ids(&self, asset_id: AssetId, wallet: Wallet) -> Result<Vec<AssetId>, GemServiceError> {
+    pub async fn sync_networks(&self, asset_id: AssetId, wallet: Wallet) -> Result<GemReceiveNetworks, GemServiceError> {
         let associations = self.assets.sync_asset_associations(asset_id.clone()).await?;
-        Ok(rules::network_asset_ids(asset_id, associations, &wallet))
+        Ok(rules::networks(asset_id, associations, &wallet))
     }
 
     pub async fn asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {

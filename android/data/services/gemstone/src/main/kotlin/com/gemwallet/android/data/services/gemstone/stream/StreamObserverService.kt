@@ -69,7 +69,13 @@ class StreamObserverService(
                             health.report(isHealthy = true)
                             service.connected()
                         }
-                        is WebSocketEvent.Message -> service.handle(event.text)
+                        is WebSocketEvent.Message -> {
+                            val handled = service.handle(event.text)
+                            scope.launch {
+                                runCatchingCancellable { service.sync(handled) }
+                                    .onFailure { Log.e(TAG, "Stream sync error", it) }
+                            }
+                        }
                         WebSocketEvent.Disconnected -> {
                             health.report(isHealthy = false)
                             service.disconnected()

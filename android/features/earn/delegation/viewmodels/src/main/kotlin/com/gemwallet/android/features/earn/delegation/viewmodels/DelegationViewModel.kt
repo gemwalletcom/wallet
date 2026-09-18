@@ -17,7 +17,7 @@ import com.gemwallet.android.features.earn.delegation.models.uiModel
 import com.gemwallet.android.model.Crypto
 import com.gemwallet.android.model.toAmountParams
 import com.gemwallet.android.serializer.toJson
-import com.gemwallet.android.ui.components.list_item.availableIn
+import com.gemwallet.android.domains.duration.formatDuration
 import com.gemwallet.android.ui.models.RewardsInfoUIModel
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
@@ -81,7 +81,7 @@ class DelegationViewModel @Inject constructor(
         val validatorName = stakeService.validatorRow(delegation.validator.toGem()).name
         val validatorUrl = stakeService.validatorUrl(delegation.validator.toGem())?.link
         val status = delegationStatus(delegation.toGem())
-        val availableIn = availableIn(delegation)
+        val availableIn = stakeService.completionCountdownParts(delegation.toGem()).formatDuration()
         DelegationProperties(
             rows = stakeService.delegationRows(delegation.toGem()).mapNotNull { it.uiModel(context, delegation.validator, validatorName, validatorUrl, status, availableIn) },
             rewards = RewardsInfoUIModel(assetInfo, delegation.base.rewards),

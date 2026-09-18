@@ -38,7 +38,7 @@ import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.components.buttons.CopyButton
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.setPlainText
+import com.gemwallet.android.ui.components.clipboard.setCopy
 import com.gemwallet.android.ui.components.screen.PhraseLayout
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.phraseRows
@@ -50,6 +50,7 @@ import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 import com.wallet.core.primitives.WalletId
+import uniffi.gemstone.secretPhraseCopy
 
 private val loadingDialogSize = 100.dp
 
@@ -157,7 +158,7 @@ private fun UI(
                 )
             }
             Spacer16()
-            CopyButton(onClick = { clipboardManager.setPlainText(context, data.joinToString(" "), true) })
+            CopyButton(onClick = { clipboardManager.setCopy(context, secretPhraseCopy(data)) })
         }
     }
 }

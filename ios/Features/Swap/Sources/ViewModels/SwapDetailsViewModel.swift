@@ -30,7 +30,7 @@ public final class SwapDetailsViewModel {
     private let rate: GemSwapRate?
     private var isRateInverse = false
     private let priceViewModel: PriceViewModel
-    private let isProviderSelectionEnabled: Bool
+    let allowSelectProvider: Bool
     private let swapPriceImpact: SwapPriceImpact?
     private let minReceiveValue: BigInt
     private let etaSeconds: UInt32?
@@ -43,7 +43,7 @@ public final class SwapDetailsViewModel {
         summary: GemSwapQuoteSummary,
         slippagePercent: Double?,
         currency: String,
-        isProviderSelectionEnabled: Bool = true,
+        allowSelectProvider: Bool = true,
         swapPriceImpact: SwapPriceImpact?,
         swapProviderSelectAction: ((SwapperQuote) -> Void)? = nil,
     ) {
@@ -56,7 +56,7 @@ public final class SwapDetailsViewModel {
         self.slippagePercent = slippagePercent
         rate = summary.rate
         priceViewModel = PriceViewModel(price: toAssetPrice.price, currencyCode: currency)
-        self.isProviderSelectionEnabled = isProviderSelectionEnabled
+        self.allowSelectProvider = allowSelectProvider
         self.swapPriceImpact = swapPriceImpact
         minReceiveValue = BigInt(summary.minReceiveValue)
         etaSeconds = summary.quote.etaInSeconds
@@ -106,10 +106,6 @@ public final class SwapDetailsViewModel {
             priceViewModel: priceViewModel,
             valueFormatter: valueFormatter,
         )
-    }
-
-    var allowSelectProvider: Bool {
-        isProviderSelectionEnabled && state.value.or([]).count > 1
     }
 
     var swapProvidersViewModel: SwapProvidersViewModel {

@@ -1,8 +1,9 @@
 use gem_solana::siws::SiwsMessage;
-use primitives::{SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, promote_single_secondary_payload_field};
+use primitives::{Chain, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, promote_single_secondary_payload_field};
 use std::borrow::Cow;
 use std::collections::HashSet;
 
+use crate::services::simulation::{GemSimulationPayloadRow, payload_rows};
 use crate::{
     message::eip712::{GemEIP712Message, GemEIP712Value, GemEIP712ValueType},
     message::sign_type::MessageType,
@@ -12,8 +13,25 @@ use crate::{
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct MessagePayloadPreview {
     pub message_type: MessageType,
+    pub primary: Vec<GemSimulationPayloadRow>,
+    pub secondary: Vec<GemSimulationPayloadRow>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct MessagePayloadFields {
+    pub message_type: MessageType,
     pub primary: Vec<SimulationPayloadField>,
     pub secondary: Vec<SimulationPayloadField>,
+}
+
+impl MessagePayloadFields {
+    pub(super) fn rows(self, chain: Chain) -> MessagePayloadPreview {
+        MessagePayloadPreview {
+            message_type: self.message_type,
+            primary: payload_rows(&self.primary, Some(chain), &[]),
+            secondary: payload_rows(&self.secondary, Some(chain), &[]),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -37,12 +55,12 @@ enum CanonicalPayloadLabel<'a> {
 }
 
 impl GemEIP712Message {
-    pub(super) fn payload_preview(&self, simulation_payload: Vec<SimulationPayloadField>) -> MessagePayloadPreview {
+    pub(super) fn payload_preview(&self, simulation_payload: Vec<SimulationPayloadField>) -> MessagePayloadFields {
         grouped_payload_preview(MessageType::Eip712, eip712_preview_fields(self), simulation_payload)
     }
 }
 
-impl MessagePayloadPreview {
+impl MessagePayloadFields {
     pub(super) fn from_siwe(message: &SiweMessage, simulation_payload: Vec<SimulationPayloadField>) -> Self {
         grouped_payload_preview(MessageType::Siwe, siwe_preview_fields(message), simulation_payload)
     }
@@ -84,7 +102,7 @@ impl MessagePayloadPreview {
     }
 }
 
-fn grouped_payload_preview(message_type: MessageType, preview_fields: Vec<MessagePayloadField>, simulation_payload: Vec<SimulationPayloadField>) -> MessagePayloadPreview {
+fn grouped_payload_preview(message_type: MessageType, preview_fields: Vec<MessagePayloadField>, simulation_payload: Vec<SimulationPayloadField>) -> MessagePayloadFields {
     let merged_payload = merge_payload(simulation_payload.clone(), preview_fields);
     let grouped_payload = if simulation_payload.is_empty() {
         grouped_preview_fields(merged_payload)
@@ -95,7 +113,7 @@ fn grouped_payload_preview(message_type: MessageType, preview_fields: Vec<Messag
     let grouped_payload = promote_single_secondary_payload_field(grouped_payload);
     let grouped_payload = promote_secondary_payload_when_primary_is_empty(grouped_payload);
 
-    MessagePayloadPreview {
+    MessagePayloadFields {
         message_type,
         primary: grouped_payload
             .iter()
@@ -390,7 +408,7 @@ impl PayloadMergeKey {
 
 #[cfg(test)]
 mod tests {
-    use super::MessagePayloadPreview;
+    use super::MessagePayloadFields;
     use crate::message::eip712::{GemEIP712Message, GemEIP712Section, GemEIP712Value, GemEIP712ValueType};
     use crate::message::sign_type::MessageType;
     use crate::siwe::SiweMessage;
@@ -401,7 +419,7 @@ mod tests {
     #[test]
     fn test_siws_preview_groups_identity_and_preserves_optional_fields() {
         let message = SiwsMessage::parse(include_str!("../../../crates/gem_solana/testdata/siws_complete.txt")).unwrap().unwrap();
-        let preview = MessagePayloadPreview::from_siws(&message, vec![]);
+        let preview = MessagePayloadFields::from_siws(&message, vec![]);
 
         assert_eq!(preview.message_type, MessageType::Siws);
 
@@ -439,7 +457,7 @@ mod tests {
 
     #[test]
     fn siwe_preview_groups_domain_and_address_as_primary() {
-        let preview = MessagePayloadPreview::from_siwe(
+        let preview = MessagePayloadFields::from_siwe(
             &SiweMessage {
                 domain: "login.xyz".into(),
                 address: "0x123".into(),
@@ -539,7 +557,7 @@ mod tests {
 
     #[test]
     fn preview_promotes_secondary_fields_when_primary_is_empty() {
-        let preview = MessagePayloadPreview::from_siwe(
+        let preview = MessagePayloadFields::from_siwe(
             &SiweMessage {
                 domain: "login.xyz".into(),
                 address: "0x123".into(),

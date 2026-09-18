@@ -1,7 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemFormattedNumber
 import GemstonePrimitives
+import GemstonePrimitivesTestKit
 import Localization
 @testable import MarketInsight
 @testable import MarketInsightTestKit
@@ -14,11 +16,11 @@ struct AssetDetailsInfoViewModelTests {
     func rowsKeepTheOrderAndTitlesCoreGives() throws {
         let tokenId = try #require(Asset.mockEthereumUSDT().id.tokenId)
         let values = AssetDetailsInfoViewModel.mock().marketValues([
-            .marketCap(value: 1, rank: 1),
-            .fullyDilutedValuation(value: 2),
-            .tradingVolume(value: 3),
+            .marketCap(value: .mock(value: 1), rank: 1),
+            .fullyDilutedValuation(value: .mock(value: 2)),
+            .tradingVolume(value: .mock(value: 3)),
             .contract(tokenId: tokenId, explorer: nil),
-            .maxSupply(value: 21),
+            .maxSupply(value: .mock(value: 21)),
         ])
 
         #expect(values.map(\.title) == [
@@ -32,16 +34,17 @@ struct AssetDetailsInfoViewModelTests {
 
     @Test
     func marketCapCarriesTheRankTagOnlyWhenCoreGivesOne() {
-        let values = AssetDetailsInfoViewModel.mock().marketValues([.marketCap(value: 1_000_000, rank: 7), .marketCap(value: 1_000_000, rank: nil)])
+        let values = AssetDetailsInfoViewModel.mock().marketValues([.marketCap(value: .mock(value: 1_000_000), rank: 7), .marketCap(value: .mock(value: 1_000_000), rank: nil)])
 
         #expect(values.map(\.titleTag) == [" #7 ", nil])
     }
 
     @Test
-    func supplyRowsCarryTheAssetSymbol() {
-        let values = AssetDetailsInfoViewModel.mock().marketValues([.circulatingSupply(value: 1_500), .maxSupply(value: 21)])
+    func valuesPrintTheNumberCoreFormatted() {
+        let supply = GemFormattedNumber.mock(value: 1_500, unit: .symbol(symbol: "USDT"), display: .number(precision: .fraction(min: 0, max: 2)), notation: .plain)
+        let values = AssetDetailsInfoViewModel.mock().marketValues([.circulatingSupply(value: supply)])
 
-        #expect(values.map(\.subtitle) == ["1,500.00 USDT", "21.00 USDT"])
+        #expect(values.map(\.subtitle) == [supply.text()])
     }
 
     @Test

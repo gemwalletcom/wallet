@@ -27,7 +27,6 @@ import com.gemwallet.android.ui.models.buttonState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,6 +43,8 @@ import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.GemWalletConnectFailure
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.GemWalletConnectSessionRequest
+import uniffi.gemstone.GemServiceException
+import com.gemwallet.android.ui.localization.text
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -65,14 +66,14 @@ class WCRequestViewModel @Inject constructor(
         state.approved ?: pending?.takeIf { it.sessionId == state.sessionRequest?.topic }?.let(::toRequest)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val payloadAddressNames = request
+    private val namedRequest = request
         .map { it as? WCRequest.SignMessage }
         .distinctUntilChanged { old, new -> old?.pending === new?.pending }
-        .mapLatest { request -> request?.addressNames().orEmpty() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
+        .mapLatest { request -> request?.withAddressNames() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val sceneState = combine(state, request, payloadAddressNames) { state, request, addressNames ->
-        state.toSceneState((request as? WCRequest.SignMessage)?.withAddressNames(addressNames) ?: request, ReviewTexts(context))
+    val sceneState = combine(state, request, namedRequest) { state, request, named ->
+        state.toSceneState(named?.takeIf { it.pending === request?.pending } ?: request, ReviewTexts(context))
     }.stateIn(viewModelScope, SharingStarted.Eagerly, RequestSceneState.Loading)
 
     val buttonState = sceneState.map { scene ->
@@ -138,12 +139,10 @@ class WCRequestViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher) {
             val signature = try {
                 service.signMessage(request.wallet.id.id, request.signMessage)
-            } catch (err: CancellationException) {
-                throw err
-            } catch (err: Throwable) {
+            } catch (err: GemServiceException) {
                 Log.e(TAG, "Sign message failed topic=${request.pending.sessionId}", err)
                 state.update { it.copy(responseState = RequestResponseState.Idle, approved = null) }
-                onError(err.message.orEmpty())
+                onError(err.text().text(context))
                 request.reject()
                 return@launch
             }

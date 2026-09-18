@@ -6,6 +6,7 @@ import Foundation
 import Localization
 import Primitives
 import PrimitivesComponents
+import func Gemstone.secretPhraseCopy
 
 struct ShowSecretPhraseViewModel: SecretPhraseViewableModel {
     private let words: [String]
@@ -28,9 +29,6 @@ struct ShowSecretPhraseViewModel: SecretPhraseViewableModel {
     }
 
     var copyModel: CopyTypeViewModel {
-        CopyTypeViewModel(
-            type: .secretPhrase,
-            copyValue: MnemonicFormatter.fromArray(words: words),
-        )
+        CopyTypeViewModel(content: secretPhraseCopy(words: words))
     }
 }

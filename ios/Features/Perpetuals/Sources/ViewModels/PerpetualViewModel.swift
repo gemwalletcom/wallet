@@ -4,15 +4,14 @@ import Components
 import Formatters
 import Foundation
 import GemstonePrimitives
-import class Gemstone.GemPerpetual
 import struct Gemstone.GemPerpetualMarketRow
-import enum Gemstone.GemPerpetualInfoRow
 import func Gemstone.perpetualMarketRow
 import Localization
 import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
+import func Gemstone.valueTone
 
 public struct PerpetualViewModel {
     public let perpetual: Perpetual
@@ -22,11 +21,12 @@ public struct PerpetualViewModel {
 
     public init(
         perpetual: Perpetual,
+        asset: Asset,
         priceFormatter: CurrencyFormatter = .usd,
     ) {
         self.perpetual = perpetual
         self.priceFormatter = priceFormatter
-        row = perpetualMarketRow(perpetual: perpetual.toGem())
+        row = perpetualMarketRow(perpetual: perpetual.toGem(), asset: asset.toGem())
     }
 
     public var name: String {
@@ -35,15 +35,6 @@ public struct PerpetualViewModel {
 
     public var assetImage: AssetImage {
         AssetIdViewModel(assetId: perpetual.assetId).assetImage
-    }
-
-    public func infoField(for infoRow: GemPerpetualInfoRow) -> ListItemField {
-        let value = switch infoRow {
-        case .dailyVolume: row.volume24h.text()
-        case .openInterest: row.openInterest.text()
-        case .fundingRate: percentFormatter.string(GemPerpetual(provider: perpetual.provider.toGem()).fundingApr(funding: perpetual.funding))
-        }
-        return ListItemField(title: infoRow.title, value: value)
     }
 
     public var priceText: String {
@@ -55,6 +46,6 @@ public struct PerpetualViewModel {
     }
 
     public var priceChangeTextColor: Color {
-        PriceChangeColor.color(for: perpetual.pricePercentChange24h)
+        valueTone(value: perpetual.pricePercentChange24h).color
     }
 }

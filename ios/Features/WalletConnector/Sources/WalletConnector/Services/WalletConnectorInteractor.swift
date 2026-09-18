@@ -42,8 +42,7 @@ extension WalletConnectorInteractor: WalletConnectorInteractable {
 
 extension WalletConnectorInteractor: GemWalletConnectSigner {
     public func signMessage(request: GemWalletConnectMessageRequest) async throws -> String {
-        let payload = try SignMessagePayload(request)
-        return try await present { try await presentSheet(payload: payload, sheetType: { .signMessage($0) }) }
+        try await present { try await presentSheet(payload: request, sheetType: { .signMessage($0) }) }
     }
 
     public func signTransaction(request: GemWalletConnectTransactionRequest) async throws -> String {

@@ -82,7 +82,10 @@ impl GemChartSession {
         }
     }
 
-    pub fn on_loaded(&self, chart: GemChart) -> Self {
+    pub fn on_loaded(&self, chart: GemChart, period: ChartPeriod) -> Self {
+        if period != self.period {
+            return self.clone();
+        }
         Self {
             chart: Some(chart),
             error: None,
@@ -92,7 +95,10 @@ impl GemChartSession {
         }
     }
 
-    pub fn on_failed(&self, error: GemServiceError) -> Self {
+    pub fn on_failed(&self, error: GemServiceError, period: ChartPeriod) -> Self {
+        if period != self.period {
+            return self.clone();
+        }
         Self {
             error: Some(error),
             is_loading: false,
@@ -109,14 +115,15 @@ mod tests {
 
     #[test]
     fn test_a_chart_with_no_points_reads_as_no_data_not_as_a_failure() {
-        let session = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_loaded(GemChart::mock(vec![]));
+        let session = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_loaded(GemChart::mock(vec![]), ChartPeriod::Day);
 
         assert_eq!(session.view_state().phase, GemChartPhase::NoData);
     }
 
     #[test]
     fn test_selecting_the_same_period_keeps_the_chart_it_already_loaded() {
-        let loaded = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_loaded(GemChart::mock(vec![ChartDateValue::mock(0, 0.0), ChartDateValue::mock(1, 1.0)]));
+        let loaded =
+            GemChartSession::new(ChartPeriod::Day, Currency::USD).on_loaded(GemChart::mock(vec![ChartDateValue::mock(0, 0.0), ChartDateValue::mock(1, 1.0)]), ChartPeriod::Day);
 
         assert_eq!(loaded.on_select_period(ChartPeriod::Day), loaded, "reselecting a period is not a reload");
         assert_eq!(loaded.on_select_period(ChartPeriod::Week).view_state().phase, GemChartPhase::Loading);
@@ -125,7 +132,7 @@ mod tests {
     #[test]
     fn test_a_refresh_keeps_the_visible_chart_and_marks_itself_refreshing() {
         let refreshing = GemChartSession::new(ChartPeriod::Day, Currency::USD)
-            .on_loaded(GemChart::mock(vec![ChartDateValue::mock(0, 0.0), ChartDateValue::mock(1, 1.0)]))
+            .on_loaded(GemChart::mock(vec![ChartDateValue::mock(0, 0.0), ChartDateValue::mock(1, 1.0)]), ChartPeriod::Day)
             .on_refresh();
         let state = refreshing.view_state();
 
@@ -140,12 +147,30 @@ mod tests {
     #[test]
     fn test_a_failure_after_a_load_keeps_the_chart_and_a_first_failure_reports_it() {
         let error = GemServiceError::Core { msg: "offline".to_string() };
-        let first = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_failed(error.clone());
+        let first = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_failed(error.clone(), ChartPeriod::Day);
         let after_load = GemChartSession::new(ChartPeriod::Day, Currency::USD)
-            .on_loaded(GemChart::mock(vec![ChartDateValue::mock(0, 0.0), ChartDateValue::mock(1, 1.0)]))
-            .on_failed(error);
+            .on_loaded(GemChart::mock(vec![ChartDateValue::mock(0, 0.0), ChartDateValue::mock(1, 1.0)]), ChartPeriod::Day)
+            .on_failed(error, ChartPeriod::Day);
 
         assert!(matches!(first.view_state().phase, GemChartPhase::Failed { .. }));
         assert!(matches!(after_load.view_state().phase, GemChartPhase::Data { .. }));
+    }
+
+    #[test]
+    fn test_a_load_that_finished_after_the_period_changed_is_ignored() {
+        let values = vec![ChartDateValue::mock(0, 0.0), ChartDateValue::mock(1, 1.0)];
+        let selected_week = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_select_period(ChartPeriod::Week);
+        let error = GemServiceError::Core { msg: "offline".to_string() };
+
+        assert_eq!(
+            selected_week.on_loaded(GemChart::mock(values), ChartPeriod::Day).view_state().phase,
+            GemChartPhase::Loading,
+            "a chart for the period the user left behind never reaches the screen"
+        );
+        assert_eq!(
+            selected_week.on_failed(error, ChartPeriod::Day).view_state().phase,
+            GemChartPhase::Loading,
+            "neither does its failure"
+        );
     }
 }

@@ -70,6 +70,7 @@ fun GemValueTone.textStyle(): ListItemTextStyle = when (this) {
     GemValueTone.PLAIN -> ListItemTextStyle.Body
     GemValueTone.NEUTRAL -> ListItemTextStyle.Secondary
     GemValueTone.POSITIVE -> ListItemTextStyle.Positive
+    GemValueTone.WARNING -> ListItemTextStyle.Warning
     GemValueTone.NEGATIVE -> ListItemTextStyle.Negative
 }
 
@@ -78,6 +79,7 @@ fun GemValueTone.color(): Color = when (this) {
     GemValueTone.PLAIN -> MaterialTheme.colorScheme.onSurface
     GemValueTone.NEUTRAL -> MaterialTheme.colorScheme.secondary
     GemValueTone.POSITIVE -> MaterialTheme.colorScheme.tertiary
+    GemValueTone.WARNING -> pendingColor
     GemValueTone.NEGATIVE -> MaterialTheme.colorScheme.error
 }
 

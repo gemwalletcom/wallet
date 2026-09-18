@@ -16,6 +16,8 @@ use super::model::{
     GemDelegationStatus, GemDelegationTone, GemStakeAction, GemStakeActionItem, GemStakeAmountInput, GemStakeInfoRow, GemStakeSection, GemStakeValidatorSelection, GemValidatorRow,
 };
 use crate::config::image::GemImage;
+use crate::duration_formatter::{GemDurationPart, countdown_parts, day_parts};
+use chrono::{DateTime, Utc};
 use crate::config::stake::EARN_OFFERED;
 use crate::models::custom_types::GemBigUint;
 use crate::services::balance::{GemAssetBalance, GemBalanceRow};
@@ -240,6 +242,24 @@ pub fn positions(delegations: Vec<Delegation>) -> Vec<Delegation> {
 
 pub fn lock_time_seconds(chain: Chain) -> u64 {
     stake_config(chain).map(|config| config.time_lock).unwrap_or_default()
+}
+
+pub fn lock_time_parts(chain: Chain) -> Vec<GemDurationPart> {
+    day_parts(lock_time_seconds(chain) as i64)
+}
+
+pub fn completion_countdown_parts(delegation: &Delegation, now: DateTime<Utc>) -> Vec<GemDurationPart> {
+    let Some(completion_date) = delegation.base.completion_date else {
+        return vec![];
+    };
+    if delegation_status(delegation).completion.is_none() {
+        return vec![];
+    }
+    let remaining = (completion_date - now).num_seconds();
+    if remaining <= 0 {
+        return vec![];
+    }
+    countdown_parts(remaining)
 }
 
 pub fn min_stake_amount(chain: Chain) -> BigInt {
@@ -563,6 +583,8 @@ pub fn earn_validators(providers: Vec<DelegationValidator>, apr: f64) -> Vec<Del
 
 #[cfg(test)]
 mod tests {
+    use crate::duration_formatter::GemDurationUnit;
+    use chrono::Duration;
     use super::*;
     use crate::services::transfer::GemTransferData;
     use primitives::Resource;
@@ -721,6 +743,31 @@ mod tests {
             ..active
         };
         assert!(!delegation_rows(&no_apr).contains(&GemDelegationRow::Apr));
+    }
+
+    #[test]
+    fn test_the_lock_time_reads_as_whole_days() {
+        assert_eq!(
+            lock_time_parts(Chain::Cosmos),
+            vec![GemDurationPart {
+                value: (lock_time_seconds(Chain::Cosmos) / 86_400) as i64,
+                unit: GemDurationUnit::Day
+            }]
+        );
+    }
+
+    #[test]
+    fn test_a_delegation_counts_down_to_its_completion_only_while_one_is_pending() {
+        let now = Utc::now();
+        let mut pending = Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Deactivating, 0);
+        pending.base.completion_date = Some(now + Duration::days(2));
+        let mut active = Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 0);
+        active.base.completion_date = Some(now + Duration::days(2));
+
+        assert_eq!(completion_countdown_parts(&pending, now).first().map(|part| (part.value, part.unit)), Some((2, GemDurationUnit::Day)));
+        assert!(completion_countdown_parts(&active, now).is_empty());
+        pending.base.completion_date = Some(now - Duration::hours(1));
+        assert!(completion_countdown_parts(&pending, now).is_empty());
     }
 
     #[test]

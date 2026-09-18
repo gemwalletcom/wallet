@@ -12,11 +12,12 @@ use primitives::{
 
 use super::model::{
     GemAutocloseSummary, GemCandleTooltip, GemCandleTooltipCell, GemCandleTooltipRow, GemMarketsRefreshTrigger, GemPerpetualButton, GemPerpetualChartLayout, GemPerpetualChartLine,
-    GemPerpetualChartLineKind, GemPerpetualCloseInput, GemPerpetualDetails, GemPerpetualDetailsAction, GemPerpetualInfoRow, GemPerpetualMarketCounts, GemPerpetualMarketRow,
+    GemPerpetualChartLineKind, GemPerpetualCloseInput, GemPerpetualDetails, GemPerpetualDetailsAction, GemPerpetualMarketCounts, GemPerpetualMarketRow,
     GemPerpetualMarketSection, GemPerpetualMarketSections, GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualPositionAction, GemPerpetualPositionDetailRow,
     GemPerpetualPositionKind, GemPerpetualPositionRow, GemPerpetualSection, GemPerpetualTransferData,
 };
 use crate::formatted_number::GemFormattedNumber;
+use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::models::custom_types::GemBigInt;
 use crate::perpetual::GemPerpetual;
 use crate::services::error::GemServiceError;
@@ -559,12 +560,16 @@ fn tooltip_cell(row: GemCandleTooltipRow, value: GemFormattedNumber) -> GemCandl
     GemCandleTooltipCell { row, value }
 }
 
-pub fn market_row(perpetual: &Perpetual) -> GemPerpetualMarketRow {
+pub fn market_row(perpetual: &Perpetual, asset: &Asset) -> GemPerpetualMarketRow {
     GemPerpetualMarketRow {
-        title: perpetual.name.clone(),
+        title: match perpetual.name.is_empty() {
+            true => asset.symbol.clone(),
+            false => perpetual.name.clone(),
+        },
         shows_price: perpetual.price != 0.0,
         volume_24h: GemFormattedNumber::usd_abbreviated(perpetual.volume_24h),
         open_interest: GemFormattedNumber::usd_abbreviated(perpetual.open_interest),
+        funding_apr: GemFormattedNumber::percentage(funding_apr(perpetual.funding), GemPercentageStyle::Signed),
     }
 }
 
@@ -605,8 +610,24 @@ pub fn position_detail_rows(position: &PerpetualPosition) -> Vec<GemPerpetualPos
     .collect()
 }
 
-pub fn info_rows() -> Vec<GemPerpetualInfoRow> {
-    vec![GemPerpetualInfoRow::DailyVolume, GemPerpetualInfoRow::OpenInterest, GemPerpetualInfoRow::FundingRate]
+pub fn info_rows(row: GemPerpetualMarketRow) -> Vec<GemListRow> {
+    vec![
+        GemListRow::Amount {
+            title: GemListRowTitle::DailyVolume,
+            amount: row.volume_24h,
+            info: None,
+        },
+        GemListRow::Amount {
+            title: GemListRowTitle::OpenInterest,
+            amount: row.open_interest,
+            info: Some(GemInfoTopic::OpenInterest),
+        },
+        GemListRow::Amount {
+            title: GemListRowTitle::FundingApr,
+            amount: row.funding_apr,
+            info: Some(GemInfoTopic::FundingApr),
+        },
+    ]
 }
 
 pub fn perpetual_buttons(has_position: bool) -> Vec<GemPerpetualButton> {
@@ -886,18 +907,65 @@ mod tests {
         let priced = Perpetual::mock();
         let unpriced = Perpetual { price: 0.0, ..priced.clone() };
 
-        assert!(market_row(&priced).shows_price);
-        assert!(!market_row(&unpriced).shows_price);
-        assert_eq!(market_row(&priced).title, "BTC");
+        let asset = Asset::from_chain(Chain::HyperCore);
+
+        assert!(market_row(&priced, &asset).shows_price);
+        assert!(!market_row(&unpriced, &asset).shows_price);
+        assert_eq!(market_row(&priced, &asset).title, "BTC");
+    }
+
+    #[test]
+    fn test_info_rows_carry_the_market_values_and_explain_open_interest_and_funding() {
+        let row = market_row(&Perpetual::mock(), &Asset::from_chain(Chain::HyperCore));
+
+        let rows = info_rows(row.clone());
+
+        assert_eq!(
+            rows,
+            vec![
+                GemListRow::Amount {
+                    title: GemListRowTitle::DailyVolume,
+                    amount: row.volume_24h,
+                    info: None,
+                },
+                GemListRow::Amount {
+                    title: GemListRowTitle::OpenInterest,
+                    amount: row.open_interest,
+                    info: Some(GemInfoTopic::OpenInterest),
+                },
+                GemListRow::Amount {
+                    title: GemListRowTitle::FundingApr,
+                    amount: row.funding_apr,
+                    info: Some(GemInfoTopic::FundingApr),
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn test_a_market_row_titles_an_unnamed_market_with_its_asset_symbol() {
+        let unnamed = Perpetual {
+            name: String::new(),
+            ..Perpetual::mock()
+        };
+        let asset = Asset {
+            symbol: "HYPE".to_string(),
+            ..Asset::from_chain(Chain::HyperCore)
+        };
+
+        assert_eq!(market_row(&unnamed, &asset).title, "HYPE");
     }
 
     #[test]
     fn test_a_market_row_abbreviates_its_volume_and_open_interest_in_usd() {
-        let row = market_row(&Perpetual {
-            volume_24h: 1_500_000.0,
-            open_interest: 5_250_000.0,
-            ..Perpetual::mock()
-        });
+        let row = market_row(
+            &Perpetual {
+                volume_24h: 1_500_000.0,
+                open_interest: 5_250_000.0,
+                ..Perpetual::mock()
+            },
+            &Asset::from_chain(Chain::HyperCore),
+        );
 
         for number in [&row.volume_24h, &row.open_interest] {
             assert_eq!(number.unit, crate::formatted_number::GemNumberUnit::Currency { code: "USD".to_string() });
@@ -905,6 +973,24 @@ mod tests {
         }
         assert_eq!(row.volume_24h.value, 1_500_000.0);
         assert_eq!(row.open_interest.value, 5_250_000.0);
+    }
+
+    #[test]
+    fn test_a_market_row_annualizes_the_hourly_funding_as_a_signed_percent() {
+        let row = |funding: f64| {
+            market_row(
+                &Perpetual {
+                    funding,
+                    ..Perpetual::mock()
+                },
+                &Asset::from_chain(Chain::HyperCore),
+            )
+        };
+
+        assert_eq!(row(0.0013).funding_apr, GemFormattedNumber::percentage(funding_apr(0.0013), GemPercentageStyle::Signed));
+        assert_eq!(row(0.0013).funding_apr.notation, crate::formatted_number::GemNumberNotation::Signed);
+        assert!((row(0.0013).funding_apr.value - 11.388).abs() < 0.001);
+        assert!((row(-0.0004).funding_apr.value + 3.504).abs() < 0.001);
     }
 
     #[test]

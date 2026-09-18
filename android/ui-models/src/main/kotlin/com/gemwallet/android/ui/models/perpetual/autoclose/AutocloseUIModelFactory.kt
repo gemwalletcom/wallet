@@ -8,6 +8,8 @@ import com.gemwallet.android.domains.percentage.formatAsPercentage
 import com.gemwallet.android.domains.perpetual.aggregates.PerpetualPositionDataAggregateImpl
 import uniffi.gemstone.GemAutocloseEstimator
 import uniffi.gemstone.GemAutocloseField
+import uniffi.gemstone.GemAutocloseViewState
+import com.gemwallet.android.model.text
 import uniffi.gemstone.GemValueTone
 import com.gemwallet.android.domains.price.tone
 import com.gemwallet.android.model.CurrencyFormatter
@@ -26,8 +28,7 @@ object AutocloseUIModelFactory {
         position: PerpetualPositionData,
         takeProfit: GemAutocloseField,
         stopLoss: GemAutocloseField,
-        confirmEnabled: Boolean,
-        showErrors: Boolean = false,
+        state: GemAutocloseViewState,
     ): AutocloseUIModel {
         val estimator = GemAutocloseEstimator(
             entryPrice = position.position.entryPrice,
@@ -37,11 +38,11 @@ object AutocloseUIModelFactory {
         )
         return AutocloseUIModel(
             position = PerpetualPositionDataAggregateImpl(position),
-            marketPriceText = currencyFormatter.string(position.perpetual.price),
-            entryPriceText = currencyFormatter.string(position.position.entryPrice),
-            takeProfit = createField(takeProfit, estimator, showErrors),
-            stopLoss = createField(stopLoss, estimator, showErrors),
-            confirmEnabled = confirmEnabled,
+            marketPriceText = state.marketPrice.text(),
+            entryPriceText = state.entryPrice?.text(),
+            takeProfit = createField(takeProfit, estimator, state.showsErrors),
+            stopLoss = createField(stopLoss, estimator, state.showsErrors),
+            confirmEnabled = state.confirmEnabled,
         )
     }
 

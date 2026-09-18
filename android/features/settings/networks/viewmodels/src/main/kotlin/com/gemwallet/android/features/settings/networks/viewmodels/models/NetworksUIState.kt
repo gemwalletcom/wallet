@@ -10,6 +10,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemExplorerRow
 import uniffi.gemstone.GemNodeRow
+import com.gemwallet.android.ui.style.textStyle
 
 data class NetworksUIState(
     val selectChain: Boolean = true,
@@ -49,8 +50,8 @@ internal fun GemNodeRow.uiModel(context: Context): NodeRowUIModel {
         model = ListItemModel(
             title = title.string(context),
             titleTag = latency.text,
-            titleTagStyle = latency.tagStyle(),
-            titleTagType = latency.tagType(),
+            titleTagStyle = latency.tone.textStyle(),
+            titleTagType = latency.tagType,
             titleExtra = subtitle.text(context),
             titleExtraStyle = ListItemTextStyle.Body,
         ),

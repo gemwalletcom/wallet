@@ -1,9 +1,11 @@
+use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::GemBigInt;
+use crate::precision::GemCurrencyStyle;
 use crate::perpetual::GemPerpetual;
 use crate::services::transfer::GemTransferData;
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, TPSLOrderData};
-use primitives::{Asset, AutocloseValidation, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType};
+use primitives::{Asset, AutocloseValidation, Currency, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAutocloseField {
@@ -117,9 +119,17 @@ pub enum GemAutocloseConfirmPolicy {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemAutoclosePrices {
+    pub entry: Option<f64>,
+    pub market: f64,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAutocloseViewState {
     pub confirm_enabled: bool,
     pub shows_errors: bool,
+    pub entry_price: Option<GemFormattedNumber>,
+    pub market_price: GemFormattedNumber,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -127,6 +137,11 @@ pub struct GemAutocloseSession {
     pub modify: GemAutocloseModify,
     pub policy: GemAutocloseConfirmPolicy,
     pub submit_attempted: bool,
+    pub prices: GemAutoclosePrices,
+}
+
+fn price_text(price: f64) -> GemFormattedNumber {
+    GemFormattedNumber::currency(price, Currency::USD, GemCurrencyStyle::Currency)
 }
 
 #[uniffi::export]
@@ -146,16 +161,19 @@ impl GemAutocloseSession {
                 (GemAutocloseConfirmPolicy::UntilSubmitted, false) => self.modify.take_profit.has_pending_change() || self.modify.stop_loss.has_pending_change(),
             },
             shows_errors: self.submit_attempted,
+            entry_price: self.prices.entry.map(price_text),
+            market_price: price_text(self.prices.market),
         }
     }
 }
 
 impl GemAutocloseSession {
-    pub fn new(modify: GemAutocloseModify, policy: GemAutocloseConfirmPolicy) -> Self {
+    pub fn new(modify: GemAutocloseModify, policy: GemAutocloseConfirmPolicy, prices: GemAutoclosePrices) -> Self {
         Self {
             modify,
             policy,
             submit_attempted: false,
+            prices,
         }
     }
 }
@@ -169,10 +187,13 @@ mod tests {
             GemAutocloseField::mock(Some(110.0), Some(100.0), true, None),
             GemAutocloseField::mock(None, None, true, None),
         );
-        let ios = GemAutocloseSession::new(changed.clone(), GemAutocloseConfirmPolicy::WhenBuildable);
-        let android = GemAutocloseSession::new(changed, GemAutocloseConfirmPolicy::UntilSubmitted);
+        let prices = GemAutoclosePrices { entry: Some(100.0), market: 110.0 };
+        let ios = GemAutocloseSession::new(changed.clone(), GemAutocloseConfirmPolicy::WhenBuildable, prices.clone());
+        let android = GemAutocloseSession::new(changed, GemAutocloseConfirmPolicy::UntilSubmitted, prices);
 
         assert_eq!(ios.view_state().confirm_enabled, ios.modify.can_build());
+        assert_eq!(ios.view_state().entry_price, Some(GemFormattedNumber::currency(100.0, Currency::USD, GemCurrencyStyle::Currency)));
+        assert_eq!(ios.view_state().market_price, GemFormattedNumber::currency(110.0, Currency::USD, GemCurrencyStyle::Currency));
         assert!(android.view_state().confirm_enabled, "a pending change is enough before a submit");
         assert_eq!(android.on_submit_attempt().view_state().confirm_enabled, android.modify.can_build());
     }
@@ -182,9 +203,11 @@ mod tests {
         let session = GemAutocloseSession::new(
             GemAutocloseModify::mock(GemAutocloseField::mock(Some(110.0), None, false, None), GemAutocloseField::mock(None, None, true, None)),
             GemAutocloseConfirmPolicy::UntilSubmitted,
+            GemAutoclosePrices { entry: None, market: 110.0 },
         );
 
         assert!(!session.view_state().shows_errors);
+        assert_eq!(session.view_state().entry_price, None);
         assert!(session.on_submit_attempt().view_state().shows_errors);
     }
     use super::*;

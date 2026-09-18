@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.viewmodels
 
+import com.gemwallet.android.testkit.mockFormattedNumber
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -118,7 +119,7 @@ class AssetChartViewModelTest {
         val market = mockAssetMarket(marketCap = 1234.0)
         val link = mockAssetLink()
         every { chartService.sections(asset.toGem(), any(), market.toGem(), any(), listOf(link.toGem())) } returns listOf(
-            GemChartSection.Market(rows = listOf(GemAssetMarketRow.MarketCap(value = 1234.0, rank = null))),
+            GemChartSection.Market(rows = listOf(GemAssetMarketRow.MarketCap(value = mockFormattedNumber(1234.0), rank = null))),
             GemChartSection.Links(links = listOf(link.toGem())),
         )
         linksFlow.value = listOf(link)

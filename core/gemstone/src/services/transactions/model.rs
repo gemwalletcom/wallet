@@ -1,4 +1,4 @@
-use crate::formatted_number::GemFormattedNumber;
+use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigUint;
 use crate::services::swap::model::GemSwapRate;
 use chrono::{DateTime, Utc};
@@ -177,6 +177,7 @@ pub struct GemTransactionRow {
     pub title: GemTransactionTitle,
     pub subtitle: GemTransactionRowSubtitle,
     pub value: GemTransactionRowValue,
+    pub value_tone: GemValueTone,
     pub equivalent_value: GemTransactionRowValue,
     pub nft_image_url: Option<String>,
 }

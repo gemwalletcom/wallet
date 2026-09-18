@@ -1,5 +1,5 @@
+use crate::duration_formatter::GemDurationPart;
 use crate::formatted_number::GemFormattedNumber;
-use chrono::{DateTime, Utc};
 use primitives::RewardRedemptionOption;
 
 #[derive(Debug, Clone, Default, PartialEq, uniffi::Record)]
@@ -12,11 +12,11 @@ pub struct GemRewardsState {
     pub is_unverified: bool,
     pub has_pending_referral: bool,
     pub can_activate_pending_referral: bool,
-    pub invite_reward_points: i32,
+    pub invite_reward_points_text: String,
     pub referral_code: Option<String>,
     pub referral_link: Option<String>,
     pub used_referral_code: Option<String>,
-    pub verify_after: Option<DateTime<Utc>>,
+    pub pending_countdown: Vec<GemDurationPart>,
     pub disable_reason: Option<String>,
     pub referral_count_text: String,
     pub points_text: String,

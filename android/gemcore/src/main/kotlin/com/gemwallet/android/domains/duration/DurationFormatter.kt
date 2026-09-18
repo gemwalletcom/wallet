@@ -11,10 +11,8 @@ import java.util.Locale
 fun formatDuration(vararg measures: Measure, locale: Locale = Locale.getDefault()): String =
     MeasureFormat.getInstance(locale, MeasureFormat.FormatWidth.WIDE).formatMeasures(*measures)
 
-fun formatAvailableIn(millis: Long, locale: Locale = Locale.getDefault()): String {
-    val measures = DurationFormatter().countdownParts(millis / 1000).measures()
-    return if (measures.isEmpty()) "" else formatDuration(*measures, locale = locale)
-}
+fun List<GemDurationPart>.formatDuration(locale: Locale = Locale.getDefault()): String =
+    if (isEmpty()) "" else formatDuration(*measures(), locale = locale)
 
 fun formatEstimatedConfirmation(seconds: UInt, locale: Locale = Locale.getDefault()): String {
     val measures = DurationFormatter().estimateParts(seconds.toLong()).measures()

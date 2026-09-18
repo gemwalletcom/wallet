@@ -80,7 +80,6 @@ fn simulation_seed(chain: Chain, simulation: Option<SimulationResult>) -> GemCon
         warnings: simulation.as_ref().map(|result| warning_rows(&result.warnings)).unwrap_or_default(),
         result: simulation,
         simulation: None,
-        address_names: Vec::new(),
     }
 }
 
@@ -184,8 +183,7 @@ impl GemConfirmTransferService {
             chain,
             warnings: simulation.as_ref().map(|result| warning_rows(&result.warnings)).unwrap_or_default(),
             result: simulation,
-            simulation: Some(details),
-            address_names,
+            simulation: Some(details.with_address_names(chain, &address_names)),
         })
     }
 

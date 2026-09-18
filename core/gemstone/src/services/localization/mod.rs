@@ -4,4 +4,6 @@ use primitives::Chain;
 pub enum GemLocalizedText {
     WalletDefaultName { index: i32 },
     WalletDefaultNameChain { chain: Chain, index: i32 },
+    WalletMulticoin,
+    ChainNetworkName { chain: Chain },
 }

@@ -8,7 +8,6 @@ import com.gemwallet.android.application.receive.cases.GetReceiveAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.receive.viewmodels.localization.text
@@ -33,6 +32,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemReceiveServiceInterface
+import uniffi.gemstone.GemReceiveNetworks
 import uniffi.gemstone.GemReceiveWarning
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -57,22 +57,22 @@ class ReceiveViewModel @AssistedInject constructor(
 
     private fun storedAsset(assetId: AssetId) = getWalletAssets().value.firstOrNull { it.asset.id == assetId }
 
-    val networkAssetIds = combine(
+    val networks = combine(
         asset.filterNotNull().filter { it.asset.id == sourceAssetId },
         session.filterNotNull(),
     ) { assetInfo, session ->
-        service.networkAssetIds(
+        service.networks(
             assetInfo.asset.id.toIdentifier(),
             assetInfo.associations.map { it.assetId.toIdentifier() },
             session.wallet.toGem(),
-        ).map { it.toAssetId()!! }
+        )
     }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, listOf(sourceAssetId))
+        .stateIn(viewModelScope, SharingStarted.Eagerly, GemReceiveNetworks(assetIds = listOf(sourceAssetId.toIdentifier()), showsSelector = false))
 
     init {
         viewModelScope.launch(ioDispatcher) {
             val wallet = session.filterNotNull().first().wallet
-            runCatchingCancellable { service.syncNetworkAssetIds(sourceAssetId.toIdentifier(), wallet.toGem()) }
+            runCatchingCancellable { service.syncNetworks(sourceAssetId.toIdentifier(), wallet.toGem()) }
         }
     }
 

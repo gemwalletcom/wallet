@@ -2,11 +2,13 @@
 
 import Primitives
 import Components
-import enum Gemstone.GemSecurityRow
+import enum Gemstone.GemListRowTitle
+import struct Gemstone.GemSecurityInput
 import protocol Gemstone.GemSettingsServiceProtocol
 import Foundation
 import GemstoneServices
 import Localization
+import PrimitivesComponents
 
 @Observable
 @MainActor
@@ -18,26 +20,10 @@ public final class SecurityViewModel {
     static let reason: String = Localized.Settings.Security.authentication
 
     var isPresentingAlertMessage: AlertMessage?
+    var isPresentingLockPeriods: Bool = false
     var isEnabled: Bool
     private var storedLockPeriod: LockPeriod
     var isPrivacyLockEnabled: Bool
-    var isHideBalanceEnabled: Bool {
-        get {
-            preferences.isHideBalanceEnabled
-        }
-        set {
-            preferences.isHideBalanceEnabled = newValue
-        }
-    }
-
-    var lockPeriod: LockPeriod {
-        get { storedLockPeriod }
-        set { updateLockPeriod(to: newValue) }
-    }
-
-    var allLockPeriods: [LockPeriod] {
-        LockPeriod.offered
-    }
 
     public init(
         service: any BiometryAuthenticatable,
@@ -53,21 +39,6 @@ public final class SecurityViewModel {
         isPrivacyLockEnabled = service.isPrivacyLockEnabled
     }
 
-    var sections: [ListSection<SecurityRow>] {
-        settings.securitySections(authenticationEnabled: isEnabled).enumerated().map { index, section in
-            ListSection(id: "\(index)", title: nil, image: nil, values: section.rows.map(securityRow))
-        }
-    }
-
-    private func securityRow(_ row: GemSecurityRow) -> SecurityRow {
-        switch row {
-        case .authentication: .authentication
-        case .lockPeriod: .lockPeriod
-        case .privacyLock: .privacyLock
-        case .hideBalance: .hideBalance
-        }
-    }
-
     var title: String {
         Localized.Settings.security
     }
@@ -76,30 +47,68 @@ public final class SecurityViewModel {
         Localized.Errors.errorOccurred
     }
 
-    var privacyLockTitle: String {
-        Localized.Lock.privacyLock
-    }
-
-    var hideBalanceTitle: String {
-        Localized.Settings.hideBalance
-    }
-
     var lockPeriodTitle: String {
         Localized.Lock.requireAuthentication
     }
 
-    var authenticationFooter: String {
-        Localized.Lock.footer
+    var lockPeriod: LockPeriod {
+        storedLockPeriod
     }
 
-    var authenticationTitle: String {
-        service.availableAuthentication.enableTitle
+    var allLockPeriods: [LockPeriod] {
+        LockPeriod.offered
+    }
+
+    private var authenticationName: String? {
+        switch service.availableAuthentication {
+        case .biometrics: KeystoreAuthentication.availableBiometryName
+        case .passcode, .none: .none
+        }
+    }
+}
+
+// MARK: - ListSectionProvideable
+
+extension SecurityViewModel: ListSectionProvideable {
+    public var sections: [ListSection<GemListSectionRow>] {
+        settings.securitySections(
+            input: GemSecurityInput(
+                authenticationEnabled: isEnabled,
+                authenticationName: authenticationName,
+                lockPeriod: storedLockPeriod.title,
+                privacyLockEnabled: isPrivacyLockEnabled,
+                privacyLockSupported: true,
+                hideBalanceEnabled: preferences.isHideBalanceEnabled,
+            ),
+        ).listSections
     }
 }
 
 // MARK: - Business Logic
 
 extension SecurityViewModel {
+    func onToggle(_ title: GemListRowTitle, _ isOn: Bool) {
+        switch title {
+        case .authentication:
+            isEnabled = isOn
+            Task { await toggleBiometrics() }
+        case .privacyLock:
+            isPrivacyLockEnabled = isOn
+            togglePrivacyLock()
+        case .hideBalance:
+            preferences.isHideBalanceEnabled = isOn
+        default:
+            break
+        }
+    }
+
+    func onSelect(_ title: GemListRowTitle) {
+        switch title {
+        case .lockPeriod: isPresentingLockPeriods = true
+        default: break
+        }
+    }
+
     func toggleBiometrics() async {
         guard isEnabled != service.requiresAuthentication else { return }
         do {

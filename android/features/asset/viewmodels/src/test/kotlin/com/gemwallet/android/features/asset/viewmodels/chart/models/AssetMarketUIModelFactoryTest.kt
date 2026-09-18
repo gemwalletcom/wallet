@@ -1,5 +1,8 @@
 package com.gemwallet.android.features.asset.viewmodels.chart.models
 
+import com.gemwallet.android.testkit.mockFormattedNumber
+import com.gemwallet.android.model.text
+import uniffi.gemstone.GemNumberUnit
 import android.content.Context
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.mockAssetLink
@@ -29,9 +32,9 @@ class AssetMarketUIModelFactoryTest {
         val allTimeHigh = ChartValuePercentage(date = 10L, value = 1.5f, percentage = -5f)
         val sections = listOf(
             GemChartSection.PriceAlerts(count = 2u),
-            GemChartSection.Market(listOf(GemAssetMarketRow.MarketCap(value = 1.0, rank = 7), GemAssetMarketRow.TradingVolume(value = 2.0))),
+            GemChartSection.Market(listOf(GemAssetMarketRow.MarketCap(value = mockFormattedNumber(1.0), rank = 7), GemAssetMarketRow.TradingVolume(value = mockFormattedNumber(2.0)))),
             GemChartSection.Market(listOf(GemAssetMarketRow.Contract(tokenId = tokenId, explorer = explorer.toGem()))),
-            GemChartSection.Market(listOf(GemAssetMarketRow.CirculatingSupply(value = 3.0))),
+            GemChartSection.Market(listOf(GemAssetMarketRow.CirculatingSupply(value = mockFormattedNumber(3.0)))),
             GemChartSection.Market(listOf(GemAssetMarketRow.AllTimeHigh(value = allTimeHigh.toGem()))),
             GemChartSection.Links(listOf(mockAssetLink().toGem())),
         )
@@ -65,15 +68,14 @@ class AssetMarketUIModelFactoryTest {
     }
 
     @Test
-    fun `supply rows carry the asset symbol`() {
-        val sections = listOf(
-            GemChartSection.Market(listOf(GemAssetMarketRow.CirculatingSupply(value = 1500.0), GemAssetMarketRow.MaxSupply(value = 21.0))),
-        )
+    fun `values print the number core formatted`() {
+        val supply = mockFormattedNumber(value = 1500.0, unit = GemNumberUnit.Symbol(symbol = asset.symbol))
+        val sections = listOf(GemChartSection.Market(listOf(GemAssetMarketRow.CirculatingSupply(value = supply))))
 
         val model = factory.create(asset, Currency.USD, sections)
 
         assertEquals(
-            listOf("1,500 ${asset.symbol}", "21 ${asset.symbol}"),
+            listOf(supply.text()),
             (model.sections.single() as ChartSectionUIModel.Market).rows.map { (it as MarketInfoUIModel).model.subtitle },
         )
     }

@@ -4,7 +4,8 @@ import protocol Gemstone.GemPerpetualDetailsServiceProtocol
 import enum Gemstone.GemPerpetualPositionAction
 import enum Gemstone.GemPerpetualPositionKind
 import enum Gemstone.GemPerpetualButton
-import enum Gemstone.GemPerpetualInfoRow
+import enum Gemstone.GemInfoTopic
+import enum Gemstone.GemListRow
 import enum Gemstone.GemPerpetualPositionDetailRow
 import enum Gemstone.GemPerpetualSection
 import Components
@@ -83,8 +84,7 @@ public final class PerpetualSceneViewModel {
     }
 
     public var navigationTitle: String {
-        let name = perpetualViewModel.name
-        return name.isEmpty ? asset.symbol : name
+        perpetualViewModel.name
     }
 
     public var currency: Currency {
@@ -119,20 +119,12 @@ public final class PerpetualSceneViewModel {
         GemPerpetualButton.modify.title
     }
 
-    public var infoRows: [GemPerpetualInfoRow] {
-        service.infoRows()
+    public var infoRows: [GemListRow] {
+        service.infoRows(perpetual: perpetual.toGem(), asset: asset.toGem())
     }
 
     public func positionRows(_ position: PerpetualPositionViewModel) -> [GemPerpetualPositionDetailRow] {
         service.positionDetailRows(position: position.data.position.toGem())
-    }
-
-    public func infoAction(for row: GemPerpetualInfoRow) -> InfoSheetAction? {
-        switch row {
-        case .dailyVolume: nil
-        case .openInterest: onSelectOpenInterestInfo
-        case .fundingRate: onSelectFundingRateInfo
-        }
     }
 
     public func autocloseListItem(_ position: PerpetualPositionViewModel, row: GemPerpetualPositionDetailRow) -> ListItemModel {
@@ -173,7 +165,7 @@ public final class PerpetualSceneViewModel {
     }
 
     public var perpetualViewModel: PerpetualViewModel {
-        PerpetualViewModel(perpetual: perpetual)
+        PerpetualViewModel(perpetual: perpetual, asset: asset)
     }
 
     public var positionViewModels: [PerpetualPositionViewModel] {
@@ -219,8 +211,11 @@ public extension PerpetualSceneViewModel {
         }
     }
 
-    func onSelectFundingRateInfo() {
-        isPresentingInfoSheet = .fundingApr
+    func onInfo(_ topic: GemInfoTopic) {
+        isPresentingInfoSheet = switch topic {
+        case .openInterest: .openInterest
+        case .fundingApr: .fundingApr
+        }
     }
 
     func onSelectFundingPaymentsInfo() {
@@ -229,10 +224,6 @@ public extension PerpetualSceneViewModel {
 
     func onSelectLiquidationPriceInfo() {
         isPresentingInfoSheet = .liquidationPrice
-    }
-
-    func onSelectOpenInterestInfo() {
-        isPresentingInfoSheet = .openInterest
     }
 
     func onSelectAutoclose() {

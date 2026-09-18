@@ -273,7 +273,6 @@ impl GemConfirmSimulationState {
             result: None,
             warnings: vec![],
             simulation: None,
-            address_names: vec![],
         }
     }
 }

@@ -208,7 +208,6 @@ mod tests {
             assert_eq!(state.simulation.result, Some(simulation));
             assert_eq!(state.simulation.warnings.len(), 1);
             assert!(state.simulation.simulation.is_none());
-            assert!(state.simulation.address_names.is_empty());
         });
     }
 }

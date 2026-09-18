@@ -7,13 +7,14 @@ use crate::services::balance::GemAssetBalance;
 use crate::services::simulation::GemSimulationWarningRow;
 use crate::services::transactions::GemAmountSign;
 use crate::services::transfer::GemTransferData;
+use crate::services::simulation::{GemSimulationPayloadRow, address_requests, named_payload_rows};
 use crate::services::transfer::model::GemConfirmDestination;
 use crate::services::wallet::model::GemWalletRow;
 use crate::transfer_amount::GemTransferAmount;
 use primitives::AssetPrice;
 use primitives::BlockExplorerLink;
 use primitives::{
-    Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationPayloadField, SimulationPayloadFieldType, SimulationResult, Transaction, Wallet,
+    Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeUnitType, SimulationResult, Transaction, Wallet,
 };
 
 pub type GemAccount = Account;
@@ -123,6 +124,7 @@ pub struct GemFeeRateRow {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemFeeRateRows {
     pub rows: Vec<GemFeeRateRow>,
+    pub shows_options: bool,
     pub unit_type: FeeUnitType,
     pub unit_decimals: u32,
     pub supports_custom_fee: bool,
@@ -139,12 +141,15 @@ pub struct GemFeeAsset {
 
 impl GemConfirmSimulation {
     pub(super) fn address_requests(&self, chain: Chain) -> Vec<ChainAddress> {
-        self.primary_fields
-            .iter()
-            .chain(self.secondary_fields.iter())
-            .filter(|field| field.field_type == SimulationPayloadFieldType::Address)
-            .map(|field| ChainAddress::new(chain, field.value.clone()))
-            .collect()
+        [address_requests(&self.primary_fields, chain), address_requests(&self.secondary_fields, chain)].concat()
+    }
+
+    pub(super) fn with_address_names(self, chain: Chain, names: &[AddressName]) -> Self {
+        Self {
+            primary_fields: named_payload_rows(self.primary_fields, Some(chain), names),
+            secondary_fields: named_payload_rows(self.secondary_fields, Some(chain), names),
+            ..self
+        }
     }
 }
 
@@ -165,7 +170,6 @@ pub struct GemConfirmSimulationState {
     pub result: Option<SimulationResult>,
     pub warnings: Vec<GemSimulationWarningRow>,
     pub simulation: Option<GemConfirmSimulation>,
-    pub address_names: Vec<AddressName>,
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]
@@ -219,8 +223,8 @@ pub struct GemSimulationBalanceChange {
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmSimulation {
-    pub primary_fields: Vec<SimulationPayloadField>,
-    pub secondary_fields: Vec<SimulationPayloadField>,
+    pub primary_fields: Vec<GemSimulationPayloadRow>,
+    pub secondary_fields: Vec<GemSimulationPayloadRow>,
     pub header: Option<GemSimulationValue>,
     pub balance_changes: Vec<GemSimulationBalanceChange>,
     pub has_critical_warning: bool,

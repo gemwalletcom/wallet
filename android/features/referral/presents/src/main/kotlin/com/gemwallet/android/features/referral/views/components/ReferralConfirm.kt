@@ -13,9 +13,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.gemwallet.android.features.referral.viewmodels.models.ReferralUIModel
+import uniffi.gemstone.GemRewardsState
 import com.gemwallet.android.features.referral.views.previewRewardsState
-import com.gemwallet.android.math.getRelativeDate
+import com.gemwallet.android.domains.duration.formatDuration
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
@@ -31,11 +31,12 @@ import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.tinyIconSize
+import uniffi.gemstone.GemDurationPart
+import uniffi.gemstone.GemDurationUnit
 
-internal fun LazyListScope.referralConfirmCode(uiState: ReferralUIModel, onConfirm: (String) -> Unit) {
+internal fun LazyListScope.referralConfirmCode(uiState: GemRewardsState, onConfirm: (String) -> Unit) {
     if (!uiState.hasPendingReferral) return
     val code = uiState.usedReferralCode ?: return
-    val pendingDate = uiState.verifyAfter ?: return
     item {
         Column(
             modifier = Modifier
@@ -58,7 +59,7 @@ internal fun LazyListScope.referralConfirmCode(uiState: ReferralUIModel, onConfi
                 if (uiState.canActivatePendingReferral) {
                     stringResource(R.string.rewards_pending_description_ready)
                 } else {
-                    stringResource(R.string.rewards_pending_description, getRelativeDate(pendingDate))
+                    stringResource(R.string.rewards_pending_description, uiState.pendingCountdown.formatDuration())
                 }
             )
             HorizontalDivider(modifier = Modifier.padding(vertical = paddingSmall), thickness = hairlineThickness)
@@ -78,7 +79,7 @@ private fun ReferralConfirmCodePendingPreview() {
     WalletTheme {
         LazyColumn {
             referralConfirmCode(
-                pendingState(canActivate = false, verifyAfter = System.currentTimeMillis() + 86400000),
+                pendingState(canActivate = false, pendingCountdown = listOf(GemDurationPart(1, GemDurationUnit.DAY))),
             ) {}
         }
     }
@@ -90,13 +91,13 @@ private fun ReferralConfirmCodeReadyPreview() {
     WalletTheme {
         LazyColumn {
             referralConfirmCode(
-                pendingState(canActivate = true, verifyAfter = 0),
+                pendingState(canActivate = true, pendingCountdown = emptyList()),
             ) {}
         }
     }
 }
 
-private fun pendingState(canActivate: Boolean, verifyAfter: Long) = previewRewardsState(
+private fun pendingState(canActivate: Boolean, pendingCountdown: List<GemDurationPart>) = previewRewardsState(
     hasReferralCode = true,
     hasUsedReferralCode = true,
     showsInfo = true,
@@ -104,5 +105,5 @@ private fun pendingState(canActivate: Boolean, verifyAfter: Long) = previewRewar
     canActivatePendingReferral = canActivate,
     referralCode = "some_code",
     usedReferralCode = "some_code_1",
-    verifyAfter = verifyAfter,
+    pendingCountdown = pendingCountdown,
 )

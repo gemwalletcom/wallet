@@ -27,22 +27,19 @@ struct PerpetualSceneViewModelTests {
         service.sectionsValue = [.position]
         service.buttonsValue = [.long, .short]
         service.modifyButtonsValue = [.increase, .reduce]
-        service.infoRowsValue = [.openInterest]
+        service.infoRowsValue = [.loading]
         let model = PerpetualSceneViewModel.mock(service: service)
 
         #expect(model.sections == [.position])
         #expect(model.buttons == [.long, .short])
         #expect(model.modifyButtons == [.increase, .reduce])
-        #expect(model.infoRows == [.openInterest])
+        #expect(model.infoRows == [.loading])
     }
 
     @Test
     func onlyTheRowsWithAnExplanationOfferOne() {
         let model = PerpetualSceneViewModel.mock()
 
-        #expect(model.infoAction(for: GemPerpetualInfoRow.dailyVolume) == nil)
-        #expect(model.infoAction(for: GemPerpetualInfoRow.openInterest) != nil)
-        #expect(model.infoAction(for: GemPerpetualInfoRow.fundingRate) != nil)
         #expect(model.infoAction(for: GemPerpetualPositionDetailRow.pnl) == nil)
         #expect(model.infoAction(for: GemPerpetualPositionDetailRow.autoclose) != nil)
         #expect(model.infoAction(for: GemPerpetualPositionDetailRow.liquidationPrice) != nil)
@@ -131,7 +128,7 @@ struct PerpetualSceneViewModelTests {
     func theInfoSheetsMatchTheRowThatOpenedThem() {
         let model = PerpetualSceneViewModel.mock()
 
-        model.onSelectFundingRateInfo()
+        model.onInfo(.fundingApr)
         #expect(model.isPresentingInfoSheet == .fundingApr)
 
         model.onSelectFundingPaymentsInfo()
@@ -140,7 +137,7 @@ struct PerpetualSceneViewModelTests {
         model.onSelectLiquidationPriceInfo()
         #expect(model.isPresentingInfoSheet == .liquidationPrice)
 
-        model.onSelectOpenInterestInfo()
+        model.onInfo(.openInterest)
         #expect(model.isPresentingInfoSheet == .openInterest)
 
         model.onSelectAutocloseInfo()

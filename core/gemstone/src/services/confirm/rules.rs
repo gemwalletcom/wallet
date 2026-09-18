@@ -421,6 +421,7 @@ fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[GemFeeRate], selectio
             FeeUnitType::Native => fee_asset.decimals as u32,
             FeeUnitType::SatVb | FeeUnitType::Gwei => unit_type.decimals(),
         },
+        shows_options: rates.len() > 1,
         supports_custom_fee: custom_fee_enabled(chain) && rates.len() > 1,
         selected_total,
         normal_total: rate_total(FeePriority::Normal).or_else(|| rates.first().map(unit_value)),

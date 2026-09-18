@@ -52,6 +52,7 @@ import uniffi.gemstone.FiatQuoteUrl
 import uniffi.gemstone.GemFiatQuoteServiceInterface
 import uniffi.gemstone.GemServiceException
 import java.math.BigInteger
+import uniffi.gemstone.GemFiatSuggestedAmount
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class FiatViewModelTest {
@@ -74,7 +75,7 @@ class FiatViewModelTest {
     }
     private val service = mockk<GemFiatQuoteServiceInterface> {
         every { getCurrency() } returns Currency.USD.toGem()
-        every { suggestedAmounts() } returns listOf(100, 250)
+        every { suggestedAmounts(any()) } returns listOf(GemFiatSuggestedAmount(100u, "$100"), GemFiatSuggestedAmount(250u, "$250"))
         every { newSession(any(), any()) } answers { mockGemFiatSession(firstArg(), secondArg()) }
         every { randomAmount() } returns 500u
         every { quoteDebounceMilliseconds() } returns 250uL

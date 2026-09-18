@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_import.values.WalletImportResult
 import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
-import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.words
@@ -84,14 +83,14 @@ class ImportViewModel @Inject constructor(
         val defaultName = withContext(ioDispatcher) {
             service.defaultWalletName(importType.chain?.string)
         }
-        val chainName = importType.chain?.networkName().orEmpty()
-        val tabs = service.importKinds(importType.chain?.string)
+        val screen = service.importScreen(importType.chain?.string)
         state.update {
             it.copy(
                 importType = importType,
                 defaultWalletName = defaultName.text.string(context),
-                chainName = chainName,
-                tabs = tabs,
+                title = screen.title.string(context),
+                tabs = screen.kinds,
+                showsTabs = screen.showsKinds,
             )
         }
     }
@@ -142,8 +141,9 @@ data class ImportViewModelState(
     val error: String = "",
     val importType: ImportType = ImportType(GemWalletImportKind.PHRASE),
     val defaultWalletName: String? = null,
-    val chainName: String = "",
+    val title: String = "",
     val tabs: List<GemWalletImportKind> = emptyList(),
+    val showsTabs: Boolean = false,
     val data: String = "",
     val dataError: Throwable? = null,
     val existingWalletResult: WalletImportResult.Existing? = null,
@@ -153,7 +153,8 @@ data class ImportViewModelState(
             loading = loading,
             error = error,
             defaultWalletName = defaultWalletName,
-            chainName = chainName,
+            title = title,
+            showsTabs = showsTabs,
             tabs = tabs.map { kind -> ImportTabUIModel(type = importType.copy(kind = kind), title = kind.tabStringRes(), isSelected = kind == importType.kind) },
             input = importType.kind.inputUiModel(),
             importType = importType,
@@ -168,8 +169,9 @@ data class ImportUIState(
     val error: String = "",
     val importType: ImportType = ImportType(GemWalletImportKind.PHRASE),
     val defaultWalletName: String? = null,
-    val chainName: String = "",
+    val title: String = "",
     val tabs: List<ImportTabUIModel> = emptyList(),
+    val showsTabs: Boolean = false,
     val input: ImportInputUIModel = GemWalletImportKind.PHRASE.inputUiModel(),
     val dataError: Throwable? = null,
     val existingWalletResult: WalletImportResult.Existing? = null,

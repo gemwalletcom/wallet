@@ -5,10 +5,9 @@ use number_formatter::BigNumberFormatter;
 use primitives::{AddressName, Asset, AssetBalance, AssetId, Chain, block_explorer::BlockExplorerLink};
 
 use super::model::GemAddressDetails;
-use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::formatted_number::GemFormattedNumber;
-use crate::models::copy::{GemCopy, GemCopyKind};
-use crate::models::list::{GemListRow, GemListRowTitle, GemListSection, GemListSectionTitle};
+use crate::models::copy::address_copy;
+use crate::models::list::{GemListRow, GemListRowTitle, GemListSection, GemListSectionFooter, GemListSectionTitle};
 use crate::models::state::{GemLoad, GemLoadState};
 use crate::precision::GemValueStyle;
 use crate::services::assets::rules::asset_text;
@@ -18,11 +17,7 @@ use crate::services::balance::{GemAssetBalance, GemBalanceRow};
 pub(super) fn details(chain: Chain, address: String, name: Option<String>, link: BlockExplorerLink, balances: GemLoad<Vec<GemBalanceRow>>) -> GemAddressDetails {
     GemAddressDetails {
         chain,
-        copy: GemCopy {
-            kind: GemCopyKind::Address { chain },
-            value: address.clone(),
-            display: format_address(&address, Some(chain), GemAddressFormatStyle::Short),
-        },
+        copy: address_copy(chain, address.clone()),
         address,
         name,
         link,
@@ -37,10 +32,12 @@ pub(super) fn sections(details: &GemAddressDetails) -> Vec<GemListSection> {
     vec![
         GemListSection {
             title: GemListSectionTitle::None,
+            footer: GemListSectionFooter::None,
             rows: vec![GemListRow::Icon { chain }],
         },
         GemListSection {
             title: GemListSectionTitle::None,
+            footer: GemListSectionFooter::None,
             rows: vec![GemListRow::Address {
                 address: details.address.clone(),
                 copy: details.copy.clone(),
@@ -48,6 +45,7 @@ pub(super) fn sections(details: &GemAddressDetails) -> Vec<GemListSection> {
         },
         GemListSection {
             title: GemListSectionTitle::None,
+            footer: GemListSectionFooter::None,
             rows: details
                 .name
                 .iter()
@@ -63,10 +61,12 @@ pub(super) fn sections(details: &GemAddressDetails) -> Vec<GemListSection> {
         },
         GemListSection {
             title: GemListSectionTitle::Balances,
+            footer: GemListSectionFooter::None,
             rows: balance_section(details, &asset),
         },
         GemListSection {
             title: GemListSectionTitle::None,
+            footer: GemListSectionFooter::None,
             rows: vec![GemListRow::Explorer {
                 name: details.link.name.clone(),
                 url: details.link.link.clone(),
@@ -99,6 +99,7 @@ fn balance_section(details: &GemAddressDetails, asset: &Asset) -> Vec<GemListRow
             .map(|row| GemListRow::Amount {
                 title: row.title(),
                 amount: amount(&row.value(), asset),
+                info: None,
             })
             .collect(),
         GemLoadState::Error { error } => vec![GemListRow::Error { error: error.clone() }],
@@ -116,7 +117,6 @@ mod tests {
     use primitives::{AddressType, VerificationStatus};
 
     use super::*;
-    use crate::models::copy::GemCopyKind;
     use crate::precision::GemValueStyle;
 
     #[test]
@@ -169,6 +169,7 @@ mod tests {
             vec![GemListRow::Amount {
                 title: GemListRowTitle::Available,
                 amount: GemFormattedNumber::amount(1.5, Some("ETH".to_string()), GemValueStyle::Auto),
+                info: None,
             }]
         );
     }
@@ -227,11 +228,7 @@ mod tests {
             sections(&details)[1].rows,
             vec![GemListRow::Address {
                 address: address.clone(),
-                copy: GemCopy {
-                    kind: GemCopyKind::Address { chain: Chain::Ethereum },
-                    value: address.clone(),
-                    display: format_address(&address, Some(Chain::Ethereum), GemAddressFormatStyle::Short),
-                },
+                copy: address_copy(Chain::Ethereum, address.clone()),
             }]
         );
     }

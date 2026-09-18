@@ -16,7 +16,6 @@ import com.gemwallet.android.application.stake.cases.GetValidators
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.asset.stakeChain
 import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.ext.secondsToDays
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
@@ -87,16 +86,15 @@ class StakeViewModel @Inject constructor(
         .mapLatest { it?.asset?.stakeChain?.let { chain -> AppUrl.staking(chain.string) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val lockTimeDays = assetInfo
-        .mapLatest { it?.asset?.chain?.string?.let { chain -> stakeService.lockTimeSeconds(chain) } }
-        .mapLatest { seconds -> seconds?.takeIf { it > 0uL }?.let { it.toLong().secondsToDays() } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    val lockTimeParts = assetInfo
+        .mapLatest { it?.asset?.chain?.string?.let { chain -> stakeService.lockTimeParts(chain) }.orEmpty() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val minStakeAmount = assetInfo
         .mapLatest { it?.asset?.chain?.string?.let { chain -> stakeService.minStakeAmount(chain) } ?: BigInteger.ZERO }
         .stateIn(viewModelScope, SharingStarted.Eagerly, BigInteger.ZERO)
 
-    val infoRows: StateFlow<List<ListItemModel>> = combine(assetInfo, lockTimeDays, minStakeAmount) { info, lockTime, minAmount ->
+    val infoRows: StateFlow<List<ListItemModel>> = combine(assetInfo, lockTimeParts, minStakeAmount) { info, lockTime, minAmount ->
         info?.let { stakeService.stakeInfoRows(it.asset.chain.string, it.metadata.stakingApr).map { row -> row.listItem(context, it, lockTime, minAmount) } }.orEmpty()
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

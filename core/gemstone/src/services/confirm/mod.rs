@@ -29,6 +29,7 @@ use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
 use crate::services::clock::sleep;
 use crate::services::confirm::rules::ConfirmInput;
+use crate::services::simulation::payload_rows;
 use crate::services::price::GemPriceService;
 use crate::services::simulation::{GemSimulationFormatter, GemSimulationService};
 use crate::services::transaction_state::{GemTransactionStateService, GemTransactionStatusService};
@@ -153,6 +154,7 @@ impl GemConfirmService {
 impl GemConfirmService {
     pub fn simulation(&self, input_type: TransactionInputType, simulation: Option<SimulationResult>, assets: Vec<Asset>) -> Result<GemConfirmSimulation, GemConfirmError> {
         let has_critical_warning = simulation.as_ref().map(SimulationResult::has_critical_warning).unwrap_or(false);
+        let chain = input_type.transaction_asset().chain();
         let approval = input_type.approval_value();
         let shows_header = self.simulation_formatter.shows_header(simulation.clone(), approval.is_some());
         let payload_fields = self
@@ -178,18 +180,13 @@ impl GemConfirmService {
                 })
             })
             .collect();
+        let (primary_fields, secondary_fields): (Vec<_>, Vec<_>) = payload_fields
+            .into_iter()
+            .partition(|field| field.display == SimulationPayloadFieldDisplay::Primary);
         Ok(GemConfirmSimulation {
             has_critical_warning,
-            primary_fields: payload_fields
-                .iter()
-                .filter(|field| field.display == SimulationPayloadFieldDisplay::Primary)
-                .cloned()
-                .collect(),
-            secondary_fields: payload_fields
-                .iter()
-                .filter(|field| field.display == SimulationPayloadFieldDisplay::Secondary)
-                .cloned()
-                .collect(),
+            primary_fields: payload_rows(&primary_fields, Some(chain), &[]),
+            secondary_fields: payload_rows(&secondary_fields, Some(chain), &[]),
             header,
             balance_changes,
         })

@@ -25,7 +25,7 @@ import Store
 import Swap
 import SwiftUI
 import WalletConnector
-import struct Gemstone.SimulationPayloadField
+import struct Gemstone.GemSimulationPayloadRow
 import struct Gemstone.SimulationResult
 import struct Gemstone.GemSimulationWarningRow
 
@@ -69,7 +69,7 @@ public final class ConfirmTransferSceneViewModel {
         let feeSelection = GemConfirmFeeSelection.priority(priority: request.data.defaultFeePriority())
         let state = ConfirmTransferState(
             transfer: request.data,
-            simulation: ConfirmSimulationState(result: request.simulation, chain: request.data.chain),
+            simulation: ConfirmSimulationState(result: request.simulation),
             screen: confirmation.screen(),
         )
         let screen = state.screen
@@ -241,7 +241,7 @@ extension ConfirmTransferSceneViewModel {
         isPresentingSheet = .info(.networkFee(state.feeAsset))
     }
 
-    public func fieldModels(for fields: [SimulationPayloadField]) -> [SimulationPayloadFieldViewModel] {
+    public func fieldModels(for fields: [GemSimulationPayloadRow]) -> [SimulationPayloadFieldViewModel] {
         payloadModel.fieldModels(
             for: fields,
             explorerLink: { explorerLink(chain: dataModel.chain, address: $0) },
@@ -286,12 +286,14 @@ extension ConfirmTransferSceneViewModel {
     func load() async {
         state.screen = state.screen.onLoadStarted()
         do {
-            state = try ConfirmTransferState(await confirmation.state(), screen: state.screen)
+            state = ConfirmTransferState(try await confirmation.state(), screen: state.screen)
             let load = try await confirmation.load(options: options(selection: feeSelection, feeAssetSelection: feeAssetSelection))
-            state = try ConfirmTransferState(load, screen: state.screen.onLoaded(load: load))
-        } catch {
+            state = ConfirmTransferState(load, screen: state.screen.onLoaded(load: load))
+        } catch let error as GemConfirmError {
             guard !Task.isCancelled else { return }
-            state.screen = state.screen.onLoadFailed(error: error.confirmError)
+            state.screen = state.screen.onLoadFailed(error: error)
+            debugLog("confirm load error: \(error)")
+        } catch {
             debugLog("confirm load error: \(error)")
         }
     }
@@ -341,9 +343,11 @@ extension ConfirmTransferSceneViewModel {
                 onComplete?()
             } catch GemConfirmError.Cancelled {
                 state.screen = state.screen.onExecuteCancelled()
+            } catch let error as GemConfirmError {
+                state.screen = state.screen.onExecuteFailed(error: error)
+                isPresentingAlertMessage = AlertMessage(title: Localized.Errors.transferError, message: error.display().localizedDescription)
+                debugLog("confirm transaction error: \(error)")
             } catch {
-                state.screen = state.screen.onExecuteFailed(error: error.confirmError)
-                isPresentingAlertMessage = AlertMessage(title: Localized.Errors.transferError, message: error.localizedDescription)
                 debugLog("confirm transaction error: \(error)")
             }
         }

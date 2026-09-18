@@ -1,12 +1,13 @@
 import Components
 import Foundation
-import class Gemstone.GemAddressService
 import protocol Gemstone.GemReceiveServiceProtocol
 import GemstonePrimitives
 import Localization
 import Primitives
 import PrimitivesComponents
 import SwiftUI
+import func Gemstone.addressCopy
+import struct Gemstone.GemReceiveNetworks
 
 @Observable
 @MainActor
@@ -25,7 +26,7 @@ public final class ReceiveViewModel: Sendable {
     private let wallet: Wallet
     private let service: any GemReceiveServiceProtocol
     private let generator = QRCodeGenerator()
-    private(set) var networkAssetIds: [AssetId]
+    private(set) var networks: GemReceiveNetworks
 
     private init(
         asset: Asset,
@@ -38,11 +39,11 @@ public final class ReceiveViewModel: Sendable {
         self.wallet = wallet
         self.address = address
         self.service = service
-        networkAssetIds = service.networkAssetIds(
+        networks = service.networks(
             assetId: asset.id.identifier,
             associations: associations.map(\.assetId.identifier),
             wallet: wallet.toGem(),
-        ).map { AssetId(core: $0) }
+        )
     }
 
     public convenience init(assetData: AssetData, wallet: Wallet, service: any GemReceiveServiceProtocol) {
@@ -69,10 +70,6 @@ public final class ReceiveViewModel: Sendable {
         Localized.Receive.title("")
     }
 
-    var addressShort: String {
-        GemAddressService.shared.format(address: address, chain: assetModel.asset.chain)
-    }
-
     var copyTitle: String {
         Localized.Common.copy
     }
@@ -84,19 +81,16 @@ public final class ReceiveViewModel: Sendable {
     }
 
     var copyModel: CopyTypeViewModel {
-        CopyTypeViewModel(
-            type: .address(assetModel.asset, address: addressShort),
-            copyValue: address,
-        )
+        CopyTypeViewModel(content: addressCopy(chain: assetModel.asset.chain.toGem(), address: address))
     }
 
     var showNetworkSelector: Bool {
-        networkAssetIds.count > 1
+        networks.showsSelector
     }
 
     var networkSelectorModel: ReceiveNetworkSelectorViewModel {
         ReceiveNetworkSelectorViewModel(
-            assetIds: networkAssetIds,
+            assetIds: networks.assetIds.map { AssetId(core: $0) },
         )
     }
 
@@ -139,14 +133,14 @@ public final class ReceiveViewModel: Sendable {
         }
     }
 
-    private func syncNetworkAssetIds() async {
+    private func syncNetworks() async {
         do {
-            networkAssetIds = try await service.syncNetworkAssetIds(
+            networks = try await service.syncNetworks(
                 assetId: assetModel.asset.id.identifier,
                 wallet: wallet.toGem(),
-            ).map { AssetId(core: $0) }
+            )
         } catch {
-            debugLog("ReceiveViewModel syncNetworkAssetIds error: \(error)")
+            debugLog("ReceiveViewModel syncNetworks error: \(error)")
         }
     }
 
@@ -168,7 +162,7 @@ extension ReceiveViewModel {
     func onTaskOnce() {
         Task {
             async let enabled: Void = enableAsset()
-            async let synced: Void = syncNetworkAssetIds()
+            async let synced: Void = syncNetworks()
             _ = await (enabled, synced)
         }
     }

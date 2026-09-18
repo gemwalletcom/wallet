@@ -7,14 +7,16 @@ import com.gemwallet.android.testkit.mockNameRecord
 import kotlinx.coroutines.CoroutineDispatcher
 import uniffi.gemstone.GemMnemonic
 import uniffi.gemstone.GemNameServiceInterface
-import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.model.ImportType
 import uniffi.gemstone.GemNameRecordState
 import com.wallet.core.primitives.Chain
+import uniffi.gemstone.GemWalletDefaultName
 import uniffi.gemstone.GemWalletImportKind
+import uniffi.gemstone.GemLocalizedText
+import uniffi.gemstone.GemWalletImportScreen
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkStatic
 import io.mockk.unmockkAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -25,7 +27,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Before
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -34,7 +35,14 @@ class ImportViewModelTest {
     private val chain = Chain.Ethereum
 
     private fun viewModel(nameService: GemNameServiceInterface, ioDispatcher: CoroutineDispatcher) = ImportViewModel(
-        service = mockk(relaxed = true),
+        service = mockk(relaxed = true) {
+            coEvery { defaultWalletName(any()) } returns GemWalletDefaultName(text = GemLocalizedText.WalletDefaultName(index = 1), hasExistingWallets = false)
+            every { importScreen(any()) } returns GemWalletImportScreen(
+                title = GemLocalizedText.WalletMulticoin,
+                kinds = listOf(GemWalletImportKind.PHRASE, GemWalletImportKind.PRIVATE_KEY, GemWalletImportKind.ADDRESS),
+                showsKinds = true,
+            )
+        },
         nameService = nameService,
         mnemonic = GemMnemonic(),
         ioDispatcher = ioDispatcher,
@@ -43,12 +51,6 @@ class ImportViewModelTest {
             every { getString(any(), *anyVararg()) } returns "Wallet"
         },
     )
-
-    @Before
-    fun setUp() {
-        mockkStatic("com.gemwallet.android.ext.ChainKt")
-        every { any<Chain>().networkName() } returns "Ethereum"
-    }
 
     @After
     fun tearDown() {

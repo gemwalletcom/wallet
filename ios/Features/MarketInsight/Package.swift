@@ -64,6 +64,7 @@ let package = Package(
                 "MarketInsight",
                 "MarketInsightTestKit",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "GemstonePrimitives",
                 "Localization",
                 "Primitives",

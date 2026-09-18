@@ -41,7 +41,7 @@ class GetPerpetualsImpl @Inject constructor(
 
         override val asset: Asset = data.asset
 
-        private val row = perpetualMarketRow(data.perpetual.toGem())
+        private val row = perpetualMarketRow(data.perpetual.toGem(), data.asset.toGem())
 
         override val title: String = row.title
 

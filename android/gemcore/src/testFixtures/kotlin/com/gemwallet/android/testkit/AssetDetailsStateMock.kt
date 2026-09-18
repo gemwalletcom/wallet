@@ -6,16 +6,16 @@ import uniffi.gemstone.GemPriceAlertToggle
 
 fun mockGemAssetDetailsState(
     showsBanners: Boolean = false,
-    priceAlertsCount: UInt = 0u,
+    priceAlertsCount: Int = 0,
 ) = GemAssetDetailsState(
     isViewOnly = false,
     headerActions = GemHeaderActions.Buttons(emptyList()),
     showsBanners = showsBanners,
     showsManage = false,
     showsResources = false,
-    showsPriceAlerts = priceAlertsCount > 0u,
-    priceAlertsCount = priceAlertsCount,
-    priceAlert = if (priceAlertsCount > 0u) GemPriceAlertToggle.ENABLED else GemPriceAlertToggle.DISABLED,
+    showsPriceAlerts = priceAlertsCount > 0,
+    priceAlertsCountText = priceAlertsCount.toString(),
+    priceAlert = if (priceAlertsCount > 0) GemPriceAlertToggle.ENABLED else GemPriceAlertToggle.DISABLED,
     showsEarn = false,
     emptyTransactionsAction = null,
 )

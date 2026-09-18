@@ -12,6 +12,7 @@ class FeeDetailsModel(
     val feeUnitType: FeeUnitType = rows.unitType.toPrimitives()
     val decimals: Int = rows.unitDecimals.toInt()
     val supportsCustomFee: Boolean = rows.supportsCustomFee
+    val showsOptions: Boolean = rows.showsOptions
 
     fun feeRateModels(unitSymbol: String): List<FeeRateUIModel> = rows.rows.map { row ->
         FeeRateUIModel(

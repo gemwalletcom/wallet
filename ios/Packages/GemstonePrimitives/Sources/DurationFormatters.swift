@@ -13,11 +13,7 @@ public struct EstimatedConfirmationFormatter {
     }
 
     public func string(seconds: UInt32) -> String {
-        let parts = DurationFormatter().estimateParts(seconds: Int64(seconds))
-        guard
-            parts.isEmpty == false,
-            let duration = parts.string(style: .short, calendar: calendar, seconds: TimeInterval(seconds))
-        else {
+        guard let duration = DurationFormatter().estimateParts(seconds: Int64(seconds)).string(style: .short, calendar: calendar) else {
             return ""
         }
         return "≈ \(duration)"
@@ -31,10 +27,8 @@ public struct CountdownFormatter {
         calendar = .current(locale: locale)
     }
 
-    public func string(seconds: Int64) -> String? {
-        let parts = DurationFormatter().countdownParts(seconds: seconds)
-        guard parts.isEmpty == false else { return .none }
-        return parts.string(style: .full, calendar: calendar, seconds: TimeInterval(seconds))
+    public func string(parts: [GemDurationPart]) -> String? {
+        parts.string(style: .full, calendar: calendar)
     }
 }
 
@@ -47,13 +41,25 @@ private extension Calendar {
 }
 
 private extension [GemDurationPart] {
-    func string(style: DateComponentsFormatter.UnitsStyle, calendar: Calendar, seconds: TimeInterval) -> String? {
+    func string(style: DateComponentsFormatter.UnitsStyle, calendar: Calendar) -> String? {
+        guard isEmpty == false else { return nil }
         let formatter = DateComponentsFormatter()
         formatter.allowedUnits = NSCalendar.Unit(map { $0.unit.calendarUnit })
         formatter.zeroFormattingBehavior = .dropAll
         formatter.unitsStyle = style
         formatter.calendar = calendar
-        return formatter.string(from: seconds)
+        return formatter.string(from: components)
+    }
+
+    var components: DateComponents {
+        reduce(into: DateComponents()) { components, part in
+            switch part.unit {
+            case .day: components.day = Int(part.value)
+            case .hour: components.hour = Int(part.value)
+            case .minute: components.minute = Int(part.value)
+            case .second: components.second = Int(part.value)
+            }
+        }
     }
 }
 

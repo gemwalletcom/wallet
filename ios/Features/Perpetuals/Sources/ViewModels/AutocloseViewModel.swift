@@ -11,6 +11,7 @@ import PrimitivesComponents
 import Style
 import SwiftUI
 import class Gemstone.GemAutocloseEstimator
+import func Gemstone.valueTone
 
 public struct AutocloseViewModel {
     private let type: TpslType
@@ -64,7 +65,7 @@ public struct AutocloseViewModel {
     public var roeColor: Color {
         guard let price else { return Colors.secondaryText }
         let roe = estimator.roe(price: price)
-        return PriceChangeColor.color(for: roe)
+        return valueTone(value: roe).color
     }
 
     public var percents: [Int] {

@@ -10,6 +10,7 @@ import PrimitivesComponents
 import Store
 import Style
 import SwiftUI
+import enum Gemstone.GemServiceError
 
 @Observable
 @MainActor
@@ -88,16 +89,20 @@ extension AssetPriceAlertsViewModel {
     func toggleAutoAlert(enabled: Bool) async {
         do {
             try await service.setAutoAlert(assetId: asset.id.identifier, enabled: enabled)
+        } catch let error as GemServiceError {
+            isPresentingToastMessage = .error(error.text().text)
         } catch {
-            isPresentingToastMessage = .error(error.localizedDescription)
+            debugLog("price alerts error: \(error)")
         }
     }
 
     func deletePriceAlert(priceAlert: PriceAlert) async {
         do {
             try await service.delete(priceAlerts: [priceAlert])
+        } catch let error as GemServiceError {
+            isPresentingToastMessage = .error(error.text().text)
         } catch {
-            isPresentingToastMessage = .error(error.localizedDescription)
+            debugLog("price alerts error: \(error)")
         }
     }
 

@@ -17,8 +17,8 @@ public struct GridPosterView: View {
                 .clipShape(RoundedRectangle(cornerRadius: .medium))
                 .aspectRatio(1, contentMode: .fit)
                 .overlay(alignment: .topTrailing) {
-                    if let count = model.count {
-                        countBadge(count)
+                    if let countText = model.countText {
+                        countBadge(countText)
                     }
                 }
 
@@ -38,8 +38,8 @@ public struct GridPosterView: View {
         }
     }
 
-    private func countBadge(_ count: Int) -> some View {
-        Text(String(count))
+    private func countBadge(_ text: String) -> some View {
+        Text(text)
             .font(.footnote.weight(.semibold))
             .foregroundStyle(Colors.whiteSolid)
             .padding(.horizontal, .space6)

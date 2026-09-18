@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemListRow
 import Primitives
 import PrimitivesComponents
 import Style
@@ -16,17 +17,9 @@ public struct PreferencesScene: View {
     }
 
     public var body: some View {
-        List {
-            Group {
-                ForEach(model.sections) { section in
-                    Section {
-                        ForEach(section.values) { row in
-                            content(for: row)
-                        }
-                    }
-                }
-            }
-            .listRowInsets(.assetListRowInsets)
+        ListSectionView(provider: model) { row in
+            content(for: row)
+                .listRowInsets(.assetListRowInsets)
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)
@@ -55,47 +48,32 @@ public struct PreferencesScene: View {
     }
 
     @ViewBuilder
-    private func content(for row: PreferencesRowViewModel) -> some View {
-        switch row.kind {
+    private func content(for row: GemListRow) -> some View {
+        switch PreferencesRowDestination(row: row) {
         case .currency:
-            NavigationLink(value: Scenes.Currency()) {
-                ListItemView(model: row.model)
-            }
+            link(row, to: Scenes.Currency())
         case .language:
-            NavigationCustomLink(
-                with: ListItemView(model: row.model),
-                action: onSelectLanguage,
-            )
+            NavigationCustomLink(with: GemListRowView(row: row), action: onSelectLanguage)
         case .appearance:
-            NavigationLink(value: Scenes.Appearance()) {
-                ListItemView(model: row.model)
-            }
+            link(row, to: Scenes.Appearance())
         case .networks:
-            NavigationLink(value: Scenes.Chains()) {
-                ListItemView(model: row.model)
-            }
+            link(row, to: Scenes.Chains())
         case .contacts:
-            NavigationLink(value: Scenes.Contacts()) {
-                ListItemView(model: row.model)
+            link(row, to: Scenes.Contacts())
+        case .none:
+            if case .picker = row {
+                GemListRowView(row: row, onSelect: model.onSelect)
+                    .padding(.leading, Sizing.image.asset - .tiny)
+            } else {
+                GemListRowView(row: row, onToggle: model.onToggle)
             }
-        case .perpetuals:
-            ListItemToggleView(
-                isOn: $model.isPerpetualEnabled,
-                title: row.model.title ?? .empty,
-                imageStyle: row.model.imageStyle,
-            )
-        case .perpetualLeverage:
-            perpetualLink(row, action: model.onSelectLeverage)
-        case .perpetualTakeProfit:
-            perpetualLink(row, action: model.onSelectTakeProfit)
-        case .perpetualStopLoss:
-            perpetualLink(row, action: model.onSelectStopLoss)
         }
     }
 
-    private func perpetualLink(_ row: PreferencesRowViewModel, action: @escaping @MainActor () -> Void) -> some View {
-        NavigationCustomLink(with: ListItemView(model: row.model), action: action)
-            .padding(.leading, Sizing.image.asset - .tiny)
+    private func link(_ row: GemListRow, to scene: some Hashable) -> some View {
+        NavigationLink(value: scene) {
+            GemListRowView(row: row)
+        }
     }
 }
 

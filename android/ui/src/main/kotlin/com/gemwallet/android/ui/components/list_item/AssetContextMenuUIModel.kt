@@ -6,12 +6,13 @@ import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.setPlainText
+import com.gemwallet.android.ui.components.clipboard.setCopy
 import com.gemwallet.android.ui.localization.stringRes
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemAssetMenuAction
 import uniffi.gemstone.GemAssetMenuInput
 import uniffi.gemstone.assetMenuActions
+import uniffi.gemstone.addressCopy
 
 @Immutable
 class AssetContextMenuItem(
@@ -56,7 +57,7 @@ fun assetContextMenuItems(
             is GemAssetMenuAction.CopyAddress -> AssetContextMenuItem(
                 titleRes = action.stringRes(),
                 iconRes = R.drawable.ic_content_copy,
-                onClick = { clipboard.setPlainText(context, action.address) },
+                onClick = { clipboard.setCopy(context, addressCopy(assetId.chain.string, action.address)) },
             )
         }
     }

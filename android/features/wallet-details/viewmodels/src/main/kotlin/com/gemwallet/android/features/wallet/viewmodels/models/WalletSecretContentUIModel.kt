@@ -1,16 +1,19 @@
 package com.gemwallet.android.features.wallet.viewmodels.models
 
+import uniffi.gemstone.GemCopy
 import uniffi.gemstone.GemWalletSecret
+import uniffi.gemstone.privateKeyCopy
+import uniffi.gemstone.secretPhraseCopy
 
 sealed interface WalletSecretContentUIModel {
-    val text: String
+    fun copy(): GemCopy
 
     data class PrivateKey(val key: String) : WalletSecretContentUIModel {
-        override val text: String get() = key
+        override fun copy(): GemCopy = privateKeyCopy(key)
     }
 
     data class Words(val words: List<String>) : WalletSecretContentUIModel {
-        override val text: String get() = words.joinToString(" ")
+        override fun copy(): GemCopy = secretPhraseCopy(words)
     }
 }
 

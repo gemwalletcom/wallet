@@ -306,7 +306,7 @@ A row that shows a title with a value, an amount, a link, an icon, an address to
 ```rust
 pub enum GemListRow {
     Text { title: GemListRowTitle, value: String },
-    Amount { title: GemListRowTitle, amount: GemFormattedNumber },
+    Amount { title: GemListRowTitle, amount: GemFormattedNumber, info: Option<GemInfoTopic> },
     Icon { chain: Chain },
     Address { address: String, copy: GemCopy },
     Explorer { name: String, url: String },
@@ -325,7 +325,7 @@ Four things make this work, and all four are load-bearing:
 1. **A screen's record returns `Vec<GemListSection>`** and declares no section or row type of its own. `GemAddressDetails::sections()` is the reference; a screen with no section header uses `GemListSectionTitle::None`.
 2. **The row carries the finished value.** `Text` carries printed text, `Amount` carries a `GemFormattedNumber` each app renders through its existing formatter, and `Address` carries the [copy model](#one-copy-model-for-every-address-phrase-and-key) with the shortened display already computed. A row that owns its title answers it in Core (`GemBalanceRow::title()`).
 3. **Titles are two shared enums**, `GemListRowTitle` and `GemListSectionTitle`, resolved in the one shared localization file per app — iOS `PrimitivesComponents/Extensions/Gemstone+Localized.swift`, Android `ui/localization/GemstoneText.kt`. A new title is a case there, never a per-feature mapper. A title that interpolates a value stays app-side (`Explorer` carries the explorer's name and the app composes "View on …").
-4. **One builder renders it, so a screen adds no rendering.** iOS `GemListRowView(row:)` in `PrimitivesComponents` and Android `GemListRowView(row:, listPosition:)` plus `LazyListScope.gemListSections(sections:)` in `:ui` take the Core row and own everything it needs — the list-row container, the copy and its toast, opening the link, the loading spinner. A screen is then:
+4. **One builder renders it, so a screen adds no rendering.** iOS `GemListRowView(row:)` in `PrimitivesComponents` and Android `GemListRowView(row:, listPosition:)` plus `LazyListScope.gemListSections(sections:)` in `:ui` take the Core row and own everything it needs — the list-row container, the copy and its toast, opening the link, the loading spinner, and the info button. A row that has an explanation carries a `GemInfoTopic`; iOS reports it through `GemListRowView(row:onInfo:)` for the screen to present its sheet, and Android maps it to the `InfoSheetEntity` the row opens itself. A screen is then:
 
 ```swift
 ListSectionView(provider: model) { row in
@@ -343,7 +343,9 @@ Rich rows stay outside: the transaction header, swap progress, asset, wallet and
 
 Rows divide into three families. Getting the family right is most of the design work for a list.
 
-**1. Plain rows — one shared `GemListRow`.** A title from a fixed vocabulary plus a value, an amount, a link, an icon, an address, a loading placeholder or an error. One type, one renderer per app, no per-screen code. This is the default; reach for it first.
+**1. Plain rows — one shared `GemListRow`.** A title from a fixed vocabulary plus a value, an amount, a link, a web page, a switch, a picker, an icon, an address, a loading placeholder or an error. One type, one renderer per app, no per-screen code. This is the default; reach for it first.
+
+A row that acts carries what the act needs, and Core decides it: `Url` says whether the page opens in the app or hands off to the system (`GemUrlTarget`), `Link` names an in-app destination, `Toggle` carries its state and `Picker` the selected value. What the app keeps is two maps keyed by the shared `GemListRowTitle` — one to a destination, one to an action — plus the callbacks the builder takes (`onSelect`, `onToggle`). A screen never re-titles or re-icons a row; a value only the device knows (an app version, a wallet count, the biometry name, a localized period) is passed *into* Core, which decides whether the row exists and what it holds.
 
 **2. Shared rich rows — one record per family, reused by every list that draws that family.** An asset row and a transaction row are heavy (an icon with a badge, a title that may be the asset or its network, a subtitle that may be a price, a network name or a counterparty, a two-line trailing value) and they appear on many screens, so each is one record that all of those screens read:
 

@@ -43,10 +43,10 @@ public extension GemTransactionRowValue {
         case let .fiat(value):
             TextValue(
                 text: CurrencyFormatter(type: .currency, currencyCode: Currency.usd.rawValue).string(value),
-                style: TextStyle(font: .body, color: Colors.black, fontWeight: .medium),
+                style: textStyle ?? TextStyle(font: .body, color: Colors.black, fontWeight: .medium),
             )
         case let .pnl(value):
-            AmountDisplay.currency(value: value, currencyCode: Currency.usd.rawValue)
+            AmountDisplay.currency(value: value, currencyCode: Currency.usd.rawValue, textStyle: textStyle)
         }
     }
 }

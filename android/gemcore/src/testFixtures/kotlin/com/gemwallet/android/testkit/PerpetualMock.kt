@@ -17,6 +17,7 @@ import com.wallet.core.primitives.PerpetualTriggerOrder
 import com.wallet.core.primitives.TpslType
 import uniffi.gemstone.AutocloseValidation
 import uniffi.gemstone.GemAutocloseField
+import uniffi.gemstone.GemAutocloseViewState
 
 fun mockPerpetual(
     price: Double = 0.0,
@@ -109,4 +110,14 @@ fun mockAutocloseField(
     formattedPrice = price?.toString(),
     validation = validation,
     orderId = null,
+)
+
+fun mockAutocloseViewState(
+    confirmEnabled: Boolean = false,
+    showsErrors: Boolean = false,
+) = GemAutocloseViewState(
+    confirmEnabled = confirmEnabled,
+    showsErrors = showsErrors,
+    entryPrice = mockFormattedNumber(100.0),
+    marketPrice = mockFormattedNumber(110.0),
 )

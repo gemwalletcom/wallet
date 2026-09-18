@@ -29,7 +29,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DocsInfoButton
 import com.gemwallet.android.ui.components.buttons.CopyButton
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.setPlainText
+import com.gemwallet.android.ui.components.clipboard.setCopy
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.PhraseLayout
 import com.gemwallet.android.ui.components.screen.Scene
@@ -118,7 +118,7 @@ fun WalletSecretDataNavScreen(
                 is WalletSecretContentUIModel.Words -> PhraseLayout(rows = remember(secret.words) { phraseRows(secret.words) })
             }
 
-            CopyButton(onClick = { clipboardManager.setPlainText(context, secret.text, true) })
+            CopyButton(onClick = { clipboardManager.setCopy(context, secret.copy()) })
         }
     }
 }

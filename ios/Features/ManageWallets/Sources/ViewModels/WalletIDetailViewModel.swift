@@ -15,6 +15,7 @@ import func Gemstone.walletDetails
 import func Gemstone.walletRow
 import protocol Gemstone.GemWalletServiceProtocol
 import GemstoneServices
+import enum Gemstone.GemServiceError
 
 @Observable
 @MainActor
@@ -114,8 +115,10 @@ extension WalletDetailViewModel {
     func onChangeWalletName() async {
         do {
             try await rename(name: nameInput)
+        } catch let error as GemServiceError {
+            isPresentingAlertMessage = AlertMessage(message: error.text().text)
         } catch {
-            isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
+            debugLog("wallet detail error: \(error)")
         }
     }
 
@@ -137,8 +140,11 @@ extension WalletDetailViewModel {
         do {
             try await delete()
             return true
+        } catch let error as GemServiceError {
+            isPresentingAlertMessage = AlertMessage(message: error.text().text)
+            return false
         } catch {
-            isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
+            debugLog("wallet detail error: \(error)")
             return false
         }
     }

@@ -32,7 +32,6 @@ import com.wallet.core.primitives.FiatQuoteType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -114,8 +113,8 @@ class FiatViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val suggestedAmounts = type.mapLatest {
-        service.suggestedAmounts().map {
-            FiatSuggestion.SuggestionAmount("$currencySymbol$it", it.toDouble())
+        service.suggestedAmounts(currencySymbol).map {
+            FiatSuggestion.SuggestionAmount(it.text, it.amount.toDouble())
         } + FiatSuggestion.RandomAmount
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -176,11 +175,9 @@ class FiatViewModel @Inject constructor(
         session.update { it.onFetchStarted(request) }
         val results = try {
             GemFiatQuotesResult(request, withContext(ioDispatcher) { service.quotes(request.quoteType, assetId.toIdentifier(), request.amount) }, null)
-        } catch (err: CancellationException) {
-            throw err
-        } catch (err: Throwable) {
+        } catch (err: GemServiceException) {
             Log.e(TAG, "fiat quotes request failed", err)
-            GemFiatQuotesResult(request, emptyList(), err as? GemServiceException ?: GemServiceException.Api(err.message.orEmpty()))
+            GemFiatQuotesResult(request, emptyList(), err)
         }
         session.update { it.onQuoteResults(results) }
     }

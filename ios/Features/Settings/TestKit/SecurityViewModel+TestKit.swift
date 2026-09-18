@@ -10,7 +10,8 @@ public extension SecurityViewModel {
     static func mock(
         service: any BiometryAuthenticatable = BiometryAuthenticationMock(),
         settings: any GemSettingsServiceProtocol = GemSettingsServiceMock(),
+        preferences: ObservablePreferences = .mock(),
     ) -> SecurityViewModel {
-        SecurityViewModel(service: service, settings: settings, preferences: .mock())
+        SecurityViewModel(service: service, settings: settings, preferences: preferences)
     }
 }

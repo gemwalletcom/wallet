@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import func Gemstone.valueTone
+import enum Gemstone.GemValueTone
 import Formatters
 import GemstonePrimitives
 import Primitives
@@ -32,7 +34,7 @@ final class CoinPriceRowViewModel {
     }
 
     var chainPlaceholder: Image? {
-        guard let assetId = try? AssetId(id: coin.coin.assetId) else { return nil }
+        let assetId = AssetId(core: coin.coin.assetId)
         switch assetId.type {
         case .native: return nil
         case .token: return Images.name(assetId.chain.rawValue)
@@ -48,6 +50,18 @@ final class CoinPriceRowViewModel {
     }
 
     var percentageColor: Color {
-        PriceChangeColor.color(for: coin.coin.change.value)
+        valueTone(value: coin.coin.change.value).color
+    }
+}
+
+private extension GemValueTone {
+    var color: Color {
+        switch self {
+        case .plain: Colors.black
+        case .neutral: Colors.gray
+        case .positive: Colors.green
+        case .warning: Colors.orange
+        case .negative: Colors.red
+        }
     }
 }

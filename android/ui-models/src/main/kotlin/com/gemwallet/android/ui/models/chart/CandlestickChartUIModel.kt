@@ -90,7 +90,8 @@ data class CandlestickChartUIModel(
                 GemValueTone.POSITIVE -> CandleDirection.Up
                 GemValueTone.NEGATIVE -> CandleDirection.Down
                 GemValueTone.NEUTRAL,
-                GemValueTone.PLAIN -> CandleDirection.Flat
+                GemValueTone.PLAIN,
+                GemValueTone.WARNING -> CandleDirection.Flat
             },
         )
 

@@ -3,6 +3,7 @@
 import Components
 import enum Gemstone.GemLatencyStatus
 import Localization
+import PrimitivesComponents
 import Style
 import SwiftUI
 
@@ -11,7 +12,7 @@ struct LatencyStatusViewModel {
 
     var text: String? {
         switch status {
-        case let .result(latency): LatencyViewModel(latency: latency).title
+        case let .result(latency): Localized.Common.latencyInMs(Int(latency.value))
         case .error: Localized.Errors.error
         case .loading: ""
         }
@@ -27,23 +28,14 @@ struct LatencyStatusViewModel {
     var style: TextStyle {
         TextStyle(
             font: .footnote.weight(.medium),
-            color: color,
+            color: status.tone().color,
             background: background,
         )
     }
 
-    private var color: Color {
-        switch status {
-        case let .result(latency): LatencyViewModel(latency: latency).color
-        case .error: Colors.red
-        case .loading: Colors.gray
-        }
-    }
-
     private var background: Color {
         switch status {
-        case let .result(latency): LatencyViewModel(latency: latency).background
-        case .error: Colors.red.opacity(.light)
+        case .result, .error: status.tone().color.opacity(.light)
         case .loading: .clear
         }
     }

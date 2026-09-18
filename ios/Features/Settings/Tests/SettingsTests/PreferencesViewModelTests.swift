@@ -15,19 +15,22 @@ struct PreferencesViewModelTests {
     @Test
     func theDefaultsComeFromCore() {
         let settings = GemSettingsServiceMock()
-        settings.perpetualDefaults = GemPerpetualDefaults(leverage: 10, takeProfitPercent: 30, stopLossPercent: 15)
+        settings.perpetualDefaultsValue = GemPerpetualDefaults(leverage: 10, takeProfitPercent: 30, stopLossPercent: 15)
         let model = PreferencesViewModel.mock(settings: settings)
 
+        _ = model.sections
+
         #expect(model.perpetualLeverage.value == 10)
-        #expect(model.defaultLeverageValue == "10x")
         #expect(model.perpetualTakeProfit.value == 30)
         #expect(model.perpetualStopLoss.value == 15)
+        #expect(settings.preferencesInputs.last?.perpetualLeverage == "10x")
+        #expect(settings.preferencesInputs.last?.perpetualTakeProfit == model.perpetualTakeProfit.displayText)
     }
 
     @Test
     func changingALeverageWritesEveryDefaultBack() {
         let settings = GemSettingsServiceMock()
-        settings.perpetualDefaults = GemPerpetualDefaults(leverage: 3, takeProfitPercent: 25, stopLossPercent: 10)
+        settings.perpetualDefaultsValue = GemPerpetualDefaults(leverage: 3, takeProfitPercent: 25, stopLossPercent: 10)
         let model = PreferencesViewModel.mock(settings: settings)
 
         model.perpetualLeverage = LeverageOption(value: 20)
@@ -63,28 +66,33 @@ struct PreferencesViewModelTests {
     }
 
     @Test
-    func theStateIsAskedForWithThePerpetualToggle() {
+    func theSectionsAreAskedForWithThePerpetualToggle() {
         let settings = GemSettingsServiceMock()
         let model = PreferencesViewModel.mock(settings: settings)
-        model.isPerpetualEnabled = false
+        model.onToggle(.perpetuals, false)
 
         _ = model.sections
 
-        #expect(settings.perpetualsEnabledCalls.last == false)
+        #expect(settings.preferencesInputs.last?.perpetualsEnabled == false)
+
+        model.onToggle(.perpetuals, true)
+        _ = model.sections
+
+        #expect(settings.preferencesInputs.last?.perpetualsEnabled == true)
     }
 
     @Test
     func eachPickerOpensOnItsOwn() {
         let model = PreferencesViewModel.mock()
 
-        model.onSelectLeverage()
+        model.onSelect(.perpetualLeverage)
         #expect(model.isPresentingLeveragePicker)
         #expect(model.isPresentingTakeProfitPicker == false)
 
-        model.onSelectTakeProfit()
+        model.onSelect(.perpetualTakeProfit)
         #expect(model.isPresentingTakeProfitPicker)
 
-        model.onSelectStopLoss()
+        model.onSelect(.perpetualStopLoss)
         #expect(model.isPresentingStopLossPicker)
     }
 

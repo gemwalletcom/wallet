@@ -10,7 +10,7 @@ import uniffi.gemstone.AutocloseValidation
 data class AutocloseUIModel(
     val position: PerpetualPositionDataAggregate,
     val marketPriceText: String,
-    val entryPriceText: String,
+    val entryPriceText: String?,
     val takeProfit: Field,
     val stopLoss: Field,
     val confirmEnabled: Boolean,

@@ -7,6 +7,7 @@ import PrimitivesComponents
 import struct Gemstone.Rewards
 import protocol Gemstone.GemRewardsServiceProtocol
 import GemstonePrimitives
+import enum Gemstone.GemServiceError
 
 @Observable
 @MainActor
@@ -50,8 +51,10 @@ final class RedeemRewardsCodeViewModel: TextInputViewModelProtocol {
         do {
             try await service.useReferralCode(wallet: wallet, code: text)
             onSuccess(text)
+        } catch let error as GemServiceError {
+            errorMessage = error.text().text
         } catch {
-            errorMessage = error.localizedDescription
+            debugLog("rewards code error: \(error)")
         }
         isLoading = false
     }

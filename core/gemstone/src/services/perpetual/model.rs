@@ -110,11 +110,12 @@ pub struct GemPerpetualMarketRow {
     pub shows_price: bool,
     pub volume_24h: GemFormattedNumber,
     pub open_interest: GemFormattedNumber,
+    pub funding_apr: GemFormattedNumber,
 }
 
 #[uniffi::export]
-pub fn perpetual_market_row(perpetual: Perpetual) -> GemPerpetualMarketRow {
-    rules::market_row(&perpetual)
+pub fn perpetual_market_row(perpetual: Perpetual, asset: Asset) -> GemPerpetualMarketRow {
+    rules::market_row(&perpetual, &asset)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -215,13 +216,6 @@ pub enum GemPerpetualPositionDetailRow {
     LiquidationPrice,
     Margin,
     FundingPayments,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemPerpetualInfoRow {
-    DailyVolume,
-    OpenInterest,
-    FundingRate,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

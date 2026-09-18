@@ -60,10 +60,6 @@ impl GemPerpetual {
         }
     }
 
-    pub fn funding_apr(&self, funding: f64) -> f64 {
-        perpetual_rules::funding_apr(funding)
-    }
-
     pub fn deposit_asset(&self) -> Asset {
         match self.provider {
             PerpetualProvider::Hypercore => ARBITRUM_USDC.clone(),

@@ -30,12 +30,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.settings.settings.viewmodels.SettingsViewModel
+import com.gemwallet.android.features.settings.settings.viewmodels.models.opensDeveloperMenu
+import com.gemwallet.android.features.settings.settings.viewmodels.models.settingsAction
 import com.gemwallet.android.ui.BuildConfig
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.PushRequest
-import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.ListItemDefaults
-import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
+import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.SettingsSceneAction
@@ -49,7 +49,7 @@ fun SettingsScene(
     scrollState: ScrollState = rememberScrollState()
 ) {
     val viewModel: SettingsViewModel = hiltViewModel()
-    val rows by viewModel.rows.collectAsStateWithLifecycle()
+    val sections by viewModel.sections.collectAsStateWithLifecycle()
     val pushEnabled by viewModel.pushEnabled.collectAsStateWithLifecycle()
     var isShowDevelopEnable by remember { mutableStateOf(false) }
     var requestPushGrant by remember { mutableStateOf<(() -> Unit)?>(null) }
@@ -77,21 +77,20 @@ fun SettingsScene(
                 .fillMaxSize()
                 .verticalScroll(scrollState)
         ) {
-            rows.forEach { section ->
-                section.items.forEachIndexed { index, row ->
-                    val listPosition = ListPosition.getPosition(index, section.items.size)
+            sections.forEach { section ->
+                section.rows.forEachIndexed { index, row ->
+                    val action = row.settingsAction()
+                    val opensDeveloperMenu = row.opensDeveloperMenu()
                     Box(modifier = Modifier.fillMaxWidth()) {
-                        ListItem(
-                            model = row.model,
-                            listPosition = listPosition,
+                        GemListRowView(
+                            row = row,
+                            listPosition = ListPosition.getPosition(index, section.rows.size),
                             modifier = Modifier.combinedClickable(
-                                onClick = { onRowAction(row.action) },
-                                onLongClick = { isShowDevelopEnable = true }.takeIf { row.opensDeveloperMenu },
+                                onClick = { action?.let(onRowAction) },
+                                onLongClick = { isShowDevelopEnable = true }.takeIf { opensDeveloperMenu },
                             ),
-                            minHeight = ListItemDefaults.plainMinHeight,
-                            accessory = { DataBadgeChevron() },
                         )
-                        if (row.opensDeveloperMenu) {
+                        if (opensDeveloperMenu) {
                             DropdownMenu(
                                 isShowDevelopEnable, { isShowDevelopEnable = false },
                                 containerColor = MaterialTheme.colorScheme.background,

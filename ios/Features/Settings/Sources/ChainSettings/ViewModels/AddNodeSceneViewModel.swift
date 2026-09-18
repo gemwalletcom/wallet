@@ -11,6 +11,7 @@ import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
+import enum Gemstone.GemServiceError
 
 @MainActor
 @Observable
@@ -101,12 +102,18 @@ extension AddNodeSceneViewModel {
         loadTrigger = AddNodeLoadTrigger(url: session.url, isImmediate: isImmediate)
     }
 
-    func importFoundNode() async throws {
-        guard let check = session.check else {
-            throw AnyError("Unknown result")
+    func importFoundNode() async -> Bool {
+        guard let check = session.check else { return false }
+        do {
+            try await service.addNode(chain: chain.rawValue, url: check.url)
+            session = session.onImported()
+            return true
+        } catch let error as GemServiceError {
+            isPresentingAlertMessage = AlertMessage(message: error.text().text)
+        } catch {
+            debugLog("AddNodeSceneViewModel import error: \(error)")
         }
-        try await service.addNode(chain: chain.rawValue, url: check.url)
-        session = session.onImported()
+        return false
     }
 
     func load() async {

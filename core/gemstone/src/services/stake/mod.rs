@@ -2,6 +2,8 @@ pub mod model;
 pub mod rules;
 pub mod store;
 
+use crate::duration_formatter::GemDurationPart;
+use chrono::Utc;
 use crate::services::error::GemServiceError;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -133,6 +135,14 @@ impl GemStakeService {
 
     pub fn lock_time_seconds(&self, chain: Chain) -> u64 {
         rules::lock_time_seconds(chain)
+    }
+
+    pub fn lock_time_parts(&self, chain: Chain) -> Vec<GemDurationPart> {
+        rules::lock_time_parts(chain)
+    }
+
+    pub fn completion_countdown_parts(&self, delegation: Delegation) -> Vec<GemDurationPart> {
+        rules::completion_countdown_parts(&delegation, Utc::now())
     }
 
     pub fn min_stake_amount(&self, chain: Chain) -> GemBigInt {

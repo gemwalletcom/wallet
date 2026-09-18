@@ -16,7 +16,7 @@ use sui_types::PersonalMessage;
 
 use super::{
     eip712::GemEIP712Message,
-    payload::MessagePayloadPreview,
+    payload::{MessagePayloadFields, MessagePayloadPreview},
     sign_type::{SignDigestType, SignMessage},
 };
 use crate::{GemstoneError, keystore::GemKeystore, siwe::SiweMessage};
@@ -90,10 +90,10 @@ impl MessageSigner {
                 _ => None,
             },
             MessagePreview::EIP712(message) => Some(message.payload_preview(simulation_payload)),
-            MessagePreview::Siwe(message) => Some(MessagePayloadPreview::from_siwe(&message, simulation_payload)),
+            MessagePreview::Siwe(message) => Some(MessagePayloadFields::from_siwe(&message, simulation_payload)),
         };
 
-        Ok(payload_preview)
+        Ok(payload_preview.map(|fields| fields.rows(self.message.chain)))
     }
 
     fn hash(&self) -> Result<Vec<u8>, GemstoneError> {
@@ -196,19 +196,19 @@ impl MessageSigner {
         String::from_utf8(self.message.data.clone()).unwrap_or_else(|_| encode_with_0x(&self.message.data))
     }
 
-    fn siwe_payload_preview(&self, simulation_payload: Vec<SimulationPayloadField>) -> Option<MessagePayloadPreview> {
+    fn siwe_payload_preview(&self, simulation_payload: Vec<SimulationPayloadField>) -> Option<MessagePayloadFields> {
         let string = String::from_utf8(self.message.data.clone()).ok()?;
         let message = SiweMessage::try_parse(&string)?;
-        Some(MessagePayloadPreview::from_siwe(&message, simulation_payload))
+        Some(MessagePayloadFields::from_siwe(&message, simulation_payload))
     }
 
-    fn siws_payload_preview(&self, simulation_payload: Vec<SimulationPayloadField>) -> Result<Option<MessagePayloadPreview>, GemstoneError> {
+    fn siws_payload_preview(&self, simulation_payload: Vec<SimulationPayloadField>) -> Result<Option<MessagePayloadFields>, GemstoneError> {
         let Ok(string) = String::from_utf8(self.hash()?) else {
             return Ok(None);
         };
         Ok(SiwsMessage::parse(&string)
             .map_err(GemstoneError::from)?
-            .map(|message| MessagePayloadPreview::from_siws(&message, simulation_payload)))
+            .map(|message| MessagePayloadFields::from_siws(&message, simulation_payload)))
     }
 
     fn get_ton_result(&self, result: &TonSignResult) -> Result<String, GemstoneError> {
@@ -240,6 +240,7 @@ mod tests {
     use primitives::Address;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use signer::Ed25519KeyPair;
+    use crate::services::simulation::GemSimulationPayloadTitle;
 
     #[test]
     fn test_eip712_chain_signer_matches_message_signer() {
@@ -718,8 +719,8 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
         let payload_preview = decoder.payload_preview(vec![]).unwrap().expect("expected SIWE payload preview");
         assert_eq!(payload_preview.message_type, MessageType::Siwe);
         assert_eq!(payload_preview.primary.len(), 2);
-        assert_eq!(payload_preview.primary[0].label.as_deref(), Some("domain"));
-        assert_eq!(payload_preview.primary[1].label.as_deref(), Some("address"));
+        assert_eq!(payload_preview.primary[0].title, GemSimulationPayloadTitle::Custom { label: "domain".to_string() });
+        assert_eq!(payload_preview.primary[1].title, GemSimulationPayloadTitle::Custom { label: "address".to_string() });
     }
 
     #[test]

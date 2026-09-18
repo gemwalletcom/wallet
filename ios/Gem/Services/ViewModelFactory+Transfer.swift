@@ -20,6 +20,7 @@ import class Gemstone.GemRecipientService
 import class Gemstone.GemSwapQuoteService
 import enum Gemstone.GemRecipientType
 import struct Gemstone.GemPaymentRecipient
+import struct Gemstone.GemWalletConnectMessageRequest
 import struct Gemstone.GemTransferData
 import struct Gemstone.SimulationResult
 
@@ -205,12 +206,12 @@ extension ViewModelFactory {
 
     @MainActor
     public func signMessageScene(
-        payload: SignMessagePayload,
+        request: GemWalletConnectMessageRequest,
         confirmTransferDelegate: @escaping TransferDataCallback.ConfirmTransferDelegate,
     ) -> SignMessageSceneViewModel {
         SignMessageSceneViewModel(
             service: signMessageService,
-            payload: payload,
+            request: request,
             confirmTransferDelegate: confirmTransferDelegate,
         )
     }

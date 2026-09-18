@@ -6,6 +6,8 @@ use primitives::{GEM_API_HOST, Latency, node_config::NodeRegion};
 
 use crate::GemstoneError;
 use crate::alien::{AlienHttpMethod, AlienProvider, AlienTarget};
+use crate::formatted_number::GemValueTone;
+use primitives::LatencyType;
 
 #[uniffi::export]
 pub fn service_status_timeout() -> Duration {
@@ -49,6 +51,21 @@ pub enum GemLatencyStatus {
     Loading,
     Error,
     Result { latency: Latency },
+}
+
+#[uniffi::export]
+impl GemLatencyStatus {
+    pub fn tone(&self) -> GemValueTone {
+        match self {
+            Self::Loading => GemValueTone::Neutral,
+            Self::Error => GemValueTone::Negative,
+            Self::Result { latency } => match latency.latency_type {
+                LatencyType::Fast => GemValueTone::Positive,
+                LatencyType::Normal => GemValueTone::Warning,
+                LatencyType::Slow => GemValueTone::Negative,
+            },
+        }
+    }
 }
 
 #[derive(uniffi::Object)]

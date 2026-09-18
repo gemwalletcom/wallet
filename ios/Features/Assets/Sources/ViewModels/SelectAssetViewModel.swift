@@ -16,6 +16,7 @@ import Store
 import Style
 import SwiftUI
 import class Gemstone.GemPerpetual
+import func Gemstone.addressCopy
 
 @Observable
 @MainActor
@@ -200,10 +201,7 @@ extension SelectAssetViewModel {
             }
         case .copy:
             let address = assetData.account.address
-            copyTypeViewModel = CopyTypeViewModel(
-                type: .address(asset, address: address),
-                copyValue: address,
-            )
+            copyTypeViewModel = CopyTypeViewModel(content: addressCopy(chain: asset.chain.toGem(), address: address))
             isPresentingCopyToast = true
             Task {
                 await handleAction(assetId: asset.id, enabled: true)

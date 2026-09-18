@@ -38,11 +38,11 @@ extension ConfirmTransferState {
         )
     }
 
-    init(_ load: GemConfirmLoad, screen: GemConfirmScreen) throws {
+    init(_ load: GemConfirmLoad, screen: GemConfirmScreen) {
         self.init(
             feeAsset: load.feeAsset.toPrimitives(),
             load: load,
-            simulation: try ConfirmSimulationState(load.simulation),
+            simulation: ConfirmSimulationState(load.simulation),
             screen: screen,
         )
     }
@@ -67,11 +67,5 @@ extension ConfirmTransferState {
         if let failure = screen.failure, failure.stage == .load { return ConfirmTransferError(error: failure.error) }
         if case let .failure(error)? = transferAmount { return ConfirmTransferError(error: error) }
         return nil
-    }
-}
-
-extension Error {
-    var confirmError: GemConfirmError {
-        self as? GemConfirmError ?? .Load(msg: localizedDescription)
     }
 }

@@ -22,6 +22,5 @@ interface WalletConnectReviewModel {
     val warnings: List<GemSimulationWarningRow> get() = emptyList()
     val hasCriticalWarning: Boolean get() = false
     val header: SimulationHeaderUIModel? get() = null
-    val addressNames: Map<String, String> get() = emptyMap()
     val hasPayload: Boolean get() = primaryPayloadFields.isNotEmpty() || secondaryPayloadFields.isNotEmpty()
 }

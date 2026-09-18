@@ -15,7 +15,7 @@ data class NftItemUIModel(
     val imageUrl: String get() = row.imageUrl
     val name: String get() = row.title
     val isVerified: Boolean get() = row.isVerified
-    val collectionSize: Int? get() = row.count?.toInt()
+    val countText: String? get() = row.countText
 }
 
 fun List<GemNftItem>.toUIModels(): List<NftItemUIModel> = zip(nftRows(this)) { item, row ->

@@ -84,7 +84,7 @@ class WCRequestViewModelTest {
 
     private fun signMessageService(hasCriticalWarning: Boolean = false): GemSignMessageServiceInterface = mockk(relaxed = true) {
         every { preview(any(), any(), any()) } returns mockGemSignMessagePreview(hasCriticalWarning)
-        coEvery { addressNames(any(), any()) } returns emptyList()
+        coEvery { withAddressNames(any(), any()) } answers { secondArg() }
     }
 
     private fun viewModel(

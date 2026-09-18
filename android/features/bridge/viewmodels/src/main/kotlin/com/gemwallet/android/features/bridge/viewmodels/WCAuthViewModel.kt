@@ -48,6 +48,8 @@ import uniffi.gemstone.MessageType
 import uniffi.gemstone.SignDigestType
 import uniffi.gemstone.SignMessage
 import uniffi.gemstone.walletRows
+import com.gemwallet.android.ext.errorText
+import uniffi.gemstone.GemErrorText
 
 @HiltViewModel
 class WCAuthViewModel @Inject constructor(
@@ -119,7 +121,7 @@ class WCAuthViewModel @Inject constructor(
                 }
             } catch (err: Throwable) {
                 if (isActiveRequest(request)) {
-                    rejectRequest(request, AuthSceneState.Error(err.message, err))
+                    rejectRequest(request, AuthSceneState.Error(err.errorText()))
                 }
             }
         }
@@ -132,7 +134,7 @@ class WCAuthViewModel @Inject constructor(
         val approval = runCatching {
             buildApproval(request, wallet)
         }.getOrElse { err ->
-            _state.update { AuthSceneState.Error(err.message) }
+            _state.update { AuthSceneState.Error(err.errorText()) }
             return
         }
 
@@ -183,13 +185,13 @@ class WCAuthViewModel @Inject constructor(
                     },
                     onError = { message ->
                         if (authRequest?.id == request.id) {
-                            _state.update { AuthSceneState.Error(message) }
+                            _state.update { AuthSceneState.Error(GemErrorText.Message(message)) }
                         }
                     },
                 )
             } catch (err: Throwable) {
                 if (authRequest?.id == request.id) {
-                    _state.update { AuthSceneState.Error(err.message) }
+                    _state.update { AuthSceneState.Error(err.errorText()) }
                 }
             }
         }
@@ -291,8 +293,8 @@ class WCAuthViewModel @Inject constructor(
             signer.payloadPreview(emptyList())?.let { preview ->
                 AuthPayloadPreview(
                     messageType = preview.messageType,
-                    primaryFields = preview.primary.map { PayloadField(field = it, chain = chain) },
-                    secondaryFields = preview.secondary.map { PayloadField(field = it, chain = chain) },
+                    primaryFields = preview.primary.map { PayloadField(row = it) },
+                    secondaryFields = preview.secondary.map { PayloadField(row = it) },
                 )
             } ?: AuthPayloadPreview()
         } catch (_: Throwable) {
@@ -321,7 +323,7 @@ sealed interface AuthSceneState {
 
     data object Loading : AuthSceneState
 
-    class Error(val message: String?, val cause: Throwable? = null) : AuthSceneState
+    class Error(val text: GemErrorText) : AuthSceneState
 
     sealed interface Content : AuthSceneState, WalletConnectReviewModel {
         val peer: ConnectionHeadUIModel

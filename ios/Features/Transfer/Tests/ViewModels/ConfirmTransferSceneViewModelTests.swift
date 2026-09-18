@@ -27,6 +27,7 @@ import Store
 import Testing
 @testable import Transfer
 @testable import TransferTestKit
+import struct Gemstone.GemSimulationPayloadRow
 import struct Gemstone.SimulationPayloadField
 
 @MainActor
@@ -416,6 +417,10 @@ struct ConfirmTransferSceneViewModelTests {
             SimulationPayloadField.standard(kind: .contract, value: "0x1111111111111111111111111111111111111111", fieldType: .address, display: .primary),
             SimulationPayloadField.standard(kind: .method, value: "Approve", fieldType: .text, display: .primary),
         ]
+        let rows = [
+            GemSimulationPayloadRow(title: .contract, value: .address(display: "0x1111...1111", address: "0x1111111111111111111111111111111111111111")),
+            GemSimulationPayloadRow(title: .method, value: .text(text: "Approve")),
+        ]
         let model = ConfirmTransferSceneViewModel.mock(
             data: .mock(type: .generic(asset: .mockEthereum(), metadata: .mock(), extra: .mock(to: "0x1111111111111111111111111111111111111111"))),
             simulation: .mock(
@@ -423,7 +428,7 @@ struct ConfirmTransferSceneViewModelTests {
                 payload: payload,
             ),
             load: .success(.mock(
-                simulation: .mock(primaryFields: payload),
+                simulation: .mock(primaryFields: rows),
                 warnings: [.mock()],
             )),
             rows: { _ in

@@ -115,9 +115,11 @@ public final class ChartSceneViewModel: ChartListViewable {
 
 public extension ChartSceneViewModel {
     func load() async {
+        let period = selectedPeriod.toGem()
         session = session.onRefresh()
         do {
-            session = try await session.onLoaded(chart: service.syncCharts(assetId: assetModel.asset.id.identifier, period: selectedPeriod.toGem()))
+            let chart = try await service.syncCharts(assetId: assetModel.asset.id.identifier, period: period)
+            session = session.onLoaded(chart: chart, period: period)
             if priceData?.priceAlerts.isNotEmpty == true {
                 Task {
                     do {
@@ -127,8 +129,10 @@ public extension ChartSceneViewModel {
                     }
                 }
             }
+        } catch let error as GemServiceError {
+            session = session.onFailed(error: error, period: period)
         } catch {
-            session = session.onFailed(error: .Core(msg: error.localizedDescription))
+            debugLog("chart scene: load error \(error)")
         }
     }
 

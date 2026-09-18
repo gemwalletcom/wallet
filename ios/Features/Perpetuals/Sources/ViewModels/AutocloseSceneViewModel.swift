@@ -5,7 +5,9 @@ import Formatters
 import Foundation
 import enum Gemstone.GemAutocloseConfirmPolicy
 import struct Gemstone.GemAutocloseModify
+import struct Gemstone.GemAutoclosePrices
 import struct Gemstone.GemAutocloseSession
+import struct Gemstone.GemAutocloseViewState
 import struct Gemstone.GemAutocloseField
 import GemstonePrimitives
 import Localization
@@ -62,7 +64,7 @@ public final class AutocloseSceneViewModel {
     }
 
     public var marketPriceField: ListItemField {
-        ListItemField(title: Localized.Perpetual.marketPrice, value: currencyFormatter.string(marketPrice))
+        ListItemField(title: Localized.Perpetual.marketPrice, value: viewState.marketPrice.text())
     }
 
     public var takeProfitModel: AutocloseViewModel {
@@ -81,19 +83,24 @@ public final class AutocloseSceneViewModel {
     }
 
     public var entryPriceField: ListItemField? {
-        switch type {
-        case let .modify(position, _):
-            ListItemField(title: Localized.Perpetual.entryPrice, value: currencyFormatter.string(position.position.entryPrice))
-        case .open: nil
-        }
+        viewState.entryPrice.map { ListItemField(title: Localized.Perpetual.entryPrice, value: $0.text()) }
     }
 
     private var session: GemAutocloseSession {
-        GemAutocloseSession(modify: modify, policy: .whenBuildable, submitAttempted: false)
+        GemAutocloseSession(
+            modify: modify,
+            policy: .whenBuildable,
+            submitAttempted: false,
+            prices: GemAutoclosePrices(entry: entryPrice, market: marketPrice),
+        )
+    }
+
+    private var viewState: GemAutocloseViewState {
+        session.viewState()
     }
 
     public var confirmButtonType: ButtonType {
-        .primary(session.viewState().confirmEnabled ? .normal : .disabled)
+        .primary(viewState.confirmEnabled ? .normal : .disabled)
     }
 }
 
@@ -153,6 +160,13 @@ extension AutocloseSceneViewModel {
         switch type {
         case let .modify(position, _): position.perpetual.price
         case let .open(data, _): data.marketPrice
+        }
+    }
+
+    private var entryPrice: Double? {
+        switch type {
+        case let .modify(position, _): position.position.entryPrice
+        case .open: nil
         }
     }
 

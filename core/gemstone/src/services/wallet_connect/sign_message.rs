@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use primitives::{AddressName, Asset, Chain, ChainAddress, SimulationPayloadField, SimulationPayloadFieldType, SimulationResult, WalletId};
+use primitives::{Asset, Chain, SimulationResult, WalletId};
 
 use crate::keystore::{GemKeystore, decode_password, keystore_id_for_wallet};
 use crate::message::sign_type::{MessageType, SignMessage};
@@ -9,7 +9,7 @@ use crate::services::confirm::GemSimulationValue;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemNameService;
-use crate::services::simulation::GemSimulationFormatter;
+use crate::services::simulation::{GemSimulationFormatter, GemSimulationPayloadRow, address_requests, named_payload_rows};
 use crate::services::wallet::GemKeystorePassword;
 use primitives::BlockExplorerLink;
 
@@ -17,8 +17,8 @@ use primitives::BlockExplorerLink;
 pub struct GemSignMessagePreview {
     pub message_type: MessageType,
     pub text: String,
-    pub primary_fields: Vec<SimulationPayloadField>,
-    pub secondary_fields: Vec<SimulationPayloadField>,
+    pub primary_fields: Vec<GemSimulationPayloadRow>,
+    pub secondary_fields: Vec<GemSimulationPayloadRow>,
     pub has_critical_warning: bool,
     pub header: Option<GemSimulationValue>,
 }
@@ -66,18 +66,17 @@ impl GemSignMessageService {
         }
     }
 
-    pub async fn address_names(&self, chain: Chain, preview: GemSignMessagePreview) -> Vec<AddressName> {
-        let requests: Vec<ChainAddress> = preview
-            .primary_fields
-            .iter()
-            .chain(preview.secondary_fields.iter())
-            .filter(|field| field.field_type == SimulationPayloadFieldType::Address)
-            .map(|field| ChainAddress::new(chain, field.value.clone()))
-            .collect();
+    pub async fn with_address_names(&self, chain: Chain, preview: GemSignMessagePreview) -> GemSignMessagePreview {
+        let requests = [address_requests(&preview.primary_fields, chain), address_requests(&preview.secondary_fields, chain)].concat();
         if requests.is_empty() {
-            return Vec::new();
+            return preview;
         }
-        self.names.get_address_names(requests).await.unwrap_or_default()
+        let names = self.names.get_address_names(requests).await.unwrap_or_default();
+        GemSignMessagePreview {
+            primary_fields: named_payload_rows(preview.primary_fields, Some(chain), &names),
+            secondary_fields: named_payload_rows(preview.secondary_fields, Some(chain), &names),
+            ..preview
+        }
     }
 
     pub fn address_url(&self, chain: Chain, address: String) -> BlockExplorerLink {

@@ -47,11 +47,11 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionDirection
 import com.wallet.core.primitives.TransactionState
 import com.wallet.core.primitives.TransactionType
-import uniffi.gemstone.GemAmountSign
 import uniffi.gemstone.GemTransactionRowSubtitle
 import uniffi.gemstone.GemTransactionStateTone
 import uniffi.gemstone.GemTransactionStatus
 import uniffi.gemstone.GemTransactionTitle
+import uniffi.gemstone.GemValueTone
 
 private val badgeStartPadding = 5.dp
 
@@ -174,13 +174,12 @@ fun PreviewTransactionItem() {
                     decimals = 8,
                     type = AssetType.NATIVE,
                 )
-                override val address = "btc12312sdfksdjfks"
                 override val value = "-0.9998888999 BTC"
                 override val equivalentValue: String? = null
                 override val title = GemTransactionTitle.Transfer
                 override val status = GemTransactionStatus(tone = GemTransactionStateTone.PENDING, showsBadge = true, showsProgress = true)
                 override val subtitle = GemTransactionRowSubtitle.ToAddress("btc12312sdfksdjfks")
-                override val valueSign = GemAmountSign.OUTGOING
+                override val valueTone = GemValueTone.PLAIN
                 override val type = TransactionType.Transfer
                 override val direction = TransactionDirection.Outgoing
                 override val state = TransactionState.Pending
@@ -206,13 +205,12 @@ fun PreviewSwapTransactionItem() {
                     decimals = 18,
                     type = AssetType.NATIVE,
                 )
-                override val address = "0xBA4D...50AC4"
                 override val value = "+19 TON"
                 override val equivalentValue = "-0.09 BNB"
                 override val status = GemTransactionStatus(tone = GemTransactionStateTone.SUCCESS, showsBadge = false, showsProgress = false)
                 override val title = GemTransactionTitle.Swap
                 override val subtitle = GemTransactionRowSubtitle.None
-                override val valueSign = GemAmountSign.INCOMING
+                override val valueTone = GemValueTone.POSITIVE
                 override val type = TransactionType.Swap
                 override val direction = TransactionDirection.Outgoing
                 override val state = TransactionState.Confirmed

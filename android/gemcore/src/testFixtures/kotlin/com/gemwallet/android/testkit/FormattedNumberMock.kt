@@ -1,0 +1,19 @@
+package com.gemwallet.android.testkit
+
+import uniffi.gemstone.GemFormattedNumber
+import uniffi.gemstone.GemNumberDisplay
+import uniffi.gemstone.GemNumberNotation
+import uniffi.gemstone.GemNumberUnit
+import uniffi.gemstone.GemPrecision
+import uniffi.gemstone.GemValueTone
+
+fun mockFormattedNumber(
+    value: Double = 1.0,
+    unit: GemNumberUnit = GemNumberUnit.Currency(code = "USD"),
+) = GemFormattedNumber(
+    value = value,
+    unit = unit,
+    display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 2u, max = 2u)),
+    notation = GemNumberNotation.PLAIN,
+    tone = GemValueTone.PLAIN,
+)

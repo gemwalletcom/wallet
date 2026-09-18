@@ -58,7 +58,7 @@ public struct NetworkFeeSceneViewModel {
     public var infoIcon: String { Localized.FeeRates.info }
     public var value: String? { feeAmount.map { display(for: $0).amount.text } }
     public var fiatValue: String? { feeAmount.flatMap { display(for: $0).fiat?.text } }
-    public var showFeeRates: Bool { rows.count > 1 }
+    public var showFeeRates: Bool { feeRates?.showsOptions ?? false }
     public var showFeeDetails: Bool { showFeeAssets || feeRates != nil }
     public var feeAssetSymbol: String? { showFeeAssets && fiatValue != nil ? feeAsset.symbol : nil }
 

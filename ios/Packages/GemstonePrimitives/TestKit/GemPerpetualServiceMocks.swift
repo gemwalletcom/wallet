@@ -142,7 +142,7 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
     public var buttonsValue: [GemPerpetualButton] = []
     public var modifyButtonsValue: [GemPerpetualButton] = []
     public var sectionsValue: [GemPerpetualSection] = []
-    public var infoRowsValue: [GemPerpetualInfoRow] = []
+    public var infoRowsValue: [GemListRow] = []
     public var positionDetailRowsValue: [GemPerpetualPositionDetailRow] = []
     public var currencyValue: Gemstone.Currency = Primitives.Currency.usd.toGem()
     public var chartPeriodValue: Gemstone.ChartPeriod = Primitives.ChartPeriod.day.toGem()
@@ -180,7 +180,7 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
 
     public func getCurrency() -> Gemstone.Currency { currencyValue }
 
-    public func infoRows() -> [GemPerpetualInfoRow] { infoRowsValue }
+    public func infoRows(perpetual _: Gemstone.Perpetual, asset _: Gemstone.Asset) -> [GemListRow] { infoRowsValue }
 
     public func marketSubscription(perpetual: Gemstone.Perpetual) -> GemPerpetualSubscription {
         .marketData(symbol: perpetual.name)

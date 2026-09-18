@@ -5,6 +5,7 @@ import com.gemwallet.android.application.assets.cases.GetAssetInfo
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.stake.cases.GetDelegations
 import com.gemwallet.android.application.stake.cases.GetValidators
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.testkit.mockAssetCosmos
@@ -79,7 +80,8 @@ class EarnViewModelTest {
     )
 
     @Test
-    fun `positions leave out the ones with nothing in them`() = runTest(testDispatcher) {
+    fun `positions are the ones core keeps`() = runTest(testDispatcher) {
+        every { stakeService.positions(any()) } returns listOf(funded.toGem())
         val model = viewModel()
 
         val shown = model.positions.first { it.isNotEmpty() }

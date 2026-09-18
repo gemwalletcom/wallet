@@ -183,8 +183,11 @@ fn account_address(wallet: &Wallet, chain: Chain) -> Result<String, SwapperError
         .ok_or(SwapperError::NotSupportedChain)
 }
 
-pub fn most_swapped_receive_asset(pairs: &[GemSwapPair], pay_asset_id: &AssetId) -> Option<AssetId> {
-    let received: Vec<&GemSwapPair> = pairs.iter().filter(|pair| &pair.to_asset_id != pay_asset_id).collect();
+pub fn most_swapped_receive_asset(pairs: &[GemSwapPair], pay_asset_id: &AssetId, supported: &AssetList) -> Option<AssetId> {
+    let received: Vec<&GemSwapPair> = pairs
+        .iter()
+        .filter(|pair| &pair.to_asset_id != pay_asset_id && supported.contains(&pair.to_asset_id))
+        .collect();
     let received_for_pay_asset: Vec<AssetId> = received
         .iter()
         .filter(|pair| &pair.from_asset_id == pay_asset_id)
@@ -204,8 +207,8 @@ fn most_frequent_asset(asset_ids: &[AssetId]) -> Option<AssetId> {
     asset_ids.iter().min_by_key(|asset_id| std::cmp::Reverse(counts[*asset_id])).cloned()
 }
 
-pub fn first_other_asset(asset_ids: Vec<AssetId>, pay_asset_id: &AssetId) -> Option<AssetId> {
-    asset_ids.into_iter().find(|asset_id| asset_id != pay_asset_id)
+pub fn first_supported_receive_asset(asset_ids: Vec<AssetId>, pay_asset_id: &AssetId, supported: &AssetList) -> Option<AssetId> {
+    asset_ids.into_iter().find(|asset_id| asset_id != pay_asset_id && supported.contains(asset_id))
 }
 
 pub fn assets_in_wallet(supported: AssetList, wallet: &Wallet) -> AssetList {
@@ -586,8 +589,10 @@ mod tests {
             GemSwapPair::mock(Chain::Bitcoin, Chain::Ethereum),
         ];
 
+        let supported = AssetList::mock_with_chains(&[Chain::Bitcoin, Chain::Solana]);
+
         assert_eq!(
-            most_swapped_receive_asset(&pairs, &AssetId::from_chain(Chain::Ethereum)),
+            most_swapped_receive_asset(&pairs, &AssetId::from_chain(Chain::Ethereum), &supported),
             Some(AssetId::from_chain(Chain::Solana))
         );
     }
@@ -600,8 +605,10 @@ mod tests {
             GemSwapPair::mock(Chain::Bitcoin, Chain::Ethereum),
         ];
 
+        let supported = AssetList::mock_with_chains(&[Chain::Bitcoin, Chain::Solana]);
+
         assert_eq!(
-            most_swapped_receive_asset(&pairs, &AssetId::from_chain(Chain::Ethereum)),
+            most_swapped_receive_asset(&pairs, &AssetId::from_chain(Chain::Ethereum), &supported),
             Some(AssetId::from_chain(Chain::Solana))
         );
     }
@@ -610,8 +617,10 @@ mod tests {
     fn test_most_swapped_receive_asset_keeps_the_first_seen_on_a_tie() {
         let pairs = [GemSwapPair::mock(Chain::Ethereum, Chain::Bitcoin), GemSwapPair::mock(Chain::Ethereum, Chain::Solana)];
 
+        let supported = AssetList::mock_with_chains(&[Chain::Bitcoin, Chain::Solana]);
+
         assert_eq!(
-            most_swapped_receive_asset(&pairs, &AssetId::from_chain(Chain::Ethereum)),
+            most_swapped_receive_asset(&pairs, &AssetId::from_chain(Chain::Ethereum), &supported),
             Some(AssetId::from_chain(Chain::Bitcoin))
         );
     }
@@ -624,15 +633,19 @@ mod tests {
             GemSwapPair::mock(Chain::Bitcoin, Chain::Solana),
         ];
 
+        let supported = AssetList::mock_with_chains(&[Chain::Bitcoin, Chain::Solana]);
+
         assert_eq!(
-            most_swapped_receive_asset(&pairs, &AssetId::from_chain(Chain::Ethereum)),
+            most_swapped_receive_asset(&pairs, &AssetId::from_chain(Chain::Ethereum), &supported),
             Some(AssetId::from_chain(Chain::Solana))
         );
     }
 
     #[test]
     fn test_most_swapped_receive_asset_is_none_without_history() {
-        assert_eq!(most_swapped_receive_asset(&[], &AssetId::from_chain(Chain::Ethereum)), None);
+        let supported = AssetList::mock_with_chains(&[Chain::Bitcoin, Chain::Solana]);
+
+        assert_eq!(most_swapped_receive_asset(&[], &AssetId::from_chain(Chain::Ethereum), &supported), None);
     }
 
     #[test]
@@ -724,20 +737,25 @@ mod tests {
     }
 
     #[test]
-    fn test_first_other_asset_skips_the_pay_asset() {
-        let asset_ids = vec![AssetId::from_chain(Chain::Ethereum), AssetId::from_chain(Chain::Solana)];
+    fn test_first_supported_receive_asset_skips_the_pay_asset_and_unsupported_assets() {
+        let pay_asset_id = AssetId::from_chain(Chain::Ethereum);
+        let supported = AssetList::mock_with_chains(&[Chain::Ethereum, Chain::Solana]);
+        let asset_ids = vec![
+            AssetId::from_chain(Chain::Ethereum),
+            AssetId::from_chain(Chain::Bitcoin),
+            AssetId::from_chain(Chain::Solana),
+        ];
 
         assert_eq!(
-            first_other_asset(asset_ids, &AssetId::from_chain(Chain::Ethereum)),
+            first_supported_receive_asset(asset_ids, &pay_asset_id, &supported),
             Some(AssetId::from_chain(Chain::Solana))
         );
-    }
-
-    #[test]
-    fn test_first_other_asset_is_none_when_only_the_pay_asset_is_available() {
-        let asset_ids = vec![AssetId::from_chain(Chain::Ethereum)];
-
-        assert_eq!(first_other_asset(asset_ids, &AssetId::from_chain(Chain::Ethereum)), None);
+        assert_eq!(first_supported_receive_asset(vec![pay_asset_id.clone()], &pay_asset_id, &supported), None);
+        assert_eq!(
+            first_supported_receive_asset(vec![AssetId::from_chain(Chain::Bitcoin)], &pay_asset_id, &supported),
+            None,
+            "a wallet cannot receive an asset on a chain it has no account for"
+        );
     }
 
     #[test]

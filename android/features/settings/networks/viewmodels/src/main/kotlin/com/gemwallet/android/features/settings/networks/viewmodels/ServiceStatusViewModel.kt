@@ -6,8 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.features.settings.networks.viewmodels.localization.string
 import com.gemwallet.android.features.settings.networks.viewmodels.models.ServiceStatusRowUiModel
 import com.gemwallet.android.features.settings.networks.viewmodels.models.ServiceStatusUIState
-import com.gemwallet.android.features.settings.networks.viewmodels.models.tagStyle
-import com.gemwallet.android.features.settings.networks.viewmodels.models.tagType
 import com.gemwallet.android.features.settings.networks.viewmodels.models.uiModel
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
@@ -23,6 +21,7 @@ import kotlinx.coroutines.supervisorScope
 import uniffi.gemstone.GemLatencyStatus
 import uniffi.gemstone.GemServiceEndpoint
 import uniffi.gemstone.GemServiceStatusInterface
+import com.gemwallet.android.ui.style.textStyle
 
 @HiltViewModel
 class ServiceStatusViewModel @Inject constructor(
@@ -75,8 +74,8 @@ private fun GemServiceEndpoint.toRow(statusState: GemLatencyStatus, context: Con
         model = ListItemModel(
             title = title(name = endpointType.name),
             titleTag = latency.text,
-            titleTagStyle = latency.tagStyle(),
-            titleTagType = latency.tagType(),
+            titleTagStyle = latency.tone.textStyle(),
+            titleTagType = latency.tagType,
             titleExtra = host,
             titleExtraStyle = ListItemTextStyle.Body,
         ),

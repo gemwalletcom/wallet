@@ -64,10 +64,9 @@ class NftListViewModels @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val unverifiedListItem: StateFlow<ListItemModel?> = nftData
-        .map { data -> nftService.unverifiedCollections(data.map { it.toGem() }).size }
-        .map { count ->
-            count.takeIf { list == GemNftList.COLLECTIONS && it > 0 }
-                ?.let { ListItemModel(title = context.getString(R.string.asset_verification_unverified), subtitle = it.toString()) }
+        .map { data ->
+            nftService.unverifiedRow(data.map { it.toGem() }, list)
+                ?.let { ListItemModel(title = context.getString(R.string.asset_verification_unverified), subtitle = it.countText) }
         }
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

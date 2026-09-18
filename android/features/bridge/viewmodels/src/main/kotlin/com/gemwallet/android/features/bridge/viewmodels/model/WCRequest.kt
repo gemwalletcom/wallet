@@ -3,7 +3,6 @@ package com.gemwallet.android.features.bridge.viewmodels.model
 import android.content.Context
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequest
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.components.list_head.SimulationHeaderUIModel
 import com.gemwallet.android.ui.components.list_head.headerUIModel
 import com.gemwallet.android.ui.components.list_item.ListItemModel
@@ -15,6 +14,7 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import uniffi.gemstone.GemConnectionRow
 import uniffi.gemstone.GemSignMessagePreview
+import uniffi.gemstone.GemSimulationPayloadRow
 import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.GemSimulationWarningRow
 import uniffi.gemstone.MessageType
@@ -47,7 +47,7 @@ sealed class WCRequest(
         private val service: GemSignMessageServiceInterface,
         private val texts: ReviewTexts,
         private val context: Context,
-        override val addressNames: Map<String, String> = emptyMap(),
+        private val namedPreview: GemSignMessagePreview? = null,
     ) : WCRequest(request, row), WalletConnectReviewModel {
         val signMessage: GemSignMessage get() = request.message
 
@@ -55,7 +55,7 @@ sealed class WCRequest(
         override val walletListItem: ListItemModel get() = ListItemModel(title = texts.wallet, subtitle = request.wallet.name)
         override val viewFullMessageListItem: ListItemModel get() = ListItemModel(title = texts.viewFullMessage)
 
-        private val preview: GemSignMessagePreview by lazy { service.preview(request.message, simulation, request.assets) }
+        private val preview: GemSignMessagePreview by lazy { namedPreview ?: service.preview(request.message, simulation, request.assets) }
 
         override val messageType: MessageType get() = preview.messageType
 
@@ -75,14 +75,10 @@ sealed class WCRequest(
 
         override val secondaryPayloadFields: List<PayloadField> by lazy { preview.secondaryFields.fields() }
 
-        suspend fun addressNames(): Map<String, String> = service.addressNames(chain.string, preview)
-            .map { it.toPrimitives() }
-            .filter { it.name.isNotEmpty() && !it.name.equals(it.address, ignoreCase = true) }
-            .associate { it.address.lowercase() to it.name }
+        suspend fun withAddressNames(): SignMessage = SignMessage(request, row, service, texts, context, service.withAddressNames(chain.string, preview))
 
-        fun withAddressNames(addressNames: Map<String, String>): SignMessage = SignMessage(request, row, service, texts, context, addressNames)
 
-        private fun List<uniffi.gemstone.SimulationPayloadField>.fields(): List<PayloadField> =
+        private fun List<GemSimulationPayloadRow>.fields(): List<PayloadField> =
             withExplorerLinks(chain) { chain, address -> service.addressUrl(chain.string, address) }
     }
 

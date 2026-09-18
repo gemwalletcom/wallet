@@ -21,5 +21,4 @@ fun mockGemConfirmSimulationState(
             hasCriticalWarning = false,
         )
     },
-    addressNames = emptyList(),
 )

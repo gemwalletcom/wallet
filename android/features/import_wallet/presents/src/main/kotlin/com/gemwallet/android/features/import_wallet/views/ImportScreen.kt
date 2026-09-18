@@ -78,18 +78,6 @@ import uniffi.gemstone.GemWalletImportKind
 
 private val loadingDialogSize = 100.dp
 
-internal sealed interface ImportSceneTitle {
-    data class Resource(val resId: Int) : ImportSceneTitle
-    data class Text(val value: String) : ImportSceneTitle
-}
-
-internal fun importSceneTitle(importType: ImportType, chainName: String): ImportSceneTitle {
-    return when (importType.chain) {
-        null -> ImportSceneTitle.Resource(R.string.wallet_multicoin)
-        else -> ImportSceneTitle.Text(chainName)
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImportScreen(
@@ -117,7 +105,8 @@ fun ImportScreen(
         tabs = uiState.tabs,
         input = uiState.input,
         defaultWalletName = uiState.defaultWalletName,
-        chainName = uiState.chainName,
+        title = uiState.title,
+        showsTabs = uiState.showsTabs,
         nameResolveIndicator = nameResolveIndicator,
         dataError = uiState.dataError,
         buttonState = buttonState(loading = uiState.loading),
@@ -175,7 +164,8 @@ private fun ImportScene(
     tabs: List<ImportTabUIModel>,
     input: ImportInputUIModel,
     defaultWalletName: String?,
-    chainName: String,
+    title: String,
+    showsTabs: Boolean,
     nameResolveIndicator: NameResolveIndicatorUIModel?,
     dataError: Throwable?,
     buttonState: ButtonState,
@@ -186,10 +176,6 @@ private fun ImportScene(
     phraseSuggestions: (String) -> List<String>,
     onCancel: () -> Unit
 ) {
-    val title = when (val sceneTitle = importSceneTitle(importType, chainName)) {
-        is ImportSceneTitle.Resource -> stringResource(sceneTitle.resId)
-        is ImportSceneTitle.Text -> sceneTitle.value
-    }
     val generatedName = defaultWalletName.orEmpty()
     var dataErrorState by remember(dataError) { mutableStateOf(dataError) }
 
@@ -218,7 +204,7 @@ private fun ImportScene(
                         .padding(bottom = space0),
                     verticalArrangement = Arrangement.spacedBy(paddingHalfSmall)
                 ) {
-                    TypeSelection(tabs) { type ->
+                    TypeSelection(tabs, showsTabs) { type ->
                         onTypeChange(type)
                         inputState.value = TextFieldValue()
                     }
@@ -310,9 +296,10 @@ private fun DataInput(
 @Composable
 private fun TypeSelection(
     tabs: List<ImportTabUIModel>,
+    showsTabs: Boolean,
     onTypeChange: (ImportType) -> Unit,
 ) {
-    if (tabs.size < 2) {
+    if (!showsTabs) {
         return
     }
     PrimaryTabRow(
@@ -380,7 +367,8 @@ fun PreviewImportAddress() {
                     showsViewOnlyWarning = true,
                 ),
                 defaultWalletName = "Wallet 1",
-                chainName = "Ethereum",
+                title = "Ethereum",
+                showsTabs = true,
                 nameResolveIndicator = null,
                 dataError = null,
                 buttonState = ButtonState.Enabled,

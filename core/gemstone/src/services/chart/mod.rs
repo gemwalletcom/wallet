@@ -77,7 +77,7 @@ impl GemChartService {
 
     pub fn sections(&self, asset: Asset, price: Option<f64>, market: Option<AssetMarket>, price_alerts: Vec<PriceAlert>, links: Vec<AssetLink>) -> Vec<GemChartSection> {
         let contract_explorer = asset.id.token_id.clone().and_then(|token_id| self.explorer.get_token_url(asset.id.chain, token_id));
-        rules::chart_sections(&asset, price, market.as_ref(), price_alerts, links, contract_explorer)
+        rules::chart_sections(&asset, self.preferences.get_currency(), price, market.as_ref(), price_alerts, links, contract_explorer)
     }
 
     pub fn new_session(&self) -> GemChartSession {

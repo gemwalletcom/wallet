@@ -43,6 +43,13 @@ pub struct GemWalletDefaultName {
     pub has_existing_wallets: bool,
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemWalletImportScreen {
+    pub title: GemLocalizedText,
+    pub kinds: Vec<GemWalletImportKind>,
+    pub shows_kinds: bool,
+}
+
 #[derive(Debug, Clone, uniffi::Enum)]
 pub enum GemWalletImportResult {
     New { wallet: Wallet },

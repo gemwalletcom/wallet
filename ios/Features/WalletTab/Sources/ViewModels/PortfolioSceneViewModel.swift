@@ -31,8 +31,7 @@ public final class PortfolioSceneViewModel: ChartListViewable {
     var state: PortfolioState
 
     private var selectedState: StateViewType<PortfolioData> {
-        get { state[state.selectedType] }
-        set { state[state.selectedType] = newValue }
+        state[state.selectedType]
     }
 
     public var selectedPeriod: ChartPeriod {
@@ -89,16 +88,20 @@ public final class PortfolioSceneViewModel: ChartListViewable {
 
 extension PortfolioSceneViewModel {
     public func load() async {
-        selectedState = .loading
+        let type = state.selectedType
+        let period = selectedPeriod
+        state[type] = .loading
         do {
-            let data = try await service.portfolioData(wallet: wallet.toGem(), portfolioType: state.selectedType.toGem(), period: selectedPeriod.toGem())
+            let data = try await service.portfolioData(wallet: wallet.toGem(), portfolioType: type.toGem(), period: period.toGem())
+            guard period == selectedPeriod else { return }
             let periods = data.availablePeriods.map { $0.toPrimitives() }
-            if periods.isNotEmpty, !periods.contains(selectedPeriod) {
-                selectedPeriod = periods.first ?? selectedPeriod
+            if periods.isNotEmpty, !periods.contains(period) {
+                selectedPeriod = periods.first ?? period
             }
-            selectedState = .data(data)
+            state[type] = .data(data)
         } catch {
-            selectedState.setError(error)
+            guard period == selectedPeriod else { return }
+            state[type].setError(error)
         }
     }
 

@@ -18,7 +18,7 @@ import com.gemwallet.android.ext.type
 import com.gemwallet.android.features.asset_select.viewmodels.BaseAssetSelectViewModel
 import com.gemwallet.android.features.asset_select.viewmodels.RecentsSheetViewModel
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.setPlainText
+import com.gemwallet.android.ui.components.clipboard.setCopy
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.list_item.assetPriceSupport
 import com.gemwallet.android.ui.components.list_item.getBalanceInfo
@@ -32,6 +32,7 @@ import com.wallet.core.primitives.AssetSubtype
 import kotlinx.collections.immutable.toImmutableList
 import uniffi.gemstone.GemAssetSubtitleStyle
 import uniffi.gemstone.GemAssetTrailingStyle
+import uniffi.gemstone.addressCopy
 
 @Composable
 fun AssetSelectScreen(
@@ -70,7 +71,7 @@ fun AssetSelectScreen(
             IconButton(
                 onClick = {
                     viewModel.onChangeVisibility(item.asset.id, true)
-                    clipboardManager.setPlainText(context, item.accountAddress)
+                    clipboardManager.setCopy(context, addressCopy(item.asset.id.chain.string, item.accountAddress))
                 },
                 modifier = Modifier.size(iconSize),
             ) {

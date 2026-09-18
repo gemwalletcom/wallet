@@ -64,14 +64,14 @@ final class FiatSceneViewModelTests {
     }
 
     @Test
-    func buttonsTitle() {
+    func suggestedAmountsCarryTheCurrencySymbol() {
         let model = FiatSceneViewModel.mock()
 
-        #expect(model.buttonTitle(amount: 10) == "$10")
+        #expect(model.suggestedAmounts.map(\.text) == ["$100", "$250"])
 
         model.type = .sell
 
-        #expect(model.buttonTitle(amount: 100) == "$100")
+        #expect(model.suggestedAmounts.map(\.amount) == [100, 250])
     }
 
     @Test

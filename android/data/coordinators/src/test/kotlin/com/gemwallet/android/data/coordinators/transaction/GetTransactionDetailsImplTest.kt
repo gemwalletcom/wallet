@@ -2,6 +2,7 @@ package com.gemwallet.android.data.coordinators.transaction
 
 import uniffi.gemstone.BlockExplorerLink as GemBlockExplorerLink
 import uniffi.gemstone.GemTransactionDetailsService
+import uniffi.gemstone.WalletType as GemWalletType
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransaction
 import com.gemwallet.android.serializer.jsonEncoder
@@ -18,6 +19,7 @@ import com.wallet.core.primitives.TransactionSwapMetadata
 import com.wallet.core.primitives.TransactionType
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -73,13 +75,14 @@ class GetTransactionDetailsImplTest {
 
         every { getSession() } returns MutableStateFlow(mockSession(wallet = wallet))
         every { getTransaction(transaction.id) } returns flowOf(transactionExtended)
-        every { transactionDetailsService.detailRows(any()) } returns mockGemTransactionDetailRows(
+        every { transactionDetailsService.detailRows(any(), any()) } returns mockGemTransactionDetailRows(
             explorer = GemBlockExplorerLink("NEAR Intents", "https://explorer.near-intents.org/transactions/${transaction.to}"),
         )
 
         val result = subject.getTransactionDetails(transaction.id).first()
 
         assertNotNull(result)
+        verify { transactionDetailsService.detailRows(any(), GemWalletType.MULTICOIN) }
         assertEquals("NEAR Intents", result?.explorer?.name)
         assertEquals(
             "https://explorer.near-intents.org/transactions/${transaction.to}",

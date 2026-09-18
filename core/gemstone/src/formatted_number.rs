@@ -16,6 +16,7 @@ pub enum GemValueTone {
     Plain,
     Neutral,
     Positive,
+    Warning,
     Negative,
 }
 

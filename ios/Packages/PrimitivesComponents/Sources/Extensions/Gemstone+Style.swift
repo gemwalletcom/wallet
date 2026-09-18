@@ -5,6 +5,7 @@ import enum Gemstone.GemEmptyStateImage
 import enum Gemstone.GemPriceAlertToggle
 import enum Gemstone.GemFiatTransactionBadge
 import enum Gemstone.GemHeaderButtonKind
+import enum Gemstone.GemListRowIcon
 import enum Gemstone.GemTransactionStateTone
 import enum Gemstone.LinkType
 import struct Gemstone.GemPriceAlertRow
@@ -54,7 +55,17 @@ extension GemValueTone {
         case .plain: Colors.black
         case .neutral: Colors.gray
         case .positive: Colors.green
+        case .warning: Colors.orange
         case .negative: Colors.red
+        }
+    }
+
+    public var backgroundColor: Color {
+        switch self {
+        case .plain, .neutral: Colors.grayVeryLight
+        case .positive: Colors.greenLight
+        case .warning: Colors.orange.opacity(.light)
+        case .negative: Colors.redLight
         }
     }
 }
@@ -167,6 +178,30 @@ public extension GemBannerIcon {
         case .suspicious: AssetImage.image(Images.TokenStatus.risk)
         case .bitcoin: AssetImage.image(Images.System.bitcoin)
         case .perpetuals: AssetImage.image(Images.Perpetuals.perpetuals)
+        }
+    }
+}
+
+public extension GemListRowIcon {
+    var assetImage: AssetImage? {
+        switch self {
+        case .none: nil
+        case .appLogo: AssetImage.image(Images.Settings.gem)
+        case .wallets: AssetImage.image(Images.Settings.wallets)
+        case .security: AssetImage.image(Images.Settings.security)
+        case .notifications: AssetImage.image(Images.Settings.notifications)
+        case .preferences: AssetImage.image(Images.Settings.preferences)
+        case .walletConnect: AssetImage.image(Images.Settings.walletConnect)
+        case .support: AssetImage.image(Images.Settings.support)
+        case .rewards: AssetImage.image(Images.Settings.gem)
+        case .aboutUs: AssetImage.image(Images.Settings.aboutUs)
+        case .developer: AssetImage.image(Images.Settings.developer)
+        case .currency: AssetImage.image(Images.Settings.currency)
+        case .language: AssetImage.image(Images.Settings.language)
+        case .appearance: AssetImage.image(Images.Settings.appearance)
+        case .networks: AssetImage.image(Images.Settings.networks)
+        case .contacts: AssetImage.image(Images.Settings.contacts)
+        case .perpetuals: AssetImage.image(Images.Settings.perpetuals)
         }
     }
 }

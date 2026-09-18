@@ -45,6 +45,38 @@ struct StreamObserverServiceTests {
     }
 
     @Test
+    func slowSyncDoesNotHoldBackTheNextEvent() async {
+        let opened = AsyncStream<Void>.makeStream()
+        let handled = AsyncStream<String>.makeStream()
+        let syncing = AsyncStream<CheckedContinuation<Void, Never>>.makeStream()
+        let socket = WebSocketConnectionMock(onConnect: { opened.continuation.yield(()) })
+        let service = GemStreamServiceMock(
+            onEvent: {
+                handled.continuation.yield($0)
+                return $0 == "balances" ? .balances(walletId: "multicoin_0x1", assetIds: []) : .prices(prices: 1, rates: 0)
+            },
+            onSync: { event in
+                guard case .balances = event else { return }
+                await withCheckedContinuation { syncing.continuation.yield($0) }
+            },
+        )
+        let observer = StreamObserverService.mock(service: service, webSocket: socket)
+        await observer.connect()
+        var connections = opened.stream.makeAsyncIterator()
+        _ = await connections.next()
+        await socket.simulateConnected()
+        await socket.simulateMessage(Data("balances".utf8))
+        var syncs = syncing.stream.makeAsyncIterator()
+        let pendingSync = await syncs.next()
+        await socket.simulateMessage(Data("prices".utf8))
+        var events = handled.stream.makeAsyncIterator()
+        #expect(await events.next() == "balances")
+        #expect(await events.next() == "prices")
+        pendingSync?.resume()
+        await observer.disconnect()
+    }
+
+    @Test
     func cancellationDuringPreparationDoesNotOpenSocket() async {
         let preparing = AsyncStream<CheckedContinuation<Void, Never>>.makeStream()
         let canceled = AsyncStream<Void>.makeStream()

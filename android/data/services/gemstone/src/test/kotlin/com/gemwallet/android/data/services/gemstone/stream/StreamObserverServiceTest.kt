@@ -9,6 +9,7 @@ import com.wallet.core.primitives.ConnectionComponent
 import com.wallet.core.primitives.Currency
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.coVerifyOrder
 import io.mockk.coVerifySequence
 import io.mockk.every
 import io.mockk.mockk
@@ -254,12 +255,31 @@ class StreamObserverServiceTest {
         snapshotGate.complete(Unit)
         runCurrent()
 
-        coVerifySequence {
+        coVerifyOrder {
             service.prepareConnection()
             service.connected()
             service.handle("snapshot")
             service.handle("update")
         }
+    }
+
+    @Test
+    fun aSlowSyncDoesNotHoldBackTheNextMessage() = runTest {
+        val balances = GemStreamEvent.Balances(walletId = "multicoin_0x1", assetIds = emptyList())
+        val syncGate = CompletableDeferred<Unit>()
+        coEvery { service.handle("balances") } returns balances
+        coEvery { service.sync(balances) } coAnswers { syncGate.await() }
+        observer().start()
+        runCurrent()
+
+        connection.events.emit(WebSocketEvent.Message("balances"))
+        runCurrent()
+        connection.events.emit(WebSocketEvent.Message("prices"))
+        runCurrent()
+
+        coVerify(exactly = 1) { service.sync(balances) }
+        coVerify(exactly = 1) { service.handle("prices") }
+        syncGate.complete(Unit)
     }
 
     @Test

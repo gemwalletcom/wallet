@@ -27,7 +27,7 @@ import com.gemwallet.android.features.perpetual.views.components.PerpetualModify
 import com.gemwallet.android.features.perpetual.views.components.positionProperties
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.chart.CandlestickTooltipUIModel
-import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
@@ -52,6 +52,8 @@ import com.wallet.core.primitives.PerpetualOrderType
 import com.wallet.core.primitives.PerpetualPosition
 import com.wallet.core.primitives.PerpetualProvider
 import com.wallet.core.primitives.PerpetualTriggerOrder
+import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemValueTone
 
 @Composable
@@ -117,7 +119,7 @@ internal fun PerpetualPositionScene(
                                 item { PerpetualActions(section.buttons) { onButton(it) } }
                             }
                             item { SubheaderItem(section.title) }
-                            itemsPositioned(section.rows) { rowPosition, row -> ListItem(model = row, listPosition = rowPosition) }
+                            itemsPositioned(section.rows) { rowPosition, row -> GemListRowView(row = row, listPosition = rowPosition) }
                         }
                     }
                 }
@@ -167,9 +169,6 @@ private fun PerpetualPositionScenePreview() {
         override val provider: PerpetualProvider = PerpetualProvider.Hypercore
         override val asset: Asset = sampleAsset
         override val name: String = "Bitcoin Perpetual"
-        override val dayVolume: String = "$15.00B"
-        override val openInterest: String = "$2.50B"
-        override val funding: String = "0.01%"
         override val maxLeverage: Int = 40
         override val price: Double = 0.0
         override val identifier: String = "BTC-PERP"
@@ -251,7 +250,7 @@ private fun PerpetualPositionScenePreview() {
                         PerpetualButtonUIModel("Modify", PerpetualButtonAction.Modify, PerpetualButtonTone.Primary),
                         PerpetualButtonUIModel("Close", PerpetualButtonAction.Close, PerpetualButtonTone.Negative),
                     ),
-                    rows = listOf(ListItemModel(title = "Daily volume", subtitle = "$15.00B")),
+                    rows = listOf(GemListRow.Text(GemListRowTitle.DAILY_VOLUME, "$15.00B")),
                 ),
             ),
             modifyButtons = listOf(

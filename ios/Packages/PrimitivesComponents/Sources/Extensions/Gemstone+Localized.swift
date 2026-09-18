@@ -10,6 +10,7 @@ import enum Gemstone.FeeOption
 import enum Gemstone.GemAssetMenuAction
 import enum Gemstone.GemContactAddressField
 import enum Gemstone.GemListRowTitle
+import enum Gemstone.GemListSectionFooter
 import enum Gemstone.GemListSectionTitle
 import enum Gemstone.PerpetualType
 import enum Gemstone.GemApprovalValue
@@ -27,9 +28,10 @@ import enum Gemstone.GemPriceAlertLabel
 import struct Gemstone.GemPriceAlertRow
 import enum Gemstone.GemPriceAlertText
 import enum Gemstone.GemRecipientErrorDisplay
+import enum Gemstone.GemCopyKind
 import enum Gemstone.GemSimulationWarningKind
 import enum Gemstone.GemSimulationWarningTitle
-import enum Gemstone.SimulationPayloadFieldKind
+import enum Gemstone.GemSimulationPayloadTitle
 import enum Gemstone.GemTransactionRowSubtitle
 import enum Gemstone.GemTransactionStateTone
 import enum Gemstone.GemTransactionTitle
@@ -57,6 +59,10 @@ extension GemLocalizedText {
             Localized.Wallet.defaultName(Int(index))
         case let .walletDefaultNameChain(chain, index):
             Localized.Wallet.defaultNameChain(Chain(core: chain).networkName, Int(index))
+        case .walletMulticoin:
+            Localized.Wallet.multicoin
+        case let .chainNetworkName(chain):
+            Chain(core: chain).networkName
         }
     }
 }
@@ -235,8 +241,8 @@ extension Resource {
     }
 }
 
-extension SimulationPayloadFieldKind {
-    public var title: String? {
+extension GemSimulationPayloadTitle {
+    public var text: String {
         switch self {
         case .contract: Localized.Asset.contract
         case .method: Localized.Common.method
@@ -244,7 +250,7 @@ extension SimulationPayloadFieldKind {
         case .spender: Localized.Transfer.to
         case .value: Localized.Perpetual.value
         case .expiration: Localized.Common.expiration
-        case .custom: nil
+        case let .custom(label): label
         }
     }
 }
@@ -560,6 +566,16 @@ public extension GemListSectionTitle {
         switch self {
         case .none: nil
         case .balances: Localized.Asset.balances
+        case .community: Localized.Settings.community
+        }
+    }
+}
+
+public extension GemListSectionFooter {
+    var text: String? {
+        switch self {
+        case .none: nil
+        case .authentication: Localized.Lock.footer
         }
     }
 }
@@ -576,6 +592,46 @@ public extension GemListRowTitle {
         case .pendingUnconfirmed: Localized.Stake.pending
         case .reserved: Localized.Asset.Balances.reserved
         case .error: Localized.Errors.errorOccurred
+        case .termsOfService: Localized.Settings.termsOfServices
+        case .privacyPolicy: Localized.Settings.privacyPolicy
+        case .website: Localized.Settings.website
+        case .version: Localized.Settings.version
+        case .updateApp: Localized.UpdateApp.title
+        case .wallets: Localized.Wallets.title
+        case .security: Localized.Settings.security
+        case .notifications: Localized.Settings.Notifications.title
+        case .preferences: Localized.Settings.Preferences.title
+        case .walletConnect: Localized.WalletConnect.title
+        case .support: Localized.Settings.support
+        case .rewards: Localized.Rewards.title
+        case .aboutUs: Localized.Settings.aboutus
+        case .developer: Localized.Settings.developer
+        case .authentication: Localized.Settings.enablePasscode
+        case .lockPeriod: Localized.Lock.requireAuthentication
+        case .privacyLock: Localized.Lock.privacyLock
+        case .hideBalance: Localized.Settings.hideBalance
+        case .currency: Localized.Settings.currency
+        case .language: Localized.Settings.language
+        case .appearance: Localized.Settings.appearanceTitle
+        case .networks: Localized.Settings.Networks.title
+        case .contacts: Localized.Contacts.title
+        case .perpetuals: Localized.Perpetuals.title
+        case .perpetualLeverage: Localized.Settings.Preferences.Perpetual.defaultLeverage
+        case .perpetualTakeProfit: Localized.Settings.Preferences.Perpetual.defaultTakeProfit
+        case .perpetualStopLoss: Localized.Settings.Preferences.Perpetual.defaultStopLoss
+        case .dailyVolume: Localized.Markets.dailyVolume
+        case .openInterest: Localized.Info.Perpetual.OpenInterest.title
+        case .fundingApr: Localized.Info.Perpetual.FundingApr.title
+        }
+    }
+}
+
+extension GemCopyKind {
+    func copiedMessage(display: String) -> String {
+        switch self {
+        case .secretPhrase: Localized.Common.copied(Localized.Common.secretPhrase)
+        case .privateKey: Localized.Common.copied(Localized.Common.privateKey)
+        case let .address(chain): Localized.Common.copied(String(format: "%@ (%@) ", Chain(core: chain).asset.name, display))
         }
     }
 }

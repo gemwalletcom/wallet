@@ -5,6 +5,7 @@ import Localization
 import Primitives
 import PrimitivesComponents
 import SwiftUI
+import func Gemstone.secretPhraseCopy
 
 struct NewSecretPhraseViewModel: SecretPhraseViewableModel {
     private let onCreateWallet: ([String]) -> Void
@@ -35,9 +36,6 @@ struct NewSecretPhraseViewModel: SecretPhraseViewableModel {
     }
 
     var copyModel: CopyTypeViewModel {
-        CopyTypeViewModel(
-            type: .secretPhrase,
-            copyValue: MnemonicFormatter.fromArray(words: words),
-        )
+        CopyTypeViewModel(content: secretPhraseCopy(words: words))
     }
 }

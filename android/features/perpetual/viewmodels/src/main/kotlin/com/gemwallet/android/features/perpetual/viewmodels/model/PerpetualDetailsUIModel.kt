@@ -13,14 +13,14 @@ import com.gemwallet.android.ui.theme.Placeholder
 import com.wallet.core.primitives.Currency
 import uniffi.gemstone.GemPerpetual
 import uniffi.gemstone.GemPerpetualButton
-import uniffi.gemstone.GemPerpetualInfoRow
+import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemPerpetualPositionDetailRow
 
 sealed interface PerpetualDetailsSectionUIModel {
     val title: String
 
     data class Position(override val title: String, val rows: List<PerpetualPositionRowUIModel>) : PerpetualDetailsSectionUIModel
-    data class Info(override val title: String, val buttons: List<PerpetualButtonUIModel>, val rows: List<ListItemModel>) : PerpetualDetailsSectionUIModel
+    data class Info(override val title: String, val buttons: List<PerpetualButtonUIModel>, val rows: List<GemListRow>) : PerpetualDetailsSectionUIModel
 }
 
 sealed interface PerpetualPositionRowUIModel {
@@ -45,12 +45,6 @@ internal fun GemPerpetualButton.uiModel(context: Context): PerpetualButtonUIMode
     GemPerpetualButton.CLOSE -> PerpetualButtonUIModel(context.getString(stringRes()), PerpetualButtonAction.Close, PerpetualButtonTone.Negative)
     GemPerpetualButton.INCREASE -> PerpetualButtonUIModel(context.getString(stringRes()), PerpetualButtonAction.Increase, PerpetualButtonTone.Primary)
     GemPerpetualButton.REDUCE -> PerpetualButtonUIModel(context.getString(stringRes()), PerpetualButtonAction.Reduce, PerpetualButtonTone.Negative)
-}
-
-internal fun PerpetualDetailsDataAggregate.infoListItem(context: Context, row: GemPerpetualInfoRow): ListItemModel = when (row) {
-    GemPerpetualInfoRow.DAILY_VOLUME -> ListItemModel(title = context.getString(row.stringRes()), subtitle = dayVolume)
-    GemPerpetualInfoRow.OPEN_INTEREST -> ListItemModel(title = context.getString(row.stringRes()), subtitle = openInterest, info = InfoSheetEntity.OpenInterestInfo)
-    GemPerpetualInfoRow.FUNDING_RATE -> ListItemModel(title = context.getString(row.stringRes()), subtitle = funding, info = InfoSheetEntity.FundingAprInfo)
 }
 
 private val usdFormatter = CurrencyFormatter(currency = Currency.USD)

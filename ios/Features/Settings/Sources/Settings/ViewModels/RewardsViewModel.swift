@@ -14,18 +14,11 @@ import Localization
 import Primitives
 import PrimitivesComponents
 import Style
+import enum Gemstone.GemServiceError
 
 @Observable
 @MainActor
 public final class RewardsViewModel: Sendable {
-    private static let dateFormatter: DateComponentsFormatter = {
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.day, .hour, .minute]
-        formatter.zeroFormattingBehavior = .dropLeading
-        formatter.unitsStyle = .full
-        return formatter
-    }()
-
     private let service: any GemRewardsServiceProtocol
     private let activateCode: String?
     private let emptyState: GemRewardsState
@@ -88,7 +81,7 @@ public final class RewardsViewModel: Sendable {
     }
 
     var createCodeDescription: String {
-        Localized.Rewards.InviteFriends.description(String(rewardsState.inviteRewardPoints).boldMarkdown())
+        Localized.Rewards.InviteFriends.description(rewardsState.inviteRewardPointsText.boldMarkdown())
     }
 
     var activateCodeFooterTitle: String {
@@ -177,21 +170,16 @@ public final class RewardsViewModel: Sendable {
         rewardsState.disableReason
     }
 
-    var pendingVerificationAfter: Date? {
-        rewardsState.verifyAfter
-    }
-
     var pendingReferralTitle: String {
         Localized.Rewards.Pending.title
     }
 
     var pendingReferralDescription: String? {
-        guard let pendingDate = pendingVerificationAfter else { return nil }
+        guard rewardsState.hasPendingReferral else { return nil }
         if rewardsState.canActivatePendingReferral {
             return Localized.Rewards.Pending.descriptionReady
         }
-        guard let timeString = Self.dateFormatter.string(from: .now, to: pendingDate) else { return nil }
-        return Localized.Rewards.Pending.description(timeString)
+        return CountdownFormatter().string(parts: rewardsState.pendingCountdown).map { Localized.Rewards.Pending.description($0) }
     }
 
     var pendingReferralButtonTitle: String {
@@ -264,8 +252,10 @@ public final class RewardsViewModel: Sendable {
             try await service.useReferralCode(wallet: selectedWallet, code: code)
             showActivatedToast()
             await load()
+        } catch let error as GemServiceError {
+            showError(error.text().text)
         } catch {
-            showError(error.localizedDescription)
+            debugLog("rewards error: \(error)")
         }
     }
 
@@ -275,8 +265,10 @@ public final class RewardsViewModel: Sendable {
             try await service.useReferralCode(wallet: selectedWallet, code: code)
             showActivatedToast()
             await load()
+        } catch let error as GemServiceError {
+            showError(error.text().text)
         } catch {
-            showError(error.localizedDescription)
+            debugLog("rewards error: \(error)")
         }
     }
 
@@ -310,8 +302,10 @@ public final class RewardsViewModel: Sendable {
         do {
             _ = try await service.redeem(wallet: selectedWallet, redemptionId: option.id)
             toastMessage = ToastMessage.success(Localized.Common.done)
+        } catch let error as GemServiceError {
+            showError(error.text().text)
         } catch {
-            showError(error.localizedDescription)
+            debugLog("rewards error: \(error)")
         }
     }
 

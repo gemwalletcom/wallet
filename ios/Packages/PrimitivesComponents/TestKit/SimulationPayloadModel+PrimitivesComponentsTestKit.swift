@@ -1,21 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Primitives
+import struct Gemstone.GemSimulationPayloadRow
 import PrimitivesComponents
-import struct Gemstone.SimulationPayloadField
 
 public extension SimulationPayloadModel {
     static func mock(
-        chain: Chain = .ethereum,
-        primaryFields: [SimulationPayloadField] = [],
-        secondaryFields: [SimulationPayloadField] = [],
-        addressNames: [ChainAddress: AddressName] = [:],
+        primaryFields: [GemSimulationPayloadRow] = [],
+        secondaryFields: [GemSimulationPayloadRow] = [],
     ) -> SimulationPayloadModel {
         SimulationPayloadModel(
-            chain: chain,
             primaryFields: primaryFields,
             secondaryFields: secondaryFields,
-            addressNames: addressNames,
         )
     }
 }

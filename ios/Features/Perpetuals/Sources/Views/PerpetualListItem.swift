@@ -26,7 +26,7 @@ public struct PerpetualListItem: View {
         NavigationCustomLink(
             with: ListAssetItemView(
                 model: PerpetualItemViewModel(
-                    model: PerpetualViewModel(perpetual: perpetualData.perpetual),
+                    model: PerpetualViewModel(perpetual: perpetualData.perpetual, asset: perpetualData.asset),
                 ),
             ),
             action: { onSelect(perpetualData.asset) },

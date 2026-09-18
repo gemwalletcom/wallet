@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.networkName
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.CurrencyFormatter
@@ -56,11 +57,12 @@ import uniffi.gemstone.GemVerificationLevel
 import uniffi.gemstone.GemWalletSecretKind
 import uniffi.gemstone.GemWalletSubtitle
 import uniffi.gemstone.LinkType
-import uniffi.gemstone.SimulationPayloadFieldKind
+import uniffi.gemstone.GemSimulationPayloadTitle
 import uniffi.gemstone.SimulationSeverity
 import uniffi.gemstone.WalletConnectionVerificationStatus
 import uniffi.gemstone.verificationLevel
 import uniffi.gemstone.GemSimulationWarningTitle
+import uniffi.gemstone.GemSlippageCheck
 
 fun GemTransactionTitle.string(context: Context): String = when (this) {
     GemTransactionTitle.Received -> context.getString(R.string.transaction_title_received)
@@ -164,6 +166,8 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
     is GemLocalizedText.WalletDefaultName -> context.getString(R.string.wallet_default_name, index)
     is GemLocalizedText.WalletDefaultNameChain ->
         context.getString(R.string.wallet_default_name_chain, chain.requireChain().asset().name, index)
+    GemLocalizedText.WalletMulticoin -> context.getString(R.string.wallet_multicoin)
+    is GemLocalizedText.ChainNetworkName -> chain.requireChain().networkName()
 }
 
 @StringRes
@@ -212,15 +216,14 @@ fun QRScanType.stringRes(): Int = when (this) {
     QRScanType.PrivateKey -> R.string.common_private_key
 }
 
-@StringRes
-fun SimulationPayloadFieldKind.stringRes(): Int? = when (this) {
-    SimulationPayloadFieldKind.CONTRACT -> R.string.asset_contract
-    SimulationPayloadFieldKind.METHOD -> R.string.common_method
-    SimulationPayloadFieldKind.TOKEN -> R.string.common_token
-    SimulationPayloadFieldKind.SPENDER -> R.string.transfer_to
-    SimulationPayloadFieldKind.VALUE -> R.string.perpetual_value
-    SimulationPayloadFieldKind.EXPIRATION -> R.string.common_expiration
-    SimulationPayloadFieldKind.CUSTOM -> null
+fun GemSimulationPayloadTitle.text(context: Context): String = when (this) {
+    GemSimulationPayloadTitle.Contract -> context.getString(R.string.asset_contract)
+    GemSimulationPayloadTitle.Method -> context.getString(R.string.common_method)
+    GemSimulationPayloadTitle.Token -> context.getString(R.string.common_token)
+    GemSimulationPayloadTitle.Spender -> context.getString(R.string.transfer_to)
+    GemSimulationPayloadTitle.Value -> context.getString(R.string.perpetual_value)
+    GemSimulationPayloadTitle.Expiration -> context.getString(R.string.common_expiration)
+    is GemSimulationPayloadTitle.Custom -> label
 }
 
 @StringRes
@@ -458,6 +461,7 @@ fun GemRecipientErrorDisplay.string(context: Context): String = when (this) {
 fun GemListSectionTitle.titleRes(): Int? = when (this) {
     GemListSectionTitle.NONE -> null
     GemListSectionTitle.BALANCES -> R.string.asset_balances
+    GemListSectionTitle.COMMUNITY -> R.string.settings_community
 }
 
 @StringRes
@@ -471,4 +475,41 @@ fun GemListRowTitle.titleRes(): Int = when (this) {
     GemListRowTitle.PENDING_UNCONFIRMED -> R.string.stake_pending
     GemListRowTitle.RESERVED -> R.string.asset_balances_reserved
     GemListRowTitle.ERROR -> R.string.errors_error_occurred
+    GemListRowTitle.TERMS_OF_SERVICE -> R.string.settings_terms_of_services
+    GemListRowTitle.PRIVACY_POLICY -> R.string.settings_privacy_policy
+    GemListRowTitle.WEBSITE -> R.string.settings_website
+    GemListRowTitle.VERSION -> R.string.settings_version
+    GemListRowTitle.UPDATE_APP -> R.string.update_app_title
+    GemListRowTitle.WALLETS -> R.string.wallets_title
+    GemListRowTitle.SECURITY -> R.string.settings_security
+    GemListRowTitle.NOTIFICATIONS -> R.string.settings_notifications_title
+    GemListRowTitle.PREFERENCES -> R.string.settings_preferences_title
+    GemListRowTitle.WALLET_CONNECT -> R.string.wallet_connect_title
+    GemListRowTitle.SUPPORT -> R.string.settings_support
+    GemListRowTitle.REWARDS -> R.string.rewards_title
+    GemListRowTitle.ABOUT_US -> R.string.settings_aboutus
+    GemListRowTitle.DEVELOPER -> R.string.settings_developer
+    GemListRowTitle.AUTHENTICATION -> R.string.settings_enable_passcode
+    GemListRowTitle.LOCK_PERIOD -> R.string.lock_require_authentication
+    GemListRowTitle.PRIVACY_LOCK -> R.string.lock_privacy_lock
+    GemListRowTitle.HIDE_BALANCE -> R.string.settings_hide_balance
+    GemListRowTitle.CURRENCY -> R.string.settings_currency
+    GemListRowTitle.LANGUAGE -> R.string.settings_language
+    GemListRowTitle.APPEARANCE -> R.string.settings_appearance_title
+    GemListRowTitle.NETWORKS -> R.string.settings_networks_title
+    GemListRowTitle.CONTACTS -> R.string.contacts_title
+    GemListRowTitle.PERPETUALS -> R.string.perpetuals_title
+    GemListRowTitle.PERPETUAL_LEVERAGE -> R.string.settings_preferences_perpetual_default_leverage
+    GemListRowTitle.PERPETUAL_TAKE_PROFIT -> R.string.settings_preferences_perpetual_default_take_profit
+    GemListRowTitle.PERPETUAL_STOP_LOSS -> R.string.settings_preferences_perpetual_default_stop_loss
+    GemListRowTitle.DAILY_VOLUME -> R.string.markets_daily_volume
+    GemListRowTitle.OPEN_INTEREST -> R.string.info_perpetual_open_interest_title
+    GemListRowTitle.FUNDING_APR -> R.string.info_perpetual_funding_apr_title
+}
+
+fun GemSlippageCheck.footerText(context: Context, minimumText: String, maximumText: String): String? = when (this) {
+    GemSlippageCheck.BELOW_MINIMUM -> context.getString(R.string.common_minimum_value, minimumText)
+    GemSlippageCheck.ABOVE_MAXIMUM -> context.getString(R.string.common_maximum_value, maximumText)
+    GemSlippageCheck.HIGH -> context.getString(R.string.swap_slippage_warning)
+    GemSlippageCheck.VALID -> null
 }

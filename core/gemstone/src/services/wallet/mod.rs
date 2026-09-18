@@ -46,7 +46,7 @@ use crate::services::wallet_session::GemWalletSessionService;
 use primitives::BlockExplorerLink;
 
 pub use error::GemWalletImportError;
-pub use model::{GemWalletDefaultName, GemWalletDeletion, GemWalletImportKind, GemWalletImportResult, GemWalletImportType, GemWalletSecret};
+pub use model::{GemWalletDefaultName, GemWalletDeletion, GemWalletImportKind, GemWalletImportResult, GemWalletImportScreen, GemWalletImportType, GemWalletSecret};
 pub use password::{GemKeystoreAuthentication, GemKeystorePassword};
 pub use store::GemWalletStore;
 
@@ -132,8 +132,8 @@ impl GemWalletService {
         rules::phrase_verification_words(words)
     }
 
-    pub fn import_kinds(&self, chain: Option<Chain>) -> Vec<GemWalletImportKind> {
-        rules::import_kinds(chain)
+    pub fn import_screen(&self, chain: Option<Chain>) -> GemWalletImportScreen {
+        rules::import_screen(chain)
     }
 
     pub fn import_request(&self, kind: GemWalletImportKind, chain: Option<Chain>, input: String, name_record: Option<NameRecord>) -> Result<GemWalletImportType, GemServiceError> {

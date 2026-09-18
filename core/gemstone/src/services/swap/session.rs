@@ -116,6 +116,7 @@ pub struct GemSwapViewState {
     pub error: Option<GemSwapErrorDisplay>,
     pub is_quote_loading: bool,
     pub is_transfer_loading: bool,
+    pub allows_provider_selection: bool,
     pub is_input_empty: bool,
 }
 
@@ -258,6 +259,7 @@ impl GemSwapSession {
             error: self.error_display(pay_asset.as_ref()),
             is_quote_loading: self.is_quote_loading(),
             is_transfer_loading: self.is_transfer_loading(),
+            allows_provider_selection: self.allows_provider_selection(),
             is_input_empty: self.is_input_empty(),
         }
     }
@@ -275,6 +277,10 @@ impl GemSwapSession {
 
     fn error(&self) -> Option<SwapperError> {
         self.transfer_error().or_else(|| self.quote_error())
+    }
+
+    fn allows_provider_selection(&self) -> bool {
+        self.quotes.as_ref().is_some_and(|quotes| quotes.quotes.len() > 1) && !self.is_transfer_loading()
     }
 
     fn is_quote_loading(&self) -> bool {

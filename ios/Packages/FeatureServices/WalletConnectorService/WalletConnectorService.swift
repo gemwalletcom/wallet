@@ -253,19 +253,19 @@ extension WalletConnectorService {
     }
 
     private func acceptProposal(proposal: Session.Proposal, wallet: Primitives.Wallet) async throws -> Session {
-        let approval = try service.sessionApproval(wallet: wallet)
+        let approval = service.sessionApproval(wallet: wallet.toGem())
         let sessionNamespaces = try AutoNamespaces.build(
             sessionProposal: proposal,
-            chains: approval.chains.compactMap { $0.blockchain(chainService: chainService) },
+            chains: approval.chains.compactMap { Primitives.Chain(core: $0).blockchain(chainService: chainService) },
             methods: approval.methods,
             events: approval.events,
-            accounts: approval.accounts.compactMap { $0.blockchain(chainService: chainService) },
+            accounts: approval.accounts.compactMap { $0.toPrimitives().blockchain(chainService: chainService) },
         )
         let caip2Chains = sessionNamespaces.values.flatMap { $0.chains ?? [] }.map(\.absoluteString)
         let sessionProperties = service.configSessionProperties(
             properties: proposal.sessionProperties ?? [:],
             caip2Chains: caip2Chains,
-            accounts: approval.accounts.map { $0.mapToGem() },
+            accounts: approval.accounts,
         )
         return try await WalletKit.instance.approve(
             proposalId: proposal.id,

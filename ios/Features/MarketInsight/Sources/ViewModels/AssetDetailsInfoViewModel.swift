@@ -3,7 +3,6 @@
 import Components
 import Formatters
 import Foundation
-import func Gemstone.abbreviationThreshold
 import class Gemstone.GemAddressService
 import enum Gemstone.GemAssetMarketRow
 import GemstonePrimitives
@@ -15,12 +14,10 @@ import Style
 
 struct AssetDetailsInfoViewModel {
     private let asset: Asset
-    private let currencyFormatter: CurrencyFormatter
     private let allTime: AllTimeValueViewModel
 
     init(asset: Asset, currency: Currency) {
         self.asset = asset
-        currencyFormatter = CurrencyFormatter(type: .abbreviated, currencyCode: currency.rawValue)
         allTime = AllTimeValueViewModel(
             priceFormatter: CurrencyFormatter(currencyCode: currency.rawValue),
             percentFormatter: PercentFormatter.signed,
@@ -38,14 +35,14 @@ struct AssetDetailsInfoViewModel {
         case let .marketCap(value, rank):
             MarketValueViewModel(
                 title: row.title,
-                subtitle: currencyFormatter.string(value),
+                subtitle: value.text(),
                 titleTag: rank.map { " #\($0) " },
                 titleTagStyle: rank.map { _ in TextStyle(font: .system(.body), color: Colors.grayLight, background: Colors.grayVeryLight) },
             )
         case let .fullyDilutedValuation(value):
-            MarketValueViewModel(title: row.title, subtitle: currencyFormatter.string(value), action: .info(.fullyDilutedValuation))
+            MarketValueViewModel(title: row.title, subtitle: value.text(), action: .info(.fullyDilutedValuation))
         case let .tradingVolume(value):
-            MarketValueViewModel(title: row.title, subtitle: currencyFormatter.string(value))
+            MarketValueViewModel(title: row.title, subtitle: value.text())
         case let .contract(tokenId, explorer):
             MarketValueViewModel(
                 title: row.title,
@@ -55,11 +52,11 @@ struct AssetDetailsInfoViewModel {
                 } ?? .none,
             )
         case let .circulatingSupply(value):
-            MarketValueViewModel(title: row.title, subtitle: supply(value), action: .info(.circulatingSupply))
+            MarketValueViewModel(title: row.title, subtitle: value.text(), action: .info(.circulatingSupply))
         case let .totalSupply(value):
-            MarketValueViewModel(title: row.title, subtitle: supply(value), action: .info(.totalSupply))
+            MarketValueViewModel(title: row.title, subtitle: value.text(), action: .info(.totalSupply))
         case let .maxSupply(value):
-            MarketValueViewModel(title: row.title, subtitle: supply(value), action: .info(.maxSupply))
+            MarketValueViewModel(title: row.title, subtitle: value.text(), action: .info(.maxSupply))
         case let .allTimeHigh(value):
             allTimeValue(row.title, chartValue: value.toPrimitives())
         case let .allTimeLow(value):
@@ -76,10 +73,5 @@ struct AssetDetailsInfoViewModel {
             subtitleExtra: item.subtitleExtra,
             subtitleExtraStyle: item.subtitleStyleExtra,
         )
-    }
-
-    private func supply(_ value: Double) -> String {
-        let formatted = value >= abbreviationThreshold() ? AbbreviatedFormatter().string(from: value) ?? NumericFormatter().string(value) : NumericFormatter().string(value)
-        return "\(formatted) \(asset.symbol)"
     }
 }

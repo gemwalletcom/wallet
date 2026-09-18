@@ -7,7 +7,7 @@ import struct Gemstone.GemListSection
 
 public struct GemListSectionRow: Identifiable, Sendable {
     public let id: String
-    let row: GemListRow
+    public let row: GemListRow
 }
 
 public extension [GemListSection] {
@@ -20,6 +20,7 @@ public extension [GemListSection] {
                 values: section.rows.enumerated().map { row in
                     GemListSectionRow(id: "\(index)-\(row.offset)", row: row.element)
                 },
+                footer: section.footer.text,
             )
         }
     }

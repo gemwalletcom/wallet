@@ -196,15 +196,6 @@ class ConfirmViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, Simulation())
 
-    val payloadAddressNames = content
-        .map { content ->
-            content?.load?.simulation?.addressNames.orEmpty()
-                .map { it.toPrimitives() }
-                .filter { it.name.isNotEmpty() && !it.name.equals(it.address, ignoreCase = true) }
-                .associate { it.address.lowercase() to it.name }
-        }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
-
     val button = screen.map { it.button() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, GemConfirmButton(GemConfirmButtonKind.CONFIRM, GemConfirmButtonState.LOADING))
 

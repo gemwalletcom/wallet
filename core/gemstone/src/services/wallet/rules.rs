@@ -2,8 +2,9 @@ use gem_keystore::Mnemonic;
 use primitives::{Account, AddressName, AddressType, Chain, ChainAddress, NameRecord, VerificationStatus, Wallet, WalletId, WalletSource, WalletType};
 
 use super::error::GemWalletImportError;
-use super::model::{GemSecretPhraseRow, GemWalletDetails, GemWalletImportKind, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSecretKind, GemWalletSubtitle};
+use super::model::{GemSecretPhraseRow, GemWalletDetails, GemWalletImportKind, GemWalletImportScreen, GemWalletImportType, GemWalletPlaceholder, GemWalletRow, GemWalletSecretKind, GemWalletSubtitle};
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
+use crate::services::localization::GemLocalizedText;
 
 const WALLET_ADDRESS_STYLE: GemAddressFormatStyle = GemAddressFormatStyle::Extra { extra: 1 };
 const SECRET_PHRASE_COLUMNS: u32 = 2;
@@ -53,7 +54,18 @@ pub fn phrase_verification_words(words: Vec<String>) -> Vec<String> {
         .collect()
 }
 
-pub fn import_kinds(chain: Option<Chain>) -> Vec<GemWalletImportKind> {
+pub fn import_screen(chain: Option<Chain>) -> GemWalletImportScreen {
+    GemWalletImportScreen {
+        title: match chain {
+            Some(chain) => GemLocalizedText::ChainNetworkName { chain },
+            None => GemLocalizedText::WalletMulticoin,
+        },
+        shows_kinds: import_kinds(chain).len() > 1,
+        kinds: import_kinds(chain),
+    }
+}
+
+fn import_kinds(chain: Option<Chain>) -> Vec<GemWalletImportKind> {
     match chain {
         None => vec![GemWalletImportKind::Phrase],
         Some(chain) => [
@@ -275,6 +287,21 @@ pub fn existing_wallet(wallets: &[Wallet], wallet_id: &WalletId, wallet_type: Wa
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    #[test]
+    fn test_the_import_screen_names_the_network_and_offers_one_kind_for_multicoin() {
+        let multicoin = import_screen(None);
+        let ethereum = import_screen(Some(Chain::Ethereum));
+
+        assert_eq!(multicoin.title, GemLocalizedText::WalletMulticoin);
+        assert_eq!(multicoin.kinds, vec![GemWalletImportKind::Phrase]);
+        assert!(!multicoin.shows_kinds);
+        assert_eq!(ethereum.title, GemLocalizedText::ChainNetworkName { chain: Chain::Ethereum });
+        assert_eq!(ethereum.kinds, vec![GemWalletImportKind::Phrase, GemWalletImportKind::PrivateKey, GemWalletImportKind::Address]);
+        assert!(ethereum.shows_kinds);
+    }
+
     #[test]
     fn test_phrase_verification_shuffles_inside_a_group_and_never_across_one() {
         let words: Vec<String> = (1..=12).map(|n| n.to_string()).collect();

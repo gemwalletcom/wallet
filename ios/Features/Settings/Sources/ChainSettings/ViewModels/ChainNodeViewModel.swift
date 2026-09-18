@@ -31,16 +31,11 @@ struct ChainNodeViewModel {
     }
 
     var title: String {
-        switch row.title {
-        case let .host(host): host
-        case let .gemNode(flag): Localized.Nodes.gemWalletNode + " " + flag
-        }
+        row.title.text(gemNodeLabel: Localized.Nodes.gemWalletNode)
     }
 
     var titleExtra: String? {
-        switch row.subtitle {
-        case let .latestBlock(value): "\(row.subtitle.title): \(value)"
-        }
+        row.subtitle.text(latestBlockLabel: row.subtitle.title)
     }
 
     var titleTag: String? {

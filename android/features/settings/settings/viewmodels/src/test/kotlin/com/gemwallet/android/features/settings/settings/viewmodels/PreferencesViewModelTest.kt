@@ -4,11 +4,13 @@ import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
-import com.gemwallet.android.features.settings.settings.viewmodels.models.PreferencesRowUIModel
+import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.features.settings.settings.viewmodels.models.PerpetualSetting
 import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.Currency
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelAndJoin
@@ -24,11 +26,14 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import uniffi.gemstone.GemCurrencyRow
+import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemListRowIcon
+import uniffi.gemstone.GemListRowTitle
+import uniffi.gemstone.GemListSection
+import uniffi.gemstone.GemListSectionFooter
+import uniffi.gemstone.GemListSectionTitle
 import uniffi.gemstone.GemPerpetualDefaults
-import uniffi.gemstone.GemPreferencesRow
-import uniffi.gemstone.GemPreferencesSection
-import uniffi.gemstone.GemPreferencesState
+import uniffi.gemstone.GemPreferencesInput
 import uniffi.gemstone.GemSettingsServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -37,6 +42,7 @@ class PreferencesViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private val perpetualEnabled = MutableStateFlow(false)
     private val currency = MutableStateFlow(Currency.USD)
+    private val inputs = mutableListOf<GemPreferencesInput>()
     private val userConfig = mockk<UserConfig>(relaxed = true) {
         every { isPerpetualEnabled() } returns perpetualEnabled
         every { appearance() } returns MutableStateFlow(Appearance.System)
@@ -45,11 +51,16 @@ class PreferencesViewModelTest {
         override fun getCurrency() = currency
     }
     private val settingsService = mockk<GemSettingsServiceInterface>(relaxed = true) {
-        every { preferences(any(), any()) } answers {
-            GemPreferencesState(
-                currency = GemCurrencyRow(firstArg(), "🏳"),
-                sections = listOf(GemPreferencesSection(listOf(GemPreferencesRow.CURRENCY))),
-                perpetualDefaults = GemPerpetualDefaults(leverage = 2u, takeProfitPercent = 25u, stopLossPercent = 10u),
+        every { perpetualDefaults() } returns GemPerpetualDefaults(leverage = 2u, takeProfitPercent = 25u, stopLossPercent = 10u)
+        every { preferencesSections(any()) } answers {
+            val input = firstArg<GemPreferencesInput>()
+            inputs.add(input)
+            listOf(
+                GemListSection(
+                    GemListSectionTitle.NONE,
+                    GemListSectionFooter.NONE,
+                    listOf(GemListRow.Link(GemListRowTitle.CURRENCY, input.currency.toString(), GemListRowIcon.CURRENCY)),
+                ),
             )
         }
     }
@@ -72,14 +83,25 @@ class PreferencesViewModelTest {
     }
 
     @Test
-    fun `the rows follow the selected currency`() = runTest(testDispatcher) {
-        assertEquals("🏳 USD", currencyRow(viewModel.rows.first { it.isNotEmpty() }).model.subtitle)
+    fun `the sections follow the selected currency`() = runTest(testDispatcher) {
+        viewModel.sections.first { it.isNotEmpty() }
+        assertEquals(Currency.USD.toGem(), inputs.last().currency)
 
         currency.value = Currency.GBP
         advanceUntilIdle()
 
-        assertEquals("🏳 GBP", currencyRow(viewModel.rows.first { currencyRow(it).model.subtitle != "🏳 USD" }).model.subtitle)
+        assertEquals(Currency.GBP.toGem(), inputs.last().currency)
     }
 
-    private fun currencyRow(rows: List<List<PreferencesRowUIModel>>) = rows.first().first() as PreferencesRowUIModel.Link
+    @Test
+    fun `choosing a perpetual option writes every default and shows the new one`() = runTest(testDispatcher) {
+        viewModel.sections.first { it.isNotEmpty() }
+        val leverage = viewModel.perpetualOptions.leverage.last()
+
+        viewModel.setPerpetualOption(PerpetualSetting.Leverage, leverage.value).join()
+        advanceUntilIdle()
+
+        verify { settingsService.setPerpetualDefaults(GemPerpetualDefaults(leverage = leverage.value.toUByte(), takeProfitPercent = 25u, stopLossPercent = 10u)) }
+        assertEquals(leverage.label, inputs.last().perpetualLeverage)
+    }
 }

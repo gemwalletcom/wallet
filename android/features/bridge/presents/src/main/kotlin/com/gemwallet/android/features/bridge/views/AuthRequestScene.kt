@@ -16,7 +16,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticationRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
-import com.gemwallet.android.features.bridge.localization.walletConnectMessage
 import com.gemwallet.android.features.bridge.viewmodels.AuthSceneState
 import com.gemwallet.android.features.bridge.viewmodels.WCAuthViewModel
 import com.gemwallet.android.features.bridge.viewmodels.model.BridgeRequestError
@@ -27,6 +26,7 @@ import com.gemwallet.android.ui.components.screen.FatalStateScene
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.ListPosition
+import com.gemwallet.android.ui.localization.text
 
 @Composable
 fun AuthRequestScene(
@@ -59,9 +59,7 @@ fun AuthRequestScene(
     when (val currentState = state) {
         is AuthSceneState.Error -> FatalStateScene(
             title = stringResource(id = R.string.wallet_connect_connect_title),
-            message = currentState.cause?.walletConnectMessage()
-                ?: currentState.message
-                ?: stringResource(id = R.string.errors_unknown_try_again),
+            message = currentState.text.text(),
             onCancel = viewModel::onReject,
         )
         AuthSceneState.Loading -> LoadingScene(

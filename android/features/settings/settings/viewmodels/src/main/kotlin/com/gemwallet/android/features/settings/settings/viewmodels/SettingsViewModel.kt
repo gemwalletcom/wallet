@@ -9,12 +9,10 @@ import com.gemwallet.android.application.wallet.cases.GetWallets
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.di.IoDispatcher
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.features.settings.settings.viewmodels.models.uiModel
 import com.gemwallet.android.model.NotificationsAvailable
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
-import com.gemwallet.android.ui.models.ListSection
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -42,7 +40,7 @@ class SettingsViewModel @Inject constructor(
     private val developerEnabled = MutableStateFlow(userConfig.developEnabled())
     private val walletConnectAvailable = MutableStateFlow(true)
 
-    private val sections = combine(wallets, developerEnabled, walletConnectAvailable) { wallets, _, walletConnect ->
+    val sections = combine(wallets, developerEnabled, walletConnectAvailable) { wallets, _, walletConnect ->
         settingsService.sections(
             wallets = wallets.map { it.toGem() },
             notificationsAvailable = notificationsAvailable,
@@ -54,13 +52,6 @@ class SettingsViewModel @Inject constructor(
     fun setWalletConnectAvailable(available: Boolean) {
         walletConnectAvailable.value = available
     }
-
-    val rows = combine(sections, wallets) { sections, wallets ->
-        sections.mapIndexed { index, section ->
-            ListSection(id = index.toString(), items = section.rows.map { it.uiModel(context, wallets.size) })
-        }
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val notificationsListItem = ListItemModel(title = context.getString(R.string.settings_notifications_title))
 

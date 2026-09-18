@@ -12,6 +12,12 @@ pub enum GemFiatAmountCheck {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemFiatSuggestedAmount {
+    pub amount: u32,
+    pub text: String,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemFiatQuoteRow {
     pub quote_id: String,
     pub provider: FiatProviderName,

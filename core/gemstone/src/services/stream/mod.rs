@@ -108,6 +108,29 @@ impl GemStreamService {
         let event = serde_json::from_str(&event).map_err(|error| GemServiceError::InvalidInput { msg: error.to_string() })?;
         self.handle_event(event).await
     }
+
+    pub async fn sync(&self, event: GemStreamEvent) -> Result<(), GemServiceError> {
+        match event {
+            GemStreamEvent::Prices { .. } | GemStreamEvent::Notification { .. } | GemStreamEvent::SupportMessage { .. } | GemStreamEvent::SupportTyping { .. } => Ok(()),
+            GemStreamEvent::Balances { wallet_id, asset_ids } => self.balance.update(wallet_id, asset_ids).await,
+            GemStreamEvent::Transactions { wallet_id, asset_ids, .. } => {
+                self.transactions.sync_wallet(wallet_id.clone(), None).await?;
+                self.balance.update(wallet_id, asset_ids).await
+            }
+            GemStreamEvent::PriceAlerts { .. } => self.price_alert.sync(None).await,
+            GemStreamEvent::Nft { wallet_id } => self.nft.sync_wallet(wallet_id).await.map(|_| ()),
+            GemStreamEvent::Perpetual { wallet_id } => {
+                let Some(wallet) = self.session.get_wallet(wallet_id.clone()).await? else {
+                    return Ok(());
+                };
+                let Some(account) = rules::hyperliquid_account(&wallet.accounts) else {
+                    return Ok(());
+                };
+                self.perpetual.sync_positions(wallet_id, Chain::HyperCore, account.address.clone()).await.map(|_| ())
+            }
+            GemStreamEvent::FiatTransaction { wallet_id } => self.fiat.sync_transactions(wallet_id).await,
+        }
+    }
 }
 
 impl GemStreamService {
@@ -123,52 +146,24 @@ impl GemStreamService {
                 self.price.update_prices(payload.prices, currency).await?;
                 Ok(handled)
             }
-            StreamEvent::Balances(update) => {
-                self.balance.update(update.wallet_id.clone(), update.asset_ids.clone()).await?;
-                Ok(GemStreamEvent::Balances {
-                    wallet_id: update.wallet_id,
-                    asset_ids: update.asset_ids,
-                })
-            }
-            StreamEvent::Transactions(update) => {
-                self.transactions.sync_wallet(update.wallet_id.clone(), None).await?;
-                self.balance.update(update.wallet_id.clone(), update.asset_ids.clone()).await?;
-                Ok(GemStreamEvent::Transactions {
-                    wallet_id: update.wallet_id,
-                    transaction_ids: update.transactions,
-                    asset_ids: update.asset_ids,
-                })
-            }
-            StreamEvent::PriceAlerts(update) => {
-                self.price_alert.sync(None).await?;
-                Ok(GemStreamEvent::PriceAlerts { asset_ids: update.assets })
-            }
-            StreamEvent::Nft(update) => {
-                self.nft.sync_wallet(update.wallet_id.clone()).await?;
-                Ok(GemStreamEvent::Nft { wallet_id: update.wallet_id })
-            }
-            StreamEvent::Perpetual(update) => {
-                let handled = GemStreamEvent::Perpetual {
-                    wallet_id: update.wallet_id.clone(),
-                };
-                let Some(wallet) = self.session.get_wallet(update.wallet_id.clone()).await? else {
-                    return Ok(handled);
-                };
-                let Some(account) = rules::hyperliquid_account(&wallet.accounts) else {
-                    return Ok(handled);
-                };
-                self.perpetual.sync_positions(update.wallet_id, Chain::HyperCore, account.address.clone()).await?;
-                Ok(handled)
-            }
+            StreamEvent::Balances(update) => Ok(GemStreamEvent::Balances {
+                wallet_id: update.wallet_id,
+                asset_ids: update.asset_ids,
+            }),
+            StreamEvent::Transactions(update) => Ok(GemStreamEvent::Transactions {
+                wallet_id: update.wallet_id,
+                transaction_ids: update.transactions,
+                asset_ids: update.asset_ids,
+            }),
+            StreamEvent::PriceAlerts(update) => Ok(GemStreamEvent::PriceAlerts { asset_ids: update.assets }),
+            StreamEvent::Nft(update) => Ok(GemStreamEvent::Nft { wallet_id: update.wallet_id }),
+            StreamEvent::Perpetual(update) => Ok(GemStreamEvent::Perpetual { wallet_id: update.wallet_id }),
             StreamEvent::InAppNotification(update) => {
                 let wallet_id = update.wallet_id;
                 self.notifications.save_notifications(vec![update.notification]).await?;
                 Ok(GemStreamEvent::Notification { wallet_id })
             }
-            StreamEvent::FiatTransaction(update) => {
-                self.fiat.sync_transactions(update.wallet_id.clone()).await?;
-                Ok(GemStreamEvent::FiatTransaction { wallet_id: update.wallet_id })
-            }
+            StreamEvent::FiatTransaction(update) => Ok(GemStreamEvent::FiatTransaction { wallet_id: update.wallet_id }),
             StreamEvent::Support(SupportStreamEvent::Message(message)) => {
                 let handled = GemStreamEvent::SupportMessage {
                     message_id: message.id.clone(),

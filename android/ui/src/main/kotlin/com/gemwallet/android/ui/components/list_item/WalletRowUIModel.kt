@@ -27,7 +27,7 @@ fun GemWalletRow.uiModel(context: Context) = WalletRowUIModel(
 )
 
 fun GemWalletRow.listItemImage(): ListItemImage = imageUrl?.takeIf { it.isNotEmpty() }?.let { ListItemImage.Stored(it) } ?: when (val placeholder = placeholder) {
-    GemWalletPlaceholder.Multicoin -> ListItemImage.Drawable(R.drawable.multicoin_wallet)
+    GemWalletPlaceholder.Multicoin -> ListItemImage.Drawable(R.drawable.multicoin_wallet, style = ListItemDrawableStyle.Avatar)
     is GemWalletPlaceholder.Chain -> ListItemImage.Asset(AssetId(placeholder.chain.toChain()))
 }
 

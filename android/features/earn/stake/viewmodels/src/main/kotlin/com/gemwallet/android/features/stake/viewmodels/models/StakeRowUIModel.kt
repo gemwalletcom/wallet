@@ -2,7 +2,6 @@ package com.gemwallet.android.features.stake.viewmodels.models
 
 import android.content.Context
 import android.icu.util.Measure
-import android.icu.util.MeasureUnit
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.duration.formatDuration
 import com.gemwallet.android.domains.percentage.formatAsPercentage
@@ -16,6 +15,7 @@ import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import java.math.BigInteger
+import uniffi.gemstone.GemDurationPart
 import uniffi.gemstone.GemPercentageStyle
 import uniffi.gemstone.GemStakeAction
 import uniffi.gemstone.GemStakeActionItem
@@ -48,7 +48,7 @@ internal fun GemStakeActionItem.uiModel(context: Context, assetInfo: AssetInfo, 
     ),
 )
 
-internal fun GemStakeInfoRow.listItem(context: Context, assetInfo: AssetInfo, lockTimeDays: Int?, minStakeAmount: BigInteger): ListItemModel {
+internal fun GemStakeInfoRow.listItem(context: Context, assetInfo: AssetInfo, lockTimeParts: List<GemDurationPart>, minStakeAmount: BigInteger): ListItemModel {
     val iconUrl = assetInfo.id().iconModel()
     return when (this) {
         GemStakeInfoRow.MINIMUM_AMOUNT -> ListItemModel(
@@ -63,7 +63,7 @@ internal fun GemStakeInfoRow.listItem(context: Context, assetInfo: AssetInfo, lo
         )
         GemStakeInfoRow.LOCK_TIME -> ListItemModel(
             title = context.getString(stringRes()),
-            subtitle = formatDuration(Measure(lockTimeDays ?: 0, MeasureUnit.DAY)),
+            subtitle = lockTimeParts.formatDuration(),
             info = InfoSheetEntity.StakeLockTimeInfo(icon = iconUrl),
         )
     }

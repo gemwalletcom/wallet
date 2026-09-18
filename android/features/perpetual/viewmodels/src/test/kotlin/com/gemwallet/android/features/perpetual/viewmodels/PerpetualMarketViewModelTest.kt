@@ -81,6 +81,7 @@ class PerpetualMarketViewModelTest {
         every { getPositions.getPerpetualPositions() } returns flowOf(positions)
         val getBalance = mockk<GetPerpetualBalance>()
         every { getBalance.getDisplayBalance() } returns emptyFlow()
+        every { getBalance.getBalance() } returns emptyFlow()
         val recentAssetsService = mockk<RecentAssetsService>()
         every { recentAssetsService.getRecentAssets(any()) } returns flowOf(emptyList())
         val perpetualObserver = mockk<PerpetualObserver>()

@@ -1,15 +1,17 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemSimulationPayloadRow
 import Localization
 import Primitives
 import PrimitivesComponents
 import PrimitivesComponentsTestKit
-import PrimitivesTestKit
 import Testing
-import struct Gemstone.SimulationPayloadField
 
 struct SimulationPayloadModelTests {
+    private let contract = GemSimulationPayloadRow(title: .contract, value: .address(display: "0x1", address: "0x1"))
+    private let method = GemSimulationPayloadRow(title: .method, value: .text(text: "approve"))
+
     @Test
     func emptyFieldsHaveNoDetails() {
         #expect(!SimulationPayloadModel.mock().hasFields)
@@ -18,7 +20,6 @@ struct SimulationPayloadModelTests {
 
     @Test
     func primaryOnlyFieldsHaveNoDetails() {
-        let contract = SimulationPayloadField.standard(kind: .contract, value: "0x1", fieldType: .address, display: .primary)
         let model = SimulationPayloadModel.mock(primaryFields: [contract])
 
         #expect(model.hasFields)
@@ -27,7 +28,6 @@ struct SimulationPayloadModelTests {
 
     @Test
     func secondaryOnlyFieldsHaveDetails() {
-        let method = SimulationPayloadField.standard(kind: .method, value: "approve", fieldType: .text, display: .secondary)
         let model = SimulationPayloadModel.mock(secondaryFields: [method])
 
         #expect(model.hasFields)
@@ -35,29 +35,8 @@ struct SimulationPayloadModelTests {
     }
 
     @Test
-    func fieldViewModelResolvesAddressName() {
-        let contract = SimulationPayloadField.standard(
-            kind: .contract,
-            value: "0x2Df1c51E09aECF9cacB7bc98cB1742757f163dF7",
-            fieldType: .address,
-            display: .primary,
-        )
-        let spender = SimulationPayloadField.standard(kind: .spender, value: "0x1", fieldType: .address, display: .primary)
-        let model = SimulationPayloadModel.mock(
-            primaryFields: [contract, spender],
-            addressNames: [ChainAddress(chain: .ethereum, address: contract.value): .mock(address: contract.value, name: "Hyperliquid")],
-        )
-
-        let fields = model.fieldModels(for: [contract, spender], explorerLink: { _ in .mock() }, onOpenURL: { _ in })
-
-        #expect(fields[0].addressName?.name == "Hyperliquid")
-        #expect(fields[1].addressName == nil)
-    }
-
-    @Test
     func addressFieldContextMenuOpensExplorerLink() {
-        let contract = SimulationPayloadField.standard(kind: .contract, value: "0x1", fieldType: .address, display: .primary)
-        let link = BlockExplorerLink(name: "Etherscan", link: "https://etherscan.io/address/\(contract.value)")
+        let link = BlockExplorerLink(name: "Etherscan", link: "https://etherscan.io/address/0x1")
         var openedURL: URL?
 
         let items = SimulationPayloadModel.mock(primaryFields: [contract]).fieldModels(
@@ -79,8 +58,6 @@ struct SimulationPayloadModelTests {
 
     @Test
     func textFieldContextMenuOmitsExplorerLink() {
-        let method = SimulationPayloadField.standard(kind: .method, value: "approve", fieldType: .text, display: .secondary)
-
         let items = SimulationPayloadModel.mock(secondaryFields: [method]).fieldModels(
             for: [method],
             explorerLink: { BlockExplorerLink(name: "Etherscan", link: "https://etherscan.io/address/\($0)") },

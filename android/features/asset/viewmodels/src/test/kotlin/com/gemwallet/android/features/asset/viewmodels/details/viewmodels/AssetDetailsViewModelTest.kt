@@ -80,7 +80,7 @@ class AssetDetailsViewModelTest {
         every { getPriceAlerts.assetPriceAlerts(asset.id) } returns priceAlerts
         every { service.details(any()) } answers {
             val input = firstArg<GemAssetDetailsInput>()
-            mockGemAssetDetails(asset, mockGemAssetDetailsState(showsBanners = input.bannerEvents.isNotEmpty(), priceAlertsCount = input.priceAlerts.size.toUInt()))
+            mockGemAssetDetails(asset, mockGemAssetDetailsState(showsBanners = input.bannerEvents.isNotEmpty(), priceAlertsCount = input.priceAlerts.size))
         }
     }
 
@@ -106,7 +106,7 @@ class AssetDetailsViewModelTest {
         priceAlerts.emit(listOf(mockPriceAlert(assetId = asset.id)))
         val uiModel = viewModel.uiModel.first { it != null }!!
 
-        assertEquals(1u, uiModel.detailsState.priceAlertsCount)
+        assertEquals("1", uiModel.detailsState.priceAlertsCountText)
         assertEquals(GemPriceAlertToggle.ENABLED, uiModel.detailsState.priceAlert)
     }
 
