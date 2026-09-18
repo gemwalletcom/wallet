@@ -13,7 +13,7 @@ import uniffi.gemstone.formattedAmount
 import uniffi.gemstone.GemValueStyle
 import uniffi.gemstone.GemCurrencyStyle
 
-fun mockFiatQuote() = FiatQuote(
+fun mockFiatQuote(quoteType: FiatQuoteType = FiatQuoteType.Buy) = FiatQuote(
     id = "quote-1",
     asset = mockAsset().toGem(),
     provider = FiatProvider(
@@ -27,7 +27,7 @@ fun mockFiatQuote() = FiatQuote(
         sellEnabled = true,
         paymentMethods = emptyList(),
     ),
-    quoteType = FiatQuoteType.Buy.toGem(),
+    quoteType = quoteType.toGem(),
     fiatAmount = 100.0,
     fiatCurrency = "USD",
     cryptoAmount = 0.17,

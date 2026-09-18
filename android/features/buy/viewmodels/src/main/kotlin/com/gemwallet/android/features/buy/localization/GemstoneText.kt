@@ -36,15 +36,25 @@ fun GemFiatAmountCheck.string(context: Context): String? = when (this) {
     GemFiatAmountCheck.Valid -> null
 }
 
-fun GemFiatViewState.errorText(context: Context): String? = when (val phase = phase) {
-    is GemFiatQuotePhase.Invalid -> phase.check.string(context)
+fun GemFiatViewState.amountErrorText(context: Context): String? = when (val phase = phase) {
     GemFiatQuotePhase.InvalidInput -> context.getString(R.string.errors_invalid_amount)
-    GemFiatQuotePhase.NoInput -> context.getString(
+    is GemFiatQuotePhase.Invalid -> phase.check.string(context)
+    GemFiatQuotePhase.Ready -> amountCheck.string(context)
+    GemFiatQuotePhase.NoInput,
+    is GemFiatQuotePhase.Loading,
+    GemFiatQuotePhase.NoQuotes,
+    is GemFiatQuotePhase.Failed -> null
+}
+
+fun GemFiatViewState.quotesMessage(context: Context): String? = when (phase) {
+    GemFiatQuotePhase.NoInput,
+    GemFiatQuotePhase.InvalidInput -> context.getString(
         R.string.input_enter_amount_to,
         context.getString(quoteType.toPrimitives().titleRes(), ""),
     )
+    is GemFiatQuotePhase.Invalid,
     GemFiatQuotePhase.NoQuotes -> context.getString(R.string.buy_no_results)
     is GemFiatQuotePhase.Failed -> context.getString(R.string.errors_unknown_try_again)
-    is GemFiatQuotePhase.Loading -> null
-    GemFiatQuotePhase.Ready -> amountCheck.string(context)
+    is GemFiatQuotePhase.Loading,
+    GemFiatQuotePhase.Ready -> null
 }

@@ -14,15 +14,14 @@ import com.gemwallet.android.ext.tickerFlow
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.buy.localization.errorText
+import com.gemwallet.android.features.buy.localization.amountErrorText
+import com.gemwallet.android.features.buy.localization.quotesMessage
 import com.gemwallet.android.features.buy.viewmodels.models.FiatSuggestion
 import com.gemwallet.android.features.buy.viewmodels.models.FiatUiState
 import com.gemwallet.android.features.buy.viewmodels.models.createFiatUiState
 import com.gemwallet.android.features.buy.viewmodels.models.toProviderUIModel
 import com.gemwallet.android.model.AssetData
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.image.iconResource
-import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.requireAssetId
@@ -54,6 +53,7 @@ import uniffi.gemstone.GemAssetTitleStyle
 import uniffi.gemstone.GemFiatQuoteRequest
 import uniffi.gemstone.GemFiatQuoteServiceInterface
 import uniffi.gemstone.GemFiatQuotesResult
+import uniffi.gemstone.GemFiatViewState
 import uniffi.gemstone.GemServiceException
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
@@ -119,9 +119,9 @@ class FiatViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val uiState: StateFlow<FiatUiState> = combine(viewState, assetInfoUIModel) { state, asset ->
-        createFiatUiState(state, state.errorText(context))
+        state.toUiState()
     }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, createFiatUiState(viewState.value, null))
+        .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.toUiState())
 
 
     val providers = combine(assetInfoUIModel.filterNotNull(), viewState) { asset, state ->
@@ -137,7 +137,6 @@ class FiatViewModel @Inject constructor(
             ListItemModel(
                 title = context.getString(R.string.common_provider),
                 subtitle = it.providerName,
-                image = ListItemImage.Drawable(it.provider.iconResource()),
             )
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -216,6 +215,12 @@ class FiatViewModel @Inject constructor(
             isUrlLoading.value = false
         }
     }
+
+    private fun GemFiatViewState.toUiState(): FiatUiState = createFiatUiState(
+        state = this,
+        amountError = amountErrorText(context),
+        quotesMessage = quotesMessage(context),
+    )
 
     private companion object {
         const val TAG = "FiatViewModel"

@@ -33,6 +33,7 @@ import com.gemwallet.android.ui.components.buttons.RandomGradientButton
 import com.gemwallet.android.ui.components.fields.AmountField
 import com.gemwallet.android.ui.components.fields.AmountSymbolPlacement
 import com.gemwallet.android.ui.components.fields.AmountSymbolUIModel
+import com.gemwallet.android.ui.components.image.iconModel
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
@@ -54,7 +55,7 @@ import com.wallet.core.primitives.FiatProviderName
 import com.wallet.core.primitives.FiatQuoteType
 
 private val loadingIndicatorSize = 30.dp
-private val errorTextPadding = 20.dp
+private val quotesMessagePadding = 20.dp
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -110,7 +111,7 @@ fun BuyScene(
             amount = fiatAmount,
             symbol = AmountSymbolUIModel(symbol = "$", placement = AmountSymbolPlacement.Trailing),
             equivalent = selectedProvider?.cryptoFormatted ?: " ",
-            error = "",
+            error = uiState.amountError ?: "",
             onValueChange = onAmount,
             keyboardType = KeyboardType.Number,
             maximumFractionDigits = 0u,
@@ -132,7 +133,7 @@ fun BuyScene(
             },
         )
 
-        val errorText = uiState.errorText
+        val quotesMessage = uiState.quotesMessage
         when {
             uiState.isLoading -> {
                 Box(
@@ -149,14 +150,14 @@ fun BuyScene(
                 }
             }
 
-            errorText != null -> {
+            quotesMessage != null -> {
                 Text(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(errorTextPadding),
+                        .padding(quotesMessagePadding),
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.error,
-                    text = errorText,
+                    text = quotesMessage,
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
@@ -167,10 +168,11 @@ fun BuyScene(
                         model = it,
                         listPosition = ListPosition.First,
                         modifier = Modifier.clickable(enabled = uiState.canSelectProvider) { isShowProviders.value = true },
-                        accessory = if (uiState.canSelectProvider) {
-                            { DataBadgeChevron() }
-                        } else {
-                            null
+                        accessory = {
+                            DataBadgeChevron(
+                                icon = selectedProvider.provider.iconModel(),
+                                isShowChevron = uiState.canSelectProvider,
+                            )
                         },
                     )
                 }

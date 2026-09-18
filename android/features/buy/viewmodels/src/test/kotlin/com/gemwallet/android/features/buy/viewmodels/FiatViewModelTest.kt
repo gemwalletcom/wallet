@@ -212,7 +212,7 @@ class FiatViewModelTest {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
-            assertEquals("string:${R.string.errors_unknown_try_again}", viewModel.uiState.value.errorText)
+            assertEquals("string:${R.string.errors_unknown_try_again}", viewModel.uiState.value.quotesMessage)
             assertTrue(viewModel.uiState.value.retries)
             assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
 
@@ -220,7 +220,7 @@ class FiatViewModelTest {
             viewModel.retry()
             runCurrent()
 
-            assertNull(viewModel.uiState.value.errorText)
+            assertNull(viewModel.uiState.value.quotesMessage)
             assertFalse(viewModel.uiState.value.retries)
             assertTrue(viewModel.providers.value.isNotEmpty())
             coVerify(exactly = 2) {
@@ -240,7 +240,26 @@ class FiatViewModelTest {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
-            assertEquals("string:${R.string.buy_no_results}", viewModel.uiState.value.errorText)
+            assertEquals("string:${R.string.buy_no_results}", viewModel.uiState.value.quotesMessage)
+            assertEquals(ButtonState.Disabled, viewModel.uiState.value.buttonState)
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `a sell quote above the balance keeps the providers and moves the error onto the amount`() = runTest(testDispatcher) {
+        assetDataFlow.value = mockAssetData(price = mockAssetPriceInfo(price = 100.0), metadata = mockAssetMetaData(isSellEnabled = true))
+        coEvery { service.quotes(any(), any(), any()) } returns listOf(mockFiatQuote(quoteType = FiatQuoteType.Sell))
+        val viewModel = createViewModel(initialType = FiatQuoteType.Sell)
+
+        try {
+            advanceTimeBy(DebounceSettleMs)
+            runCurrent()
+
+            assertTrue(viewModel.providers.value.isNotEmpty())
+            assertNull(viewModel.uiState.value.quotesMessage)
+            assertEquals("string:${R.string.transfer_insufficient_balance}", viewModel.uiState.value.amountError)
             assertEquals(ButtonState.Disabled, viewModel.uiState.value.buttonState)
         } finally {
             viewModel.viewModelScope.cancel()
