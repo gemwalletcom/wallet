@@ -189,7 +189,7 @@ public final class StakeSceneViewModel {
 
     var claimRewardsDestination: any Hashable {
         switch claimRewards.destination {
-        case let .transfer(transfer): transfer
+        case let .transfer(transfer): ConfirmTransferInput(data: transfer)
         case let .amount(delegations): AmountInput(type: .stake(.rewards(delegations: delegations, validator: nil)), asset: asset)
         }
     }

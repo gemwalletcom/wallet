@@ -1,6 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import GemstonePrimitives
+import struct Gemstone.GemTransferData
 import Localization
 import Primitives
 import PrimitivesTestKit
@@ -42,6 +44,21 @@ struct StakeSceneViewModelTests {
         let stake = tron.actions.first { $0.action == .stake }
         #expect(stake?.isEnabled == false)
         #expect(stake?.requiresFrozenBalance == false)
+    }
+
+    @Test
+    func claimRewardsRoutesToConfirmInput() {
+        let transfer = GemTransferData.mock()
+        let model = StakeSceneViewModel.mock(chain: .tron, stakeService: GemStakeServiceMock(claimRewardsDestination: .transfer(transfer: transfer)))
+
+        #expect(model.destination(for: .claimRewards) as? ConfirmTransferInput == ConfirmTransferInput(data: transfer))
+    }
+
+    @Test
+    func claimRewardsAcrossValidatorsRoutesToAmount() {
+        let model = StakeSceneViewModel.mock(chain: .tron)
+
+        #expect(model.destination(for: .claimRewards) is AmountInput)
     }
 
 }

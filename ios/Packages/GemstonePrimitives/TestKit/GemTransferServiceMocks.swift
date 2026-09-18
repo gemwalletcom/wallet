@@ -195,6 +195,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     private let minStake: Gemstone.GemBigInt
     private let freezes: Bool
     private let wholeAmounts: Bool
+    private let claimRewardsDestination: GemClaimRewardsDestination?
 
     public init(
         rewardsShown: Bool = false,
@@ -206,6 +207,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         minStake: Gemstone.GemBigInt = 0,
         freezes: Bool = false,
         wholeAmounts: Bool = false,
+        claimRewardsDestination: GemClaimRewardsDestination? = nil,
     ) {
         self.rewardsShown = rewardsShown
         self.claimable = claimable
@@ -216,6 +218,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         self.minStake = minStake
         self.freezes = freezes
         self.wholeAmounts = wholeAmounts
+        self.claimRewardsDestination = claimRewardsDestination
     }
 
     public func sortedDelegations(delegations: [Gemstone.Delegation]) -> [Gemstone.Delegation] {
@@ -306,7 +309,7 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
     }
 
     public func claimRewards(chain _: Gemstone.Chain, delegations: [Gemstone.Delegation]) -> GemClaimRewards {
-        GemClaimRewards(value: 0, destination: .amount(delegations: delegations))
+        GemClaimRewards(value: 0, destination: claimRewardsDestination ?? .amount(delegations: delegations))
     }
 
     public func selectableValidators(validators _: [Gemstone.DelegationValidator]) -> [Gemstone.DelegationValidator] {
