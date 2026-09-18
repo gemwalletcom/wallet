@@ -7,6 +7,7 @@ import com.gemwallet.android.ui.components.chart.ChartPoint
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.chart.ChartHeaderUIModel
 import com.wallet.core.primitives.ChartPeriod
+import uniffi.gemstone.GemChartBounds
 import uniffi.gemstone.GemChartData
 
 internal const val StopTimeoutMillis = 5_000L
@@ -20,8 +21,10 @@ data class ChartUIModel(
         chart.values.mapIndexed { index, value -> ChartPoint(x = index.toFloat(), y = value.value.toFloat()) }
     }
 
-    val minLabel: String? by lazy { chart.values.minByOrNull { it.value }?.let { priceFormatter.string(it.value) } }
-    val maxLabel: String? by lazy { chart.values.maxByOrNull { it.value }?.let { priceFormatter.string(it.value) } }
+    val bounds: GemChartBounds by lazy { chart.bounds() }
+
+    val minLabel: String? by lazy { chart.values.getOrNull(bounds.lowerIndex.toInt())?.let { priceFormatter.string(it.value) } }
+    val maxLabel: String? by lazy { chart.values.getOrNull(bounds.upperIndex.toInt())?.let { priceFormatter.string(it.value) } }
 
     fun header(selectedIndex: Int?): ChartHeaderUIModel? {
         val selected = selectedIndex?.let { chart.values.getOrNull(it) }

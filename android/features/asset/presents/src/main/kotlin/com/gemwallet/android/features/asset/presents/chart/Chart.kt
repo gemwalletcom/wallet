@@ -43,6 +43,7 @@ internal fun ChartSection(
         ) { model ->
             GemLineChart(
                 points = model.renderPoints,
+                bounds = model.bounds,
                 lineColor = MaterialTheme.colorScheme.primary,
                 selectedIndex = selectedIndex,
                 onSelectionChanged = { selectedIndex = it },

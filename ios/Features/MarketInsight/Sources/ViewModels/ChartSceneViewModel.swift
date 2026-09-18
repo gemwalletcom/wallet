@@ -62,8 +62,7 @@ public final class ChartSceneViewModel: ChartListViewable {
         switch session.viewState().phase {
         case .loading: .loading
         case let .data(data):
-            ChartValuesViewModel(period: selectedPeriod, chartData: data)
-                .map { .data($0) } ?? .noData
+            .data(ChartValuesViewModel(period: selectedPeriod, chartData: data))
         case .noData: .noData
         case let .failed(error): .error(error)
         }

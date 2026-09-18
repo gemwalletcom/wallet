@@ -51,7 +51,7 @@ Found by pairing every view model on both apps (see Coverage) and reading the on
 - **T5** **S** Android `ManageContactState` twins `GemContactInput` (name, description, avatar, addresses) — with **S43**, the session holds the input.
 - **Q1** **S** A missing account still becomes an empty address in `SelectAssetViewModel` (falls back to `AssetData.with(asset:)` with `""`) and `AmountSceneViewModel` (`?? ""` for fiat buy) — Core answers the account on the row; an empty address never reaches a transfer. `CollectibleViewModel` already returns early.
 - **Q2** **S** `SwapSceneViewModel:255,386` swallow `suggestPair` and `SwapQuoteInput.create` failures with `try?` — Core returns an optional pair; the input builds from the session.
-- **Q4** **S** `ChartValuesViewModel:25`, `FeeUnitViewModel:44` and `NetworkFeeCustomViewModel:102` parse numbers under `try?` — `GemNumberFormat` answers a value or a check.
+- **Q4** **S** `FeeUnitViewModel:44` and `NetworkFeeCustomViewModel:102` parse numbers under `try?` — `GemNumberFormat` answers a value or a check.
 - **O53** **S** iOS `NameRecordViewModel.state: GemNameRecordState` is stored — derive it from the address session.
 - **O54** **S** iOS `AmountStakeViewModel.action: GemStakeAmountInput` and `ImportWalletSceneViewModel.importType: GemWalletImportKind` are stored and switched on in the model — the session holds them (**S41**).
 
@@ -67,7 +67,6 @@ Found by pairing every view model on both apps (see Coverage) and reading the on
 
 ## 6. Core shapes that block an app move
 
-- **K9** **S** The chart min/max and padding arithmetic is still app-side (iOS `ChartValues.from`, Android `GemLineChart`); neither app reads `GemChart.base_value`/`GemChartData.base` — a `GemChartLayout` from Core.
 - **K8** **M** `GemStreamService` holds 13 `Arc`s, `GemAssetDetailsService` and `GemWalletService` 10, `GemPerpetualService` 9 — for each, the dependencies reached only to forward one call move behind the composition service (§ 7).
 - **S41** **M** iOS `ImportWalletSceneViewModel` drives input, word suggestions, import kind and button state itself — `GemWalletImportSession` on both apps (Android `ImportUIState` carries the same).
 - **S43** **M** iOS `ManageContactViewModel` (name input, description, avatar, addresses, saving) and Android `ManageContactState` — `GemContactSession` over the `GemContactInput` both already hold.

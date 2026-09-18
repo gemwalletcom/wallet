@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use primitives::{Asset, AssetLink, AssetMarket, AssetPrice, BlockExplorerLink, ChartDateValue, ChartPeriod, ChartValue, Currency, PriceAlert, PriceChangeCalculator};
 
-use super::model::{GemAssetMarketRow, GemChartData, GemChartHeader, GemChartSection, GemChartValueType};
+use super::model::{GemAssetMarketRow, GemChartBounds, GemChartData, GemChartHeader, GemChartSection, GemChartValueType};
 use super::{GemChart, GemChartCurrent};
 use crate::formatted_number::GemFormattedNumber;
 use crate::percentage::GemPercentageStyle;
@@ -11,6 +11,9 @@ use crate::services::price_alert::rules::displayed_price_alert_ids;
 
 const MARKET_CAP_RANK_BADGE_LIMIT: i32 = 1000;
 const MIN_CHART_POINTS: usize = 2;
+const RANGE_PADDING: f64 = 0.05;
+const FLAT_LINE_PADDING: f64 = 0.01;
+const FLAT_LINE_MIN_PADDING: f64 = 0.01;
 
 pub fn converted_values(prices: Vec<ChartValue>, rate: f64) -> Vec<ChartDateValue> {
     let mut values: Vec<ChartDateValue> = prices
@@ -117,6 +120,32 @@ fn all_time_section(market: &AssetMarket) -> Vec<GemAssetMarketRow> {
 
 fn available_rows<const N: usize>(rows: [Option<GemAssetMarketRow>; N]) -> Vec<GemAssetMarketRow> {
     rows.into_iter().flatten().collect()
+}
+
+pub fn chart_bounds(values: &[ChartDateValue]) -> GemChartBounds {
+    let extreme = |better: fn(f64, f64) -> bool| {
+        values
+            .iter()
+            .enumerate()
+            .fold(None, |best: Option<(usize, f64)>, (index, point)| match best {
+                Some((_, value)) if !better(point.value, value) => best,
+                _ => Some((index, point.value)),
+            })
+            .unwrap_or((0, 0.0))
+    };
+    let (lower_index, lower) = extreme(|candidate, current| candidate < current);
+    let (upper_index, upper) = extreme(|candidate, current| candidate > current);
+    let range = upper - lower;
+    let padding = match range == 0.0 {
+        true => (lower * FLAT_LINE_PADDING).max(FLAT_LINE_MIN_PADDING),
+        false => range * RANGE_PADDING,
+    };
+    GemChartBounds {
+        lower_index: lower_index as u32,
+        upper_index: upper_index as u32,
+        y_min: lower - padding,
+        y_max: upper + padding,
+    }
 }
 
 pub fn price_chart_data(chart: GemChart, currency: Currency) -> Option<GemChartData> {
@@ -368,6 +397,24 @@ mod tests {
         assert_eq!(base_value(&[ChartDateValue::mock(0, 50.0), ChartDateValue::mock(0, 100.0)]), 50.0);
         assert_eq!(base_value(&[ChartDateValue::mock(0, 0.0)]), 0.0);
         assert_eq!(base_value(&[]), 0.0);
+    }
+
+    #[test]
+    fn test_chart_bounds_pad_the_range_and_point_at_the_first_extremes() {
+        let points = |values: &[f64]| values.iter().map(|value| ChartDateValue { date: Utc::now(), value: *value }).collect::<Vec<_>>();
+
+        let bounds = chart_bounds(&points(&[100.0, 150.0, 80.0, 120.0, 80.0]));
+        assert_eq!((bounds.lower_index, bounds.upper_index), (2, 1));
+        assert!((bounds.y_min - 76.5).abs() < 1e-9 && (bounds.y_max - 153.5).abs() < 1e-9);
+
+        let flat = chart_bounds(&points(&[5.0, 5.0]));
+        assert!((flat.y_min - 4.95).abs() < 1e-9 && (flat.y_max - 5.05).abs() < 1e-9, "a flat line pads by one percent");
+
+        let zero = chart_bounds(&points(&[0.0, 0.0]));
+        assert!((zero.y_min + 0.01).abs() < 1e-9 && (zero.y_max - 0.01).abs() < 1e-9, "a flat line at zero keeps a minimum range");
+
+        let negative = chart_bounds(&points(&[-2.0, -2.0]));
+        assert!((negative.y_min + 2.01).abs() < 1e-9 && (negative.y_max + 1.99).abs() < 1e-9);
     }
 
     #[test]

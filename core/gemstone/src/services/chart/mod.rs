@@ -18,7 +18,7 @@ use crate::services::price::GemPriceService;
 use crate::services::price_alert::GemPriceAlertService;
 use session::GemChartSession;
 
-pub use model::{GemAssetMarketRow, GemChartData, GemChartHeader, GemChartSection, GemChartValueType};
+pub use model::{GemAssetMarketRow, GemChartBounds, GemChartData, GemChartHeader, GemChartSection, GemChartValueType};
 
 #[uniffi::export]
 pub fn candlestick_header(base: f64, value: f64) -> GemChartHeader {

@@ -46,9 +46,21 @@ pub struct GemChartData {
     pub header: Option<GemChartHeader>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, uniffi::Record)]
+pub struct GemChartBounds {
+    pub lower_index: u32,
+    pub upper_index: u32,
+    pub y_min: f64,
+    pub y_max: f64,
+}
+
 #[uniffi::export]
 impl GemChartData {
     pub fn header_at(&self, value: f64) -> GemChartHeader {
         rules::header(self, value, None)
+    }
+
+    pub fn bounds(&self) -> GemChartBounds {
+        rules::chart_bounds(&self.values)
     }
 }

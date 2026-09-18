@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.abs
 import kotlin.math.min
+import uniffi.gemstone.GemChartBounds
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import com.gemwallet.android.ui.theme.space1
@@ -63,9 +64,6 @@ private object Metrics {
     val pulsingDotSize = space8
     const val MAX_RENDER_POINTS = 120
     const val X_RIGHT_PADDING_FRACTION = 0.02f
-    const val FLAT_LINE_PADDING = 0.01f
-    const val FLAT_LINE_MIN_RANGE = 0.01f
-    const val RANGE_PADDING = 0.05f
 }
 
 private object Alpha {
@@ -81,6 +79,7 @@ private object Alpha {
 @Composable
 fun GemLineChart(
     points: List<ChartPoint>,
+    bounds: GemChartBounds,
     lineColor: Color,
     modifier: Modifier = Modifier,
     selectedIndex: Int? = null,
@@ -105,12 +104,11 @@ fun GemLineChart(
     val labelOffsetAbovePx = with(density) { Metrics.boundLabelOffsetAbove.toPx() }
     val glowExtraPx = with(density) { Metrics.selectionGlowExtra.toPx() }
 
-    val yMin = points.minOf { it.y }
-    val yMax = points.maxOf { it.y }
-    val (paddedMin, paddedRange) = calculatePaddedRange(yMin, yMax)
+    val paddedMin = bounds.yMin.toFloat()
+    val paddedRange = (bounds.yMax - bounds.yMin).toFloat()
 
-    val minIndex = points.indexOfFirst { it.y == yMin }
-    val maxIndex = points.indexOfFirst { it.y == yMax }
+    val minIndex = bounds.lowerIndex.toInt()
+    val maxIndex = bounds.upperIndex.toInt()
 
     val renderPoints = remember(points) {
         if (points.size > Metrics.MAX_RENDER_POINTS) reducePoints(points, Metrics.MAX_RENDER_POINTS) else points
@@ -349,17 +347,6 @@ private fun reducePoints(data: List<ChartPoint>, targetCount: Int): List<ChartPo
     }
     result.add(data.last())
     return result
-}
-
-private fun calculatePaddedRange(min: Float, max: Float): Pair<Float, Float> {
-    val range = max - min
-    return if (range == 0f) {
-        val padding = (min * Metrics.FLAT_LINE_PADDING).coerceAtLeast(Metrics.FLAT_LINE_MIN_RANGE)
-        (min - padding) to (padding * 2f)
-    } else {
-        val padding = range * Metrics.RANGE_PADDING
-        (min - padding) to (range + padding * 2f)
-    }
 }
 
 private fun indexToX(index: Int, count: Int, width: Float): Float =
