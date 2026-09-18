@@ -428,7 +428,7 @@ pub fn details_state(
         shows_manage: !metadata.is_balance_enabled,
         shows_resources: StakeChain::from_str(chain.as_ref()).is_ok_and(|stake_chain| stake_chain.get_uses_freeze()),
         shows_price_alerts: has_price(price) && displayed_alerts > 0,
-        price_alerts_count: displayed_alerts,
+        price_alerts_count_text: displayed_alerts.to_string(),
         price_alert: price_alert_toggle(&price_alerts),
         shows_earn: EARN_OFFERED && metadata.is_earn_enabled && !is_view_only && balance.earn == GemBigUint::ZERO,
         empty_transactions_action: if metadata.is_buy_enabled {
@@ -1075,10 +1075,10 @@ mod tests {
         notified.last_notified_at = Some(Utc::now());
         let state = |alerts: Vec<PriceAlert>| details_state(WalletType::Multicoin, Chain::Ethereum, &plain, &balance, &[], Some(1.0), alerts);
 
-        assert_eq!(state(vec![auto.clone(), manual.clone(), notified]).price_alerts_count, 2);
+        assert_eq!(state(vec![auto.clone(), manual.clone(), notified]).price_alerts_count_text, "2");
         assert_eq!(state(vec![auto, manual.clone()]).price_alert, GemPriceAlertToggle::Enabled);
         assert_eq!(state(vec![manual]).price_alert, GemPriceAlertToggle::Disabled);
-        assert_eq!(state(vec![]).price_alerts_count, 0);
+        assert_eq!(state(vec![]).price_alerts_count_text, "0");
     }
 
     #[test]

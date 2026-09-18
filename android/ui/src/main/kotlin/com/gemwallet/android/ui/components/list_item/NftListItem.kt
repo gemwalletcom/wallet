@@ -42,9 +42,9 @@ fun NftListItem(
             )
         },
         trailing = {
-            model.collectionSize?.let { count ->
+            model.countText?.let { countText ->
                 Text(
-                    text = count.toString(),
+                    text = countText,
                     color = MaterialTheme.colorScheme.secondary,
                     style = MaterialTheme.typography.bodyMedium,
                 )

@@ -2,12 +2,14 @@
 
 import enum Gemstone.Deeplink
 import protocol Gemstone.GemDeveloperServiceProtocol
+import enum Gemstone.GemServiceError
 import Components
 import Foundation
 import GemstonePrimitives
 import class GemstoneServices.GemstoneDevicePlatform
 import Localization
 import Primitives
+import PrimitivesComponents
 import SwiftUI
 
 @Observable
@@ -36,8 +38,20 @@ public final class DeveloperViewModel {
     }
 
     func load() async {
-        deviceId = (try? await service.deviceId()) ?? .empty
-        deviceToken = (try? await service.pushToken()) ?? .empty
+        do {
+            deviceId = try await service.deviceId()
+        } catch let error as GemServiceError {
+            deviceId = error.text().text
+        } catch {
+            debugLog("developer device id error: \(error)")
+        }
+        do {
+            deviceToken = try await service.pushToken()
+        } catch let error as GemServiceError {
+            deviceToken = error.text().text
+        } catch {
+            debugLog("developer push token error: \(error)")
+        }
     }
 
     func reset() {

@@ -81,7 +81,7 @@ public final class RewardsViewModel: Sendable {
     }
 
     var createCodeDescription: String {
-        Localized.Rewards.InviteFriends.description(String(rewardsState.inviteRewardPoints).boldMarkdown())
+        Localized.Rewards.InviteFriends.description(rewardsState.inviteRewardPointsText.boldMarkdown())
     }
 
     var activateCodeFooterTitle: String {

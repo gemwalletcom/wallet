@@ -25,7 +25,7 @@ pub struct GemNftRow {
     pub id: String,
     pub title: String,
     pub image_url: String,
-    pub count: Option<u32>,
+    pub count_text: Option<String>,
     pub is_verified: bool,
 }
 

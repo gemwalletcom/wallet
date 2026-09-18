@@ -38,7 +38,7 @@ struct WalletConnectorNavigationStack: View {
                 case let .signMessage(data):
                     SignMessageScene(
                         model: viewModelFactory.signMessageScene(
-                            payload: data.payload,
+                            request: data.payload,
                             confirmTransferDelegate: data.delegate,
                         ),
                         onComplete: { presenter.complete(type: type) },

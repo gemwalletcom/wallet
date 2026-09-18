@@ -10,10 +10,9 @@ import com.gemwallet.android.domains.referral.values.ReferralError
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.referral.viewmodels.models.ReferralUIModel
 import com.gemwallet.android.features.referral.viewmodels.models.RewardRedemptionUIModel
-import com.gemwallet.android.features.referral.viewmodels.models.infoRows
 import com.gemwallet.android.features.referral.viewmodels.models.uiModel
+import com.gemwallet.android.features.referral.viewmodels.models.infoRows
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Wallet
@@ -58,9 +57,6 @@ class ReferralViewModel @Inject constructor(
 
     val uiState = rewards.mapLatest { service.state(it) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, service.state(null))
-
-    val referralState: StateFlow<ReferralUIModel> = uiState.map { it.uiModel() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, uiState.value.uiModel())
 
     val infoRows: StateFlow<List<ListItemModel>> = uiState.map { it.infoRows(context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

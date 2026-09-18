@@ -34,7 +34,7 @@ final class CoinPriceRowViewModel {
     }
 
     var chainPlaceholder: Image? {
-        guard let assetId = try? AssetId(id: coin.coin.assetId) else { return nil }
+        let assetId = AssetId(core: coin.coin.assetId)
         switch assetId.type {
         case .native: return nil
         case .token: return Images.name(assetId.chain.rawValue)

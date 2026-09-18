@@ -2,6 +2,7 @@
 
 import func Gemstone.contactAddressFields
 import enum Gemstone.GemContactAddressField
+import struct Gemstone.GemContactAddressInput
 import protocol Gemstone.GemManageContactServiceProtocol
 import protocol Gemstone.GemNameServiceProtocol
 import Components
@@ -35,16 +36,10 @@ public final class ManageContactAddressViewModel {
         }
     }
 
-    public struct Input: Sendable {
-        public let chain: Chain
-        public let address: String
-        public let memo: String?
-        public let replacingId: String?
-    }
-
+    private let contactId: String
     private let mode: Mode
     private let service: any GemManageContactServiceProtocol
-    private let onComplete: (Input) -> Void
+    private let onComplete: (GemContactAddressInput) -> Void
 
     var addressInputModel: AddressInputViewModel
     var memo: String = ""
@@ -53,9 +48,11 @@ public final class ManageContactAddressViewModel {
     public init(
         service: any GemManageContactServiceProtocol,
         nameService: any GemNameServiceProtocol,
+        contactId: String,
         mode: Mode,
-        onComplete: @escaping (Input) -> Void,
+        onComplete: @escaping (GemContactAddressInput) -> Void,
     ) {
+        self.contactId = contactId
         self.mode = mode
         self.service = service
         self.onComplete = onComplete
@@ -114,8 +111,9 @@ public final class ManageContactAddressViewModel {
         addressInputModel.isValid ? .normal : .disabled
     }
 
-    private var input: Input {
-        Input(
+    private var input: GemContactAddressInput {
+        GemContactAddressInput(
+            contactId: contactId,
             chain: chain,
             address: addressInputModel.resolvedAddress,
             memo: memo,

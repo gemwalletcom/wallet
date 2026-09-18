@@ -32,7 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.features.referral.viewmodels.SyncType
-import com.gemwallet.android.features.referral.viewmodels.models.ReferralUIModel
+import uniffi.gemstone.GemRewardsState
 import com.gemwallet.android.features.referral.viewmodels.models.RewardRedemptionUIModel
 import com.gemwallet.android.features.referral.views.components.referralConfirmCode
 import com.gemwallet.android.features.referral.views.components.referralError
@@ -70,7 +70,7 @@ fun ReferralScene(
     inSync: SyncType,
     isAvailableWalletSelect: Boolean,
     referralLink: String?,
-    uiState: ReferralUIModel,
+    uiState: GemRewardsState,
     infoRows: List<ListItemModel>,
     redemptions: List<RewardRedemptionUIModel>,
     currentWallet: Wallet?,
@@ -146,7 +146,7 @@ fun ReferralScene(
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 referralHead(
-                    joinPointsCost = uiState.inviteRewardPoints,
+                    joinPointsCost = uiState.inviteRewardPointsText,
                     canInvite = uiState.canInvite,
                     hasCode = uiState.hasReferralCode,
                     onGetStarted = { getStartedDialogShow = true },

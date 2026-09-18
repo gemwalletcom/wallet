@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.confirm.presents.components
+package com.gemwallet.android.features.confirm.viewmodels.models
 
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue

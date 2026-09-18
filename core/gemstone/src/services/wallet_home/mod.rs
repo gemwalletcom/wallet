@@ -88,10 +88,15 @@ impl GemWalletHomeService {
         self.balances.update(self.session.current_wallet_id()?, asset_ids).await
     }
 
-    pub fn shows_initial_loading(&self) -> Result<bool, GemServiceError> {
-        let wallet_id = self.session.current_wallet_id()?;
-        let completed = self.wallet_preferences.is_initial_load_completed(wallet_id.clone(), GemDiscoveryStep::Assets)?;
-        Ok(rules::shows_initial_loading(completed, self.wallet_preferences.get_assets_timestamp(wallet_id)))
+    pub fn shows_initial_loading(&self) -> bool {
+        let Ok(wallet_id) = self.session.current_wallet_id() else {
+            return false;
+        };
+        let completed = self
+            .wallet_preferences
+            .is_initial_load_completed(wallet_id.clone(), GemDiscoveryStep::Assets)
+            .unwrap_or(true);
+        rules::shows_initial_loading(completed, self.wallet_preferences.get_assets_timestamp(wallet_id))
     }
 
     pub async fn refresh(&self) -> Result<(), GemServiceError> {
@@ -183,14 +188,14 @@ mod tests {
         block_on(async {
             let testkit = WalletHomeTestkit::with_status(503);
 
-            assert!(testkit.service.shows_initial_loading().unwrap());
+            assert!(testkit.service.shows_initial_loading());
 
             testkit
                 .wallet_preferences
                 .set_initial_load_completed(testkit.wallet_id.clone(), GemDiscoveryStep::Assets)
                 .unwrap();
 
-            assert!(!testkit.service.shows_initial_loading().unwrap());
+            assert!(!testkit.service.shows_initial_loading());
         })
     }
 }

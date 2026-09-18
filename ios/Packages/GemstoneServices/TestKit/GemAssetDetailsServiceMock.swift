@@ -53,7 +53,7 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
                 showsManage: !input.metadata.isBalanceEnabled,
                 showsResources: false,
                 showsPriceAlerts: false,
-                priceAlertsCount: 0,
+                priceAlertsCountText: "0",
                 priceAlert: .disabled,
                 showsEarn: false,
                 emptyTransactionsAction: nil,

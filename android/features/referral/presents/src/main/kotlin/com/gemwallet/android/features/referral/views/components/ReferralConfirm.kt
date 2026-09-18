@@ -13,7 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.gemwallet.android.features.referral.viewmodels.models.ReferralUIModel
+import uniffi.gemstone.GemRewardsState
 import com.gemwallet.android.features.referral.views.previewRewardsState
 import com.gemwallet.android.domains.duration.formatDuration
 import com.gemwallet.android.ui.R
@@ -34,7 +34,7 @@ import com.gemwallet.android.ui.theme.tinyIconSize
 import uniffi.gemstone.GemDurationPart
 import uniffi.gemstone.GemDurationUnit
 
-internal fun LazyListScope.referralConfirmCode(uiState: ReferralUIModel, onConfirm: (String) -> Unit) {
+internal fun LazyListScope.referralConfirmCode(uiState: GemRewardsState, onConfirm: (String) -> Unit) {
     if (!uiState.hasPendingReferral) return
     val code = uiState.usedReferralCode ?: return
     item {

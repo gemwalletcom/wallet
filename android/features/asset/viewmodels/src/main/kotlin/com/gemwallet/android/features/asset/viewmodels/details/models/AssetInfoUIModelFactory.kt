@@ -71,7 +71,7 @@ class AssetInfoUIModelFactory @Inject constructor(@ApplicationContext private va
             ),
             addListItem = ListItemModel(title = context.getString(R.string.asset_add_to_wallet), image = ListItemImage.Symbol(ListItemSymbol.AddCircle)),
             priceListItem = ListItemModel(title = context.getString(R.string.asset_price), subtitle = if (price == 0.0) "" else currencyFormatter.string(price)),
-            priceAlertsListItem = ListItemModel(title = context.getString(R.string.settings_price_alerts_title), subtitle = details.state.priceAlertsCount.toString()),
+            priceAlertsListItem = ListItemModel(title = context.getString(R.string.settings_price_alerts_title), subtitle = details.state.priceAlertsCountText),
             accountInfoUIModel = AssetInfoUIModel.AccountInfoUIModel(
                 totalBalance = valueFormatter.string(balances.balance.getTotalAmount(), balances.asset),
                 totalFiat = fiatTotal,

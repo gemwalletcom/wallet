@@ -1,11 +1,12 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import struct Gemstone.GemWalletConnectMessageRequest
 import Primitives
 import WalletConnectorService
 
 public enum WalletConnectorSheetType: Sendable, Identifiable {
     case transferData(TransferDataCallback<WCTransferData>)
-    case signMessage(TransferDataCallback<SignMessagePayload>)
+    case signMessage(TransferDataCallback<GemWalletConnectMessageRequest>)
     case connectionProposal(TransferDataCallback<WCPairingProposal>)
 
     public var id: Int {

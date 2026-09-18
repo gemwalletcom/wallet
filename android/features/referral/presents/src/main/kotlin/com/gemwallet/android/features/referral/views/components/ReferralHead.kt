@@ -27,7 +27,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 
 internal fun LazyListScope.referralHead(
-    joinPointsCost: Int,
+    joinPointsCost: String,
     canInvite: Boolean,
     hasCode: Boolean,
     onGetStarted: () -> Unit,

@@ -110,7 +110,7 @@ class AssetsViewModel @Inject constructor(
     }
 
     private suspend fun loadOnce() {
-        val showsLoading = runCatchingCancellable { service.showsInitialLoading() }.getOrDefault(false)
+        val showsLoading = service.showsInitialLoading()
         if (showsLoading) isLoadingAssets.value = true
         try {
             refresh()

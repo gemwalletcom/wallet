@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
@@ -200,10 +201,7 @@ private fun TitleTag(text: String, style: ListItemTextStyle, type: ListItemTagTy
         ListItemTagType.None -> Unit
     }
     when (style) {
-        ListItemTextStyle.Primary,
-        ListItemTextStyle.Positive,
-        ListItemTextStyle.Negative,
-        ListItemTextStyle.Warning -> Text(
+        ListItemTextStyle.Primary -> Text(
             modifier = Modifier
                 .padding(start = paddingHalfSmall)
                 .background(
@@ -214,6 +212,22 @@ private fun TitleTag(text: String, style: ListItemTextStyle, type: ListItemTagTy
             text = text,
             color = style.color(),
             style = MaterialTheme.typography.bodyMedium,
+        )
+        ListItemTextStyle.Positive,
+        ListItemTextStyle.Negative,
+        ListItemTextStyle.Warning -> Text(
+            modifier = Modifier
+                .padding(start = paddingHalfSmall)
+                .background(
+                    color = style.color().copy(alpha = alpha10),
+                    shape = RoundedCornerShape(space6),
+                )
+                .padding(horizontal = paddingHalfSmall, vertical = space2),
+            text = text,
+            color = style.color(),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.labelMedium,
         )
         ListItemTextStyle.Body,
         ListItemTextStyle.Secondary,

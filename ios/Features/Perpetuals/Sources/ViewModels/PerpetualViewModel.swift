@@ -4,7 +4,6 @@ import Components
 import Formatters
 import Foundation
 import GemstonePrimitives
-import class Gemstone.GemPerpetual
 import struct Gemstone.GemPerpetualMarketRow
 import enum Gemstone.GemPerpetualInfoRow
 import func Gemstone.perpetualMarketRow
@@ -43,7 +42,7 @@ public struct PerpetualViewModel {
         let value = switch infoRow {
         case .dailyVolume: row.volume24h.text()
         case .openInterest: row.openInterest.text()
-        case .fundingRate: percentFormatter.string(GemPerpetual(provider: perpetual.provider.toGem()).fundingApr(funding: perpetual.funding))
+        case .fundingRate: row.fundingApr.text()
         }
         return ListItemField(title: infoRow.title, value: value)
     }

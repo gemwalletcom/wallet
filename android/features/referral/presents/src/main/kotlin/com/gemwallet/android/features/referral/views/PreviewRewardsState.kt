@@ -1,7 +1,7 @@
 package com.gemwallet.android.features.referral.views
 
-import com.gemwallet.android.features.referral.viewmodels.models.ReferralUIModel
 import uniffi.gemstone.GemDurationPart
+import uniffi.gemstone.GemRewardsState
 
 internal fun previewRewardsState(
     referralCode: String? = null,
@@ -18,7 +18,7 @@ internal fun previewRewardsState(
     usedReferralCode: String? = null,
     pendingCountdown: List<GemDurationPart> = emptyList(),
     disableReason: String? = null,
-) = ReferralUIModel(
+) = GemRewardsState(
     hasReferralCode = hasReferralCode,
     hasUsedReferralCode = hasUsedReferralCode,
     canInvite = canInvite,
@@ -27,8 +27,13 @@ internal fun previewRewardsState(
     isUnverified = isUnverified,
     hasPendingReferral = hasPendingReferral,
     canActivatePendingReferral = canActivatePendingReferral,
-    inviteRewardPoints = 100,
+    inviteRewardPointsText = "100",
+    referralCode = referralCode,
+    referralLink = null,
     usedReferralCode = usedReferralCode,
     pendingCountdown = pendingCountdown,
     disableReason = disableReason,
+    referralCountText = referralCountText,
+    pointsText = pointsText,
+    redemptions = emptyList(),
 )

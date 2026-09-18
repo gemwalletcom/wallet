@@ -93,6 +93,13 @@ public actor StreamObserverService: Sendable {
             case let .message(data):
                 let event = try await service.handle(event: String(decoding: data, as: UTF8.self))
                 debugLog("stream event: \(event)")
+                Task { [service] in
+                    do {
+                        try await service.sync(event: event)
+                    } catch {
+                        debugLog("stream sync error: \(error)")
+                    }
+                }
             case .disconnected:
                 debugLog("stream disconnected")
                 if isActive {

@@ -110,6 +110,7 @@ pub struct GemPerpetualMarketRow {
     pub shows_price: bool,
     pub volume_24h: GemFormattedNumber,
     pub open_interest: GemFormattedNumber,
+    pub funding_apr: GemFormattedNumber,
 }
 
 #[uniffi::export]

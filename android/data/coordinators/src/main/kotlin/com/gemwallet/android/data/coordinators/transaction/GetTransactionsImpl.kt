@@ -29,7 +29,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import uniffi.gemstone.GemAmountSign
 import uniffi.gemstone.transactionRow
 import uniffi.gemstone.transactionRows
 import uniffi.gemstone.GemTransactionRowSubtitle
@@ -114,11 +113,7 @@ class TransactionDataAggregateImpl(
 
     override val subtitle: GemTransactionRowSubtitle = row.subtitle
 
-    override val address: String = subtitle.address().orEmpty()
-
     private val coreValue: GemTransactionRowValue = row.value
-
-    override val valueSign: GemAmountSign = (coreValue as? GemTransactionRowValue.Amount)?.amount?.sign ?: GemAmountSign.NONE
 
     override val valueTone: GemValueTone = row.valueTone
 
@@ -132,20 +127,9 @@ class TransactionDataAggregateImpl(
 
     override val direction: TransactionDirection = row.direction.toPrimitives()
 
-    override val pnl: Double? = (coreValue as? GemTransactionRowValue.Pnl)?.value
-
     override val state: TransactionState = row.state.toPrimitives()
 
     override val createdAt: Long = row.createdAt
-}
-
-private fun GemTransactionRowSubtitle.address(): String? = when (this) {
-    is GemTransactionRowSubtitle.ToAddress -> participant
-    is GemTransactionRowSubtitle.FromAddress -> participant
-    is GemTransactionRowSubtitle.ToResource,
-    is GemTransactionRowSubtitle.FromResource,
-    is GemTransactionRowSubtitle.Price,
-    GemTransactionRowSubtitle.None -> null
 }
 
 private fun GemTransactionRowValue.format(): String? = when (this) {

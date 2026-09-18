@@ -190,19 +190,14 @@ public final class ManageContactViewModel {
         ManageContactAddressViewModel(
             service: service,
             nameService: nameService,
+            contactId: contactId,
             mode: mode,
             onComplete: { [weak self] in self?.onAddressComplete($0) },
         )
     }
 
-    func onAddressComplete(_ input: ManageContactAddressViewModel.Input) {
-        addresses = GemContactAddressInput(
-            contactId: contactId,
-            chain: input.chain,
-            address: input.address,
-            memo: input.memo,
-            replacingId: input.replacingId,
-        ).addAddress(addresses)
+    func onAddressComplete(_ input: GemContactAddressInput) {
+        addresses = input.addAddress(addresses)
         isPresentingAddress = nil
     }
 

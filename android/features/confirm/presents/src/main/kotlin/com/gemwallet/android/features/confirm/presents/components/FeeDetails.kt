@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.confirm.presents.components
 
 import com.gemwallet.android.ui.theme.listItemIconSize
+import com.gemwallet.android.features.confirm.viewmodels.models.NetworkFeeCustomViewModel
 import com.gemwallet.android.ui.components.list_item.ListItemSupportText
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import androidx.compose.ui.unit.Dp

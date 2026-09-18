@@ -568,6 +568,7 @@ pub fn market_row(perpetual: &Perpetual, asset: &Asset) -> GemPerpetualMarketRow
         shows_price: perpetual.price != 0.0,
         volume_24h: GemFormattedNumber::usd_abbreviated(perpetual.volume_24h),
         open_interest: GemFormattedNumber::usd_abbreviated(perpetual.open_interest),
+        funding_apr: GemFormattedNumber::percentage(funding_apr(perpetual.funding), GemPercentageStyle::Signed),
     }
 }
 
@@ -927,6 +928,24 @@ mod tests {
         }
         assert_eq!(row.volume_24h.value, 1_500_000.0);
         assert_eq!(row.open_interest.value, 5_250_000.0);
+    }
+
+    #[test]
+    fn test_a_market_row_annualizes_the_hourly_funding_as_a_signed_percent() {
+        let row = |funding: f64| {
+            market_row(
+                &Perpetual {
+                    funding,
+                    ..Perpetual::mock()
+                },
+                &Asset::from_chain(Chain::HyperCore),
+            )
+        };
+
+        assert_eq!(row(0.0013).funding_apr, GemFormattedNumber::percentage(funding_apr(0.0013), GemPercentageStyle::Signed));
+        assert_eq!(row(0.0013).funding_apr.notation, crate::formatted_number::GemNumberNotation::Signed);
+        assert!((row(0.0013).funding_apr.value - 11.388).abs() < 0.001);
+        assert!((row(-0.0004).funding_apr.value + 3.504).abs() < 0.001);
     }
 
     #[test]

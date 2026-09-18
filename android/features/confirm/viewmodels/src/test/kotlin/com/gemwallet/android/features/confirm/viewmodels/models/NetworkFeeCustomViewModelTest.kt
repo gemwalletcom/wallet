@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.confirm.presents.components
+package com.gemwallet.android.features.confirm.viewmodels.models
 
 import com.gemwallet.android.testkit.mockFeeDetailsModel
 import org.junit.Assert.assertEquals

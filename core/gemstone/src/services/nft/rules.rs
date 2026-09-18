@@ -63,14 +63,14 @@ pub fn row(item: &GemNftItem) -> GemNftRow {
             id: data.collection.id.to_string(),
             title: data.collection.name.clone(),
             image_url: data.collection.images.preview.url.clone(),
-            count: Some(data.assets.len() as u32),
+            count_text: Some(data.assets.len().to_string()),
             is_verified: data.collection.status == VerificationStatus::Verified,
         },
         GemNftItem::Asset { data } => GemNftRow {
             id: data.asset.id.to_string(),
             title: data.asset.name.clone(),
             image_url: data.asset.images.preview.url.clone(),
-            count: None,
+            count_text: None,
             is_verified: data.collection.status == VerificationStatus::Verified,
         },
     }
@@ -223,11 +223,11 @@ mod tests {
         });
 
         assert_eq!(collection.title, data.collection.name);
-        assert_eq!(collection.count, Some(2));
+        assert_eq!(collection.count_text.as_deref(), Some("2"));
         assert_eq!(collection.image_url, data.collection.images.preview.url);
         assert!(collection.is_verified);
         assert_eq!(asset.title, data.assets[0].name);
-        assert_eq!(asset.count, None, "one asset is not a count");
+        assert_eq!(asset.count_text, None, "one asset is not a count");
         assert_eq!(asset.image_url, data.assets[0].images.preview.url);
         assert!(asset.is_verified, "an asset takes the verification of its collection");
     }

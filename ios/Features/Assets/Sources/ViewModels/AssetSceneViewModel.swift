@@ -92,7 +92,7 @@ public final class AssetSceneViewModel: Sendable {
     }
 
     func priceAlertsListItem(_ details: GemAssetDetails) -> ListItemModel {
-        ListItemModel(title: Localized.Settings.PriceAlerts.title, subtitle: String(details.state.priceAlertsCount))
+        ListItemModel(title: Localized.Settings.PriceAlerts.title, subtitle: details.state.priceAlertsCountText)
     }
 
     func balanceListItem(for row: GemBalanceRow) -> ListItemModel {
