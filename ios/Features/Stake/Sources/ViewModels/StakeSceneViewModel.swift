@@ -26,6 +26,7 @@ import struct Gemstone.GemTransferData
 @Observable
 public final class StakeSceneViewModel {
     private let service: any GemStakeServiceProtocol
+    private let onNavigate: StakeRouteAction
 
     private var delegationsState: GemLoadState = .loading
     private let chain: StakeChain
@@ -55,10 +56,12 @@ public final class StakeSceneViewModel {
         wallet: Wallet,
         chain: StakeChain,
         service: any GemStakeServiceProtocol,
+        onNavigate: StakeRouteAction,
     ) {
         self.wallet = wallet
         self.chain = chain
         self.service = service
+        self.onNavigate = onNavigate
         delegationsQuery = ObservableQuery(DelegationsRequest(walletId: wallet.id, assetId: chain.chain.assetId, providerType: .stake), initialValue: [])
         validatorsQuery = ObservableQuery(ValidatorsRequest(chain: chain.chain, providerType: .stake), initialValue: [])
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: chain.chain.assetId), initialValue: .with(asset: chain.chain.asset))
@@ -101,7 +104,7 @@ public final class StakeSceneViewModel {
             StakeActionViewModel(
                 id: String(describing: item.action),
                 model: actionListItem(item),
-                destination: destination(for: item.action),
+                action: item.action,
                 infoAction: frozenBalanceInfoAction(for: item),
                 isEnabled: item.isEnabled,
             )
@@ -120,9 +123,9 @@ public final class StakeSceneViewModel {
         EmptyContentTypeViewModel(type: .stake(symbol: assetModel.symbol))
     }
 
-    func navigationDestination(for delegation: DelegationViewModel) -> any Hashable {
+    func route(delegation: DelegationViewModel) -> StakeRoute {
         service.delegationDestination(walletType: wallet.type.toGem(), asset: asset.toGem(), delegation: delegation.delegation.toGem())
-            .navigationValue(delegation: delegation.delegation)
+            .route(delegation: delegation.delegation, validators: validators)
     }
 
     var delegationsViewState: StateViewType<[DelegationViewModel]> {
@@ -144,19 +147,19 @@ public final class StakeSceneViewModel {
         }
     }
 
-    var claimRewardsDestination: any Hashable {
+    var claimRewardsRoute: StakeRoute {
         switch claimRewards.destination {
-        case let .transfer(transfer): ConfirmTransferInput(data: transfer)
-        case let .amount(delegations): AmountInput(type: .stake(.rewards(delegations: delegations, validator: nil)), asset: asset)
+        case let .transfer(transfer): .transfer(.confirm(transfer))
+        case let .amount(delegations): route(amount: .stake(.rewards(delegations: delegations, validator: nil)))
         }
     }
 
-    func destination(for action: GemStakeAction) -> any Hashable {
+    func route(action: GemStakeAction) -> StakeRoute {
         switch action {
-        case .stake: destination(type: .stake(.stake(validators: validators.map { $0.toGem() }, validator: nil)))
-        case .freeze: destination(type: .stake(.freeze(resource: Resource.bandwidth.toGem())))
-        case .unfreeze: destination(type: .stake(.unfreeze(resource: Resource.bandwidth.toGem())))
-        case .claimRewards: claimRewardsDestination
+        case .stake: route(amount: .stake(.stake(validators: validators.map { $0.toGem() }, validator: nil)))
+        case .freeze: route(amount: .stake(.freeze(resource: Resource.bandwidth.toGem())))
+        case .unfreeze: route(amount: .stake(.unfreeze(resource: Resource.bandwidth.toGem())))
+        case .claimRewards: claimRewardsRoute
         }
     }
 
@@ -178,6 +181,14 @@ extension StakeSceneViewModel {
     func load() async {
         delegationsState = .loading
         delegationsState = await service.refresh(chain: chain.chain.rawValue, delegations: delegations.map { $0.toGem() })
+    }
+
+    func onSelect(action: GemStakeAction) {
+        onNavigate?(route(action: action))
+    }
+
+    func onSelect(delegation: DelegationViewModel) {
+        onNavigate?(route(delegation: delegation))
     }
 
     func onInfo(_ topic: GemInfoTopic) {
@@ -218,10 +229,7 @@ extension StakeSceneViewModel {
         BalanceViewModel(asset: asset, balance: assetData.balance, formatter: formatter)
     }
 
-    private func destination(type: AmountType) -> any Hashable {
-        AmountInput(
-            type: type,
-            asset: asset,
-        )
+    private func route(amount: AmountType) -> StakeRoute {
+        .transfer(.amount(AmountInput(type: amount, asset: asset)))
     }
 }

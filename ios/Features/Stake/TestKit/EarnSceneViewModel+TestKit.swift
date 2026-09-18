@@ -1,21 +1,21 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import GemstonePrimitivesTestKit
+import protocol Gemstone.GemStakeServiceProtocol
 import Primitives
 import PrimitivesTestKit
 @testable import Stake
-import protocol Gemstone.GemStakeServiceProtocol
-import GemstonePrimitivesTestKit
 
-public extension StakeSceneViewModel {
+public extension EarnSceneViewModel {
     static func mock(
         wallet: Wallet = .mock(),
-        chain: StakeChain = .tron,
+        asset: Asset = .mockEthereum(),
         stakeService: any GemStakeServiceProtocol = GemStakeServiceMock(),
         onNavigate: StakeRouteAction = nil,
-    ) -> StakeSceneViewModel {
-        StakeSceneViewModel(
+    ) -> EarnSceneViewModel {
+        EarnSceneViewModel(
             wallet: wallet,
-            chain: chain,
+            asset: asset,
             service: stakeService,
             onNavigate: onNavigate,
         )

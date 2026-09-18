@@ -15,6 +15,7 @@ import Store
 @Observable
 public final class EarnSceneViewModel {
     private let service: any GemStakeServiceProtocol
+    private let onNavigate: StakeRouteAction
     private var viewState: StateViewType<Bool> = .loading
 
     public let wallet: Wallet
@@ -40,10 +41,12 @@ public final class EarnSceneViewModel {
         wallet: Wallet,
         asset: Asset,
         service: any GemStakeServiceProtocol,
+        onNavigate: StakeRouteAction,
     ) {
         self.wallet = wallet
         self.asset = asset
         self.service = service
+        self.onNavigate = onNavigate
         assetQuery = ObservableQuery(AssetRequest(walletId: wallet.id, assetId: asset.id), initialValue: .with(asset: asset))
         positionsQuery = ObservableQuery(
             DelegationsRequest(walletId: wallet.id, assetId: asset.id, providerType: .earn),
@@ -79,16 +82,13 @@ public final class EarnSceneViewModel {
         ListItemModel(title: Localized.Wallet.deposit)
     }
 
-    var showDeposit: Bool {
-        wallet.canSign && providers.isNotEmpty
+    var canDeposit: Bool {
+        depositRoute != nil
     }
 
-    var depositDestination: AmountInput? {
-        guard let provider = providers.first else { return nil }
-        return AmountInput(
-            type: .earn(.deposit(provider.toGem())),
-            asset: asset,
-        )
+    private var depositRoute: StakeRoute? {
+        guard wallet.canSign, let provider = providers.first else { return nil }
+        return .transfer(.amount(AmountInput(type: .earn(.deposit(provider.toGem())), asset: asset)))
     }
 
     var emptyContentModel: EmptyContentTypeViewModel {
@@ -104,9 +104,9 @@ public final class EarnSceneViewModel {
         positionModels.isNotEmpty
     }
 
-    func navigationDestination(for delegation: DelegationViewModel) -> any Hashable {
+    func route(delegation: DelegationViewModel) -> StakeRoute {
         service.delegationDestination(walletType: wallet.type.toGem(), asset: asset.toGem(), delegation: delegation.delegation.toGem())
-            .navigationValue(delegation: delegation.delegation)
+            .route(delegation: delegation.delegation, validators: [])
     }
 
     var showEmptyState: Bool {
@@ -130,6 +130,14 @@ public final class EarnSceneViewModel {
 // MARK: - Actions
 
 extension EarnSceneViewModel {
+    func onSelect(delegation: DelegationViewModel) {
+        onNavigate?(route(delegation: delegation))
+    }
+
+    func onSelectDeposit() {
+        depositRoute.map { onNavigate?($0) }
+    }
+
     func load() async {
         viewState = .loading
         do {

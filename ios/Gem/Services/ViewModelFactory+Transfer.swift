@@ -97,8 +97,7 @@ extension ViewModelFactory {
         asset: Asset,
         type: GemRecipientType,
         recipient: GemPaymentRecipient? = .none,
-        onRecipientDataAction: RecipientDataAction,
-        onTransferAction: TransferDataAction,
+        onNavigate: TransferRouteAction,
     ) -> RecipientSceneViewModel {
         RecipientSceneViewModel(
             wallet: wallet,
@@ -107,8 +106,7 @@ extension ViewModelFactory {
             nameService: nameService,
             type: type,
             recipient: recipient,
-            onRecipientDataAction: onRecipientDataAction,
-            onTransferAction: onTransferAction,
+            onNavigate: onNavigate,
         )
     }
 
@@ -164,11 +162,13 @@ extension ViewModelFactory {
     public func stakeScene(
         wallet: Wallet,
         chain: Chain,
+        onNavigate: StakeRouteAction,
     ) -> StakeSceneViewModel {
         StakeSceneViewModel(
             wallet: wallet,
             chain: StakeChain(rawValue: chain.rawValue)!, // Expected Only StakeChain accepted.
             service: stakeService,
+            onNavigate: onNavigate,
         )
     }
 
@@ -176,11 +176,13 @@ extension ViewModelFactory {
     public func earnScene(
         wallet: Wallet,
         asset: Asset,
+        onNavigate: StakeRouteAction,
     ) -> EarnSceneViewModel {
         EarnSceneViewModel(
             wallet: wallet,
             asset: asset,
             service: stakeService,
+            onNavigate: onNavigate,
         )
     }
 
@@ -190,8 +192,7 @@ extension ViewModelFactory {
         delegation: Delegation,
         asset: Asset,
         validators: [DelegationValidator],
-        onAmountInputAction: AmountInputAction,
-        onTransferAction: TransferDataAction,
+        onNavigate: StakeRouteAction,
     ) -> DelegationSceneViewModel {
         DelegationSceneViewModel(
             wallet: wallet,
@@ -199,8 +200,7 @@ extension ViewModelFactory {
             asset: asset,
             service: stakeService,
             validators: validators,
-            onAmountInputAction: onAmountInputAction,
-            onTransferAction: onTransferAction,
+            onNavigate: onNavigate,
         )
     }
 

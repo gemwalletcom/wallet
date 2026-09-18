@@ -11,17 +11,19 @@ import Testing
 
 struct GemDelegationDestinationTests {
     @Test
-    func confirmCarriesTheAppConfirmInput() {
+    func confirmBecomesATransferRoute() {
         let transfer = GemTransferData.mock()
-        let value = GemDelegationDestination.confirm(transfer: transfer).navigationValue(delegation: .mock())
+        let route = GemDelegationDestination.confirm(transfer: transfer).route(delegation: .mock(), validators: [])
 
-        #expect(value as? ConfirmTransferInput == ConfirmTransferInput(data: transfer))
+        #expect(route == .transfer(.confirm(transfer)))
     }
 
     @Test
-    func detailsCarriesTheDelegation() {
+    func detailsCarriesTheDelegationAndItsValidators() {
         let delegation = Delegation.mock()
+        let validators = [DelegationValidator.mock()]
+        let route = GemDelegationDestination.details.route(delegation: delegation, validators: validators)
 
-        #expect(GemDelegationDestination.details.navigationValue(delegation: delegation) as? Delegation == delegation)
+        #expect(route == .delegation(DelegationInput(delegation: delegation, validators: validators)))
     }
 }

@@ -16,8 +16,7 @@ public extension RecipientSceneViewModel {
         asset: Asset = .mockEthereum(),
         type: GemRecipientType = .asset(asset: Asset.mock().toGem()),
         recipient: GemPaymentRecipient? = .none,
-        onRecipientDataAction: RecipientDataAction = nil,
-        onTransferAction: TransferDataAction = nil,
+        onNavigate: TransferRouteAction = nil,
     ) -> RecipientSceneViewModel {
         RecipientSceneViewModel(
             wallet: .mock(),
@@ -26,8 +25,7 @@ public extension RecipientSceneViewModel {
             nameService: GemNameService.mock(),
             type: type,
             recipient: recipient,
-            onRecipientDataAction: onRecipientDataAction,
-            onTransferAction: onTransferAction,
+            onNavigate: onNavigate,
         )
     }
 }

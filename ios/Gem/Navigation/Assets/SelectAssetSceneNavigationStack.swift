@@ -3,6 +3,7 @@
 import Assets
 import Components
 import FiatConnect
+import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -63,12 +64,7 @@ struct SelectAssetSceneNavigationStack: View {
                                 asset: input.asset,
                                 type: .asset(asset: input.asset.toGem()),
                                 recipient: recipient,
-                                onRecipientDataAction: {
-                                    navigationPath.append(AmountInput(type: .transfer(recipient: $0), asset: input.asset))
-                                },
-                                onTransferAction: {
-                                    navigationPath.append(ConfirmTransferInput(data: $0))
-                                },
+                                onNavigate: navigate,
                             ),
                         )
                     case .receive:
@@ -85,9 +81,7 @@ struct SelectAssetSceneNavigationStack: View {
                             model: viewModelFactory.amountScene(
                                 input: AmountInput(type: .deposit, asset: input.asset),
                                 wallet: model.wallet,
-                                onTransferAction: {
-                                    navigationPath.append(ConfirmTransferInput(data: $0))
-                                },
+                                onTransferAction: { navigate(to: .confirm($0)) },
                             ),
                         )
                     case .withdraw:
@@ -95,9 +89,7 @@ struct SelectAssetSceneNavigationStack: View {
                             model: viewModelFactory.amountScene(
                                 input: AmountInput(type: .withdraw, asset: input.asset),
                                 wallet: model.wallet,
-                                onTransferAction: {
-                                    navigationPath.append(ConfirmTransferInput(data: $0))
-                                },
+                                onTransferAction: { navigate(to: .confirm($0)) },
                             ),
                         )
                     case .manage, .priceAlert, .swap:
@@ -106,6 +98,15 @@ struct SelectAssetSceneNavigationStack: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(for: AmountInput.self) { amount in
+                AmountNavigationView(
+                    model: viewModelFactory.amountScene(
+                        input: amount,
+                        wallet: model.wallet,
+                        onTransferAction: { navigate(to: .confirm($0)) },
+                    ),
+                )
+            }
             .navigationDestination(for: ConfirmTransferInput.self) { confirm in
                 ConfirmTransferNavigationView(
                     model: viewModelFactory.confirmTransferScene(
@@ -140,5 +141,12 @@ extension SelectAssetSceneNavigationStack {
         guard let new else { return }
         model.assetSelection = nil
         navigationPath.append(new)
+    }
+
+    private func navigate(to route: TransferRoute) {
+        switch route {
+        case let .amount(input): navigationPath.append(input)
+        case let .confirm(data): navigationPath.append(ConfirmTransferInput(data: data))
+        }
     }
 }

@@ -5,11 +5,11 @@ import GemstonePrimitives
 import Primitives
 
 extension GemDelegationDestination {
-    func navigationValue(delegation: Delegation) -> any Hashable {
+    func route(delegation: Delegation, validators: [DelegationValidator]) -> StakeRoute {
         switch self {
-        case .details: delegation
-        case let .confirm(transfer): ConfirmTransferInput(data: transfer)
-        case let .amount(asset, input): AmountInput(type: input.map(), asset: asset.toPrimitives())
+        case .details: .delegation(DelegationInput(delegation: delegation, validators: validators))
+        case let .confirm(transfer): .transfer(.confirm(transfer))
+        case let .amount(asset, input): .transfer(.amount(AmountInput(type: input.map(), asset: asset.toPrimitives())))
         }
     }
 }

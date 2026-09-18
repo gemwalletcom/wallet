@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemDelegationAction
 import GemstonePrimitivesTestKit
 import Foundation
 import Localization
@@ -10,6 +11,32 @@ import StakeTestKit
 import Testing
 
 struct DelegationSceneViewModelTests {
+    @Test
+    func claimingRewardsNavigatesToConfirm() {
+        var route: StakeRoute?
+        let model = DelegationSceneViewModel.mock(
+            stakeService: GemStakeServiceMock(claimable: true),
+            onNavigate: { route = $0 },
+        )
+
+        model.onClaimRewards()
+
+        guard case .transfer(.confirm) = route else {
+            Issue.record("expected a confirm route, got \(String(describing: route))")
+            return
+        }
+    }
+
+    @Test
+    func anActionThatLandsOnTheDetailsStaysPut() {
+        var route: StakeRoute?
+        let model = DelegationSceneViewModel.mock(onNavigate: { route = $0 })
+
+        model.onSelectAction(.unstake)
+
+        #expect(route == nil)
+    }
+
     @Test
     func rewardsShownWhenCoreReportsThem() {
         let claimable = DelegationSceneViewModel.mock(stakeService: GemStakeServiceMock(claimable: true))

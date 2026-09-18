@@ -63,18 +63,21 @@ struct StakeSceneViewModelTests {
     }
 
     @Test
-    func claimRewardsRoutesToConfirmInput() {
+    func claimRewardsRoutesToConfirm() {
         let transfer = GemTransferData.mock()
         let model = StakeSceneViewModel.mock(chain: .tron, stakeService: GemStakeServiceMock(claimRewardsDestination: .transfer(transfer: transfer)))
 
-        #expect(model.destination(for: .claimRewards) as? ConfirmTransferInput == ConfirmTransferInput(data: transfer))
+        #expect(model.route(action: .claimRewards) == .transfer(.confirm(transfer)))
     }
 
     @Test
     func claimRewardsAcrossValidatorsRoutesToAmount() {
         let model = StakeSceneViewModel.mock(chain: .tron)
 
-        #expect(model.destination(for: .claimRewards) is AmountInput)
+        guard case .transfer(.amount) = model.route(action: .claimRewards) else {
+            Issue.record("expected an amount route")
+            return
+        }
     }
 
 }

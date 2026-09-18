@@ -16,8 +16,7 @@ import struct Gemstone.GemTransferData
 public struct DelegationSceneViewModel {
     public let model: DelegationViewModel
     public let validators: [DelegationValidator]
-    public let onAmountInputAction: AmountInputAction
-    public let onTransferAction: TransferDataAction
+    public let onNavigate: StakeRouteAction
 
     private let wallet: Wallet
     private let asset: Asset
@@ -29,16 +28,14 @@ public struct DelegationSceneViewModel {
         asset: Asset,
         service: any GemStakeServiceProtocol,
         validators: [DelegationValidator],
-        onAmountInputAction: AmountInputAction,
-        onTransferAction: TransferDataAction,
+        onNavigate: StakeRouteAction,
     ) {
         self.wallet = wallet
         self.model = model
         self.asset = asset
         self.service = service
         self.validators = validators
-        self.onAmountInputAction = onAmountInputAction
-        self.onTransferAction = onTransferAction
+        self.onNavigate = onNavigate
     }
 
     public var title: String {
@@ -93,15 +90,16 @@ public struct DelegationSceneViewModel {
 
 public extension DelegationSceneViewModel {
     func onSelectAction(_ action: GemDelegationAction) {
-        switch service.delegationActionDestination(asset: asset.toGem(), delegation: model.delegation.toGem(), action: action, validators: validators.map { $0.toGem() }) {
-        case .details: break
-        case let .confirm(transfer): onTransferAction?(transfer)
-        case let .amount(asset, input): onAmountInputAction?(AmountInput(type: input.map(), asset: asset.toPrimitives()))
+        let route = service.delegationActionDestination(asset: asset.toGem(), delegation: model.delegation.toGem(), action: action, validators: validators.map { $0.toGem() })
+            .route(delegation: model.delegation, validators: validators)
+        switch route {
+        case .delegation: break
+        case .transfer: onNavigate?(route)
         }
     }
 
     func onClaimRewards() {
-        onTransferAction?(claimRewardsTransferData())
+        onNavigate?(.transfer(.confirm(claimRewardsTransferData())))
     }
 }
 

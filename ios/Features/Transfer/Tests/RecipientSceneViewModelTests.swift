@@ -78,20 +78,23 @@ struct RecipientSceneViewModelTests {
     func onContinueUsesChecksumAddress() {
         let address = "0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a"
         let checksummed = "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a"
-        var recipientData: GemPaymentRecipient?
-        let model = RecipientSceneViewModel.mock(onRecipientDataAction: { recipientData = $0 })
+        var recipientAddress: String?
+        let model = RecipientSceneViewModel.mock(onNavigate: { step in
+            guard case let .amount(input) = step, case let .transfer(recipient) = input.type else { return }
+            recipientAddress = recipient.recipient.address
+        })
 
         model.addressInputModel.text = " \n\(address)\r "
         model.onContinue()
 
-        #expect(recipientData?.recipient.address == checksummed)
+        #expect(recipientAddress == checksummed)
 
-        recipientData = nil
+        recipientAddress = nil
         model.addressInputModel.text = "test.eth"
         model.addressInputModel.nameRecordViewModel.state = .complete(record: NameRecord.mock(address: address).toGem())
         model.onContinue()
 
-        #expect(recipientData?.recipient.address == checksummed)
+        #expect(recipientAddress == checksummed)
     }
 
     @Test
@@ -132,7 +135,7 @@ struct RecipientSceneViewModelTests {
     func onHandleScanWithAmountGoesStraightToConfirm() {
         let asset = Asset.mockEthereum()
         var transfer: GemTransferData?
-        let model = RecipientSceneViewModel.mock(asset: asset, type: .asset(asset: asset.toGem()), onTransferAction: { transfer = $0 })
+        let model = RecipientSceneViewModel.mock(asset: asset, type: .asset(asset: asset.toGem()), onNavigate: { if case let .confirm(data) = $0 { transfer = data } })
 
         model.onHandleScan("ethereum:0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326?amount=1.5", for: .address)
 
@@ -143,7 +146,7 @@ struct RecipientSceneViewModelTests {
     @Test
     func onHandleScanForAnNftOnlyFillsTheRecipient() {
         var transfer: GemTransferData?
-        let model = RecipientSceneViewModel.mock(type: .nft(nftAsset: NFTAsset.mock(chain: .ethereum).toGem()), onTransferAction: { transfer = $0 })
+        let model = RecipientSceneViewModel.mock(type: .nft(nftAsset: NFTAsset.mock(chain: .ethereum).toGem()), onNavigate: { if case let .confirm(data) = $0 { transfer = data } })
 
         model.onHandleScan("ethereum:0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326?amount=1.5", for: .address)
 
@@ -155,7 +158,7 @@ struct RecipientSceneViewModelTests {
     func onContinueForAnNftConfirmsATransferOfTheAsset() {
         let nftAsset = NFTAsset.mock()
         var transfer: GemTransferData?
-        let model = RecipientSceneViewModel.mock(type: .nft(nftAsset: nftAsset.toGem()), onTransferAction: { transfer = $0 })
+        let model = RecipientSceneViewModel.mock(type: .nft(nftAsset: nftAsset.toGem()), onNavigate: { if case let .confirm(data) = $0 { transfer = data } })
 
         model.addressInputModel.text = "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326"
         model.onContinue()

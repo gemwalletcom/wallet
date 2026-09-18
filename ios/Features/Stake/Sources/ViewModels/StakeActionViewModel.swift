@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemStakeAction
 import Components
 import enum Gemstone.GemStakeSection
 import InfoSheet
@@ -15,7 +16,7 @@ struct StakeSectionViewModel: Identifiable {
 struct StakeActionViewModel: Identifiable {
     let id: String
     let model: ListItemModel
-    let destination: any Hashable
+    let action: GemStakeAction
     let infoAction: InfoSheetAction?
     let isEnabled: Bool
 }

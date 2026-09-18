@@ -17,8 +17,6 @@ import Store
 import Style
 import SwiftUI
 
-public typealias RecipientDataAction = ((GemPaymentRecipient) -> Void)?
-
 @Observable
 @MainActor
 public final class RecipientSceneViewModel {
@@ -26,10 +24,9 @@ public final class RecipientSceneViewModel {
     public let asset: Asset
     let type: GemRecipientType
 
-    public let onTransferAction: TransferDataAction
+    public let onNavigate: TransferRouteAction
 
     private let service: any GemRecipientServiceProtocol
-    private let onRecipientDataAction: RecipientDataAction
 
     public var isPresentingScanner: RecipientScene.Field?
     var addressInputModel: AddressInputViewModel
@@ -50,15 +47,13 @@ public final class RecipientSceneViewModel {
         nameService: any GemNameServiceProtocol,
         type: GemRecipientType,
         recipient: GemPaymentRecipient? = .none,
-        onRecipientDataAction: RecipientDataAction,
-        onTransferAction: TransferDataAction,
+        onNavigate: TransferRouteAction,
     ) {
         self.wallet = wallet
         self.asset = asset
         self.service = service
         self.type = type
-        self.onRecipientDataAction = onRecipientDataAction
-        self.onTransferAction = onTransferAction
+        self.onNavigate = onNavigate
 
         addressInputModel = AddressInputViewModel(chain: asset.chain, nameService: nameService, placeholder: recipientField)
 
@@ -204,7 +199,7 @@ extension RecipientSceneViewModel {
 
     private func handleAddressScan(_ string: String) throws {
         switch try service.scan(url: string, recipientType: type) {
-        case let .confirm(transfer): onTransferAction?(transfer)
+        case let .confirm(transfer): onNavigate?(.confirm(transfer))
         case let .recipient(payment): update(from: payment)
         }
     }
@@ -220,8 +215,8 @@ extension RecipientSceneViewModel {
 
     private func handle(recipientData: GemPaymentRecipient) {
         switch service.next(recipientType: type, payment: recipientData) {
-        case let .amount(payment): onRecipientDataAction?(payment)
-        case let .confirm(transfer): onTransferAction?(transfer)
+        case let .amount(payment): onNavigate?(.amount(AmountInput(type: .transfer(recipient: payment), asset: asset)))
+        case let .confirm(transfer): onNavigate?(.confirm(transfer))
         }
     }
 }

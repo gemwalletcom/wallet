@@ -1,9 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import FiatConnect
+import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
+import Stake
 import Swap
 import SwiftUI
 import Transfer
@@ -39,12 +41,7 @@ struct SelectedAssetNavigationStack: View {
                             asset: input.asset,
                             type: type,
                             recipient: input.recipient,
-                            onRecipientDataAction: {
-                                navigationPath.append(AmountInput(type: .transfer(recipient: $0), asset: input.asset))
-                            },
-                            onTransferAction: {
-                                navigationPath.append(ConfirmTransferInput(data: $0))
-                            },
+                            onNavigate: navigate,
                         ),
                     )
                 case .receive:
@@ -77,9 +74,7 @@ struct SelectedAssetNavigationStack: View {
                                     toAssetId: toAsset?.id,
                                 ),
                             ),
-                            onSwap: {
-                                navigationPath.append(ConfirmTransferInput(data: $0))
-                            },
+                            onSwap: { navigate(to: .confirm($0)) },
                         ),
                     )
                 case .stake:
@@ -87,15 +82,16 @@ struct SelectedAssetNavigationStack: View {
                         model: viewModelFactory.stakeScene(
                             wallet: wallet,
                             chain: input.asset.id.chain,
+                            onNavigate: navigate,
                         ),
-                        navigationPath: $navigationPath,
                     )
                 case .earn:
                     EarnNavigationView(
-                        wallet: wallet,
-                        asset: input.asset,
-                        viewModelFactory: viewModelFactory,
-                        navigationPath: $navigationPath,
+                        model: viewModelFactory.earnScene(
+                            wallet: wallet,
+                            asset: input.asset,
+                            onNavigate: navigate,
+                        ),
                     )
                 }
             }
@@ -110,9 +106,47 @@ struct SelectedAssetNavigationStack: View {
                     ),
                 )
             }
+            .navigationDestination(for: AmountInput.self) { amount in
+                AmountNavigationView(
+                    model: viewModelFactory.amountScene(
+                        input: amount,
+                        wallet: wallet,
+                        onTransferAction: { navigate(to: .confirm($0)) },
+                    ),
+                )
+            }
+            .navigationDestination(for: DelegationInput.self) { input in
+                DelegationScene(
+                    model: viewModelFactory.delegationScene(
+                        wallet: wallet,
+                        delegation: input.delegation,
+                        asset: input.delegation.base.assetId.chain.asset,
+                        validators: input.validators,
+                        onNavigate: navigate,
+                    ),
+                )
+            }
             .taskOnce {
                 presenter.recordRecent(input: input)
             }
+        }
+    }
+}
+
+// MARK: - Actions
+
+extension SelectedAssetNavigationStack {
+    private func navigate(to route: TransferRoute) {
+        switch route {
+        case let .amount(input): navigationPath.append(input)
+        case let .confirm(data): navigationPath.append(ConfirmTransferInput(data: data))
+        }
+    }
+
+    private func navigate(to route: StakeRoute) {
+        switch route {
+        case let .delegation(input): navigationPath.append(input)
+        case let .transfer(transfer): navigate(to: transfer)
         }
     }
 }
