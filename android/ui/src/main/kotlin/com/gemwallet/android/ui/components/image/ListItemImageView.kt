@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
+import com.gemwallet.android.ui.components.list_item.ListItemDrawableStyle
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemSymbol
 import com.gemwallet.android.ui.icons.AppIcons
@@ -71,7 +72,10 @@ fun ListItemImageView(
         is ListItemImage.Drawable -> Image(
             painter = painterResource(image.id),
             contentDescription = null,
-            modifier = if (image.isRounded) modifier.size(size).clip(CircleShape) else modifier.size(iconSize),
+            modifier = when (image.style) {
+                ListItemDrawableStyle.Icon -> modifier.size(iconSize)
+                ListItemDrawableStyle.Avatar -> modifier.size(size).clip(CircleShape)
+            },
         )
     }
 }

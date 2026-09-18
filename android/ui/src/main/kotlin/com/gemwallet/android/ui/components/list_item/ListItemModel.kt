@@ -90,7 +90,12 @@ sealed interface ListItemImage {
     data class Emoji(val glyph: String, val backgroundColor: Int? = null) : ListItemImage
     data class Initials(val text: String) : ListItemImage
     data class Symbol(val symbol: ListItemSymbol, val isFilled: Boolean = false) : ListItemImage
-    data class Drawable(@DrawableRes val id: Int, val isRounded: Boolean = false) : ListItemImage
+    data class Drawable(@DrawableRes val id: Int, val style: ListItemDrawableStyle = ListItemDrawableStyle.Icon) : ListItemImage
+}
+
+enum class ListItemDrawableStyle {
+    Icon,
+    Avatar,
 }
 
 @Composable
