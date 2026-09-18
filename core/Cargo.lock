@@ -8331,6 +8331,7 @@ dependencies = [
  "gem_ton",
  "gem_tron",
  "hex",
+ "hex_lit",
  "hmac 0.13.0",
  "num-bigint 0.5.1",
  "num-integer",

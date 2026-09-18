@@ -1,5 +1,5 @@
 use crate::{
-    Result, encode_length_to_compact_u16_bytes,
+    Result, SolanaError, encode_length_to_compact_u16_bytes,
     instructions::{
         compute_budget::{
             find_unique_compute_unit_limit, find_unique_compute_unit_price, parse_compute_unit_limit_data, parse_compute_unit_price_data, set_compute_unit_limit,
@@ -148,7 +148,7 @@ impl VersionedTransaction {
                     bytes.extend_from_slice(signature.as_bytes());
                 }
                 if bytes.len() > MAX_V1_TRANSACTION_SIZE {
-                    return Err(invalid_transaction("V1 transaction size exceeds 4096 bytes"));
+                    return Err(SolanaError::TransactionTooLarge);
                 }
                 Ok(bytes)
             }

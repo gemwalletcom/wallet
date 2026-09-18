@@ -29,12 +29,12 @@ pub mod signer;
 
 pub use address::{SolanaAddress, validate_address};
 pub use builder::{InstructionBuilder, TransactionBuilder};
-pub use constants::{DEFAULT_SWAP_GAS_LIMIT, MAX_COMPUTE_UNIT_LIMIT};
+pub use constants::{DEFAULT_SWAP_GAS_LIMIT, MAX_COMPUTE_UNIT_LIMIT, MAX_LOADED_ACCOUNTS_DATA_SIZE_BYTES};
 pub use error::SolanaError;
 pub use instructions::{anchor, associated_token, compute_budget, memo, system, token};
 pub use jsonrpc::{SolanaAccountEncoding, SolanaProgramAccountsFilter, SolanaRpc, SolanaRpcConfig, SolanaTokenAccountsFilter};
 pub use transaction::{
-    Base64InstructionData, HexInstructionData, InstructionDataDecoder, SolanaTransfer, VersionedTransactionExt, decode_transaction, encode_v0_transaction,
+    Base64InstructionData, HexInstructionData, InstructionDataDecoder, SolanaTransfer, VersionedTransactionExt, decode_transaction, encode_v0_transaction, encode_v1_transaction,
     instruction_from_primitive, instructions_from_primitives, try_decode_blockhash, try_decode_transaction,
 };
 pub use types::{

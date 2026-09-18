@@ -3,7 +3,8 @@ use num_bigint::BigUint;
 use primitives::{AssetId, Chain, SolanaInstruction, TransactionType};
 
 use crate::{
-    AccountMeta, AddressLookupTableAccount, CompiledInstruction, Instruction, Pubkey, TransactionBuilder, VersionedTransaction,
+    AccountMeta, AddressLookupTableAccount, CompiledInstruction, Instruction, Pubkey, SolanaError, TransactionBuilder, TransactionConfig, VersionedTransaction,
+    constants::MAX_LOADED_ACCOUNTS_DATA_SIZE_BYTES,
     instructions::{
         associated_token::is_create_account_data,
         program_ids::{
@@ -201,6 +202,24 @@ pub fn encode_v0_transaction(payer: Pubkey, recent_blockhash: &str, instructions
     Ok(encode_base64(&bytes))
 }
 
+pub fn encode_v1_transaction(payer: Pubkey, recent_blockhash: &str, instructions: &[Instruction], compute_unit_limit: u32) -> Result<Option<String>, String> {
+    let recent_blockhash = try_decode_blockhash(recent_blockhash).ok_or_else(|| "Invalid Solana blockhash".to_string())?;
+    let config = TransactionConfig {
+        priority_fee: Some(0),
+        compute_unit_limit: Some(compute_unit_limit),
+        loaded_accounts_data_size_limit: Some(MAX_LOADED_ACCOUNTS_DATA_SIZE_BYTES),
+        heap_size: None,
+    };
+    let mut builder = TransactionBuilder::new(payer, recent_blockhash);
+    builder.add_instructions(instructions.iter().cloned());
+    let transaction = builder.build_v1(config).map_err(|err| format!("Solana transaction error: {err}"))?;
+    match transaction.serialize() {
+        Ok(bytes) => Ok(Some(encode_base64(&bytes))),
+        Err(SolanaError::TransactionTooLarge) => Ok(None),
+        Err(err) => Err(format!("Solana transaction error: {err}")),
+    }
+}
+
 pub trait InstructionDataDecoder {
     fn decode(data: &str) -> Result<Vec<u8>, String>;
 }
@@ -248,7 +267,11 @@ pub fn instructions_from_primitives<D: InstructionDataDecoder>(instructions: Vec
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::testkit::{mock_transaction, mock_transaction_with_accounts};
+    use crate::{
+        InstructionBuilder,
+        testkit::{TEST_BLOCKHASH, mock_transaction, mock_transaction_with_accounts},
+        types::MAX_V1_TRANSACTION_SIZE,
+    };
     #[cfg(feature = "signer")]
     use crate::{signer::testkit::SINGLE_SIG_TX, testkit::mock_legacy_transaction};
 
@@ -257,6 +280,43 @@ mod tests {
         assert!(try_decode_blockhash("BZcyEKqjBNG5bEY6i5ev6PfPTgDSB9LwovJE1hJfJoHF").is_some());
         assert!(try_decode_blockhash("invalid blockhash").is_none());
         assert!(try_decode_blockhash("1111111111111111111111111111111").is_none());
+    }
+
+    #[test]
+    fn test_encode_v1_transaction() {
+        let payer = Pubkey::mock(1);
+        let program_id = Pubkey::mock(2);
+        let readonly_account = Pubkey::mock(3);
+        let blockhash = bs58::encode(TEST_BLOCKHASH).into_string();
+        let instruction = InstructionBuilder::new(program_id)
+            .account(payer, true, true)
+            .account(readonly_account, false, false)
+            .data(vec![1, 2, 3])
+            .build();
+
+        let encoded = encode_v1_transaction(payer, &blockhash, &[instruction], 200_000).unwrap().unwrap();
+
+        assert_eq!(
+            decode_transaction(&encoded).unwrap().transaction_config(),
+            Some(&TransactionConfig {
+                priority_fee: Some(0),
+                compute_unit_limit: Some(200_000),
+                loaded_accounts_data_size_limit: Some(MAX_LOADED_ACCOUNTS_DATA_SIZE_BYTES),
+                heap_size: None,
+            })
+        );
+
+        let too_many_accounts = InstructionBuilder::new(program_id)
+            .accounts((3..=65).map(|index| AccountMeta::new_writable(Pubkey::mock(index))).collect())
+            .build();
+        let oversized_data = InstructionBuilder::new(program_id)
+            .account(payer, true, true)
+            .data(vec![7; MAX_V1_TRANSACTION_SIZE])
+            .build();
+
+        assert_eq!(encode_v1_transaction(payer, &blockhash, &[too_many_accounts], 200_000), Ok(None));
+        assert_eq!(encode_v1_transaction(payer, &blockhash, &[oversized_data], 200_000), Ok(None));
+        assert_eq!(encode_v1_transaction(payer, "not a blockhash", &[], 200_000), Err("Invalid Solana blockhash".to_string()));
     }
 
     #[test]

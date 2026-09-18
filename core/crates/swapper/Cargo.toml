@@ -55,6 +55,7 @@ rand.workspace = true
 
 [dev-dependencies]
 tokio.workspace = true
+hex_lit.workspace = true
 primitives = { path = "../primitives", features = ["testkit"] }
 gem_client = { path = "../gem_client", features = ["testkit"] }
 gem_hypercore = { path = "../gem_hypercore", features = ["testkit"] }

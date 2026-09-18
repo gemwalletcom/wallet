@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use crate::{
-    Result, encode_length_to_compact_u16_bytes,
+    Result, SolanaError, encode_length_to_compact_u16_bytes,
     types::{CompiledInstruction, MessageAddressTableLookup, Pubkey, invalid_transaction},
 };
 
@@ -210,18 +210,15 @@ impl VersionedMessageV1 {
 
     pub(crate) fn validate(&self) -> Result<()> {
         let account_keys_len = self.message.account_keys.len();
-        if self.message.header.num_required_signatures as usize > MAX_V1_SIGNATURES {
-            return Err(invalid_transaction("V1 required-signature count exceeds 12"));
-        }
-        if account_keys_len > MAX_V1_ADDRESSES {
-            return Err(invalid_transaction("V1 account count exceeds 64"));
+        if self.message.header.num_required_signatures as usize > MAX_V1_SIGNATURES || account_keys_len > MAX_V1_ADDRESSES {
+            return Err(SolanaError::TransactionTooLarge);
         }
         self.message.header.validate(account_keys_len)?;
         if self.message.account_keys.iter().collect::<HashSet<_>>().len() != account_keys_len {
             return Err(invalid_transaction("V1 contains duplicate accounts"));
         }
         if self.message.instructions.len() > MAX_V1_INSTRUCTIONS {
-            return Err(invalid_transaction("V1 instruction count exceeds 64"));
+            return Err(SolanaError::TransactionTooLarge);
         }
         if let Some(heap_size) = self.config.heap_size
             && (!(MIN_V1_HEAP_SIZE..=MAX_V1_HEAP_SIZE).contains(&heap_size) || !heap_size.is_multiple_of(1024))

@@ -6,4 +6,4 @@ mod lookup;
 pub(crate) use accounts::{AccountBuckets, collect_accounts};
 pub use builder::TransactionBuilder;
 #[cfg(feature = "signer")]
-pub(crate) use builder::compile_legacy;
+pub(crate) use builder::compile_message;

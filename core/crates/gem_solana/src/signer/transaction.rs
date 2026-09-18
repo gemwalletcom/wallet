@@ -6,7 +6,7 @@ use primitives::{SignerError, SignerInput, TransactionFee};
 use super::sign_message;
 use crate::{
     AccountMeta, Instruction, Pubkey, SignatureBytes, VersionedTransaction,
-    builder::{AccountBuckets, collect_accounts, compile_legacy},
+    builder::{AccountBuckets, collect_accounts, compile_message},
     instructions::compute_budget::{set_compute_unit_limit, set_compute_unit_price},
 };
 
@@ -70,7 +70,8 @@ fn build_legacy_transaction(fee_payer: Pubkey, recent_blockhash: [u8; 32], instr
         .flat_map(|instruction| instruction.accounts.iter().cloned())
         .chain(instructions.iter().map(|instruction| AccountMeta::new_readonly(instruction.program_id)));
     let account_buckets = AccountBuckets::from_accounts(collect_accounts(fee_payer, accounts));
-    Ok(compile_legacy(fee_payer, recent_blockhash, &account_buckets, instructions)?)
+    let (message, signatures) = compile_message(fee_payer, recent_blockhash, &account_buckets, instructions)?;
+    Ok(VersionedTransaction::Legacy { signatures, message })
 }
 
 pub(super) fn block_hash(input: &SignerInput) -> Result<[u8; 32], SignerError> {

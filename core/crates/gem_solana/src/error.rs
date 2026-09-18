@@ -6,6 +6,7 @@ use primitives::SignerError;
 pub enum SolanaError {
     InvalidInput(String),
     InvalidMessage,
+    TransactionTooLarge,
 }
 
 impl fmt::Display for SolanaError {
@@ -13,6 +14,7 @@ impl fmt::Display for SolanaError {
         match self {
             Self::InvalidInput(message) => formatter.write_str(message),
             Self::InvalidMessage => write!(formatter, "Invalid message"),
+            Self::TransactionTooLarge => write!(formatter, "Solana transaction exceeds the V1 limits"),
         }
     }
 }

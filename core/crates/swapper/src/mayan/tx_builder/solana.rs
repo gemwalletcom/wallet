@@ -1,12 +1,12 @@
 use std::{fmt::Display, sync::Arc};
 
-use futures::try_join;
 use gem_encoding::decode_base64;
 use gem_evm::EVM_ZERO_ADDRESS;
 use gem_solana::{
-    ASSOCIATED_TOKEN_ACCOUNT_PROGRAM, AccountMeta, Base64InstructionData, Instruction, Pubkey, SYSTEM_PROGRAM_ID, SolanaAddress, SolanaClient, WSOL_TOKEN_ADDRESS,
+    ASSOCIATED_TOKEN_ACCOUNT_PROGRAM, AccountMeta, Base64InstructionData, DEFAULT_SWAP_GAS_LIMIT, Instruction, Pubkey, SYSTEM_PROGRAM_ID, SolanaAddress, SolanaClient,
+    WSOL_TOKEN_ADDRESS,
     associated_token::{create_associated_token_account_idempotent_with_address, get_associated_token_address_with_program_id},
-    compute_budget, encode_v0_transaction, instruction_from_primitive,
+    compute_budget, encode_v0_transaction, encode_v1_transaction, instruction_from_primitive,
     instructions::program_ids,
     instructions_from_primitives, system, token,
 };
@@ -41,14 +41,23 @@ pub(in crate::mayan::tx_builder) async fn build_quote_data(
 ) -> Result<SwapperQuoteData, SwapperError> {
     let client = create_client_with_chain(rpc_provider, Chain::Solana)?;
     let rpc_client = SolanaClient::new(client);
-    let lookup_tables = async { rpc_client.get_address_lookup_tables(transaction.lookup_table_addresses).await.map_err(solana_error) };
-    let blockhash = async { rpc_client.get_latest_blockhash().await.map(|response| response.value.blockhash).map_err(SwapperError::from) };
-    let (lookup_tables, blockhash) = try_join!(lookup_tables, blockhash)?;
+    let blockhash = rpc_client.get_latest_blockhash().await?.value.blockhash;
     let fee_payer = SolanaAddress::parse(&quote.request.wallet_address).map_err(solana_error)?.into();
-    let mut instructions = transaction.instructions;
-    compute_budget::ensure_compute_unit_price(&mut instructions, 0);
-    let data = encode_v0_transaction(fee_payer, &blockhash, &instructions, &lookup_tables).map_err(solana_error)?;
-    let gas_limit = compute_budget::get_compute_unit_limit(&instructions).map(|limit| limit.to_string());
+    let SolanaTransaction {
+        mut instructions,
+        lookup_table_addresses,
+    } = transaction;
+    let compute_unit_limit = compute_budget::get_compute_unit_limit(&instructions);
+    let encoded_v1 = encode_v1_transaction(fee_payer, &blockhash, &instructions, compute_unit_limit.unwrap_or(DEFAULT_SWAP_GAS_LIMIT)).map_err(solana_error)?;
+    let data = match encoded_v1 {
+        Some(data) => data,
+        None => {
+            let lookup_tables = rpc_client.get_address_lookup_tables(lookup_table_addresses).await.map_err(solana_error)?;
+            compute_budget::ensure_compute_unit_price(&mut instructions, 0);
+            encode_v0_transaction(fee_payer, &blockhash, &instructions, &lookup_tables).map_err(solana_error)?
+        }
+    };
+    let gas_limit = compute_unit_limit.map(|limit| limit.to_string());
 
     Ok(SwapperQuoteData::new_contract(String::new(), BigUint::from(0u64), data, None, gas_limit))
 }

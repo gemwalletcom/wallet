@@ -1,8 +1,10 @@
 use std::{collections::HashSet, iter::once};
 
 use crate::{
-    AccountMeta, AddressLookupTableAccount, Instruction, Message, Pubkey, Result, SignatureBytes, SolanaError, VersionedMessageV0, VersionedTransaction,
-    instructions::system::is_advance_nonce_account, types::MAX_ACCOUNT_KEYS,
+    AccountMeta, AddressLookupTableAccount, Instruction, Message, Pubkey, Result, SignatureBytes, SolanaError, TransactionConfig, VersionedMessageV0, VersionedMessageV1,
+    VersionedTransaction,
+    instructions::{program_ids::compute_budget_program, system::is_advance_nonce_account},
+    types::MAX_ACCOUNT_KEYS,
 };
 
 use super::{
@@ -37,9 +39,22 @@ impl TransactionBuilder {
     }
 
     pub fn build(self) -> Result<VersionedTransaction> {
-        let mut account_buckets = AccountBuckets::from_accounts(collect_accounts(self.fee_payer, program_first_accounts(&self.instructions)));
-        account_buckets.sort();
-        compile_legacy(self.fee_payer, self.recent_blockhash, &account_buckets, &self.instructions)
+        let (message, signatures) = compile_sorted_message(self.fee_payer, self.recent_blockhash, &self.instructions)?;
+        Ok(VersionedTransaction::Legacy { signatures, message })
+    }
+
+    pub fn build_v1(self, config: TransactionConfig) -> Result<VersionedTransaction> {
+        let instructions = self
+            .instructions
+            .into_iter()
+            .filter(|instruction| instruction.program_id != compute_budget_program())
+            .collect::<Vec<_>>();
+        let (message, signatures) = compile_sorted_message(self.fee_payer, self.recent_blockhash, &instructions)?;
+
+        Ok(VersionedTransaction::V1 {
+            signatures,
+            message: VersionedMessageV1 { message, config },
+        })
     }
 
     pub fn build_v0(self, address_lookup_tables: &[AddressLookupTableAccount]) -> Result<VersionedTransaction> {
@@ -110,22 +125,33 @@ fn program_first_accounts(instructions: &[Instruction]) -> impl Iterator<Item = 
         .flat_map(|instruction| once(AccountMeta::new_readonly(instruction.program_id)).chain(instruction.accounts.iter().cloned()))
 }
 
-pub(crate) fn compile_legacy(fee_payer: Pubkey, recent_blockhash: [u8; 32], account_buckets: &AccountBuckets, instructions: &[Instruction]) -> Result<VersionedTransaction> {
+pub(crate) fn compile_message(
+    fee_payer: Pubkey,
+    recent_blockhash: [u8; 32],
+    account_buckets: &AccountBuckets,
+    instructions: &[Instruction],
+) -> Result<(Message, Vec<SignatureBytes>)> {
     let account_keys = account_buckets.account_keys(fee_payer);
     let account_indexes = index_accounts(&account_keys)?;
     let header = account_buckets.header()?;
     let signatures = vec![SignatureBytes::default(); header.num_required_signatures as usize];
     let instructions = compile_instructions(instructions, &account_indexes)?;
 
-    Ok(VersionedTransaction::Legacy {
-        signatures,
-        message: Message {
+    Ok((
+        Message {
             header,
             account_keys,
             recent_blockhash,
             instructions,
         },
-    })
+        signatures,
+    ))
+}
+
+fn compile_sorted_message(fee_payer: Pubkey, recent_blockhash: [u8; 32], instructions: &[Instruction]) -> Result<(Message, Vec<SignatureBytes>)> {
+    let mut account_buckets = AccountBuckets::from_accounts(collect_accounts(fee_payer, program_first_accounts(instructions)));
+    account_buckets.sort();
+    compile_message(fee_payer, recent_blockhash, &account_buckets, instructions)
 }
 
 #[cfg(test)]
@@ -135,9 +161,11 @@ mod tests {
 
     use super::TransactionBuilder;
     use crate::{
-        AccountMeta, AddressLookupTableAccount, CompiledInstruction, Instruction, MessageAddressTableLookup, Pubkey, SignatureBytes, SolanaError, VersionedTransaction,
+        AccountMeta, AddressLookupTableAccount, CompiledInstruction, Instruction, MessageAddressTableLookup, Pubkey, SignatureBytes, SolanaError, TransactionConfig,
+        VersionedMessageV1, VersionedTransaction,
         builder::InstructionBuilder,
         instructions::{
+            compute_budget::{set_compute_unit_limit, set_compute_unit_price},
             program_ids::{system_program, token_program},
             system::{ADVANCE_NONCE_ACCOUNT_DISCRIMINANT, transfer},
             token::transfer_checked,
@@ -186,6 +214,44 @@ mod tests {
         assert_eq!(transaction.signatures().len(), 2);
         assert_eq!(transaction.account_keys(), vec![payer, owner, recipient, source, system_program(), mint, token_program()]);
         assert_eq!(transaction.instructions().len(), 2);
+    }
+
+    #[test]
+    fn test_build_v1() {
+        let fee_payer = Pubkey::mock(1);
+        let cosigner = Pubkey::mock(2);
+        let readonly_account = Pubkey::mock(3);
+        let program_id = Pubkey::mock(4);
+        let instruction = InstructionBuilder::new(program_id)
+            .account(fee_payer, true, true)
+            .account(cosigner, true, true)
+            .account(readonly_account, false, false)
+            .data(vec![1, 2, 3])
+            .build();
+
+        let mut builder = TransactionBuilder::new(fee_payer, TEST_BLOCKHASH);
+        builder.add_instructions(vec![set_compute_unit_price(1_000), instruction.clone(), set_compute_unit_limit(200_000)]);
+        let transaction = builder.build_v1(TransactionConfig::mock()).unwrap();
+
+        let mut legacy_builder = TransactionBuilder::new(fee_payer, TEST_BLOCKHASH);
+        legacy_builder.add_instruction(instruction);
+        let legacy_transaction = legacy_builder.build().unwrap();
+
+        assert_eq!(
+            transaction,
+            VersionedTransaction::V1 {
+                signatures: vec![SignatureBytes::default(); 2],
+                message: VersionedMessageV1::mock(
+                    2,
+                    vec![fee_payer, cosigner, readonly_account, program_id],
+                    vec![CompiledInstruction::mock(3, vec![0, 1, 2], vec![1, 2, 3])],
+                    TransactionConfig::mock(),
+                ),
+            }
+        );
+        assert_eq!(transaction.account_keys(), legacy_transaction.account_keys());
+        assert_eq!(transaction.message().header, legacy_transaction.message().header);
+        assert_eq!(transaction.signatures().len(), transaction.num_required_signatures() as usize);
     }
 
     #[test]
