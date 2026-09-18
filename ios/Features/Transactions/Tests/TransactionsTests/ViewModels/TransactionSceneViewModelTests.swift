@@ -66,6 +66,30 @@ struct TransactionSceneViewModelTests {
     }
 
     @Test
+    func swapAgainIsHiddenForAWatchOnlyWallet() {
+        let swapped = TransactionSceneViewModel.mock(
+            type: .swap,
+            state: .confirmed,
+            swapToAsset: .mock(id: AssetId(chain: .bitcoin, tokenId: nil)),
+        )
+        guard case .swapAgain = swapped.item(for: GemTransactionDetailRow.swapAgain) else {
+            Issue.record("a signing wallet offers to swap again")
+            return
+        }
+
+        let watching = TransactionSceneViewModel.mock(
+            type: .swap,
+            state: .confirmed,
+            swapToAsset: .mock(id: AssetId(chain: .bitcoin, tokenId: nil)),
+            wallet: .mock(type: .view),
+        )
+        guard case .empty = watching.item(for: GemTransactionDetailRow.swapAgain) else {
+            Issue.record("a watch-only wallet cannot sign a swap")
+            return
+        }
+    }
+
+    @Test
     func swapButtonItemModel() {
         let swapModel = TransactionSceneViewModel.mock(type: TransactionType.swap, state: TransactionState.confirmed)
         let swapItem = swapModel.item(for: GemTransactionDetailRow.swapAgain)

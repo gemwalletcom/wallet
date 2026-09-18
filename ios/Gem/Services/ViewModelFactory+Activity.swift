@@ -15,14 +15,14 @@ extension ViewModelFactory {
     @MainActor
     public func transactionScene(
         transaction: TransactionExtended,
-        walletId: WalletId,
+        wallet: Wallet,
         onHeaderAction: @escaping (GemTransactionHeaderAction) -> Void,
         onAddContact: @escaping (AddContactType) -> Void,
         onSelectAddress: @escaping @MainActor @Sendable (ChainAddress) -> Void,
     ) -> TransactionSceneViewModel {
         TransactionSceneViewModel(
             transaction: transaction,
-            walletId: walletId,
+            wallet: wallet,
             service: Gemstone.GemTransactionDetailsService(explorer: explorerService, preferences: preferencesService),
             onHeaderAction: onHeaderAction,
             onAddContact: onAddContact,

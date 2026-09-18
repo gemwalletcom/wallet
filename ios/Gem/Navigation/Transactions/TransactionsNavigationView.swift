@@ -39,7 +39,7 @@ struct TransactionsNavigationView: View {
                 TransactionNavigationView(
                     model: viewModelFactory.transactionScene(
                         transaction: $0.transaction,
-                        walletId: model.wallet.id,
+                        wallet: model.wallet,
                         onHeaderAction: { action in
                             Task {
                                 do {
