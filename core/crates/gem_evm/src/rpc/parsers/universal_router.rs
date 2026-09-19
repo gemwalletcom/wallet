@@ -205,11 +205,13 @@ fn decode_execute_swap_call(
 
     let (from_asset, from_value) = swap_input?;
     let (to_asset, to_value) = swap_output?;
+    let (from_asset, from_value) = from_asset.mirror_to_native(u256_to_biguint(&from_value));
+    let (to_asset, to_value) = to_asset.mirror_to_native(u256_to_biguint(&U256::from_str(&to_value).ok()?));
     Some(TransactionSwapMetadata {
         from_asset,
         to_asset,
-        from_value: u256_to_biguint(&from_value),
-        to_value: u256_to_biguint(&U256::from_str(&to_value).ok()?),
+        from_value,
+        to_value,
         provider: Some(swap_provider.to_string()),
     })
 }
@@ -312,6 +314,18 @@ mod tests {
 
     fn map_swap(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt) -> primitives::Transaction {
         ProtocolParsers::map_transaction(chain, transaction, receipt, DateTime::default()).unwrap()
+    }
+
+    #[test]
+    fn test_map_arc_swap_to_native_usdc() {
+        let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/arc_uniswap_token_usdc_transaction.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/arc_uniswap_token_usdc_transaction_receipt.json"));
+        let swap_transaction = map_swap(&Chain::Arc, &transaction, &receipt);
+        let metadata: TransactionSwapMetadata = serde_json::from_value(swap_transaction.metadata.unwrap()).unwrap();
+        assert_eq!(swap_transaction.transaction_type, TransactionType::Swap);
+        assert_eq!(metadata.from_asset, AssetId::from_token(Chain::Arc, "0x258bbb25fB1bc34C87212F8dAB34838854eF2D5D"));
+        assert_eq!(metadata.to_asset, AssetId::from_chain(Chain::Arc));
+        assert_eq!(metadata.to_value, BigUint::from(502_720_430_000_000_000_000u128));
     }
 
     #[test]

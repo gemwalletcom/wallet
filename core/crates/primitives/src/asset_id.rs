@@ -1,8 +1,9 @@
 use std::fmt;
 
+use num_bigint::BigUint;
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 
-use crate::{AssetSubtype, EVMChain, EvmNativeCurrency, chain::Chain, known_assets};
+use crate::{Asset, AssetSubtype, EVMChain, EvmNativeCurrency, chain::Chain, known_assets};
 
 pub const CHAIN_SEPARATOR: &str = "_";
 pub const TOKEN_ID_SEPARATOR: &str = "::";
@@ -131,12 +132,21 @@ impl AssetId {
     }
 
     pub fn is_native_mirror(&self) -> bool {
-        let Some(token_id) = self.token_id.as_deref() else {
-            return false;
-        };
-        match EVMChain::from_chain(self.chain).map(|chain| chain.native_currency()) {
-            Some(EvmNativeCurrency::Mirrored { token, .. }) => token == token_id,
-            Some(EvmNativeCurrency::Wrapped(_) | EvmNativeCurrency::Token(_) | EvmNativeCurrency::None) | None => false,
+        self.native_mirror_exponent().is_some()
+    }
+
+    pub fn mirror_to_native(self, value: BigUint) -> (AssetId, BigUint) {
+        match self.native_mirror_exponent() {
+            Some(exponent) => (AssetId::from_chain(self.chain), value * BigUint::from(10u32).pow(exponent)),
+            None => (self, value),
+        }
+    }
+
+    fn native_mirror_exponent(&self) -> Option<u32> {
+        let token_id = self.token_id.as_deref()?;
+        match EVMChain::from_chain(self.chain)?.native_currency() {
+            EvmNativeCurrency::Mirrored { token, decimals } if token == token_id => u32::try_from(Asset::from_chain(self.chain).decimals).ok()?.checked_sub(decimals),
+            EvmNativeCurrency::Mirrored { .. } | EvmNativeCurrency::Wrapped(_) | EvmNativeCurrency::Token(_) | EvmNativeCurrency::None => None,
         }
     }
 
@@ -179,6 +189,7 @@ impl AssetIdVecExt for Vec<AssetId> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::asset_constants::{ARC_EURC_ASSET_ID, ARC_USDC_ASSET_ID};
 
     #[test]
     fn test_new_asset_id_with_coin() {
@@ -213,6 +224,18 @@ mod tests {
         let asset_id: AssetId = serde_json::from_str(r#"{"chain":"ethereum"}"#).unwrap();
         assert_eq!(asset_id.chain, Chain::Ethereum);
         assert_eq!(asset_id.token_id, None);
+    }
+
+    #[test]
+    fn test_mirror_to_native() {
+        let value = BigUint::from(5_000_000u64);
+
+        assert_eq!(
+            ARC_USDC_ASSET_ID.clone().mirror_to_native(value.clone()),
+            (AssetId::from_chain(Chain::Arc), BigUint::from(5_000_000_000_000_000_000u64))
+        );
+        assert_eq!(ARC_EURC_ASSET_ID.clone().mirror_to_native(value.clone()), (ARC_EURC_ASSET_ID.clone(), value.clone()));
+        assert_eq!(AssetId::from_chain(Chain::Arc).mirror_to_native(value.clone()), (AssetId::from_chain(Chain::Arc), value));
     }
 
     #[test]

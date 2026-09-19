@@ -56,6 +56,8 @@ impl EthereumMapper {
             None => Cow::Borrowed(transaction),
         };
         let transaction = transaction.as_ref();
+        let transaction_receipt = transaction_receipt.strip_system_logs(chain);
+        let transaction_receipt = transaction_receipt.as_ref();
         let state = transaction_receipt.get_state();
         let hash = transaction.hash.clone();
         let value = transaction.value.clone();
@@ -95,9 +97,10 @@ impl EthereumMapper {
         };
 
         let build_erc20_transfer = |transfer: Erc20TransferPayload| {
+            let (asset_id, value) = AssetId::from_token(chain, &transfer.contract_address).mirror_to_native(transfer.value);
             PrimitivesTransaction::new(
                 hash.clone(),
-                AssetId::from_token(chain, &transfer.contract_address),
+                asset_id,
                 transfer.from,
                 transfer.to,
                 None,
@@ -105,7 +108,7 @@ impl EthereumMapper {
                 state,
                 fee.clone(),
                 fee_asset_id.clone(),
-                transfer.value.clone(),
+                value,
                 None,
                 None,
                 created_at,
@@ -114,9 +117,10 @@ impl EthereumMapper {
         };
 
         let build_erc20_approval = |approval: Erc20ApprovalPayload| {
+            let (asset_id, value) = AssetId::from_token(chain, &approval.contract_address).mirror_to_native(approval.value);
             PrimitivesTransaction::new(
                 hash.clone(),
-                AssetId::from_token(chain, &approval.contract_address),
+                asset_id,
                 from.clone(),
                 approval.spender,
                 None,
@@ -124,7 +128,7 @@ impl EthereumMapper {
                 state,
                 fee.clone(),
                 fee_asset_id.clone(),
-                approval.value.clone(),
+                value,
                 None,
                 None,
                 created_at,
@@ -179,11 +183,14 @@ impl EthereumMapper {
 
         let asset_transfers = erc20_transfers
             .into_iter()
-            .map(|transfer| TransactionAssetTransfer {
-                asset_id: AssetId::from_token(chain, &transfer.contract_address),
-                from: transfer.from,
-                to: transfer.to,
-                value: transfer.value,
+            .map(|transfer| {
+                let (asset_id, value) = AssetId::from_token(chain, &transfer.contract_address).mirror_to_native(transfer.value);
+                TransactionAssetTransfer {
+                    asset_id,
+                    from: transfer.from,
+                    to: transfer.to,
+                    value,
+                }
             })
             .fold(Vec::<TransactionAssetTransfer>::new(), |mut asset_transfers, transfer| {
                 match asset_transfers
@@ -243,6 +250,20 @@ mod tests {
         assert_eq!(transaction.from, "0x8d7460E51bCf4eD26877cb77E56f3ce7E9f5EB8F");
         assert_eq!(transaction.to, "0x2Fc617E933a52713247CE25730f6695920B3befe");
         assert_eq!(transaction.value, BigUint::from(4801292u64));
+        assert_eq!(transaction.metadata, None);
+    }
+
+    #[test]
+    fn test_arc_usdc_token_transfer_maps_to_native() {
+        let transfer = load_json_rpc_result::<Transaction>(include_str!("../../testdata/arc_usdc_token_transfer.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../testdata/arc_usdc_token_transfer_receipt.json"));
+
+        let transaction = EthereumMapper::map_transaction(Chain::Arc, &transfer, &receipt, &BigUint::from(1735671600u64)).unwrap();
+
+        assert_eq!(transaction.transaction_type, TransactionType::Transfer);
+        assert_eq!(transaction.asset_id, AssetId::from_chain(Chain::Arc));
+        assert_eq!(transaction.to, "0x4cD00E387622C35bDDB9b4c962C136462338BC31");
+        assert_eq!(transaction.value, BigUint::from(6_219_848_000_000_000_000u64));
         assert_eq!(transaction.metadata, None);
     }
 

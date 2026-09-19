@@ -166,6 +166,10 @@ pub fn unique_asset_ids(asset_ids: Vec<AssetId>) -> Vec<AssetId> {
     unique(asset_ids)
 }
 
+pub fn exclude_native_mirrors(asset_ids: Vec<AssetId>) -> Vec<AssetId> {
+    asset_ids.into_iter().filter(|asset_id| !asset_id.is_native_mirror()).collect()
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -255,7 +259,7 @@ mod tests {
         assert_eq!(folded.len(), 1, "two updates for one asset fold into one row");
         assert_eq!(folded[0].available, BigUint::from(11u32));
     }
-    use primitives::{AssetType, Balance};
+    use primitives::{AssetType, Balance, asset_constants::ARC_USDC_ASSET_ID};
 
     #[test]
     fn test_pnl_shows_only_for_a_funded_wallet_that_moved() {
@@ -338,6 +342,13 @@ mod tests {
             vec![bitcoin.clone(), ethereum.clone()]
         );
         assert_eq!(missing_asset_ids(&[bitcoin.clone(), ethereum.clone()], &[bitcoin]), vec![ethereum]);
+    }
+
+    #[test]
+    fn test_exclude_native_mirrors() {
+        let arc = AssetId::from_chain(Chain::Arc);
+
+        assert_eq!(exclude_native_mirrors(vec![arc.clone(), ARC_USDC_ASSET_ID.clone()]), vec![arc]);
     }
 
     #[test]

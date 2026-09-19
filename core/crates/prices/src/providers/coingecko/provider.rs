@@ -85,7 +85,13 @@ impl<C: Client + 'static> PriceAssetsProvider for CoinGeckoPricesProvider<C> {
     }
 
     async fn get_mappings_for_asset_id(&self, asset_id: &AssetId) -> Result<Vec<AssetPriceMapping>, Box<dyn Error + Send + Sync>> {
-        let (Some(platform_id), Some(token_id)) = (get_coingecko_platform_id_for_chain(asset_id.chain), asset_id.token_id.as_deref()) else {
+        let Some(token_id) = asset_id.token_id.as_deref() else {
+            return Ok(get_coingecko_market_id_for_chain(asset_id.chain)
+                .map(|id| AssetPriceMapping::new(asset_id.clone(), id.to_string()))
+                .into_iter()
+                .collect());
+        };
+        let Some(platform_id) = get_coingecko_platform_id_for_chain(asset_id.chain) else {
             return Ok(vec![]);
         };
         let Some(coin_info) = optional_coin(self.client.get_coin_by_contract(platform_id, token_id).await)? else {
@@ -170,6 +176,20 @@ mod tests {
     use super::*;
 
     const COIN_INFO: &str = r#"{"id":"bitcoin","symbol":"btc","name":"Bitcoin","asset_platform_id":null,"preview_listing":false,"market_cap_rank":1,"market_cap_rank_with_rehypothecated":null,"watchlist_portfolio_users":1000,"platforms":{},"detail_platforms":{},"links":{"homepage":[],"blockchain_site":[],"chat_url":[],"subreddit_url":null,"twitter_screen_name":null,"facebook_username":null,"telegram_channel_identifier":null,"repos_url":{}},"community_data":null,"image":{"thumb":"","small":"","large":""}}"#;
+
+    #[tokio::test]
+    async fn test_get_mappings_for_native_asset_id() {
+        let provider = CoinGeckoPricesProvider {
+            client: CoinGeckoClient::new_with_client(MockClient::new()),
+        };
+
+        let mappings = provider.get_mappings_for_asset_id(&Chain::Arc.as_asset_id()).await.unwrap();
+
+        assert_eq!(mappings.len(), 1);
+        assert_eq!(mappings[0].asset_id, Chain::Arc.as_asset_id());
+        assert_eq!(mappings[0].provider_price_id, "usd-coin");
+        assert!(provider.get_mappings_for_asset_id(&Chain::Tempo.as_asset_id()).await.unwrap().is_empty());
+    }
 
     #[tokio::test]
     async fn test_get_assets_metadata_skips_unavailable_coin() {

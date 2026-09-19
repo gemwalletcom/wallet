@@ -59,6 +59,7 @@ impl GemBalanceService {
 
     pub async fn set_assets_enabled(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {
         let asset_ids = rules::unique_asset_ids(asset_ids);
+        let asset_ids = if enabled { rules::exclude_native_mirrors(asset_ids) } else { asset_ids };
         if asset_ids.is_empty() {
             return Ok(());
         }

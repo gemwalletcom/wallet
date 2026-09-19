@@ -130,8 +130,12 @@ impl GemSwapper {
         self.swappers.iter().map(|x| x.provider().clone()).collect()
     }
 
+    fn is_native_mirror_pair(from_asset: &AssetId, to_asset: &AssetId) -> bool {
+        from_asset.chain == to_asset.chain && ((from_asset.is_native() && to_asset.is_native_mirror()) || (from_asset.is_native_mirror() && to_asset.is_native()))
+    }
+
     pub fn get_providers_for_request(&self, request: &QuoteRequest) -> Result<Vec<ProviderType>, SwapperError> {
-        if request.from_asset.id == request.to_asset.id {
+        if request.from_asset.id == request.to_asset.id || Self::is_native_mirror_pair(&request.from_asset.asset_id(), &request.to_asset.asset_id()) {
             return Err(SwapperError::NoQuoteAvailable);
         }
         let from_chain = request.from_asset.chain();
@@ -260,7 +264,7 @@ mod tests {
 
     use primitives::{
         AssetId, Chain,
-        asset_constants::{ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID},
+        asset_constants::{ARC_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID},
     };
 
     use super::*;
@@ -410,6 +414,16 @@ mod tests {
 
         assert!(GemSwapper::supports_asset(&supported_assets, &asset_id_usdt));
         assert!(GemSwapper::supports_asset(&supported_assets, &asset_id));
+    }
+
+    #[test]
+    fn test_is_native_mirror_pair() {
+        let arc = AssetId::from_chain(Chain::Arc);
+
+        assert!(GemSwapper::is_native_mirror_pair(&arc, &ARC_USDC_ASSET_ID));
+        assert!(GemSwapper::is_native_mirror_pair(&ARC_USDC_ASSET_ID, &arc));
+        assert!(!GemSwapper::is_native_mirror_pair(&ARC_USDC_ASSET_ID, &ETHEREUM_USDC_ASSET_ID));
+        assert!(!GemSwapper::is_native_mirror_pair(&ARC_USDC_ASSET_ID, &AssetId::from_chain(Chain::Ethereum)));
     }
 
     #[tokio::test]
