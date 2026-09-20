@@ -53,6 +53,9 @@
 	<false/>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
+		<string>cydia</string>
+		<string>sileo</string>
+		<string>zbra</string>
 		<string>tg</string>
 		<string>twitter</string>
 		<string>youtube</string>

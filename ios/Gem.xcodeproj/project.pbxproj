@@ -11,6 +11,7 @@
 		0FF1CEBA22E20000000000B2 /* View+ConnectionStatusBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FF1CEBA22E20000000000B1 /* View+ConnectionStatusBanner.swift */; };
 		0FF1CEBA22E20000000000C2 /* ConnectionStatusService in Frameworks */ = {isa = PBXBuildFile; productRef = 0FF1CEBA22E20000000000C1 /* ConnectionStatusService */; };
 		67AEE2D03EB6F99C6ECF9527 /* AmountNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 032FCD1308A93D4A9B370F35 /* AmountNavigationView.swift */; };
+		91DACB70ABB24279B185ED94 /* JailbreakWarningView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C3FF13484BF43CA9894457A /* JailbreakWarningView.swift */; };
 		830FDA422C2236B6003DA605 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830FDA412C2236B6003DA605 /* MainTabView.swift */; };
 		830FDA452C224316003DA605 /* NavigationStateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830FDA442C224316003DA605 /* NavigationStateManager.swift */; };
 		830FDA482C22EEC4003DA605 /* TabItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 830FDA472C22EEC4003DA605 /* TabItem.swift */; };
@@ -169,6 +170,7 @@
 		0FF1CEBA22E20000000000B1 /* View+ConnectionStatusBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+ConnectionStatusBanner.swift"; sourceTree = "<group>"; };
 		5DC0640249B8491C060667E4 /* ScanReceiveViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanReceiveViewModel.swift; sourceTree = "<group>"; };
 		622C2DC81529966AD806581E /* ScanReceiveModeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanReceiveModeViewModel.swift; sourceTree = "<group>"; };
+		9C3FF13484BF43CA9894457A /* JailbreakWarningView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JailbreakWarningView.swift; sourceTree = "<group>"; };
 		830FDA412C2236B6003DA605 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		830FDA442C224316003DA605 /* NavigationStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationStateManager.swift; sourceTree = "<group>"; };
 		830FDA472C22EEC4003DA605 /* TabItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabItem.swift; sourceTree = "<group>"; };
@@ -625,6 +627,7 @@
 		D8148C292BF54B9C0066586A /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				9C3FF13484BF43CA9894457A /* JailbreakWarningView.swift */,
 				830FDA412C2236B6003DA605 /* MainTabView.swift */,
 				0FF1CEBA22E20000000000B1 /* View+ConnectionStatusBanner.swift */,
 			);
@@ -1007,6 +1010,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				91DACB70ABB24279B185ED94 /* JailbreakWarningView.swift in Sources */,
 				830FDA422C2236B6003DA605 /* MainTabView.swift in Sources */,
 				0FF1CEBA22E20000000000B2 /* View+ConnectionStatusBanner.swift in Sources */,
 				830FDA482C22EEC4003DA605 /* TabItem.swift in Sources */,

@@ -24,7 +24,11 @@ struct RootScene: View {
 
     var body: some View {
         VStack {
-            if let currentWallet = model.currentWallet {
+            if model.isPresentingRootWarning {
+                JailbreakWarningView {
+                    model.isPresentingRootWarning = false
+                }
+            } else if let currentWallet = model.currentWallet {
                 MainTabView(wallet: currentWallet)
                     .alertSheet($model.updateVersionAlertMessage)
             } else {

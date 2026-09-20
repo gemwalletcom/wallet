@@ -7,7 +7,6 @@ import protocol Gemstone.GemWalletSessionServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
 import Primitives
-import UIKit
 
 /// OnstartService runs services before the app starts.
 /// See OnstartAsyncService for any background tasks to run after start
@@ -31,7 +30,6 @@ public struct OnstartService: Sendable {
 
     @MainActor
     public func configure() {
-        validateDeviceSecurity()
         configureURLCache()
         do {
             try excludeDirectoriesFromBackup()
@@ -43,6 +41,21 @@ public struct OnstartService: Sendable {
 
         #if DEBUG
             configureScreenshots()
+        #endif
+    }
+
+    @MainActor
+    public func isDeviceCompromised() async -> Bool {
+        #if DEBUG || targetEnvironment(simulator)
+            return false
+        #else
+            if JailbreakChecks.hasJailbreakURLScheme() {
+                return true
+            }
+            return await Task.detached {
+                JailbreakChecks.hasSuspiciousPaths() || JailbreakChecks.canCreateFileOutsideSandbox() ||
+                    JailbreakChecks.hasInjectedLibraries() || JailbreakChecks.hasOpenFridaPort()
+            }.value
         #endif
     }
 
@@ -77,14 +90,6 @@ extension OnstartService {
             #if DEBUG
                 debugLog("Excluded backup directory: \(directory.directory)")
             #endif
-        }
-    }
-
-    @MainActor
-    private func validateDeviceSecurity() {
-        let device = UIDevice.current
-        if !device.isSimulator, device.isJailBroken || device.isFridaDetected {
-            fatalError()
         }
     }
 
